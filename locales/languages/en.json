@@ -364,6 +364,8 @@
     "verify_title": "Verify it’s you",
     "verify_description": "Choose a security method to recover your wallet.",
     "verify_with_passkey": "Verify with Passkey",
+    "verify_with_face_id": "Verify with Face ID",
+    "money_access_description": "Use your passkey or another method to access your Money account.",
     "get_verification_code": "Get a verification code",
     "google_account": "Google account",
     "choose_verification_method": "Choose how to verify",

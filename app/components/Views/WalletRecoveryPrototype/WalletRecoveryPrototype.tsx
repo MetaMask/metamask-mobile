@@ -282,6 +282,13 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 32,
   },
+  verificationSheetTitleWithDescription: {
+    marginBottom: 8,
+  },
+  verificationSheetDescription: {
+    textAlign: 'center',
+    marginBottom: 32,
+  },
   verificationDivider: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
@@ -559,6 +566,9 @@ const WalletRecoveryPrototype = () => {
   const [code, setCode] = useState('');
   const [phrase, setPhrase] = useState('');
   const faceIdPulse = useRef(new Animated.Value(0)).current;
+  const isSrpMoneyVerification =
+    verificationPurpose === 'money' &&
+    onboardingProgress?.[STEPPER_IDS.MONEY_RECOVERY_SOCIAL_LOGIN_WALLET] !== 1;
 
   const clearTimers = useCallback(() => {
     for (const timer of timersRef.current) {
@@ -813,12 +823,18 @@ const WalletRecoveryPrototype = () => {
     }
 
     const timers = timersRef.current;
-    const timer = schedule(() => setShowPasskeySheet(true), 200);
+    const timer = schedule(
+      () =>
+        isSrpMoneyVerification
+          ? setShowVerificationSheet(true)
+          : setShowPasskeySheet(true),
+      200,
+    );
     return () => {
       clearTimeout(timer);
       timers.delete(timer);
     };
-  }, [requestNativeWalletPasskey, schedule, stage]);
+  }, [isSrpMoneyVerification, requestNativeWalletPasskey, schedule, stage]);
 
   const usePasskey = useCallback(() => {
     clearTimers();
@@ -862,9 +878,14 @@ const WalletRecoveryPrototype = () => {
   const verifyWalletWithPasskey = useCallback(() => {
     verificationSheetRef.current?.onCloseBottomSheet(() => {
       setShowVerificationSheet(false);
+      if (verificationPurpose === 'money') {
+        setShowPasskeySheet(true);
+        usePasskey();
+        return;
+      }
       requestNativeWalletPasskey().catch(() => undefined);
     });
-  }, [requestNativeWalletPasskey]);
+  }, [requestNativeWalletPasskey, usePasskey, verificationPurpose]);
 
   const verifyWalletWithCode = useCallback(() => {
     verificationSheetRef.current?.onCloseBottomSheet(() => {
@@ -1418,10 +1439,29 @@ const WalletRecoveryPrototype = () => {
             <Text
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
-              style={styles.verificationSheetTitle}
+              style={[
+                styles.verificationSheetTitle,
+                verificationPurpose === 'money' &&
+                  styles.verificationSheetTitleWithDescription,
+              ]}
             >
               {strings('wallet_recovery_prototype.verify_title')}
             </Text>
+            {verificationPurpose === 'money' && (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={styles.verificationSheetDescription}
+              >
+                {strings('wallet_recovery_prototype.money_access_description')}{' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.PrimaryDefault}
+                >
+                  {strings('wallet_recovery_prototype.learn_more')}
+                </Text>
+              </Text>
+            )}
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
@@ -1431,7 +1471,11 @@ const WalletRecoveryPrototype = () => {
               testID={WalletRecoveryPrototypeTestIds.USE_PASSKEY}
               twClassName="bg-icon-default"
             >
-              {strings('wallet_recovery_prototype.verify_with_passkey')}
+              {strings(
+                isSrpMoneyVerification
+                  ? 'wallet_recovery_prototype.verify_with_face_id'
+                  : 'wallet_recovery_prototype.verify_with_passkey',
+              )}
             </Button>
             <Box
               flexDirection={BoxFlexDirection.Row}

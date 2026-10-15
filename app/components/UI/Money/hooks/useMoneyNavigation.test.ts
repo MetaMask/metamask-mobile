@@ -90,7 +90,7 @@ describe('useMoneyNavigation', () => {
       );
     });
 
-    it('skips recovery verification for an SRP wallet', () => {
+    it('requires recovery verification for an SRP wallet', () => {
       setupSelectorMocks({
         hasSeenOnboarding: true,
         isRecoveryVerificationPending: true,
@@ -101,11 +101,15 @@ describe('useMoneyNavigation', () => {
 
       act(() => result.current.navigateToMoneyHome());
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
       });
+      expect(mockNavigate).toHaveBeenNthCalledWith(
+        2,
+        Routes.ONBOARDING.RECOVERY_PROTOTYPE,
+        { initialStage: 'verifyMoney' },
+      );
     });
 
     it('navigates to onboarding when user has not seen onboarding and flag is enabled', () => {

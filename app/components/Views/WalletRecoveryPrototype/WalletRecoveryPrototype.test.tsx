@@ -213,11 +213,28 @@ describe('WalletRecoveryPrototype', () => {
   });
 
   it('opens Money after passkey verification', () => {
-    const { getByTestId, queryByTestId } = renderPrototype({
+    const { getByTestId, getByText, queryByTestId } = renderPrototype({
       initialStage: 'verifyMoney',
     });
 
     act(() => jest.advanceTimersByTime(200));
+    const verificationSheet = getByTestId(
+      WalletRecoveryPrototypeTestIds.VERIFICATION_SHEET,
+    );
+    expect(
+      within(verificationSheet).getByText('Verify with Face ID'),
+    ).toBeOnTheScreen();
+    expect(
+      within(verificationSheet).getByText(
+        /Use your passkey or another method to access your Money account\./,
+      ),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      within(verificationSheet).getByTestId(
+        WalletRecoveryPrototypeTestIds.USE_PASSKEY,
+      ),
+    );
+
     expect(queryByTestId(WalletRecoveryPrototypeTestIds.USE_SMS)).toBeNull();
 
     const passkeySheet = getByTestId(
@@ -226,23 +243,8 @@ describe('WalletRecoveryPrototype', () => {
     expect(
       within(passkeySheet).getByText('Sign in to Money account'),
     ).toBeOnTheScreen();
-    expect(within(passkeySheet).getByText('Learn more')).toBeOnTheScreen();
-    expect(within(passkeySheet).queryByText('or')).toBeNull();
-    expect(
-      within(passkeySheet).queryByTestId(
-        WalletRecoveryPrototypeTestIds.USE_PASSWORD,
-      ),
-    ).toBeNull();
-    expect(
-      within(passkeySheet).getByTestId(
-        WalletRecoveryPrototypeTestIds.USE_AUTHENTICATOR,
-      ),
-    ).toBeOnTheScreen();
-    fireEvent.press(
-      within(passkeySheet).getByTestId(
-        WalletRecoveryPrototypeTestIds.USE_PASSKEY,
-      ),
-    );
+    expect(within(passkeySheet).queryByText('Learn more')).toBeNull();
+    expect(within(passkeySheet).getByText('Signing in')).toBeOnTheScreen();
     act(() => jest.advanceTimersByTime(700));
     act(() => jest.advanceTimersByTime(700));
 
@@ -258,19 +260,16 @@ describe('WalletRecoveryPrototype', () => {
     );
   });
 
-  it('offers authenticator as a Money verification alternative', () => {
+  it('offers a verification code as a Money verification alternative', () => {
     const { getByTestId } = renderPrototype({
       initialStage: 'verifyMoney',
     });
 
     act(() => jest.advanceTimersByTime(200));
-    const passkeySheet = getByTestId(
-      WalletRecoveryPrototypeTestIds.PASSKEY_SHEET,
-    );
     fireEvent.press(
-      within(passkeySheet).getByTestId(
-        WalletRecoveryPrototypeTestIds.USE_AUTHENTICATOR,
-      ),
+      within(
+        getByTestId(WalletRecoveryPrototypeTestIds.VERIFICATION_SHEET),
+      ).getByTestId(WalletRecoveryPrototypeTestIds.GET_VERIFICATION_CODE),
     );
     fireEvent.changeText(
       getByTestId(WalletRecoveryPrototypeTestIds.CODE_INPUT),
