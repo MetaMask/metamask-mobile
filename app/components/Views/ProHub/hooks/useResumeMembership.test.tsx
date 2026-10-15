@@ -2,6 +2,7 @@ import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import {
+  CANCEL_TYPES,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
@@ -63,6 +64,7 @@ const subscription: Subscription = {
       tokenSymbol: 'USDC',
     },
   },
+  cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
 };
 

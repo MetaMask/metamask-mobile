@@ -1,4 +1,5 @@
 import {
+  CANCEL_TYPES,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
@@ -80,6 +81,7 @@ const createSubscription = (
       last4: '4242',
     },
   },
+  cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
   ...overrides,
 });
