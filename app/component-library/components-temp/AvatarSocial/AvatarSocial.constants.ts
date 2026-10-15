@@ -11,8 +11,3 @@ export const FOXICON_SIZE_BY_AVATARBASE_SIZE: Record<AvatarBaseSize, number> = {
   [AvatarBaseSize.Lg]: 40,
   [AvatarBaseSize.Xl]: 48,
 };
-
-/**
- * Mirrors AvatarBase's own default size.
- */
-export const DEFAULT_AVATARSOCIAL_SIZE = AvatarBaseSize.Md;

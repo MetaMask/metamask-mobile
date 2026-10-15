@@ -4,9 +4,8 @@ import { AvatarBaseSize } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 
 import { FoxiconVariant } from '../Foxicon';
-import AvatarSocial from './AvatarSocial';
+import AvatarSocial, { AvatarSocialSelectorsIDs } from './AvatarSocial';
 import { FOXICON_SIZE_BY_AVATARBASE_SIZE } from './AvatarSocial.constants';
-import { AvatarSocialSelectorsIDs } from './AvatarSocial.testIds';
 import { AvatarSocialBackgroundColor } from './AvatarSocial.types';
 
 describe('AvatarSocial', () => {

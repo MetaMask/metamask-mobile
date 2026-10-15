@@ -1,9 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
-import Foxicon from './Foxicon';
+import Foxicon, { FoxiconSelectorsIDs } from './Foxicon';
 import { assetByFoxiconVariant } from './Foxicon.assets';
-import { FoxiconSelectorsIDs } from './Foxicon.testIds';
 import { FoxiconVariant } from './Foxicon.types';
 
 describe('Foxicon', () => {

@@ -1,19 +1,23 @@
 import React from 'react';
-import { AvatarBase } from '@metamask/design-system-react-native';
+import {
+  AvatarBase,
+  AvatarBaseSize,
+} from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
 
 import Foxicon from '../Foxicon';
-import {
-  DEFAULT_AVATARSOCIAL_SIZE,
-  FOXICON_SIZE_BY_AVATARBASE_SIZE,
-} from './AvatarSocial.constants';
-import { AvatarSocialSelectorsIDs } from './AvatarSocial.testIds';
+import { FOXICON_SIZE_BY_AVATARBASE_SIZE } from './AvatarSocial.constants';
 import { AvatarSocialProps } from './AvatarSocial.types';
+
+export const AvatarSocialSelectorsIDs = {
+  CONTAINER: 'avatar-social',
+  FOX_ICON: 'avatar-social-fox-icon',
+} as const;
 
 const AvatarSocial = ({
   variant,
   backgroundColor,
-  size = DEFAULT_AVATARSOCIAL_SIZE,
+  size = AvatarBaseSize.Md,
   style,
   testID = AvatarSocialSelectorsIDs.CONTAINER,
   ...avatarBaseProps

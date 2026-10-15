@@ -1,8 +1,11 @@
 import React from 'react';
 
 import { assetByFoxiconVariant } from './Foxicon.assets';
-import { FoxiconSelectorsIDs } from './Foxicon.testIds';
 import { FoxiconProps } from './Foxicon.types';
+
+export const FoxiconSelectorsIDs = {
+  CONTAINER: 'foxicon',
+} as const;
 
 /**
  * Renders a MetaMask fox illustration for the given variant at a square size.
