@@ -40,8 +40,6 @@ const GasImpactModal = () => {
   const route =
     useRoute<RouteProp<{ params: GasImpactModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
-  // TODO: Remove dead code as we are not using the legacy confirmations anymore
-  const isStakingDepositRedesignedEnabled = true;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -52,16 +50,8 @@ const GasImpactModal = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const {
-    amountWei,
-    annualRewardRate,
-    annualRewardsFiat,
-    annualRewardsETH,
-    amountFiat,
-    estimatedGasFee,
-    estimatedGasFeePercentage,
-    chainId,
-  } = route.params;
+  const { amountWei, amountFiat, estimatedGasFee, estimatedGasFeePercentage } =
+    route.params;
 
   const metricsEvent = useCallback(
     (
@@ -100,46 +90,26 @@ const GasImpactModal = () => {
   const handleNavigateToStakeReviewScreen = useCallback(async () => {
     const amountWeiString = amountWei.toString();
 
-    if (isStakingDepositRedesignedEnabled) {
-      if (!attemptDepositTransaction) return;
+    if (!attemptDepositTransaction) return;
 
-      try {
-        await attemptDepositTransaction(
-          amountWeiString,
-          selectedAccount?.address as string,
-        );
-        navigate('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
+    try {
+      await attemptDepositTransaction(
+        amountWeiString,
+        selectedAccount?.address as string,
+      );
       navigate('StakeScreens', {
-        screen: Routes.STAKING.STAKE_CONFIRMATION,
-        params: {
-          amountWei: amountWeiString,
-          amountFiat,
-          annualRewardsETH,
-          annualRewardsFiat,
-          annualRewardRate,
-          chainId,
-        },
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
+    } catch (error) {
+      console.error(error);
     }
     metricsEvent(MetaMetricsEvents.STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED);
   }, [
     amountWei,
-    isStakingDepositRedesignedEnabled,
     metricsEvent,
     attemptDepositTransaction,
     selectedAccount?.address,
     navigate,
-    amountFiat,
-    annualRewardsETH,
-    annualRewardsFiat,
-    annualRewardRate,
-    chainId,
   ]);
 
   const footerButtons: ButtonProps[] = [

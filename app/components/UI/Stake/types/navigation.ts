@@ -6,25 +6,11 @@ export type StakeRedesignedConfirmationsParams =
   | (ConfirmationParams & { amountWei?: string; amountFiat?: string })
   | undefined;
 
-// `StakeScreens` native stack. Reward/chain fields are lenient supersets: Earn
-// passes `annualRewardsToken`, Stake reads `annualRewardsETH`; kept optional to
-// model current payloads without runtime changes.
+// `StakeScreens` native stack.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type StakeScreensStackParamList = {
   Stake: { token?: TokenI } | undefined;
   Unstake: { token?: TokenI } | undefined;
-  StakeConfirmation:
-    | {
-        amountWei?: string;
-        amountFiat?: string;
-        annualRewardsETH?: string;
-        annualRewardsToken?: string;
-        annualRewardsFiat?: string;
-        annualRewardRate?: string;
-        chainId?: string;
-      }
-    | undefined;
-  UnstakeConfirmation: { amountWei?: string; amountFiat?: string } | undefined;
   EarningsHistory: { asset: TokenI };
   RedesignedConfirmations: StakeRedesignedConfirmationsParams;
 };

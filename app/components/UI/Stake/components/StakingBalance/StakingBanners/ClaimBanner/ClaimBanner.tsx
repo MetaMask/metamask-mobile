@@ -57,8 +57,6 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { pooledStakesData } = usePooledStakes(chainId);
 
   const { isStakingSupportedChain } = useStakingChain();
-  // TODO: Remove dead code as we are not using the legacy confirmations anymore
-  const isStakingDepositRedesignedEnabled = true;
   const navigation = useNavigation<AppNavigationProp>();
 
   useFocusEffect(
@@ -82,54 +80,20 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
 
       setIsSubmittingClaimTransaction(true);
 
-      if (isStakingDepositRedesignedEnabled) {
-        // Here we add the transaction to the transaction controller. The
-        // redesigned confirmations architecture relies on the transaction
-        // metadata object being defined by the time the confirmation is displayed
-        // to the user.
-        await attemptPoolStakedClaimTransaction(
-          selectedAccount?.address,
-          pooledStakesData,
-        );
-        navigation.navigate('StakeScreens', {
-          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          params: {
-            amountWei: claimableAmount,
-          },
-        });
-        return;
-      }
-
-      const txRes = await attemptPoolStakedClaimTransaction(
+      // Here we add the transaction to the transaction controller. The
+      // redesigned confirmations architecture relies on the transaction
+      // metadata object being defined by the time the confirmation is displayed
+      // to the user.
+      await attemptPoolStakedClaimTransaction(
         selectedAccount?.address,
         pooledStakesData,
       );
-
-      const transactionId = txRes?.transactionMeta.id;
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionConfirmed',
-        () => {
-          setIsSubmittingClaimTransaction(false);
+      navigation.navigate('StakeScreens', {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        params: {
+          amountWei: claimableAmount,
         },
-        (transactionMeta) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionFailed',
-        () => {
-          setIsSubmittingClaimTransaction(false);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
-
-      Engine.controllerMessenger.subscribeOnceIf(
-        'TransactionController:transactionRejected',
-        () => {
-          setIsSubmittingClaimTransaction(false);
-        },
-        ({ transactionMeta }) => transactionMeta.id === transactionId,
-      );
+      });
     } catch (e) {
       setIsSubmittingClaimTransaction(false);
     }
@@ -140,7 +104,6 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
     createEventBuilder,
     trackEvent,
     claimableAmount,
-    isStakingDepositRedesignedEnabled,
     navigation,
   ]);
 

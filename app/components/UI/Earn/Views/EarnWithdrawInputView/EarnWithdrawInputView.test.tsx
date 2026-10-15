@@ -681,7 +681,11 @@ describe('EarnWithdrawInputView', () => {
 
       await flushPromises();
 
-      expect(mockAttemptUnstakeTransaction).toHaveBeenCalled();
+      expect(mockAttemptUnstakeTransaction).toHaveBeenCalledTimes(1);
+      expect(mockAttemptUnstakeTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+      );
       expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
         params: expect.objectContaining({
