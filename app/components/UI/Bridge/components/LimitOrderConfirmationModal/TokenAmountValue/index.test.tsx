@@ -1,4 +1,5 @@
 import React from 'react';
+import { FontWeight } from '@metamask/design-system-react-native';
 import { render } from '@testing-library/react-native';
 import { createMockTokenWithBalance } from '../../../testUtils';
 import { TokenAvatarSelectorsIDs } from '../TokenAvatar/testIds';
@@ -30,6 +31,24 @@ describe('TokenAmountValue', () => {
     expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
       '0.1 ETH',
     );
+  });
+
+  it('uses the requested font weight for the amount and symbol', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue
+        amount="0.1"
+        token={mockToken}
+        showTokenSymbol
+        fontWeight={FontWeight.Medium}
+      />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
+    expect(getByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
   });
 
   it('renders the token avatar when a token is provided', () => {

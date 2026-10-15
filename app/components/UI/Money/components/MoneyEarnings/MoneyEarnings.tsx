@@ -26,9 +26,9 @@ interface MoneyEarningsProps {
   last30DaysEarnings: string;
   /**
    * Interest earned since the Money Account position was created, formatted
-   * in USD.
+   * in USD. The lifetime row is hidden when undefined.
    */
-  sinceInceptionEarnings: string;
+  sinceInceptionEarnings?: string;
   /**
    * Render skeletons in place of the two earnings values while data is being
    * fetched.
@@ -147,34 +147,36 @@ const MoneyEarnings = ({
         )}
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="justify-between"
-        testID={MoneyEarningsTestIds.SINCE_INCEPTION}
-      >
-        <DottedInfoLabel
-          onPress={onLifetimeInfoPress}
-          accessibilityLabel={strings('money.earnings.lifetime_info_label')}
-          testID={MoneyEarningsTestIds.LIFETIME_LABEL}
+      {sinceInceptionEarnings !== undefined && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="justify-between"
+          testID={MoneyEarningsTestIds.SINCE_INCEPTION}
         >
-          {strings('money.earnings.estimated_lifetime')}
-        </DottedInfoLabel>
-        {isLoading ? (
-          <Skeleton
-            height={24}
-            width={80}
-            testID={MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON}
-          />
-        ) : (
-          <ValueText
-            testID={MoneyEarningsTestIds.SINCE_INCEPTION_VALUE}
-            privacyMode={privacyMode}
+          <DottedInfoLabel
+            onPress={onLifetimeInfoPress}
+            accessibilityLabel={strings('money.earnings.lifetime_info_label')}
+            testID={MoneyEarningsTestIds.LIFETIME_LABEL}
           >
-            {sinceInceptionEarnings}
-          </ValueText>
-        )}
-      </Box>
+            {strings('money.earnings.estimated_lifetime')}
+          </DottedInfoLabel>
+          {isLoading ? (
+            <Skeleton
+              height={24}
+              width={80}
+              testID={MoneyEarningsTestIds.SINCE_INCEPTION_SKELETON}
+            />
+          ) : (
+            <ValueText
+              testID={MoneyEarningsTestIds.SINCE_INCEPTION_VALUE}
+              privacyMode={privacyMode}
+            >
+              {sinceInceptionEarnings}
+            </ValueText>
+          )}
+        </Box>
+      )}
     </Box>
   </Box>
 );

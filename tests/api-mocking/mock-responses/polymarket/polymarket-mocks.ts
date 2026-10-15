@@ -2127,11 +2127,16 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
 
   // Mock CLOB API for cash-out order submission (fallback for direct CLOB calls)
   // Response uses decimal string format (not wei)
+  // Excludes /auth/ so POLYMARKET_CLOB_AUTH_MOCKS still issues API credentials;
+  // an order-shaped reply there leaves the HMAC secret empty.
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
       const urlParam = getProxiedDataApiUrl(request.url);
-      return Boolean(urlParam?.includes('clob.polymarket.com'));
+      return Boolean(
+        urlParam?.includes('clob.polymarket.com') &&
+          !urlParam.includes('/auth/'),
+      );
     })
     .asPriority(PRIORITY.API_OVERRIDE)
     .thenCallback(() => ({

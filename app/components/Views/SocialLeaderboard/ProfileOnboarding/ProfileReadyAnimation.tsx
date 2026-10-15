@@ -94,7 +94,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
 
   useEffect(() => {
     const preset = getProfileAvatarPreset(avatarPresetId);
-    if (!instance || preset?.kind !== 'image') return undefined;
+    if (!instance || !preset) return undefined;
     const uri = Image.resolveAssetSource(preset.source)?.uri;
     if (!uri) return undefined;
 
