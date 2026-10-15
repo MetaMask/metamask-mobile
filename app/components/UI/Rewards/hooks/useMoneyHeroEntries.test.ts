@@ -1,4 +1,7 @@
-import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type {
+  EarningsSummaryDto,
+  ReferralMeDto,
+} from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useEarningsSummary } from './useEarningsSummary';
 import { useMoneyHeroEntries } from './useMoneyHeroEntries';
@@ -13,10 +16,18 @@ const mockFetchReferralMe = jest.fn();
 const summary = { lifetime_total: '1' } as EarningsSummaryDto;
 
 const renderEntries = ({
-  referral = { loading: false, error: false, data: { roles: [] } },
+  referral = {
+    loading: false,
+    error: false,
+    data: { roles: [] } as ReferralMeDto,
+  },
   earnings = { loading: false, error: false, data: summary },
 }: {
-  referral?: { loading: boolean; error: boolean; data: unknown };
+  referral?: {
+    loading: boolean;
+    error: boolean;
+    data: ReferralMeDto | null;
+  };
   earnings?: {
     loading: boolean;
     error: boolean;
@@ -101,7 +112,11 @@ describe('useMoneyHeroEntries', () => {
 
   it('keeps cached data and skips the banner when a refresh fails', () => {
     const { result } = renderEntries({
-      referral: { loading: false, error: true, data: { roles: [] } },
+      referral: {
+        loading: false,
+        error: true,
+        data: { roles: [] } as ReferralMeDto,
+      },
       earnings: { loading: false, error: true, data: summary },
     });
 

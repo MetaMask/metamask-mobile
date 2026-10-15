@@ -651,7 +651,7 @@ describe('RewardsMoneyController', () => {
 
     it('shares one in-flight earnings summary per profile', async () => {
       let resolveSummary: (value: typeof mockSummary) => void = () => undefined;
-      mockMessenger.call.mockImplementation((action): any => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
           return sessionProfile(PROFILE_A);
         }
