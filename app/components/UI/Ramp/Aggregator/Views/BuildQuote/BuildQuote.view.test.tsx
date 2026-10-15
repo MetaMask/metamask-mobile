@@ -24,7 +24,7 @@ import {
 } from '../../../../../../../tests/component-view/presets/ramps';
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { AccountGroupType } from '@metamask/account-api';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import { RAMPS_OFF_RAMP_NON_EVM_FLAG_KEY } from '../../../../../../selectors/featureFlagController/offRampNonEvm';
 import type { RootState } from '../../../../../../reducers';
@@ -32,7 +32,9 @@ import type { DeepPartial } from '../../../../../../util/test/renderWithProvider
 
 const SOLANA_ONLY_ACCOUNT_NAME = 'Solana Account';
 const SOLANA_ONLY_ACCOUNT_ID = 'solana-only-account';
-const SOLANA_ONLY_GROUP_ID = 'snap:solana/0';
+const SOLANA_ONLY_GROUP_ID = 'entropy:wallet1/99';
+const MIXED_ACCOUNT_GROUP_NAME = 'Ethereum and Solana Account';
+const MIXED_ACCOUNT_GROUP_ID = 'entropy:wallet1/98';
 
 const solanaOnlyAccountState: DeepPartial<RootState> = {
   engine: {
@@ -41,10 +43,16 @@ const solanaOnlyAccountState: DeepPartial<RootState> = {
         accountTree: {
           wallets: {
             'entropy:wallet1': {
+              id: 'entropy:wallet1',
+              type: AccountWalletType.Entropy,
+              metadata: {
+                name: 'Wallet 1',
+                entropy: { id: 'entropy-source-1' },
+              },
               groups: {
                 [SOLANA_ONLY_GROUP_ID]: {
                   id: SOLANA_ONLY_GROUP_ID,
-                  type: AccountGroupType.SingleAccount,
+                  type: AccountGroupType.MultichainAccount,
                   accounts: [SOLANA_ONLY_ACCOUNT_ID],
                   metadata: {
                     name: SOLANA_ONLY_ACCOUNT_NAME,
@@ -72,6 +80,44 @@ const solanaOnlyAccountState: DeepPartial<RootState> = {
                 keyring: { type: 'snap' },
                 importTime: 1,
                 lastSelected: 1,
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const mixedAccountGroupState: DeepPartial<RootState> = {
+  ...solanaOnlyAccountState,
+  engine: {
+    backgroundState: {
+      ...solanaOnlyAccountState.engine?.backgroundState,
+      AccountTreeController: {
+        accountTree: {
+          wallets: {
+            'entropy:wallet1': {
+              id: 'entropy:wallet1',
+              type: AccountWalletType.Entropy,
+              metadata: {
+                name: 'Wallet 1',
+                entropy: { id: 'entropy-source-1' },
+              },
+              groups: {
+                [MIXED_ACCOUNT_GROUP_ID]: {
+                  id: MIXED_ACCOUNT_GROUP_ID,
+                  type: AccountGroupType.MultichainAccount,
+                  accounts: [
+                    MULTICHAIN_TEST_ACCOUNTS.account1.id,
+                    SOLANA_ONLY_ACCOUNT_ID,
+                  ],
+                  metadata: {
+                    name: MIXED_ACCOUNT_GROUP_NAME,
+                    pinned: false,
+                    hidden: false,
+                  },
+                },
               },
             },
           },
@@ -314,6 +360,21 @@ describe('Aggregator BuildQuote', () => {
         await findByText(MULTICHAIN_TEST_ACCOUNTS.account1.name),
       ).toBeOnTheScreen();
       expect(queryByText(SOLANA_ONLY_ACCOUNT_NAME)).not.toBeOnTheScreen();
+    });
+
+    it('shows a mixed EVM and Solana account group when the non-EVM flag is off', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        includeAccountSelector: true,
+        overrides: mixedAccountGroupState,
+      });
+      const { findByText, getByText, queryByText, getByTestId } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+      fireEvent.press(getByTestId(BuildQuoteSelectors.ACCOUNT_PICKER));
+
+      expect(await findByText(MIXED_ACCOUNT_GROUP_NAME)).toBeOnTheScreen();
     });
 
     it('shows a Solana-only account in the sell picker when the non-EVM flag is on', async () => {
