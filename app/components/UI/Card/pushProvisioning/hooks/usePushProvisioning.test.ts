@@ -270,7 +270,10 @@ describe('usePushProvisioning', () => {
       });
 
       await waitFor(() => {
-        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith('1234');
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledWith(
+          '1234',
+          undefined,
+        );
         expect(result.current.isCardInWallet).toBe(true);
         expect(result.current.canAddToWallet).toBe(false);
       });
