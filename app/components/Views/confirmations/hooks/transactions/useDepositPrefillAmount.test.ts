@@ -3,7 +3,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, type Json } from '@metamask/utils';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
@@ -228,7 +228,7 @@ function setupMocks(
 
 function runHook(options?: {
   autoSelectFiatPayment?: boolean;
-  stableTokens?: Record<string, unknown>;
+  stableTokens?: Record<string, Json>;
 }) {
   return renderHookWithProvider(
     () =>
