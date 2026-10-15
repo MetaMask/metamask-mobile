@@ -914,7 +914,7 @@ const CardHome = () => {
                 borderRadius={4}
               />
             )}
-            {Platform.OS === 'ios' && (
+            {Platform.OS === 'ios' && !isCardInWallet && (
               <Button
                 variant={ButtonVariant.Tertiary}
                 size={ButtonSize.Sm}

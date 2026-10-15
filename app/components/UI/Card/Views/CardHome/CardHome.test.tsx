@@ -2172,7 +2172,7 @@ describe('CardHome Component', () => {
     });
 
     it('hides the instructions while push eligibility is loading', () => {
-      mockUsePushProvisioning.mockReturnValueOnce({
+      mockUsePushProvisioning.mockReturnValue({
         initiateProvisioning: mockInitiateProvisioning,
         resetStatus: mockResetProvisioningStatus,
         status: 'idle' as const,
@@ -2419,6 +2419,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: true,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2430,8 +2433,32 @@ describe('CardHome Component', () => {
       expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
     });
 
+    it('hides learn more when the card is already on a device', () => {
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: [],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
+    });
+
     it('hides learn more when the card cannot be added to Apple Wallet', () => {
-      mockUsePushProvisioning.mockReturnValueOnce({
+      mockUsePushProvisioning.mockReturnValue({
         initiateProvisioning: mockInitiateProvisioning,
         resetStatus: mockResetProvisioningStatus,
         status: 'idle' as const,
@@ -2442,6 +2469,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
