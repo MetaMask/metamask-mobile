@@ -13,10 +13,11 @@ describe('config-registry util', () => {
   describe('getDefaultConfigRegistryControllerState', () => {
     it('returns default state with empty networks', () => {
       const state = getDefaultConfigRegistryControllerState();
-      expect(state.configs).toEqual({ networks: {} });
+      expect(state.configs).toEqual({ networks: {}, eventsConfig: null });
       expect(state.version).toBeNull();
       expect(state.lastFetched).toBeNull();
       expect(state.etag).toBeNull();
+      expect(state.eventsConfigEtag).toBeNull();
     });
   });
 

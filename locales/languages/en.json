@@ -1624,9 +1624,12 @@
       "username_available": "Username available · metamask.io/{{handle}}",
       "username_invalid": "Use letters, numbers, and hyphens.",
       "shuffle_username": "Suggest a username",
-      "pick_look": "Pick your look",
-      "camera": "Camera",
-      "photos": "Photos",
+      "customize_avatar": "Customize your avatar",
+      "avatar_background_peach": "Peach background",
+      "avatar_background_lilac": "Lilac background",
+      "avatar_background_sky": "Sky background",
+      "avatar_background_purple": "Purple background",
+      "avatar_background_lime": "Lime background",
       "link_account": "Link an account",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "share_trading_activity": "Share trading activity",
@@ -2891,6 +2894,7 @@
       "24h_low": "24h low",
       "24h_volume": "24h volume",
       "24h_vol": "24h vol",
+      "change_period_24h": "24h",
       "open_interest": "Open interest",
       "funding": "Funding",
       "funding_rate": "Funding rate",
@@ -3238,9 +3242,9 @@
       "dismiss": "Got it"
     },
     "sort": {
-      "volume": "Volume",
+      "volume": "Volume (24h)",
       "volume_short": "Vol",
-      "price_change": "Price change",
+      "price_change": "Price change (24h)",
       "funding_rate": "Funding rate",
       "funding_rate_short": "Funding",
       "open_interest": "Open interest",
@@ -5496,6 +5500,7 @@
           "page_navigation": "Impact — Page navigation",
           "slider_grip": "Impact — Slider grip",
           "tab_change": "Impact — Tab change",
+          "secondary_cta": "Impact — Secondary CTA",
           "primary_cta": "Impact — Primary CTA",
           "pull_to_refresh_engage": "Impact — Pull to refresh (engage)",
           "pull_to_refresh": "Impact — Pull to refresh (release)",
@@ -5743,8 +5748,10 @@
     "once_label": "Once",
     "moves_up": "When price moves up",
     "moves_down": "When price moves down",
+    "period_5m": "5min",
     "period_1h": "1hr",
     "period_24h": "24hr",
+    "period_5m_short": "5m",
     "period_1h_short": "1h",
     "period_24h_short": "24h",
     "moves_up_summary": "Moves up {{percent}}%",
@@ -8335,43 +8342,45 @@
     "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
   "mfa": {
-    "progress": "Step {{current}} of {{total}}",
     "method_email": "Email",
     "method_passkey": "Passkey",
     "intro": {
       "title": "Set up 2-step verification",
-      "description": "We’ll set up a few ways to confirm it’s you. You’ll use them to approve important actions, and if you lose access to one, you can use another.",
+      "description": "We’ll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
+      "passkey_description": "Confirm with your device or password manager",
+      "passkey_done": "Saved to this device",
+      "email_description": "Get a 6-digit code sent to your inbox",
       "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
-      "title": "Confirm with 2-step verification"
+      "title": "Confirm with 2-step verification",
+      "passkey": "Verify with Passkey",
+      "email_otp": "Get a verification code",
+      "or": "or"
     },
     "email_entry": {
-      "title": "Enter your email",
-      "description": "We'll send a verification code to this address.",
+      "title": "Verify your email",
+      "description": "We’ll use your email to verify your account and send you occasional account updates.",
       "placeholder": "Email address",
       "invalid": "Enter a valid email address.",
       "continue": "Continue"
     },
     "otp": {
-      "title": "Enter the code",
-      "description_with_email": "We sent a 6-digit code to {{email}}.",
-      "description": "We sent a 6-digit code to your email.",
+      "title": "Enter your verification code",
+      "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
+      "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
       "sending": "Sending code...",
       "send_in": "Sending a new code in {{seconds}}s",
       "resend": "Resend code",
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
-      "submit": "Verify"
+      "paste": "Paste",
+      "get_new_code": "Get new code"
     },
     "passkey": {
       "title_setup": "Create a passkey",
       "title_verify": "Use your passkey"
-    },
-    "success": {
-      "title": "You're all set",
-      "done": "Done"
     },
     "failure": {
       "title": "Something went wrong",
@@ -8379,7 +8388,7 @@
       "close": "Close"
     },
     "errors": {
-      "invalid_code": "That code is incorrect. Try again.",
+      "invalid_code": "That code isn’t right. Check it and try again.",
       "too_many_attempts": "Too many attempts. Request a new code.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
@@ -8390,10 +8399,11 @@
       "signed_out": "Sign in to continue.",
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "code_expired": "Your verification code expired, get a new code."
     },
     "settings": {
-      "title": "Verification methods",
+      "title": "2-step verification",
       "description": "Used to confirm it's you before sensitive actions.",
       "manage": "Manage",
       "email_linked": "Linked to your sign-in",
@@ -9382,7 +9392,8 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date"
+      "date": "Date",
+      "amount_unavailable": "Amount unavailable"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -9966,6 +9977,7 @@
     "orders": {
       "tabs": {
         "open_orders": "Open orders",
+        "open_orders_with_count": "Open orders ({{count}})",
         "history": "History"
       },
       "empty": {
@@ -12759,6 +12771,7 @@
     "lifetime_earnings": "Lifetime earnings",
     "money_balance": "{{apy}} APY on Money balance",
     "musd_back": "{{rate}} mUSD back",
+    "musd_back_locked": "Locked during free trial",
     "member_pricing": {
       "title": "Member pricing on trades",
       "allowance_currency": "${{amount}}",
@@ -12782,7 +12795,9 @@
     },
     "physical_card": {
       "title": "Get your free MetaMask Card",
-      "description": "Earn 3% mUSD back on purchases"
+      "description": "Earn 3% mUSD back on purchases",
+      "trial_title": "Unlock {{rate}} mUSD back",
+      "trial_description": "Unlock card when you complete your free trial"
     },
     "earned": {
       "total_label": "Earned since joining Pro",
@@ -12836,6 +12851,8 @@
     "join_pro": "Upgrade",
     "join_error": "We couldn't start your Pro membership. Try again.",
     "join_orange": "Join Orange",
+    "start_free_trial": "Start free trial",
+    "free_trial_description": "No commitment, cancel anytime",
     "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Orange",

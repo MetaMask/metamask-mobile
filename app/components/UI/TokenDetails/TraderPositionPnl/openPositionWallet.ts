@@ -7,6 +7,18 @@ import {
 import { anyScopesMatch } from '../../../hooks/useAccountGroupsForPermissions/utils';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 
+/** Contract or mint address inside a CAIP-19 asset id. */
+export const tokenAddressFromAsset = (
+  assetId: CaipAssetType | null | undefined,
+): string | undefined => {
+  if (!assetId) return undefined;
+  try {
+    return parseCaipAssetType(assetId).assetReference;
+  } catch {
+    return undefined;
+  }
+};
+
 /**
  * CAIP-2 chain of a CAIP-19 asset id, or `undefined` when the id is absent or
  * unparseable.

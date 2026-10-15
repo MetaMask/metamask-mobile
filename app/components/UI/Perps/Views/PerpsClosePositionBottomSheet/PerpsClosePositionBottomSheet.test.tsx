@@ -109,7 +109,7 @@ jest.mock(
   '../../components/LivePriceDisplay/LivePriceHeader',
   () => 'LivePriceHeader',
 );
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

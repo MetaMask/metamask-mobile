@@ -17,6 +17,7 @@ export const TokenAmountValue = ({
   withNetworkBadge,
   error,
   showTokenSymbol,
+  fontWeight,
 }: TokenAmountValueProps) => {
   const amountColor = error ? TextColor.ErrorDefault : TextColor.TextDefault;
   const avatar = token ? (
@@ -25,6 +26,7 @@ export const TokenAmountValue = ({
   const amountText = (
     <Text
       variant={TextVariant.BodyMd}
+      fontWeight={fontWeight}
       color={amountColor}
       twClassName="text-right"
       testID={TokenAmountValueSelectorsIDs.AMOUNT}
@@ -48,6 +50,7 @@ export const TokenAmountValue = ({
           {token ? (
             <Text
               variant={TextVariant.BodyMd}
+              fontWeight={fontWeight}
               color={amountColor}
               testID={TokenAmountValueSelectorsIDs.SYMBOL}
             >
