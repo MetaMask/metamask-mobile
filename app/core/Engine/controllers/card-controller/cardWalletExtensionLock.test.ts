@@ -9,12 +9,26 @@ describe('createNativeCardRefreshLock', () => {
     delete NativeModules.CardWalletExtensionStore;
   });
 
-  it('returns false on iOS when the native module is missing', async () => {
+  it('returns true on iOS when the native module is missing', async () => {
     Platform.OS = 'ios';
+
+    await expect(createNativeCardRefreshLock().acquire(1_000)).resolves.toBe(
+      true,
+    );
+  });
+
+  it('uses the native lock result when the module is present', async () => {
+    Platform.OS = 'ios';
+    NativeModules.CardWalletExtensionStore = {
+      acquireRefreshLock: jest.fn().mockResolvedValue(false),
+    };
 
     await expect(createNativeCardRefreshLock().acquire(1_000)).resolves.toBe(
       false,
     );
+    expect(
+      NativeModules.CardWalletExtensionStore.acquireRefreshLock,
+    ).toHaveBeenCalledWith(1_000);
   });
 
   it('returns true on Android when the native module is missing', async () => {

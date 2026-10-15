@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules } from 'react-native';
 
 export interface CardRefreshLock {
   acquire: (timeoutMs: number) => Promise<boolean>;
@@ -24,7 +24,9 @@ export function createNativeCardRefreshLock(): CardRefreshLock {
   return {
     async acquire(timeoutMs: number) {
       const acquire = nativeModule()?.acquireRefreshLock;
-      if (!acquire) return Platform.OS !== 'ios';
+      // The Wallet extensions ship in the same binary as this module. Without
+      // it there is no other process to coordinate with.
+      if (!acquire) return true;
       return acquire(timeoutMs);
     },
     async release() {

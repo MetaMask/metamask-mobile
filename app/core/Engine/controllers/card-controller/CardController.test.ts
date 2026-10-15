@@ -5837,6 +5837,36 @@ describe('CardController — data pass-throughs', () => {
       expect(immersve.getCardHomeData).not.toHaveBeenCalled();
       expect(result).toStrictEqual(onChainData);
     });
+
+    it('does not fall back to on-chain assets when a signed-in refresh cannot run', async () => {
+      const immersve = buildMockProvider({
+        id: 'immersve',
+        getOnChainAssets: undefined,
+      });
+      immersve.validateTokens.mockReturnValue('needs_refresh');
+      const baanx = buildMockProvider({ id: 'baanx' });
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+
+      const controller = new CardController({
+        cardService: buildMockCardService(),
+        messenger: buildMessengerWithEvmAccount(),
+        providers: { immersve, baanx },
+        refreshLock: {
+          acquire: jest.fn().mockResolvedValue(false),
+          release: jest.fn().mockResolvedValue(undefined),
+        },
+        state: {
+          activeProviderId: 'immersve',
+          isAuthenticated: true,
+        },
+      });
+
+      await expect(controller.getCardHomeData('0xabc')).rejects.toMatchObject({
+        code: CardProviderErrorCode.Timeout,
+      });
+      expect(baanx.getOnChainAssets).not.toHaveBeenCalled();
+      expect(controller.state.isAuthenticated).toBe(true);
+    });
   });
 });
 

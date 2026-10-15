@@ -1924,6 +1924,16 @@ export class CardController extends BaseController<
       );
     }
 
+    // A refresh that could not run (lock timeout, network) leaves the session
+    // in place. The on-chain fallback is for signed-out users, and for
+    // Immersve it borrows Baanx's Linea assets.
+    if (this.state.isAuthenticated) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Timeout,
+        'Card session refresh unavailable',
+      );
+    }
+
     const onChainProvider =
       provider.getOnChainAssets != null
         ? provider
