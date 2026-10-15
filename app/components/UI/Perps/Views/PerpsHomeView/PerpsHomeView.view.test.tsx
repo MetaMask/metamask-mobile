@@ -47,6 +47,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import {
+  SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_ERROR_TEST_ID,
+  SOCIAL_FEED_RETRY_TEST_ID,
+} from '../../../SocialFeed/components/SocialFeedStates.testIds';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 
 const TIMEOUT_MS = 5000;
 
@@ -740,6 +746,42 @@ describe('PerpsHomeView', () => {
       );
     });
 
+    it('opens the Social V1 home route from See more with the perps_home source', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      const { store } = renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      // shouldShowSocialLeaderboardOnboarding reads ReduxService.store directly.
+      const unwire = wirePerpsControllerForStore(store);
+      try {
+        await openTopTraders();
+        await screen.findByTestId(getTraderRowTestId(topFiveIds[0]));
+
+        fireEvent.press(
+          screen.getByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SEE_MORE),
+        );
+
+        const probe = await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.SOCIAL.V1),
+        );
+        expect(JSON.parse(probe.props.children as string)).toEqual({
+          source: 'perps_home',
+        });
+      } finally {
+        unwire();
+      }
+    });
+
     it('does not fetch or show the Social feed when Perps social is off', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
@@ -784,6 +826,45 @@ describe('PerpsHomeView', () => {
       expect(
         await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
       ).toBeOnTheScreen();
+    });
+
+    it('shows the Trending feed error state and recovers on retry', async () => {
+      setupLeaderboardApiMock({
+        perpsTraders,
+        feedItems,
+        feedFailuresBeforeSuccess: 1,
+      });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          SOCIAL_FEED_ERROR_TEST_ID,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
+
+      expect(
+        await screen.findByTestId(
+          `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getLeaderboardMessengerSpy().mock.calls.filter(
+          ([action]) => action === 'SocialService:fetchFeed',
+        ),
+      ).toHaveLength(2);
     });
 
     it('places the Social feed section above Explore crypto', async () => {
@@ -849,6 +930,108 @@ describe('PerpsHomeView', () => {
       );
     });
 
+    it('opens the owner profile from a Trending post when the viewer profile ID matches the author', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              ProfileController: {
+                profile: {
+                  profileId: feedItems[0].actor.profileId,
+                  username: 'viewer',
+                  displayName: 'Viewer',
+                  bio: '',
+                  linkedAddresses: [
+                    'eip155:1:0x9999999999999999999999999999999999999999',
+                  ],
+                  avatarUrl: '',
+                  tradingPrivacy: 'private',
+                  connectedToX: false,
+                  createdAt: '2026-01-01T00:00:00Z',
+                  updatedAt: '2026-01-01T00:00:00Z',
+                },
+              },
+            },
+          },
+        },
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1_PROFILE,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1_PROFILE,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      const [postId] = trendingPostIds;
+
+      fireEvent.press(
+        await screen.findByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${postId}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      const profileProbe = await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.SOCIAL.V1_PROFILE),
+      );
+      expect(profileProbe.props.children).toBeUndefined();
+    });
+
+    it('opens the owner profile from a Trending post when the viewer address matches the author', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              ProfileController: {
+                profile: {
+                  profileId: 'some-other-profile',
+                  username: 'viewer',
+                  displayName: 'Viewer',
+                  bio: '',
+                  linkedAddresses: [`eip155:1:${feedItems[0].actor.address}`],
+                  avatarUrl: '',
+                  tradingPrivacy: 'private',
+                  connectedToX: false,
+                  createdAt: '2026-01-01T00:00:00Z',
+                  updatedAt: '2026-01-01T00:00:00Z',
+                },
+              },
+            },
+          },
+        },
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1_PROFILE,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1_PROFILE,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      const [postId] = trendingPostIds;
+
+      fireEvent.press(
+        await screen.findByTestId(
+          `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${postId}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      const profileProbe = await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.SOCIAL.V1_PROFILE),
+      );
+      expect(profileProbe.props.children).toBeUndefined();
+    });
+
     it('opens the position sheet from a Trending post trade card', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
@@ -877,7 +1060,69 @@ describe('PerpsHomeView', () => {
         getRouteParamsProbeTestId(Routes.SOCIAL.POSITION_SHEET),
       );
       expect(JSON.parse(sheetProbe.props.children as string)).toEqual(
-        expect.objectContaining({ positionId: feedItems[0].positionId }),
+        expect.objectContaining({
+          positionId: feedItems[0].positionId,
+          isClosed: true,
+        }),
+      );
+    });
+
+    it('opens the position sheet with isClosed false for an open Trending post trade card', async () => {
+      const openFeedItem = mockPerpFeedItem({
+        positionId: 'perp-post-open',
+        timestamp: 1_700_000_600,
+        lastTradeAt: 1_700_000_600,
+        isOpen: true,
+        currentValueUSD: 60000,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            action: 'opened',
+            tokenAmount: 5,
+            usdCost: 50600,
+            timestamp: 1_700_000_600,
+            transactionHash: '0xopenhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      });
+      setupLeaderboardApiMock({
+        perpsTraders,
+        feedItems: [openFeedItem, ...feedItems],
+      });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.POSITION_SHEET,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.POSITION_SHEET,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      const openPostId = `${openFeedItem.positionId}-${openFeedItem.timestamp}`;
+
+      fireEvent.press(
+        await screen.findByTestId(
+          `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${openPostId}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+      const sheetProbe = await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.SOCIAL.POSITION_SHEET),
+      );
+      expect(JSON.parse(sheetProbe.props.children as string)).toEqual(
+        expect.objectContaining({
+          positionId: openFeedItem.positionId,
+          isClosed: false,
+        }),
       );
     });
 
@@ -914,6 +1159,104 @@ describe('PerpsHomeView', () => {
         source: 'perps_home',
         traderRank: 1,
       });
+    });
+
+    it('opens the owner profile from a trader row when the viewer profile ID matches the trader', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+      const [alpha] = mockLeaderboardTraders;
+
+      renderPerpsHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              ProfileController: {
+                profile: {
+                  profileId: alpha.profileId,
+                  username: 'viewer',
+                  displayName: 'Viewer',
+                  bio: '',
+                  linkedAddresses: [
+                    'eip155:1:0x8888888888888888888888888888888888888888',
+                  ],
+                  avatarUrl: '',
+                  tradingPrivacy: 'private',
+                  connectedToX: false,
+                  createdAt: '2026-01-01T00:00:00Z',
+                  updatedAt: '2026-01-01T00:00:00Z',
+                },
+              },
+            },
+          },
+        },
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1_PROFILE,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1_PROFILE,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      await openTopTraders();
+
+      fireEvent.press(
+        await screen.findByTestId(getTraderRowTestId(alpha.profileId)),
+      );
+
+      const probe = await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.SOCIAL.V1_PROFILE),
+      );
+      expect(probe.props.children).toBeUndefined();
+    });
+
+    it('opens the owner profile from a trader row when the viewer address matches the trader', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+      const [alpha] = mockLeaderboardTraders;
+
+      renderPerpsHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              ProfileController: {
+                profile: {
+                  profileId: 'some-other-trader',
+                  username: 'viewer',
+                  displayName: 'Viewer',
+                  bio: '',
+                  linkedAddresses: [`eip155:1:${alpha.addresses[0]}`],
+                  avatarUrl: '',
+                  tradingPrivacy: 'private',
+                  connectedToX: false,
+                  createdAt: '2026-01-01T00:00:00Z',
+                  updatedAt: '2026-01-01T00:00:00Z',
+                },
+              },
+            },
+          },
+        },
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1_PROFILE,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1_PROFILE,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      await openTopTraders();
+
+      fireEvent.press(
+        await screen.findByTestId(getTraderRowTestId(alpha.profileId)),
+      );
+
+      const probe = await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.SOCIAL.V1_PROFILE),
+      );
+      expect(probe.props.children).toBeUndefined();
     });
   });
 });
