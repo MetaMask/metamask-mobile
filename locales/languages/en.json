@@ -2889,6 +2889,7 @@
       "24h_low": "24h low",
       "24h_volume": "24h volume",
       "24h_vol": "24h vol",
+      "change_period_24h": "24h",
       "open_interest": "Open interest",
       "funding": "Funding",
       "funding_rate": "Funding rate",
@@ -3236,9 +3237,9 @@
       "dismiss": "Got it"
     },
     "sort": {
-      "volume": "Volume",
+      "volume": "Volume (24h)",
       "volume_short": "Vol",
-      "price_change": "Price change",
+      "price_change": "Price change (24h)",
       "funding_rate": "Funding rate",
       "funding_rate_short": "Funding",
       "open_interest": "Open interest",
