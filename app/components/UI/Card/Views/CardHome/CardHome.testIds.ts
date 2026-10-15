@@ -25,7 +25,6 @@ export const CardHomeSelectors = {
   VIEW_CARD_DETAILS_BUTTON: 'view-card-details-button',
   DIGITAL_WALLET_INSTRUCTIONS_ITEM: 'digital-wallet-instructions-item',
   VERIFICATION_PENDING_NOTICE: 'verification-pending-notice',
-  VERIFICATION_PENDING_OPEN_WALLET: 'verification-pending-open-wallet',
   APPLE_PAY_USAGE_ITEM: 'apple-pay-usage-item',
   APPLE_PAY_LEARN_MORE_BUTTON: 'apple-pay-learn-more-button',
   CARD_DETAILS_IMAGE: 'card-details-image',
