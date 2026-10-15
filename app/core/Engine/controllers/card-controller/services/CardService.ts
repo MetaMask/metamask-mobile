@@ -110,7 +110,8 @@ export class CardService {
     });
   }
 
-  async getCardLinks(bearerToken: string): Promise<CardLink[]> {
+  // null: the profile has links, but none this build can read.
+  async getCardLinks(bearerToken: string): Promise<CardLink[] | null> {
     const data = await this.request<unknown>({
       path: CARD_LINKS_PATH,
       method: 'GET',
@@ -124,7 +125,8 @@ export class CardService {
         'Expected an array of card links',
       );
     }
-    return data.flatMap((item) => toCardLink(item) ?? []);
+    const links = data.flatMap((item) => toCardLink(item) ?? []);
+    return links.length === 0 && data.length > 0 ? null : links;
   }
 
   async putCardLink(

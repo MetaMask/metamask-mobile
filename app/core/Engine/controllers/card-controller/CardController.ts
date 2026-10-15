@@ -95,6 +95,7 @@ import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import { latestByUpdatedAt } from './utils/cardLinks';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
 import {
   awaitTransactionConfirmed,
@@ -159,6 +160,11 @@ const bucketRedeemAmount = (amount: string): string => {
   if (n < 1000) return '100-1000';
   return '1000+';
 };
+
+interface CardLinkWriteFields {
+  address?: string;
+  providerCardholderId?: string;
+}
 
 const isValidCardLinkField = (value: string | undefined): value is string =>
   typeof value === 'string' &&
@@ -786,7 +792,7 @@ export class CardController extends BaseController<
   async #doFetchCardLinks(attempt = 0): Promise<void> {
     const generation = this.#cardLinksGeneration;
     const writeRevision = this.#cardLinksWriteRevision;
-    let links: CardLink[];
+    let links: CardLink[] | null;
     try {
       links = await this.#withCardLinkBearer((token) =>
         this.cardService.getCardLinks(token),
@@ -957,10 +963,7 @@ export class CardController extends BaseController<
   async #recordProviderMilestone(
     provider: CardProviderId,
     status: CardLinkWriteStatus,
-    {
-      address,
-      providerCardholderId,
-    }: { address?: string; providerCardholderId?: string },
+    { address, providerCardholderId }: CardLinkWriteFields,
     method: string,
   ): Promise<void> {
     const cardholderId =
@@ -1004,12 +1007,15 @@ export class CardController extends BaseController<
     provider: CardProviderId,
     phase: CardLinkWriteStatus,
   ): void {
-    (async () =>
-      this.recordProviderLogin({
-        provider,
-        phase,
-        address: this.#loginAccountForLinkedRef(provider),
-      }))().catch((error) =>
+    // Resolved when the queued write runs, so a seed ahead of it is visible.
+    this.#writeCardLink(
+      provider,
+      phase,
+      () => ({
+        address: this.#loginAccountForLinkedRef(provider) ?? undefined,
+      }),
+      'recordProviderLogin',
+    ).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card', provider },
         context: {
@@ -1034,14 +1040,16 @@ export class CardController extends BaseController<
       cardLinksFetchedAt !== null &&
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
     if (!linksAreFresh) return null;
-    const existing = cardLinks.find((l) => l.provider === provider);
+    const existing = latestByUpdatedAt(
+      cardLinks.filter((l) => l.provider === provider),
+    );
     return existing?.linkedAccountRef ? null : selected;
   }
 
   #writeCardLink(
     provider: CardProviderId,
     status: CardLinkWriteStatus,
-    fields: { address?: string; providerCardholderId?: string },
+    fields: CardLinkWriteFields | (() => CardLinkWriteFields),
     method: string,
   ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
     const generation = this.#cardLinksGeneration;
@@ -1057,10 +1065,7 @@ export class CardController extends BaseController<
   async #doWriteCardLink(
     provider: CardProviderId,
     status: CardLinkWriteStatus,
-    {
-      address,
-      providerCardholderId,
-    }: { address?: string; providerCardholderId?: string },
+    fields: CardLinkWriteFields | (() => CardLinkWriteFields),
     method: string,
     generation: number,
   ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
@@ -1068,6 +1073,8 @@ export class CardController extends BaseController<
       if (generation !== this.#cardLinksGeneration) return 'skipped';
       if (!this.#isCardLinkApiEnabled()) return 'skipped';
 
+      const { address, providerCardholderId } =
+        typeof fields === 'function' ? fields() : fields;
       const body: CardLinkWriteBody = { status };
       if (isValidCardLinkField(providerCardholderId)) {
         body.providerCardholderId = providerCardholderId;

@@ -6,6 +6,7 @@ import {
   type CaipChainId,
 } from '@metamask/utils';
 import { RootState } from '../reducers';
+import { latestByUpdatedAt } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
@@ -206,13 +207,6 @@ export const selectCardLinks = createSelector(
       ? (cardState?.cardLinks ?? null)
       : null,
 );
-
-const latestByUpdatedAt = (links: CardLink[]): CardLink | null =>
-  links.reduce<CardLink | null>(
-    (best, link) =>
-      best === null || link.updatedAt > best.updatedAt ? link : best,
-    null,
-  );
 
 /** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
 const selectRoutableCardLink = createSelector(

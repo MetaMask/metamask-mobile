@@ -587,6 +587,20 @@ describe('CardController card links', () => {
       expect(cardService.putCardLink).not.toHaveBeenCalled();
     });
 
+    it('does not seed, and reads again next time, when no stored link is readable', async () => {
+      const { controller, cardService } = setup({
+        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+      });
+      cardService.getCardLinks.mockResolvedValue(null);
+
+      await controller.fetchCardLinks();
+      await controller.fetchCardLinks();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      expect(cardService.getCardLinks).toHaveBeenCalledTimes(2);
+      expect(controller.state.cardLinks).toBeNull();
+    });
+
     it('seeds when the label arrives after an empty read', async () => {
       const { controller, cardService } = setup();
       await controller.fetchCardLinks();
@@ -818,6 +832,97 @@ describe('CardController card links', () => {
         state: {
           cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
           cardLinks: [link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) })],
+        },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'baanx',
+        { status: 'active' },
+        'token-1',
+      );
+    });
+
+    it('picks the login account when the write runs, so it cannot replace a seed ahead of it', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: { cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`] },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      jest.spyOn(CardTokenStore, 'get').mockResolvedValue(null);
+      let finishSeed!: (value: CardLink) => void;
+      cardService.putCardLink.mockImplementationOnce(
+        () =>
+          new Promise<CardLink>((resolve) => {
+            finishSeed = resolve;
+          }),
+      );
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      const seed = controller.fetchCardLinks();
+      await flush();
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: 'p',
+      });
+      finishSeed(link({ linkedAccountRef: refFor(CARDHOLDER_ADDRESS) }));
+      await seed;
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledTimes(2);
+      expect(cardService.putCardLink).toHaveBeenLastCalledWith(
+        'baanx',
+        { status: 'active' },
+        'token-1',
+      );
+    });
+
+    it('reads the newest row for the provider when deciding the login account', async () => {
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        state: {
+          cardholderAccounts: [`eip155:0:${CARDHOLDER_ADDRESS}`],
+          cardLinks: [
+            link({ updatedAt: '2026-09-01T00:00:00.000Z' }),
+            link({
+              updatedAt: '2026-09-02T00:00:00.000Z',
+              linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+            }),
+          ],
+          cardLinksFetchedAt: Date.now(),
         },
       });
       jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);

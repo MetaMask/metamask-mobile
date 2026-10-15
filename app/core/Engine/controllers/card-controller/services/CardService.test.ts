@@ -180,6 +180,25 @@ describe('CardService', () => {
       expect(result[0]).not.toHaveProperty('migration');
     });
 
+    it('returns an empty list for a profile without links', async () => {
+      mockRequest.mockResolvedValue({ data: [], status: 200 });
+
+      await expect(
+        createLinksService().getCardLinks('jwt'),
+      ).resolves.toStrictEqual([]);
+    });
+
+    it('returns null when the profile has rows but none this build can read', async () => {
+      mockRequest.mockResolvedValue({
+        data: [{ ...linkRow, provider: 'acme' }, 'not-a-row'],
+        status: 200,
+      });
+
+      await expect(
+        createLinksService().getCardLinks('jwt'),
+      ).resolves.toBeNull();
+    });
+
     it('rejects a GET body that is not a bare array', async () => {
       mockRequest.mockResolvedValue({
         data: { links: [linkRow] },
