@@ -26,6 +26,7 @@ import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrde
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 /* eslint-disable-next-line import-x/no-restricted-paths -- the page reuses the shared Activity Details footer */
 import { ActivityDetailsSelectorsIDs } from '../../../../Views/ActivityDetails/ActivityDetails.testIds';
+import { TokenAmountValueSelectorsIDs } from '../../components/LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivityPage.testIds';
 
 const {
@@ -416,6 +417,11 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
         await openActivityPage(order);
 
       expect(getByText(title)).toBeOnTheScreen();
+      expect(
+        within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+          TokenAmountValueSelectorsIDs.AMOUNT,
+        ),
+      ).toHaveStyle({ fontFamily: 'Inter-Medium' });
       expect(
         within(getByTestId(STATUS_ROW)).getByText(status),
       ).toBeOnTheScreen();
