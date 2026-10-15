@@ -16,8 +16,9 @@ import {
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -42,6 +43,7 @@ const LIMIT_PRESET_TEST_IDS = {
 const PerpsClosePositionBottomSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { fireImpact } = useHaptics();
 
   const dismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -116,9 +118,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   });
 
   const handleLimitPriceDone = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     limitPriceInput.trackInputMethod();
     setIsLimitPriceKeypadOpen(false);
-  }, [limitPriceInput]);
+  }, [limitPriceInput, fireImpact]);
 
   const handleOrderTypeChange = useCallback(
     (value: string) => {
@@ -145,15 +148,17 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [handleAmountPress, isEditingLimitPrice]);
 
   const handleLimitPriceRowPress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     handleDonePress();
     setIsLimitPriceKeypadOpen(true);
-  }, [handleDonePress]);
+  }, [handleDonePress, fireImpact]);
 
   // Two order types, so the header control swaps between them on tap rather
   // than opening a picker.
   const handleOrderTypeToggle = useCallback(() => {
+    fireImpact(ImpactMoment.TabChange);
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
-  }, [effectiveOrderType, handleOrderTypeChange]);
+  }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
   const handleMarginTooltipPress = useCallback(() => {
     setIsMarginInfoVisible(true);
@@ -175,25 +180,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
-
-  const footerMessages = useMemo(() => {
-    const needsLimitPrice =
-      effectiveOrderType === 'limit' &&
-      !hasLimitPriceValue &&
-      !isEditingLimitPrice;
-
-    return needsLimitPrice
-      ? [
-          ...displayedErrors,
-          strings('perps.order.validation.please_set_a_limit_price'),
-        ]
-      : displayedErrors;
-  }, [
-    displayedErrors,
-    effectiveOrderType,
-    hasLimitPriceValue,
-    isEditingLimitPrice,
-  ]);
+  const needsLimitPriceHint =
+    effectiveOrderType === 'limit' &&
+    !hasLimitPriceValue &&
+    !isEditingLimitPrice;
 
   if (isMarginInfoVisible) {
     return (
@@ -295,13 +285,20 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           {/* One BodySm line stays reserved so an error appearing while the
               user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
-            errors={footerMessages}
+            errors={displayedErrors}
             alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
           />
 
           <BottomSheetFooter
-            primaryButtonProps={confirmButtonProps}
+            primaryButtonProps={{
+              ...confirmButtonProps,
+              ...(needsLimitPriceHint && {
+                accessibilityHint: strings(
+                  'perps.order.validation.please_set_a_limit_price',
+                ),
+              }),
+            }}
             twClassName="pt-3"
           />
 
@@ -311,7 +308,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
+                <MembershipVipBadge />
               ) : null}
               <Text
                 variant={TextVariant.BodyXs}

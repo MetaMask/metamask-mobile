@@ -20,9 +20,12 @@ import {
   FontWeight,
   AvatarNetwork,
   AvatarNetworkSize,
+  Tag,
 } from '@metamask/design-system-react-native';
+import { KeyringAccountType } from '@metamask/keyring-api';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import type {
   CopyToastOptions,
   Icon,
@@ -31,6 +34,7 @@ import type {
 import {
   MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID,
+  MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_ADDRESS_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
@@ -40,12 +44,16 @@ const MultichainAddressRow = ({
   chainId,
   networkName,
   address,
+  accountType,
   icons,
   copyParams,
   testID = MULTICHAIN_ADDRESS_ROW_TEST_ID,
   ...viewProps
 }: MultichainAddressRowProps) => {
   const networkImageSource = getNetworkImageSource({ chainId });
+  const accountTypeLabel = accountType
+    ? ACCOUNT_TYPE_LABELS[accountType as KeyringAccountType]
+    : undefined;
   const truncatedAddress = useMemo(
     () => formatAddress(address, 'short'),
     [address],
@@ -132,15 +140,30 @@ const MultichainAddressRow = ({
         alignItems={BoxAlignItems.Start}
         twClassName="flex-1"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-          testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
         >
-          {networkName}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            twClassName="shrink"
+            testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
+          >
+            {networkName}
+          </Text>
+          {accountTypeLabel && (
+            <Tag
+              testID={MULTICHAIN_ADDRESS_ROW_ACCOUNT_TYPE_LABEL_TEST_ID}
+              twClassName="self-center"
+            >
+              {accountTypeLabel}
+            </Tag>
+          )}
+        </Box>
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}

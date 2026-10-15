@@ -454,6 +454,17 @@ describe('SocialPostComposerView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the position card when opened with an attached position', () => {
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.getByTestId('composer-position-preview')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    ).toBeNull();
+  });
+
   it('opens the share sheet from the Position chip', () => {
     renderWithProvider(<SocialPostComposerView />);
 
