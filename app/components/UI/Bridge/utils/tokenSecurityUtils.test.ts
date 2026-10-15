@@ -152,6 +152,15 @@ describe('tokenSecurityUtils', () => {
       expect(adaptTokenSecurityData(undefined)).toBeUndefined();
     });
 
+    it('returns undefined when input has no resultType', () => {
+      const bridgeShaped = {
+        type: SecurityDataType.Malicious,
+        metadata: { features: [] },
+      } as unknown as TokenSecurityData;
+
+      expect(adaptTokenSecurityData(bridgeShaped)).toBeUndefined();
+    });
+
     it.each([
       SecurityDataType.Verified,
       SecurityDataType.Benign,

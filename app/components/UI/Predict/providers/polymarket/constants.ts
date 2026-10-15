@@ -99,12 +99,14 @@ export const MATIC_CONTRACTS_V2: ContractConfig = {
 /**
  * Protocol V2 settles on a single ExchangeV3 — there is no separate neg-risk
  * exchange. Both slots carry ExchangeV3 so the order verifying contract is
- * ExchangeV3 regardless of negRisk.
+ * ExchangeV3 regardless of negRisk. The PositionManager owns the
+ * positions-protocol outcome balances.
  */
 export const MATIC_POSITIONS_PROTOCOL_CONTRACTS: PositionsProtocolContractConfig =
   {
     exchange: '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
     negRiskExchange: '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa',
+    positionManager: '0x006F54F7f9A22e0000CC2AB60031000000ae9fEF',
   };
 
 export const USDC_E_ADDRESS = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';

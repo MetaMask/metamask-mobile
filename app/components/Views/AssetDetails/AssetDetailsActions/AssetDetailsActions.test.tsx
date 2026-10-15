@@ -123,9 +123,9 @@ describe('AssetDetailsActions', () => {
     expect(queryAllByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toHaveLength(0);
   });
 
-  it('renders every button on glass when hasGlassButtons is set', () => {
+  it('renders every button on glass when isGlass is set', () => {
     const { getAllByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} hasGlassButtons />,
+      <AssetDetailsActions {...defaultProps} isGlass />,
       { state: initialRootState },
     );
 
