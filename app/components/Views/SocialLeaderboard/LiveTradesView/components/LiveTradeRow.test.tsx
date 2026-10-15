@@ -152,6 +152,9 @@ describe('LiveTradeRow', () => {
   });
 
   describe('closed trade', () => {
+    const closedAtMs = 1_700_000_000_000;
+    const now = closedAtMs + 30_000;
+
     const closedItem = (
       overrides: Partial<LiveTradeRowModel> = {},
     ): LiveTradeRowModel => ({
@@ -160,7 +163,7 @@ describe('LiveTradeRow', () => {
       valueLabel: '+$96.38',
       pnlLabel: '+38.2%',
       isPnlPositive: true,
-      closedAtMs: Date.now(),
+      closedAtMs,
       ...overrides,
     });
 
@@ -170,6 +173,7 @@ describe('LiveTradeRow', () => {
           item={closedItem()}
           onPositionPress={onPositionPress}
           onTraderPress={onTraderPress}
+          now={now}
         />,
       );
 
@@ -186,6 +190,7 @@ describe('LiveTradeRow', () => {
           item={closedItem({ isPnlPositive: true })}
           onPositionPress={onPositionPress}
           onTraderPress={onTraderPress}
+          now={now}
         />,
       );
 
@@ -198,6 +203,7 @@ describe('LiveTradeRow', () => {
           item={closedItem({ isPnlPositive: false })}
           onPositionPress={onPositionPress}
           onTraderPress={onTraderPress}
+          now={now}
         />,
       );
 

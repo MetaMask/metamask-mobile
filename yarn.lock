@@ -9868,7 +9868,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^12.1.0":
+"@metamask/core-backend@npm:^12.0.1, @metamask/core-backend@npm:^12.1.0":
   version: 12.1.0
   resolution: "@metamask/core-backend@npm:12.1.0"
   dependencies:
