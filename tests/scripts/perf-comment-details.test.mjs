@@ -6,6 +6,7 @@ import {
   buildApiRequestsSection,
   buildApiRequestsFullReport,
   describeFailure,
+  describeQualityGateViolations,
 } from './perf-comment-details.mjs';
 
 const profiling = {
@@ -197,4 +198,33 @@ test('describeFailure appends the first error line to the reason label', () => {
 test('describeFailure falls back to the label without a message', () => {
   assert.equal(describeFailure('Timed out', null), 'Timed out');
   assert.equal(describeFailure('Timed out', undefined), 'Timed out');
+});
+
+test('describeQualityGateViolations names each timer with its time and maximum', () => {
+  const result = describeQualityGateViolations({
+    violations: [
+      {
+        type: 'step',
+        stepIndex: 0,
+        stepName: 'time the asset view takes to load',
+        actual: 6500,
+        threshold: 4000,
+      },
+      { type: 'total', actual: 12000, threshold: 10000 },
+    ],
+  });
+
+  assert.equal(
+    result,
+    'Quality gates exceeded: "time the asset view takes to load" took 6500 ms > max of 4000 ms<br>Total duration was 12000 ms > max of 10000 ms',
+  );
+});
+
+test('describeQualityGateViolations returns null without usable violations', () => {
+  assert.equal(describeQualityGateViolations(null), null);
+  assert.equal(describeQualityGateViolations({ violations: [] }), null);
+  assert.equal(
+    describeQualityGateViolations({ violations: [{ type: 'step' }] }),
+    null,
+  );
 });

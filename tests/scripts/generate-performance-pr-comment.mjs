@@ -38,6 +38,7 @@ import {
   buildApiRequestsSection,
   buildApiRequestsFullReport,
   describeFailure,
+  describeQualityGateViolations,
 } from './perf-comment-details.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
@@ -406,12 +407,16 @@ async function main() {
               ? formatDevice(String(t.device))
               : t.platform;
 
-        const reason = describeFailure(
-          formatReason(t.failureReason),
-          t.failureReason === 'quality_gates_exceeded'
-            ? null
-            : t.failureMessage,
-        );
+        const reason =
+          (t.failureReason === 'quality_gates_exceeded'
+            ? describeQualityGateViolations(t.qualityGates)
+            : null) ??
+          describeFailure(
+            formatReason(t.failureReason),
+            t.failureReason === 'quality_gates_exceeded'
+              ? null
+              : t.failureMessage,
+          );
         const recording = formatRecordingLinks({
           recordingLink: t.recordingLink,
           sessionShareUrl: t.sessionShareUrl,

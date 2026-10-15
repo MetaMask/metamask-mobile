@@ -294,3 +294,27 @@ export function describeFailure(reasonLabel, message) {
       : message;
   return `${reasonLabel}: ${text}`;
 }
+
+/**
+ * Lists the timers that broke their threshold, e.g.
+ * `"Asset view loaded" took 6500 ms > max of 4000 ms`.
+ */
+export function describeQualityGateViolations(qualityGates) {
+  const violations = (qualityGates?.violations ?? []).filter(
+    (v) => typeof v?.actual === 'number' && typeof v?.threshold === 'number',
+  );
+  if (violations.length === 0) {
+    return null;
+  }
+
+  const lines = violations.map((v) => {
+    const subject =
+      v.type === 'total'
+        ? 'Total duration'
+        : `"${v.stepName ?? `Step ${(v.stepIndex ?? 0) + 1}`}"`;
+    const took = v.type === 'total' ? 'was' : 'took';
+    return `${subject} ${took} ${v.actual} ms > max of ${v.threshold} ms`;
+  });
+
+  return `Quality gates exceeded: ${lines.join('<br>')}`;
+}

@@ -129,6 +129,34 @@ test('warns in the header and lists failed scenarios', () => {
   assert.match(md, /Quality gates exceeded/);
 });
 
+test('names the timer that broke its threshold in the failed scenario row', () => {
+  const violation = {
+    type: 'step',
+    stepIndex: 0,
+    stepName: 'time the asset view takes to load',
+    actual: 6500,
+    threshold: 4000,
+  };
+  const summary = structuredClone(SUMMARY);
+  summary.failedTestsStats.failedTestsByTeam[
+    '@performance-team'
+  ].tests[0].qualityGates = {
+    passed: false,
+    hasThresholds: true,
+    violations: [violation],
+  };
+
+  const md = generateComment({
+    summary,
+    performanceResults: PERFORMANCE_RESULTS,
+  });
+
+  assert.match(
+    md,
+    /Quality gates exceeded: "time the asset view takes to load" took 6500 ms > max of 4000 ms/,
+  );
+});
+
 test('lists passed scenarios with their duration', () => {
   const md = generateComment({ performanceResults: PERFORMANCE_RESULTS });
 
