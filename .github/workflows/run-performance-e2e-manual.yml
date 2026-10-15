@@ -65,6 +65,11 @@ on:
         required: false
         type: boolean
         default: false
+      testmu_only:
+        description: 'Run Android performance specs on TestMu HyperExecute only (skips BrowserStack and iOS), like scheduled runs.'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -173,5 +178,6 @@ jobs:
       reuse_main_builds: ${{ needs.detect-changes.outputs.reuse_main_builds == 'true' && inputs.build_variant == 'e2e' }}
       source_fingerprint: ${{ inputs.source_fingerprint }}
       enable_testmu_hyperexecute: ${{ inputs.enable_testmu_hyperexecute }}
+      testmu_only: ${{ inputs.testmu_only }}
       collect_hermes_cpuprofiles: true
     secrets: inherit
