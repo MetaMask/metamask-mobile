@@ -1,15 +1,11 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
-import {
-  fireEvent,
-  render,
-  screen,
-  within,
-} from '@testing-library/react-native';
+import { Text } from 'react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { makeMutable } from 'react-native-reanimated';
 import { IconName } from '@metamask/design-system-react-native';
 import HeaderRootGlass from './HeaderRootGlass';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
+import { backdropFadeOpacity } from '../HeaderGlass/test-utils';
 
 jest.mock('../CapsuleGlass', () => {
   const { View } = jest.requireActual('react-native');
@@ -20,18 +16,6 @@ jest.mock('../CapsuleGlass', () => {
     ),
   };
 });
-
-const fadeOpacity = (target: ReturnType<typeof screen.getByTestId>) => {
-  let node = target.parent;
-  while (node) {
-    const opacity = StyleSheet.flatten(node.props.style)?.opacity;
-    if (opacity !== undefined) {
-      return opacity;
-    }
-    node = node.parent;
-  }
-  return undefined;
-};
 
 const endButtonIconProps = [
   { iconName: IconName.Search, onPress: jest.fn(), testID: 'search' },
@@ -80,7 +64,7 @@ describe('HeaderRootGlass', () => {
       <HeaderRootGlass title="Money" scrollY={makeMutable(offset)} />,
     );
 
-    expect(fadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(
+    expect(backdropFadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(
       opacity,
     );
   });
@@ -94,7 +78,9 @@ describe('HeaderRootGlass', () => {
       />,
     );
 
-    expect(fadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(1);
+    expect(backdropFadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(
+      1,
+    );
   });
 
   it('reports the floating header layout', () => {

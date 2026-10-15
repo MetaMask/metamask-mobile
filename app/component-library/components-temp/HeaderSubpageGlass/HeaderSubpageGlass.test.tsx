@@ -3,7 +3,9 @@ import { Text } from 'react-native';
 import { fireEvent, render, within } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import HeaderSubpageGlass from './HeaderSubpageGlass';
+import { makeMutable } from 'react-native-reanimated';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
+import { backdropFadeOpacity } from '../HeaderGlass/test-utils';
 
 jest.mock('../CapsuleGlass', () => {
   const { View } = jest.requireActual('react-native');
@@ -60,6 +62,19 @@ describe('HeaderSubpageGlass', () => {
     fireEvent.press(getByTestId('back'));
 
     expect(onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [0, 0],
+    [128, 1],
+  ])('fades the backdrop with scrollY at %ipx', (offset, opacity) => {
+    const { getByTestId } = render(
+      <HeaderSubpageGlass title="Ethereum" scrollY={makeMutable(offset)} />,
+    );
+
+    expect(backdropFadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(
+      opacity,
+    );
   });
 
   it('passes custom accessories through', () => {
