@@ -64,9 +64,31 @@ const MIN_GLIDE_MS = 280;
 const MAX_GLIDE_MS = 520;
 const GLIDE_MS_PER_EXTRA_STEP = 120;
 
+/**
+ * Fraction of a slot to travel before the next color counts as passed.
+ * Earlier than the snap, so the haptic lands while the color is still moving.
+ */
+const HAPTIC_CROSS_FRACTION = 0.35;
+
 const clampIndex = (index: number) => {
   'worklet';
   return Math.min(Math.max(index, 0), LAST_INDEX);
+};
+
+/**
+ * Index whose haptic should already have played. Moving forward, the next
+ * color counts once `HAPTIC_CROSS_FRACTION` of the slot is crossed.
+ */
+export const hapticBackgroundIndex = (
+  position: number,
+  previousPosition: number,
+): number => {
+  'worklet';
+  const lead = 1 - HAPTIC_CROSS_FRACTION;
+  if (position >= previousPosition) {
+    return clampIndex(Math.floor(position + lead));
+  }
+  return clampIndex(Math.ceil(position - lead));
 };
 
 /** Signed horizontal offset from the center for a slot distance. */
@@ -280,8 +302,10 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   const scrollX = useSharedValue(startIndex * SLOT_WIDTH);
   const glideX = useSharedValue(startIndex * SLOT_WIDTH);
   const isGliding = useSharedValue(false);
-  /** Last color a snap came to rest on; a haptic plays when it changes. */
-  const settledIndex = useSharedValue(targetIndex);
+  /** Last color that already played a pass haptic. */
+  const lastHapticIndex = useSharedValue(targetIndex);
+  /** Stays off during the entrance glide so that slide is silent. */
+  const hapticsArmed = useSharedValue(isLowTier);
   const hasPlayedIntro = useRef(isLowTier);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const preset = getProfileAvatarPreset(avatarPresetId);
@@ -302,9 +326,15 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   }, [playSelection]);
 
   const glideTo = useCallback(
-    (index: number, duration: number) => {
+    (index: number, duration: number, armHaptics: boolean) => {
       scheduleOnUI(() => {
         'worklet';
+        if (armHaptics) {
+          hapticsArmed.value = true;
+          lastHapticIndex.value = clampIndex(
+            Math.round(scrollX.value / SLOT_WIDTH),
+          );
+        }
         cancelAnimation(glideX);
         glideX.value = scrollX.value;
         isGliding.value = true;
@@ -314,12 +344,16 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
           (finished) => {
             if (finished) {
               isGliding.value = false;
+              hapticsArmed.value = true;
+              lastHapticIndex.value = clampIndex(
+                Math.round(scrollX.value / SLOT_WIDTH),
+              );
             }
           },
         );
       });
     },
-    [glideX, isGliding, scrollX],
+    [glideX, hapticsArmed, isGliding, lastHapticIndex, scrollX],
   );
 
   useAnimatedReaction(
@@ -336,20 +370,17 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
       return;
     }
     hasPlayedIntro.current = true;
-    glideTo(targetIndex, INTRO_GLIDE_MS);
+    glideTo(targetIndex, INTRO_GLIDE_MS, false);
   }, [glideTo, targetIndex, width]);
 
   const handleSwatchPress = useCallback(
     (index: number) => {
-      const steps = Math.abs(index - settledIndex.value);
-      if (steps > 0) {
-        settledIndex.value = index;
-        playSnapHaptic();
-      }
+      const from = clampIndex(Math.round(scrollX.value / SLOT_WIDTH));
+      const steps = Math.abs(index - from);
       selectIndex(index);
-      glideTo(index, glideDuration(steps));
+      glideTo(index, glideDuration(steps), true);
     },
-    [glideTo, playSnapHaptic, selectIndex, settledIndex],
+    [glideTo, scrollX, selectIndex],
   );
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -359,15 +390,32 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
     onBeginDrag: () => {
       cancelAnimation(glideX);
       isGliding.value = false;
-    },
-    onMomentumEnd: (event) => {
-      const index = clampIndex(Math.round(event.contentOffset.x / SLOT_WIDTH));
-      if (index !== settledIndex.value) {
-        settledIndex.value = index;
-        scheduleOnRN(playSnapHaptic);
-      }
+      hapticsArmed.value = true;
+      lastHapticIndex.value = clampIndex(
+        Math.round(scrollX.value / SLOT_WIDTH),
+      );
     },
   });
+
+  useAnimatedReaction(
+    () => scrollX.value / SLOT_WIDTH,
+    (position, previousPosition) => {
+      if (!hapticsArmed.value || previousPosition === null) {
+        return;
+      }
+      const index = hapticBackgroundIndex(position, previousPosition);
+      if (index === lastHapticIndex.value) {
+        return;
+      }
+      const step = index > lastHapticIndex.value ? 1 : -1;
+      let cursor = lastHapticIndex.value;
+      while (cursor !== index) {
+        cursor += step;
+        scheduleOnRN(playSnapHaptic);
+      }
+      lastHapticIndex.value = index;
+    },
+  );
 
   useAnimatedReaction(
     () => clampIndex(Math.round(scrollX.value / SLOT_WIDTH)),

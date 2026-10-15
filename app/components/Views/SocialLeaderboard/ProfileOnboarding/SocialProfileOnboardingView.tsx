@@ -102,32 +102,21 @@ const LIVE_ACTIVITY = [
   },
 ];
 
-const progressFill = (
-  step: ProfileOnboardingStep,
-): readonly (0 | 0.5 | 1)[] => {
-  switch (step) {
-    case 'intro':
-    case 'username':
-      return [1, 0, 0];
-    case 'avatar':
-      return [1, 1, 0];
-    case 'account':
-      return [1, 1, 0.5];
-    case 'ready':
-      return [1, 1, 1];
-    default:
-      return [0, 0, 0];
-  }
-};
+const PROGRESS_SEGMENT_COUNT = 4;
 
-const fillClassName = (fill: 0 | 0.5 | 1): string => {
-  if (fill === 1) {
-    return 'w-full';
+const progressFilledCount = (step: ProfileOnboardingStep): number => {
+  switch (step) {
+    case 'username':
+      return 1;
+    case 'avatar':
+      return 2;
+    case 'account':
+      return 3;
+    case 'ready':
+      return 4;
+    default:
+      return 0;
   }
-  if (fill === 0.5) {
-    return 'w-1/2';
-  }
-  return 'w-0';
 };
 
 /**
@@ -154,25 +143,36 @@ const OnboardingTitle: React.FC<{
 const OnboardingProgress: React.FC<{
   step: ProfileOnboardingStep;
   topInset: number;
-}> = ({ step, topInset }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    gap={1}
-    paddingHorizontal={4}
-    paddingBottom={4}
-    style={{ paddingTop: topInset + 8 }}
-    testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
-  >
-    {progressFill(step).map((fill, index) => (
-      <Box
-        key={`progress-${index}`}
-        twClassName="flex-1 h-1 rounded-full bg-muted overflow-hidden"
-      >
-        <Box twClassName={`h-full bg-icon-default ${fillClassName(fill)}`} />
-      </Box>
-    ))}
-  </Box>
-);
+}> = ({ step, topInset }) => {
+  const filledCount = progressFilledCount(step);
+  if (filledCount === 0) {
+    return null;
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      gap={1}
+      paddingHorizontal={4}
+      paddingBottom={4}
+      style={{ paddingTop: topInset + 8 }}
+      testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
+    >
+      {Array.from({ length: PROGRESS_SEGMENT_COUNT }, (_, index) => (
+        <Box
+          key={`progress-${index}`}
+          twClassName="flex-1 h-1 rounded-full bg-muted overflow-hidden"
+        >
+          <Box
+            twClassName={`h-full bg-icon-default ${
+              index < filledCount ? 'w-full' : 'w-0'
+            }`}
+          />
+        </Box>
+      ))}
+    </Box>
+  );
+};
 
 const LiveActivityFallback: React.FC = () => (
   <Box
@@ -398,6 +398,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [getXAuthorizationUrl]);
 
   const handleContinue = useCallback(async () => {
+    playSelection().catch(() => undefined);
     if (step !== 'username') {
       setStep((current) => {
         switch (current) {
@@ -432,7 +433,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkUsernameAvailability, draft.username, step]);
+  }, [checkUsernameAvailability, draft.username, playSelection, step]);
 
   const handleFinish = useCallback(async () => {
     setFinishError(null);
@@ -464,7 +465,11 @@ const SocialProfileOnboardingView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={SocialProfileOnboardingSelectorsIDs.CONTAINER}
     >
-      <OnboardingProgress step={step} topInset={insets.top} />
+      {step === 'intro' ? (
+        <Box style={{ paddingTop: insets.top }} />
+      ) : (
+        <OnboardingProgress step={step} topInset={insets.top} />
+      )}
       <HeaderStandard
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
@@ -519,7 +524,10 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Button
                   variant={ButtonVariant.Tertiary}
                   isFullWidth
-                  onPress={() => setStep('username')}
+                  onPress={() => {
+                    playSelection().catch(() => undefined);
+                    setStep('username');
+                  }}
                   testID={
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON
                   }
@@ -744,13 +752,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                         <Pressable
                           key={account.id}
                           accessibilityRole="button"
-                          onPress={() =>
+                          onPress={() => {
+                            playSelection().catch(() => undefined);
                             setDraft((current) => ({
                               ...current,
                               linkedAccountId: account.id,
                               linkedAccountAddress: account.address,
-                            }))
-                          }
+                            }));
+                          }}
                           testID={`${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
                         >
                           <Box
@@ -868,6 +877,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     displayName={draft.displayName}
                     handle={username}
                     avatarPresetId={draft.avatarPresetId}
+                    avatarBackgroundId={draft.avatarBackgroundId}
                     fallback={
                       <ReadyCardFallback
                         avatarPresetId={draft.avatarPresetId}

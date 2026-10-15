@@ -141,7 +141,10 @@ describe('SocialProfileOnboardingView', () => {
     );
     await continueFromUsername();
 
-    expect(screen.getByText('Customize your avatar')).toBeOnTheScreen();
+    expect(screen.getByText('Choose an avatar')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.PROGRESS),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_CAROUSEL,
@@ -157,6 +160,9 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.PROGRESS),
     ).not.toBeOnTheScreen();
   });
 

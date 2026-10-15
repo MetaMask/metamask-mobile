@@ -28,6 +28,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   READY_STEP: 'social-profile-onboarding-ready-step',
   READY_HANDLE: 'social-profile-onboarding-ready-handle',
   READY_ANIMATION: 'social-profile-onboarding-ready-animation',
+  READY_AVATAR: 'social-profile-onboarding-ready-avatar',
   READY_FALLBACK: 'social-profile-onboarding-ready-fallback',
   CONTINUE_BUTTON: 'social-profile-onboarding-continue-button',
   LETS_GO_BUTTON: 'social-profile-onboarding-lets-go-button',
