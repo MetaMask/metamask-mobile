@@ -60,6 +60,16 @@ jest.mock('./providers/browserstack/BrowserStackEnricher', () => ({
   })),
 }));
 
+jest.mock('./providers/testmu/TestMuAIEnricher', () => ({
+  TestMuAIEnricher: jest.fn().mockImplementation(() => ({
+    enrichSession: jest.fn().mockResolvedValue(undefined),
+    canHandle: jest.fn((projectName: string) =>
+      projectName.toLowerCase().includes('testmu'),
+    ),
+    getProviderName: jest.fn(() => 'testmu'),
+  })),
+}));
+
 jest.mock('./generators/HtmlReportGenerator', () => ({
   HtmlReportGenerator: jest.fn().mockImplementation(() => ({
     generate: jest.fn(() => '<html>report</html>'),
@@ -84,6 +94,8 @@ import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
 import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
+import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
+import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { clearQualityGateFailures } from '../framework/quality-gates';
 
 function makeTest(overrides: Record<string, unknown> = {}) {
@@ -143,6 +155,10 @@ describe('PerformanceReporter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps implementations: restore the fs defaults that
+    // individual tests override (a throwing write, a missing reports dir).
+    (fs.writeFileSync as jest.Mock).mockReset();
+    (fs.existsSync as jest.Mock).mockReset().mockReturnValue(true);
     reporter = new PerformanceReporter();
   });
 
@@ -619,6 +635,100 @@ describe('PerformanceReporter', () => {
 
       // Should not throw
       await expect(reporter.onEnd()).resolves.not.toThrow();
+    });
+
+    describe('TestMu runs', () => {
+      const TESTMU_PROJECT = 'testmu-android';
+      const SHARE_URL = 'https://appautomation.lambdatest.com/share/US_ABC123';
+
+      const recordTestMuTest = () => {
+        const result = makeResult({
+          attachments: [
+            makeSessionAttachment({ projectName: TESTMU_PROJECT }),
+            makeMetricsAttachment(),
+          ],
+        });
+        reporter.onTestEnd(
+          makeTest({
+            parent: { project: { name: TESTMU_PROJECT } },
+          }) as never,
+          result as never,
+        );
+      };
+
+      const writtenPaths = (): string[] =>
+        (fs.writeFileSync as jest.Mock).mock.calls.map(([filePath]) =>
+          String(filePath),
+        );
+
+      it('enriches the session with the TestMu enricher', async () => {
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        const enricher = (TestMuAIEnricher as unknown as jest.Mock).mock
+          .results[0].value;
+        expect(enricher.enrichSession).toHaveBeenCalledWith(
+          expect.objectContaining({ projectName: TESTMU_PROJECT }),
+        );
+      });
+
+      it('does not use the BrowserStack enricher', async () => {
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        expect(BrowserStackEnricher).not.toHaveBeenCalled();
+      });
+
+      it('writes HTML and CSV reports with a -testmu suffix for a TestMu device', async () => {
+        (DeviceInfoExtractor.extract as jest.Mock).mockReturnValueOnce({
+          name: 'Pixel 8 Pro',
+          osVersion: '14',
+          provider: 'testmu',
+        });
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        const paths = writtenPaths();
+        expect(
+          paths.some((p) => p.endsWith('.html') && p.includes('-testmu')),
+        ).toBe(true);
+        expect(
+          paths.some((p) => p.endsWith('.csv') && p.includes('-testmu')),
+        ).toBe(true);
+      });
+
+      it('leaves the -testmu suffix off for other providers', async () => {
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        expect(writtenPaths().some((p) => p.includes('-testmu'))).toBe(false);
+      });
+
+      it('copies the session share URL onto the metric passed to the JSON generator', async () => {
+        (TestMuAIEnricher as unknown as jest.Mock).mockImplementationOnce(
+          () => ({
+            enrichSession: jest.fn(
+              async (session: { sessionShareUrl?: string }) => {
+                session.sessionShareUrl = SHARE_URL;
+              },
+            ),
+            canHandle: jest.fn(() => true),
+            getProviderName: jest.fn(() => 'testmu'),
+          }),
+        );
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        const generate = (JsonReportGenerator as unknown as jest.Mock).mock
+          .results[0].value.generate;
+        const [reportData] = generate.mock.calls[0];
+        expect(reportData.metrics[0].sessionShareUrl).toBe(SHARE_URL);
+      });
     });
 
     it('does not enrich sessions for non-BrowserStack runs', async () => {

@@ -60,6 +60,27 @@ describe('TestMuAIEnricher', () => {
     getApiMock().getVideoURL.mockResolvedValue('https://video');
   });
 
+  describe('canHandle', () => {
+    it.each([
+      'testmu-android',
+      'testmu-android-onboarding-seedless',
+      'TestMu-iOS',
+    ])('accepts the TestMu project %s', (projectName) => {
+      const result = enricher.canHandle(projectName);
+
+      expect(result).toBe(true);
+    });
+
+    it.each(['browserstack-android', 'android-onboarding'])(
+      'rejects the non-TestMu project %s',
+      (projectName) => {
+        const result = enricher.canHandle(projectName);
+
+        expect(result).toBe(false);
+      },
+    );
+  });
+
   describe('app metrics', () => {
     it('maps the meta aggregates and series of the real appmetrics payload', async () => {
       getApiMock().getAppMetrics.mockResolvedValue({
