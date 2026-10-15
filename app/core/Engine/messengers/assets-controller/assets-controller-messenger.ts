@@ -37,6 +37,8 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
+  // core#10585: Snap keyring confirmations refresh balances when AccountActivity is down
+  'MultichainTransactionsController:transactionConfirmed',
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',

@@ -16,11 +16,13 @@ import { ImpactMoment, type HapticImpactMoment } from './catalog';
 export const IMPACT_STYLE_MAP: Record<HapticImpactMoment, ImpactFeedbackStyle> =
   {
     [ImpactMoment.QuickAmountSelection]: ImpactFeedbackStyle.Light,
+    [ImpactMoment.KeypadKey]: ImpactFeedbackStyle.Light,
     [ImpactMoment.SliderTick]: ImpactFeedbackStyle.Light,
     [ImpactMoment.EdgeGestureEngage]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PageNavigation]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.SliderGrip]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.TabChange]: ImpactFeedbackStyle.Medium,
+    [ImpactMoment.SecondaryCTA]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PrimaryCTA]: ImpactFeedbackStyle.Medium,
     [ImpactMoment.PullToRefreshEngage]: ImpactFeedbackStyle.Light,
     [ImpactMoment.PullToRefresh]: ImpactFeedbackStyle.Medium,

@@ -133,6 +133,7 @@ describe('LimitOrderConfirmationModal', () => {
     );
 
     expect(within(networkFeeRow).getByText('$1.69')).toBeOnTheScreen();
+    expect(within(networkFeeRow).getByText('ETH')).toBeOnTheScreen();
   });
 
   it('omits the network fee row while the upgrade fee is being estimated', () => {
@@ -163,6 +164,7 @@ describe('LimitOrderConfirmationModal', () => {
     );
 
     expect(within(networkFeeRow).getByText('--')).toBeOnTheScreen();
+    expect(within(networkFeeRow).queryByText('ETH')).toBeNull();
   });
 
   // An already delegated account pays nothing to place the order, so there is
@@ -266,6 +268,35 @@ describe('LimitOrderConfirmationModal', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL,
+    });
+  });
+
+  it('displays the account upgrade fee label', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    const networkFeeRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE,
+    );
+
+    expect(
+      within(networkFeeRow).getByText('Account upgrade fee'),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the account upgrade fee info sheet when the fee tooltip is pressed', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE_TOOLTIP),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
     });
   });
 

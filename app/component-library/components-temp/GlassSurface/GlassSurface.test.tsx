@@ -10,6 +10,9 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 
+const containerStyle = { marginTop: 8 };
+const contentStyle = { padding: 4 };
+
 describe('GlassSurface', () => {
   it('renders its children on the glass', () => {
     const { getByTestId, getByText } = render(
@@ -96,6 +99,63 @@ describe('GlassSurface', () => {
           ),
         ),
       );
+    });
+  });
+
+  describe('opaque surface', () => {
+    it('draws the muted surface in the same shape when glass is off', () => {
+      const { getByTestId, getByText } = render(
+        <GlassSurface isGlass={false} radiusClassName="rounded-xl" testID="s">
+          <Text>Content</Text>
+        </GlassSurface>,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+        borderRadius: 12,
+      });
+      expect(getByText('Content')).toBeOnTheScreen();
+    });
+
+    it('keeps the glass-only sheen and touch response off', () => {
+      const { getByTestId, queryByTestId } = render(
+        <GlassSurface
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          isInteractive
+          hasSheen
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s').props.isInteractive).toBeUndefined();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('applies both the container and content styles to its one view', () => {
+      const { getByTestId } = render(
+        <GlassSurface
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          containerStyle={containerStyle}
+          style={contentStyle}
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({ marginTop: 8, padding: 4 });
+    });
+
+    it('does not clip its content', () => {
+      const { getByTestId } = render(
+        <GlassSurface
+          isGlass={false}
+          radiusClassName="rounded-xl"
+          testID="s"
+        />,
+      );
+
+      expect(getByTestId('s')).not.toHaveStyle({ overflow: 'hidden' });
     });
   });
 });
