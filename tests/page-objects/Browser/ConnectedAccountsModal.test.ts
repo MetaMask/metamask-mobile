@@ -21,6 +21,7 @@ jest.mock('../../framework/Gestures', () => ({
   },
 }));
 
+import type { AppiumElement } from '../../framework';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import ConnectedAccountsModal from './ConnectedAccountsModal';
@@ -28,19 +29,25 @@ import ConnectedAccountsModal from './ConnectedAccountsModal';
 const EDIT_ACCOUNTS_ID = 'account-list-bottom-sheet';
 const DISCONNECT_ALL_ID = 'disconnect_all';
 
-const editAccountsSentinel = { id: EDIT_ACCOUNTS_ID };
-const disconnectAllSentinel = { id: DISCONNECT_ALL_ID };
+const editAccountsSentinel = {
+  id: EDIT_ACCOUNTS_ID,
+} as unknown as AppiumElement;
+const disconnectAllSentinel = {
+  id: DISCONNECT_ALL_ID,
+} as unknown as AppiumElement;
 
 describe('ConnectedAccountsModal account summary', () => {
   beforeEach(() => {
-    jest.mocked(Matchers.getElementByID).mockImplementation((id: string) => {
-      if (id === EDIT_ACCOUNTS_ID) {
-        return editAccountsSentinel;
+    jest.mocked(Matchers.getElementByID).mockImplementation((elementId) => {
+      if (elementId === EDIT_ACCOUNTS_ID) {
+        return Promise.resolve(editAccountsSentinel);
       }
-      if (id === DISCONNECT_ALL_ID) {
-        return disconnectAllSentinel;
+      if (elementId === DISCONNECT_ALL_ID) {
+        return Promise.resolve(disconnectAllSentinel);
       }
-      return { id };
+      return Promise.resolve({
+        id: String(elementId),
+      } as unknown as AppiumElement);
     });
     jest.mocked(Assertions.expectElementToBeVisible).mockResolvedValue();
     jest.mocked(Assertions.expectTextDisplayed).mockResolvedValue();
@@ -54,37 +61,37 @@ describe('ConnectedAccountsModal account summary', () => {
     it('waits for edit accounts and then disconnect all with the default timeout', async () => {
       await ConnectedAccountsModal.waitForAccountsSummaryReady();
 
-      expect(Assertions.expectElementToBeVisible).toHaveBeenNthCalledWith(
-        1,
+      const calls = jest.mocked(Assertions.expectElementToBeVisible).mock.calls;
+
+      await expect(Promise.resolve(calls[0][0])).resolves.toBe(
         editAccountsSentinel,
-        {
-          timeout: 20000,
-          description: 'Edit accounts control on the connected accounts sheet',
-        },
       );
-      expect(Assertions.expectElementToBeVisible).toHaveBeenNthCalledWith(
-        2,
+      expect(calls[0][1]).toEqual({
+        timeout: 20000,
+        description: 'Edit accounts control on the connected accounts sheet',
+      });
+      await expect(Promise.resolve(calls[1][0])).resolves.toBe(
         disconnectAllSentinel,
-        {
-          timeout: 20000,
-          description: 'Disconnect all accounts and networks control',
-        },
       );
+      expect(calls[1][1]).toEqual({
+        timeout: 20000,
+        description: 'Disconnect all accounts and networks control',
+      });
     });
 
     it('passes a custom timeout to both visibility checks', async () => {
       await ConnectedAccountsModal.waitForAccountsSummaryReady(5000);
 
-      expect(Assertions.expectElementToBeVisible).toHaveBeenNthCalledWith(
-        1,
+      const calls = jest.mocked(Assertions.expectElementToBeVisible).mock.calls;
+
+      await expect(Promise.resolve(calls[0][0])).resolves.toBe(
         editAccountsSentinel,
-        expect.objectContaining({ timeout: 5000 }),
       );
-      expect(Assertions.expectElementToBeVisible).toHaveBeenNthCalledWith(
-        2,
+      expect(calls[0][1]).toEqual(expect.objectContaining({ timeout: 5000 }));
+      await expect(Promise.resolve(calls[1][0])).resolves.toBe(
         disconnectAllSentinel,
-        expect.objectContaining({ timeout: 5000 }),
       );
+      expect(calls[1][1]).toEqual(expect.objectContaining({ timeout: 5000 }));
     });
 
     it('does not query disconnect all when edit accounts is not visible', async () => {

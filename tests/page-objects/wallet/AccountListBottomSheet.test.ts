@@ -48,14 +48,20 @@ describe('AccountListBottomSheet account creation visibility', () => {
   });
 
   describe('addAccountAndExpectVisibleV2', () => {
-    let getAccountElementsByAccountNameV2: jest.SpiedFunction<
-      AccountListBottomSheet['getAccountElementsByAccountNameV2']
+    let getAccountElementsByAccountNameV2: jest.SpyInstance<
+      Promise<AppiumElement[]>,
+      [accountName: string, exactMatch?: boolean]
     >;
-    let tapAddAccountButtonV2: jest.SpiedFunction<
-      AccountListBottomSheet['tapAddAccountButtonV2']
+    let tapAddAccountButtonV2: jest.SpyInstance<
+      Promise<void>,
+      [options?: { srpIndex?: number; shouldWait?: boolean }]
     >;
-    let expectAccountVisibleByNameV2: jest.SpiedFunction<
-      AccountListBottomSheet['expectAccountVisibleByNameV2']
+    let expectAccountVisibleByNameV2: jest.SpyInstance<
+      Promise<void>,
+      [
+        accountName: string,
+        options?: { description?: string; timeout?: number },
+      ]
     >;
 
     beforeEach(() => {
