@@ -70,6 +70,7 @@ describe('Predict fee policy', () => {
     ],
     ['the builder code is missing', { builderCode: null }],
     ['the builder code is blank', { builderCode: '  ' }],
+    ['the remaining count is not an integer', { remainingTxCount: 1.5 }],
   ])('does not resolve a policy when %s', (_reason, overrides) => {
     expect(
       resolvePredictFeePolicy({

@@ -237,6 +237,31 @@ describe('orders utils', () => {
       });
     });
 
+    it('builds only the effective breakdown when a membership preview has no standard fees', () => {
+      expect(
+        buildPredictFeeBreakdowns({
+          preview: {
+            ...preview,
+            feePolicy: {
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            },
+          },
+          side: Side.BUY,
+          order: 10,
+          metamaskFee: 0,
+          total: 10.23,
+        }),
+      ).toEqual({
+        feeBreakdown: {
+          order: 10,
+          metamaskFee: 0,
+          exchangeFee: 0.23,
+          total: 10.23,
+        },
+      });
+    });
+
     it('builds only the effective breakdown for a standard preview', () => {
       expect(
         buildPredictFeeBreakdowns({
