@@ -44,6 +44,7 @@ const MarketingMomentContent = ({
   children,
   childrenWrapperAnimatedViewProps,
   artwork,
+  artworkWrapperProps,
   primaryAction,
   secondaryAction,
   background,
@@ -54,6 +55,9 @@ const MarketingMomentContent = ({
     primaryAction ?? ({} as Partial<MarketingMomentAction>);
   const { label: secondaryLabel, ...secondaryButtonProps } =
     secondaryAction ?? ({} as Partial<MarketingMomentAction>);
+  const artworkBoxProps = artworkWrapperProps ?? {};
+  const { className: _artworkClassName, ...artworkBoxSpreadProps } =
+    artworkBoxProps;
 
   return (
     <Box
@@ -133,8 +137,11 @@ const MarketingMomentContent = ({
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               paddingHorizontal={6}
-              twClassName="min-h-0 w-full flex-1 overflow-hidden"
               testID={MarketingMomentSelectorsIDs.ARTWORK}
+              {...artworkBoxSpreadProps}
+              twClassName={`min-h-0 w-full flex-1 overflow-hidden${
+                artworkBoxProps.className ? ` ${artworkBoxProps.className}` : ''
+              }`}
             >
               {artwork}
             </Box>
