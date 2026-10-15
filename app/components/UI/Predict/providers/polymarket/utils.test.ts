@@ -4140,6 +4140,33 @@ describe('parsePolymarketMarket market version', () => {
       'ctf-no',
     ]);
   });
+
+  it('keeps clobTokenIds for v1 markets even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v1',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ positionIds: '["pos-yes","pos-no"]' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
 });
 
 describe('calculateFees', () => {
