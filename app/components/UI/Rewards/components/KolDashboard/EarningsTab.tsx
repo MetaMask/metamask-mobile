@@ -14,9 +14,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  IconColor,
+  IconName,
+  IconSize,
   SectionDivider,
   SectionHeader,
   Text,
@@ -41,6 +46,7 @@ import {
   useIsClaimsPaused,
 } from './rewardsClaimStore';
 import { KOL_DASHBOARD_SELECTORS } from './KolDashboard.testIds';
+import BalanceBreakdownSheet from './BalanceBreakdownSheet';
 import ClaimMoneyFallOverlay from './ClaimMoneyFallOverlay';
 import ClaimOnHoldSheet from './ClaimOnHoldSheet';
 import ClaimsPausedSheet from './ClaimsPausedSheet';
@@ -94,6 +100,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const isClaimsPaused = useIsClaimsPaused();
   const [isOnHoldSheetVisible, setIsOnHoldSheetVisible] = useState(false);
   const [isPausedSheetVisible, setIsPausedSheetVisible] = useState(false);
+  const [isBalanceBreakdownVisible, setIsBalanceBreakdownVisible] =
+    useState(false);
   const [isFalling, setIsFalling] = useState(false);
   // The store drops to zero the moment a claim starts, so the rolling digits
   // read from local state until they land on the same value.
@@ -283,6 +291,10 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
         isVisible={isPausedSheetVisible}
         onClose={() => setIsPausedSheetVisible(false)}
       />
+      <BalanceBreakdownSheet
+        isVisible={isBalanceBreakdownVisible}
+        onClose={() => setIsBalanceBreakdownVisible(false)}
+      />
       <Box twClassName="px-4">
         <Box twClassName="overflow-hidden rounded-2xl bg-muted">
           <Box
@@ -299,14 +311,35 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               >
                 {availableLabel}
               </Text>
-              <Animated.View style={amountAnimatedStyle}>
-                <Text
-                  variant={TextVariant.HeadingLg}
-                  testID={KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM}
-                >
-                  {formatUsd(available)}
-                </Text>
-              </Animated.View>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+              >
+                <Animated.View style={amountAnimatedStyle}>
+                  <Text
+                    variant={TextVariant.HeadingLg}
+                    testID={KOL_DASHBOARD_SELECTORS.AVAILABLE_TO_CLAIM}
+                  >
+                    {formatUsd(available)}
+                  </Text>
+                </Animated.View>
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{
+                    color: IconColor.IconAlternative,
+                    size: IconSize.Md,
+                  }}
+                  size={ButtonIconSize.Md}
+                  // Offsets the 6px inset between the 32px button and 20px
+                  // glyph so the mark sits tight against the balance.
+                  twClassName="-mr-1.5"
+                  onPress={() => setIsBalanceBreakdownVisible(true)}
+                  accessibilityLabel={strings(
+                    'rewards.kol.claims_breakdown_title',
+                  )}
+                  testID={KOL_DASHBOARD_SELECTORS.BALANCE_BREAKDOWN_INFO}
+                />
+              </Box>
             </Box>
             {/* Button applies `self-start` unless it is full width, which would
                 override the row's centering, so it is wrapped to stay centered. */}

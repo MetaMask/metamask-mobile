@@ -193,6 +193,28 @@ describe('EarningsTab', () => {
     ).toBeNull();
   });
 
+  it('opens the balance breakdown sheet from the info button beside the balance', () => {
+    const { getByTestId, queryByTestId } = render(<EarningsTab />);
+
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.BALANCE_BREAKDOWN_SHEET),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(KOL_DASHBOARD_SELECTORS.BALANCE_BREAKDOWN_INFO),
+    );
+
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.BALANCE_BREAKDOWN_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(KOL_DASHBOARD_SELECTORS.BALANCE_BREAKDOWN_TITLE),
+    ).toHaveTextContent('rewards.kol.claims_breakdown_title');
+    expect(
+      queryByTestId(KOL_DASHBOARD_SELECTORS.CLAIMS_PAUSED_SHEET),
+    ).toBeNull();
+  });
+
   it('opens the residency sheet when Claim is pressed', () => {
     const { getByTestId, queryByTestId } = render(<EarningsTab />);
 
