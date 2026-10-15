@@ -30,6 +30,7 @@ export const profileControllerToMySocialProfile = (
   bio: profile.bio || null,
   imageUrl: profile.avatarUrl || null,
   avatarPresetId: null,
+  avatarBackgroundId: null,
   rankingTag: null,
   xHandle: profile.connectedToX ? (xProfile?.username ?? null) : null,
   followerCount: null,

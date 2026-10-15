@@ -2014,6 +2014,150 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('shows Add again when the Apple pass is gone after success', async () => {
+      mockWalletAdapter.getEligibility
+        .mockResolvedValueOnce({
+          isAvailable: true,
+          canAddCard: true,
+        })
+        .mockResolvedValueOnce(cardInWallet);
+      mockInitiateProvisioning.mockResolvedValue({
+        status: 'success',
+        tokenId: 'token-123',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      mockWalletAdapter.getEligibility.mockResolvedValueOnce({
+        isAvailable: true,
+        canAddCard: true,
+        recommendedAction: 'add_card',
+      });
+
+      await act(async () => {
+        returnFromBackground();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      unmount();
+    });
+
+    it('shows Add again when a newly paired device can take the card', async () => {
+      mockWalletAdapter.getEligibility
+        .mockResolvedValueOnce({
+          isAvailable: true,
+          canAddCard: true,
+        })
+        .mockResolvedValueOnce(cardInWallet);
+      mockInitiateProvisioning.mockResolvedValue({
+        status: 'success',
+        tokenId: 'token-123',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      mockWalletAdapter.getEligibility.mockResolvedValueOnce({
+        isAvailable: true,
+        canAddCard: true,
+        recommendedAction: 'add_card',
+        existingCardStatus: 'active',
+        devices: { phone: 'active' },
+      });
+
+      await act(async () => {
+        returnFromBackground();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      unmount();
+    });
+
+    it('keeps a successful add while Google resumes a yellow-path pass', async () => {
+      mockWalletAdapter.getEligibility
+        .mockResolvedValueOnce({
+          isAvailable: true,
+          canAddCard: true,
+        })
+        .mockResolvedValueOnce(cardInWallet);
+      mockInitiateProvisioning.mockResolvedValue({
+        status: 'success',
+        tokenId: 'token-123',
+      });
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      await waitFor(() => {
+        expect(result.current.isSuccess).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockResolvedValueOnce({
+        isAvailable: true,
+        canAddCard: true,
+        existingCardStatus: 'requires_activation',
+        recommendedAction: 'resume',
+      });
+
+      await act(async () => {
+        returnFromBackground();
+      });
+
+      await waitFor(() => {
+        expect(mockWalletAdapter.getEligibility).toHaveBeenCalledTimes(3);
+      });
+      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+
+      unmount();
+    });
+
     it('keeps isLoading false while a foreground refresh is in flight', async () => {
       let resolveRefresh: (value: typeof cardRemoved) => void = () => undefined;
       mockWalletAdapter.getEligibility

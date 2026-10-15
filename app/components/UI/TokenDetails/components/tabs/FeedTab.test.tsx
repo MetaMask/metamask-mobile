@@ -20,7 +20,7 @@ describe('TokenDetailsFeedTab', () => {
     mockSocialFeed.mockImplementation(() => <View testID="social-feed" />);
   });
 
-  it('shows the token social feed on the token details surface', () => {
+  it('shows the token social feed without a heading', () => {
     render(<TokenDetailsFeedTab assetId={assetId} />);
 
     expect(screen.getByTestId('social-feed')).toBeOnTheScreen();

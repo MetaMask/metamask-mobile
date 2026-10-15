@@ -85,7 +85,7 @@ describe('MfaSettings', () => {
       { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
     ]);
 
-    expect(getByText('a@b.co')).toBeOnTheScreen();
+    expect(getByText('a•••@b.co')).toBeOnTheScreen();
     expect(queryByTestId(MfaSettingsSelectorsIDs.EMAIL_BUTTON)).toBeNull();
   });
 
