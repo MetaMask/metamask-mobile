@@ -28,6 +28,7 @@ import vbaIntroHero from '../../../../../images/vba-intro-hero.png';
 import MoonPayPoweredByLogo from '../../../../../images/moonpay-powered-by-logo.svg';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 
 const FeatureRow = ({
   icon,
@@ -74,6 +75,7 @@ const CreateVirtualBankAccount = ({
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
+  const { arrivalTimeframe } = useVbaArrivalTime();
 
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
@@ -155,9 +157,16 @@ const CreateVirtualBankAccount = ({
             />
             <FeatureRow
               icon={IconName.Clock}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-              )}
+              title={
+                arrivalTimeframe
+                  ? strings(
+                      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+                      { timeframe: arrivalTimeframe },
+                    )
+                  : strings(
+                      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+                    )
+              }
               description={strings(
                 'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
               )}

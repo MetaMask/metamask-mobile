@@ -13,7 +13,10 @@ import {
 import Engine from '../../../../../core/Engine';
 import { isSmartContractAddress } from '../../../../../util/transactions';
 import { POLYGON_MAINNET_CHAIN_ID } from './constants';
-import type { PolymarketProtocolDefinition } from './protocol/definitions';
+import type {
+  BasePolymarketPositionsProtocolDefinition,
+  PolymarketProtocolDefinition,
+} from './protocol/definitions';
 import type { SafeTransaction } from './safe/types';
 import type { ApiKeyCreds } from './types';
 import type { Signer } from '../types';
@@ -643,6 +646,49 @@ export async function syncDepositWalletCollateralBalanceAllowance({
     const responseText = await response.text();
     throw new Error(
       `Failed to sync deposit wallet collateral balance allowance: ${response.status} ${responseText}`,
+    );
+  }
+}
+
+/**
+ * The positions-protocol counterpart of the collateral sync: asks the CLOB
+ * to refresh its view of a deposit wallet's balance and allowance for a
+ * single position before it will accept a sell order for it. Same request
+ * shape as the collateral sync — only the asset type and the position id
+ * differ.
+ */
+export async function syncDepositWalletPositionBalanceAllowance({
+  protocol,
+  signerAddress,
+  apiKey,
+  tokenId,
+}: {
+  protocol: BasePolymarketPositionsProtocolDefinition;
+  signerAddress: string;
+  apiKey: ApiKeyCreds;
+  tokenId: string;
+}): Promise<void> {
+  const requestPath = '/balance-allowance/update';
+  const queryString = `asset_type=CONDITIONAL-V2&token_id=${encodeURIComponent(
+    tokenId,
+  )}&signature_type=3`;
+  const headers = await getL2Headers({
+    l2HeaderArgs: { method: 'GET', requestPath },
+    address: signerAddress,
+    apiKey,
+  });
+  const response = await fetchWithTimeout(
+    `${protocol.transport.clobBaseUrl}${requestPath}?${queryString}`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    throw new Error(
+      `Failed to sync deposit wallet position balance allowance: ${response.status} ${responseText}`,
     );
   }
 }

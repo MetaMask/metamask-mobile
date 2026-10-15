@@ -10,8 +10,13 @@ import {
 } from '@testing-library/react-native';
 import type {
   ChaseOrder,
+  OrderBookData,
+  OrderBookLevel,
   Order,
   PriceUpdate,
+  TriggerOrderType,
+  PerpsOrderCapabilities,
+  PerpsProviderType,
   TwapOrder,
   TwapOrderFill,
 } from '@metamask/perps-controller';
@@ -23,6 +28,7 @@ import {
 } from '../../../../../../tests/component-view/platform';
 import {
   createFundedAccountForViews,
+  createEthMarketForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
@@ -45,6 +51,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
+  getPerpsProChaseHandleSelector,
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
@@ -62,6 +69,7 @@ import {
   normalizePerpsNumericInput,
 } from '../../utils/formatUtils';
 import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
+import { readPerpsUiObservations } from '../../utils/perpsUiObservations';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const TIMEOUT_MS = 5000;
@@ -235,6 +243,10 @@ const openTwapManagementTab = async () => {
 
 const resetPerpsControllerMocks = () => {
   jest
+    .mocked(Engine.context.PerpsController.getScalePriceLadder)
+    .mockReset()
+    .mockResolvedValue({ status: 'unavailable', reason: 'not_implemented' });
+  jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
     .mockReset()
     .mockResolvedValue({
@@ -279,6 +291,10 @@ beforeEach(() => {
   resetChaseOrderVisibilityForTests();
   PerpsCacheInvalidator._clearAllSubscribers();
   resetPerpsControllerMocks();
+  jest.mocked(Engine.context.PerpsController.subscribeToOrderBook).mockReset();
+  jest
+    .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+    .mockImplementation(() => () => undefined);
   connectionReadySpy = jest
     .spyOn(PerpsConnectionManager, 'isSelectedUserContextReady')
     .mockReturnValue(true);
@@ -343,14 +359,43 @@ const renderFundedProMarket = () =>
     },
   });
 
-const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
-  renderPerpsProMarketView({
+const renderProMarketWithTriggeredOrdersFlag = (
+  enabled: boolean,
+  providerId: 'hyperliquid' | 'lighter' = 'hyperliquid',
+  capabilities?: PerpsOrderCapabilities | Promise<PerpsOrderCapabilities>,
+  restoredOrderType?: TriggerOrderType,
+) => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue(
+      capabilities ??
+        (providerId === 'hyperliquid'
+          ? {
+              status: 'ready',
+              providerId,
+              supportedStrategies: [],
+              supportedTriggerOrderTypes: [
+                'stop_market',
+                'stop_limit',
+                'take_profit_market',
+                'take_profit_limit',
+              ],
+            }
+          : { status: 'unavailable', providerId, reason: 'not_implemented' }),
+    );
+
+  return renderPerpsProMarketView({
+    initialParams: { market: { symbol: 'ETH', providerId } },
     streamOverrides: {
       account: createFundedAccountForViews('1000'),
     },
     overrides: {
       engine: {
         backgroundState: {
+          PerpsController: {
+            activeProvider: providerId,
+            ...(restoredOrderType && { selectedOrderType: restoredOrderType }),
+          },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
               perpsProModeEnabled: {
@@ -375,6 +420,7 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
       },
     },
   });
+};
 
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
@@ -428,24 +474,39 @@ const renderProMarketWithTwapFlag = (
   });
 };
 
-const renderProMarketWithScaleFlag = (enabled: boolean) => {
+const renderProMarketWithScaleFlag = (
+  enabled: boolean,
+  providerId: PerpsProviderType = 'hyperliquid',
+) => {
+  const market =
+    providerId === 'lighter'
+      ? createEthMarketForViews({ providerId })
+      : undefined;
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
     .mockResolvedValue({
       status: 'ready',
-      providerId: 'hyperliquid',
+      providerId,
       supportedStrategies: enabled ? ['scale'] : [],
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
     });
 
   return renderPerpsProMarketView({
+    initialParams: market ? { market } : undefined,
     streamOverrides: {
+      ...(market ? { marketData: [market] } : {}),
       account: createFundedAccountForViews('1000'),
     },
     overrides: {
       engine: {
         backgroundState: {
           PerpsController: {
-            activeProvider: 'hyperliquid',
+            activeProvider: providerId,
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
@@ -615,6 +676,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         status: 'ready',
         providerId: 'hyperliquid',
         supportedStrategies: ['chase'],
+        supportedTriggerOrderTypes: [
+          'stop_market',
+          'stop_limit',
+          'take_profit_market',
+          'take_profit_limit',
+        ],
       });
       getOrderCapabilities.mockClear();
       renderPerpsProMarketView({
@@ -1131,6 +1198,65 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   }
 
   itForPlatforms(
+    'records the hook cancellation result after pressing the Chase terminate control',
+    async () => {
+      const savedDev = __DEV__;
+      (globalThis as { __DEV__?: boolean }).__DEV__ = true;
+      try {
+        const cursor = readPerpsUiObservations().cancellationSequence;
+        const outcome = { success: true, orderId: activeChase.handle };
+        const cancelOrder = jest.mocked(
+          Engine.context.PerpsController.cancelOrder,
+        );
+        cancelOrder.mockResolvedValue(outcome);
+        jest
+          .mocked(Engine.context.PerpsController.getChaseOrders)
+          .mockResolvedValueOnce([activeChase])
+          .mockResolvedValue([]);
+        renderFundedProMarket();
+        await openChaseManagementTab();
+
+        fireEvent.press(
+          await screen.findByTestId(
+            getPerpsProChaseTerminateSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        );
+
+        await waitFor(() => {
+          expect(cancelOrder).toHaveBeenCalledTimes(1);
+          expect(cancelOrder).toHaveBeenCalledWith({
+            orderId: activeChase.handle,
+            symbol: 'ETH',
+            orderType: 'chase',
+          });
+          expect(
+            readPerpsUiObservations().cancellations.filter(
+              (item) => item.sequence > cursor,
+            ),
+          ).toEqual([
+            expect.objectContaining({
+              request: {
+                orderId: activeChase.handle,
+                symbol: 'ETH',
+                orderType: 'chase',
+              },
+              state: 'settled',
+              result: outcome,
+            }),
+          ]);
+        });
+      } finally {
+        (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
+      }
+    },
+  );
+
+  itForPlatforms(
     'retains canceled History when the controller omits the terminated session',
     async () => {
       const getChaseOrders = jest.mocked(
@@ -1474,6 +1600,112 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ),
       );
       expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false);
+    },
+  );
+
+  itForPlatforms(
+    'binds the compatible primary terminate control to its exact Chase handle',
+    async () => {
+      const unrelated: ChaseOrder = {
+        ...activeChase,
+        handle: 'unrelated-chase',
+      };
+      jest
+        .mocked(Engine.context.PerpsController.getChaseOrders)
+        .mockResolvedValue([activeChase, unrelated]);
+      renderFundedProMarket();
+
+      await openChaseManagementTab();
+      const primary = await screen.findByTestId(
+        getPerpsProChaseHandleSelector('ETH', activeChase.handle),
+      );
+      const other = screen.getByTestId(
+        getPerpsProChaseHandleSelector('ETH', unrelated.handle),
+      );
+      const compatible = getPerpsProChaseTerminateSelector(
+        'active',
+        'ETH',
+        activeChase.handle,
+        true,
+      );
+
+      expect(within(primary).getByTestId(compatible)).toBeOnTheScreen();
+      expect(within(other).queryByTestId(compatible)).toBeNull();
+      expect(
+        within(other).getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            unrelated.handle,
+            false,
+          ),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps the existing handler bound to its handle when a different primary Chase row leaves',
+    async () => {
+      const unrelated = { ...activeChase, handle: 'unrelated-primary' };
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
+      getChaseOrders
+        .mockResolvedValueOnce([unrelated, activeChase])
+        .mockResolvedValue([activeChase]);
+      cancelOrder.mockClear();
+      renderFundedProMarket();
+      await openChaseManagementTab();
+      const ownedSelector = getPerpsProChaseHandleSelector(
+        'ETH',
+        activeChase.handle,
+      );
+      const primarySelector = getPerpsProChaseTerminateSelector(
+        'active',
+        'ETH',
+        unrelated.handle,
+        true,
+      );
+      expect(
+        within(await screen.findByTestId(ownedSelector)).getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            activeChase.handle,
+            false,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        within(
+          screen.getByTestId(
+            getPerpsProChaseHandleSelector('ETH', unrelated.handle),
+          ),
+        ).getByTestId(primarySelector),
+      );
+      await waitFor(() =>
+        expect(
+          within(screen.getByTestId(ownedSelector)).getByTestId(
+            primarySelector,
+          ),
+        ).toBeOnTheScreen(),
+      );
+      cancelOrder.mockClear();
+      fireEvent.press(
+        within(screen.getByTestId(ownedSelector)).getByTestId(primarySelector),
+      );
+      await waitFor(() =>
+        expect(cancelOrder).toHaveBeenCalledWith({
+          orderId: activeChase.handle,
+          symbol: 'ETH',
+          orderType: 'chase',
+        }),
+      );
+      expect(cancelOrder).toHaveBeenCalledTimes(1);
     },
   );
 
@@ -1940,6 +2172,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           status: 'ready',
           providerId: 'hyperliquid',
           supportedStrategies: ['chase'],
+          supportedTriggerOrderTypes: [
+            'stop_market',
+            'stop_limit',
+            'take_profit_market',
+            'take_profit_limit',
+          ],
         });
       getChaseOrders
         .mockResolvedValueOnce([])
@@ -2421,6 +2659,225 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'keeps Basic orders selectable when Lighter cannot execute enabled triggers',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter');
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      );
+
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
+      }
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      );
+      expect(await findPriceInput(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'shows only the trigger subset declared by a provider',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter', {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+      await findSizeInput();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      const tab = await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+      );
+      fireEvent.press(tab);
+
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'shows all four native Lighter trigger types when the provider declares support',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true, 'lighter', {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: [
+          'stop_market',
+          'stop_limit',
+          'take_profit_market',
+          'take_profit_limit',
+        ],
+      });
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      );
+
+      for (const testID of triggeredOrderTypeIDs) {
+        expect(screen.getByTestId(testID)).toBeOnTheScreen();
+      }
+      expect(
+        Engine.context.PerpsController.getOrderCapabilities,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
+      );
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'keeps Basic orders available while trigger capabilities are pending',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(
+        true,
+        'hyperliquid',
+        new Promise<PerpsOrderCapabilities>(() => undefined),
+      );
+      await findSizeInput();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'waits for capabilities before declaring a restored trigger draft unavailable',
+    async () => {
+      let resolveCapabilities = (_capabilities: PerpsOrderCapabilities): void =>
+        undefined;
+      const capabilities = new Promise<PerpsOrderCapabilities>((resolve) => {
+        resolveCapabilities = resolve;
+      });
+      renderProMarketWithTriggeredOrdersFlag(
+        true,
+        'hyperliquid',
+        capabilities,
+        'stop_market',
+      );
+      await findSizeInput();
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+
+      fireEvent.changeText(triggerInput, '2600');
+
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.stop_market.title'),
+      );
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(
+        screen.queryByTestId(`${ids.NOTICE}-trigger-orders-unavailable`),
+      ).not.toBeOnTheScreen();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveCapabilities({
+          status: 'unavailable',
+          providerId: 'hyperliquid',
+          reason: 'not_implemented',
+        });
+        await capabilities;
+      });
+
+      expect(
+        await screen.findByTestId(`${ids.NOTICE}-trigger-orders-unavailable`),
+      ).toHaveTextContent(
+        strings('perps.order.validation.trigger_orders_unavailable'),
+      );
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('2600'));
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    },
+  );
+
+  itForPlatforms(
+    'preserves the trigger draft after its rollout is disabled',
+    async () => {
+      const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+      await findSizeInput();
+      await selectTriggeredOrderType(
+        PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+      );
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '3000');
+      const remote =
+        store.getState().engine.backgroundState.RemoteFeatureFlagController;
+      act(() =>
+        syncEngineControllerState(store, 'RemoteFeatureFlagController', {
+          ...remote,
+          remoteFeatureFlags: {
+            ...remote.remoteFeatureFlags,
+            perpsProTriggeredOrdersEnabled: {
+              enabled: false,
+              minimumVersion: '0.0.0',
+            },
+          },
+        }),
+      );
+
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('3000'));
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.stop_market.title'),
+      );
+      expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
     'hides triggered order types when the remote flag is disabled',
     async () => {
       renderProMarketWithTriggeredOrdersFlag(false);
@@ -2752,6 +3209,66 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           'Size (USD)',
         );
       });
+    },
+  );
+
+  itForPlatforms(
+    'clears a fully accepted Lighter Scale draft despite an overall failed result',
+    async () => {
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      placeOrder.mockResolvedValueOnce({
+        success: false,
+        acceptedSize: '0.03',
+        acceptedChildren: [
+          { state: 'resting', orderId: 'scale-child-1' },
+          { state: 'resting', orderId: 'scale-child-2' },
+          { state: 'resting', orderId: 'scale-child-3' },
+        ],
+      });
+      const getScalePriceLadder = jest.mocked(
+        Engine.context.PerpsController.getScalePriceLadder,
+      );
+      getScalePriceLadder.mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
+        prices: ['2000', '2100', '2200'],
+        sizingPreview: {
+          sizes: ['0.01', '0.01', '0.01'],
+          totalSize: '0.03',
+          totalNotional: '63',
+          minimumBaseSize: '0.001',
+          minimumQuoteAmount: '10',
+          sizeDecimals: 3,
+        },
+      });
+      renderProMarketWithScaleFlag(true, 'lighter');
+      const sizeInput = await openScaleOrderForm();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2000');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+      await waitFor(
+        () => expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
+        { timeout: TIMEOUT_MS },
+      );
+
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+
+      await waitFor(
+        () => {
+          expect(placeOrder).toHaveBeenCalledTimes(1);
+          expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '');
+          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+            'value',
+            '',
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
     },
   );
 
@@ -3672,6 +4189,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           status: 'ready',
           providerId: 'hyperliquid',
           supportedStrategies: ['chase'],
+          supportedTriggerOrderTypes: [
+            'stop_market',
+            'stop_limit',
+            'take_profit_market',
+            'take_profit_limit',
+          ],
         });
       renderPerpsProMarketView({
         streamOverrides: { account: createFundedAccountForViews('1000') },
@@ -3771,5 +4294,277 @@ describe('PerpsProMarketView header actions', () => {
     expect(
       await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+});
+
+describe('Pro market order liquidity', () => {
+  it.each([true, false])(
+    'checks the exact fractional MAX close with shallow=%s and recovers when depth returns',
+    async (shallow) => {
+      const getMarkets = jest.mocked(Engine.context.PerpsController.getMarkets);
+      const originalImplementation = getMarkets.getMockImplementation();
+      getMarkets.mockResolvedValue([
+        { name: 'ETH', szDecimals: 3, maxLeverage: 50, marginTableId: 1 },
+      ]);
+      try {
+        const level = (price: number, size: number): OrderBookLevel => ({
+          price: String(price),
+          size: String(size),
+          total: String(size),
+          notional: String(price * size),
+          totalNotional: String(price * size),
+        });
+        const makeBook = (bids: OrderBookLevel[]): OrderBookData => ({
+          midPrice: '100',
+          asks: [],
+          bids,
+          spread: '0',
+          spreadPercentage: '0',
+          lastUpdated: Date.now(),
+          maxTotal: '1',
+        });
+        const blockedBook = makeBook(
+          shallow ? [level(100, 0.5)] : [level(100, 0.5), level(96, 0.009)],
+        );
+        let deliver: ((book: OrderBookData) => void) | undefined;
+        jest
+          .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+          .mockImplementation(({ callback }) => {
+            deliver = callback;
+            callback(blockedBook);
+            return () => undefined;
+          });
+        const market = {
+          ...createEthMarketForViews({ price: '$100.00' }),
+          providerId: 'hyperliquid' as const,
+          szDecimals: 3,
+        };
+        const placeOrder = jest.mocked(
+          Engine.context.PerpsController.placeOrder,
+        );
+        renderPerpsProMarketView({
+          initialParams: { market },
+          streamOverrides: {
+            account: createFundedAccountForViews('1000'),
+            marketData: [market],
+            positions: [
+              createLongPositionForViews({
+                size: '0.509',
+                entryPrice: '100',
+                positionValue: '50.9',
+                marginUsed: '10',
+                liquidationPrice: '50',
+              }),
+            ],
+            orders: [],
+            prices: {
+              ETH: {
+                symbol: 'ETH',
+                price: '100',
+                markPrice: '100',
+                percentChange24h: '0',
+                timestamp: Date.now(),
+                isTradable: true,
+              },
+            },
+          },
+        });
+        await findSizeInput();
+        fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+        fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
+        await waitFor(() =>
+          expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen(),
+        );
+        fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 100);
+        fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 100);
+
+        const message = strings(
+          shallow
+            ? 'perps.slippage.insufficient_depth'
+            : 'perps.slippage.cannot_fill',
+        );
+        expect(await screen.findByText(message)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '50');
+        const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+        expect(submit).toBeDisabled();
+        fireEvent.press(submit);
+        expect(placeOrder).not.toHaveBeenCalled();
+
+        await act(async () => {
+          deliver?.(makeBook([level(100, 0.509)]));
+        });
+        await waitFor(() =>
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled(),
+        );
+        expect(screen.queryByText(message)).not.toBeOnTheScreen();
+        await act(async () => {
+          fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+        });
+        await waitFor(() =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              size: '0.509',
+              reduceOnly: true,
+              isBuy: false,
+              isFullClose: true,
+            }),
+          ),
+        );
+        expect(placeOrder.mock.calls[0][0]).not.toHaveProperty('usdAmount');
+      } finally {
+        if (originalImplementation) {
+          getMarkets.mockImplementation(originalImplementation);
+        }
+      }
+    },
+  );
+
+  it.each([true, false, null])(
+    'blocks shallow=%s and submits after visible depth recovers',
+    async (shallow) => {
+      const level = (price: number, size: number): OrderBookLevel => ({
+        price: String(price),
+        size: String(size),
+        total: String(size),
+        notional: String(price * size),
+        totalNotional: String(price * size),
+      });
+      const makeBook = (asks: OrderBookLevel[]): OrderBookData => ({
+        midPrice: '2500',
+        asks,
+        bids: [],
+        spread: '0',
+        spreadPercentage: '0',
+        lastUpdated: Date.now(),
+        maxTotal: '1',
+      });
+      const blockedBook = makeBook(
+        shallow ? [level(2500, 0.001)] : [level(2500, 0.039), level(2600, 1)],
+      );
+      let deliver: ((book: OrderBookData) => void) | undefined;
+      jest
+        .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+        .mockImplementation(({ callback, onError }) => {
+          deliver = callback;
+          if (shallow === null) {
+            onError?.(new Error('order book unavailable'));
+          } else {
+            callback(blockedBook);
+          }
+          return () => undefined;
+        });
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+      renderFundedProMarket();
+      const input = await findSizeInput();
+
+      fireEvent.changeText(input, '100');
+      const message = strings(
+        shallow !== false
+          ? 'perps.slippage.insufficient_depth'
+          : 'perps.slippage.cannot_fill',
+      );
+      expect(
+        await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      expect(submit).toBeDisabled();
+      fireEvent.press(submit);
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        deliver?.(makeBook([level(2500, 1)]));
+      });
+      await waitFor(
+        () =>
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+        { timeout: TIMEOUT_MS },
+      );
+      expect(screen.queryByText(message)).not.toBeOnTheScreen();
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+      });
+      await waitFor(
+        () =>
+          expect(placeOrder).toHaveBeenCalledWith(
+            expect.objectContaining({
+              symbol: 'ETH',
+              isBuy: true,
+              orderType: 'market',
+              usdAmount: '100',
+            }),
+          ),
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  it('keeps a limit order unblocked when the order book is unavailable', async () => {
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+      .mockImplementation(({ onError }) => {
+        onError?.(new Error('order book unavailable'));
+        return () => undefined;
+      });
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    renderFundedProMarket();
+    fireEvent.changeText(await findSizeInput(), '100');
+    const message = strings('perps.slippage.insufficient_depth');
+    expect(
+      await screen.findByText(message, {}, { timeout: TIMEOUT_MS }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    fireEvent.changeText(limitInput, '2500');
+    fireEvent(limitInput, 'blur');
+
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    expect(screen.queryByText(message)).not.toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
+    });
+    await waitFor(
+      () =>
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            symbol: 'ETH',
+            orderType: 'limit',
+            price: '2500',
+          }),
+        ),
+      { timeout: TIMEOUT_MS },
+    );
+  });
+
+  it('keeps a market order enabled while the order book subscription is pending', async () => {
+    renderFundedProMarket();
+    fireEvent.changeText(await findSizeInput(), '100');
+
+    await waitFor(
+      () =>
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled(),
+      { timeout: TIMEOUT_MS },
+    );
+    expect(
+      Engine.context.PerpsController.subscribeToOrderBook,
+    ).toHaveBeenCalled();
+    expect(
+      screen.queryByText(strings('perps.slippage.insufficient_depth')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.slippage.cannot_fill')),
+    ).not.toBeOnTheScreen();
   });
 });

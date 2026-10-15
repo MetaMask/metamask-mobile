@@ -56,7 +56,7 @@ import {
 } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
@@ -516,7 +516,7 @@ const RecurringConfirmOrderSheet = ({
         >
           {discountBadge ? (
             isRewardsTierBadge ? (
-              <RewardsVipBadge
+              <MembershipVipBadge
                 hasProEntitlement={
                   discountBadge.type === DiscountType.SUBSCRIPTION
                 }
