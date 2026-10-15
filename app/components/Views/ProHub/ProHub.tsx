@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -34,6 +35,7 @@ import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
+import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
 import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
@@ -62,11 +64,18 @@ const MembershipBanner = ({ testID }: MembershipBannerProps) => (
 interface StatRowProps {
   iconName: IconName;
   label: string;
-  value: string;
+  value?: string;
+  isLocked?: boolean;
   testID: string;
 }
 
-const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
+const StatRow = ({
+  iconName,
+  label,
+  value,
+  isLocked = false,
+  testID,
+}: StatRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
@@ -94,13 +103,23 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
         {label}
       </Text>
     </Box>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
-    >
-      {value}
-    </Text>
+    {isLocked ? (
+      <Icon
+        name={IconName.Lock}
+        size={IconSize.Md}
+        color={IconColor.IconDefault}
+        accessibilityLabel={strings('pro_hub.musd_back_locked')}
+        testID={`${testID}-lock`}
+      />
+    ) : (
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
+        {value}
+      </Text>
+    )}
   </Box>
 );
 
@@ -108,6 +127,7 @@ const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const proAccess = useMoneyAccountPlusAccess();
+  const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
   const { sinceInceptionInterest } = useMoneyPremiumAccountInterest();
   const { ratePercentFormatted } = useMoneyPremiumVaultRate();
   const moneyBalanceApy = ratePercentFormatted ?? '—';
@@ -206,14 +226,19 @@ const ProHub = () => {
                   label={strings('pro_hub.musd_back', {
                     rate: formatPercent(MOCK_PRO_HUB_STATS.musdBackRate),
                   })}
-                  value={MOCK_PRO_HUB_STATS.musdBack}
+                  value={isTrialing ? undefined : MOCK_PRO_HUB_STATS.musdBack}
+                  isLocked={isTrialing}
                   testID={ProHubTestIds.MUSD_BACK_ROW}
                 />
               </Box>
             </Box>
           </Box>
 
-          <PhysicalCardBanner onPress={handleGetCard} />
+          <PhysicalCardBanner
+            onPress={isTrialing ? undefined : handleGetCard}
+            isSubscriptionTrialing={isTrialing}
+            cashbackRate={formatPercent(MOCK_PRO_HUB_STATS.musdBackRate)}
+          />
 
           <SectionDivider marginVertical={5} />
 

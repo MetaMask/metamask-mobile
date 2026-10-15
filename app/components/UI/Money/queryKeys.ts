@@ -36,4 +36,5 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    * Current Accountant exchange rate for a vault (assets per share).
    */
   FETCH_VAULT_RATE: `${MoneyAccountApiDataService.name}:fetchVaultRate`,
+  FETCH_RATE_HISTORY: `${MoneyAccountApiDataService.name}:fetchRateHistory`,
 } as const;
