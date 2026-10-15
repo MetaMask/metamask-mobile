@@ -624,6 +624,53 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    it('tracks no offer when a missing referral-me entry settles as already referred', async () => {
+      referralMeEntries = {};
+
+      const { store } = await renderSheet('KOL1');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      await act(async () => {
+        store.dispatch(
+          setReferralMe({
+            profileId: PROFILE_ID,
+            data: buildReferralMe({
+              roles: ['REFEREE'],
+              ui_variant: 'REFEREE',
+            }),
+          }),
+        );
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks the offer once a missing referral-me entry settles as eligible', async () => {
+      referralMeEntries = {};
+
+      const { store } = await renderSheet('KOL1');
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      await act(async () => {
+        store.dispatch(
+          setReferralMe({ profileId: PROFILE_ID, data: buildReferralMe() }),
+        );
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+      );
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        interaction_type: 'viewed',
+        referral_code: 'KOL1',
+      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
     it('tracks no offer when a pending referral-me load settles as already referred', async () => {
       referralMeEntries = {
         [PROFILE_ID]: { loading: true, error: false, data: null },
