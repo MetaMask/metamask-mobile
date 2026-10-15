@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { PriceUpdate } from '../types';
 
@@ -64,6 +65,7 @@ export const useLiveMarketPrices = (
   options: UseLiveMarketPricesOptions = {},
 ): UseLiveMarketPricesResult => {
   const { enabled = true } = options;
+  const isFocused = useIsFocused();
   const [prices, setPrices] = useState<Map<string, PriceUpdate>>(
     () => getCachedPrices(tokenIds).prices,
   );
@@ -158,7 +160,7 @@ export const useLiveMarketPrices = (
       setLastUpdateTime(cachedPrices.lastUpdateTime);
     }
 
-    if (!enabled || currentTokenIds.length === 0) {
+    if (!enabled || !isFocused || currentTokenIds.length === 0) {
       setIsConnected(false);
       return;
     }
@@ -181,7 +183,7 @@ export const useLiveMarketPrices = (
       unsubscribe();
       unsubscribeStatus();
     };
-  }, [tokenIdsKey, enabled, handlePriceUpdates]);
+  }, [tokenIdsKey, enabled, isFocused, handlePriceUpdates]);
 
   const getPrice = useCallback(
     (tokenId: string): PriceUpdate | undefined => prices.get(tokenId),

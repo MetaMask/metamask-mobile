@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { CryptoPriceUpdate, type CryptoTwapWindowSeconds } from '../types';
 
@@ -12,6 +13,7 @@ export const useLiveCryptoPrices = (
   twapWindowSeconds?: CryptoTwapWindowSeconds,
 ): UseLiveCryptoPricesResult => {
   const [isConnected, setIsConnected] = useState(false);
+  const isFocused = useIsFocused();
   const isMountedRef = useRef(true);
   const isConnectedRef = useRef(false);
   const onUpdateRef = useRef(onUpdate);
@@ -20,7 +22,7 @@ export const useLiveCryptoPrices = (
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (!symbol) {
+    if (!symbol || !isFocused) {
       isConnectedRef.current = false;
       setIsConnected(false);
       return () => {
@@ -54,7 +56,7 @@ export const useLiveCryptoPrices = (
       setIsConnected(false);
       unsubscribe();
     };
-  }, [symbol, twapWindowSeconds]);
+  }, [symbol, twapWindowSeconds, isFocused]);
 
   return { isConnected };
 };
