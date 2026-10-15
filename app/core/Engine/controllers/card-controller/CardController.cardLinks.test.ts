@@ -1,5 +1,6 @@
 import { sha256 } from '@noble/hashes/sha2';
 import { bytesToHex } from '@metamask/utils';
+import { deriveStateFromMetadata } from '@metamask/base-controller';
 import { CardController, defaultCardControllerState } from './CardController';
 import type { CardService } from './services/CardService';
 import { CardApiError } from './services/BaanxService';
@@ -75,10 +76,18 @@ function setup({
   provider = {},
 }: Setup = {}) {
   const subscriptions: Record<string, (...args: unknown[]) => void> = {};
+  const selectors: Record<string, (state: unknown) => unknown> = {};
   const messenger = {
-    subscribe: jest.fn((event: string, handler: () => void) => {
-      subscriptions[event] = handler;
-    }),
+    subscribe: jest.fn(
+      (
+        event: string,
+        handler: () => void,
+        selector: (state: unknown) => unknown,
+      ) => {
+        subscriptions[event] = handler;
+        selectors[event] = selector;
+      },
+    ),
     call: jest.fn((action: string, ...args: unknown[]) => {
       switch (action) {
         case 'RemoteFeatureFlagController:getState':
@@ -148,7 +157,14 @@ function setup({
     isBasicFunctionalityEnabled: () => basicFunctionality,
   });
 
-  return { controller, cardService, messenger, getBearerToken, subscriptions };
+  return {
+    controller,
+    cardService,
+    messenger,
+    getBearerToken,
+    subscriptions,
+    selectors,
+  };
 }
 
 /** Lets fire-and-forget card-link promises settle. */
@@ -206,6 +222,23 @@ describe('CardController card links', () => {
       await controller.fetchCardLinks();
 
       expect(getBearerToken).not.toHaveBeenCalled();
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+      expect(controller.state.cardLinks).toBeNull();
+    });
+
+    it('makes no call when the feature flag state cannot be read', async () => {
+      const { controller, cardService, messenger } = setup();
+      const call = messenger.call as unknown as jest.Mock;
+      const original = call.getMockImplementation();
+      call.mockImplementation((action: string, ...args: unknown[]) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          throw new Error('flags not loaded');
+        }
+        return original?.(action, ...args);
+      });
+
+      await expect(controller.fetchCardLinks()).resolves.toBeUndefined();
+
       expect(cardService.getCardLinks).not.toHaveBeenCalled();
       expect(controller.state.cardLinks).toBeNull();
     });
@@ -367,6 +400,21 @@ describe('CardController card links', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
+    it.each(['not-json', { code: 'OTHER' }, { code: 1 }])(
+      'keeps the API on after a 403 with body %p',
+      async (body) => {
+        const { controller, cardService } = setup();
+        cardService.getCardLinks.mockRejectedValue(apiError(403, body));
+
+        await controller.fetchCardLinks();
+        await controller.recordCardActivated({ provider: 'immersve' });
+
+        expect(controller.state.cardLinkApiBlocked).toBe(false);
+        expect(Logger.error).toHaveBeenCalledTimes(1);
+        expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
+      },
+    );
+
     it('does not report offline or timeout errors', async () => {
       for (const status of [0, 408]) {
         const { controller, cardService } = setup();
@@ -401,6 +449,27 @@ describe('CardController card links', () => {
       await flush();
 
       expect(cardService.getCardLinks).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores a cardLinkApi flag change while a reset is in progress', async () => {
+      const { controller, cardService, subscriptions } = setup();
+
+      controller.setResetInProgress(true);
+      subscriptions['RemoteFeatureFlagController:stateChange']('{}');
+      await flush();
+
+      expect(cardService.getCardLinks).not.toHaveBeenCalled();
+    });
+
+    it('only reacts to the cardLinkApi flag changing', () => {
+      const { selectors } = setup();
+      const select = selectors['RemoteFeatureFlagController:stateChange'];
+      const key = (cardLinkApi: unknown, cardFeature: unknown = {}) =>
+        select({ remoteFeatureFlags: { cardLinkApi, cardFeature } });
+
+      expect(key({ enabled: true })).not.toBe(key({ enabled: false }));
+      expect(key(null, { enabled: true })).toBe(key(null, { enabled: false }));
+      expect(select({ remoteFeatureFlags: {} })).toBe(JSON.stringify(null));
     });
 
     it('does not seed when the fetch fails', async () => {
@@ -596,6 +665,11 @@ describe('CardController card links', () => {
       expect(cardService.putCardLink).toHaveBeenCalledTimes(1);
       expect(controller.state.cardLinksSeeded).toBe(true);
       expect(Logger.error).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent.mock.calls[0][0].properties).toStrictEqual({
+        provider: 'baanx',
+        outcome: 'rejected',
+      });
     });
   });
 
@@ -964,6 +1038,25 @@ describe('CardController card links', () => {
       expect(body).not.toHaveProperty('providerCardholderId');
     });
 
+    it('omits an empty field and sends one of exactly 128 characters', async () => {
+      const { controller, cardService } = setup();
+
+      await controller.recordProviderOnboardingStarted({
+        provider: 'immersve',
+        address: SELECTED_ADDRESS,
+        providerCardholderId: '',
+      });
+      await controller.recordProviderOnboardingStarted({
+        provider: 'immersve',
+        address: SELECTED_ADDRESS,
+        providerCardholderId: 'x'.repeat(128),
+      });
+
+      const [[, emptyBody], [, maxBody]] = cardService.putCardLink.mock.calls;
+      expect(emptyBody).not.toHaveProperty('providerCardholderId');
+      expect(maxBody).toHaveProperty('providerCardholderId', 'x'.repeat(128));
+    });
+
     it('sends nothing when cardLinkApiEnabled is off', async () => {
       const { controller, cardService } = setup({ flagEnabled: false });
 
@@ -1065,5 +1158,29 @@ describe('CardController card links', () => {
     expect(controller.state.cardLinks).toBeNull();
     expect(controller.state.cardLinksFetchedAt).toBeNull();
     expect(controller.state.cardLinksSeeded).toBe(false);
+  });
+
+  it('keeps card links out of state logs', () => {
+    const { controller } = setup({
+      state: { cardLinks: [link({ linkedAccountRef: '0xsecret' })] },
+    });
+
+    const logged = deriveStateFromMetadata(
+      controller.state,
+      controller.metadata,
+      'includeInStateLogs',
+    );
+
+    expect(logged).not.toHaveProperty('cardLinks');
+    expect(logged).toMatchObject({
+      cardLinksSeeded: false,
+      cardLinkApiBlocked: false,
+    });
+    expect(controller.metadata.cardLinks).toStrictEqual({
+      persist: true,
+      includeInDebugSnapshot: false,
+      includeInStateLogs: false,
+      usedInUi: true,
+    });
   });
 });
