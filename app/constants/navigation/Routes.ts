@@ -452,6 +452,7 @@ const Routes = {
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
     POSITION: 'TraderPositionView',
+    POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
     POST_COMPOSER: 'SocialPostComposerView',
@@ -659,6 +660,8 @@ const Routes = {
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
+  /** Token Details V1 equivalent of `SECURITY_TRUST`, pushed from the Security tab. */
+  CONTRACT_SECURITY: 'ContractSecurity',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',

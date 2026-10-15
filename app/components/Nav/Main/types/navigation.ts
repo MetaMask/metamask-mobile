@@ -44,6 +44,7 @@ export type AssetStackParamList = {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
   };
+  ContractSecurity: { token: TokenDetailsRouteParams };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
 };

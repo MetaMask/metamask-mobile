@@ -182,9 +182,11 @@
         },
         "ConfigRegistryController": {
           "configs": {
+            "eventsConfig": null,
             "networks": {}
           },
           "etag": null,
+          "eventsConfigEtag": null,
           "lastFetched": null,
           "version": "0.0.0"
         },
