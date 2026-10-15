@@ -192,6 +192,20 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/bridge-status-controller": {
+      "type": "breaking",
+      "previewVersion": "76.3.3-preview-e45297452"
+    },
+    "@metamask/transaction-controller": {
+      "type": "breaking",
+      "previewVersion": "72.2.1-preview-625bad5"
+    },
+    "@metamask/transaction-pay-controller": {
+      "type": "breaking",
+      "previewVersion": "30.1.0-preview-625bad5"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -268,7 +282,7 @@
     "@metamask/snap-account-service": "^4.0.0",
     "@metamask/permission-controller": "^13.1.1",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
-    "@metamask/transaction-controller": "72.2.1",
+    "@metamask/transaction-controller": "npm:@metamask-previews/transaction-controller@72.2.1-preview-625bad5",
     "@metamask/keyring-controller": "^28.1.0",
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@ledgerhq/context-module/ethers": "^6.16.0",
