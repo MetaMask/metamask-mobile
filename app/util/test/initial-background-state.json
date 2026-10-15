@@ -568,8 +568,7 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {},
-    "activeDappNetwork": null
+    "domains": {}
   },
   "SignatureController": {
     "signatureRequests": {},
