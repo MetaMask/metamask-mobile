@@ -28,6 +28,7 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -43,6 +44,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useHaptics } from '../../../../util/haptics';
+import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
+import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
 import ProfileAvatar, {
   ProfileAvatarArt,
@@ -50,6 +53,8 @@ import ProfileAvatar, {
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
+  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
+  buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
@@ -278,10 +283,18 @@ const SocialProfileOnboardingView: React.FC = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { playSelection } = useHaptics();
+  const { checkUsernameAvailability, createProfile, getXAuthorizationUrl } =
+    useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [usernameClaimError, setUsernameClaimError] = useState<string | null>(
+    null,
+  );
+  const [connectXError, setConnectXError] = useState<string | null>(null);
+  const [finishError, setFinishError] = useState<string | null>(null);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -322,6 +335,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleUsernameChange = useCallback((value: string) => {
     const username = value.replace(/^@+/, '');
+    setUsernameClaimError(null);
     setDraft((current) => ({
       ...current,
       username,
@@ -332,6 +346,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   const handleShuffleUsername = useCallback(() => {
+    setUsernameClaimError(null);
     setDraft((current) => {
       const username = nextUsernameSuggestion(current.username);
       return {
@@ -367,25 +382,75 @@ const SocialProfileOnboardingView: React.FC = () => {
     setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
   }, []);
 
-  const handleContinue = useCallback(() => {
-    setStep((current) => {
-      switch (current) {
-        case 'username':
-          return 'avatar';
-        case 'avatar':
-          return 'account';
-        case 'account':
-          return 'ready';
-        default:
-          return current;
-      }
-    });
-  }, []);
+  const handleConnectX = useCallback(async () => {
+    setConnectXError(null);
+    setIsSubmitting(true);
+    try {
+      const session = await getXAuthorizationUrl();
+      await Linking.openURL(session.authorizationUrl);
+    } catch {
+      setConnectXError(
+        strings('social_leaderboard.profile_onboarding.connect_x_error'),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [getXAuthorizationUrl]);
 
-  const handleFinish = useCallback(() => {
-    saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
-    navigation.navigate(Routes.SOCIAL.V1);
-  }, [draft, navigation]);
+  const handleContinue = useCallback(async () => {
+    if (step !== 'username') {
+      setStep((current) => {
+        switch (current) {
+          case 'avatar':
+            return 'account';
+          case 'account':
+            return 'ready';
+          default:
+            return current;
+        }
+      });
+      return;
+    }
+
+    setUsernameClaimError(null);
+    setIsSubmitting(true);
+    try {
+      const availability = await checkUsernameAvailability(
+        normalizeUsername(draft.username),
+      );
+      if (!availability.available || !availability.valid) {
+        setUsernameClaimError(
+          strings('social_leaderboard.profile_onboarding.username_unavailable'),
+        );
+        return;
+      }
+      setStep('avatar');
+    } catch {
+      setUsernameClaimError(
+        strings('social_leaderboard.profile_onboarding.username_check_error'),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [checkUsernameAvailability, draft.username, step]);
+
+  const handleFinish = useCallback(async () => {
+    setFinishError(null);
+    setIsSubmitting(true);
+    try {
+      const profileId =
+        (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+      await createProfile(buildCreateProfileParams(draft, profileId));
+      saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
+      navigation.navigate(Routes.SOCIAL.V1);
+    } catch {
+      setFinishError(
+        strings('social_leaderboard.profile_onboarding.save_error'),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [createProfile, draft, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
@@ -433,12 +498,24 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
+                  isLoading={isSubmitting}
                   startIconName={IconName.X}
-                  onPress={() => undefined}
+                  onPress={() => {
+                    handleConnectX().catch(() => undefined);
+                  }}
                   testID={SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON}
                 >
                   {strings('social_leaderboard.profile_onboarding.connect_x')}
                 </Button>
+                {connectXError ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                    twClassName="text-center"
+                  >
+                    {connectXError}
+                  </Text>
+                ) : null}
                 <Button
                   variant={ButtonVariant.Tertiary}
                   isFullWidth
@@ -481,7 +558,10 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.username}
                       onChangeText={handleUsernameChange}
-                      isError={usernameStatus === 'invalid'}
+                      isError={
+                        usernameStatus === 'invalid' ||
+                        Boolean(usernameClaimError)
+                      }
                       startAccessory={
                         <Text
                           variant={TextVariant.BodyMd}
@@ -510,7 +590,18 @@ const SocialProfileOnboardingView: React.FC = () => {
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
                     />
-                    {usernameStatus === 'available' ? (
+                    {usernameClaimError ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        testID={
+                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
+                        }
+                      >
+                        {usernameClaimError}
+                      </Text>
+                    ) : null}
+                    {usernameStatus === 'available' && !usernameClaimError ? (
                       <Box
                         flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
@@ -792,11 +883,23 @@ const SocialProfileOnboardingView: React.FC = () => {
 
           {step !== 'intro' ? (
             <Box paddingHorizontal={4} paddingBottom={4}>
+              {finishError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  twClassName="text-center pb-3"
+                >
+                  {finishError}
+                </Text>
+              ) : null}
               {step === 'ready' ? (
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
-                  onPress={handleFinish}
+                  isLoading={isSubmitting}
+                  onPress={() => {
+                    handleFinish().catch(() => undefined);
+                  }}
                   testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
                 >
                   {strings('social_leaderboard.profile_onboarding.lets_go')}
@@ -805,8 +908,11 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
-                  isDisabled={continueDisabled}
-                  onPress={handleContinue}
+                  isDisabled={continueDisabled || isSubmitting}
+                  isLoading={isSubmitting}
+                  onPress={() => {
+                    handleContinue().catch(() => undefined);
+                  }}
                   testID={SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON}
                 >
                   {strings('social_leaderboard.profile_onboarding.continue')}

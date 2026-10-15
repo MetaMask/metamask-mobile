@@ -14,6 +14,8 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     ProfileController: {
       updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
+      createProfile: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: (...args: unknown[]) =>
         mockCheckUsernameAvailability(...args),
     },

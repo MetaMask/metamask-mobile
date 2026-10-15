@@ -1,8 +1,14 @@
+import type { CreateProfileParams } from '@metamask/profile-controller';
+import type { CaipAccountId } from '@metamask/utils';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
   DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
+
+/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
+export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
 
 export type ProfileOnboardingStep =
   | 'intro'
@@ -86,6 +92,30 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
 
 export const profileUrlForHandle = (handle: string): string =>
   `https://metamask.io/${normalizeUsername(handle)}`;
+
+export const buildCreateProfileParams = (
+  draft: ProfileOnboardingDraft,
+  profileId: string,
+): CreateProfileParams => {
+  if (!draft.linkedAccountAddress) {
+    throw new Error('Profile onboarding requires a linked account');
+  }
+
+  return {
+    profile_id: profileId,
+    username: normalizeUsername(draft.username),
+    display_name: draft.displayName.trim(),
+    bio: null,
+    linked_addresses: [
+      `eip155:1:${draft.linkedAccountAddress}` as CaipAccountId,
+    ],
+    avatar_url: toFoxiconAvatarUrl(
+      draft.avatarPresetId,
+      draft.avatarBackgroundId,
+    ),
+    trading_privacy: draft.shareTradingActivity ? 'public' : 'private',
+  };
+};
 
 export const buildOnboardedSocialProfile = (
   draft: ProfileOnboardingDraft,

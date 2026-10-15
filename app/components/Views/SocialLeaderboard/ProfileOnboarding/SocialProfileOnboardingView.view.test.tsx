@@ -13,6 +13,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { fireEvent, screen } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { renderSocialProfileOnboarding } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import {
@@ -26,10 +27,26 @@ const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const goOnline = () =>
   netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
 
+const continueFromUsername = async () => {
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+  );
+  expect(
+    await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
+  ).toBeOnTheScreen();
+};
+
 describe('SocialProfileOnboardingView', () => {
   afterEach(() => {
     restoreDefaultLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
+    jest.mocked(Engine.context.ProfileController.createProfile).mockClear();
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockClear();
+    jest
+      .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+      .mockClear();
   });
 
   it('writes a manual profile and opens the feed', async () => {
@@ -40,9 +57,7 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await continueFromUsername();
     fireEvent.press(
       screen.getByTestId(
         `${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-zombie`,
@@ -98,9 +113,25 @@ describe('SocialProfileOnboardingView', () => {
         linkedAccountId: 'acc-1',
       }),
     );
+    expect(
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).toHaveBeenCalledWith('wen-cat');
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      {
+        profile_id: 'social-v1-profile',
+        username: 'wen-cat',
+        display_name: 'Wen Cat',
+        bio: null,
+        linked_addresses: [
+          'eip155:1:0x0000000000000000000000000000000000000001',
+        ],
+        avatar_url: 'foxicon://zombie/lime',
+        trading_privacy: 'private',
+      },
+    );
   });
 
-  it('defaults the avatar backdrop to the centered color', () => {
+  it('defaults the avatar backdrop to the centered color', async () => {
     renderSocialProfileOnboarding();
 
     fireEvent.press(
@@ -108,9 +139,7 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await continueFromUsername();
 
     expect(screen.getByText('Customize your avatar')).toBeOnTheScreen();
     expect(
@@ -153,9 +182,7 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    await continueFromUsername();
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
@@ -194,5 +221,51 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
     ).not.toBeOnTheScreen();
+  });
+
+  it('stays on the username step when the handle is taken', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen-cat',
+        available: false,
+        valid: true,
+        normalized: 'wen-cat',
+        errors: [],
+      });
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        'This handle is unavailable. Choose another one.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+  });
+
+  it('starts the X authorization flow from the intro step', async () => {
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.getXAuthorizationUrl,
+    ).toHaveBeenCalled();
   });
 });
