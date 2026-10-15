@@ -1277,24 +1277,35 @@ export class CardController extends BaseController<
       },
     );
 
-    const result = await this.submitCredentials({
+    return this.submitCredentials({
       type: 'siwe',
       signature,
     });
+  }
 
-    if (result.done && !this.getSignInLink()) {
-      this.#writeSignInLink({
-        providerId: option.providerId,
-        status: 'linked',
-        address,
-        providerUserId:
-          result.tokenSet?.providerUserId ??
-          result.tokenSet?.cardholderAccountId,
-        updatedAt: Date.now(),
-      });
+  /**
+   * Drops an in-progress login, including a half-finished MFA challenge,
+   * without clearing stored tokens.
+   */
+  abandonAuth(): void {
+    this.currentSession = null;
+  }
+
+  #linkWalletSignInIfMissing(
+    providerId: NonNullable<CardControllerState['activeProviderId']>,
+    address: string | null | undefined,
+    tokenSet: CardAuthTokens,
+  ): void {
+    if (!address || this.getSignInLink()) {
+      return;
     }
-
-    return result;
+    this.#writeSignInLink({
+      providerId,
+      status: 'linked',
+      address,
+      providerUserId: tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
+      updatedAt: Date.now(),
+    });
   }
 
   #writeSignInLink(link: CardSignInLink): void {
@@ -1443,10 +1454,26 @@ export class CardController extends BaseController<
         'submitCredentials: no active provider',
       );
     }
-    const result = await provider.submitCredentials(
-      this.currentSession,
-      credentials,
-    );
+    const sessionAddress =
+      typeof this.currentSession._metadata?.address === 'string'
+        ? this.currentSession._metadata.address
+        : undefined;
+
+    let result: CardAuthResult;
+    try {
+      result = await provider.submitCredentials(
+        this.currentSession,
+        credentials,
+      );
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.AuthRestartRequired
+      ) {
+        this.currentSession = null;
+      }
+      throw error;
+    }
 
     if (result.nextStep) {
       this.currentSession = {
@@ -1484,27 +1511,29 @@ export class CardController extends BaseController<
         ] = { location: tokenSet.location };
       });
 
+      const completesWalletSignIn =
+        credentials.type === 'siwe' || credentials.type === 'mfa_code';
+      const linkAddress = completesWalletSignIn
+        ? (sessionAddress ??
+          tokenSet.accountAddress ??
+          this.#getSelectedEvmAddress())
+        : undefined;
+
       if (this.#migrationInProgress) {
         this.#migrationInProgress = false;
-        if (credentials.type === 'siwe') {
-          const address =
-            (typeof this.currentSession?._metadata?.address === 'string'
-              ? this.currentSession._metadata.address
-              : undefined) ??
-            tokenSet.accountAddress ??
-            this.#getSelectedEvmAddress();
-          if (address) {
-            this.#writeSignInLink({
-              providerId: pid,
-              status: 'started',
-              address,
-              providerUserId:
-                tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
-              stage: 'identity',
-              updatedAt: Date.now(),
-            });
-          }
+        if (completesWalletSignIn && linkAddress) {
+          this.#writeSignInLink({
+            providerId: pid,
+            status: 'started',
+            address: linkAddress,
+            providerUserId:
+              tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          });
         }
+      } else if (completesWalletSignIn) {
+        this.#linkWalletSignInIfMissing(pid, linkAddress, tokenSet);
       }
 
       this.invalidateFetch();

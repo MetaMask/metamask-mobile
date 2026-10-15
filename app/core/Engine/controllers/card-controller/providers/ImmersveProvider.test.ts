@@ -439,10 +439,13 @@ describe('ImmersveProvider', () => {
         signature: '0xsig',
       });
 
-      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
-        loginRequestId: 'login-req-1',
-        signature: '0xsig',
-      });
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-complete?mfa=true',
+        {
+          loginRequestId: 'login-req-1',
+          signature: '0xsig',
+        },
+      );
       expect(result.done).toBe(true);
       expect(result.tokenSet?.accessToken).toBe(accessJwt);
       expect(result.tokenSet?.providerUserId).toBe('cardholder-1');
@@ -499,6 +502,136 @@ describe('ImmersveProvider', () => {
         }),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
     });
+
+    it('returns a method-selection step from the signature call', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: 'select-mfa-method',
+        mfaOptions: [
+          { method: 'phone', maskedDestination: '+64 *****1234' },
+          { method: 'email', maskedDestination: 'j***@example.com' },
+          { method: 'sms', maskedDestination: 'ignored' },
+        ],
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+          ],
+        },
+      });
+    });
+
+    it('throws AuthRestartRequired when no verified contact is returned', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: 'select-mfa-method',
+        mfaOptions: [],
+      });
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0xsig',
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.AuthRestartRequired,
+        errorCode: 'NO_VERIFIED_CONTACT',
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('posts the chosen method and returns the code step', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        nextStep: 'submit-mfa-code',
+        mfaOption: { method: 'email', maskedDestination: 'j***@example.com' },
+        expiresAt: '2024-06-01T12:05:00.000Z',
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'mfa_method',
+        method: 'email',
+        destination: 'jane@example.com',
+      });
+
+      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+        loginRequestId: 'login-req-1',
+        mfaMethod: 'email',
+        mfaDestination: 'jane@example.com',
+      });
+      expect(result).toStrictEqual({
+        done: false,
+        nextStep: {
+          type: 'mfa_code',
+          method: 'email',
+          maskedDestination: 'j***@example.com',
+          expiresAt: Date.parse('2024-06-01T12:05:00.000Z'),
+        },
+      });
+    });
+
+    it('posts the MFA code', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
+        accessToken: makeJwt(FIXED_NOW + 60 * 60 * 1000),
+        cardholderAccountId: 'cardholder-1',
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'mfa_code',
+        code: '123456',
+      });
+
+      expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+        loginRequestId: 'login-req-1',
+        mfaCode: '123456',
+      });
+      expect(result.done).toBe(true);
+      expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
+    });
+
+    it.each([
+      ['MFA_CODE_INVALID', CardProviderErrorCode.InvalidOtp],
+      ['MFA_METHOD_MISMATCH', CardProviderErrorCode.MfaDestinationMismatch],
+      ['MFA_CODE_EXPIRED', CardProviderErrorCode.AuthRestartRequired],
+      ['MFA_ATTEMPTS_EXCEEDED', CardProviderErrorCode.AuthRestartRequired],
+      ['CHALLENGE_EXPIRED', CardProviderErrorCode.AuthRestartRequired],
+      ['LOGIN_STEP_INVALID', CardProviderErrorCode.AuthRestartRequired],
+    ] as const)(
+      'maps %s without reporting to Sentry',
+      async (errorCode, expectedCode) => {
+        const { provider, service } = createProvider();
+        service.post.mockRejectedValue(
+          new CardApiError(
+            403,
+            '/auth/login-complete',
+            JSON.stringify({ errorCode }),
+          ),
+        );
+
+        await expect(
+          provider.submitCredentials(session, {
+            type: 'mfa_code',
+            code: '000000',
+          }),
+        ).rejects.toMatchObject({
+          code: expectedCode,
+          statusCode: 403,
+          errorCode,
+        });
+        expect(Logger.error).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('refreshTokens', () => {
@@ -1175,6 +1308,24 @@ describe('ImmersveProvider', () => {
       expect(data.walletProvisioning).toBeNull();
       expect(data.alerts).toStrictEqual([
         { type: 'card_provisioning', dismissable: false },
+      ]);
+    });
+
+    it('offers Enable card when the list still shows the card but detail is cancelled', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockImplementation(
+        routeGet({
+          cards: { items: [activeCard] },
+          cardDetail: { ...activeCardDetail, status: 'cancelled' },
+        }),
+      );
+
+      const data = await provider.getCardHomeData('0xabc', TOKENS);
+
+      expect(data.card).toBeNull();
+      expect(data.alerts).toStrictEqual([]);
+      expect(data.actions).toStrictEqual([
+        { type: 'enable_card', reason: 'card_cancelled' },
       ]);
     });
 

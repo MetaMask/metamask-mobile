@@ -84,7 +84,11 @@ export const useImmersveSiweAuth = () => {
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_SIWE_AUTH_COMPLETED)
-            .addProperties(metricsProps)
+            .addProperties(
+              withCardProvider(CardProviderIds.Immersve, {
+                mfa_required: result.nextStep?.type === 'mfa_select',
+              }),
+            )
             .build(),
         );
 
