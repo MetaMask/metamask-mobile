@@ -9,7 +9,7 @@ import {
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { RootState } from '../../../../reducers';
-import { useReferralMe } from './useReferralMe';
+import { useReferralMe, type FetchReferralMeResult } from './useReferralMe';
 
 const isMoneyDashboard = (
   persona: MoneyDashboardPersona | undefined,
@@ -18,6 +18,101 @@ const isMoneyDashboard = (
 interface ReferralResolution {
   resolved: boolean;
   profileId: string | undefined;
+}
+
+/**
+ * The resolution to publish when the tab is focused, or undefined when the
+ * current one already routes this profile. A saved entry opens immediately.
+ */
+function resolutionForFocus({
+  resolved,
+  resolutionProfileId,
+  currentProfileId,
+  cachedProfileId,
+  cacheCanRoute,
+}: {
+  resolved: boolean;
+  resolutionProfileId: string | undefined;
+  currentProfileId: string | undefined;
+  cachedProfileId: string | undefined;
+  cacheCanRoute: boolean;
+}): ReferralResolution | undefined {
+  const profileKnownAndDifferent =
+    currentProfileId !== undefined && resolutionProfileId !== currentProfileId;
+  if (resolved && !profileKnownAndDifferent) {
+    return undefined;
+  }
+  if (
+    cacheCanRoute &&
+    cachedProfileId &&
+    (currentProfileId === undefined || currentProfileId === cachedProfileId)
+  ) {
+    return { resolved: true, profileId: cachedProfileId };
+  }
+  return { resolved: false, profileId: currentProfileId };
+}
+
+/** A failed refresh keeps the route a saved entry already opened. */
+function keepCachedRouteOnRefreshFailure(
+  active: boolean,
+  resolution: ReferralResolution,
+  profileId: string | undefined,
+  updateResolution: (next: ReferralResolution) => void,
+): void {
+  if (!active) {
+    return;
+  }
+  if (resolution.resolved && resolution.profileId) {
+    return;
+  }
+  updateResolution({ resolved: true, profileId });
+}
+
+async function refreshUntilSettled({
+  isActive,
+  fetchReferralMe,
+  resolution,
+  updateResolution,
+  profileId,
+}: {
+  isActive: () => boolean;
+  fetchReferralMe: () => Promise<FetchReferralMeResult>;
+  resolution: () => ReferralResolution;
+  updateResolution: (next: ReferralResolution) => void;
+  profileId: () => string | undefined;
+}): Promise<void> {
+  try {
+    while (isActive()) {
+      const result = await fetchReferralMe();
+      if (!isActive()) {
+        return;
+      }
+      if (result.status === 'discarded') {
+        noteDiscardedProfile(result.profileId, resolution, updateResolution);
+        continue;
+      }
+      updateResolution({ resolved: true, profileId: result.profileId });
+      return;
+    }
+  } catch {
+    keepCachedRouteOnRefreshFailure(
+      isActive(),
+      resolution(),
+      profileId(),
+      updateResolution,
+    );
+  }
+}
+
+function noteDiscardedProfile(
+  profileId: string | undefined,
+  resolution: () => ReferralResolution,
+  updateResolution: (next: ReferralResolution) => void,
+): void {
+  if (profileId === resolution().profileId) {
+    return;
+  }
+  updateResolution({ resolved: false, profileId });
 }
 
 export interface RewardsMoneyTabRouting {
@@ -132,73 +227,26 @@ export function useRewardsMoneyTabRouting(): RewardsMoneyTabRouting {
       }
 
       let active = true;
-      const currentProfileId = profileIdRef.current;
       const cachedProfileId = sessionProfileIdRef.current;
-      const cacheCanRoute =
-        hasCachedReferralRef.current && cachedProfileId !== undefined;
-      const profileKnownAndDifferent =
-        currentProfileId !== undefined &&
-        resolutionRef.current.profileId !== currentProfileId;
-
-      if (!resolutionRef.current.resolved || profileKnownAndDifferent) {
-        if (
-          cacheCanRoute &&
-          cachedProfileId &&
-          (currentProfileId === undefined ||
-            currentProfileId === cachedProfileId)
-        ) {
-          updateResolution({ resolved: true, profileId: cachedProfileId });
-        } else {
-          updateResolution({
-            resolved: false,
-            profileId: currentProfileId,
-          });
-        }
+      const nextResolution = resolutionForFocus({
+        resolved: resolutionRef.current.resolved,
+        resolutionProfileId: resolutionRef.current.profileId,
+        currentProfileId: profileIdRef.current,
+        cachedProfileId,
+        cacheCanRoute:
+          hasCachedReferralRef.current && cachedProfileId !== undefined,
+      });
+      if (nextResolution) {
+        updateResolution(nextResolution);
       }
 
-      const resolveCurrentProfile = async () => {
-        try {
-          while (true) {
-            if (!active) {
-              return;
-            }
-            const result = await fetchReferralMe();
-            if (!active) {
-              return;
-            }
-            if (result.status === 'discarded') {
-              if (result.profileId !== resolutionRef.current.profileId) {
-                updateResolution({
-                  resolved: false,
-                  profileId: result.profileId,
-                });
-              }
-              continue;
-            }
-            updateResolution({
-              resolved: true,
-              profileId: result.profileId,
-            });
-            return;
-          }
-        } catch {
-          if (!active) {
-            return;
-          }
-          // A failed refresh keeps the route the saved entry already opened.
-          if (
-            resolutionRef.current.resolved &&
-            resolutionRef.current.profileId
-          ) {
-            return;
-          }
-          updateResolution({
-            resolved: true,
-            profileId: profileIdRef.current,
-          });
-        }
-      };
-      void resolveCurrentProfile();
+      void refreshUntilSettled({
+        isActive: () => active,
+        fetchReferralMe,
+        resolution: () => resolutionRef.current,
+        updateResolution,
+        profileId: () => profileIdRef.current,
+      });
 
       return () => {
         active = false;

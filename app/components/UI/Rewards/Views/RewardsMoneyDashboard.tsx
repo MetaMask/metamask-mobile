@@ -30,6 +30,7 @@ import {
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
 } from '../../../../reducers/rewardsMoney/selectors';
+import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
@@ -71,6 +72,82 @@ const hasClaimableEarnings = (claimable?: string): boolean => {
     return false;
   }
 };
+
+function sessionHasNoProfile(
+  identityReady: boolean,
+  profileId: string | undefined,
+): boolean {
+  return identityReady && !profileId;
+}
+
+function referralReadSettledEmpty(
+  profileId: string | undefined,
+  hasReferral: boolean,
+  entry: { error: boolean; loading: boolean } | undefined,
+): boolean {
+  return (
+    Boolean(profileId) &&
+    Boolean(entry?.error) &&
+    !hasReferral &&
+    !entry?.loading
+  );
+}
+
+function dashboardStillLoading(
+  identityReady: boolean,
+  profileId: string | undefined,
+  hasReferral: boolean,
+  settledEmpty: boolean,
+): boolean {
+  if (!identityReady) {
+    return true;
+  }
+  return Boolean(profileId) && !hasReferral && !settledEmpty;
+}
+
+function WaysToEarnBody({
+  profileId,
+  referralMe,
+  subscriptionId,
+}: {
+  profileId: string;
+  referralMe: ReferralMeDto;
+  subscriptionId: string | null | undefined;
+}) {
+  const persona = moneyDashboardPersona(referralMe);
+  return (
+    <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}>
+      {persona === 'referrer' ? (
+        <RefererHeroCard
+          profileId={profileId}
+          referralCode={referralMe.referral_code}
+          localizedText={referralMe.localized_text}
+        />
+      ) : null}
+      {persona === 'referee' ? (
+        <RefereeHeroCard
+          profileId={profileId}
+          referredBy={referralMe.referred_by}
+          localizedText={referralMe.localized_text}
+        />
+      ) : null}
+      {subscriptionId ? (
+        <>
+          <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION}>
+            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
+            <CampaignsPreview />
+          </Box>
+          <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION}>
+            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
+            <BenefitsPreview />
+          </Box>
+        </>
+      ) : (
+        <RewardsOptInSection localizedText={referralMe.localized_text} />
+      )}
+    </Box>
+  );
+}
 
 const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -148,15 +225,21 @@ const RewardsMoneyDashboard: React.FC = () => {
     </Box>
   );
 
-  const sessionSettledWithoutProfile = identityReady && !profileId;
-  const referralSettledWithoutData =
-    Boolean(profileId) &&
-    Boolean(referralMeEntry?.error) &&
-    !referralMe &&
-    !referralMeEntry?.loading;
-  const stillLoading =
-    !identityReady ||
-    (Boolean(profileId) && !referralMe && !referralSettledWithoutData);
+  const sessionSettledWithoutProfile = sessionHasNoProfile(
+    identityReady,
+    profileId,
+  );
+  const referralSettledWithoutData = referralReadSettledEmpty(
+    profileId,
+    Boolean(referralMe),
+    referralMeEntry,
+  );
+  const stillLoading = dashboardStillLoading(
+    identityReady,
+    profileId,
+    Boolean(referralMe),
+    referralSettledWithoutData,
+  );
 
   if (stillLoading) {
     // The same surface the tab shows while the persona resolves, so the two
@@ -249,58 +332,11 @@ const RewardsMoneyDashboard: React.FC = () => {
                   Ways to earn. Claim history reads its cached page on focus
                   and refreshes behind it. */}
               {activeTab === 'waysToEarn' ? (
-                <Box
-                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
-                >
-                  {referralMe &&
-                  moneyDashboardPersona(referralMe) === 'referrer' ? (
-                    <RefererHeroCard
-                      profileId={profileId}
-                      referralCode={referralMe.referral_code}
-                      localizedText={referralMe.localized_text}
-                    />
-                  ) : null}
-                  {referralMe &&
-                  moneyDashboardPersona(referralMe) === 'referee' ? (
-                    <RefereeHeroCard
-                      profileId={profileId}
-                      referredBy={referralMe.referred_by}
-                      localizedText={referralMe.localized_text}
-                    />
-                  ) : null}
-                  {referralMe ? (
-                    subscriptionId ? (
-                      <>
-                        <Box
-                          testID={
-                            REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION
-                          }
-                        >
-                          <SectionDivider
-                            marginVertical={0}
-                            twClassName="mt-8 mb-5"
-                          />
-                          <CampaignsPreview />
-                        </Box>
-                        <Box
-                          testID={
-                            REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION
-                          }
-                        >
-                          <SectionDivider
-                            marginVertical={0}
-                            twClassName="mt-8 mb-5"
-                          />
-                          <BenefitsPreview />
-                        </Box>
-                      </>
-                    ) : (
-                      <RewardsOptInSection
-                        localizedText={referralMe.localized_text}
-                      />
-                    )
-                  ) : null}
-                </Box>
+                <WaysToEarnBody
+                  profileId={profileId}
+                  referralMe={referralMe}
+                  subscriptionId={subscriptionId}
+                />
               ) : (
                 <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
               )}

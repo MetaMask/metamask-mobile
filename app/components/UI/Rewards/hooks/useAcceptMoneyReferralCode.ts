@@ -91,6 +91,59 @@ async function refreshReferralMeWithRetries(
   }
 }
 
+function acceptAlreadyRunning(
+  isAccepting: boolean,
+  rateLimitUntil: number | null,
+): boolean {
+  if (isAccepting) {
+    return true;
+  }
+  return rateLimitUntil !== null && Date.now() < rateLimitUntil;
+}
+
+function runIfMounted(isMounted: boolean, update: () => void): void {
+  if (isMounted) {
+    update();
+  }
+}
+
+type ValidationOutcome =
+  | { kind: 'thrown'; error: unknown }
+  | { kind: 'invalid'; message: string }
+  | { kind: 'ok' };
+
+async function validationOutcome(
+  validateCode: (code: string) => Promise<string>,
+  code: string,
+): Promise<ValidationOutcome> {
+  let validationError: string;
+  try {
+    validationError = await validateCode(code);
+  } catch (error) {
+    return { kind: 'thrown', error };
+  }
+  if (!validationError) {
+    return { kind: 'ok' };
+  }
+  return {
+    kind: 'invalid',
+    message:
+      validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
+        ? strings('rewards.error_messages.something_went_wrong')
+        : validationError,
+  };
+}
+
+function openAcceptedSplash(
+  navigation: AppNavigationProp,
+  sheetStillMounted: boolean,
+): void {
+  if (sheetStillMounted) {
+    navigation.goBack();
+  }
+  navigation.navigate(Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW);
+}
+
 export interface UseAcceptMoneyReferralCodeResult {
   /**
    * Validates the code, registers the session profile as a referee, then reads
@@ -205,43 +258,32 @@ export const useAcceptMoneyReferralCode =
 
     const acceptReferralCode = useCallback(
       async (code: string): Promise<boolean> => {
-        if (isAcceptingRef.current) {
-          return false;
-        }
         if (
-          rateLimitUntilRef.current !== null &&
-          Date.now() < rateLimitUntilRef.current
+          acceptAlreadyRunning(
+            isAcceptingRef.current,
+            rateLimitUntilRef.current,
+          )
         ) {
           return false;
         }
         isAcceptingRef.current = true;
-        if (isMountedRef.current) {
-          setIsLoading(true);
-        }
+        runIfMounted(isMountedRef.current, () => setIsLoading(true));
 
         try {
-          if (isMountedRef.current) {
-            setErrorMessage('');
-          }
-          let validationError: string;
-          try {
-            validationError = await validateCode(code);
-          } catch (error) {
-            if (isMountedRef.current) {
-              noteRefusal(error);
-            }
+          runIfMounted(isMountedRef.current, () => setErrorMessage(''));
+          const validation = await validationOutcome(validateCode, code);
+          if (validation.kind === 'thrown') {
+            runIfMounted(isMountedRef.current, () =>
+              noteRefusal(validation.error),
+            );
             return false;
           }
-          if (validationError) {
+          if (validation.kind === 'invalid') {
             // A failed validation call is not a code the server rejected, so it
             // does not claim the code is invalid.
-            if (isMountedRef.current) {
-              setErrorMessage(
-                validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
-                  ? strings('rewards.error_messages.something_went_wrong')
-                  : validationError,
-              );
-            }
+            runIfMounted(isMountedRef.current, () =>
+              setErrorMessage(validation.message),
+            );
             return false;
           }
 
@@ -251,9 +293,7 @@ export const useAcceptMoneyReferralCode =
               { code: normalizeMoneyReferralCode(code) },
             );
           } catch (error) {
-            if (isMountedRef.current) {
-              noteRefusal(error);
-            }
+            runIfMounted(isMountedRef.current, () => noteRefusal(error));
             return false;
           }
 
@@ -268,18 +308,11 @@ export const useAcceptMoneyReferralCode =
           // tab refetches referral me the next time it is focused. Skip
           // goBack when the sheet has already left the stack, or that pop
           // would dismiss the screen underneath it.
-          if (isMountedRef.current) {
-            navigation.goBack();
-          }
-          navigation.navigate(
-            Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
-          );
+          openAcceptedSplash(navigation, isMountedRef.current);
           return true;
         } finally {
           isAcceptingRef.current = false;
-          if (isMountedRef.current) {
-            setIsLoading(false);
-          }
+          runIfMounted(isMountedRef.current, () => setIsLoading(false));
         }
       },
       [navigation, noteRefusal, refreshReferralMe, validateCode],

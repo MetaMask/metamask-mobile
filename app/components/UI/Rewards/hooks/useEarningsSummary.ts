@@ -35,7 +35,7 @@ export const useEarningsSummary = (
     useOneShotBusyRefetch();
   const fetchRef = useRef<
     (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
-  >(async () => undefined);
+  >(() => Promise.resolve());
 
   const fetchEarningsSummary = useCallback(
     async ({
