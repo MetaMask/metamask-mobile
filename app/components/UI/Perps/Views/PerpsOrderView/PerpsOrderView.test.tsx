@@ -6275,22 +6275,10 @@ describe('PerpsOrderView', () => {
         refetch: jest.fn(),
       });
       useTradeSheetRoute();
-      const queuedFrames: FrameRequestCallback[] = [];
-      const animationFrame = global.requestAnimationFrame as jest.Mock;
-      animationFrame.mockImplementation((callback: FrameRequestCallback) => {
-        queuedFrames.push(callback);
-        return 1;
-      });
 
-      try {
-        render(<PerpsOrderView />, { wrapper: TestWrapper });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-        // Market data is deferred to the next frame. Run that callback here
-        // so a busy worker cannot time out before it runs.
-        await act(async () => {
-          queuedFrames.forEach((callback) => callback(0));
-        });
-
+      await waitFor(() => {
         expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
         expect(getMockTradeScreenProps().errorMessages).toEqual(
           expect.arrayContaining([
@@ -6300,12 +6288,7 @@ describe('PerpsOrderView', () => {
             }),
           ]),
         );
-      } finally {
-        animationFrame.mockImplementation((callback: FrameRequestCallback) => {
-          setTimeout(callback, 0);
-          return 1;
-        });
-      }
+      });
     });
   });
 
