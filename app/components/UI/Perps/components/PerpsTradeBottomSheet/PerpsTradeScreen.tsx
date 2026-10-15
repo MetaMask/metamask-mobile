@@ -27,7 +27,7 @@ import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
@@ -589,7 +589,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                       color={
-                        limitPrice ? TextColor.TextDefault : TextColor.TextMuted
+                        limitPrice
+                          ? TextColor.TextDefault
+                          : TextColor.ErrorDefault
                       }
                     >
                       {limitPriceDisplay}
@@ -901,7 +903,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={2}
               >
-                {(feeDiscountPercentage ?? 0) > 0 ? <RewardsVipBadge /> : null}
+                {(feeDiscountPercentage ?? 0) > 0 ? (
+                  <MembershipVipBadge />
+                ) : null}
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}

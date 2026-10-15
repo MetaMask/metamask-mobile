@@ -28,7 +28,7 @@
   },
   "arc_usage_notice": {
     "title": "Notice",
-    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with the Arc team."
   },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
@@ -1624,9 +1624,12 @@
       "username_available": "Username available · metamask.io/{{handle}}",
       "username_invalid": "Use letters, numbers, and hyphens.",
       "shuffle_username": "Suggest a username",
-      "pick_look": "Pick your look",
-      "camera": "Camera",
-      "photos": "Photos",
+      "customize_avatar": "Customize your avatar",
+      "avatar_background_peach": "Peach background",
+      "avatar_background_lilac": "Lilac background",
+      "avatar_background_sky": "Sky background",
+      "avatar_background_purple": "Purple background",
+      "avatar_background_lime": "Lime background",
       "link_account": "Link an account",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "share_trading_activity": "Share trading activity",
@@ -2552,6 +2555,8 @@
       "order_type_accessibility_label": "Order type: {{orderType}}",
       "toggle_amount_display": "Toggle between fiat and token amount",
       "total_inc_pnl": "Total (inc. P&L)",
+      "total_receive": "Total receive",
+      "included_pnl": "Included P&L",
       "margin": "Margin",
       "includes_pnl": "includes P&L",
       "pnl": "P&L",
@@ -5743,8 +5748,10 @@
     "once_label": "Once",
     "moves_up": "When price moves up",
     "moves_down": "When price moves down",
+    "period_5m": "5min",
     "period_1h": "1hr",
     "period_24h": "24hr",
+    "period_5m_short": "5m",
     "period_1h_short": "1h",
     "period_24h_short": "24h",
     "moves_up_summary": "Moves up {{percent}}%",

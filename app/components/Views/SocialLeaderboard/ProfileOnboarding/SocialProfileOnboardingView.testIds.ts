@@ -17,8 +17,11 @@ export const SocialProfileOnboardingSelectorsIDs = {
   AVATAR_STEP: 'social-profile-onboarding-avatar-step',
   AVATAR_PREVIEW: 'social-profile-onboarding-avatar-preview',
   AVATAR_OPTION: 'social-profile-onboarding-avatar-option',
-  CAMERA_BUTTON: 'social-profile-onboarding-camera-button',
-  PHOTOS_BUTTON: 'social-profile-onboarding-photos-button',
+  AVATAR_BACKGROUND_CAROUSEL:
+    'social-profile-onboarding-avatar-background-carousel',
+  AVATAR_BACKGROUND_OPTION:
+    'social-profile-onboarding-avatar-background-option',
+  AVATAR_BACKGROUND_GLOW: 'social-profile-onboarding-avatar-background-glow',
   ACCOUNT_STEP: 'social-profile-onboarding-account-step',
   ACCOUNT_ROW: 'social-profile-onboarding-account-row',
   SHARE_ACTIVITY_SWITCH: 'social-profile-onboarding-share-activity-switch',
