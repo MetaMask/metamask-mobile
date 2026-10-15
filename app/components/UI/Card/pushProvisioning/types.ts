@@ -115,6 +115,9 @@ export type WalletAction =
   | 'contact_support'
   | 'wait';
 
+/** A device that can hold an Apple Wallet pass. */
+export type WalletPassDevice = 'phone' | 'watch';
+
 /** Wallet eligibility check result */
 export interface WalletEligibility {
   isAvailable: boolean;
@@ -124,6 +127,10 @@ export interface WalletEligibility {
   recommendedAction?: WalletAction;
   /** Token reference ID for resume flow (requires_activation status) */
   tokenReferenceId?: string;
+  /** Pass state on each Apple device that already has this card. */
+  devices?: Partial<Record<WalletPassDevice, CardTokenStatus>>;
+  /** Devices whose pass is waiting on issuer verification. */
+  pendingVerificationDevices?: WalletPassDevice[];
 }
 
 /** Card activation event from wallet */
@@ -175,4 +182,10 @@ export interface UsePushProvisioningReturn {
   canAddToWallet: boolean;
   /** True when this card is already in the wallet, including right after a successful add. */
   isCardInWallet: boolean;
+  /** Devices whose pass is waiting on issuer verification. */
+  pendingVerificationDevices: WalletPassDevice[];
+  /** True when this iPhone has a pass for the card that can be opened. */
+  canOpenInWallet: boolean;
+  /** Open this card's iPhone pass in Apple Wallet. */
+  openInWallet: () => Promise<void>;
 }

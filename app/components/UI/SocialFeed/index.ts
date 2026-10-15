@@ -34,6 +34,11 @@ export {
 export type {
   SocialFeedLocation,
   SocialFeedSurface,
+  SocialSurfaceLocation,
 } from './SocialFeedSurface';
 
-export type { SocialV1FeedItem, SocialV1FeedPost } from './types';
+export type {
+  SocialAssetClass,
+  SocialV1FeedItem,
+  SocialV1FeedPost,
+} from './types';

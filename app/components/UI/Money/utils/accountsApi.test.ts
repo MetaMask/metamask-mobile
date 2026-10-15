@@ -88,6 +88,35 @@ const inboundTopUpRow = {
 };
 
 describe('parseAccountsApiActivity', () => {
+  it('preserves a valid transaction block number on card activity', () => {
+    // Arrange
+    const response = {
+      data: [{ ...cardPaymentRow, blockNumber: 12_345 }],
+    };
+
+    // Act
+    const [activity] = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(activity.blockNumber).toBe(12_345);
+  });
+
+  it.each([undefined, -1, 1.5, Number.MAX_SAFE_INTEGER + 1])(
+    'omits an unavailable or unsafe transaction block number (%s)',
+    (blockNumber) => {
+      // Arrange
+      const response = {
+        data: [{ ...cardPaymentRow, blockNumber }],
+      };
+
+      // Act
+      const [activity] = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+      // Assert
+      expect(activity).not.toHaveProperty('blockNumber');
+    },
+  );
+
   it('maps a card payment to a card outflow keyed on the leg leaving the money account', () => {
     // Arrange — a card payment alongside an unrelated top-up.
     const response = { data: [cardPaymentRow, inboundTopUpRow] };

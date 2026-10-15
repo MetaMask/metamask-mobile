@@ -1,7 +1,12 @@
 import AppConstants from '../../../../core/AppConstants';
 import {
+  findPositionByTokenAddress,
+  getOpenPositionForAsset,
   getTraderPosition,
+  openPositionsListUrl,
+  toOpenPositionPnl,
   toTraderPosition,
+  tokenAddressesMatch,
   TraderPositionHttpError,
   TraderPositionMalformedError,
 } from './traderPositionService';
@@ -60,6 +65,7 @@ const jsonResponse = (status: number, body: unknown): Response =>
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
+    text: async () => JSON.stringify(body),
   }) as Response;
 
 describe('getTraderPosition', () => {
@@ -276,5 +282,127 @@ describe('toTraderPosition', () => {
     expect(() =>
       toTraderPosition({ ...positionBody, perpPositionType: 'both' }),
     ).toThrow(TraderPositionMalformedError);
+  });
+});
+
+const openPositionBody = {
+  positionAmount: 90,
+  isOpen: true,
+  boughtUsd: 100,
+  soldUsd: 0,
+  realizedPnl: 10,
+  costBasis: 80,
+  currentValueUSD: 150,
+  pnlValueUsd: 80,
+  pnlPercent: 12,
+  pnlStatus: 'ready',
+};
+
+describe('getOpenPositionForAsset', () => {
+  const traderId = 'bbda626e-5ef2-4652-8d07-4589318872e5';
+
+  beforeEach(() => {
+    mockCall.mockReset();
+    mockCall.mockResolvedValue('test-token');
+    mockFetch.mockReset();
+    global.fetch = mockFetch;
+  });
+
+  it('requests the open-positions list for the trader id', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, { positions: [positionBody] }),
+    );
+
+    await getOpenPositionForAsset(traderId, positionBody.tokenAddress);
+
+    expect(openPositionsListUrl(traderId)).toBe(
+      `https://social.test/api/v2/traders/${traderId}/positions/open`,
+    );
+    expect(mockFetch).toHaveBeenCalledWith(
+      `https://social.test/api/v2/traders/${traderId}/positions/open`,
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer test-token' },
+      }),
+    );
+  });
+
+  it('keeps the row for the token address and treats it as ready', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, {
+        positions: [
+          { ...positionBody, tokenAddress: 'Es9vMFrzaCER' },
+          positionBody,
+        ],
+      }),
+    );
+
+    const result = await getOpenPositionForAsset(
+      traderId,
+      '0x6982508145454CE325dDbE47a25d4ec3d2311933',
+    );
+
+    expect(result?.pnl).toEqual({
+      positionAmount: positionBody.positionAmount,
+      isOpen: true,
+      boughtUsd: positionBody.boughtUsd,
+      soldUsd: positionBody.soldUsd,
+      realizedPnl: positionBody.realizedPnl,
+      costBasis: positionBody.costBasis,
+      currentValueUSD: positionBody.currentValueUSD,
+      pnlValueUsd: positionBody.pnlValueUsd,
+      pnlPercent: positionBody.pnlPercent,
+      pnlStatus: 'ready',
+    });
+  });
+
+  it('returns null when the token is not in the list', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, { positions: [positionBody] }),
+    );
+
+    const result = await getOpenPositionForAsset(traderId, '0xnotthis');
+
+    expect(result).toBeNull();
+  });
+
+  it('matches an EVM address ignoring case and a Solana address exactly', () => {
+    expect(tokenAddressesMatch('0xAbC', '0xabc')).toBe(true);
+    expect(tokenAddressesMatch('Es9vMFrzaCER', 'es9vmfrzacer')).toBe(false);
+    expect(
+      findPositionByTokenAddress(
+        [
+          {
+            ...toTraderPosition(positionBody),
+            tokenAddress: 'Es9vMFrzaCER',
+          },
+        ],
+        'Es9vMFrzaCER',
+      )?.tokenAddress,
+    ).toBe('Es9vMFrzaCER');
+  });
+
+  it('keeps an in-progress payload', () => {
+    const result = toOpenPositionPnl({
+      ...openPositionBody,
+      pnlStatus: 'in-progress',
+      currentValueUSD: null,
+    });
+
+    expect(result.pnlStatus).toBe('in-progress');
+    expect(result.currentValueUSD).toBeNull();
+  });
+
+  it('throws when pnlStatus is missing', () => {
+    expect(() =>
+      toOpenPositionPnl({ ...openPositionBody, pnlStatus: 'backfilling' }),
+    ).toThrow(TraderPositionMalformedError);
+  });
+
+  it('throws the HTTP status when the route is not ready', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(404, { message: 'missing' }));
+
+    await expect(
+      getOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'),
+    ).rejects.toBeInstanceOf(TraderPositionHttpError);
   });
 });

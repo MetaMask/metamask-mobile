@@ -1,6 +1,7 @@
 import '../mocks';
-import React from 'react';
+import React, { useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type {
   CryptoCurrency,
@@ -20,6 +21,7 @@ import {
 import BuildQuote from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote';
 import Quotes from '../../../app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes';
 import V2BuildQuote from '../../../app/components/UI/Ramp/Views/BuildQuote/BuildQuote';
+import V2TokenSelection from '../../../app/components/UI/Ramp/Views/TokenSelection/TokenSelection';
 import V2SettingsModal from '../../../app/components/UI/Ramp/Views/Modals/SettingsModal/SettingsModal';
 import V2PaymentSelectionModal from '../../../app/components/UI/Ramp/Views/Modals/PaymentSelectionModal/PaymentSelectionModal';
 import V2ProviderSelectionModal from '../../../app/components/UI/Ramp/Views/Modals/ProviderSelectionModal/ProviderSelectionModal';
@@ -29,6 +31,7 @@ import FiatSelectorModal from '../../../app/components/UI/Ramp/Aggregator/compon
 import RegionSelectorModal from '../../../app/components/UI/Ramp/Aggregator/components/RegionSelectorModal';
 import SettingsModal from '../../../app/components/UI/Ramp/Aggregator/Views/Modals/Settings/SettingsModal';
 import AccountSelector from '../../../app/components/Views/AccountSelector';
+import { useStore } from 'react-redux';
 import { Text } from 'react-native';
 import {
   RampType,
@@ -164,9 +167,16 @@ export function wireRampsControllerForStore(store: Store) {
       providerId: string | null,
       options?: { autoSelected?: boolean },
     ) => void;
+    setSelectedPaymentMethod: (
+      paymentMethod?: { id: string } | string | null,
+    ) => void;
+    setSelectedToken: (assetId: string) => void;
   };
 
-  rampsController.setSelectedProvider = (providerId) => {
+  const updateRampsSlice = (
+    key: 'providers' | 'paymentMethods' | 'tokens',
+    resolveSelected: (slice: Record<string, unknown>) => unknown,
+  ) => {
     const backgroundState = store.getState().engine.backgroundState as Record<
       string,
       unknown
@@ -175,26 +185,69 @@ export function wireRampsControllerForStore(store: Store) {
       string,
       unknown
     >;
-    const existingProviders = existingRamps.providers as {
-      data: { id: string }[];
-      selected: unknown;
-    };
-
-    const provider = providerId
-      ? (existingProviders.data.find((p) => p.id === providerId) ?? null)
-      : null;
+    const existingSlice = existingRamps[key] as Record<string, unknown>;
 
     const engineWithState = Engine as unknown as EngineWithState;
     engineWithState.state = {
       ...(engineWithState.state ?? {}),
       RampsController: {
         ...existingRamps,
-        providers: { ...existingProviders, selected: provider },
+        [key]: { ...existingSlice, selected: resolveSelected(existingSlice) },
       },
     };
 
     store.dispatch(updateBgState({ key: 'RampsController' }));
   };
+
+  rampsController.setSelectedProvider = (providerId) => {
+    updateRampsSlice('providers', (slice) =>
+      providerId
+        ? ((slice.data as { id: string }[]).find((p) => p.id === providerId) ??
+          null)
+        : null,
+    );
+  };
+
+  rampsController.setSelectedPaymentMethod = (paymentMethod) => {
+    const paymentMethodId =
+      typeof paymentMethod === 'string' ? paymentMethod : paymentMethod?.id;
+    updateRampsSlice('paymentMethods', (slice) =>
+      paymentMethodId
+        ? ((slice.data as { id: string }[]).find(
+            (method) => method.id === paymentMethodId,
+          ) ?? null)
+        : null,
+    );
+  };
+
+  rampsController.setSelectedToken = (assetId) => {
+    updateRampsSlice('tokens', (slice) => {
+      const data = slice.data as {
+        allTokens?: { assetId: string }[];
+        topTokens?: { assetId: string }[];
+      } | null;
+      return (
+        [...(data?.allTokens ?? []), ...(data?.topTokens ?? [])].find(
+          (token) => token.assetId === assetId,
+        ) ?? null
+      );
+    });
+  };
+}
+
+/**
+ * Connects RampsController selection methods to the Redux store during render,
+ * before child screen effects run. Needed when BuildQuote switches provider
+ * on mount, which happens before a test can call wireRampsControllerForStore.
+ */
+function WireRampsControllerOnRender() {
+  const store = useStore();
+  const wired = useRef(false);
+  if (!wired.current) {
+    wireRampsControllerForStore(store);
+    wired.current = true;
+  }
+  return null;
 }
 
 /**
@@ -499,6 +552,40 @@ interface RenderV2BuildQuoteWithRoutesOptions
    * the provider list.
    */
   includeProviderSelectionRoute?: boolean;
+  /**
+   * Register route probes for the screens `continueWithQuote` navigates to
+   * (Checkout WebView, VerifyIdentity, EnterEmail). Each probe renders its
+   * route params as JSON under `testID="route-<RouteName>"`.
+   */
+  includeContinueRoutes?: boolean;
+  /**
+   * Register a route probe for the Token Not Available modal so the
+   * unavailable-token redirect can be asserted.
+   */
+  includeTokenNotAvailableRoute?: boolean;
+  /**
+   * Connect RampsController selection methods to Redux during the first
+   * render, so mount effects (provider auto-switch) see the wired methods.
+   */
+  wireRampsController?: boolean;
+}
+
+/**
+ * Builds a placeholder screen that renders `testID="route-<routeName>"` with
+ * its route params serialised as JSON, so tests can assert both the
+ * navigation target and the params passed to it.
+ */
+export function createRouteParamsProbe(routeName: string): React.FC {
+  const RouteParamsProbe: React.FC = () => {
+    const route = useRoute();
+
+    return (
+      <Text testID={`route-${routeName}`}>
+        {JSON.stringify(route.params ?? {})}
+      </Text>
+    );
+  };
+  return RouteParamsProbe;
 }
 
 /**
@@ -517,6 +604,9 @@ export function renderV2BuildQuoteWithRoutes(
     includeBuySettingsAndTransactionsRoutes = false,
     includePaymentSelectionRoute = false,
     includeProviderSelectionRoute = false,
+    includeContinueRoutes = false,
+    includeTokenNotAvailableRoute = false,
+    wireRampsController = false,
   } = options;
 
   const builder = initialStateRamps();
@@ -529,6 +619,15 @@ export function renderV2BuildQuoteWithRoutes(
   const MainStack = createNativeStackNavigator();
   const ModalsStack = createNativeStackNavigator();
 
+  const CheckoutProbe = createRouteParamsProbe(Routes.RAMP.CHECKOUT);
+  const VerifyIdentityProbe = createRouteParamsProbe(
+    Routes.RAMP.VERIFY_IDENTITY,
+  );
+  const EnterEmailProbe = createRouteParamsProbe(Routes.RAMP.ENTER_EMAIL);
+  const TokenNotAvailableProbe = createRouteParamsProbe(
+    Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE,
+  );
+
   const MainRoutes = () => (
     <MainStack.Navigator
       initialRouteName={Routes.RAMP.AMOUNT_INPUT}
@@ -539,6 +638,24 @@ export function renderV2BuildQuoteWithRoutes(
         component={V2BuildQuote}
         initialParams={initialParams}
       />
+      {includeContinueRoutes ? (
+        <MainStack.Screen
+          name={Routes.RAMP.CHECKOUT}
+          component={CheckoutProbe}
+        />
+      ) : null}
+      {includeContinueRoutes ? (
+        <MainStack.Screen
+          name={Routes.RAMP.VERIFY_IDENTITY}
+          component={VerifyIdentityProbe}
+        />
+      ) : null}
+      {includeContinueRoutes ? (
+        <MainStack.Screen
+          name={Routes.RAMP.ENTER_EMAIL}
+          component={EnterEmailProbe}
+        />
+      ) : null}
     </MainStack.Navigator>
   );
 
@@ -562,11 +679,18 @@ export function renderV2BuildQuoteWithRoutes(
           component={V2ProviderSelectionModal}
         />
       ) : null}
+      {includeTokenNotAvailableRoute ? (
+        <ModalsStack.Screen
+          name={Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}
+          component={TokenNotAvailableProbe}
+        />
+      ) : null}
     </ModalsStack.Navigator>
   );
 
   const stackTree = (
     <QueryClientProvider client={createQueryClient()}>
+      {wireRampsController ? <WireRampsControllerOnRender /> : null}
       <RootStack.Navigator
         initialRouteName={Routes.RAMP.ID}
         screenOptions={{ headerShown: false }}
@@ -574,7 +698,8 @@ export function renderV2BuildQuoteWithRoutes(
         <RootStack.Screen name={Routes.RAMP.ID} component={MainRoutes} />
         {(includeBuySettingsAndTransactionsRoutes ||
           includePaymentSelectionRoute ||
-          includeProviderSelectionRoute) && (
+          includeProviderSelectionRoute ||
+          includeTokenNotAvailableRoute) && (
           <RootStack.Screen
             name={Routes.RAMP.MODALS.ID}
             component={RampModalsRoutes}
@@ -586,6 +711,92 @@ export function renderV2BuildQuoteWithRoutes(
             component={TransactionsViewPlaceholder}
           />
         ) : null}
+      </RootStack.Navigator>
+    </QueryClientProvider>
+  );
+
+  return renderWithProvider(stackTree, { state });
+}
+
+interface RenderV2TokenSelectionWithRoutesOptions {
+  state?: DeepPartial<RootState>;
+  overrides?: DeepPartial<RootState>;
+  /**
+   * Connect RampsController selection methods to Redux during the first
+   * render, so a token tap updates the selected token before BuildQuote mounts.
+   */
+  wireRampsController?: boolean;
+}
+
+/**
+ * Renders the V2 unified-buy entry point: TokenSelection as the initial
+ * screen with the real V2 BuildQuote registered at `AMOUNT_INPUT`, so a token
+ * tap can be followed into the amount screen. The Unsupported Token modal is
+ * registered as a route probe.
+ */
+export function renderV2TokenSelectionWithRoutes(
+  options: RenderV2TokenSelectionWithRoutesOptions = {},
+): ReturnType<typeof renderWithProvider> {
+  const {
+    state: stateOverride,
+    overrides,
+    wireRampsController = false,
+  } = options;
+
+  const builder = initialStateRamps();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = stateOverride ?? builder.build();
+
+  const RootStack = createNativeStackNavigator();
+  const MainStack = createNativeStackNavigator();
+  const ModalsStack = createNativeStackNavigator();
+
+  const UnsupportedTokenProbe = createRouteParamsProbe(
+    Routes.RAMP.MODALS.UNSUPPORTED_TOKEN,
+  );
+
+  const MainRoutes = () => (
+    <MainStack.Navigator
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+      screenOptions={{ headerShown: false }}
+    >
+      <MainStack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={V2TokenSelection}
+      />
+      <MainStack.Screen
+        name={Routes.RAMP.AMOUNT_INPUT}
+        component={V2BuildQuote}
+      />
+    </MainStack.Navigator>
+  );
+
+  const RampModalsRoutes = () => (
+    <ModalsStack.Navigator screenOptions={{ headerShown: false }}>
+      <ModalsStack.Screen
+        name={Routes.RAMP.MODALS.UNSUPPORTED_TOKEN}
+        component={UnsupportedTokenProbe}
+      />
+    </ModalsStack.Navigator>
+  );
+
+  const stackTree = (
+    <QueryClientProvider client={createQueryClient()}>
+      {wireRampsController ? <WireRampsControllerOnRender /> : null}
+      <RootStack.Navigator
+        initialRouteName={Routes.RAMP.TOKEN_SELECTION_ROOT}
+        screenOptions={{ headerShown: false }}
+      >
+        <RootStack.Screen
+          name={Routes.RAMP.TOKEN_SELECTION_ROOT}
+          component={MainRoutes}
+        />
+        <RootStack.Screen
+          name={Routes.RAMP.MODALS.ID}
+          component={RampModalsRoutes}
+        />
       </RootStack.Navigator>
     </QueryClientProvider>
   );

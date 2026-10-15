@@ -3,6 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
+import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -29,7 +30,7 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank medal, username, verified badge, cohort, and PnL without follow chrome', () => {
+  it('renders rank medal, username, cohort, and PnL without follow chrome', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -40,9 +41,6 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
-    expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
     ).toBeOnTheScreen();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
@@ -50,6 +48,34 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByText('48,707 followers')).toBeNull();
     expect(screen.queryByText('+43.0%')).toBeNull();
     expect(screen.queryByText('Follow')).toBeNull();
+  });
+
+  it('hides the invented verified badge unless the surface shows mocked fields', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
+  });
+
+  it('shows the verified badge on a surface that shows mocked fields', () => {
+    renderWithProvider(
+      <SocialFeedSurfaceProvider showMockedFields>
+        <SocialV1TraderRow
+          trader={baseTrader}
+          onFollowPress={mockOnFollowPress}
+        />
+      </SocialFeedSurfaceProvider>,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
   });
 
   it('renders the numeric rank for positions outside the podium', () => {

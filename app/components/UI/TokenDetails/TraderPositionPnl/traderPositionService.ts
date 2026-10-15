@@ -1,23 +1,35 @@
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
-import type { TraderPosition, TraderPositionTrade } from './types';
+import type {
+  OpenPositionPnl,
+  TraderPosition,
+  TraderPositionTrade,
+} from './types';
 
 /**
- * ASSETS-4023 names an open-positions endpoint for the wallet's line.
- * This call loads one position by id (`GET /api/v1/traders/position/{id}`).
- * `SocialService:fetchOpenPositions` lists a wallet's open positions and does
- * not filter by token, so the id for wallet + token is still unresolved.
- * Do not match a list row on `tokenAddress` until that is confirmed.
+ * Two reads:
+ * `GET /api/v1/traders/position/{id}` loads one position by id.
+ * `GET /api/v2/traders/{addressOrId}/positions/open` loads every open position
+ * for a profile id or an owned wallet. Token details keeps the row whose
+ * `tokenAddress` matches the token on screen, until
+ * `GET /api/v1/accounts/{account}/assets/{asset}/open-position-pnl` exists.
  */
 
 /** Non-2xx response from the position endpoint. `status` is 401, 404, or other. */
 export class TraderPositionHttpError extends Error {
   readonly status: number;
 
-  constructor(status: number) {
-    super(`Social position request failed: ${status}`);
+  readonly body: string;
+
+  constructor(status: number, body = '') {
+    super(
+      body
+        ? `Social position request failed: ${status} ${body}`
+        : `Social position request failed: ${status}`,
+    );
     this.name = 'TraderPositionHttpError';
     this.status = status;
+    this.body = body;
   }
 }
 
@@ -107,16 +119,123 @@ export const toTraderPosition = (value: unknown): TraderPosition => {
     marginUsd: readNullableNumber(value.marginUsd),
     trades: readTrades(value.trades),
     lastTradeAt: requireNumber(value.lastTradeAt),
+    tokenImageUrl:
+      typeof value.tokenImageUrl === 'string' ? value.tokenImageUrl : null,
   };
 };
 
-const positionUrl = (positionId: string): string => {
+export interface OpenPositionMatch {
+  pnl: OpenPositionPnl;
+  position: TraderPosition;
+}
+
+const socialUrl = (path: string): string => {
   const base = AppConstants.SOCIAL_API_URL.replace(/\/$/, '');
-  return `${base}/api/v1/traders/position/${encodeURIComponent(positionId)}`;
+  return `${base}${path}`;
+};
+
+const positionUrl = (positionId: string): string =>
+  socialUrl(`/api/v1/traders/position/${encodeURIComponent(positionId)}`);
+
+/** Open-positions list. `{traderId}` is a profile id or an owned wallet. */
+export const openPositionsListUrl = (traderId: string): string =>
+  socialUrl(`/api/v2/traders/${encodeURIComponent(traderId)}/positions/open`);
+
+/**
+ * EVM addresses compare case-insensitively. Other chains, including Solana,
+ * keep their original casing.
+ */
+export const tokenAddressesMatch = (left: string, right: string): boolean => {
+  if (left.startsWith('0x') || right.startsWith('0x')) {
+    return left.toLowerCase() === right.toLowerCase();
+  }
+  return left === right;
+};
+
+export const findPositionByTokenAddress = (
+  positions: TraderPosition[],
+  tokenAddress: string,
+): TraderPosition | undefined =>
+  positions.find((position) =>
+    tokenAddressesMatch(position.tokenAddress, tokenAddress),
+  );
+
+const toOpenPositionFromListItem = (
+  position: TraderPosition,
+): OpenPositionPnl => ({
+  positionAmount: position.positionAmount,
+  isOpen: position.isOpen,
+  boughtUsd: position.boughtUsd,
+  soldUsd: position.soldUsd,
+  realizedPnl: position.realizedPnl,
+  costBasis: position.costBasis,
+  currentValueUSD: position.currentValueUSD,
+  pnlValueUsd: position.pnlValueUsd,
+  pnlPercent: position.pnlPercent,
+  // The list has no pnlStatus. A row in this response is a priced position.
+  pnlStatus: 'ready',
+});
+
+export const toOpenPositionsList = (value: unknown): TraderPosition[] => {
+  if (!isRecord(value) || !Array.isArray(value.positions)) {
+    throw new TraderPositionMalformedError();
+  }
+  return value.positions.map(toTraderPosition);
+};
+
+const fetchSocialJson = async (
+  url: string,
+  signal?: AbortSignal,
+): Promise<unknown> => {
+  const token = await Engine.controllerMessenger.call(
+    'AuthenticationController:getBearerToken',
+  );
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    throw new TraderPositionHttpError(response.status, body);
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    throw new TraderPositionMalformedError();
+  }
+};
+
+const readPnlStatus = (value: unknown): OpenPositionPnl['pnlStatus'] => {
+  if (value === 'ready' || value === 'in-progress') {
+    return value;
+  }
+  throw new TraderPositionMalformedError();
+};
+
+export const toOpenPositionPnl = (value: unknown): OpenPositionPnl => {
+  if (!isRecord(value) || typeof value.isOpen !== 'boolean') {
+    throw new TraderPositionMalformedError();
+  }
+
+  return {
+    positionAmount: requireNumber(value.positionAmount),
+    isOpen: value.isOpen,
+    boughtUsd: requireNumber(value.boughtUsd),
+    soldUsd: requireNumber(value.soldUsd),
+    realizedPnl: requireNumber(value.realizedPnl),
+    costBasis: requireNumber(value.costBasis),
+    currentValueUSD: readNullableNumber(value.currentValueUSD),
+    pnlValueUsd: readNullableNumber(value.pnlValueUsd),
+    pnlPercent: readNullableNumber(value.pnlPercent),
+    pnlStatus: readPnlStatus(value.pnlStatus),
+  };
 };
 
 /**
- * Loads one trader position.
+ * Loads one trader position by id.
  *
  * Auth is the same bearer token SocialService sends
  * (`AuthenticationController:getBearerToken`). The host comes from
@@ -125,26 +244,22 @@ const positionUrl = (positionId: string): string => {
 export const getTraderPosition = async (
   positionId: string,
   signal?: AbortSignal,
-): Promise<TraderPosition> => {
-  const token = await Engine.controllerMessenger.call(
-    'AuthenticationController:getBearerToken',
-  );
+): Promise<TraderPosition> =>
+  toTraderPosition(await fetchSocialJson(positionUrl(positionId), signal));
 
-  const response = await fetch(positionUrl(positionId), {
-    headers: { Authorization: `Bearer ${token}` },
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new TraderPositionHttpError(response.status);
-  }
-
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    throw new TraderPositionMalformedError();
-  }
-
-  return toTraderPosition(body);
+/**
+ * Loads the trader's open positions and returns the one for `tokenAddress`.
+ * No matching row is an empty result, not an error.
+ */
+export const getOpenPositionForAsset = async (
+  traderId: string,
+  tokenAddress: string,
+  signal?: AbortSignal,
+): Promise<OpenPositionMatch | null> => {
+  const url = openPositionsListUrl(traderId);
+  const positions = toOpenPositionsList(await fetchSocialJson(url, signal));
+  const match = findPositionByTokenAddress(positions, tokenAddress);
+  return match
+    ? { pnl: toOpenPositionFromListItem(match), position: match }
+    : null;
 };

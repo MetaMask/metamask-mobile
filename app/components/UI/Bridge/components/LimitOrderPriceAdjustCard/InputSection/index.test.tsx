@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'expo-image';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -9,6 +10,16 @@ import {
 } from '../../../constants/limitOrders';
 import { InputSection } from './index';
 import { LimitOrderPriceAdjustInputSectionSelectorsIDs } from './testIds';
+import type { QuoteUnitToken } from './types';
+
+function createQuoteUnitToken(symbol: string, image: string): QuoteUnitToken {
+  return {
+    address: `0x${symbol}`,
+    symbol,
+    image,
+    chainId: '0x1',
+  };
+}
 
 jest.mock('../../../hooks/useAutoSizingFont', () => ({
   useAutoSizingFont: () => ({
@@ -77,6 +88,44 @@ describe('InputSection', () => {
 
     expect(getByText(strings('bridge.limit.sell_when'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.limit.is_at_or_below'))).toBeOnTheScreen();
+  });
+
+  it('renders a 12px avatar that follows the quoted token', () => {
+    const firstToken = createQuoteUnitToken(
+      'TOKENA',
+      'https://example.com/token-a.png',
+    );
+    const secondToken = createQuoteUnitToken(
+      'TOKENB',
+      'https://example.com/token-b.png',
+    );
+    const { getByTestId, rerender, UNSAFE_getAllByType } = renderInputSection({
+      quotedSymbol: firstToken.symbol,
+      quotedToken: firstToken,
+    });
+
+    expect(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.QUOTE_UNIT_AVATAR,
+      ),
+    ).toHaveStyle({ width: 12, height: 12, marginRight: 2 });
+    expect(UNSAFE_getAllByType(Image)[0].props.source).toEqual({
+      uri: firstToken.image,
+    });
+
+    rerender(
+      <InputSection
+        executionType={LimitOrderExecutionType.SELL}
+        isLimitFiatMode
+        value="100"
+        quotedSymbol={secondToken.symbol}
+        quotedToken={secondToken}
+      />,
+    );
+
+    expect(UNSAFE_getAllByType(Image)[0].props.source).toEqual({
+      uri: secondToken.image,
+    });
   });
 
   it('calls quote unit and dismiss handlers when the quote unit is pressed', () => {

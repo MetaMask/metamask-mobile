@@ -237,10 +237,9 @@ export interface UseStartProSubscriptionResult {
  * don't arrive within its grace period.
  * 3. Call `SubscriptionDelegationService:startSubscriptionWithDelegation`
  *
- * When the balance is already sufficient, consent UI is skipped for now
- * (still WIP). `skipApproval: true` remains until
- * `@metamask/subscription-controller` is bumped past the core PR that removed
- * the nested approval contract.
+ * `@metamask/subscription-controller` 13 removed `skipApproval`. The service
+ * expects the caller to obtain consent before the call. The shortfall path
+ * does that through the MetaMask Pay top-up.
  *
  * Resolves after the subscription starts. The caller shows the success screen;
  * this hook does not navigate. The delegation start refreshes subscriptions
@@ -302,9 +301,6 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
         await SubscriptionDelegationService.startSubscriptionWithDelegation({
           ...subscriptionParams,
           chainId,
-          // Removed once @metamask/subscription-controller is bumped past
-          // MetaMask/core#10666 (approval moved fully to the client).
-          skipApproval: true,
         });
       } catch (error) {
         reportStartSubscriptionError(
