@@ -149,14 +149,17 @@ class ConnectedAccountsModal {
   }
 
   /**
-   * Wait until the connected-accounts modal is interactive and the accounts
+   * Wait until the connected-accounts sheet is interactive and the accounts
    * summary is showing. Prefer this before asserting account-name text —
    * Appium can open the sheet while account cells are still mounting (iOS).
+   *
+   * `accounts-connected-modal-container` is declared but never assigned in
+   * the UI. The accounts tab mounts Edit accounts and Disconnect all.
    */
   async waitForAccountsSummaryReady(timeout: number = 20_000): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.container, {
+    await Assertions.expectElementToBeVisible(this.accountListBottomSheet, {
       timeout,
-      description: 'Connected accounts modal container',
+      description: 'Edit accounts control on the connected accounts sheet',
     });
     await Assertions.expectElementToBeVisible(
       this.disconnectAllAccountsAndNetworksButton,
