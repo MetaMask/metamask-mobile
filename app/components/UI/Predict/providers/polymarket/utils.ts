@@ -1,7 +1,8 @@
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
+import { hmacSha256 } from '@metamask/cryptography/hmac';
 import EthQuery from '@metamask/eth-query';
-import { Hex, numberToHex } from '@metamask/utils';
+import { Hex, numberToHex, stringToBytes } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
 import Engine from '../../../../../core/Engine';
@@ -221,8 +222,11 @@ export const buildPolyHmacSignature = async (
     message += body;
   }
   const base64Secret = Buffer.from(secret, 'base64');
-  const hmac = global.crypto.createHmac('sha256', base64Secret);
-  const sig = hmac.update(message).digest('base64');
+  // The secret is issued by Polymarket, so its length is not ours to enforce.
+  const hmac = await hmacSha256(base64Secret, stringToBytes(message), {
+    unsafeKeyLength: true,
+  });
+  const sig = Buffer.from(hmac).toString('base64');
 
   // NOTE: Must be url safe base64 encoding, but keep base64 "=" suffix
   // Convert '+' to '-'
@@ -1036,10 +1040,10 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
-const PROTOCOL_V2_MARKET_VERSION = 'v2';
+const V2_MARKET_VERSION = 'v2';
 
-function isProtocolV2Market(market?: PolymarketApiMarket): boolean {
-  return market?.version === PROTOCOL_V2_MARKET_VERSION;
+function isV2Market(market?: PolymarketApiMarket): boolean {
+  return market?.version === V2_MARKET_VERSION;
 }
 
 function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
@@ -1047,7 +1051,7 @@ function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
     return false;
   }
 
-  return !isProtocolV2Market(market);
+  return !isV2Market(market);
 }
 
 function isUnsupportedProtocolEvent(
@@ -1058,7 +1062,7 @@ function isUnsupportedProtocolEvent(
     return false;
   }
 
-  return event.markets?.some(isProtocolV2Market) === true;
+  return event.markets?.some(isV2Market) === true;
 }
 
 export interface ParsePolymarketEventsOptions {

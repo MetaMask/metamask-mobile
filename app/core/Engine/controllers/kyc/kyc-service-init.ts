@@ -5,7 +5,7 @@ import type { MessengerClientInitFunction } from '../../types';
 const DEFAULT_KYC_API_BASE_URL = 'https://kyc-api.uat-api.cx.metamask.io';
 const DEFAULT_IDOS_ENCLAVE_BASE_URL =
   'https://enclave.tee.staging.idos.network';
-const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.staging.idos.network';
+const DEFAULT_IDOS_RELAY_BASE_URL = 'https://relay.playground.idos.network';
 
 /**
  * Initialize the KycService.

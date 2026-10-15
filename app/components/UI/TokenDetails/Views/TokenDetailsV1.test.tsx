@@ -22,11 +22,10 @@ import {
 import type { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import { SecurityPillSelectors } from '../components/V1/SecurityPill/SecurityPill.testIds';
 import { SecurityTabSelectors } from '../components/V1/SecurityTab/SecurityTab.testIds';
-import { SecurityStatKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import { TokenExplainerSheetSelectors } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.testIds';
 import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialSection/SecuritySocialSection.testIds';
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
-import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
+import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
@@ -109,14 +108,18 @@ jest.mock('../hooks/useTokenMarketData', () => ({
   useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
-// Echoes the prefetched security data so tests can supply security data at
-// navigation time, matching the real hook's pass-through of valid prefetched
-// data (no network fetch needed in tests).
-jest.mock('../hooks/useTokenSecurityData', () => ({
-  useTokenSecurityData: ({ prefetchedData }: { prefetchedData?: unknown }) => ({
-    securityData: prefetchedData ?? null,
-    isLoading: false,
-  }),
+// Stands in for the shared query entry so these tests need no QueryClient.
+// The entry itself, including the key normalization that lets the token list
+// and this page share it, is covered in `useTokenSecurityQuery.test.ts`.
+const mockSecurityQueryResult = {
+  data: null as unknown,
+  isPending: false,
+  error: null,
+  dataUpdatedAt: 0,
+};
+
+jest.mock('../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: () => mockSecurityQueryResult,
 }));
 
 const mockUseIsPriceAlertsChainSupported = jest.fn(() => true);
@@ -137,6 +140,8 @@ jest.mock(
 );
 
 // Price hero + chart are integration-tested separately (Price / AdvancedChart).
+const mockPriceHeaderProps: { showPeriodLabel?: boolean }[] = [];
+
 // The mock renders `children` like the real component so the security &
 // social row passed into the price-hero slot stays in the tree.
 jest.mock('../../AssetOverview/Price/Price', () => {
@@ -147,7 +152,10 @@ jest.mock('../../AssetOverview/Price/Price', () => {
     <View testID="mock-price">{children}</View>
   );
   MockPrice.Provider = MockPrice;
-  MockPrice.Header = () => null;
+  MockPrice.Header = (props: { showPeriodLabel?: boolean }) => {
+    mockPriceHeaderProps.push(props);
+    return null;
+  };
   MockPrice.Chart = () => null;
   return {
     __esModule: true,
@@ -172,7 +180,7 @@ jest.mock('../components/tabs/OverviewTab', () => {
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
-  const tabs = ['overview', 'security', 'feed'];
+  const tabs = ['feed', 'overview', 'security'];
   return {
     ...actual,
     __esModule: true,
@@ -245,6 +253,51 @@ jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   };
 });
 
+jest.mock('../hooks/useStickyQuickBuy', () => ({
+  useStickyQuickBuy: () => ({
+    onQuickBuyPress: jest.fn(),
+    openQuickBuy: jest.fn(),
+    quickBuySheet: null,
+  }),
+}));
+
+const mockUseTokenBalance = jest.fn();
+jest.mock('../hooks/useTokenBalance', () => ({
+  useTokenBalance: (...args: unknown[]) => mockUseTokenBalance(...args),
+}));
+
+jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
+  useOpenPositionHeader: () => ({ isLoading: false }),
+}));
+
+const mockStickyFooterProps: Record<string, unknown>[] = [];
+
+jest.mock('../components/TokenDetailsStickyFooter', () => {
+  const { View } = jest.requireActual('react-native');
+  const TraderPositionPnl = jest.requireActual(
+    '../TraderPositionPnl/TraderPositionPnl',
+  ).default;
+
+  return {
+    __esModule: true,
+    default: (props: {
+      traderPositionPnl?: React.ComponentProps<typeof TraderPositionPnl>;
+    }) => {
+      mockStickyFooterProps.push(props);
+      return (
+        <View testID="mock-sticky-footer">
+          {props.traderPositionPnl && (
+            <TraderPositionPnl {...props.traderPositionPnl} />
+          )}
+          {props.traderPositionPnl?.isExpanded && (
+            <View testID="token-details-trader-position-pnl-overlay" />
+          )}
+        </View>
+      );
+    },
+  };
+});
+
 const baseToken = {
   address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
   chainId: '0x1',
@@ -281,7 +334,13 @@ describe('TokenDetailsV1', () => {
     useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
+    mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockOverviewProps.length = 0;
+    mockPriceHeaderProps.length = 0;
+    mockSecurityQueryResult.data = null;
+    mockSecurityQueryResult.isPending = false;
+    mockSecurityQueryResult.dataUpdatedAt = 0;
+    mockStickyFooterProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -306,9 +365,102 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeOnTheScreen();
     expect(getByText('3d')).toBeOnTheScreen();
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID).props.accessibilityLabel,
+    ).toBe('Token age 3d. Learn about token age.');
   });
 
-  it('renders the price hero, tab bar and Overview panel by default', () => {
+  it('opens the token age explainer from the age chip', () => {
+    const { getByTestId, queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+
+    fireEvent.press(getByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID));
+
+    expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+      'Token age',
+    );
+    expect(
+      getByTestId(TokenExplainerSheetSelectors.DESCRIPTION),
+    ).toHaveTextContent(
+      'Time since token creation. Seconds, minutes, hours, then days.',
+    );
+  });
+
+  it('omits the price period label so the header does not say Today', () => {
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockPriceHeaderProps[0]).toStrictEqual({
+      showPeriodLabel: false,
+    });
+  });
+
+  it('configures the sticky footer with buy and sell actions', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '2.5' });
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '0' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '2.5',
+        hasTokenBalance: true,
+        isTokenDetailsV1: true,
+        quickBuyEntrypointLayout: 'buy_sell',
+        onOpenQuickBuy: expect.any(Function),
+      }),
+    );
+  });
+
+  it('does not show sell when the live balance is zero despite a stale route balance', () => {
+    mockUseTokenBalance.mockReturnValue({ balance: '0' });
+
+    render(
+      <TokenDetailsV1
+        token={{ ...baseToken, balance: '4' }}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        currentTokenBalance: '0',
+        hasTokenBalance: false,
+      }),
+    );
+  });
+
+  it('passes token security data to the sticky footer', () => {
+    mockSecurityQueryResult.data = securityDataWithLinks;
+
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(mockStickyFooterProps[0]).toEqual(
+      expect.objectContaining({
+        securityData: securityDataWithLinks,
+      }),
+    );
+  });
+
+  it('renders the price hero, tab bar and Feed panel by default', () => {
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -318,19 +470,23 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId('mock-price')).toBeTruthy();
     expect(getByTestId('mock-tab-bar')).toBeTruthy();
-    expect(getByTestId('mock-overview')).toBeTruthy();
-    expect(getByText('overview:true')).toBeTruthy();
+    // Feed is the default landing tab (index 0). Without the social
+    // leaderboard flag the Feed tab renders the placeholder panel.
+    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(getByText('feed:true')).toBeTruthy();
+    expect(getByText('overview:false')).toBeTruthy();
     expect(getByText('security:false')).toBeTruthy();
-    expect(getByText('feed:false')).toBeTruthy();
   });
 
   it('wires the Overview panel with the token, asset id and currency', () => {
-    render(
+    const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
+
+    fireEvent.press(getByTestId('token-details-v1-tab-overview'));
 
     expect(mockOverviewProps[0]).toStrictEqual(
       expect.objectContaining({
@@ -366,23 +522,24 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // The active page flows at its natural height…
-    const overviewPage = getByTestId(
-      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
+    // The active page (Feed is the default landing tab) flows at its natural
+    // height…
+    const feedPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`,
     );
-    expect(overviewPage).toBeOnTheScreen();
-    expect(overviewPage.props.style).toBeUndefined();
-    expect(overviewPage.props.pointerEvents).toBe('auto');
+    expect(feedPage).toBeOnTheScreen();
+    expect(feedPage.props.style).toBeUndefined();
+    expect(feedPage.props.pointerEvents).toBe('auto');
 
     // …while inactive pages are display:none — out of layout entirely, so
     // no page stretches to a tallest sibling and hits stay on the active one.
     // (Hidden elements need opt-in to be queryable.)
-    const securityPage = getByTestId(
-      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-security`,
+    const overviewPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
       { includeHiddenElements: true },
     );
-    expect(securityPage.props.style).toStrictEqual({ display: 'none' });
-    expect(securityPage.props.pointerEvents).toBe('none');
+    expect(overviewPage.props.style).toStrictEqual({ display: 'none' });
+    expect(overviewPage.props.pointerEvents).toBe('none');
   });
 
   it('re-stacks pages when the active tab changes so tabs keep their own heights', () => {
@@ -422,8 +579,9 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // Only the default tab is mounted initially.
-    expect(getByTestId('mock-overview')).toBeTruthy();
+    // Only the default tab (Feed) is mounted initially.
+    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(queryByTestId('mock-overview')).toBeNull();
     expect(queryByTestId(SecurityTabSelectors.TAB)).toBeNull();
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
@@ -448,16 +606,18 @@ describe('TokenDetailsV1', () => {
     expect(
       priceHero.getByTestId(SecuritySocialSectionSelectors.SECTION),
     ).toBeOnTheScreen();
-    // Asserted by test ID, not label, so previewing a different verdict via
-    // MOCK_SECURITY_VERDICT does not fail this test. SecurityPill's own tests
-    // cover the label for each verdict.
+    // Asserted by test ID, not label, so a different verdict from the API does
+    // not fail this test. SecurityPill's own tests cover the label for each
+    // verdict.
     expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
   });
 
   it('renders the token social links from its security data', () => {
+    mockSecurityQueryResult.data = securityDataWithLinks;
+
     const { getByTestId } = render(
       <TokenDetailsV1
-        token={{ ...baseToken, securityData: securityDataWithLinks }}
+        token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
@@ -521,7 +681,7 @@ describe('TokenDetailsV1', () => {
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Top10)),
       );
 
       expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
@@ -533,7 +693,7 @@ describe('TokenDetailsV1', () => {
       const { getByTestId } = openSecurityTab();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.TopTen)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Top10)),
       );
 
       expect(
@@ -544,15 +704,53 @@ describe('TokenDetailsV1', () => {
       expect(getByTestId(TokenExplainerSheetSelectors.SHEET)).toBeOnTheScreen();
     });
 
+    // Shares the one `explainerCopy` slot with the row definitions, so the
+    // provenance disclaimer cannot be open alongside one of them.
+    it('opens the Blockaid disclaimer from the provenance line', () => {
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.SCAN_META));
+
+      expect(getByTestId(TokenExplainerSheetSelectors.TITLE)).toHaveTextContent(
+        'Security verification',
+      );
+    });
+
     it('closes the sheet again', () => {
       const { getByTestId, queryByTestId } = openSecurityTab();
 
       fireEvent.press(
-        getByTestId(SecurityTabSelectors.rowLabel(SecurityStatKey.Created)),
+        getByTestId(SecurityTabSelectors.rowLabel(TokenStatKey.Created)),
       );
       fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
 
       expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+    });
+
+    // The Contract heading pushes a screen rather than opening a sheet: seven
+    // rows each carrying a sentence runs past the height a sheet can offer.
+    //
+    // Needs a payload with something detected in it, because the heading is
+    // only tappable when the Contract security screen has findings to list.
+    it('pushes the contract security screen from the Contract heading', () => {
+      mockSecurityQueryResult.data = {
+        resultType: 'Warning',
+        features: [
+          {
+            featureId: 'SNIPE_AT_MINT',
+            type: 'Warning',
+            description: 'Sniped at mint',
+          },
+        ],
+      } as unknown as TokenDetailsRouteParams['securityData'];
+
+      const { getByTestId } = openSecurityTab();
+
+      fireEvent.press(getByTestId(SecurityTabSelectors.CONTRACT_DETAILS_LINK));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CONTRACT_SECURITY, {
+        token: baseToken,
+      });
     });
   });
 
@@ -699,13 +897,13 @@ describe('TokenDetailsV1', () => {
 
   describe('resolveSwipeTargetTab', () => {
     it('targets the next tab on a left swipe', () => {
+      expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('feed');
     });
 
     it('targets the previous tab on a right swipe', () => {
       expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
-      expect(resolveSwipeTargetTab('feed', 120, 0)).toBe('security');
+      expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     });
 
     it('lets a fast fling switch tabs even with a short travel', () => {
@@ -717,8 +915,8 @@ describe('TokenDetailsV1', () => {
       expect(resolveSwipeTargetTab('overview', 30, 0)).toBeNull();
       expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
       // No neighbouring tab in the swipe direction.
-      expect(resolveSwipeTargetTab('overview', 120, 0)).toBeNull();
-      expect(resolveSwipeTargetTab('feed', -120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
     });
   });
 

@@ -12,8 +12,6 @@ import {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
-  BASIS_POINTS_DIVISOR,
-  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
@@ -442,19 +440,20 @@ export function usePerpsOrderFees({
 
         // Step 3: calculateFees already prices the MetaMask fee from the
         // controller's fee resolution (rewards/VIP or subscription), so its rate
-        // is what the order is charged. Derive the undiscounted rate and the
-        // discount from it instead of applying the rewards discount again.
+        // is what the order is charged. The discount and the undiscounted rate
+        // come from the same resolution; without one there is no discount to show.
+        const {
+          feeSource,
+          metamaskFeeDiscountBips,
+          undiscountedMetamaskFeeRate,
+        } = coreFeesResult;
         const resolvedMetamaskRate = coreFeesResult.metamaskFeeRate;
         const undiscountedMetamaskRate =
-          coreFeesResult.chargesMetamaskBuilderFee
-            ? BUILDER_FEE_CONFIG.MaxFeeDecimal
-            : resolvedMetamaskRate;
-        const discountPercentage = coreFeesResult.chargesMetamaskBuilderFee
-          ? Math.round(
-              (1 - resolvedMetamaskRate / undiscountedMetamaskRate) *
-                BASIS_POINTS_DIVISOR,
-            ) / 100
-          : undefined;
+          undiscountedMetamaskFeeRate ?? resolvedMetamaskRate;
+        const discountPercentage =
+          metamaskFeeDiscountBips === undefined
+            ? undefined
+            : metamaskFeeDiscountBips / 100;
 
         // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
@@ -462,6 +461,9 @@ export function usePerpsOrderFees({
           const actualFeeUSD = Number.parseFloat(amount) * resolvedMetamaskRate;
           DevLogger.log('Rewards: Calculating points with resolved fee', {
             metamaskFeeRate: resolvedMetamaskRate,
+            feeSource,
+            metamaskFeeDiscountBips,
+            undiscountedMetamaskFeeRate,
             discountPercentage,
             amount: Number.parseFloat(amount),
             actualFeeUSD,

@@ -149,22 +149,58 @@ export class WalletHomeSections {
     );
   }
 
-  async scrollAndTapPerpsSection(): Promise<void> {
-    try {
-      await WalletHomeScroll.scrollAndTapSection(
+  async scrollAndTapPerpsSection(
+    direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
+  ): Promise<void> {
+    // Probe first. A displayed header can still sit under the tab bar, so a
+    // missed tap nudges it clear instead of waiting out a 30s tap timeout.
+    // `scrollAndTapSection`'s `timeout` is not a clock: 20s becomes 10
+    // scrollIntoView attempts, which is slower than the old 8-attempt burn.
+    // Four attempts is the actual wrong-direction cap.
+    const clippedHeaderNudge = options.overshootSwipe ?? {
+      direction: 'up' as const,
+      percentage: 0.2,
+    };
+    if (
+      await WalletHomeScroll.tapIfAlreadyVisible(
         this.perpsSectionHeader,
         'Perpetuals section',
-        'down',
-        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
-      );
-    } catch {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        'up',
-        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
-      );
+        {
+          tapTimeout: 5_000,
+          overshootSwipe: clippedHeaderNudge,
+        },
+      )
+    ) {
+      return;
     }
+
+    const fallbackDirection = direction === 'down' ? 'up' : 'down';
+
+    await WalletHomeScroll.tryScrollDirections(
+      (scrollDirection) =>
+        WalletHomeScroll.scrollAndTapSection(
+          this.perpsSectionHeader,
+          'Perpetuals section',
+          scrollDirection,
+          {
+            overshootSwipe: options.overshootSwipe ?? {
+              direction:
+                scrollDirection === 'down'
+                  ? ('up' as const)
+                  : ('down' as const),
+              percentage: 0.15,
+            },
+            // A miss runs every attempt. Four is half the old default, so a
+            // wrong direction returns in about half the previous ~30s.
+            // A hit still stops as soon as the header is in view.
+            maxAttempts: 4,
+          },
+        ),
+      [direction, fallbackDirection],
+    );
   }
 
   async scrollAndTapPredictionsSection(

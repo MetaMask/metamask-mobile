@@ -10,10 +10,13 @@ import {
   clearRewardsCaches,
 } from './usePerpsOrderFees';
 import {
+  BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
   type FeeCalculationParams,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
+import { applyFeeResolution } from '@metamask/perps-controller/utils/subscriptionFeeWaiver';
 
 jest.mock('./usePerpsTrading');
 
@@ -612,6 +615,9 @@ describe('usePerpsOrderFees', () => {
         protocolFeeRate: 0.00045,
         metamaskFeeRate: 0.0008,
         chargesMetamaskBuilderFee: true,
+        feeSource: 'rewards',
+        metamaskFeeDiscountBips: 2000,
+        undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
       });
 
       const { result } = renderOrderFees();
@@ -669,6 +675,9 @@ describe('usePerpsOrderFees', () => {
           protocolFeeRate: 0.00045,
           metamaskFeeRate,
           chargesMetamaskBuilderFee: true,
+          feeSource: 'subscription',
+          metamaskFeeDiscountBips: discount * 100,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         });
 
         const { result } = renderOrderFees();
@@ -691,6 +700,9 @@ describe('usePerpsOrderFees', () => {
         protocolFeeRate: 0.00045,
         metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         chargesMetamaskBuilderFee: true,
+        feeSource: 'default',
+        metamaskFeeDiscountBips: 0,
+        undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
       });
 
       const { result } = renderOrderFees();
@@ -722,6 +734,177 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.metamaskFeeRate).toBe(0);
       expect(result.current.originalMetamaskFeeRate).toBe(0);
       expect(result.current.feeDiscountPercentage).toBeUndefined();
+    });
+
+    it.each([
+      { label: 'an older controller', chargesMetamaskBuilderFee: undefined },
+      {
+        label: 'a quote no fee resolution priced',
+        chargesMetamaskBuilderFee: true,
+      },
+    ])(
+      'shows no discount when $label reports none',
+      async ({ chargesMetamaskBuilderFee }) => {
+        // A provider rate below the default builder fee, e.g. left behind by
+        // another submit's discount, with no discount fields alongside it
+        mockCalculateFees.mockResolvedValue({
+          feeRate: 0.00095,
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: 0.0005,
+          chargesMetamaskBuilderFee,
+        });
+
+        const { result } = renderOrderFees();
+        await waitFor(() => {
+          expect(result.current.isLoadingMetamaskFee).toBe(false);
+        });
+
+        expect(result.current.metamaskFeeRate).toBe(0.0005);
+        expect(result.current.metamaskFee).toBeCloseTo(5);
+        expect(result.current.feeDiscountPercentage).toBeUndefined();
+        expect(result.current.originalMetamaskFeeRate).toBe(0.0005);
+        expect(result.current.undiscountedTotalFee).toBe(
+          result.current.totalFee,
+        );
+      },
+    );
+
+    it('shows the applied discount when the venue floors the charged rate', async () => {
+      // 3333 bips off 10 bips is 6.667 bips, floored to the 6.6 bips the venue
+      // charges: the rates imply 34% while the resolver applied 33.33%
+      const fees = applyFeeResolution({
+        fees: {
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+          chargesMetamaskBuilderFee: true,
+        },
+        resolution: {
+          source: 'subscription',
+          discountBips: 3333,
+          feeBips: 6.667,
+          subscription: { eligible: true, reason: 'eligible' },
+        },
+        amount: '10000',
+        chargesBuilderFee: true,
+      });
+      mockCalculateFees.mockResolvedValue(fees);
+
+      const { result } = renderOrderFees();
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(result.current.metamaskFeeRate).toBe(0.00066);
+      expect(result.current.feeDiscountPercentage).toBe(33.33);
+      expect(result.current.originalMetamaskFeeRate).toBe(
+        BUILDER_FEE_CONFIG.MaxFeeDecimal,
+      );
+      expect(result.current.undiscountedTotalFee).toBeCloseTo(14.5);
+      expect(result.current.totalFee).toBeCloseTo(11.1);
+    });
+
+    describe('discount reported by calculateFees', () => {
+      // The rate-based derivation the hook used before perps-controller 20
+      // reported the discount (TAT-4055), kept to prove the two agree.
+      const deriveDiscountFromRate = (fees: FeeCalculationResult) => {
+        const rate = fees.metamaskFeeRate ?? 0;
+        const undiscounted = fees.chargesMetamaskBuilderFee
+          ? BUILDER_FEE_CONFIG.MaxFeeDecimal
+          : rate;
+        return {
+          originalMetamaskFeeRate: undiscounted,
+          feeDiscountPercentage: fees.chargesMetamaskBuilderFee
+            ? Math.round((1 - rate / undiscounted) * BASIS_POINTS_DIVISOR) / 100
+            : undefined,
+        };
+      };
+
+      // A 10 bip Hyperliquid quote repriced by the controller's own resolver step
+      const quoteFrom = (
+        source: PerpsFeeSource,
+        discountBips: number | undefined,
+      ) =>
+        applyFeeResolution({
+          fees: {
+            protocolFeeRate: 0.00045,
+            metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+            chargesMetamaskBuilderFee: true,
+          },
+          resolution: {
+            source,
+            discountBips,
+            feeBips: 10 * (1 - (discountBips ?? 0) / BASIS_POINTS_DIVISOR),
+            subscription: {
+              eligible: source === 'subscription',
+              reason: source === 'subscription' ? 'eligible' : 'no-source',
+            },
+          },
+          amount: '10000',
+          chargesBuilderFee: true,
+        });
+
+      it.each([
+        { label: 'default', source: 'default', discountBips: undefined },
+        {
+          label: 'rewards with no discount',
+          source: 'rewards',
+          discountBips: 0,
+        },
+        { label: 'rewards partial', source: 'rewards', discountBips: 2000 },
+        { label: 'rewards full', source: 'rewards', discountBips: 10000 },
+        {
+          label: 'subscription partial',
+          source: 'subscription',
+          discountBips: 6000,
+        },
+        {
+          label: 'subscription full',
+          source: 'subscription',
+          discountBips: 10000,
+        },
+      ] as const)(
+        'matches the rate-derived fee preview for $label',
+        async ({ source, discountBips }) => {
+          const fees = quoteFrom(source, discountBips);
+          const derived = deriveDiscountFromRate(fees);
+          mockCalculateFees.mockResolvedValue(fees);
+
+          const { result } = renderOrderFees();
+          await waitFor(() => {
+            expect(result.current.isLoadingMetamaskFee).toBe(false);
+          });
+
+          expect(fees.feeSource).toBe(source);
+          expect(result.current.feeDiscountPercentage).toBe(
+            (fees.metamaskFeeDiscountBips ?? 0) / 100,
+          );
+          expect(result.current.feeDiscountPercentage).toBe(
+            derived.feeDiscountPercentage,
+          );
+          expect(result.current.originalMetamaskFeeRate).toBe(
+            fees.undiscountedMetamaskFeeRate,
+          );
+          expect(result.current.originalMetamaskFeeRate).toBe(
+            derived.originalMetamaskFeeRate,
+          );
+          expect(result.current.undiscountedTotalFee).toBeCloseTo(
+            10000 * (0.00045 + (fees.undiscountedMetamaskFeeRate ?? 0)),
+          );
+          expect(result.current.metamaskFeeRate).toBe(fees.metamaskFeeRate);
+          expect(result.current.totalFee).toBeCloseTo(fees.feeAmount ?? 0);
+          expect(
+            mockEngineContext.RewardsController.estimatePoints,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              activityContext: {
+                perpsContext: expect.objectContaining({
+                  usdFeeValue: (10000 * (fees.metamaskFeeRate ?? 0)).toString(),
+                }),
+              },
+            }),
+          );
+        },
+      );
     });
   });
 

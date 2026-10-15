@@ -4,10 +4,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandardAnimated,
+  IconColor,
+  IconName,
   SectionDivider,
   Spinner,
   Text,
@@ -20,7 +24,6 @@ import type { Position } from '@metamask/social-controllers';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, { Fragment, useCallback, useMemo, useState } from 'react';
@@ -37,11 +40,17 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppStackNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
+import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
+import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import {
   useTraderPositions,
   useTraderProfile,
@@ -120,7 +129,7 @@ const INITIAL_POST_SKELETON_KEYS = Array.from(
 );
 
 const MyProfileView: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'MyProfileView' | 'SocialV1ProfileView'>
@@ -132,6 +141,7 @@ const MyProfileView: React.FC = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
+  const { openComposer } = useOpenSocialPostComposer();
   const isOwner =
     !traderId ||
     traderId === myProfile?.profileId ||
@@ -226,24 +236,30 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
   const handleFollowersPress = useCallback(() => {
-    if (!isOwner) {
+    if (!isOwner && !addressOrId) {
       return;
     }
-    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+    navigation.push(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'followers',
+      ...(isOwner ? {} : { addressOrId }),
     });
-  }, [isOwner, navigation]);
+  }, [addressOrId, isOwner, navigation]);
   const handleFollowingPress = useCallback(() => {
-    if (!isOwner) {
+    if (!isOwner && !addressOrId) {
       return;
     }
-    navigation.navigate(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
+    navigation.push(Routes.SOCIAL.FOLLOW_CONNECTIONS, {
       initialTab: 'following',
+      ...(isOwner ? {} : { addressOrId }),
     });
-  }, [isOwner, navigation]);
+  }, [addressOrId, isOwner, navigation]);
+  const handleOpenComposer = useCallback(() => {
+    playSelection().catch(() => undefined);
+    openComposer();
+  }, [openComposer]);
   const handleShareFirstTrade = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
-  }, [navigation]);
+    openComposer();
+  }, [openComposer]);
 
   const handleResetProfile = useCallback(() => {
     resetLocalSocialProfile();
@@ -404,6 +420,22 @@ const MyProfileView: React.FC = () => {
           }
           onBack={handleBack}
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
+          endAccessory={
+            isOwner && displayProfile ? (
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Edit}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleOpenComposer}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.create_post',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.CREATE_POST_BUTTON}
+                />
+              </SocialHeaderGlassSurface>
+            ) : undefined
+          }
           testID={MyProfileViewSelectorsIDs.HEADER}
         />
 
@@ -464,7 +496,11 @@ const MyProfileView: React.FC = () => {
               <MyProfileHeader
                 profile={displayProfile}
                 overlayedStats={overlayedStats}
-                followingCount={following.length}
+                followingCount={
+                  isOwner
+                    ? following.length
+                    : (displayProfile.followingCount ?? 0)
+                }
                 isOwner={isOwner}
                 onFollowersPress={handleFollowersPress}
                 onFollowingPress={handleFollowingPress}
@@ -472,53 +508,60 @@ const MyProfileView: React.FC = () => {
               />
             </Box>
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              gap={2}
-              paddingHorizontal={4}
-              paddingBottom={8}
-            >
+            <Box gap={2} paddingHorizontal={4} paddingBottom={8}>
+              <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+                {isOwner ? (
+                  <>
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleEditProfile}
+                        testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.edit_profile')}
+                      </Button>
+                    </Box>
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleShareProfile}
+                        testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.share_profile')}
+                      </Button>
+                    </Box>
+                  </>
+                ) : (
+                  <Box twClassName="flex-1">
+                    <Button
+                      variant={
+                        isFollowing
+                          ? ButtonVariant.Secondary
+                          : ButtonVariant.Primary
+                      }
+                      isFullWidth
+                      onPress={handleFollowPress}
+                      testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                    >
+                      {isFollowing
+                        ? strings('social_leaderboard.following')
+                        : strings('social_leaderboard.follow')}
+                    </Button>
+                  </Box>
+                )}
+              </Box>
               {isOwner ? (
-                <>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleEditProfile}
-                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.edit_profile')}
-                    </Button>
-                  </Box>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.share_profile')}
-                    </Button>
-                  </Box>
-                </>
-              ) : (
-                <Box twClassName="flex-1">
-                  <Button
-                    variant={
-                      isFollowing
-                        ? ButtonVariant.Secondary
-                        : ButtonVariant.Primary
-                    }
-                    isFullWidth
-                    onPress={handleFollowPress}
-                    testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                  >
-                    {isFollowing
-                      ? strings('social_leaderboard.following')
-                      : strings('social_leaderboard.follow')}
-                  </Button>
-                </Box>
-              )}
+                <Button
+                  variant={ButtonVariant.Tertiary}
+                  isFullWidth
+                  onPress={handleResetProfile}
+                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+                >
+                  {strings('social_leaderboard.my_profile.debug_reset_profile')}
+                </Button>
+              ) : null}
             </Box>
 
             <Box
@@ -587,7 +630,6 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
-                onResetProfile={handleResetProfile}
               />
             ) : postsError && posts.length === 0 ? (
               <Box
