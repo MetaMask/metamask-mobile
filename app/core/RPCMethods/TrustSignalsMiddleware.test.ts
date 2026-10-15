@@ -187,6 +187,7 @@ describe('createTrustSignalsMiddleware', () => {
     ['eth_requestAccounts', RequestSourceFlow.DappConnection],
     ['wallet_requestPermissions', RequestSourceFlow.DappConnection],
     ['wallet_sendCalls', RequestSourceFlow.Confirmations],
+    ['personal_sign', RequestSourceFlow.Confirmations],
   ])(
     'scans origin URL for %s with the %s flow',
     async (method, expectedFlow) => {
@@ -200,6 +201,7 @@ describe('createTrustSignalsMiddleware', () => {
       const middleware = createTrustSignalsMiddleware({
         phishingController,
         networkController,
+        preferencesController: createMockPreferencesController(),
       });
 
       await callThroughMiddleware({
@@ -457,6 +459,7 @@ describe('createTrustSignalsMiddleware', () => {
     expect(mockScanUrl).toHaveBeenCalledWith(
       phishingController,
       'https://example.com',
+      RequestSourceFlow.RpcTrustSignals,
     );
   });
 

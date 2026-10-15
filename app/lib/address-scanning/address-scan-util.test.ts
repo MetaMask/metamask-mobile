@@ -14,6 +14,7 @@ import {
   isDappConnectionRequest,
   isEthSendTransaction,
   isEthSignTypedData,
+  isPersonalSign,
   isWalletSendCalls,
   scanAddress,
   scanUrl,
@@ -405,6 +406,28 @@ describe('address-scan-util', () => {
     });
   });
 
+  describe('isPersonalSign', () => {
+    it('returns true for personal_sign', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'personal_sign',
+      } as unknown as Parameters<typeof isPersonalSign>[0];
+
+      expect(isPersonalSign(req)).toBe(true);
+    });
+
+    it('returns false for other methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_chainId',
+      } as unknown as Parameters<typeof isPersonalSign>[0];
+
+      expect(isPersonalSign(req)).toBe(false);
+    });
+  });
+
   describe('isWalletSendCalls', () => {
     it('returns true for wallet_sendCalls method', () => {
       const req = {
@@ -464,7 +487,7 @@ describe('address-scan-util', () => {
       ['wallet_requestPermissions', RequestSourceFlow.DappConnection],
       ['eth_accounts', RequestSourceFlow.RpcTrustSignals],
       ['eth_chainId', RequestSourceFlow.RpcTrustSignals],
-      ['personal_sign', RequestSourceFlow.RpcTrustSignals],
+      ['personal_sign', RequestSourceFlow.Confirmations],
     ])('returns the flow for %s as %s', (method, expectedFlow) => {
       const req = {
         jsonrpc: '2.0' as const,
@@ -586,11 +609,7 @@ describe('address-scan-util', () => {
       } as unknown as PhishingController;
 
       await expect(
-        scanUrl(
-          phishingController,
-          origin,
-          RequestSourceFlow.RpcTrustSignals,
-        ),
+        scanUrl(phishingController, origin, RequestSourceFlow.RpcTrustSignals),
       ).resolves.toBeUndefined();
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('[scanUrl] Failed to scan URL'),

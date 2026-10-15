@@ -188,6 +188,13 @@ export function isEthSignTypedData(req: BasicJsonRpcRequest): boolean {
 }
 
 /**
+ * Check if request is personal_sign.
+ */
+export function isPersonalSign(req: BasicJsonRpcRequest): boolean {
+  return req.method === 'personal_sign';
+}
+
+/**
  * Check if request is wallet_sendCalls
  */
 export function isWalletSendCalls(req: BasicJsonRpcRequest): boolean {
@@ -214,6 +221,7 @@ export function getOriginScanFlow(req: BasicJsonRpcRequest): RequestSourceFlow {
   if (
     isEthSendTransaction(req) ||
     isEthSignTypedData(req) ||
+    isPersonalSign(req) ||
     isWalletSendCalls(req)
   ) {
     return RequestSourceFlow.Confirmations;
