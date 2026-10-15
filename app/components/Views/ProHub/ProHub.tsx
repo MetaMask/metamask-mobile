@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -27,15 +27,11 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
-import {
-  ALSO_INCLUDED_ITEMS,
-  MEMBERSHIP_BANNER_STATES,
-  MOCK_MEMBERSHIP_BANNER_KIND,
-  MOCK_PRO_HUB_STATS,
-  type MembershipBannerState,
-} from './ProHub.constants';
+import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
+import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
+import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -93,9 +89,7 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const [membershipBannerState] = useState<MembershipBannerState>(
-    MEMBERSHIP_BANNER_STATES[MOCK_MEMBERSHIP_BANNER_KIND],
-  );
+  const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
 
   const handleBack = useCallback(() => {
@@ -121,9 +115,25 @@ const ProHub = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  const handleMembershipAlertAction = useCallback(() => {
-    /* TODO: Implement membership alert action */
-  }, []);
+  const handleMembershipAlertAction = useCallback(
+    (action: MembershipAlertAction) => {
+      switch (action) {
+        case MembershipAlertAction.AddFunds:
+          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+          });
+          return;
+        case MembershipAlertAction.Renew:
+          navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT);
+          return;
+        default: {
+          const unexpectedAction: never = action;
+          return unexpectedAction;
+        }
+      }
+    },
+    [navigation],
+  );
 
   return (
     <SafeAreaView
@@ -162,8 +172,7 @@ const ProHub = () => {
           <Box twClassName="w-full mb-4 gap-y-4">
             <MembershipBanner
               testID={ProHubTestIds.MEMBERSHIP_BANNER}
-              state={membershipBannerState}
-              addFundsDueDate={MOCK_PRO_HUB_STATS.addFundsDueDate}
+              model={membershipBanner}
               onAction={handleMembershipAlertAction}
             />
 

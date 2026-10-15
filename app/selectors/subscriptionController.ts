@@ -246,3 +246,18 @@ export const selectMoneyAccountPlusSubscription = (
   state: RootState,
 ): Subscription | undefined =>
   selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+
+/**
+ * Selects the Money Account Plus subscription to show on Pro Hub.
+ *
+ * Prefers the current subscription at any status. When that list has none,
+ * falls back to the last subscription so a cancelled plan can still render.
+ *
+ * @param state - The root Redux state.
+ * @returns The displayed Plus subscription, or undefined when the user has none.
+ */
+export const selectDisplayedMoneyAccountPlusSubscription = (
+  state: RootState,
+): Subscription | undefined =>
+  selectMoneyAccountPlusSubscription(state) ??
+  selectLastSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);

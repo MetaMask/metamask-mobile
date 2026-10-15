@@ -1,126 +1,154 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import MembershipBanner, { formatMembershipDueDate } from './MembershipBanner';
-import { ProHubTestIds } from '../../ProHub.testIds';
+import { fireEvent, render } from '@testing-library/react-native';
 import {
-  MEMBERSHIP_BANNER_STATES,
-  MembershipBannerKind,
-  MOCK_PRO_HUB_STATS,
-} from '../../ProHub.constants';
+  CANCEL_TYPES,
+  PAYMENT_TYPES,
+  PRODUCT_TYPES,
+  RECURRING_INTERVALS,
+  SUBSCRIPTION_STATUSES,
+  type Subscription,
+} from '@metamask/subscription-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { ProHubTestIds } from '../../ProHub.testIds';
+import MembershipBanner from './MembershipBanner';
+import {
+  getMembershipBannerModel,
+  MembershipAlertAction,
+  MembershipStatusKind,
+} from './MembershipBanner.utils';
 
-const toRegex = (s: string) =>
-  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+const createSubscription = (
+  overrides: Partial<Subscription> = {},
+): Subscription => ({
+  id: 'sub-plus',
+  products: [
+    {
+      name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      currency: 'usd',
+      unitAmount: 500,
+      unitDecimals: 2,
+    },
+  ],
+  currentPeriodStart: '2026-09-12T12:00:00.000Z',
+  currentPeriodEnd: '2026-10-12T12:00:00.000Z',
+  status: SUBSCRIPTION_STATUSES.active,
+  interval: RECURRING_INTERVALS.month,
+  paymentMethod: {
+    type: PAYMENT_TYPES.byCard,
+    card: { brand: 'visa', displayBrand: 'visa', last4: '4242' },
+  },
+  cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
+  isEligibleForSupport: true,
+  ...overrides,
+});
 
-const renderMembershipBanner = (
-  kind: (typeof MembershipBannerKind)[keyof typeof MembershipBannerKind],
-) =>
-  render(
-    <MembershipBanner
-      state={MEMBERSHIP_BANNER_STATES[kind]}
-      addFundsDueDate={MOCK_PRO_HUB_STATS.addFundsDueDate}
-      onAction={jest.fn()}
-    />,
-  );
+const renderBanner = (subscription: Subscription, onAction = jest.fn()) => {
+  const model = getMembershipBannerModel({
+    current:
+      subscription.status === SUBSCRIPTION_STATUSES.canceled
+        ? undefined
+        : subscription,
+    displayed: subscription,
+  });
+
+  return {
+    ...render(<MembershipBanner model={model} onAction={onAction} />),
+    onAction,
+  };
+};
 
 describe('MembershipBanner', () => {
-  it('renders overdue payment failed copy and danger icon', () => {
-    const { getByTestId } = renderMembershipBanner(
-      MembershipBannerKind.Overdue,
+  it('renders Active with no alert and no status icon', () => {
+    const { getByTestId, queryByTestId } = renderBanner(createSubscription());
+
+    expect(
+      getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
+    ).toHaveTextContent(strings('pro_hub.membership_status.active'));
+    expect(queryByTestId(ProHubTestIds.MEMBERSHIP_STATUS_ICON)).toBeNull();
+    expect(
+      queryByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Overdue),
+      ),
+    ).toBeNull();
+  });
+
+  it('renders Overdue with the payment-failed alert', () => {
+    const onAction = jest.fn();
+    const { getByTestId } = renderBanner(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.pastDue }),
+      onAction,
     );
 
     expect(
       getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
     ).toHaveTextContent(strings('pro_hub.membership_status.overdue'));
+    expect(getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_ICON)).toBeOnTheScreen();
     expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Overdue),
+      ),
     ).toHaveTextContent(
-      toRegex(strings('pro_hub.membership_alert.payment_failed.title')),
+      strings('pro_hub.membership_alert.payment_failed.title'),
+      {
+        exact: false,
+      },
     );
     expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
-    ).toHaveTextContent(
-      toRegex(strings('pro_hub.membership_alert.payment_failed.description')),
-    );
-    expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
+      ),
     ).toHaveTextContent(
       strings('pro_hub.membership_alert.payment_failed.action'),
     );
+
+    fireEvent.press(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
+      ),
+    );
+
+    expect(onAction).toHaveBeenCalledWith(MembershipAlertAction.AddFunds);
   });
 
-  it('renders deactivated inactive copy and danger icon', () => {
-    const { getByTestId } = renderMembershipBanner(
-      MembershipBannerKind.Deactivated,
+  it('renders Deactivated with the inactive alert', () => {
+    const { getByTestId } = renderBanner(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.paused }),
     );
 
     expect(
       getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
     ).toHaveTextContent(strings('pro_hub.membership_status.deactivated'));
     expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
-    ).toHaveTextContent(
-      toRegex(strings('pro_hub.membership_alert.inactive.title')),
-    );
-    expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
-    ).toHaveTextContent(strings('pro_hub.membership_alert.inactive.action'));
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Deactivated),
+      ),
+    ).toHaveTextContent(strings('pro_hub.membership_alert.inactive.title'), {
+      exact: false,
+    });
   });
 
-  it('renders active renewal failed copy and warning icon', () => {
-    const { getByTestId } = renderMembershipBanner(
-      MembershipBannerKind.ActiveRenewalFailed,
-    );
-
-    expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
-    ).toHaveTextContent(strings('pro_hub.membership_status.active'));
-    expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
-    ).toHaveTextContent(
-      toRegex(strings('pro_hub.membership_alert.renewal_failed.title')),
-    );
-    expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
-    ).toHaveTextContent(
-      strings('pro_hub.membership_alert.renewal_failed.action'),
-    );
-  });
-
-  it('renders cancelled copy with renew-by date and warning severity', () => {
-    const { getByTestId } = renderMembershipBanner(
-      MembershipBannerKind.Cancelled,
+  it('renders Cancelled with the renew-before date', () => {
+    const { getByTestId } = renderBanner(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.canceled }),
     );
 
     expect(
       getByTestId(ProHubTestIds.MEMBERSHIP_STATUS_LABEL),
     ).toHaveTextContent(strings('pro_hub.membership_status.cancelled'));
     expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
-    ).toHaveTextContent(
-      toRegex(strings('pro_hub.membership_alert.cancelled.title')),
-    );
-    expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER),
-    ).toHaveTextContent(
-      toRegex(
-        strings('pro_hub.membership_alert.cancelled.description', {
-          date: formatMembershipDueDate(MOCK_PRO_HUB_STATS.addFundsDueDate),
-        }),
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Cancelled),
       ),
+    ).toHaveTextContent(
+      strings('pro_hub.membership_alert.cancelled.description', {
+        date: '10/12/2026',
+      }),
+      { exact: false },
     );
     expect(
-      getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION),
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Cancelled),
+      ),
     ).toHaveTextContent(strings('pro_hub.membership_alert.cancelled.action'));
-  });
-});
-
-describe('formatMembershipDueDate', () => {
-  it('formats an ISO date as MM/DD/YYYY', () => {
-    expect(formatMembershipDueDate('2026-10-12')).toBe('10/12/2026');
-  });
-
-  it('returns the original string when the date cannot be parsed', () => {
-    expect(formatMembershipDueDate('not-a-date')).toBe('not-a-date');
   });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { IconColor } from '@metamask/design-system-react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
 import {
@@ -8,8 +9,12 @@ import {
   MOCK_TRADE_ALLOWANCES,
   TRADE_ALLOWANCE_IDS,
 } from './ProHub.constants';
-import { formatMembershipDueDate } from './components/MembershipBanner';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
+import {
+  getMembershipBannerModel,
+  MembershipStatusKind,
+} from './components/MembershipBanner/MembershipBanner.utils';
+import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
@@ -55,6 +60,11 @@ jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   useMoneyAccountPlusBenefits: jest.fn(),
 }));
 
+const mockUseMembershipBannerModel = jest.mocked(useMembershipBannerModel);
+jest.mock('./hooks/useMembershipBannerModel', () => ({
+  useMembershipBannerModel: jest.fn(),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderProHub = () => render(<ProHub />);
@@ -68,8 +78,10 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-// CV cannot cover this screen yet: it is still mock-data UI with no Redux /
-// Engine state, so focused unit tests remain the coverage layer.
+const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel({});
+
+// Earnings are still mock data, and the membership card is covered by the
+// banner model unit tests. This screen test mocks that hook.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +98,10 @@ describe('ProHub', () => {
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+    });
+    mockUseMembershipBannerModel.mockReturnValue({
+      model: ACTIVE_MEMBERSHIP_BANNER,
+      subscription: undefined,
     });
   });
 
@@ -209,25 +225,52 @@ describe('ProHub', () => {
       );
     });
 
-    it('renders the add funds alert with MM/DD/YYYY due date, description, and action', () => {
+    it('renders an active plan without a membership alert', () => {
+      const { queryByTestId } = renderProHub();
+
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Overdue),
+        ),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(
+            MembershipStatusKind.Deactivated,
+          ),
+        ),
+      ).toBeNull();
+    });
+
+    it('opens add money when the overdue alert action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Overdue,
+          statusKey: 'pro_hub.membership_status.overdue',
+          iconColor: IconColor.ErrorDefault,
+          alert: {
+            severity: 'danger' as const,
+            titleKey: 'pro_hub.membership_alert.payment_failed.title',
+            descriptionKey:
+              'pro_hub.membership_alert.payment_failed.description',
+            actionKey: 'pro_hub.membership_alert.payment_failed.action',
+            action: 'addFunds' as const,
+          },
+        },
+        subscription: undefined,
+      });
+
       const { getByTestId } = renderProHub();
 
-      const banner = getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_BANNER);
-      const actionButton = getByTestId(ProHubTestIds.MEMBERSHIP_ALERT_ACTION);
-
-      expect(banner).toHaveTextContent(
-        toRegex(
-          strings('pro_hub.membership_alert.low_balance.title', {
-            date: formatMembershipDueDate(MOCK_PRO_HUB_STATS.addFundsDueDate),
-          }),
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
         ),
       );
-      expect(banner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_alert.low_balance.description')),
-      );
-      expect(actionButton).toHaveTextContent(
-        strings('pro_hub.membership_alert.low_balance.action'),
-      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
     });
 
     it('renders the physical card banner with title and description', () => {
