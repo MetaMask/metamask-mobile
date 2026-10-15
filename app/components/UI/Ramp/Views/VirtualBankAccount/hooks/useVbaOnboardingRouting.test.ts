@@ -894,6 +894,37 @@ describe('resolveVbaOnboarding', () => {
     expect(calls).toEqual(['start', 'hydrate']);
   });
 
+  it('does not start a KYC session when the persisted email is blank', async () => {
+    mockKycState.email = '   ';
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockStartSession).not.toHaveBeenCalled();
+    expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('resumes a persisted KYC session when the stored email has surrounding spaces', async () => {
+    mockKycState.email = '  user@example.com  ';
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    const calls: string[] = [];
+    mockStartSession.mockImplementation(async () => {
+      calls.push('start');
+      return { id: 'session-1' };
+    });
+    mockHydrate.mockImplementation(async () => {
+      calls.push('hydrate');
+      return { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+    });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+    expect(calls).toEqual(['start', 'hydrate']);
+  });
+
   it('does not start a KYC session when none is persisted', async () => {
     await resolveVbaOnboarding('money-add-money-bank-account');
 
