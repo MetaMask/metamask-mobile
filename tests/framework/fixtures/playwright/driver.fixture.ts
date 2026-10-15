@@ -17,6 +17,7 @@ import {
 } from '../../services/appium/sessionRecovery.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
+import { configureFoldablePosture } from '../../services/providers/browserstack/foldablePosture.ts';
 import {
   configureImplicitWait,
   createSession,
@@ -101,6 +102,22 @@ export const driverFixture = {
 
       globalThis.driver = drv;
 
+      const configurePosture = async (session: WebdriverIO.Browser) => {
+        if (
+          platform === 'android' &&
+          project.use.device?.provider === 'browserstack'
+        ) {
+          await configureFoldablePosture({
+            driver: session,
+            deviceName: project.use.device.name ?? 'unknown',
+            packageName: project.use.app?.packageName,
+            posture: process.env.E2E_DEVICE_POSTURE,
+          });
+        }
+      };
+
+      await configurePosture(drv);
+
       const capabilities = await drv.capabilities;
       const platformName = capabilities?.platformName;
       const windowSize = await drv.getWindowSize();
@@ -173,25 +190,28 @@ export const driverFixture = {
           // Screen recording is bound to the session that started it, so hand
           // it over: flush the dying session, then re-arm on the replacement
           // so a later failure in the same attempt still produces a video.
-          ...(recordVideoOnFailure && {
-            flushDyingSession: async (dyingDrv: WebdriverIO.Browser) => {
-              const dyingBackend = recordingBackend;
-              recordingBackend = undefined;
-              await stopFailureRecordingAndAttach(
-                dyingDrv,
-                testInfo,
-                dyingBackend,
-                platform,
-              );
-            },
-            armNewSession: async (session: WebdriverIO.Browser) => {
+          flushDyingSession: recordVideoOnFailure
+            ? async (dyingDrv: WebdriverIO.Browser) => {
+                const dyingBackend = recordingBackend;
+                recordingBackend = undefined;
+                await stopFailureRecordingAndAttach(
+                  dyingDrv,
+                  testInfo,
+                  dyingBackend,
+                  platform,
+                );
+              }
+            : undefined,
+          armNewSession: async (session: WebdriverIO.Browser) => {
+            if (recordVideoOnFailure) {
               recordingBackend = await startFailureRecording(
                 session,
                 testInfo,
                 platform,
               );
-            },
-          }),
+            }
+            await configurePosture(session);
+          },
         });
         logger.info(
           `In-process WebDriver session ready: sessionId=${deviceProvider.sessionId ?? newDrv.sessionId ?? 'unknown'}`,

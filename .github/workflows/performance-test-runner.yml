@@ -229,6 +229,7 @@ jobs:
             echo "E2E_PERFORMANCE_CI_BUILD_VARIANT=$CI_BUILD_VARIANT"
             echo "E2E_PERFORMANCE_RELEASE_VERSION=$RELEASE_VERSION"
             echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
+            echo "E2E_DEVICE_POSTURE=${{ matrix.device.posture || '' }}"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
             # AI locator recovery for broken Page Object taps / wallet-home scrolls.
             echo "AI_LOCATOR_RECOVERY_ENABLED=true"

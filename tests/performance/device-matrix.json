@@ -1,10 +1,17 @@
 {
   "android_devices": [
     {
-      "name": "Google Pixel 8 Pro",
-      "os_version": "14.0",
+      "name": "Samsung Galaxy Z Fold 7",
+      "os_version": "15.0",
       "category": "low",
-      "description": "Google Pixel 8 Pro with Android 14 — sole Android device for performance E2E (Galaxy removed to reduce cost/flakes)"
+      "posture": "unfolded",
+      "description": "One-off Fold 7 inner-display performance comparison. Do not merge this matrix into main."
+    },
+    {
+      "name": "Samsung Galaxy S25 Ultra",
+      "os_version": "15.0",
+      "category": "low",
+      "description": "Same-generation slab control for the Fold 7 performance comparison. Do not merge this matrix into main."
     }
   ],
   "ios_devices": [
@@ -27,11 +34,11 @@
     "low": "Low-end devices for backward compatibility and emerging market testing"
   },
   "os_coverage": {
-    "android": ["14.0"],
+    "android": ["15.0"],
     "ios": ["16", "17"]
   },
   "notes": {
     "ios_limitations": "iPhone 11 (iOS 13) and iPhone 8 (iOS 11) have OS versions not supported by MetaMask app",
-    "android_performance": "Android performance E2E runs on Google Pixel 8 Pro only (Samsung Galaxy removed from the matrix)."
+    "android_performance": "Temporary one-off comparison of the unfolded Galaxy Z Fold 7 and Galaxy S25 Ultra. Restore the Pixel 8 Pro matrix after the experiment."
   }
 }

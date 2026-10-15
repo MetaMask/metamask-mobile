@@ -5,6 +5,7 @@ export interface DeviceMatrixEntry {
   os_version: string;
   category: 'high' | 'medium' | 'low';
   description: string;
+  posture?: 'unfolded';
 }
 
 export interface DeviceMatrix {
