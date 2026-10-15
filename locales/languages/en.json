@@ -1345,26 +1345,18 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "No data",
-      "copies": {
-        "one": "{{count}} copy",
-        "other": "{{count}} copies"
-      },
+      "add_reaction": "Add reaction",
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
-        "auto_close": "Auto-close",
-        "auto_close_pair": "TP {{takeProfit}} / SL {{stopLoss}}",
         "mock_data_footnote": "* Mock data",
-        "entry_price": "Entry price",
-        "exit_price": "Exit price",
         "entry": "Entry",
         "exit": "Exit",
         "cost": "Cost",
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
-        "bought": "Bought",
-        "sold": "Sold"
+        "closed_ago": "Closed {{age}}"
       }
     },
     "composer": {
