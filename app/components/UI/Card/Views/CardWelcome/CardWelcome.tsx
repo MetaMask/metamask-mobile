@@ -73,6 +73,7 @@ const CardWelcome = () => {
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const animationState = useCardEducationAnimationState();
+  const copyColorStyle = tw.style('text-accent02-light');
   const shouldAnimateCards =
     animationState === 'animate' &&
     !shouldUseStaticCardArtwork(hardwareTier, networkTier);
@@ -175,9 +176,13 @@ const CardWelcome = () => {
       }
       title={strings('card.card_onboarding.title')}
       description={strings('card.card_onboarding.description')}
-      titleProps={{ testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT }}
+      titleProps={{
+        testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT,
+        style: copyColorStyle,
+      }}
       descriptionProps={{
         testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
+        style: copyColorStyle,
       }}
       artwork={
         animationState === 'pending' ? null : (
