@@ -17,7 +17,6 @@ export interface ProfileOnboardingDraft {
   displayNameEdited: boolean;
   avatarPresetId: string;
   avatarBackgroundId: string;
-  avatarGridIndex: number;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
   shareTradingActivity: boolean;
@@ -79,7 +78,6 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     displayNameEdited: false,
     avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
     avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-    avatarGridIndex: 0,
     linkedAccountId: null,
     linkedAccountAddress: null,
     shareTradingActivity: true,

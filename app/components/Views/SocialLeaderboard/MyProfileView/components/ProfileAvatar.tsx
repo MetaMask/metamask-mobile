@@ -2,14 +2,13 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Image } from 'react-native';
 import superheroAvatar from '../../../../../images/socialV1/superhero.png';
 import {
+  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
   getProfileAvatarBackground,
   getProfileAvatarPreset,
   type ProfileAvatarPreset,
@@ -34,15 +33,7 @@ const SIZE_PX: Record<ProfileAvatarSize, number> = {
 };
 
 /** Share of the circle the artwork fills when drawn over a backdrop color. */
-const ART_SCALE = 0.72;
-
-const EMOJI_VARIANT: Record<ProfileAvatarSize, TextVariant> = {
-  xs: TextVariant.BodySm,
-  sm: TextVariant.BodyMd,
-  md: TextVariant.HeadingSm,
-  lg: TextVariant.HeadingMd,
-  xl: TextVariant.HeadingLg,
-};
+const ART_SCALE = 0.85;
 
 interface ProfileAvatarArtProps {
   preset: ProfileAvatarPreset | undefined;
@@ -57,24 +48,9 @@ export const ProfileAvatarArt: React.FC<ProfileAvatarArtProps> = ({
   sizePx,
 }) => {
   const tw = useTailwind();
-
-  if (preset?.kind === 'emoji') {
-    return (
-      <Text
-        style={tw.style({
-          fontSize: sizePx * 0.6,
-          lineHeight: sizePx * 0.75,
-          textAlign: 'center',
-        })}
-      >
-        {preset.emoji}
-      </Text>
-    );
-  }
-
   return (
     <Image
-      source={preset?.kind === 'image' ? preset.artSource : superheroAvatar}
+      source={preset?.source ?? superheroAvatar}
       style={tw.style({ width: sizePx, height: sizePx })}
       resizeMode="contain"
     />
@@ -84,7 +60,10 @@ export const ProfileAvatarArt: React.FC<ProfileAvatarArtProps> = ({
 interface ProfileAvatarProps {
   imageUrl?: string | null;
   avatarPresetId?: string | null;
-  /** Backdrop color id from `PROFILE_AVATAR_BACKGROUNDS`. */
+  /**
+   * Backdrop color id from `PROFILE_AVATAR_BACKGROUNDS`. Presets without a
+   * saved color use the default backdrop.
+   */
   avatarBackgroundId?: string | null;
   size?: ProfileAvatarSize;
   testID?: string;
@@ -114,43 +93,32 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
     );
   }
 
-  const background = getProfileAvatarBackground(avatarBackgroundId);
-  if (background) {
+  if (!preset) {
     return (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName={`${sizeClassName} rounded-full overflow-hidden`}
-        style={tw.style({ backgroundColor: background.color })}
-        testID={testID}
+      <Image
+        source={superheroAvatar}
         accessibilityLabel={accessibilityLabel}
-      >
-        <ProfileAvatarArt preset={preset} sizePx={SIZE_PX[size] * ART_SCALE} />
-      </Box>
+        style={tw.style(sizeClassName, 'rounded-full')}
+        testID={testID}
+      />
     );
   }
 
-  if (preset?.kind === 'emoji') {
-    return (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName={`${sizeClassName} rounded-full ${preset.backgroundClassName}`}
-        testID={testID}
-        accessibilityLabel={accessibilityLabel}
-      >
-        <Text variant={EMOJI_VARIANT[size]}>{preset.emoji}</Text>
-      </Box>
-    );
-  }
+  const background =
+    getProfileAvatarBackground(avatarBackgroundId) ??
+    getProfileAvatarBackground(DEFAULT_PROFILE_AVATAR_BACKGROUND_ID);
 
   return (
-    <Image
-      source={preset?.kind === 'image' ? preset.source : superheroAvatar}
-      accessibilityLabel={accessibilityLabel}
-      style={tw.style(sizeClassName, 'rounded-full')}
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName={`${sizeClassName} rounded-full overflow-hidden`}
+      style={tw.style({ backgroundColor: background?.color })}
       testID={testID}
-    />
+      accessibilityLabel={accessibilityLabel}
+    >
+      <ProfileAvatarArt preset={preset} sizePx={SIZE_PX[size] * ART_SCALE} />
+    </Box>
   );
 };
 
