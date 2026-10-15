@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -32,7 +33,7 @@ import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import { getHomepageSectionMountMode } from './hooks/homepageSectionMountPolicy';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useABTest } from '../../../hooks';
-import { useNetworkTier } from '../../../hooks/useNetworkTier';
+import { useNetworkTierState } from '../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../util/deviceCapability';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsPriorityEligibilityContext } from './context/PerpsPriorityEligibilityContext';
@@ -72,7 +73,8 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
     const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
     const [hardwareTier] = useState(() => getHardwareTier());
-    const networkTier = useNetworkTier();
+    const { tier: networkTier, isResolved: networkTierResolved } =
+      useNetworkTierState();
     const [isPrimaryTokenContentReady, setIsPrimaryTokenContentReady] =
       useState(false);
     const sectionMountMode = getHomepageSectionMountMode({
@@ -80,19 +82,29 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       networkTier,
     });
     const homepageDeviceCapability: HomepageDeviceCapability = useMemo(
-      () => ({ hardwareTier, networkTier }),
-      [hardwareTier, networkTier],
+      () => ({ hardwareTier, networkTier, networkTierResolved }),
+      [hardwareTier, networkTier, networkTierResolved],
     );
     // Keep the primary token surface in the first commit on constrained
     // devices. This gates optional section mount work without delaying token
     // balance refresh or changing the Homepage Ready boundary.
-    const shouldMountOptionalSections =
-      sectionMountMode === 'immediate' ||
+    const canMountOptionalSections =
+      (sectionMountMode === 'immediate' && networkTierResolved) ||
       (sectionMountMode === 'after_primary_content' &&
+        networkTierResolved &&
         isPrimaryTokenContentReady) ||
       (sectionMountMode === 'when_network_available' &&
         networkTier !== 'NONE' &&
         isPrimaryTokenContentReady);
+    const [hasMountedOptionalSections, setHasMountedOptionalSections] =
+      useState(canMountOptionalSections);
+    useEffect(() => {
+      if (canMountOptionalSections) {
+        setHasMountedOptionalSections(true);
+      }
+    }, [canMountOptionalSections]);
+    const shouldMountOptionalSections =
+      hasMountedOptionalSections || canMountOptionalSections;
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);

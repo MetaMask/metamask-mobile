@@ -404,6 +404,10 @@ jest.mock('../../../util/deviceCapability', () => ({
 }));
 jest.mock('../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
+  useNetworkTierState: () => ({
+    tier: mockNetworkTier,
+    isResolved: mockNetworkTier !== null,
+  }),
 }));
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
@@ -523,6 +527,17 @@ describe('Homepage', () => {
   it('defers optional Homepage mounting on constrained devices', () => {
     mockHardwareTier = 'LOW';
     mockNetworkTier = 'WIFI';
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenNthCalledWith(1, {
+      isEnabled: false,
+    });
+  });
+
+  it('keeps optional Homepage mounting deferred while network capability is unknown', () => {
+    mockHardwareTier = 'LOW';
+    mockNetworkTier = null;
 
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 

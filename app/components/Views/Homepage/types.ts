@@ -11,6 +11,7 @@ export interface SectionRefreshHandle {
 export interface HomepageDeviceCapability {
   hardwareTier: HardwareTier | null;
   networkTier: NetworkTier | null;
+  networkTierResolved: boolean;
 }
 
 /**

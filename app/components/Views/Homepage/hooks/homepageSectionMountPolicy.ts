@@ -9,9 +9,9 @@ export type HomepageSectionMountMode =
 /**
  * Selects when non-primary Homepage sections may mount.
  *
- * The primary token surface remains mounted in every mode. Hardware and
- * network tiers stay separate so an unknown network does not get treated as
- * offline or low-end.
+ * The primary token surface remains mounted in every mode. An unknown network
+ * uses the product-default mount mode; callers separately gate the initial
+ * unresolved NetInfo state so it cannot mount optional work prematurely.
  */
 export const getHomepageSectionMountMode = ({
   hardwareTier,

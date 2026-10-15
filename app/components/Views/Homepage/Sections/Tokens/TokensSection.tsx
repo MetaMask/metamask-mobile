@@ -190,7 +190,9 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     );
 
     useEffect(() => {
-      onContentReadyChange?.(contentReady);
+      if (contentReady) {
+        onContentReadyChange?.(true);
+      }
     }, [contentReady, onContentReadyChange]);
 
     const { onLayout } = useHomeViewedEvent({

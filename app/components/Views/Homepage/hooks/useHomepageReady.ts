@@ -23,6 +23,7 @@ export const useHomepageReady = ({
   contentState,
   hardwareTier,
   networkTier,
+  networkTierResolved,
 }: UseHomepageReadyOptions) => {
   const isFocused = useIsFocused();
   const lastAppStateRef = useRef<AppStateStatus>(AppState.currentState);
@@ -39,7 +40,7 @@ export const useHomepageReady = ({
   }, [isFocused]);
 
   useEffect(() => {
-    if (isFocused && contentReady) {
+    if (isFocused && contentReady && networkTierResolved !== false) {
       endHomepageReadyTrace({
         contentState,
         ...(hardwareTier === undefined ? {} : { hardwareTier }),
@@ -53,6 +54,7 @@ export const useHomepageReady = ({
     hardwareTier,
     isFocused,
     networkTier,
+    networkTierResolved,
   ]);
 
   useEffect(() => {
