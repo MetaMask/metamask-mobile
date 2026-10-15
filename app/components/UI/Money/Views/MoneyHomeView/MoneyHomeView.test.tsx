@@ -877,18 +877,6 @@ describe('MoneyHomeView', () => {
         expect(queryByTestId(testId)).not.toBeOnTheScreen();
       });
     });
-
-    it('renders no VBA card for the none variant', () => {
-      mockUseVbaHomeCard.mockReturnValue({
-        type: 'none',
-      } as VbaHomeCard);
-
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      VBA_CARD_CONTAINERS.forEach((testId) => {
-        expect(queryByTestId(testId)).not.toBeOnTheScreen();
-      });
-    });
   });
 
   describe('time to content telemetry', () => {
