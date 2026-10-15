@@ -135,6 +135,31 @@ describe('useIsSocialTopTradersEligible', () => {
     expect(result.current).toBe(true);
   });
 
+  it('does not re-evaluate when profile changes while the homepage is focused', () => {
+    const { result, rerender } = renderHook(() =>
+      useIsSocialTopTradersEligible(),
+    );
+    const [initialFocusCallback] = mockFocusEffect.mock.calls[0] as [
+      () => void,
+    ];
+
+    mockUseMyProfile.mockReturnValue({
+      profile: recentSocialProfile,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    mockIsRecentSocialActivityTimestamp.mockReturnValue(true);
+    rerender({});
+
+    expect(result.current).toBe(false);
+    expect(mockFocusEffect.mock.calls.at(-1)?.[0]).toBe(initialFocusCallback);
+
+    act(() => initialFocusCallback());
+
+    expect(result.current).toBe(true);
+  });
+
   it('re-evaluates eligibility when the homepage regains focus', () => {
     const { result } = renderHook(() => useIsSocialTopTradersEligible());
 
