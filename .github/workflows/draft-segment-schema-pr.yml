@@ -36,6 +36,7 @@ jobs:
       cancel-in-progress: true
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     steps:
       - uses: actions/create-github-app-token@v3
@@ -88,6 +89,7 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     steps:
       - uses: actions/create-github-app-token@v3
@@ -121,6 +123,7 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
+      issues: write
       pull-requests: write
     steps:
       - uses: actions/create-github-app-token@v3
