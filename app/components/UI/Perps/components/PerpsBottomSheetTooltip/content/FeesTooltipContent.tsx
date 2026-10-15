@@ -8,7 +8,7 @@ import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
 import VipIcon from '../../../../../../images/rewards/vip.svg';
 import foxIcon from '../../../../../../images/fox.png';
-import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../../shared/MembershipVipBadge/MembershipVipBadge';
 import {
   Text,
   TextColor,
@@ -75,7 +75,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
         </Text>
         <View style={styles.feeValueContainer}>
           {hasDiscount ? (
-            <RewardsVipBadge hasProEntitlement={isSubscriptionDiscount} />
+            <MembershipVipBadge hasProEntitlement={isSubscriptionDiscount} />
           ) : null}
           {hasDiscount && (
             <Text

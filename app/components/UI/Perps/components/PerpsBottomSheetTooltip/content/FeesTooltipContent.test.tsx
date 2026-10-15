@@ -2,22 +2,19 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import FeesTooltipContent from './FeesTooltipContent';
 
-jest.mock(
-  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
-        MockReact.createElement(View, {
-          testID: hasProEntitlement
-            ? 'rewards-member-badge'
-            : 'rewards-vip-badge',
-        }),
-    };
-  },
-);
+jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+      MockReact.createElement(View, {
+        testID: hasProEntitlement
+          ? 'rewards-member-badge'
+          : 'rewards-vip-badge',
+      }),
+  };
+});
 
 describe('FeesTooltipContent', () => {
   const mockData = {

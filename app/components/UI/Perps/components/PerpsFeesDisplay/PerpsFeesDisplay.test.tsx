@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PerpsFeesDisplay from './PerpsFeesDisplay';
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {

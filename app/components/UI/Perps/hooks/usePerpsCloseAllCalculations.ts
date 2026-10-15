@@ -379,7 +379,7 @@ export function usePerpsCloseAllCalculations({
         discountingSources.add(fees.feeSource);
       }
     });
-    // Membership wins over VIP, matching RewardsVipBadge.
+    // Membership wins over VIP, matching MembershipVipBadge.
     let feeSource: PerpsFeeSource | undefined;
     if (discountingSources.has('subscription')) {
       feeSource = 'subscription';

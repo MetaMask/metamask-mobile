@@ -1,11 +1,11 @@
 import React from 'react';
 import { Image, StyleSheet } from 'react-native';
-import VipIcon from '../../../../../images/rewards/vip.svg';
-import foxIcon from '../../../../../images/fox.png';
-import { strings } from '../../../../../../locales/i18n';
-import { useVipTier } from '../../hooks/useVipTier';
-import { RewardsDiscountBadge } from '../RewardsDiscountBadge';
-import { colors } from '../../../../../styles/common';
+import VipIcon from '../../../../images/rewards/vip.svg';
+import foxIcon from '../../../../images/fox.png';
+import { strings } from '../../../../../locales/i18n';
+import { useVipTier } from '../../Rewards/hooks/useVipTier';
+import { RewardsDiscountBadge } from '../../Rewards/components/RewardsDiscountBadge';
+import { colors } from '../../../../styles/common';
 
 const FOX_ICON_SIZE = 14;
 const MEMBER_BORDER_COLORS = [
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface RewardsVipBadgeProps {
+interface MembershipVipBadgeProps {
   /**
    * True when this fee was priced from a Plus entitlement.
    * Membership wins over a VIP tier, so a subscription-priced fee stays a
@@ -33,7 +33,7 @@ interface RewardsVipBadgeProps {
   hasProEntitlement?: boolean;
 }
 
-const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
+const MembershipVipBadge: React.FC<MembershipVipBadgeProps> = ({
   hasProEntitlement = false,
 }) => {
   const vipTier = useVipTier();
@@ -67,4 +67,4 @@ const RewardsVipBadge: React.FC<RewardsVipBadgeProps> = ({
   return null;
 };
 
-export default RewardsVipBadge;
+export default MembershipVipBadge;

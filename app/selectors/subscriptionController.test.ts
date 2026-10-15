@@ -18,6 +18,7 @@ import {
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
   selectIsMoneyAccountPlusSubscriber,
+  selectIsMoneyAccountPlusTrialing,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
@@ -726,6 +727,57 @@ describe('subscriptionController selectors', () => {
 
       it('returns undefined when the controller is absent', () => {
         expect(selectSubscriptionBenefits(createState())).toBeUndefined();
+      });
+    });
+
+    describe('selectIsMoneyAccountPlusTrialing', () => {
+      it('returns true when the Plus subscription status is trialing', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.trialing,
+            }),
+          ],
+          trialedProducts: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
+        });
+
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(true);
+      });
+
+      it('returns false when a paid Plus subscription remains in trialed products', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.active,
+            }),
+          ],
+          trialedProducts: [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS],
+        });
+
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when only another product is trialing', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-shield',
+              products: [createProduct(PRODUCT_TYPES.SHIELD)],
+              status: SUBSCRIPTION_STATUSES.trialing,
+            }),
+          ],
+          trialedProducts: [PRODUCT_TYPES.SHIELD],
+        });
+
+        expect(selectIsMoneyAccountPlusTrialing(state)).toBe(false);
+      });
+
+      it('returns false when the controller is absent', () => {
+        expect(selectIsMoneyAccountPlusTrialing(createState())).toBe(false);
       });
     });
 
