@@ -1,9 +1,6 @@
-import type { SocialV1PerpDirection } from '../types';
-
 /**
- * Deterministic stand-ins for the enrichment the social API does not expose
- * yet: an open position's mark, its take-profit / stop-loss bracket, and how
- * many readers copied the trade.
+ * Deterministic stand-in for the enrichment the social API does not expose
+ * yet: an open perp position's mark price.
  *
  * Every value is keyed by trader id and market symbol through a hash, so the
  * same person and market always get the same fake numbers. Without that, a
@@ -36,12 +33,6 @@ const MARK_OFFSET_FRACTIONS = [
   -0.062, -0.031, -0.014, 0.009, 0.023, 0.048, 0.071,
 ] as const;
 
-/** Take-profit distance from entry, as a fraction, in the winning direction. */
-const TAKE_PROFIT_FRACTIONS = [0.06, 0.09, 0.12, 0.18, 0.25] as const;
-
-/** Stop-loss distance from entry, as a fraction, in the losing direction. */
-const STOP_LOSS_FRACTIONS = [0.03, 0.045, 0.06, 0.08] as const;
-
 /**
  * An open position's mark price. Returns `null` when there is no real entry to
  * offset from, so the card drops the subtitle rather than inventing a price
@@ -57,47 +48,3 @@ export const mockMarkPrice = (
   }
   return entryPrice * (1 + pick(MARK_OFFSET_FRACTIONS, traderId, symbol));
 };
-
-export interface MockAutoClose {
-  takeProfit: number;
-  stopLoss: number;
-}
-
-/**
- * A take-profit / stop-loss pair bracketing the real entry on the correct
- * sides for the direction: a short takes profit below entry and stops out
- * above it. Returns `null` without a real entry to bracket.
- */
-export const mockAutoClose = (
-  traderId: string,
-  symbol: string,
-  entryPrice: number | null,
-  direction: SocialV1PerpDirection,
-): MockAutoClose | null => {
-  if (entryPrice == null || entryPrice <= 0) {
-    return null;
-  }
-
-  const takeProfitDistance = pick(TAKE_PROFIT_FRACTIONS, traderId, symbol);
-  const stopLossDistance = pick(STOP_LOSS_FRACTIONS, symbol, traderId);
-  const winningSign = direction === 'long' ? 1 : -1;
-
-  return {
-    takeProfit: entryPrice * (1 + winningSign * takeProfitDistance),
-    stopLoss: entryPrice * (1 - winningSign * stopLossDistance),
-  };
-};
-
-/**
- * Copy counts a shared position plausibly attracts. Long-tailed rather than
- * evenly spread, because most posts get a handful of copies and a few get many.
- */
-const COPY_COUNTS = [0, 1, 1, 2, 3, 5, 8, 14, 27] as const;
-
-/**
- * How many readers copied this post's trade. Nothing reports this yet, so it is
- * hashed off the post id: stable per post, so a re-render or a page append
- * cannot reshuffle it in front of the user.
- */
-export const mockCopyCount = (postId: string): number =>
-  pick(COPY_COUNTS, postId);
