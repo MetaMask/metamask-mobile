@@ -125,10 +125,16 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
-  // Copy is keyed by a profile id that resolves asynchronously, and the
-  // entry can still be loading after that. Until both have settled, an
-  // absent invite is not a decision this sheet can track.
-  const isCopyPending = !isProfileResolved || Boolean(referralMeEntry?.loading);
+  // A resolved profile with no referral-me row is not a settled invite.
+  // `loading` is only set once the fetch starts, so a missing entry would
+  // otherwise count as on screen. If that payload then arrives already
+  // referred, the sheet closes itself and the funnel would keep a viewed
+  // event with no answer. Hold until the payload exists.
+  const isCopyPending =
+    !isProfileResolved ||
+    referralMeEntry == null ||
+    referralMeEntry.loading ||
+    referralMeEntry.data == null;
 
   const {
     referralCode,
