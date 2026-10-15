@@ -1,7 +1,8 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 import { useInitialDestToken } from '.';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { getSwapDestToken } from '../../utils/getSwapDestToken';
 import { SolScope, BtcScope } from '@metamask/keyring-api';
@@ -10,6 +11,7 @@ import {
   selectBip44DefaultPair,
   selectBridgeViewMode,
   selectSourceToken,
+  setBridgeViewMode,
   setDestToken,
 } from '../../../../../core/redux/slices/bridge';
 
@@ -120,6 +122,28 @@ describe('useInitialDestToken', () => {
 
     renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
       state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(
+        getSwapDestToken(SolScope.Mainnet),
+      );
+    });
+  });
+
+  it('waits for the bridge view mode before initializing the destination', async () => {
+    (selectBridgeViewMode as unknown as jest.Mock).mockImplementation(
+      (state: RootState) => state.bridge.bridgeViewMode,
+    );
+    const { store } = renderHookWithProvider(
+      () => useInitialDestToken(mockSourceToken),
+      { state: initialState },
+    );
+
+    expect(setDestToken).not.toHaveBeenCalled();
+
+    act(() => {
+      store.dispatch(setBridgeViewMode(BridgeViewMode.Unified));
     });
 
     await waitFor(() => {

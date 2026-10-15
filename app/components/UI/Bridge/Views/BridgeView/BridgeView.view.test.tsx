@@ -485,6 +485,30 @@ describeForPlatforms('BridgeView', () => {
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
     });
 
+    it('clears quote-only state when switching tabs without changing shared inputs', async () => {
+      const { getByTestId, store } = defaultBridgeWithTokens({
+        bridge: {
+          destAmount: '2',
+          selectedQuoteRequestId: 'market-quote',
+        },
+      });
+      const expectedSourceToken = store.getState().bridge.sourceToken;
+      const expectedDestToken = store.getState().bridge.destToken;
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
+      expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
+      expect(store.getState().bridge.sourceAmount).toBe('1');
+      expect(store.getState().bridge.destAmount).toBeUndefined();
+      expect(store.getState().bridge.selectedQuoteRequestId).toBeUndefined();
+    });
+
     describe('feature flags', () => {
       it('hides the tabs bar and keeps the market view functional when both Limit and Recurring flags are disabled', async () => {
         const { getByTestId, queryByTestId, store } = renderBridgeView({

@@ -13,7 +13,10 @@ import {
 } from '../../../../../selectors/bridge/featureFlags';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { createMockToken } from '../../testUtils/fixtures';
-import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
+import {
+  getDefaultTokenPairForChains,
+  getNativeSourceToken,
+} from '../../utils/tokenUtils';
 import { useReconcileInputsForNonMarketSwapTab } from '.';
 
 const mockDispatch = jest.fn();
@@ -176,6 +179,26 @@ describe('useReconcileInputsForNonMarketSwapTab', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setSourceToken(fallbackPair.sourceToken),
     );
+  });
+
+  it('uses the native destination when the preserved source is the default destination', () => {
+    const fallbackPair = getRequiredDefaultPair(['eip155:1']);
+
+    renderHook(() =>
+      useReconcileInputsForNonMarketSwapTab({
+        renderedTab: BridgeTabKey.Limit,
+        sourceToken: fallbackPair.destToken,
+        destToken: BSC_TOKEN,
+      }),
+    );
+
+    expect(mockDispatch).toHaveBeenNthCalledWith(1, resetBridgeTokenInputs());
+    expect(mockDispatch).toHaveBeenNthCalledWith(2, resetBridgeDestToken());
+    expect(mockDispatch).toHaveBeenNthCalledWith(
+      3,
+      setDestToken(getNativeSourceToken('eip155:1')),
+    );
+    expect(mockDispatch).toHaveBeenCalledTimes(3);
   });
 
   it.each([
