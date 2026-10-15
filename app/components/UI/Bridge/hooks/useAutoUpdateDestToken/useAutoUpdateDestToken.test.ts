@@ -285,7 +285,7 @@ describe('useAutoUpdateDestToken', () => {
       );
     });
 
-    it('updates dest to default from token when source changes to match default dest and default from token is defined (ARC)', () => {
+    it('updates the Arc destination to native USDC when source matches the default destination', () => {
       const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
 
       // Current dest is the default EURC
@@ -323,13 +323,12 @@ describe('useAutoUpdateDestToken', () => {
       // Change source to EURC (same as current dest)
       result.current.autoUpdateDestToken(eurcTokenOnArcSource);
 
-      // Dest should update to native USDC (the ERC20 version) since source now conflicts with default
-      // and a corresponding entry is defined in BRIDGE_CHAINID_TO_DEFAULT_FROM_TOKEN.
+      // Dest should update to native USDC since source now conflicts with the default.
       expect(setDestTokenSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           symbol: 'USDC',
           chainId: ARC_HEX_CHAIN_ID,
-          address: '0x3600000000000000000000000000000000000000',
+          address: '0x0000000000000000000000000000000000000000',
         }),
       );
     });

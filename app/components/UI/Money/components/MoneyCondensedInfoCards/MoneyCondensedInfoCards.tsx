@@ -18,7 +18,7 @@ import musdCoinImage from '../../../../../images/mm_usd.png';
 import whatYouGetImage from '../../../../../images/mm_what_you_get.png';
 import { Image, ImageProps } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 
 interface MoneyCondensedInfoCardsProps {
   onHowItWorksPress?: () => void;
@@ -72,7 +72,7 @@ const CondensedCard = ({
 
   return (
     <Pressable onPress={onPress} testID={testID}>
-      <GlassSurface
+      <BoxGlass
         isGlass={isGlass}
         radiusClassName="rounded-xl"
         isInteractive
@@ -80,7 +80,7 @@ const CondensedCard = ({
         style={tw.style('flex-row items-center p-4 gap-4')}
       >
         {content}
-      </GlassSurface>
+      </BoxGlass>
     </Pressable>
   );
 };

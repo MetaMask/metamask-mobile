@@ -9,7 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonIconCapsule from '../../../../../component-library/components-temp/ButtonIconCapsule';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 /** The Pro entry point, as resolved by the page that owns Pro access. */
@@ -68,7 +68,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   };
 
   const menuButton = (
-    <ButtonIconCapsule
+    <ButtonIconGlass
       {...menuButtonProps}
       isCapsule={isCapsule}
       capsuleTestID={MoneyHeaderTestIds.MENU_CAPSULE}
@@ -111,7 +111,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
         }}
         startAccessory={
           isCapsule ? (
-            <ButtonIconCapsule
+            <ButtonIconGlass
               isCapsule
               iconName={IconName.ArrowLeft}
               onPress={props.onBack}

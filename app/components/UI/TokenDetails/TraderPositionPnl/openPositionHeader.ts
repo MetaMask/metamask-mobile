@@ -1,8 +1,10 @@
 import {
   EM_DASH,
+  formatHoldDuration,
   formatPercent,
   formatTradeUnitPrice,
 } from '../../SocialFeed/utils/formatters';
+import { tradeTimestampToMs } from '../../SocialFeed/utils/tradeTimestamp';
 import {
   convertUsdToFiat,
   formatFiat,
@@ -31,9 +33,40 @@ export interface OpenPositionHeaderModel {
   isLoading: boolean;
 }
 
+const formatHoldTime = (
+  earliestTradeAt: number | null | undefined,
+  nowMs: number,
+): string => {
+  if (
+    earliestTradeAt == null ||
+    !Number.isFinite(earliestTradeAt) ||
+    earliestTradeAt <= 0
+  ) {
+    return EM_DASH;
+  }
+  return formatHoldDuration(nowMs - tradeTimestampToMs(earliestTradeAt));
+};
+
 const formatSignedFiat = (usd: number, conversion: UsdToFiatRate): string => {
   const converted = convertUsdToFiat(usd, conversion);
   return formatFiat(converted.value, converted.currency);
+};
+
+/** Same precision as the USD unit price, with the selected currency symbol. */
+const formatUnitPrice = (value: number, currency: string): string => {
+  const usdLabel = formatTradeUnitPrice(value);
+  if (usdLabel === EM_DASH || currency === 'USD') {
+    return usdLabel;
+  }
+
+  const amount = usdLabel.startsWith('$') ? usdLabel.slice(1) : usdLabel;
+  // Hermes has no NumberFormat.formatToParts, so the symbol comes from a
+  // formatted zero, which every device can produce.
+  const sample = formatFiatAmount(0, currency);
+  const symbol = sample.replace(/[\d\s.,\u00a0\u202f+-]+/g, '') || currency;
+  const symbolComesFirst = sample.trim().startsWith(symbol);
+
+  return symbolComesFirst ? `${symbol}${amount}` : `${amount} ${symbol}`;
 };
 
 const formatAverageCost = (
@@ -50,28 +83,30 @@ const formatAverageCost = (
 
   const averageCostUsd = position.costBasis / position.positionAmount;
   const converted = convertUsdToFiat(averageCostUsd, conversion);
-  // Unit prices for sub-cent assets collapse to $0.00 at two decimals.
-  if (converted.currency === 'USD') {
-    return formatTradeUnitPrice(averageCostUsd);
-  }
-  return formatFiatAmount(converted.value, converted.currency);
+  return formatUnitPrice(converted.value, converted.currency);
 };
 
 /**
  * Collapsed header for the sticky footer.
- * A ready position shows its current value and unrealized PnL.
- * Anything else shows the wallet's fiat balance and hides PnL.
+ * "Your position" is this wallet's fiat balance for the token. A ready
+ * position also shows unrealized PnL. The social current value is only a
+ * fallback when the wallet balance is not available yet.
  */
 export const toOpenPositionHeader = ({
   position,
   isLoading,
   walletFiatBalance,
   conversion,
+  earliestTradeAt,
+  nowMs = Date.now(),
 }: {
   position: OpenPositionPnl | null;
   isLoading: boolean;
   walletFiatBalance: string | undefined;
   conversion: UsdToFiatRate;
+  /** Earliest fill on the open-position row. Seconds or milliseconds. */
+  earliestTradeAt?: number | null;
+  nowMs?: number;
 }): OpenPositionHeaderModel => {
   if (position?.pnlStatus === 'ready') {
     const unrealized = computeOpenUnrealizedPnl(position);
@@ -79,9 +114,11 @@ export const toOpenPositionHeader = ({
       position.currentValueUSD == null
         ? undefined
         : convertUsdToFiat(position.currentValueUSD, conversion);
-    const positionValue = currentValue
-      ? formatFiatAmount(currentValue.value, currentValue.currency)
-      : walletFiatBalance;
+    const positionValue =
+      walletFiatBalance ??
+      (currentValue
+        ? formatFiatAmount(currentValue.value, currentValue.currency)
+        : undefined);
 
     if (unrealized.usd == null) {
       return { positionValue, isLoading: false };
@@ -104,8 +141,7 @@ export const toOpenPositionHeader = ({
         averageCost: formatAverageCost(position, conversion),
         realizedPnl: formatSignedFiat(position.realizedPnl, conversion),
         unrealizedPnl: formatSignedFiat(unrealized.usd, conversion),
-        // The open-position route does not return a buy timestamp.
-        holdTime: EM_DASH,
+        holdTime: formatHoldTime(earliestTradeAt, nowMs),
       },
       isLoading: false,
     };

@@ -158,11 +158,24 @@ function OrdersNetworkFilter({ chainIds }: { chainIds: CaipChainId[] }) {
   );
 }
 
+function useNetworkFilteredItems<T>(
+  items: T[],
+  getItemChainId: (item: T) => CaipChainId,
+  selectedChainId: CaipChainId | undefined,
+): T[] {
+  return useMemo(
+    () =>
+      selectedChainId
+        ? items.filter((item) => getItemChainId(item) === selectedChainId)
+        : items,
+    [getItemChainId, items, selectedChainId],
+  );
+}
+
 function OrdersTabPanel<T>({
-  items,
+  filteredItems,
   renderItem,
   keyExtractor,
-  getItemChainId,
   getItemDate,
   emptyDescription,
   isLoading,
@@ -170,10 +183,9 @@ function OrdersTabPanel<T>({
   isFetchingNextPage,
   onRetry,
 }: {
-  items: T[];
+  filteredItems: T[];
   renderItem?: (item: T, index: number) => React.ReactElement;
   keyExtractor?: (item: T, index: number) => string;
-  getItemChainId: (item: T) => CaipChainId;
   getItemDate?: (item: T) => string | undefined;
   emptyDescription: string;
   isLoading?: boolean;
@@ -181,16 +193,6 @@ function OrdersTabPanel<T>({
   isFetchingNextPage?: boolean;
   onRetry?: () => void;
 }) {
-  const selectedChainId = useSelector(selectOrdersNetworkFilter);
-
-  const filteredItems = useMemo(
-    () =>
-      selectedChainId
-        ? items.filter((item) => getItemChainId(item) === selectedChainId)
-        : items,
-    [getItemChainId, items, selectedChainId],
-  );
-
   const dateSections = useMemo(
     () =>
       getItemDate ? groupOrdersByDate(filteredItems, getItemDate) : undefined,
@@ -289,11 +291,28 @@ function OrdersTabs<TOpen, THistory>({
     enabledChainIds,
   );
 
+  const filteredOpenOrders = useNetworkFilteredItems(
+    openOrders.items,
+    openOrders.getItemChainId,
+    selectedChainId,
+  );
+  const filteredHistory = useNetworkFilteredItems(
+    history.items,
+    history.getItemChainId,
+    selectedChainId,
+  );
+  const openOrdersCount = openOrders.renderItem ? filteredOpenOrders.length : 0;
+
   const tabs = useMemo<TabItem[]>(
     () => [
       {
         key: OrdersTabKey.OpenOrders,
-        label: strings('bridge.orders.tabs.open_orders'),
+        label:
+          openOrdersCount > 0
+            ? strings('bridge.orders.tabs.open_orders_with_count', {
+                count: openOrdersCount,
+              })
+            : strings('bridge.orders.tabs.open_orders'),
         content: null,
         testID: OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB,
       },
@@ -304,7 +323,7 @@ function OrdersTabs<TOpen, THistory>({
         testID: OrdersTabsSelectorsIDs.HISTORY_TAB,
       },
     ],
-    [],
+    [openOrdersCount],
   );
 
   const activeIndex = selectedTab === OrdersTabKey.History ? 1 : 0;
@@ -337,10 +356,9 @@ function OrdersTabs<TOpen, THistory>({
         />
         {selectedTab === OrdersTabKey.OpenOrders ? (
           <OrdersTabPanel
-            items={openOrders.items}
+            filteredItems={filteredOpenOrders}
             renderItem={openOrders.renderItem}
             keyExtractor={openOrders.keyExtractor}
-            getItemChainId={openOrders.getItemChainId}
             getItemDate={openOrders.getItemDate}
             isLoading={openOrders.isLoading}
             isError={openOrders.isError}
@@ -350,10 +368,9 @@ function OrdersTabs<TOpen, THistory>({
           />
         ) : (
           <OrdersTabPanel
-            items={history.items}
+            filteredItems={filteredHistory}
             renderItem={history.renderItem}
             keyExtractor={history.keyExtractor}
-            getItemChainId={history.getItemChainId}
             getItemDate={history.getItemDate}
             isLoading={history.isLoading}
             isError={history.isError}

@@ -26,7 +26,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'built-event' }));

@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -46,6 +47,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
+import { useSocialFeed } from '../../SocialFeed';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -359,9 +361,56 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
-  const { activeTab, activateTab, mountedTabs, swipeGesture } =
-    useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const feedSource = useMemo(
+    () =>
+      socialEnabled && caip19AssetId
+        ? { kind: 'token' as const, assetId: caip19AssetId }
+        : null,
+    [caip19AssetId, socialEnabled],
+  );
+  const { posts: feedPosts } = useSocialFeed(feedSource);
+  const showFeedTab = feedPosts.length > 0;
+  const visibleTabs = useMemo(
+    () =>
+      showFeedTab
+        ? TOKEN_DETAILS_V1_TABS
+        : TOKEN_DETAILS_V1_TABS.filter((tab) => tab !== 'feed'),
+    [showFeedTab],
+  );
+  // Feed is first in TOKEN_DETAILS_V1_TABS, so it is the landing tab once it
+  // is visible. Until the token feed has posts the tab is omitted and the
+  // reader lands on the next tab. A later post response still moves them
+  // there, unless they already chose a tab.
+  const landingTab = visibleTabs[0] ?? 'overview';
+  const userPickedTabRef = useRef(false);
+  const applyingLandingTabRef = useRef(false);
+  const handleTabChange = useCallback(() => {
+    if (!applyingLandingTabRef.current) {
+      userPickedTabRef.current = true;
+    }
+    clampScrollToTabBar();
+  }, [clampScrollToTabBar]);
+  const { activeTab, activateTab, mountedTabs, swipeGesture } =
+    useTokenDetailsV1Tabs({
+      initialTab: landingTab,
+      onTabChange: handleTabChange,
+      tabs: visibleTabs,
+    });
+
+  useEffect(() => {
+    if (!visibleTabs.includes(activeTab)) {
+      applyingLandingTabRef.current = true;
+      activateTab(visibleTabs[0] ?? 'overview');
+      applyingLandingTabRef.current = false;
+      return;
+    }
+    if (!userPickedTabRef.current && activeTab !== landingTab) {
+      applyingLandingTabRef.current = true;
+      activateTab(landingTab);
+      applyingLandingTabRef.current = false;
+    }
+  }, [activeTab, activateTab, landingTab, visibleTabs]);
 
   /**
    * Selecting the tab alone would leave the reader looking at the price hero
@@ -576,6 +625,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 activeTab={activeTab}
                 onTabPress={activateTab}
                 onLayout={handleTabBarLayout}
+                tabs={visibleTabs}
               />
 
               <GestureDetector gesture={swipeGesture}>
@@ -584,7 +634,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   style={tabContentContainerStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
-                  {TOKEN_DETAILS_V1_TABS.map((tab) => {
+                  {visibleTabs.map((tab) => {
                     const isActive = tab === activeTab;
                     return (
                       <View

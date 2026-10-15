@@ -4,26 +4,46 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import React from 'react';
+import { Text, View } from 'react-native';
 import {
   act,
   cleanup,
   fireEvent,
   screen,
+  userEvent,
   waitFor,
   within,
 } from '@testing-library/react-native';
-import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
 import {
+  MarketCategory,
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import {
+  createBtcMarketForViews,
   createEthMarketForViews,
   createFundedAccountForViews,
+  createHomeExploreAssignmentForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  getPerpsMarketRowItemSelector,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
+  PerpsWatchlistSelectorsIDs,
 } from '../../Perps.testIds';
+import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exploreSessionTab';
+import { EXPLORE_WATCHLIST_TAB_ID } from '../../components/PerpsExploreSection/PerpsExploreSection.types';
+import {
+  PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  PerpsHomeExploreVariant,
+} from '../../abTestConfig';
 import { PerpsHomeSectionTestIds } from '../../components/PerpsHomeSection/PerpsHomeSection.testIds';
 import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
@@ -59,11 +79,13 @@ const ineligibleOverrides = {
 describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearExploreSessionTab();
     setupPerpsOutreachApiMock();
   });
 
   afterEach(() => {
     cleanup();
+    clearExploreSessionTab();
     clearPerpsOutreachApiMocks();
   });
 
@@ -584,6 +606,739 @@ describe('PerpsHomeView', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+    });
+  });
+
+  describe('home Explore table experiment', () => {
+    const DAY_MS = 24 * 60 * 60 * 1000;
+    const WATCHLIST_ONLY_LABEL = 'showWatchlistOnly';
+    const CRYPTO_TAB_ID = 'crypto';
+    const STOCK_TAB_ID = 'stock';
+    const PRE_IPO_TAB_ID = 'pre-ipo';
+    const NEW_TAB_ID = 'new';
+
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        PERPS_HOME_EXPLORE_AB_TEST_KEY,
+        PerpsHomeExploreVariant.Treatment,
+      ),
+    ];
+
+    const btcMarket = createBtcMarketForViews();
+    const appleMarket = createEthMarketForViews({
+      symbol: 'AAPL',
+      name: 'Apple',
+      isHip3: true,
+      marketType: MarketCategory.Stock,
+      volume: '$1B',
+      price: '$180.00',
+    });
+    const goldMarket = createEthMarketForViews({
+      symbol: 'GOLD',
+      name: 'Gold',
+      isHip3: true,
+      marketType: MarketCategory.Commodity,
+      volume: '$800M',
+      price: '$2,300.00',
+    });
+    const euroMarket = createEthMarketForViews({
+      symbol: 'EUR',
+      name: 'Euro',
+      isHip3: true,
+      marketType: MarketCategory.Forex,
+      volume: '$600M',
+      price: '$1.08',
+    });
+    const preIpoMarket = createEthMarketForViews({
+      symbol: 'PRE',
+      name: 'Pre IPO',
+      isHip3: true,
+      marketType: MarketCategory.PreIpo,
+      volume: '$50M',
+      price: '$20.00',
+    });
+    const stackedMarkets = [btcMarket, appleMarket, goldMarket, euroMarket];
+
+    const exploreTab = (tabId: string) =>
+      `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-tab-${tabId}`;
+    const exploreListEmpty = `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-list-empty`;
+    const stackedSectionIds = [
+      PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION,
+      PerpsHomeViewSelectorsIDs.EXPLORE_STOCKS_SECTION,
+      PerpsHomeViewSelectorsIDs.EXPLORE_COMMODITIES_SECTION,
+      PerpsHomeViewSelectorsIDs.EXPLORE_FOREX_SECTION,
+      PerpsWatchlistSelectorsIDs.SECTION,
+      PerpsHomeViewSelectorsIDs.PRODUCTS_SECTION,
+    ];
+
+    const enabledFlag = (enabled: boolean) => ({
+      enabled,
+      minimumVersion: '0.0.0',
+    });
+
+    interface ExploreListRouteParams {
+      defaultMarketTypeFilter?: string;
+      showWatchlistOnly?: boolean;
+      source?: string;
+      transactionActiveAbTests?: { key: string; value: string }[];
+    }
+
+    interface ExploreDetailsRouteParams {
+      market?: { symbol?: string };
+      source?: string;
+      source_section?: string;
+      transactionActiveAbTests?: { key: string; value: string }[];
+    }
+
+    const ExploreMarketListProbe = (props: unknown) => {
+      const params = (props as { route?: { params?: ExploreListRouteParams } })
+        .route?.params;
+
+      return (
+        <View>
+          <Text testID={`route-${Routes.PERPS.MARKET_LIST}`}>
+            {params?.defaultMarketTypeFilter ?? ''}
+          </Text>
+          <Text>
+            {params?.showWatchlistOnly ? WATCHLIST_ONLY_LABEL : 'browse-all'}
+          </Text>
+          <Text>{params?.source ?? ''}</Text>
+          <Text>{JSON.stringify(params?.transactionActiveAbTests ?? [])}</Text>
+        </View>
+      );
+    };
+
+    const ExploreMarketDetailsProbe = (props: unknown) => {
+      const params = (
+        props as { route?: { params?: ExploreDetailsRouteParams } }
+      ).route?.params;
+
+      return (
+        <View>
+          <Text testID={`route-${Routes.PERPS.MARKET_DETAILS}`}>
+            {params?.market?.symbol ?? ''}
+          </Text>
+          <Text>{params?.source ?? ''}</Text>
+          <Text>{params?.source_section ?? ''}</Text>
+          <Text>{JSON.stringify(params?.transactionActiveAbTests ?? [])}</Text>
+        </View>
+      );
+    };
+
+    const renderExploreHome = ({
+      variant,
+      markets,
+      watchlistSymbols = [],
+      productsEnabled = false,
+      watchlistEnabled = true,
+      terminalEnabled = false,
+      deferMarkets = false,
+      withRoutes = false,
+      forwardAbTests = false,
+    }: {
+      variant: PerpsHomeExploreVariant;
+      markets: PerpsMarketData[];
+      watchlistSymbols?: string[];
+      productsEnabled?: boolean;
+      watchlistEnabled?: boolean;
+      terminalEnabled?: boolean;
+      deferMarkets?: boolean;
+      withRoutes?: boolean;
+      forwardAbTests?: boolean;
+    }) =>
+      renderPerpsHomeView({
+        initialParams: forwardAbTests
+          ? { transactionActiveAbTests }
+          : undefined,
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              PerpsController: {
+                ...eligibleOverrides.engine.backgroundState.PerpsController,
+                watchlistMarkets: { testnet: [], mainnet: watchlistSymbols },
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  ...createHomeExploreAssignmentForViews(variant).engine
+                    .backgroundState.RemoteFeatureFlagController
+                    .remoteFeatureFlags,
+                  perpsProductsEnabled: enabledFlag(productsEnabled),
+                  perpsWatchlistV2Enabled: enabledFlag(watchlistEnabled),
+                  perpsTerminalBackendEnabled: enabledFlag(terminalEnabled),
+                },
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: deferMarkets ? null : markets,
+        },
+        extraRoutes: withRoutes
+          ? [
+              {
+                name: Routes.PERPS.MARKET_LIST,
+                Component: ExploreMarketListProbe,
+                mount: 'perps-root' as const,
+              },
+              {
+                name: Routes.PERPS.MARKET_DETAILS,
+                Component: ExploreMarketDetailsProbe,
+                mount: 'perps-root' as const,
+              },
+            ]
+          : undefined,
+      });
+
+    const expectTabSelected = (tabId: string, selected: boolean) => {
+      expect(
+        screen.getByTestId(exploreTab(tabId)).props.accessibilityState,
+      ).toMatchObject({ selected });
+    };
+
+    it('keeps the stacked sections when the assignment is control', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Control,
+        markets: stackedMarkets,
+        watchlistSymbols: [btcMarket.symbol],
+        productsEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      stackedSectionIds.forEach((sectionId) => {
+        expect(screen.getByTestId(sectionId)).toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
+      ).toBeNull();
+    });
+
+    it('replaces the stacked sections with Explore in treatment', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: stackedMarkets,
+        watchlistSymbols: [btcMarket.symbol],
+        productsEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.EXPLORE_SECTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      stackedSectionIds.forEach((sectionId) => {
+        expect(screen.queryByTestId(sectionId)).toBeNull();
+      });
+    });
+
+    it('shows a skeleton and does not select Crypto while markets are loading', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: stackedMarkets,
+        watchlistSymbols: [btcMarket.symbol],
+        deferMarkets: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.EXPLORE_SECTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(exploreTab(CRYPTO_TAB_ID))).toBeNull();
+      expect(
+        screen.queryByTestId(exploreTab(EXPLORE_WATCHLIST_TAB_ID)),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-see-more`,
+        ),
+      ).toBeNull();
+    });
+
+    it('selects Watchlist after load when the watchlist has a market', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+        watchlistSymbols: [btcMarket.symbol],
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
+      expectTabSelected(CRYPTO_TAB_ID, false);
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.rowItem(btcMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(appleMarket.symbol),
+        ),
+      ).toBeNull();
+    });
+
+    it('selects Crypto when the watchlist is empty', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(CRYPTO_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expectTabSelected(CRYPTO_TAB_ID, true);
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.rowItem(btcMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(appleMarket.symbol),
+        ),
+      ).toBeNull();
+    });
+
+    it('shows only the volume leaders when Crypto has more markets than the preview cap', async () => {
+      const previewLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit;
+      const markets = Array.from({ length: previewLimit + 1 }, (_, index) =>
+        createEthMarketForViews({
+          symbol: `C${index}`,
+          name: `Crypto ${index}`,
+          volume: `$${previewLimit + 1 - index}B`,
+          price: '$1.00',
+        }),
+      );
+      const hiddenMarket = markets[markets.length - 1];
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets,
+      });
+
+      expect(
+        await screen.findByTestId(
+          getPerpsMarketRowItemSelector.rowItem(markets[0].symbol),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      markets.slice(0, previewLimit).forEach((market) => {
+        expect(
+          screen.getByTestId(
+            getPerpsMarketRowItemSelector.rowItem(market.symbol),
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(hiddenMarket.symbol),
+        ),
+      ).toBeNull();
+    });
+
+    it('hides the Watchlist tab and defaults to Crypto when watchlist is disabled', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket],
+        watchlistSymbols: [btcMarket.symbol],
+        watchlistEnabled: false,
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(CRYPTO_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expect(
+        screen.queryByTestId(exploreTab(EXPLORE_WATCHLIST_TAB_ID)),
+      ).toBeNull();
+      expectTabSelected(CRYPTO_TAB_ID, true);
+    });
+
+    it('hides product-only categories when the products flag is off', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket, preIpoMarket],
+        productsEnabled: false,
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(CRYPTO_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expect(screen.getByTestId(exploreTab(STOCK_TAB_ID))).toBeOnTheScreen();
+      expect(screen.queryByTestId(exploreTab(PRE_IPO_TAB_ID))).toBeNull();
+    });
+
+    it('keeps an explicit tab for the rest of the session', async () => {
+      const first = renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          exploreTab(STOCK_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.rowItem(appleMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+
+      first.unmount();
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(STOCK_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expectTabSelected(STOCK_TAB_ID, true);
+      expectTabSelected(CRYPTO_TAB_ID, false);
+
+      clearExploreSessionTab();
+      cleanup();
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(CRYPTO_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expectTabSelected(CRYPTO_TAB_ID, true);
+    });
+
+    it('opens the market list for the selected category from the header and See more', async () => {
+      const headerVisit = renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket],
+        withRoutes: true,
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-header`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          `route-${Routes.PERPS.MARKET_LIST}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(CRYPTO_TAB_ID)).toBeOnTheScreen();
+      expect(screen.getByText('browse-all')).toBeOnTheScreen();
+      expect(
+        screen.getByText(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('[]')).toBeOnTheScreen();
+
+      headerVisit.unmount();
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket],
+        withRoutes: true,
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-see-more`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          `route-${Routes.PERPS.MARKET_LIST}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(CRYPTO_TAB_ID)).toBeOnTheScreen();
+      expect(
+        screen.getByText(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the watchlist market list from See more', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket],
+        watchlistSymbols: [btcMarket.symbol],
+        withRoutes: true,
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-see-more`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          `route-${Routes.PERPS.MARKET_LIST}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(WATCHLIST_ONLY_LABEL)).toBeOnTheScreen();
+      expect(screen.queryByText(CRYPTO_TAB_ID)).toBeNull();
+      expect(
+        screen.getByText(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME),
+      ).toBeOnTheScreen();
+    });
+
+    it('forwards transactionActiveAbTests and opens market details', async () => {
+      const headerVisit = renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket],
+        withRoutes: true,
+        forwardAbTests: true,
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-header`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByText(
+          JSON.stringify(transactionActiveAbTests),
+          {},
+          {
+            timeout: TIMEOUT_MS,
+          },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(CRYPTO_TAB_ID)).toBeOnTheScreen();
+
+      headerVisit.unmount();
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket],
+        withRoutes: true,
+        forwardAbTests: true,
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          getPerpsMarketRowItemSelector.rowItem(btcMarket.symbol),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          `route-${Routes.PERPS.MARKET_DETAILS}`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(btcMarket.symbol)).toBeOnTheScreen();
+      expect(
+        screen.getByText(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(PERPS_EVENT_VALUE.SOURCE_SECTION.CRYPTO),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(JSON.stringify(transactionActiveAbTests)),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders nothing when there are no tabs after markets load', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [],
+        watchlistEnabled: false,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
+      ).toBeNull();
+    });
+
+    it('shows the empty Watchlist when it is the only tab', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [],
+        watchlistEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
+      expect(screen.getByTestId(exploreListEmpty)).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.no_favorites_found')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsHomeViewSelectorsIDs.EXPLORE_SECTION}-see-more`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('lists New rows by listedAt, not isNewMarket', async () => {
+      const now = Date.now();
+      const recentUnflagged = createEthMarketForViews({
+        symbol: 'NEW1',
+        name: 'Recent',
+        isHip3: true,
+        isNewMarket: false,
+        marketType: MarketCategory.Stock,
+        listedAt: now - 5 * DAY_MS,
+        volume: '$10M',
+        price: '$10.00',
+      });
+      const flaggedButOld = createEthMarketForViews({
+        symbol: 'OLD1',
+        name: 'Old flag',
+        isHip3: true,
+        isNewMarket: true,
+        marketType: MarketCategory.Stock,
+        listedAt: now - 40 * DAY_MS,
+        volume: '$9B',
+        price: '$9.00',
+      });
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, recentUnflagged, flaggedButOld],
+        productsEnabled: true,
+        terminalEnabled: true,
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          exploreTab(NEW_TAB_ID),
+          {},
+          {
+            timeout: TIMEOUT_MS,
+          },
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.rowItem(recentUnflagged.symbol),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(flaggedButOld.symbol),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(btcMarket.symbol),
+        ),
+      ).toBeNull();
+    });
+
+    it('hides Explore in treatment when every market is in a gated category', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [preIpoMarket],
+        productsEnabled: false,
+        watchlistEnabled: false,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_SECTION),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_STOCKS_SECTION),
+      ).toBeNull();
     });
   });
 });

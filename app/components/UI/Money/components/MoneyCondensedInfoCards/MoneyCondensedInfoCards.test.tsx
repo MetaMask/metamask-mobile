@@ -6,7 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import howItWorksImageSource from '../../../../../images/mm_how_it_works.png';
 import musdCoinImageSource from '../../../../../images/mm_usd.png';
 import whatYouGetImageSource from '../../../../../images/mm_what_you_get.png';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
 describe('MoneyCondensedInfoCards', () => {
   it('renders all three cards', () => {
