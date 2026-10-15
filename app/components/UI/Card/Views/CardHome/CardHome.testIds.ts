@@ -23,6 +23,8 @@ export const CardHomeSelectors = {
   SPENDING_LIMIT_PROGRESS_BAR_SKELETON: 'spending-limit-progress-bar-skeleton',
   VIEW_CARD_DETAILS_BUTTON: 'view-card-details-button',
   DIGITAL_WALLET_INSTRUCTIONS_ITEM: 'digital-wallet-instructions-item',
+  VERIFICATION_PENDING_NOTICE: 'verification-pending-notice',
+  VERIFICATION_PENDING_OPEN_WALLET: 'verification-pending-open-wallet',
   CARD_DETAILS_IMAGE: 'card-details-image',
   CARD_DETAILS_IMAGE_SKELETON: 'card-details-image-skeleton',
   CARD_SENSITIVE_DETAILS: 'card-sensitive-details',
