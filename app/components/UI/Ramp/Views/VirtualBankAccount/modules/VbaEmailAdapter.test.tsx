@@ -127,6 +127,9 @@ describe('VbaEmailAdapter', () => {
     renderWithProvider(<VbaEmailAdapter />);
 
     await waitFor(() => {
+      expect(mockKycController.getSessionStatusForVendor).toHaveBeenCalledWith(
+        VBA_KYC_VENDOR,
+      );
       expect(mockKycController.startSession).toHaveBeenCalledWith({
         vendor: VBA_KYC_VENDOR,
       });
