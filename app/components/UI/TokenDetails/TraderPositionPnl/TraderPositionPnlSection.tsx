@@ -26,8 +26,8 @@ interface TraderPositionPnlSectionProps {
 /**
  * Renders the trader position header and its temporary expanded details sheet.
  *
- * The header reads this trader's open positions and keeps the row for this
- * token. A missing position shows the wallet value and hides PnL.
+ * The header reads this wallet's open position in this token. A missing
+ * position shows the wallet value and hides PnL.
  */
 const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,

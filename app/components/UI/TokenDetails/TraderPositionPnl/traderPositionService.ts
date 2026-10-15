@@ -9,10 +9,9 @@ import type {
 /**
  * Two reads:
  * `GET /api/v1/traders/position/{id}` loads one position by id.
- * `GET /api/v2/traders/{addressOrId}/positions/open` loads every open position
- * for a profile id or an owned wallet. Token details keeps the row whose
- * `tokenAddress` matches the token on screen, until
- * `GET /api/v1/accounts/{account}/assets/{asset}/open-position-pnl` exists.
+ * `GET /api/v2/traders/{wallet}/{assetId}/open` loads the open position one
+ * owned wallet holds in one CAIP-19 asset. The wallet must be one the caller
+ * holds; a profile id is not accepted.
  */
 
 /** Non-2xx response from the position endpoint. `status` is 401, 404, or other. */
@@ -126,7 +125,11 @@ export const toTraderPosition = (value: unknown): TraderPosition => {
 
 export interface OpenPositionMatch {
   pnl: OpenPositionPnl;
-  position: TraderPosition;
+  /**
+   * Full position row, when the route returns one. The asset open route does
+   * not: it has no trade history, so sharing and hold time stay empty.
+   */
+  position: TraderPosition | null;
 }
 
 const socialUrl = (path: string): string => {
@@ -137,9 +140,17 @@ const socialUrl = (path: string): string => {
 const positionUrl = (positionId: string): string =>
   socialUrl(`/api/v1/traders/position/${encodeURIComponent(positionId)}`);
 
-/** Open-positions list. `{traderId}` is a profile id or an owned wallet. */
-export const openPositionsListUrl = (traderId: string): string =>
-  socialUrl(`/api/v2/traders/${encodeURIComponent(traderId)}/positions/open`);
+/**
+ * One wallet's open position in one asset.
+ * `{assetId}` is a CAIP-19 id; the `/` in it is percent-encoded.
+ */
+export const openPositionUrl = (
+  walletAddress: string,
+  assetId: string,
+): string =>
+  socialUrl(
+    `/api/v2/traders/${encodeURIComponent(walletAddress)}/${encodeURIComponent(assetId)}/open`,
+  );
 
 /**
  * EVM addresses compare case-insensitively. Other chains, including Solana,
@@ -159,29 +170,6 @@ export const findPositionByTokenAddress = (
   positions.find((position) =>
     tokenAddressesMatch(position.tokenAddress, tokenAddress),
   );
-
-const toOpenPositionFromListItem = (
-  position: TraderPosition,
-): OpenPositionPnl => ({
-  positionAmount: position.positionAmount,
-  isOpen: position.isOpen,
-  boughtUsd: position.boughtUsd,
-  soldUsd: position.soldUsd,
-  realizedPnl: position.realizedPnl,
-  costBasis: position.costBasis,
-  currentValueUSD: position.currentValueUSD,
-  pnlValueUsd: position.pnlValueUsd,
-  pnlPercent: position.pnlPercent,
-  // The list has no pnlStatus. A row in this response is a priced position.
-  pnlStatus: 'ready',
-});
-
-export const toOpenPositionsList = (value: unknown): TraderPosition[] => {
-  if (!isRecord(value) || !Array.isArray(value.positions)) {
-    throw new TraderPositionMalformedError();
-  }
-  return value.positions.map(toTraderPosition);
-};
 
 const fetchSocialJson = async (
   url: string,
@@ -248,18 +236,16 @@ export const getTraderPosition = async (
   toTraderPosition(await fetchSocialJson(positionUrl(positionId), signal));
 
 /**
- * Loads the trader's open positions and returns the one for `tokenAddress`.
- * No matching row is an empty result, not an error.
+ * Loads the open position one owned wallet holds in `assetId`.
+ * 404 is "no position" and is thrown for the caller to treat as empty.
+ * The body is the PnL payload only: there is no position row to share.
  */
 export const getOpenPositionForAsset = async (
-  traderId: string,
-  tokenAddress: string,
+  walletAddress: string,
+  assetId: string,
   signal?: AbortSignal,
-): Promise<OpenPositionMatch | null> => {
-  const url = openPositionsListUrl(traderId);
-  const positions = toOpenPositionsList(await fetchSocialJson(url, signal));
-  const match = findPositionByTokenAddress(positions, tokenAddress);
-  return match
-    ? { pnl: toOpenPositionFromListItem(match), position: match }
-    : null;
+): Promise<OpenPositionMatch> => {
+  const url = openPositionUrl(walletAddress, assetId);
+  const pnl = toOpenPositionPnl(await fetchSocialJson(url, signal));
+  return { pnl, position: null };
 };

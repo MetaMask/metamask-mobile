@@ -41,10 +41,11 @@ const isMissingTrader = (error: unknown): boolean =>
   (error.status === 404 || error.status === 403);
 
 /**
- * One token's row from `GET /api/v2/traders/{id}/positions/open`.
+ * One wallet's open position from `GET /api/v2/traders/{wallet}/{assetId}/open`.
+ * `{assetId}` is the CAIP-19 id of the token on screen.
  * Polled on the same interval as `useTraderPosition` while the screen is focused.
- * A missing profile is retried with the wallet. 404 and 403 after that are
- * "no ready position" (`null`), not an error.
+ * 404 and 403 are "no ready position" (`null`), not an error. A different
+ * wallet is tried once when the first address is not the one the caller holds.
  */
 export const useOpenPositionForAsset = (
   traderId: string | undefined,

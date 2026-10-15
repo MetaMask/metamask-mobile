@@ -3,7 +3,7 @@ import {
   findPositionByTokenAddress,
   getOpenPositionForAsset,
   getTraderPosition,
-  openPositionsListUrl,
+  openPositionUrl,
   toOpenPositionPnl,
   toTraderPosition,
   tokenAddressesMatch,
@@ -299,7 +299,8 @@ const openPositionBody = {
 };
 
 describe('getOpenPositionForAsset', () => {
-  const traderId = 'bbda626e-5ef2-4652-8d07-4589318872e5';
+  const walletAddress = '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9';
+  const assetId = 'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
 
   beforeEach(() => {
     mockCall.mockReset();
@@ -308,61 +309,50 @@ describe('getOpenPositionForAsset', () => {
     global.fetch = mockFetch;
   });
 
-  it('requests the open-positions list for the trader id', async () => {
-    mockFetch.mockResolvedValue(
-      jsonResponse(200, { positions: [positionBody] }),
-    );
+  it('requests the wallet open position for the CAIP-19 asset', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
 
-    await getOpenPositionForAsset(traderId, positionBody.tokenAddress);
+    await getOpenPositionForAsset(walletAddress, assetId);
 
-    expect(openPositionsListUrl(traderId)).toBe(
-      `https://social.test/api/v2/traders/${traderId}/positions/open`,
+    expect(openPositionUrl(walletAddress, assetId)).toBe(
+      `https://social.test/api/v2/traders/${walletAddress}/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open`,
     );
     expect(mockFetch).toHaveBeenCalledWith(
-      `https://social.test/api/v2/traders/${traderId}/positions/open`,
+      `https://social.test/api/v2/traders/${walletAddress}/eip155%3A1%2Ferc20%3A0x6982508145454ce325ddbe47a25d4ec3d2311933/open`,
       expect.objectContaining({
         headers: { Authorization: 'Bearer test-token' },
       }),
     );
   });
 
-  it('keeps the row for the token address and treats it as ready', async () => {
+  it('reads the PnL payload and has no position row to share', async () => {
+    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
+
+    const result = await getOpenPositionForAsset(walletAddress, assetId);
+
+    expect(result.position).toBeNull();
+    expect(result.pnl).toEqual(openPositionBody);
+  });
+
+  it('reads an in-progress payload that omits market prices', async () => {
     mockFetch.mockResolvedValue(
       jsonResponse(200, {
-        positions: [
-          { ...positionBody, tokenAddress: 'Es9vMFrzaCER' },
-          positionBody,
-        ],
+        pnlStatus: 'in-progress',
+        positionAmount: 0,
+        isOpen: false,
+        boughtUsd: 0,
+        soldUsd: 0,
+        realizedPnl: 0,
+        costBasis: 0,
       }),
     );
 
-    const result = await getOpenPositionForAsset(
-      traderId,
-      '0x6982508145454CE325dDbE47a25d4ec3d2311933',
-    );
+    const result = await getOpenPositionForAsset(walletAddress, assetId);
 
-    expect(result?.pnl).toEqual({
-      positionAmount: positionBody.positionAmount,
-      isOpen: true,
-      boughtUsd: positionBody.boughtUsd,
-      soldUsd: positionBody.soldUsd,
-      realizedPnl: positionBody.realizedPnl,
-      costBasis: positionBody.costBasis,
-      currentValueUSD: positionBody.currentValueUSD,
-      pnlValueUsd: positionBody.pnlValueUsd,
-      pnlPercent: positionBody.pnlPercent,
-      pnlStatus: 'ready',
-    });
-  });
-
-  it('returns null when the token is not in the list', async () => {
-    mockFetch.mockResolvedValue(
-      jsonResponse(200, { positions: [positionBody] }),
-    );
-
-    const result = await getOpenPositionForAsset(traderId, '0xnotthis');
-
-    expect(result).toBeNull();
+    expect(result.pnl.pnlStatus).toBe('in-progress');
+    expect(result.pnl.currentValueUSD).toBeNull();
+    expect(result.pnl.pnlValueUsd).toBeNull();
+    expect(result.pnl.pnlPercent).toBeNull();
   });
 
   it('matches an EVM address ignoring case and a Solana address exactly', () => {

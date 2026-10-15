@@ -8,7 +8,6 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import { useOpenPositionForAsset } from './useOpenPositionForAsset';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
 import { useUsdToFiatRate } from './useUsdToFiatRate';
@@ -39,10 +38,6 @@ jest.mock('./useUsdToFiatRate', () => ({
   useUsdToFiatRate: jest.fn(),
 }));
 
-jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
-  useSessionProfileId: jest.fn(),
-}));
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockSelectByScope =
   selectSelectedInternalAccountByScope as unknown as jest.Mock;
@@ -59,10 +54,6 @@ const mockUseOpenPositionForAsset =
 const mockUseUsdToFiatRate = useUsdToFiatRate as jest.MockedFunction<
   typeof useUsdToFiatRate
 >;
-const mockUseSessionProfileId = useSessionProfileId as jest.MockedFunction<
-  typeof useSessionProfileId
->;
-
 const EVM_ADDRESS = '0x1234567890AbcdEF1234567890aBcdef12345678';
 const SOLANA_ADDRESS = 'FhRg7Nt3EJ6xKXaLm2pQvYwZ9cD4bS1uT8nJkV5hXqGe';
 const SOLANA_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -117,10 +108,6 @@ describe('useOpenPositionHeader', () => {
       refetch: jest.fn(),
     });
     mockUseUsdToFiatRate.mockReturnValue({ currency: 'USD', rate: 1 });
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: undefined,
-      isLoading: false,
-    });
   });
 
   it('queries the selected group account on the asset chain', () => {
@@ -134,35 +121,19 @@ describe('useOpenPositionHeader', () => {
     expect(requestedAddress()).toBe(SOLANA_ADDRESS);
     expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
       SOLANA_ADDRESS,
-      'Es9vMFrzaCER',
+      SOLANA_TOKEN,
       SOLANA_ADDRESS,
     );
   });
 
-  it('queries the signed-in profile id instead of the wallet', () => {
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: 'bbda626e-5ef2-4652-8d07-4589318872e5',
-      isLoading: false,
-    });
-
+  it('queries the wallet and the CAIP-19 asset id', () => {
     renderHook(() => useOpenPositionHeader(token));
 
     expect(mockUseOpenPositionForAsset).toHaveBeenCalledWith(
-      'bbda626e-5ef2-4652-8d07-4589318872e5',
-      '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      EVM_ADDRESS,
+      USDC_MAINNET,
       EVM_ADDRESS,
     );
-  });
-
-  it('waits for the session profile id before querying the wallet', () => {
-    mockUseSessionProfileId.mockReturnValue({
-      profileId: undefined,
-      isLoading: true,
-    });
-
-    renderHook(() => useOpenPositionHeader(token));
-
-    expect(requestedAddress()).toBeUndefined();
   });
 
   it('does not query an EVM wallet for a Solana asset', () => {

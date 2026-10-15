@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { useSessionProfileId } from '../../../../util/notifications/hooks/useSessionProfileId';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
@@ -14,7 +13,6 @@ import {
 import {
   assetChainScope,
   resolveOpenPositionWallet,
-  tokenAddressFromAsset,
 } from './openPositionWallet';
 import type { TraderPosition } from './types';
 import { useOpenPositionForAsset } from './useOpenPositionForAsset';
@@ -22,8 +20,8 @@ import { useUsdToFiatRate } from './useUsdToFiatRate';
 
 /**
  * Header model for the meme-page sticky footer.
- * The open-positions list is keyed by the signed-in profile id, then the
- * selected wallet on this token's chain. The matching row is the token address.
+ * PnL comes from the selected wallet on this token's chain and the token's
+ * CAIP-19 id. A profile id is not a valid key for that route.
  */
 export interface OpenPositionHeaderResult extends OpenPositionHeaderModel {
   /** Open-position row to attach when sharing to the feed. */
@@ -35,7 +33,6 @@ export const useOpenPositionHeader = (
 ): OpenPositionHeaderResult => {
   const assetId = useTokenCaipAssetId(token);
   const scope = useMemo(() => assetChainScope(assetId), [assetId]);
-  const tokenAddress = useMemo(() => tokenAddressFromAsset(assetId), [assetId]);
 
   // Both selectors return a memoized account reference, so the checksumming in
   // resolveOpenPositionWallet runs on an account change rather than per action.
@@ -43,20 +40,14 @@ export const useOpenPositionHeader = (
     scope ? selectSelectedInternalAccountByScope(state)(scope) : undefined,
   );
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const { profileId, isLoading: isProfileIdLoading } = useSessionProfileId();
-
   const walletAddress = useMemo(
     () => resolveOpenPositionWallet({ scope, scopedAccount, selectedAccount }),
     [scope, scopedAccount, selectedAccount],
   );
-  // Wait for the session lookup so the first request uses the profile id.
-  const traderId = isProfileIdLoading
-    ? undefined
-    : (profileId ?? walletAddress);
 
   const { position, sharePosition, isLoading } = useOpenPositionForAsset(
-    traderId,
-    tokenAddress,
+    walletAddress,
+    assetId ?? undefined,
     walletAddress,
   );
   const { fiatBalance } = useTokenBalance(token);
