@@ -52,8 +52,8 @@ interface TradingActivityListViewProps<T extends { id: string }> {
  * commissions and rebates screens.
  *
  * The skeleton fills the measured body under the header. Cached rows stay on
- * screen while a page reloads. A failed fetch still shows the error banner:
- * above the rows when any are cached, and in place of the list when none are.
+ * screen while a page reloads. The error banner replaces the list only when
+ * the fetch failed and there are no rows to show.
  * A successful fetch with no rows shows the empty state. The 32px bottom
  * inset sits on the wrapping container so the list never scrolls into it.
  */
@@ -116,22 +116,20 @@ function TradingActivityListView<T extends { id: string }>({
   const hasRows = Boolean(items && items.length > 0);
 
   const renderErrorBanner = useCallback(() => {
-    if (!error) {
+    if (!error || hasRows) {
       return null;
     }
     return (
-      <Box twClassName={hasRows ? 'mb-4' : undefined}>
-        <RewardsErrorBanner
-          title={strings('rewards.trading_activity_error.error_fetching_title')}
-          description={strings(
-            'rewards.trading_activity_error.error_fetching_description',
-          )}
-          onConfirm={retry}
-          confirmButtonLabel={strings(
-            'rewards.trading_activity_error.retry_button',
-          )}
-        />
-      </Box>
+      <RewardsErrorBanner
+        title={strings('rewards.trading_activity_error.error_fetching_title')}
+        description={strings(
+          'rewards.trading_activity_error.error_fetching_description',
+        )}
+        onConfirm={retry}
+        confirmButtonLabel={strings(
+          'rewards.trading_activity_error.retry_button',
+        )}
+      />
     );
   }, [error, hasRows, retry]);
 
@@ -213,7 +211,7 @@ function TradingActivityListView<T extends { id: string }>({
               renderItem={renderListItem}
               onEndReached={onEndReached}
               onEndReachedThreshold={0.4}
-              ListHeaderComponent={hasRows ? renderErrorBanner : null}
+              ListHeaderComponent={null}
               ListFooterComponent={renderFooter}
               ListEmptyComponent={renderEmpty}
               contentContainerStyle={tw.style('gap-4')}

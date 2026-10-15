@@ -115,6 +115,7 @@ const renderTab = (
     funnelError = false,
     funnelLoading = false,
     funnelData = { enrolled: 12, earning_generating: 5 },
+    active = true,
   }: {
     commissions?: CommissionEntryView[];
     rebates?: LedgerEarningEntryDto[];
@@ -123,6 +124,7 @@ const renderTab = (
     funnelError?: boolean;
     funnelLoading?: boolean;
     funnelData?: { enrolled: number; earning_generating: number } | null;
+    active?: boolean;
   } = {},
 ) => {
   (useReferralFunnel as jest.Mock).mockReturnValue({
@@ -142,7 +144,7 @@ const renderTab = (
   });
 
   return renderWithProvider(
-    <PerformanceTab profileId={PROFILE_ID} persona={persona} />,
+    <PerformanceTab profileId={PROFILE_ID} persona={persona} active={active} />,
     {
       state: {
         rewardsMoney: {
@@ -212,6 +214,20 @@ describe('PerformanceTab', () => {
     });
     expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: true,
+    });
+  });
+
+  it('does not fetch while another Money tab is selected', () => {
+    renderTab('referrer', { active: false });
+
+    expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
     });
   });
 
@@ -288,28 +304,21 @@ describe('PerformanceTab', () => {
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
   });
 
-  it('shows a referral error above cached funnel data', () => {
-    const { getByTestId, getByText, queryByText } = renderTab('referrer', {
+  it('keeps cached funnel data without an error banner', () => {
+    const { getByTestId, queryByTestId, queryByText } = renderTab('referrer', {
       funnelError: true,
     });
 
-    expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR),
-    ).toBeOnTheScreen();
-    expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
-    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR)).toBeNull();
+    expect(queryByText('Referral details couldn’t be loaded')).toBeNull();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
-
-    fireEvent.press(getByText('Retry'));
-
-    expect(fetchReferralFunnel).toHaveBeenCalledWith({ forceFresh: true });
-    expect(retryCommissions).not.toHaveBeenCalled();
   });
 
   it('keeps the referral error banner up with a busy retry button while refetching', () => {
-    const { getByTestId, getByRole } = renderTab('referrer', {
+    const { getByTestId, getByRole, queryByTestId } = renderTab('referrer', {
       funnelError: true,
       funnelLoading: true,
+      funnelData: null,
     });
 
     expect(
@@ -318,7 +327,7 @@ describe('PerformanceTab', () => {
     expect(
       getByRole('button', { name: 'Retry', busy: true }),
     ).toBeOnTheScreen();
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
   });
 
   it('hides a commissions error while commissions are disabled', () => {
@@ -334,10 +343,11 @@ describe('PerformanceTab', () => {
     expect(retryCommissions).not.toHaveBeenCalled();
   });
 
-  it('shows the referral error when the funnel failed while commissions are hidden', () => {
+  it('shows the referral error when the funnel failed with nothing cached and commissions are hidden', () => {
     const { getByTestId, getByText, queryByTestId } = renderTab('referrer', {
       commissionsError: 'failed',
       funnelError: true,
+      funnelData: null,
     });
 
     expect(
@@ -347,7 +357,7 @@ describe('PerformanceTab', () => {
       getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_ERROR),
     ).toBeOnTheScreen();
     expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
 
     fireEvent.press(getByText('Retry'));
 
@@ -355,10 +365,24 @@ describe('PerformanceTab', () => {
     expect(retryCommissions).not.toHaveBeenCalled();
   });
 
-  it('retries rebates from the transactions error when only rebates failed', () => {
-    const { getByTestId, getByText, queryByTestId } = renderTab('referee', {
+  it('keeps cached rebates without an error banner', () => {
+    const { getByText, queryByTestId, queryByText } = renderTab('referee', {
       rebatesError: 'failed',
     });
+
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR)).toBeNull();
+    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(getByText('Swaps')).toBeOnTheScreen();
+  });
+
+  it('retries rebates from the transactions error when nothing is cached', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = renderTab(
+      'referee',
+      {
+        rebates: [],
+        rebatesError: 'failed',
+      },
+    );
 
     expect(
       getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR),
@@ -367,7 +391,7 @@ describe('PerformanceTab', () => {
       queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_ERROR),
     ).toBeNull();
     expect(getByText('Error loading your transactions')).toBeOnTheScreen();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(queryByText('Swaps')).toBeNull();
 
     fireEvent.press(getByText('Retry'));
 

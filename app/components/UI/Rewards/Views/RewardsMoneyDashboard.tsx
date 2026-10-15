@@ -355,6 +355,7 @@ const RewardsMoneyDashboard: React.FC = () => {
                 <PerformanceTab
                   profileId={profileId}
                   persona={moneyDashboardPersona(referralMe)}
+                  active={activeTab === 'performance'}
                 />
               </Box>
             </Animated.ScrollView>
