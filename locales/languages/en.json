@@ -11252,7 +11252,7 @@
     },
     "cancel_card_sheet": {
       "title": "Cancel card?",
-      "description": "This can't be undone. The card will stop working, including in Apple Wallet. You can create a new card afterwards.",
+      "description": "The card will stop working, but you can create a new card afterwards.",
       "keep_button": "Keep card",
       "confirm_button": "Cancel card",
       "pending": "Cancelling your card",

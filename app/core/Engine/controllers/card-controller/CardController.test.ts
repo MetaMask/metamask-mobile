@@ -2739,6 +2739,10 @@ describe('CardController — cancelCard', () => {
     const data = controller.state
       .cardHomeData as unknown as typeof mockCardHomeData;
     expect(data.card).toBeNull();
+    expect(data.alerts).toStrictEqual([]);
+    expect(data.actions).toStrictEqual([
+      { type: 'enable_card', reason: 'card_cancelled' },
+    ]);
     expect(fetchSpy).toHaveBeenCalledWith({ force: true });
   });
 

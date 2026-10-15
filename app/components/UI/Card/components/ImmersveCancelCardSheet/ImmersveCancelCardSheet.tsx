@@ -112,10 +112,13 @@ const ImmersveCancelCardSheet = () => {
         'card.password_bottomsheet.description_cancel_card',
       ),
       onSuccess: () => {
+        // The sheet unmounts on close and drops react-query callbacks.
+        // Replace the no-timeout spinner from the mutation promise instead.
         sheetRef.current?.onCloseBottomSheet(() => {
           showToast(strings('card.cancel_card_sheet.pending'), 'pending');
-          cancelCard.mutate(undefined, {
-            onSuccess: (result) => {
+          cancelCard
+            .mutateAsync()
+            .then((result) => {
               showToast(
                 strings(
                   result === 'cancelled'
@@ -124,11 +127,10 @@ const ImmersveCancelCardSheet = () => {
                 ),
                 'success',
               );
-            },
-            onError: () => {
+            })
+            .catch(() => {
               showToast(strings('card.cancel_card_sheet.error'), 'error');
-            },
-          });
+            });
         });
       },
     });

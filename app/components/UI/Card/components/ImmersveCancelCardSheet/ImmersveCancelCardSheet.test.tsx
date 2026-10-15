@@ -14,7 +14,7 @@ const mockShowToast = jest.fn();
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
-const mockMutate = jest.fn();
+const mockMutateAsync = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -90,7 +90,9 @@ describe('ImmersveCancelCardSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddProperties.mockReturnValue({ build: mockBuild });
-    (useCardCancel as jest.Mock).mockReturnValue({ mutate: mockMutate });
+    (useCardCancel as jest.Mock).mockReturnValue({
+      mutateAsync: mockMutateAsync,
+    });
   });
 
   it('keeps the card without authenticating', () => {
@@ -100,7 +102,7 @@ describe('ImmersveCancelCardSheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(withBiometricAuth).not.toHaveBeenCalled();
-    expect(mockMutate).not.toHaveBeenCalled();
+    expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -109,11 +111,7 @@ describe('ImmersveCancelCardSheet', () => {
   ] as const)(
     'confirms through biometrics and toasts when the result is %s',
     async (result, label) => {
-      mockMutate.mockImplementation(
-        (_vars: undefined, options: { onSuccess: (value: string) => void }) => {
-          options.onSuccess(result);
-        },
-      );
+      mockMutateAsync.mockResolvedValue(result);
       const { getByTestId } = renderSheet();
 
       await act(async () => {
@@ -146,11 +144,7 @@ describe('ImmersveCancelCardSheet', () => {
   );
 
   it('toasts an error when cancellation fails', async () => {
-    mockMutate.mockImplementation(
-      (_vars: undefined, options: { onError: () => void }) => {
-        options.onError();
-      },
-    );
+    mockMutateAsync.mockRejectedValue(new Error('cancel failed'));
     const { getByTestId } = renderSheet();
 
     await act(async () => {

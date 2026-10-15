@@ -2186,6 +2186,8 @@ export class CardController extends BaseController<
           (s as unknown as CardControllerState).cardHomeData = {
             ...current,
             card: null,
+            alerts: [],
+            actions: [{ type: 'enable_card', reason: 'card_cancelled' }],
           } as unknown as Record<string, Json>;
         });
       }
