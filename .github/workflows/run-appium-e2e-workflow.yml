@@ -147,6 +147,9 @@ jobs:
       # makes mm-connect invent emulator serials and fail closed on missing adb.
       ANDROID_DEVICE_POOL_SIZE: ${{ inputs.platform == 'android' && inputs.android-device-pool-size || '' }}
       IOS_DEVICE_POOL_SIZE: ${{ inputs.platform == 'ios' && inputs.ios-device-pool-size || '' }}
+      # Inside the workspace so actions/cache does not archive ~/appium-wda as
+      # ../../../../appium-wda (gtar cannot create that path on restore).
+      WDA_DERIVED_DATA_PATH: ${{ github.workspace }}/.cache/appium-wda
 
     steps:
       - name: Checkout (Namespace)
@@ -460,17 +463,17 @@ jobs:
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v6
         with:
-          path: ~/appium-wda
-          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          path: ${{ env.WDA_DERIVED_DATA_PATH }}
+          key: wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
 
       - name: Check if WDA is prebuilt
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: wda-prebuilt
         run: |
-          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
-          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          WDA_APP=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name '*.xctestrun' 2>/dev/null | head -1 || true)
           if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
             echo "WDA prebuilt artifacts found"

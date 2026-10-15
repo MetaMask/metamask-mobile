@@ -503,6 +503,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  ASSETS4098ShowRobinhoodRwa: {
+    name: 'ASSETS4098ShowRobinhoodRwa',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   networkAssetsSnapsMigrationSolana: {
     name: 'networkAssetsSnapsMigrationSolana',
     type: FeatureFlagType.Remote,
@@ -4940,6 +4948,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsSocialEnabled: {
+    name: 'perpsSocialEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsMobileTwap: {
     name: 'perpsMobileTwap',
     type: FeatureFlagType.Remote,
@@ -6562,6 +6581,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeBrandRefreshSurfaces: {
+    name: 'homeBrandRefreshSurfaces',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },

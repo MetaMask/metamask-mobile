@@ -206,14 +206,17 @@ class TabBarComponent {
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarExploreButton, { timeout: 2000 });
+        await Gestures.waitAndTap(this.tabBarExploreButton, {
+          elemDescription: 'Tab Bar - Explore Button',
+          timeout: 5_000,
+        });
         await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
           description: 'Trending view search button should be visible',
-          timeout: 500,
+          timeout: 5_000,
         });
       },
       {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        // Each attempt: tap + Trending readiness assert. Keep a 45s outer budget.
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Explore Button with Validation',
