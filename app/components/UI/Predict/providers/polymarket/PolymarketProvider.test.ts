@@ -1935,6 +1935,109 @@ describe('PolymarketProvider', () => {
     expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
+  it('authorizes v2 fees on pUSD through the positions path', async () => {
+    mockCreatePermit2FeeAuthorization.mockResolvedValue({
+      type: 'safe-permit2',
+      authorization: {
+        permit: {
+          permitted: { token: MATIC_CONTRACTS_V2.collateral, amount: '100000' },
+          nonce: '1',
+          deadline: '2',
+        },
+        spender: '0x2222222222222222222222222222222222222222',
+        signature: '0xsig',
+      },
+    });
+
+    const provider = createProvider({
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x2222222222222222222222222222222222222222'],
+      },
+    });
+
+    await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        outcomeVersion: 'v2',
+        fees: {
+          metamaskFee: 0.05,
+          providerFee: 0.05,
+          totalFee: 0.1,
+          totalFeePercentage: 1,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        },
+      },
+    });
+
+    expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      }),
+    );
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('passes the legacy Safe migration sweep as allowancesTx for deposit-wallet v2 orders', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ data: [] }),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    const sweepTransaction: SignedSafeExecution = {
+      params: {
+        to: legacySafeAddress as `0x${string}`,
+        data: '0xsweep' as `0x${string}`,
+      },
+      type: TransactionType.contractInteraction,
+    };
+    mockBuildLegacySafeMigrationSweepTransaction.mockResolvedValue(
+      sweepTransaction,
+    );
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: { ...basePreview, outcomeVersion: 'v2' },
+    });
+
+    expect(result.success).toBe(true);
+    // The sweep keeps the CTF-anchored tokens even on the positions path.
+    expect(mockBuildLegacySafeMigrationSweepTransaction).toHaveBeenCalledWith({
+      signer,
+      legacySafeAddress,
+      depositWalletAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+    });
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        allowancesTx: sweepTransaction.params,
+      }),
+    );
+  });
+
+  it('fails a v2 order when the positions allowances transaction cannot be built', async () => {
+    mockBuildPositionsTradeAllowancesTx.mockRejectedValueOnce(
+      new Error('allowance build failed'),
+    );
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: { ...basePreview, outcomeVersion: 'v2' },
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Failed to prepare positions trade preflight');
+  });
+
   it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
     const innerSignature = `0x${'11'.repeat(65)}`;
     signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
