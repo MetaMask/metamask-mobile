@@ -1,6 +1,8 @@
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import {
@@ -21,6 +23,7 @@ import {
 } from './constants';
 import {
   buildMarketListQueryParams,
+  buildPolyHmacSignature,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
   clearClobMarketInfoCache,
@@ -157,6 +160,55 @@ const buyPreview: OrderPreview = {
 };
 
 describe('polymarket utils', () => {
+  describe('buildPolyHmacSignature', () => {
+    const originalSubtle = global.crypto.subtle;
+
+    beforeAll(() => {
+      Object.defineProperty(global.crypto, 'subtle', {
+        value: webcrypto.subtle,
+        configurable: true,
+      });
+    });
+
+    afterAll(() => {
+      Object.defineProperty(global.crypto, 'subtle', {
+        value: originalSubtle,
+        configurable: true,
+      });
+    });
+
+    it('creates a base64 HMAC-SHA256 signature of the request', async () => {
+      const result = await buildPolyHmacSignature(
+        'c2VjcmV0',
+        1_700_000_000,
+        'GET',
+        '/orders',
+      );
+
+      expect(result).toBe('5pq6uRxdFFvJzbzIJRObr9401649NDsVtb6H2TgxZRY=');
+    });
+
+    it('signs the body and returns URL-safe base64 with padding', async () => {
+      const result = await buildPolyHmacSignature(
+        'c2VjcmV0',
+        1_700_000_000,
+        'POST',
+        '/order',
+        '{"order":2}',
+      );
+
+      expect(result).toBe('pRzrxeC2oeF_Dk2ipne3W7ErhC-B2Xee-DusSbPAkUE=');
+    });
+
+    it('rejects an empty secret', async () => {
+      await expect(
+        buildPolyHmacSignature('', 1_700_000_000, 'GET', '/orders'),
+      ).rejects.toThrow(
+        'Unsafe key length: Key must not be zero bytes for HMAC-SHA-256.',
+      );
+    });
+  });
+
   describe('getPredictPositionStatus', () => {
     it.each([
       {
