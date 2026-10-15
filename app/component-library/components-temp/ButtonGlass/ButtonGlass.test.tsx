@@ -6,7 +6,36 @@ import ButtonGlass from './ButtonGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
 import { mockTheme } from '../../../util/theme';
 
+let mockIsGlassEnabled = true;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
 describe('ButtonGlass', () => {
+  beforeEach(() => {
+    mockIsGlassEnabled = true;
+  });
+
+  it('renders the regular button where the OS cannot draw glass', () => {
+    mockIsGlassEnabled = false;
+
+    const { getByText, UNSAFE_queryAllByType } = render(
+      <ButtonGlass isGlass onPress={jest.fn()}>
+        Skip
+      </ButtonGlass>,
+    );
+
+    expect(getByText('Skip')).toBeOnTheScreen();
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+  });
+
   it('renders the regular secondary button without glass', () => {
     const { getByText, queryByTestId } = render(
       <ButtonGlass isGlass={false} onPress={jest.fn()}>
