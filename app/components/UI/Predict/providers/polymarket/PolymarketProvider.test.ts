@@ -1935,6 +1935,69 @@ describe('PolymarketProvider', () => {
     expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
+  it('routes sells through the positions path when the matching event market is v2 among v1 siblings', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+      id: 'market-1',
+      markets: [
+        { conditionId: '0xsibling-condition', version: 'v1' },
+        { conditionId: basePreview.outcomeId, version: 'v2' },
+      ],
+    } as never);
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
+  it('routes sells through the CTF path when the matching event market is v1 among v2 siblings', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+      id: 'market-1',
+      markets: [
+        { conditionId: '0xsibling-condition', version: 'v2' },
+        { conditionId: basePreview.outcomeId, version: 'v1' },
+      ],
+    } as never);
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the CTF path when no event market matches the sell outcome', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+      id: 'market-1',
+      markets: [{ conditionId: '0xsibling-condition', version: 'v2' }],
+    } as never);
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
   it('authorizes v2 fees on pUSD through the positions path', async () => {
     mockCreatePermit2FeeAuthorization.mockResolvedValue({
       type: 'safe-permit2',
@@ -2220,6 +2283,45 @@ describe('PolymarketProvider', () => {
       signerAddress: signer.address,
       apiKey: expect.objectContaining({ apiKey: 'api-key' }),
     });
+  });
+
+  it('syncs the position balance for v2 sells even when the wallet setup is unchanged', async () => {
+    // The deposit wallet is already deployed and the positions preflight
+    // plans no repair transactions, so the wallet setup did not change — a
+    // sell still needs the CONDITIONAL-V2 position balance refreshed before
+    // the relayer accepts the order.
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+
+    const result = await createProvider().placeOrder({
+      signer,
+      preview: { ...basePreview, outcomeVersion: 'v2', side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanPositionsDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+    });
+    expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'positions' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+      tokenId: '123',
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+      }),
+    );
   });
 
   it('passes legacy Safe migration sweep as allowancesTx for deposit-wallet orders', async () => {

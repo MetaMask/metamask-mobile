@@ -1021,7 +1021,10 @@ export class PolymarketProvider implements PredictProvider {
       address: signer.address,
     });
 
-    if (isDepositWallet && depositWalletSetupUpdatedState) {
+    if (
+      isDepositWallet &&
+      (depositWalletSetupUpdatedState || preview.side === Side.SELL)
+    ) {
       await this.syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
         preview,
         signerAddress: signer.address,
@@ -3720,7 +3723,10 @@ export class PolymarketProvider implements PredictProvider {
    * the Gamma market version: a sell needs the CONDITIONAL-V2 position
    * balance refreshed before the relayer accepts the order; a buy needs the
    * same collateral sync as the CTF path (pUSD is either protocol's
-   * collateral and the collateral request is protocol-independent).
+   * collateral and the collateral request is protocol-independent). The sell
+   * refresh runs even when the wallet setup did not change — the position
+   * can move on chain without this order touching allowances, and a stale
+   * CLOB view makes the relayer reject the sell.
    */
   private async syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
     preview,
