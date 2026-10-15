@@ -1,10 +1,14 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import type { MoneyFinishSetupTaskId } from '../../constants/moneyFinishSetupTasks';
+import {
+  MONEY_FINISH_SETUP_TASKS,
+  type MoneyFinishSetupTaskId,
+} from '../../constants/moneyFinishSetupTasks';
 import MoneyFinishSetupCard from './MoneyFinishSetupCard';
 
 let mockCompletedCount = 4;
 let mockRemainingTask: MoneyFinishSetupTaskId = 'get_card';
+const mockTasks = MONEY_FINISH_SETUP_TASKS;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -18,6 +22,7 @@ jest.mock('../../hooks/useMoneyFinishSetup', () => ({
     isTaskComplete: (taskId: MoneyFinishSetupTaskId) =>
       taskId !== mockRemainingTask,
     isVisible: true,
+    tasks: mockTasks,
     totalTasks: 5,
   }),
 }));

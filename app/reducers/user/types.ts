@@ -31,6 +31,7 @@ export interface UserState {
   tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
   moneyPasskeyNames: Record<string, string>;
+  moneyEmail: string;
   moneySmsPhoneNumber: string;
   appInstallEventFired: boolean;
 }

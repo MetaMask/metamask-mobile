@@ -9,10 +9,12 @@ const SelectSRP = ({
   containerStyle,
   showArrowName,
   onKeyringSelect: onKeyringSelectProp,
+  scrollEnabled,
 }: {
   containerStyle?: ViewStyle;
   showArrowName?: string;
   onKeyringSelect?: (keyringId: string) => void;
+  scrollEnabled?: boolean;
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -33,6 +35,7 @@ const SelectSRP = ({
       onKeyringSelect={onKeyringSelect}
       containerStyle={containerStyle}
       showArrowName={showArrowName}
+      scrollEnabled={scrollEnabled}
     />
   );
 };

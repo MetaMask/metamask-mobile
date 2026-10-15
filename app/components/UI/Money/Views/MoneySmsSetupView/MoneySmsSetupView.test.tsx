@@ -18,6 +18,7 @@ const mockSetTransactionVerificationEnabled = jest.fn();
 const mockShowToast = jest.fn();
 let mockRouteParams: {
   returnToMoneyHome?: boolean;
+  additionalFactorPrompt?: boolean;
   initialStep?: 'phone' | 'verify';
   verificationAction?: MoneySecurityVerificationAction;
   fallbackToMethodChooser?: boolean;
@@ -74,6 +75,11 @@ describe('MoneySmsSetupView', () => {
   it('collects a phone number and sends a verification code', () => {
     const { getByTestId, getByText } = renderView();
 
+    expect(
+      getByText('We’ll only use this number to send security codes.'),
+    ).toBeOnTheScreen();
+    expect(getByText('Continue')).toBeOnTheScreen();
+
     fireEvent.changeText(
       getByTestId(MoneySmsSetupViewTestIds.PHONE_INPUT),
       '4155550123',
@@ -83,8 +89,10 @@ describe('MoneySmsSetupView', () => {
     expect(
       getByText('Enter the 6-digit code sent to +1 ••• ••• 0123.'),
     ).toBeOnTheScreen();
+    expect(getByText('Enter your verification code')).toBeOnTheScreen();
+    expect(getByText('Paste')).toBeOnTheScreen();
     expect(getByTestId(MoneySmsSetupViewTestIds.CODE_ENTRY)).toHaveStyle({
-      marginTop: 16,
+      marginTop: 8,
     });
   });
 
@@ -96,14 +104,41 @@ describe('MoneySmsSetupView', () => {
       '4155550123',
     );
     fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.CONTINUE_BUTTON));
+
+    expect(getByText('Resend code in 30s')).toBeOnTheScreen();
+    expect(getByTestId(MoneySmsSetupViewTestIds.RESEND_BUTTON)).toBeDisabled();
+
+    act(() => jest.advanceTimersByTime(30000));
+    expect(getByText('Get a new code')).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneySmsSetupViewTestIds.RESEND_BUTTON),
+    ).not.toBeDisabled();
     fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.RESEND_BUTTON));
 
-    expect(getByText('Resend code')).toBeOnTheScreen();
+    expect(getByText('Resend code in 30s')).toBeOnTheScreen();
     expect(getByTestId(MoneySmsSetupViewTestIds.RESEND_BUTTON)).toHaveProp(
       'accessibilityRole',
       'button',
     );
     expect(mockShowToast).toHaveBeenCalledWith('Code resent');
+  });
+
+  it('pastes a valid prototype code', () => {
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    const { getByTestId } = renderView();
+
+    fireEvent.changeText(
+      getByTestId(MoneySmsSetupViewTestIds.PHONE_INPUT),
+      '4155550123',
+    );
+    fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.CONTINUE_BUTTON));
+    fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.PASTE_BUTTON));
+
+    expect(getByTestId(MoneySmsSetupViewTestIds.CODE_INPUT)).toHaveProp(
+      'value',
+      '500000',
+    );
+    randomSpy.mockRestore();
   });
 
   it('automatically completes after any six-digit code', () => {
@@ -121,7 +156,7 @@ describe('MoneySmsSetupView', () => {
     act(() => jest.advanceTimersByTime(250));
 
     expect(mockAddSms).toHaveBeenCalledWith('+14155550123');
-    expect(mockMarkTaskComplete).toHaveBeenCalledWith('recovery_method');
+    expect(mockMarkTaskComplete).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY, {
       successToast: 'SMS verification added',
     });
@@ -170,10 +205,48 @@ describe('MoneySmsSetupView', () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
+    expect(mockMarkTaskComplete).toHaveBeenCalledWith('recovery_method');
     expect(mockGoBack).not.toHaveBeenCalled();
 
     act(() => jest.advanceTimersByTime(300));
     expect(mockShowToast).toHaveBeenCalledWith('SMS verification added');
+  });
+
+  it('offers SMS as an optional additional factor', () => {
+    mockRouteParams = { additionalFactorPrompt: true };
+    const { getByTestId, getByText } = renderView();
+
+    expect(getByText('Add another Money-account factor')).toBeOnTheScreen();
+    expect(getByText('Not now')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.NOT_NOW_BUTTON));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  });
+
+  it('adds optional SMS without completing a recovery task', () => {
+    mockRouteParams = { additionalFactorPrompt: true };
+    const { getByTestId } = renderView();
+
+    fireEvent.changeText(
+      getByTestId(MoneySmsSetupViewTestIds.PHONE_INPUT),
+      '4155550123',
+    );
+    fireEvent.press(getByTestId(MoneySmsSetupViewTestIds.CONTINUE_BUTTON));
+    fireEvent.changeText(
+      getByTestId(MoneySmsSetupViewTestIds.CODE_INPUT),
+      '123456',
+    );
+    act(() => jest.advanceTimersByTime(250));
+
+    expect(mockAddSms).toHaveBeenCalledWith('+14155550123');
+    expect(mockMarkTaskComplete).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('shows transaction SMS verification as a full screen with a top-right close button', () => {

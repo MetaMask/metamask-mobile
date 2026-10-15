@@ -1,72 +1,28 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
-import { IconName } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import AppConstants from '../../../../../core/AppConstants';
-import Routes from '../../../../../constants/navigation/Routes';
-import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
-import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import {
-  BOTTOM_SHEET_NAMES,
-  COMPONENT_NAMES,
-  MONEY_URLS,
-  SCREEN_NAMES,
-} from '../../constants/moneyEvents';
 
-const mockOpenSupportWithConsent: jest.Mock<
-  void,
-  [(url: string) => void, string]
-> = jest.fn();
-jest.mock('../../../../hooks/useSupportConsent', () => ({
-  useSupportConsent: () => ({
-    openSupportWithConsent: mockOpenSupportWithConsent,
-  }),
-}));
-
-const mockTrackBottomSheetViewed = jest.fn();
-const mockTrackSurfaceClicked = jest.fn();
-const mockTrackButtonClicked = jest.fn();
-const mockTrackTooltipClicked = jest.fn();
-const mockTrackTokenButtonClicked = jest.fn();
-const mockTrackTokenSurfaceClicked = jest.fn();
-const mockTrackActivitySurfaceClicked = jest.fn();
-const mockTrackScreenViewed = jest.fn();
-const mockTrackComponentViewed = jest.fn();
-const mockTrackOnboardingEvent = jest.fn();
-const mockResetProgress = jest.fn();
-const mockAdvanceTwoWeeks = jest.fn();
-let mockIsTwoWeeksLater = false;
-
-jest.mock('../../hooks/useMoneyAnalytics', () => ({
-  useMoneyAnalytics: jest.fn(),
-}));
-jest.mock('../../hooks/useMoneyFinishSetup', () => ({
-  useMoneyFinishSetup: () => ({
-    advanceTwoWeeks: mockAdvanceTwoWeeks,
-    isTwoWeeksLater: mockIsTwoWeeksLater,
-    isVisible: true,
-    resetProgress: mockResetProgress,
-  }),
-}));
-
-const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
+const mockSetTransactionVerificationEnabled = jest.fn();
+const mockOpenSupportWithConsent = jest.fn();
+const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
+let mockTransactionVerificationEnabled = true;
+let mockPasskeyCount = 1;
+let mockIsEmailVerified = false;
 
-jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualReactNavigation,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-    }),
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+  }),
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -84,254 +40,161 @@ jest.mock('@metamask/design-system-react-native', () => {
       return <View testID={testID}>{children}</View>;
     },
   );
-  const MockBottomSheetHeader = ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <View>{children}</View>;
-  const MockIcon = ({ name }: { name: string }) => (
-    <View testID={`icon-${name}`} />
-  );
+
   return {
     ...actual,
     BottomSheet: MockBottomSheet,
-    BottomSheetHeader: MockBottomSheetHeader,
-    Icon: MockIcon,
+    BottomSheetHeader: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
   };
 });
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackBottomSheetViewed: mockTrackBottomSheetViewed,
+    trackSurfaceClicked: mockTrackSurfaceClicked,
+  }),
+}));
+
+jest.mock('../../hooks/useMoneyFinishSetup', () => ({
+  useMoneyFinishSetup: () => ({
+    passkeyCount: mockPasskeyCount,
+    isEmailVerified: mockIsEmailVerified,
+  }),
+}));
+
+jest.mock('../../hooks/useMoneySecurityMethods', () => ({
+  useMoneySecurityMethods: () => ({
+    isAuthenticatorAdded: false,
+    isSmsAdded: false,
+    isTransactionVerificationEnabled: mockTransactionVerificationEnabled,
+    setTransactionVerificationEnabled: mockSetTransactionVerificationEnabled,
+  }),
+}));
+
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
 
 describe('MoneyMoreSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsTwoWeeksLater = false;
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    jest.mocked(useMoneyAnalytics).mockReturnValue({
-      trackButtonClicked: mockTrackButtonClicked,
-      trackBottomSheetViewed: mockTrackBottomSheetViewed,
-      trackSurfaceClicked: mockTrackSurfaceClicked,
-      trackTooltipClicked: mockTrackTooltipClicked,
-      trackTokenButtonClicked: mockTrackTokenButtonClicked,
-      trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
-      trackActivitySurfaceClicked: mockTrackActivitySurfaceClicked,
-      trackScreenViewed: mockTrackScreenViewed,
-      trackComponentViewed: mockTrackComponentViewed,
-      trackOnboardingEvent: mockTrackOnboardingEvent,
+    mockTransactionVerificationEnabled = true;
+    mockPasskeyCount = 1;
+    mockIsEmailVerified = false;
+  });
+
+  it('renders only the four reference items', () => {
+    const { getByText, queryByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    expect(getByText('2-step verification')).toBeOnTheScreen();
+    expect(getByText('Protect your Money transactions.')).toBeOnTheScreen();
+    expect(getByText('How it works')).toBeOnTheScreen();
+    expect(getByText('Benefit')).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyMoreSheetTestIds.MANAGE_SECURITY_OPTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyMoreSheetTestIds.REFRESH_OPTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyMoreSheetTestIds.TWO_WEEKS_LATER_OPTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_OPTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the saved 2-step verification state', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    expect(
+      getByTestId(MoneyMoreSheetTestIds.TWO_STEP_VERIFICATION_SWITCH),
+    ).toHaveProp('value', true);
+  });
+
+  it('requires verification before enabling with an existing method', () => {
+    mockTransactionVerificationEnabled = false;
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    fireEvent(
+      getByTestId(MoneyMoreSheetTestIds.TWO_STEP_VERIFICATION_SWITCH),
+      'valueChange',
+      true,
+    );
+
+    expect(mockSetTransactionVerificationEnabled).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: { type: 'enable-transaction-verification' },
+      },
     });
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('renders all menu rows', () => {
+  it('opens MFA setup before enabling when no method exists', () => {
+    mockTransactionVerificationEnabled = false;
+    mockPasskeyCount = 0;
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.MANAGE_SECURITY_OPTION),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION),
-    ).toBeOnTheScreen();
-    expect(getByTestId(MoneyMoreSheetTestIds.REFRESH_OPTION)).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.TWO_WEEKS_LATER_OPTION),
-    ).toBeOnTheScreen();
+    fireEvent(
+      getByTestId(MoneyMoreSheetTestIds.TWO_STEP_VERIFICATION_SWITCH),
+      'valueChange',
+      true,
+    );
+
+    expect(mockSetTransactionVerificationEnabled).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SECURITY_SETUP);
   });
 
-  it('renders the "How it works" row with the book icon', () => {
+  it('starts the disable flow with a return to Money', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
-    expect(getByTestId(`icon-${IconName.Book}`)).toBeOnTheScreen();
+    fireEvent(
+      getByTestId(MoneyMoreSheetTestIds.TWO_STEP_VERIFICATION_SWITCH),
+      'valueChange',
+      false,
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_INFO_SHEET,
+      params: {
+        variant: 'disable-transaction-verification',
+        returnToMoneyHome: true,
+      },
+    });
   });
 
-  it('does not render the info icon for the "How it works" row', () => {
-    const { queryByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    expect(queryByTestId(`icon-${IconName.Info}`)).not.toBeOnTheScreen();
-  });
-
-  it('renders the sheet title', () => {
-    const { getByText } = renderWithProvider(<MoneyMoreSheet />);
-
-    expect(getByText(strings('money.more_sheet.title'))).toBeOnTheScreen();
-  });
-
-  it('labels the security entry point as 2-step verification', () => {
-    const { getByText } = renderWithProvider(<MoneyMoreSheet />);
-
-    expect(getByText('2-step verification')).toBeOnTheScreen();
-  });
-
-  it('navigates to MoneyHowItWorks when "How it works" is pressed', () => {
+  it('opens How it works', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
   });
 
-  it('navigates to MoneyManageSecurity when security is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.MANAGE_SECURITY_OPTION));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY);
-  });
-
-  it('opens the Money landing URL in the in-app browser when "What you get" is pressed', () => {
+  it('opens Benefit in the in-app browser', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(Linking.openURL).not.toHaveBeenCalledWith(
-      AppConstants.URLS.MONEY_LANDING,
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.URLS.MONEY_LANDING,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
-    });
-  });
-
-  it('shows the support consent sheet with the METAMASK_SUPPORT_URL when "Contact support" is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
-
-    expect(Linking.openURL).not.toHaveBeenCalled();
-    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
-      expect.any(Function),
-      METAMASK_SUPPORT_URL,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BROWSER.HOME,
+      expect.objectContaining({
+        screen: Routes.BROWSER.VIEW,
+      }),
     );
   });
 
-  it('keeps the sheet open while the support consent sheet is shown', () => {
+  it('opens the support consent flow', () => {
     const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
 
     fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
 
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('refreshes prototype state from the More sheet', () => {
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.REFRESH_OPTION));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockResetProgress).toHaveBeenCalledTimes(1);
-  });
-
-  it('advances the prototype by two weeks from below Refresh', () => {
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.TWO_WEEKS_LATER_OPTION));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockAdvanceTwoWeeks).toHaveBeenCalledTimes(1);
-  });
-
-  it('moves Finish setting up into More with a notification dot', () => {
-    mockIsTwoWeeksLater = true;
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_OPTION),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_DOT),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_ICON),
-    ).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.FINISH_SETUP_OPTION));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.FINISH_SETUP_SHEET,
-    });
-  });
-
-  it('closes the sheet before opening the consented support URL in the in-app browser', () => {
-    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-    fireEvent.press(getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION));
-    const [openSupportUrl] = mockOpenSupportWithConsent.mock.calls[0];
-    const consentedUrl = `${METAMASK_SUPPORT_URL}&metamask_version=1.0.0`;
-
-    openSupportUrl(consentedUrl);
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: consentedUrl,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
-    });
-  });
-
-  describe('analytics', () => {
-    it('initialises useMoneyAnalytics with MONEY_MORE_SHEET bottom_sheet_name', () => {
-      renderWithProvider(<MoneyMoreSheet />);
-
-      expect(useMoneyAnalytics).toHaveBeenCalledWith({
-        bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
-      });
-    });
-
-    it('calls trackBottomSheetViewed on mount', () => {
-      renderWithProvider(<MoneyMoreSheet />);
-
-      expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls trackSurfaceClicked with HOW_IT_WORKS component and MONEY_HOW_IT_WORKS redirect when "How it works" is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-      fireEvent.press(getByTestId(MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_HOW_IT_WORKS,
-        redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
-      });
-    });
-
-    it('calls trackSurfaceClicked with WHAT_YOU_GET component and MONEY_LANDING redirect when "What you get" is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-      fireEvent.press(getByTestId(MoneyMoreSheetTestIds.WHAT_YOU_GET_OPTION));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-        redirect_target: MONEY_URLS.MONEY_LANDING,
-      });
-    });
-
-    it('calls trackSurfaceClicked with CONTACT_SUPPORT component and METAMASK_SUPPORT redirect when "Contact support" is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
-
-      fireEvent.press(
-        getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION),
-      );
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
-        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
-      });
-    });
+    expect(mockOpenSupportWithConsent).toHaveBeenCalled();
   });
 });

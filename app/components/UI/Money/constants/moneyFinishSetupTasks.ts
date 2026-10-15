@@ -53,6 +53,11 @@ export const MONEY_FINISH_SETUP_TASKS: MoneyFinishSetupTaskDefinition[] = [
   },
 ];
 
+export const getMoneyFinishSetupTasks = (isSocialLogin: boolean) =>
+  isSocialLogin
+    ? MONEY_FINISH_SETUP_TASKS
+    : MONEY_FINISH_SETUP_TASKS.filter((task) => task.id !== 'recovery_method');
+
 export const getMoneyFinishSetupTaskIndex = (
   taskId: MoneyFinishSetupTaskId,
 ): number => MONEY_FINISH_SETUP_TASK_IDS.indexOf(taskId);
@@ -62,12 +67,19 @@ export const isMoneyFinishSetupTaskComplete = (
   taskIndex: number,
 ): boolean => (bitmask & (1 << taskIndex)) !== 0;
 
-export const getMoneyFinishSetupCompletedCount = (bitmask: number): number =>
-  MONEY_FINISH_SETUP_TASK_IDS.reduce(
-    (count, _, index) =>
-      count + (isMoneyFinishSetupTaskComplete(bitmask, index) ? 1 : 0),
-    0,
-  );
+export const getMoneyFinishSetupCompletedCount = (
+  bitmask: number,
+  taskIds: readonly MoneyFinishSetupTaskId[] = MONEY_FINISH_SETUP_TASK_IDS,
+): number =>
+  taskIds.reduce((count, taskId) => {
+    const taskIndex = getMoneyFinishSetupTaskIndex(taskId);
+    return (
+      count +
+      (taskIndex >= 0 && isMoneyFinishSetupTaskComplete(bitmask, taskIndex)
+        ? 1
+        : 0)
+    );
+  }, 0);
 
 export const isMoneyFinishSetupTaskIdComplete = (
   bitmask: number,

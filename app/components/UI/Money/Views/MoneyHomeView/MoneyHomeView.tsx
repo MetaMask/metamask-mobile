@@ -5,9 +5,26 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
@@ -16,11 +33,13 @@ import {
   Box,
   BannerAlert,
   BannerAlertSeverity,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -32,7 +51,6 @@ import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyMusdTokenRow from '../../components/MoneyMusdTokenRow';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
-import MoneyFinishSetupCard from '../../components/MoneyFinishSetupCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -115,11 +133,127 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
-import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../constants/moneySendPrototype';
+import {
+  MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED,
+  resetPrototypeMoneySendFallback,
+} from '../../constants/moneySendPrototype';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
+
+const protectionIconStyles = StyleSheet.create({
+  layer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+const MoneyProtectionIcon = ({ style }: { style: StyleProp<ViewStyle> }) => {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = 0;
+    progress.value = withDelay(
+      600,
+      withRepeat(
+        withSequence(
+          withTiming(1, {
+            duration: 1400,
+            easing: Easing.inOut(Easing.cubic),
+          }),
+          withDelay(
+            2600,
+            withTiming(0, {
+              duration: 1400,
+              easing: Easing.inOut(Easing.cubic),
+            }),
+          ),
+          withDelay(1800, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      ),
+    );
+
+    return () => cancelAnimation(progress);
+  }, [progress]);
+
+  const lockAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 0.22, 0.78, 1], [1, 1, 0, 0]),
+    transform: [
+      { perspective: 600 },
+      {
+        rotateY: `${interpolate(
+          progress.value,
+          [0, 0.68, 1],
+          [0, 100, 100],
+        )}deg`,
+      },
+      {
+        scale: interpolate(
+          progress.value,
+          [0, 0.22, 0.78, 1],
+          [1, 1, 0.65, 0.65],
+        ),
+      },
+    ],
+  }));
+  const checkAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 0.22, 0.78, 1], [0, 0, 1, 1]),
+    transform: [
+      { perspective: 600 },
+      {
+        rotateY: `${interpolate(
+          progress.value,
+          [0, 0.32, 1],
+          [-100, -100, 0],
+        )}deg`,
+      },
+      {
+        scale: interpolate(
+          progress.value,
+          [0, 0.22, 0.78, 1],
+          [0.65, 0.65, 1.14, 1],
+        ),
+      },
+    ],
+  }));
+
+  return (
+    <Animated.View
+      style={style}
+      testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER_ICON}
+    >
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          protectionIconStyles.layer,
+          lockAnimatedStyle,
+        ]}
+      >
+        <Icon
+          name={IconName.Lock}
+          size={IconSize.Md}
+          color={IconColor.InfoDefault}
+        />
+      </Animated.View>
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          protectionIconStyles.layer,
+          checkAnimatedStyle,
+        ]}
+      >
+        <Icon
+          name={IconName.SecurityTick}
+          size={IconSize.Md}
+          color={IconColor.SuccessDefault}
+        />
+      </Animated.View>
+    </Animated.View>
+  );
+};
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -127,22 +261,28 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  useFocusEffect(
+    useCallback(() => {
+      resetPrototypeMoneySendFallback();
+    }, []),
+  );
   const hasTrackedCardActionRowViewRef = useRef(false);
   const { PreferencesController } = Engine.context;
   const privacyMode = useSelector(selectPrivacyMode);
-  const {
-    isTwoWeeksLater,
-    isVisible: isFinishSetupVisible,
-    passkeyCount,
-  } = useMoneyFinishSetup();
+  const { fundPrototypeAccount, isTwoWeeksLater, passkeyCount, resetProgress } =
+    useMoneyFinishSetup();
   const onboardingProgress = useSelector(selectOnboardingStepperProgress);
   const isRecoveredMoneyPrototype =
     onboardingProgress[STEPPER_IDS.MONEY_RECOVERY_PROTOTYPE_COMPLETED] === 1;
   const hasPrototypeBalance = isRecoveredMoneyPrototype || isTwoWeeksLater;
   const {
     defaultVerificationMethod: defaultVerificationMethodType,
+    isAuthenticatorAdded,
     isTransactionVerificationEnabled,
   } = useMoneySecurityMethods(passkeyCount);
+  const protectionHighlightTrigger =
+    onboardingProgress[STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER] ||
+    (passkeyCount > 0 && isAuthenticatorAdded ? 1 : 0);
   const defaultVerificationMethod = strings(
     MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS[defaultVerificationMethodType],
   );
@@ -408,10 +548,7 @@ const MoneyHomeView = () => {
   }, [defaultVerificationMethod, navigation]);
 
   const handleSetUpPasskey = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
-      params: { returnToMoneyHome: true },
-    });
+    navigation.navigate(Routes.MONEY.SECURITY_SETUP);
   }, [navigation]);
 
   const handleAddPress = useCallback(
@@ -438,11 +575,9 @@ const MoneyHomeView = () => {
         }),
       });
 
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-      });
+      fundPrototypeAccount();
     },
-    [navigation, trackButtonClicked],
+    [fundPrototypeAccount, trackButtonClicked],
   );
 
   const handleMusdRowAddPress = useCallback(() => {
@@ -928,9 +1063,11 @@ const MoneyHomeView = () => {
     >
       <MoneyHeader
         onMenuPress={handleMenuPress}
+        onRefreshPress={resetProgress}
         showSecurityIndicator={isTransactionVerificationEnabled}
         onSecurityPress={handleSecurityPress}
-        showSetupNotification={isTwoWeeksLater && isFinishSetupVisible}
+        showSetupNotification={false}
+        protectionHighlightTrigger={protectionHighlightTrigger}
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
@@ -983,27 +1120,30 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
-        {isTwoWeeksLater && (
+        {!(passkeyCount > 0 && isAuthenticatorAdded) && (
           <Box twClassName="px-4 pt-2 pb-2">
             <BannerAlert
               severity={BannerAlertSeverity.Neutral}
               startAccessory={
-                <Icon
-                  name={IconName.SecurityTick}
-                  size={IconSize.Lg}
-                  color={IconColor.IconDefault}
-                />
+                <MoneyProtectionIcon style={styles.protectMoneyIcon} />
               }
               title={strings('money.protect_money_banner.title')}
+              titleProps={{
+                variant: TextVariant.BodyMd,
+                fontWeight: FontWeight.Medium,
+              }}
               description={strings('money.protect_money_banner.description')}
-              descriptionProps={{ color: TextColor.TextAlternative }}
+              descriptionProps={{
+                variant: TextVariant.BodySm,
+                color: TextColor.TextAlternative,
+              }}
               actionButtonLabel={strings('money.protect_money_banner.action')}
               actionButtonOnPress={handleSetUpPasskey}
+              style={styles.protectMoneyBanner}
               testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
             />
           </Box>
         )}
-        {!isTwoWeeksLater && <MoneyFinishSetupCard />}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

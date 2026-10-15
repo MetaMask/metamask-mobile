@@ -18,6 +18,9 @@ import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useSendContext } from '../../context/send-context/send-context';
 import { RecipientInputMethod } from '../../context/send-context/send-metrics-context';
 import { useScanRecipientQrCode } from '../../hooks/send/useScanRecipientQrCode';
+import { isPrototypeMoneySendFallbackActive } from '../../../../UI/Money/constants/moneySendPrototype';
+
+const PROTOTYPE_MONEY_RECIPIENT = '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576';
 
 const ScanRecipientButton = ({ onPress }: { onPress: () => void }) => (
   <Box twClassName="h-[30px] items-center justify-center rounded-lg bg-muted px-1">
@@ -66,7 +69,9 @@ export const RecipientInput = ({
   const handlePaste = useCallback(async () => {
     resetStateOnInput();
     try {
-      const clipboardText = await ClipboardManager.getString();
+      const clipboardText = isPrototypeMoneySendFallbackActive()
+        ? PROTOTYPE_MONEY_RECIPIENT
+        : await ClipboardManager.getString();
       if (clipboardText) {
         const trimmedText = clipboardText.trim();
         updateTo(trimmedText);

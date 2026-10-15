@@ -18,6 +18,7 @@ const SRPList = ({
   onKeyringSelect,
   containerStyle,
   showArrowName = '',
+  scrollEnabled = true,
 }: SRPListProps) => {
   useSyncSRPs();
 
@@ -26,6 +27,33 @@ const SRPList = ({
   const tw = useTailwind();
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: (typeof hdKeyringsWithSnapAccounts)[number];
+    index: number;
+  }) => (
+    <SRPListItem
+      key={item.metadata.id}
+      keyring={item}
+      name={`${strings('accounts.secret_recovery_phrase')} ${index + 1}`}
+      showArrowName={showArrowName}
+      onActionComplete={() => {
+        onKeyringSelect(item.metadata.id);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
+          )
+            .addProperties({
+              button_type: 'srp_select',
+            })
+            .build(),
+        );
+      }}
+    />
+  );
 
   return (
     <Box
@@ -38,33 +66,22 @@ const SRPList = ({
       }
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
-      <FlatList
-        style={tw.style('flex-grow-0')}
-        data={hdKeyringsWithSnapAccounts}
-        contentContainerStyle={tw.style('py-1 gap-y-4')}
-        renderItem={({ item, index }) => (
-          <SRPListItem
-            key={item.metadata.id}
-            keyring={item}
-            name={`${strings('accounts.secret_recovery_phrase')} ${index + 1}`}
-            showArrowName={showArrowName}
-            onActionComplete={() => {
-              onKeyringSelect(item.metadata.id);
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
-                )
-                  .addProperties({
-                    button_type: 'srp_select',
-                  })
-                  .build(),
-              );
-            }}
-          />
-        )}
-        scrollEnabled
-        nestedScrollEnabled
-      />
+      {scrollEnabled ? (
+        <FlatList
+          style={tw.style('flex-grow-0')}
+          data={hdKeyringsWithSnapAccounts}
+          contentContainerStyle={tw.style('py-1 gap-y-4')}
+          renderItem={renderItem}
+          scrollEnabled
+          nestedScrollEnabled
+        />
+      ) : (
+        <Box twClassName="py-1 gap-y-4">
+          {hdKeyringsWithSnapAccounts.map((item, index) =>
+            renderItem({ item, index }),
+          )}
+        </Box>
+      )}
     </Box>
   );
 };

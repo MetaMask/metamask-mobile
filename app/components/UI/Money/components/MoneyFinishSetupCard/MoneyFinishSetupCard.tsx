@@ -22,7 +22,6 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
-import { MONEY_FINISH_SETUP_TASKS } from '../../constants/moneyFinishSetupTasks';
 import MoneyFinishSetupProgressRing from '../MoneyFinishSetupProgressRing';
 import { MoneyFinishSetupCardTestIds } from './MoneyFinishSetupCard.testIds';
 import { MONEY_FINISH_SETUP_PROGRESS_ANIMATION_MS } from '../MoneyFinishSetupProgressRing/moneyFinishSetupProgressAnimation';
@@ -33,7 +32,7 @@ type CompletionPhase = 'progress' | 'success' | 'dismissed';
 
 const MoneyFinishSetupCard = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { completedCount, isTaskComplete, isVisible, totalTasks } =
+  const { completedCount, isTaskComplete, isVisible, tasks, totalTasks } =
     useMoneyFinishSetup();
   const [completionPhase, setCompletionPhase] =
     useState<CompletionPhase>('progress');
@@ -98,9 +97,7 @@ const MoneyFinishSetupCard = () => {
 
   const ctaLabel = useMemo(() => {
     if (isLastStep) {
-      const remainingTask = MONEY_FINISH_SETUP_TASKS.find(
-        (task) => !isTaskComplete(task.id),
-      );
+      const remainingTask = tasks.find((task) => !isTaskComplete(task.id));
 
       if (remainingTask) {
         return strings(remainingTask.titleKey);
@@ -108,7 +105,7 @@ const MoneyFinishSetupCard = () => {
     }
 
     return strings('money.finish_setup.card.cta');
-  }, [isLastStep, isTaskComplete]);
+  }, [isLastStep, isTaskComplete, tasks]);
 
   const handleOpenSheet = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {

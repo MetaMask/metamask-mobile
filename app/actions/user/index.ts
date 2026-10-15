@@ -34,6 +34,7 @@ import {
   type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
   type SetMoneyPasskeyNamesAction,
+  type SetMoneyEmailAction,
   type SetMoneySmsPhoneNumberAction,
   type SetAppInstallEventFiredAction,
   UserActionType,
@@ -331,6 +332,13 @@ export function setMoneySmsPhoneNumber(
   return {
     type: UserActionType.SET_MONEY_SMS_PHONE_NUMBER,
     payload: { phoneNumber },
+  };
+}
+
+export function setMoneyEmail(email: string): SetMoneyEmailAction {
+  return {
+    type: UserActionType.SET_MONEY_EMAIL,
+    payload: { email },
   };
 }
 

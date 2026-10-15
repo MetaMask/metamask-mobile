@@ -8,6 +8,10 @@ import { useToAddressValidation } from '../../hooks/send/useToAddressValidation'
 import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../hooks/send/useSendActions';
 import { useScanRecipientQrCode } from '../../hooks/send/useScanRecipientQrCode';
+import {
+  beginPrototypeMoneySendFallback,
+  resetPrototypeMoneySendFallback,
+} from '../../../../UI/Money/constants/moneySendPrototype';
 import { RecipientInput } from './recipient-input';
 
 jest.mock('../../context/send-context/send-context', () => ({
@@ -67,6 +71,7 @@ describe('RecipientInput', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPrototypeMoneySendFallback();
     jest.clearAllTimers();
     jest.useFakeTimers();
 
@@ -242,6 +247,30 @@ describe('RecipientInput', () => {
     });
 
     jest.advanceTimersByTime(100);
+  });
+
+  it('pastes the fake recipient for a prototype Money send', async () => {
+    beginPrototypeMoneySendFallback();
+    const mockSetPastedRecipient = jest.fn();
+    const { getByText } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={mockSetPastedRecipient}
+      />,
+    );
+
+    fireEvent.press(getByText('Paste'));
+
+    await waitFor(() => {
+      expect(mockUpdateTo).toHaveBeenCalledWith(
+        '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
+      );
+      expect(mockSetPastedRecipient).toHaveBeenCalledWith(
+        '0x97A5b8a38f376B8a0C3C16e0A927b5b02dEf0576',
+      );
+    });
+    expect(mockClipboardManager.getString).not.toHaveBeenCalled();
   });
 
   it('handles paste functionality with whitespace trimming', async () => {

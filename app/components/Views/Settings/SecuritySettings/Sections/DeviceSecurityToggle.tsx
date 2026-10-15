@@ -29,6 +29,9 @@ interface DeviceSecurityToggleProps {
    * Use `false` for preset/onboarding flows where no wallet exists yet.
    */
   requiresReauthentication?: boolean;
+  title?: string;
+  description?: string;
+  compactSpacing?: boolean;
 }
 
 /**
@@ -47,6 +50,9 @@ interface DeviceSecurityToggleProps {
  */
 const DeviceSecurityToggle = ({
   requiresReauthentication = true,
+  title,
+  description,
+  compactSpacing = false,
 }: DeviceSecurityToggleProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(createStyles, {});
@@ -163,7 +169,7 @@ const DeviceSecurityToggle = ({
   const displayValue = optimisticValue !== null ? optimisticValue : actualValue;
 
   return (
-    <Box style={styles.setting}>
+    <Box style={compactSpacing ? undefined : styles.setting}>
       {/** Priority: biometrics toggle → device passcode toggle → device settings link when neither available */}
       {capabilities?.deviceAuthRequiresSettings ? (
         <Button
@@ -176,8 +182,8 @@ const DeviceSecurityToggle = ({
         </Button>
       ) : (
         <SecurityOptionToggle
-          title={capabilities.authLabel}
-          description={capabilities.authDescription}
+          title={title ?? capabilities.authLabel}
+          description={description ?? capabilities.authDescription}
           value={displayValue}
           onOptionUpdated={onDeviceSecurityToggle}
           testId={SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE}

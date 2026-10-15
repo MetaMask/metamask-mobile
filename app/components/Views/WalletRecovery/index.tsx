@@ -213,8 +213,8 @@ const WalletRecovery = () => {
     },
     root: {
       flexDirection: 'column',
-      rowGap: 24,
-      paddingVertical: 8,
+      rowGap: 16,
+      paddingVertical: 0,
     },
     socialBox: {
       padding: 16,
@@ -277,10 +277,10 @@ const WalletRecovery = () => {
     },
     srpContainer: {
       flexDirection: 'column',
-      rowGap: 6,
+      rowGap: 0,
     },
     srpTitle: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 32,
     },
     srpListContainer: {
       paddingVertical: 0,
@@ -308,7 +308,6 @@ const WalletRecovery = () => {
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.safeArea}>
       <HeaderStandard
         title={strings('app_settings.manage_recovery_method')}
-        titleProps={{ color: TextColor.PrimaryDefault }}
         onBack={handleBack}
         includesTopInset
         testID="wallet-recovery-header"
@@ -368,6 +367,7 @@ const WalletRecovery = () => {
             <SelectSRP
               containerStyle={StyleSheet.flatten(styles.srpListContainer)}
               showArrowName={strings('protect_your_wallet.reveal')}
+              scrollEnabled={false}
             />
           </View>
         </View>

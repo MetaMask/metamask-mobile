@@ -166,7 +166,8 @@ describe('SecuritySettings', () => {
     expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
     expect(getByText('Security methods')).toBeOnTheScreen();
     expect(getByText('Passkeys')).toBeOnTheScreen();
-    expect(getByText('Social')).toBeOnTheScreen();
+    expect(getByText('SMS')).toBeOnTheScreen();
+    expect(queryByText('Social')).not.toBeOnTheScreen();
     expect(getByText('Authenticator app')).toBeOnTheScreen();
     expect(queryByText('Transaction verification')).not.toBeOnTheScreen();
     expect(getByText(strings('app_settings.privacy_heading'))).toHaveStyle({

@@ -26,6 +26,9 @@ export const STEPPER_IDS = {
   MONEY_RECOVERY_VERIFICATION_PENDING: 'money-recovery-verification-pending',
   MONEY_RECOVERY_PROTOTYPE_COMPLETED: 'money-recovery-prototype-completed',
   MONEY_RECOVERY_SOCIAL_LOGIN_WALLET: 'money-recovery-social-login-wallet',
+  MONEY_EMAIL_VERIFIED: 'money-email-verified',
+  MONEY_EMAIL_CREATED_AT: 'money-email-created-at',
+  MONEY_PROTECTION_ANIMATION_TRIGGER: 'money-protection-animation-trigger',
   MONEY_TWO_WEEKS_LATER: 'money-two-weeks-later',
 } as const;
 

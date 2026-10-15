@@ -86,12 +86,8 @@ const MoneyAuthenticatorDetailsView = () => {
     styles.footer,
     { paddingBottom: Math.max(insets.bottom, 16) },
   ];
-  const {
-    authenticatorCreatedAt,
-    isAuthenticatorAdded,
-    isSocialAdded,
-    isSocialLogin,
-  } = useMoneySecurityMethods();
+  const { authenticatorCreatedAt, isAuthenticatorAdded, isSocialLogin } =
+    useMoneySecurityMethods();
 
   if (!isAuthenticatorAdded) {
     return null;
@@ -170,7 +166,7 @@ const MoneyAuthenticatorDetailsView = () => {
           {strings('money.passkeys.used_for')}
         </Text>
         <Box>
-          {(isSocialLogin || isSocialAdded) && (
+          {isSocialLogin && (
             <UsageRow
               icon={IconName.Lock}
               label={strings('money.passkeys.wallet_recovery')}

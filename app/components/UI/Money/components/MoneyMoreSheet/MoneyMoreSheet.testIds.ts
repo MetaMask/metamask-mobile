@@ -1,5 +1,7 @@
 export const MoneyMoreSheetTestIds = {
   CONTAINER: 'money-more-sheet-container',
+  TWO_STEP_VERIFICATION_OPTION: 'money-more-sheet-two-step-verification',
+  TWO_STEP_VERIFICATION_SWITCH: 'money-more-sheet-two-step-verification-switch',
   HOW_IT_WORKS_OPTION: 'money-more-sheet-how-it-works',
   MANAGE_SECURITY_OPTION: 'money-more-sheet-manage-security',
   WHAT_YOU_GET_OPTION: 'money-more-sheet-what-you-get',

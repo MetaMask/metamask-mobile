@@ -8,13 +8,26 @@ export enum MoneyPostOnboardingRedirectType {
 }
 
 export type MoneyPasskeysEntryPoint = 'finish_setup' | 'security';
-export type MoneyAuthenticatorEntryPoint = 'finish_setup' | 'security';
+export type MoneyAuthenticatorEntryPoint =
+  | 'finish_setup'
+  | 'additional_factor'
+  | 'protect_money'
+  | 'security';
 export type MoneySecurityVerificationAction =
-  | { type: 'disable-transaction-verification' }
+  | {
+      type: 'disable-transaction-verification';
+      returnToMoneyHome?: boolean;
+      returnToPrevious?: boolean;
+    }
+  | {
+      type: 'enable-transaction-verification';
+      returnToPrevious?: boolean;
+    }
   | { type: 'delete-passkey'; passkeyIndex: number }
+  | { type: 'remove-email' }
   | { type: 'remove-authenticator' }
   | { type: 'remove-sms' }
-  | { type: 'verify-transaction' };
+  | { type: 'verify-transaction'; amountFiat?: string };
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
@@ -69,7 +82,14 @@ export type MoneyModalsNavigationParamList = {
   MoneyGeoBlockSheet: undefined;
   MoneyFinishSetupSheet: undefined;
   MoneyProtectWalletSheet: undefined;
-  MoneyAddPasskeySheet: { returnToMoneyHome?: boolean } | undefined;
+  MoneyAddPasskeySheet:
+    | {
+        continueToAuthenticatorSetup?: boolean;
+        returnToMoneyHome?: boolean;
+        returnToSecurity?: boolean;
+        showAdditionalFactorPrompt?: boolean;
+      }
+    | undefined;
   MoneySecurityVerificationSheet: {
     action: MoneySecurityVerificationAction;
     showMethodChooser?: boolean;
@@ -78,10 +98,13 @@ export type MoneyModalsNavigationParamList = {
     | {
         defaultMethod?: string;
         variant?: 'info' | 'disable-transaction-verification';
+        returnToMoneyHome?: boolean;
+        returnToPrevious?: boolean;
       }
     | undefined;
   MoneyDeletePasskeySheet: { passkeyIndex: number };
   MoneyRemoveAuthenticatorSheet: undefined;
+  MoneyRemoveEmailSheet: undefined;
   MoneyAuthenticatorKeySheet: { entryPoint: MoneyAuthenticatorEntryPoint };
   MoneyRemoveSmsSheet: undefined;
   MoneyAddSocialSheet:
@@ -104,6 +127,14 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: undefined;
+    MoneySecuritySetup: undefined;
+    MoneyEmailVerification: { returnToSecurity?: boolean } | undefined;
+    MoneyEmailCodeVerification: {
+      email: string;
+      verificationAction?: MoneySecurityVerificationAction;
+      returnToSecurity?: boolean;
+    };
+    MoneyEmailDetails: undefined;
     MoneyManageSecurity: { successToast?: string } | undefined;
     MoneyPasskeys: { entryPoint: MoneyPasskeysEntryPoint };
     MoneyPasskeyDetails: { passkeyIndex: number };
@@ -118,6 +149,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneySmsSetup:
       | {
           returnToMoneyHome?: boolean;
+          additionalFactorPrompt?: boolean;
           initialStep?: 'phone' | 'verify';
           verificationAction?: MoneySecurityVerificationAction;
           fallbackToMethodChooser?: boolean;

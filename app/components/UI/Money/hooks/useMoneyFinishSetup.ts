@@ -1,10 +1,12 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  selectMoneyEmail,
   selectMoneyPasskeyNames,
   selectOnboardingStepperProgress,
 } from '../../../../reducers/user/selectors';
 import {
+  setMoneyEmail,
   setMoneyPasskeyNames,
   setMoneySmsPhoneNumber,
   setOnboardingStepperStep,
@@ -13,8 +15,8 @@ import { STEPPER_IDS } from './useOnboardingStep';
 import {
   getMoneyFinishSetupCompletedCount,
   getMoneyFinishSetupTaskIndex,
+  getMoneyFinishSetupTasks,
   isMoneyFinishSetupTaskIdComplete,
-  MONEY_FINISH_SETUP_TOTAL_TASKS,
   type MoneyFinishSetupTaskId,
   withMoneyFinishSetupTaskComplete,
   withoutMoneyFinishSetupTaskComplete,
@@ -26,6 +28,7 @@ import {
   type MoneyPasskeyMethod,
   type MoneyPasskeyRecord,
 } from '../constants/moneyPasskey';
+import { useMoneySecurityMethods } from './useMoneySecurityMethods';
 
 const getPasskeyMethodStepperId = (index: number) =>
   index === 0
@@ -40,7 +43,12 @@ const getPasskeyCreatedAtStepperId = (index: number) =>
 export const useMoneyFinishSetup = () => {
   const dispatch = useDispatch();
   const progress = useSelector(selectOnboardingStepperProgress);
+  const moneyEmail = useSelector(selectMoneyEmail);
   const passkeyNames = useSelector(selectMoneyPasskeyNames);
+  const { isSocialLogin } = useMoneySecurityMethods();
+  const tasks = getMoneyFinishSetupTasks(isSocialLogin);
+  const taskIds = tasks.map((task) => task.id);
+  const totalTasks = tasks.length;
   const completedTasksBitmask = progress[STEPPER_IDS.MONEY_FINISH_SETUP] ?? 0;
   const hasLegacyPasskey = isMoneyFinishSetupTaskIdComplete(
     completedTasksBitmask,
@@ -69,10 +77,16 @@ export const useMoneyFinishSetup = () => {
 
   const completedCount = getMoneyFinishSetupCompletedCount(
     completedTasksBitmask,
+    taskIds,
   );
-  const isVisible = completedCount < MONEY_FINISH_SETUP_TOTAL_TASKS;
+  const isVisible = completedCount < totalTasks;
   const isTwoWeeksLater = progress[STEPPER_IDS.MONEY_TWO_WEEKS_LATER] === 1;
-  const progressRatio = completedCount / MONEY_FINISH_SETUP_TOTAL_TASKS;
+  const isEmailVerified = progress[STEPPER_IDS.MONEY_EMAIL_VERIFIED] === 1;
+  const emailCreatedAtTimestamp = progress[STEPPER_IDS.MONEY_EMAIL_CREATED_AT];
+  const emailCreatedAt = emailCreatedAtTimestamp
+    ? new Date(emailCreatedAtTimestamp)
+    : undefined;
+  const progressRatio = completedCount / totalTasks;
 
   const setBitmask = useCallback(
     (bitmask: number) => {
@@ -254,6 +268,33 @@ export const useMoneyFinishSetup = () => {
     dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_TWO_WEEKS_LATER, 1));
   }, [dispatch]);
 
+  const markEmailVerified = useCallback(
+    (email?: string) => {
+      if (email) {
+        dispatch(setMoneyEmail(email));
+      }
+      dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_EMAIL_VERIFIED, 1));
+      if (!isEmailVerified) {
+        dispatch(
+          setOnboardingStepperStep(
+            STEPPER_IDS.MONEY_EMAIL_CREATED_AT,
+            Date.now(),
+          ),
+        );
+      }
+      dispatch(
+        setOnboardingStepperStep(STEPPER_IDS.MONEY_TRANSACTION_VERIFICATION, 1),
+      );
+    },
+    [dispatch, isEmailVerified],
+  );
+
+  const removeEmail = useCallback(() => {
+    dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_EMAIL_VERIFIED, 0));
+    dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_EMAIL_CREATED_AT, 0));
+    dispatch(setMoneyEmail(''));
+  }, [dispatch]);
+
   const resetProgress = useCallback(() => {
     setBitmask(0);
     for (let index = 0; index < passkeyCount; index++) {
@@ -304,6 +345,15 @@ export const useMoneyFinishSetup = () => {
       ),
     );
     dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_TWO_WEEKS_LATER, 0));
+    dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_EMAIL_VERIFIED, 0));
+    dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY_EMAIL_CREATED_AT, 0));
+    dispatch(
+      setOnboardingStepperStep(
+        STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER,
+        0,
+      ),
+    );
+    dispatch(setMoneyEmail(''));
     dispatch(setMoneyPasskeyNames({}));
     dispatch(setMoneySmsPhoneNumber(''));
   }, [dispatch, passkeyCount, setBitmask]);
@@ -311,20 +361,26 @@ export const useMoneyFinishSetup = () => {
   return {
     completedCount,
     completedTasksBitmask,
+    emailCreatedAt,
     advanceTwoWeeks,
     isVisible,
+    isEmailVerified,
+    moneyEmail,
     isTwoWeeksLater,
     isTaskComplete,
     deletePasskey,
     fundPrototypeAccount,
     markTaskComplete,
+    markEmailVerified,
+    removeEmail,
     passkeyCount,
     passkeys,
     progressRatio,
     renamePasskey,
     registerPasskey,
     resetProgress,
+    tasks,
     toggleTaskComplete,
-    totalTasks: MONEY_FINISH_SETUP_TOTAL_TASKS,
+    totalTasks,
   };
 };

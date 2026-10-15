@@ -6,7 +6,7 @@ import {
   ButtonBaseSize,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +29,12 @@ import { RecipientType } from '../../UI/recipient';
 import { AddressPoisoningAlertContent } from '../address-poisoning-alert-content/address-poisoning-alert-content';
 import { SendAlertModal } from '../send-alert-modal';
 import { styleSheet } from './recipient.styles';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
+import {
+  consumePrototypeMoneySendFallback,
+  isPrototypeMoneySendFallbackActive,
+} from '../../../../../UI/Money/constants/moneySendPrototype';
 
 export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
@@ -38,7 +44,8 @@ export const Recipient = () => {
     typeof RecipientInputMethod.Pasted | typeof RecipientInputMethod.QrScan
   >(RecipientInputMethod.Pasted);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
-  const { to, updateTo, asset, chainId } = useSendContext();
+  const { to, updateTo, asset, chainId, value } = useSendContext();
+  const navigation = useNavigation<AppNavigationProp>();
   const { header: renderRecipientHeader } = useSendNavbar().Recipient;
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
@@ -98,6 +105,20 @@ export const Recipient = () => {
       captureRecipientSelected(
         isPasted ? autoFilledInputMethod : RecipientInputMethod.Manual,
       );
+      if (isPrototypeMoneySendFallbackActive()) {
+        consumePrototypeMoneySendFallback();
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+          params: {
+            action: {
+              type: 'verify-transaction',
+              amountFiat: value,
+            },
+          },
+        });
+        setIsSubmittingTransaction(false);
+        return;
+      }
       await handleSubmitPress(resolvedAddress || to);
       setIsSubmittingTransaction(false);
     },
@@ -111,6 +132,8 @@ export const Recipient = () => {
       isSubmittingTransaction,
       asset,
       chainId,
+      navigation,
+      value,
     ],
   );
 

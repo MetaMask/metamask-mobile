@@ -22,6 +22,21 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingBottom: 12,
       paddingLeft: 16,
     },
+    protectMoneyBanner: {
+      borderRadius: 16,
+      paddingTop: 16,
+      paddingRight: 16,
+      paddingBottom: 16,
+      paddingLeft: 16,
+    },
+    protectMoneyIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: params.theme.colors.info.muted,
+    },
   });
 
 export default styleSheet;

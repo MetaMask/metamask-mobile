@@ -1,8 +1,6 @@
-export const MONEY_AUTHENTICATOR_SETUP_KEY =
-  'JBSW Y3DP EHPK 3PXP KRSX G5DS\nMFRG GZDF';
+export const MONEY_AUTHENTICATOR_SETUP_KEY = 'AABB CCDD EEFF GGGH WEJE 2321';
 
 export const MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT =
   MONEY_AUTHENTICATOR_SETUP_KEY.replace(/\s/g, '');
 
-export const MONEY_AUTHENTICATOR_TOTP_URI =
-  'otpauth://totp/MetaMask%20Money:wallet?secret=JBSWY3DPEHPK3PXPKRSXG5DSMFRGGZDF&issuer=MetaMask%20Money&digits=6&period=30';
+export const MONEY_AUTHENTICATOR_TOTP_URI = `otpauth://totp/MetaMask%20Money:wallet?secret=${MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT}&issuer=MetaMask%20Money&digits=6&period=30`;

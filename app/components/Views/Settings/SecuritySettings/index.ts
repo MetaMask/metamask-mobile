@@ -1,1 +1,1 @@
-export { default } from './SecuritySettings';
+export { default } from './PrototypeSecuritySettings';

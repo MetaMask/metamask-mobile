@@ -108,6 +108,9 @@ const EMPTY_MONEY_PASSKEY_NAMES: Record<string, string> = {};
 export const selectMoneyPasskeyNames = (state: RootState) =>
   state.user?.moneyPasskeyNames ?? EMPTY_MONEY_PASSKEY_NAMES;
 
+export const selectMoneyEmail = (state: RootState) =>
+  state.user?.moneyEmail ?? '';
+
 export const selectMoneySmsPhoneNumber = (state: RootState) =>
   state.user?.moneySmsPhoneNumber ?? '';
 

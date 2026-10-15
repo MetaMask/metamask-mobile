@@ -45,15 +45,15 @@ describe('MoneyProtectWalletSheet', () => {
   it('shows the existing passkey benefits', () => {
     const { getByText } = renderWithProvider(<MoneyProtectWalletSheet />);
 
-    expect(getByText('Protect your wallet')).toBeOnTheScreen();
+    expect(getByText('Protect your account with a passkey')).toBeOnTheScreen();
     expect(
       getByText(
         'Get an extra layer of protection in case you lose your wallet or your login is compromised.',
       ),
     ).toBeOnTheScreen();
     expect(getByText('Log in without your password')).toBeOnTheScreen();
-    expect(getByText('Syncs across devices automatically')).toBeOnTheScreen();
-    expect(getByText('Verify Money account transactions')).toBeOnTheScreen();
+    expect(getByText('Use it across your devices')).toBeOnTheScreen();
+    expect(getByText('Approve every Money transaction')).toBeOnTheScreen();
   });
 
   it('continues into the existing Add passkey sheet', () => {
@@ -67,14 +67,5 @@ describe('MoneyProtectWalletSheet', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
     });
-  });
-
-  it('dismisses when Not now is pressed', () => {
-    const { getByTestId } = renderWithProvider(<MoneyProtectWalletSheet />);
-
-    fireEvent.press(getByTestId(MoneyProtectWalletSheetTestIds.NOT_NOW_BUTTON));
-
-    expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

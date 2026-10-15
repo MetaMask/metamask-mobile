@@ -96,6 +96,17 @@ describe('SRPList', () => {
     expect(getByTestId(SRPListSelectorsIDs.SRP_LIST)).toBeDefined();
   });
 
+  it('renders SRP items without a nested scroll list', () => {
+    const { getByText } = renderWithProvider(
+      <SRPList onKeyringSelect={mockOnKeyringSelect} scrollEnabled={false} />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByText('Secret Recovery Phrase 1')).toBeOnTheScreen();
+  });
+
   it('executes onKeyringSelect when a srp is clicked', () => {
     const { getByTestId } = renderWithProvider(
       <SRPList onKeyringSelect={mockOnKeyringSelect} />,

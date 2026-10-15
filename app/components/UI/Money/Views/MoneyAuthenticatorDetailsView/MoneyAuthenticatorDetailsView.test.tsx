@@ -43,7 +43,7 @@ describe('MoneyAuthenticatorDetailsView', () => {
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
 
-  it('shows compact metadata and usage details', () => {
+  it('shows compact metadata and transaction usage for SRP users', () => {
     const { getByText, queryByText } = renderWithProvider(
       <MoneyAuthenticatorDetailsView />,
     );
@@ -53,8 +53,15 @@ describe('MoneyAuthenticatorDetailsView', () => {
     expect(queryByText('Active')).not.toBeOnTheScreen();
     expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(queryByText('Today')).not.toBeOnTheScreen();
-    expect(getByText('Wallet recovery')).toBeOnTheScreen();
+    expect(queryByText('Wallet recovery')).not.toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
+  });
+
+  it('shows wallet recovery usage for social-login users', () => {
+    mockIsSocialLogin = true;
+    const { getByText } = renderWithProvider(<MoneyAuthenticatorDetailsView />);
+
+    expect(getByText('Wallet recovery')).toBeOnTheScreen();
   });
 
   it('opens the remove authenticator confirmation sheet', () => {

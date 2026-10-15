@@ -34,9 +34,28 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
-import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../constants/moneySendPrototype';
+import {
+  beginPrototypeMoneySendFallback,
+  MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED,
+} from '../../constants/moneySendPrototype';
+import { InitSendLocation } from '../../../../Views/confirmations/constants/send';
+import { TokenStandard } from '../../../../Views/confirmations/types/token';
 
 type TransferAction = 'withdraw' | 'perps' | 'predict';
+
+const PROTOTYPE_MONEY_SEND_ASSET = {
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: '0x1',
+  image: '',
+  isETH: false,
+  logo: '',
+  name: 'MetaMask USD',
+  symbol: 'mUSD',
+  decimals: 6,
+  balance: '500',
+  rawBalance: '0x1DCD6500',
+  standard: TokenStandard.ERC20,
+} as const;
 
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -63,9 +82,13 @@ const MoneyTransferSheet = () => {
   );
 
   const openPrototypeTransactionVerification = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
-      params: { action: { type: 'verify-transaction' } },
+    beginPrototypeMoneySendFallback();
+    navigation.navigate(Routes.SEND.DEFAULT, {
+      screen: Routes.SEND.AMOUNT,
+      params: {
+        asset: PROTOTYPE_MONEY_SEND_ASSET,
+        location: InitSendLocation.MoneyAccount,
+      },
     });
   }, [navigation]);
 

@@ -22,22 +22,44 @@ export const useHdKeyringsWithSnapAccounts = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
   return useMemo(() => {
     const accountsByEntropySource = new Map<string, string[]>();
+    const hdAccountsByEntropySource = new Map<string, string[]>();
+
     internalAccounts.forEach((account: InternalAccount) => {
       const entropySource = account.options?.entropySource as
         | string
         | undefined;
-      if (
-        entropySource &&
-        account.metadata.keyring.type === KeyringTypes.snap
-      ) {
-        if (!accountsByEntropySource.has(entropySource)) {
-          accountsByEntropySource.set(entropySource, []);
-        }
-        accountsByEntropySource.get(entropySource)?.push(account.address);
+
+      if (!entropySource) {
+        return;
+      }
+
+      if (account.metadata.keyring.type === KeyringTypes.snap) {
+        const accounts = accountsByEntropySource.get(entropySource) ?? [];
+        accountsByEntropySource.set(entropySource, [
+          ...accounts,
+          account.address,
+        ]);
+      }
+
+      if (account.metadata.keyring.type === KeyringTypes.hd) {
+        const accounts = hdAccountsByEntropySource.get(entropySource) ?? [];
+        hdAccountsByEntropySource.set(entropySource, [
+          ...accounts,
+          account.address,
+        ]);
       }
     });
 
-    return hdKeyrings.map((keyring) => {
+    const resolvedHdKeyrings =
+      hdKeyrings.length > 0
+        ? hdKeyrings
+        : Array.from(hdAccountsByEntropySource, ([id, accounts]) => ({
+            type: KeyringTypes.hd,
+            accounts,
+            metadata: { id, name: '' },
+          }));
+
+    return resolvedHdKeyrings.map((keyring) => {
       const firstPartySnapAccounts =
         accountsByEntropySource.get(keyring.metadata.id) || [];
 

@@ -86,6 +86,9 @@ export type SettingsStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
   SecuritySettings: undefined;
+  PrivacySettings: undefined;
+  AssetsSettingsView: undefined;
+  BrowserSettings: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;

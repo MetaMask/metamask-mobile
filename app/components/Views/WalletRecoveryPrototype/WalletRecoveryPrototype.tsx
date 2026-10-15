@@ -8,6 +8,10 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  Animated,
+  Easing,
+  Image,
   NativeModules,
   Platform,
   Pressable,
@@ -73,6 +77,7 @@ import {
 import { IconName as ToastIconName } from '../../../component-library/components/Icons/Icon';
 import { WalletRecoveryPrototypeTestIds } from './WalletRecoveryPrototype.testIds';
 import { colors as importedColors } from '../../../styles/common';
+import MoneySecuritySetupImage from '../../../images/money-security-setup.png';
 
 type RecoveryStage =
   | 'welcome'
@@ -83,7 +88,8 @@ type RecoveryStage =
   | 'sms'
   | 'authenticator'
   | 'srp'
-  | 'verifyMoney';
+  | 'verifyMoney'
+  | 'faceId';
 
 type VerificationPurpose = 'wallet' | 'money';
 type PasskeyState = 'ready' | 'signing' | 'done';
@@ -217,6 +223,36 @@ const styles = StyleSheet.create({
   moneySignInSheetContent: {
     paddingBottom: 0,
   },
+  walletPasskeySheetContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  walletPasskeyHero: {
+    height: 56,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  walletPasskeyDescription: {
+    marginTop: 20,
+    marginBottom: 24,
+  },
+  walletPasskeyActionArea: {
+    height: 140,
+    justifyContent: 'center',
+  },
+  walletPasskeyStatus: {
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  walletPasskeyDoneRing: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   passkeyStatus: {
     minHeight: 184,
     alignItems: 'center',
@@ -235,6 +271,47 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  verificationSheetArtwork: {
+    width: 96,
+    height: 96,
+    alignSelf: 'center',
+  },
+  verificationSheetTitle: {
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  verificationDivider: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  faceIdContent: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 48,
+  },
+  faceIdIconContainer: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  faceIdIcon: {
+    transform: [{ scale: 2 }],
+  },
+  faceIdIconAnimated: {
+    zIndex: 1,
+    opacity: 1,
+  },
+  faceIdDescription: {
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  faceIdFooter: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
 });
 
@@ -465,11 +542,13 @@ const WalletRecoveryPrototype = () => {
     [inputStyle],
   );
   const existingSheetRef = useRef<BottomSheetRef>(null);
+  const verificationSheetRef = useRef<BottomSheetRef>(null);
   const passkeySheetRef = useRef<BottomSheetRef>(null);
   const hasRequestedNativeWalletPasskeyRef = useRef(false);
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const [stage, setStage] = useState<RecoveryStage>(initialStage);
   const [showExistingSheet, setShowExistingSheet] = useState(false);
+  const [showVerificationSheet, setShowVerificationSheet] = useState(false);
   const [showPasskeySheet, setShowPasskeySheet] = useState(false);
   const [passkeyState, setPasskeyState] = useState<PasskeyState>('ready');
   const [verificationPurpose, setVerificationPurpose] =
@@ -479,6 +558,7 @@ const WalletRecoveryPrototype = () => {
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [phrase, setPhrase] = useState('');
+  const faceIdPulse = useRef(new Animated.Value(0)).current;
 
   const clearTimers = useCallback(() => {
     for (const timer of timersRef.current) {
@@ -506,10 +586,29 @@ const WalletRecoveryPrototype = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (stage !== 'faceId') {
+      faceIdPulse.setValue(0);
+      return undefined;
+    }
+
+    const animation = Animated.loop(
+      Animated.timing(faceIdPulse, {
+        toValue: 1,
+        duration: 2200,
+        easing: Easing.inOut(Easing.ease),
+        useNativeDriver: true,
+      }),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [faceIdPulse, stage]);
+
   const goTo = useCallback(
     (nextStage: RecoveryStage) => {
       clearTimers();
       setShowExistingSheet(false);
+      setShowVerificationSheet(false);
       setShowPasskeySheet(false);
       setPasskeyState('ready');
       setPassword('');
@@ -523,6 +622,7 @@ const WalletRecoveryPrototype = () => {
     clearTimers();
     setStage(initialStage);
     setShowExistingSheet(false);
+    setShowVerificationSheet(false);
     setShowPasskeySheet(false);
     setPasskeyState('ready');
     setVerificationPurpose(initialStage === 'verifyMoney' ? 'money' : 'wallet');
@@ -551,12 +651,9 @@ const WalletRecoveryPrototype = () => {
 
   const selectGoogleAccount = useCallback(() => {
     hasRequestedNativeWalletPasskeyRef.current = false;
-    goTo('loading');
-    schedule(() => {
-      setVerificationPurpose('wallet');
-      setStage('verifyWallet');
-    }, 500);
-  }, [goTo, schedule]);
+    setVerificationPurpose('wallet');
+    setShowVerificationSheet(true);
+  }, []);
 
   const completeVerification = useCallback(() => {
     clearTimers();
@@ -634,7 +731,7 @@ const WalletRecoveryPrototype = () => {
       );
       dispatch(setMoneySmsPhoneNumber(MONEY_SMS_DEMO_PHONE_NUMBER));
       markMoneyAccountReady();
-      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+      goTo('faceId');
       return;
     }
     markMoneyAccountReady();
@@ -657,11 +754,32 @@ const WalletRecoveryPrototype = () => {
     clearTimers,
     colors.success.default,
     dispatch,
+    goTo,
     navigation,
     onboardingProgress,
     toastRef,
     verificationPurpose,
   ]);
+
+  const enableFaceId = useCallback(() => {
+    const continueToWallet = () =>
+      navigation.replace(Routes.ONBOARDING.HOME_NAV);
+
+    Alert.alert(
+      strings('wallet_recovery_prototype.face_id_permission_title'),
+      strings('wallet_recovery_prototype.face_id_permission_description'),
+      [
+        {
+          text: strings('wallet_recovery_prototype.face_id_dont_allow'),
+          onPress: continueToWallet,
+        },
+        {
+          text: strings('wallet_recovery_prototype.face_id_ok'),
+          onPress: continueToWallet,
+        },
+      ],
+    );
+  }, [navigation]);
 
   const requestNativeWalletPasskey = useCallback(async () => {
     if (SIMULATE_SOCIAL_RECOVERY_PASSKEY) {
@@ -727,6 +845,34 @@ const WalletRecoveryPrototype = () => {
     });
   }, [clearTimers, handlePasskeySheetClosed]);
 
+  const returnToVerificationSheet = useCallback(() => {
+    clearTimers();
+    passkeySheetRef.current?.onCloseBottomSheet(() => {
+      handlePasskeySheetClosed();
+      setShowVerificationSheet(true);
+    });
+  }, [clearTimers, handlePasskeySheetClosed]);
+
+  const closeVerificationSheet = useCallback(() => {
+    verificationSheetRef.current?.onCloseBottomSheet(() =>
+      setShowVerificationSheet(false),
+    );
+  }, []);
+
+  const verifyWalletWithPasskey = useCallback(() => {
+    verificationSheetRef.current?.onCloseBottomSheet(() => {
+      setShowVerificationSheet(false);
+      requestNativeWalletPasskey().catch(() => undefined);
+    });
+  }, [requestNativeWalletPasskey]);
+
+  const verifyWalletWithCode = useCallback(() => {
+    verificationSheetRef.current?.onCloseBottomSheet(() => {
+      setShowVerificationSheet(false);
+      goTo('sms');
+    });
+  }, [goTo]);
+
   const openMethod = useCallback(
     (method: 'passkey' | 'password' | 'sms' | 'authenticator') => {
       clearTimers();
@@ -748,7 +894,12 @@ const WalletRecoveryPrototype = () => {
   );
 
   const backFromMethod = useCallback(() => {
-    goTo(verificationPurpose === 'wallet' ? 'verifyWallet' : 'verifyMoney');
+    if (verificationPurpose === 'wallet') {
+      goTo('googlePicker');
+      setShowVerificationSheet(true);
+      return;
+    }
+    goTo('verifyMoney');
   }, [goTo, verificationPurpose]);
 
   const importPhrase = useCallback(() => {
@@ -1084,6 +1235,70 @@ const WalletRecoveryPrototype = () => {
     </Box>
   );
 
+  const renderFaceId = () => (
+    <Box style={styles.screen} twClassName="bg-default">
+      <PrototypeHeader onBack={() => goTo('googlePicker')} />
+      <Box style={styles.faceIdContent}>
+        <Box style={styles.faceIdIconContainer}>
+          <Animated.View
+            style={[
+              styles.faceIdIconAnimated,
+              {
+                transform: [
+                  {
+                    translateY: faceIdPulse.interpolate({
+                      inputRange: [0, 0.5, 1],
+                      outputRange: [1, -4, 1],
+                    }),
+                  },
+                  {
+                    rotate: faceIdPulse.interpolate({
+                      inputRange: [0, 0.25, 0.5, 0.75, 1],
+                      outputRange: ['-2deg', '2deg', '-2deg', '2deg', '-2deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Icon
+              name={IconName.FaceId}
+              size={IconSize.Xl}
+              color={IconColor.IconDefault}
+              style={styles.faceIdIcon}
+            />
+          </Animated.View>
+        </Box>
+        <Text
+          variant={TextVariant.HeadingLg}
+          fontWeight={FontWeight.Bold}
+          twClassName="mt-6 text-center"
+        >
+          {strings('wallet_recovery_prototype.face_id_title')}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
+          color={TextColor.TextAlternative}
+          style={styles.faceIdDescription}
+        >
+          {strings('wallet_recovery_prototype.face_id_description')}
+        </Text>
+      </Box>
+      <Box style={styles.faceIdFooter}>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={enableFaceId}
+          testID={WalletRecoveryPrototypeTestIds.ENABLE_FACE_ID}
+        >
+          {strings('wallet_recovery_prototype.enable_face_id')}
+        </Button>
+      </Box>
+    </Box>
+  );
+
   const renderStage = () => {
     switch (stage) {
       case 'googlePicker':
@@ -1094,6 +1309,8 @@ const WalletRecoveryPrototype = () => {
         return renderVerify();
       case 'verifyMoney':
         return <Box style={styles.screen} />;
+      case 'faceId':
+        return renderFaceId();
       case 'password':
         return renderPassword();
       case 'sms':
@@ -1181,6 +1398,76 @@ const WalletRecoveryPrototype = () => {
         </BottomSheet>
       )}
 
+      {showVerificationSheet && (
+        <BottomSheet
+          ref={verificationSheetRef}
+          goBack={() => setShowVerificationSheet(false)}
+          keyboardAvoidingViewEnabled={false}
+          testID={WalletRecoveryPrototypeTestIds.VERIFICATION_SHEET}
+        >
+          <BottomSheetHeader onClose={closeVerificationSheet}>
+            {null}
+          </BottomSheetHeader>
+          <Box style={styles.sheetContent}>
+            <Image
+              source={MoneySecuritySetupImage}
+              style={styles.verificationSheetArtwork}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+            />
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              style={styles.verificationSheetTitle}
+            >
+              {strings('wallet_recovery_prototype.verify_title')}
+            </Text>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              startIconName={IconName.FaceId}
+              onPress={verifyWalletWithPasskey}
+              testID={WalletRecoveryPrototypeTestIds.USE_PASSKEY}
+              twClassName="bg-icon-default"
+            >
+              {strings('wallet_recovery_prototype.verify_with_passkey')}
+            </Button>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={3}
+              twClassName="my-3"
+            >
+              <Box
+                style={styles.verificationDivider}
+                twClassName="bg-border-muted"
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('wallet_recovery_prototype.or')}
+              </Text>
+              <Box
+                style={styles.verificationDivider}
+                twClassName="bg-border-muted"
+              />
+            </Box>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={verifyWalletWithCode}
+              testID={WalletRecoveryPrototypeTestIds.GET_VERIFICATION_CODE}
+              twClassName="bg-muted"
+            >
+              {strings('wallet_recovery_prototype.get_verification_code')}
+            </Button>
+          </Box>
+        </BottomSheet>
+      )}
+
       {showPasskeySheet && (
         <BottomSheet
           ref={passkeySheetRef}
@@ -1191,80 +1478,142 @@ const WalletRecoveryPrototype = () => {
           <BottomSheetHeader
             onClose={passkeyState === 'ready' ? closePasskeySheet : undefined}
           >
-            {strings(
-              verificationPurpose === 'money'
-                ? 'wallet_recovery_prototype.recover_money_title'
-                : 'wallet_recovery_prototype.passkey_sign_in_title',
-            )}
+            {verificationPurpose === 'money'
+              ? strings('wallet_recovery_prototype.recover_money_title')
+              : null}
           </BottomSheetHeader>
           <Box
             style={[
-              styles.sheetContent,
-              verificationPurpose === 'money' && styles.moneySignInSheetContent,
+              verificationPurpose === 'wallet'
+                ? styles.walletPasskeySheetContent
+                : styles.sheetContent,
+              verificationPurpose === 'money'
+                ? styles.moneySignInSheetContent
+                : undefined,
             ]}
           >
-            <Box
-              style={[
-                styles.passkeyStatus,
-                passkeyState === 'ready' && styles.readyPasskeyStatus,
-              ]}
-            >
-              {passkeyState === 'signing' ? (
-                <ActivityIndicator
-                  size="large"
-                  color={colors.primary.default}
-                />
-              ) : passkeyState === 'done' ? (
-                <Box
-                  style={styles.verifiedBadge}
-                  twClassName="bg-success-muted"
-                >
+            {verificationPurpose === 'wallet' ? (
+              <>
+                <Box style={styles.walletPasskeyHero}>
                   <Icon
-                    name={IconName.Check}
+                    name={IconName.FaceId}
                     size={IconSize.Xl}
-                    color={IconColor.SuccessDefault}
+                    color={IconColor.PrimaryDefault}
                   />
                 </Box>
-              ) : null}
-              {passkeyState !== 'ready' && (
                 <Text
                   variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Bold}
-                  twClassName="mt-5 text-center"
                 >
-                  {strings(PASSKEY_COPY_KEYS[passkeyState].title)}
+                  {strings('wallet_recovery_prototype.passkey_sign_in_title')}
                 </Text>
-              )}
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                style={styles.recoveryDescription}
-                twClassName={
-                  passkeyState === 'ready' ? 'text-left' : 'mt-2 text-left'
-                }
-              >
-                {verificationPurpose === 'wallet' && passkeyState === 'ready'
-                  ? strings(
-                      'wallet_recovery_prototype.passkey_sign_in_description',
-                      { email: GOOGLE_EMAIL },
-                    )
-                  : strings(
-                      verificationPurpose === 'money' &&
-                        passkeyState === 'ready'
-                        ? 'wallet_recovery_prototype.recover_money_description'
-                        : PASSKEY_COPY_KEYS[passkeyState].description,
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  style={styles.walletPasskeyDescription}
+                >
+                  {strings(
+                    'wallet_recovery_prototype.passkey_sign_in_description',
+                    { email: GOOGLE_EMAIL },
+                  )}
+                </Text>
+                {passkeyState !== 'ready' && (
+                  <Box style={styles.walletPasskeyStatus}>
+                    {passkeyState === 'signing' ? (
+                      <ActivityIndicator
+                        size="large"
+                        color={colors.primary.default}
+                      />
+                    ) : (
+                      <Box
+                        style={[
+                          styles.walletPasskeyDoneRing,
+                          { borderColor: colors.primary.default },
+                        ]}
+                      >
+                        <Icon
+                          name={IconName.CheckBold}
+                          size={IconSize.Xl}
+                          color={IconColor.PrimaryDefault}
+                        />
+                      </Box>
                     )}
-                {verificationPurpose === 'money' &&
-                  passkeyState === 'ready' && (
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Regular}
+                      twClassName="mt-2"
+                    >
+                      {passkeyState === 'done'
+                        ? strings('money.add_passkey_sheet.done')
+                        : strings(PASSKEY_COPY_KEYS[passkeyState].title)}
+                    </Text>
+                  </Box>
+                )}
+              </>
+            ) : (
+              <Box
+                style={[
+                  styles.passkeyStatus,
+                  passkeyState === 'ready' && styles.readyPasskeyStatus,
+                ]}
+              >
+                {passkeyState === 'signing' ? (
+                  <ActivityIndicator
+                    size="large"
+                    color={colors.primary.default}
+                  />
+                ) : passkeyState === 'done' ? (
+                  <Box
+                    style={styles.verifiedBadge}
+                    twClassName="bg-success-muted"
+                  >
+                    <Icon
+                      name={IconName.Check}
+                      size={IconSize.Xl}
+                      color={IconColor.SuccessDefault}
+                    />
+                  </Box>
+                ) : null}
+                {passkeyState !== 'ready' && (
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Bold}
+                    twClassName="mt-5 text-center"
+                  >
+                    {strings(PASSKEY_COPY_KEYS[passkeyState].title)}
+                  </Text>
+                )}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  style={styles.recoveryDescription}
+                  twClassName={
+                    passkeyState === 'ready' ? 'text-left' : 'mt-2 text-left'
+                  }
+                >
+                  {strings(
+                    passkeyState === 'ready'
+                      ? 'wallet_recovery_prototype.recover_money_description'
+                      : PASSKEY_COPY_KEYS[passkeyState].description,
+                  )}
+                  {passkeyState === 'ready' && (
                     <Text color={TextColor.PrimaryDefault}>
                       {' '}
                       {strings('wallet_recovery_prototype.learn_more')}
                     </Text>
                   )}
-              </Text>
-            </Box>
+                </Text>
+              </Box>
+            )}
             {passkeyState === 'ready' && (
-              <Box twClassName="gap-3">
+              <Box
+                style={
+                  verificationPurpose === 'wallet'
+                    ? styles.walletPasskeyActionArea
+                    : undefined
+                }
+                twClassName="gap-3"
+              >
                 <Button
                   variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
@@ -1283,7 +1632,7 @@ const WalletRecoveryPrototype = () => {
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     isFullWidth
-                    onPress={closePasskeySheet}
+                    onPress={returnToVerificationSheet}
                   >
                     {strings('wallet_recovery_prototype.other_options')}
                   </Button>

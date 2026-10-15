@@ -716,6 +716,9 @@ export type RootStackParamList = {
   GeneralSettings: undefined;
   AssetsSettings: undefined;
   SecuritySettings: undefined;
+  PrivacySettings: undefined;
+  AssetsSettingsView: undefined;
+  BrowserSettings: undefined;
   HomeNav: undefined;
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
   Onboarding: undefined;
@@ -879,6 +882,9 @@ export type RootStackParamList = {
   MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
+  MoneySecuritySetup: MoneyNavigationParamList['MoneySecuritySetup'];
+  MoneyEmailVerification: MoneyNavigationParamList['MoneyEmailVerification'];
+  MoneyEmailCodeVerification: MoneyNavigationParamList['MoneyEmailCodeVerification'];
   MoneyManageSecurity: MoneyNavigationParamList['MoneyManageSecurity'];
   MoneyProtectWalletSheet: MoneyNavigationParamList['MoneyProtectWalletSheet'];
   MoneyPasskeys: MoneyNavigationParamList['MoneyPasskeys'];

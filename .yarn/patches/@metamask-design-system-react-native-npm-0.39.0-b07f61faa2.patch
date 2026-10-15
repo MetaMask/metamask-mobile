@@ -1,0 +1,60 @@
+diff --git a/dist/components/ButtonBase/ButtonBase.constants.cjs b/dist/components/ButtonBase/ButtonBase.constants.cjs
+index a004a248070cbad80b5170f779e1ebd01d0d2248..f5141f0f4b9a59ddff264e461cc232a6d12bd209 100644
+--- a/dist/components/ButtonBase/ButtonBase.constants.cjs
++++ b/dist/components/ButtonBase/ButtonBase.constants.cjs
+@@ -8,9 +8,9 @@ exports.TWCLASSMAP_BUTTONBASE_SIZE_DIMENSION = {
+     [design_system_shared_1.ButtonBaseSize.Lg]: 'h-12', // size (48px).
+ };
+ exports.TWCLASSMAP_BUTTONBASE_BORDER_RADIUS = {
+-    [design_system_shared_1.ButtonBaseSize.Sm]: 'rounded-lg',
+-    [design_system_shared_1.ButtonBaseSize.Md]: 'rounded-xl',
+-    [design_system_shared_1.ButtonBaseSize.Lg]: 'rounded-xl', // 12px.
++    [design_system_shared_1.ButtonBaseSize.Sm]: 'rounded-full',
++    [design_system_shared_1.ButtonBaseSize.Md]: 'rounded-full',
++    [design_system_shared_1.ButtonBaseSize.Lg]: 'rounded-full',
+ };
+ exports.MAP_BUTTONBASE_SIZE_ICONSIZE = {
+     [design_system_shared_1.ButtonBaseSize.Sm]: design_system_shared_1.IconSize.Sm,
+diff --git a/dist/components/ButtonBase/ButtonBase.constants.mjs b/dist/components/ButtonBase/ButtonBase.constants.mjs
+index d647192bbaacf848fe83d3f94f56fe322014ba97..1142788b660be4a53a1eb32c9a773d27ff9bd825 100644
+--- a/dist/components/ButtonBase/ButtonBase.constants.mjs
++++ b/dist/components/ButtonBase/ButtonBase.constants.mjs
+@@ -5,9 +5,9 @@ export const TWCLASSMAP_BUTTONBASE_SIZE_DIMENSION = {
+     [ButtonBaseSize.Lg]: 'h-12', // size (48px).
+ };
+ export const TWCLASSMAP_BUTTONBASE_BORDER_RADIUS = {
+-    [ButtonBaseSize.Sm]: 'rounded-lg',
+-    [ButtonBaseSize.Md]: 'rounded-xl',
+-    [ButtonBaseSize.Lg]: 'rounded-xl', // 12px.
++    [ButtonBaseSize.Sm]: 'rounded-full',
++    [ButtonBaseSize.Md]: 'rounded-full',
++    [ButtonBaseSize.Lg]: 'rounded-full',
+ };
+ export const MAP_BUTTONBASE_SIZE_ICONSIZE = {
+     [ButtonBaseSize.Sm]: IconSize.Sm,
+diff --git a/dist/components/ButtonIcon/ButtonIcon.cjs b/dist/components/ButtonIcon/ButtonIcon.cjs
+index 3573fb7f4792700ee0e7f515115b73479151b219..0b81337fe42900e7c89e3629bb1304ac6ab3218b 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.cjs
++++ b/dist/components/ButtonIcon/ButtonIcon.cjs
+@@ -46,7 +46,7 @@ const ButtonIcon = ({ size = design_system_shared_1.ButtonIconSize.Md, iconName,
+     const twIconColorClassNames = variant === design_system_shared_1.ButtonIconVariant.Floating
+         ? 'text-primary-inverse'
+         : 'text-icon-default';
+-    const borderRadiusClass = variant === design_system_shared_1.ButtonIconVariant.Default ? 'rounded-lg' : 'rounded-full';
++    const borderRadiusClass = variant === design_system_shared_1.ButtonIconVariant.Default ? 'rounded-full' : 'rounded-full';
+     const onPressInHandler = (event) => {
+         setIsPressed(true);
+         onPressIn?.(event);
+diff --git a/dist/components/ButtonIcon/ButtonIcon.mjs b/dist/components/ButtonIcon/ButtonIcon.mjs
+index 5bab12a49d51c41f70935ed101fdfd131b426394..7791b1ebd4407358775a929e2825a40412c9795b 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.mjs
++++ b/dist/components/ButtonIcon/ButtonIcon.mjs
+@@ -27,7 +27,7 @@ export const ButtonIcon = ({ size = ButtonIconSize.Md, iconName, iconProps, isDi
+     const twIconColorClassNames = variant === ButtonIconVariant.Floating
+         ? 'text-primary-inverse'
+         : 'text-icon-default';
+-    const borderRadiusClass = variant === ButtonIconVariant.Default ? 'rounded-lg' : 'rounded-full';
++    const borderRadiusClass = variant === ButtonIconVariant.Default ? 'rounded-full' : 'rounded-full';
+     const onPressInHandler = (event) => {
+         setIsPressed(true);
+         onPressIn?.(event);

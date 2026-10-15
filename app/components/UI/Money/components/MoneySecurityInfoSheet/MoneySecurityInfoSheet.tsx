@@ -64,11 +64,23 @@ const MoneySecurityInfoSheet = () => {
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
         params: {
-          action: { type: 'disable-transaction-verification' },
+          action: {
+            type: 'disable-transaction-verification',
+            ...(route.params?.returnToMoneyHome
+              ? { returnToMoneyHome: true }
+              : {}),
+            ...(route.params?.returnToPrevious
+              ? { returnToPrevious: true }
+              : {}),
+          },
         },
       });
     });
-  }, [navigation]);
+  }, [
+    navigation,
+    route.params?.returnToMoneyHome,
+    route.params?.returnToPrevious,
+  ]);
 
   if (isDisableConfirmation) {
     return (

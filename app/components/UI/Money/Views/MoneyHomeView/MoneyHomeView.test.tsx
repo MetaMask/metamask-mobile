@@ -13,7 +13,6 @@ import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
-import { MoneyFinishSetupCardTestIds } from '../../components/MoneyFinishSetupCard/MoneyFinishSetupCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
 import { MoneyMetaMaskCardTestIds } from '../../components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
@@ -99,6 +98,7 @@ jest.mock('../../constants/moneySendPrototype', () => ({
   get MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED() {
     return mockMoneySendPrototypeEnabled;
   },
+  resetPrototypeMoneySendFallback: jest.fn(),
 }));
 
 const mockDepositTokens = [
@@ -627,8 +627,23 @@ describe('MoneyHomeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the two-weeks-later balance and protection prompt', () => {
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+  it('shows the Money account protection prompt before required methods are added', () => {
+    const { getByTestId, getByText } = renderWithProvider(<MoneyHomeView />);
+
+    expect(
+      getByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER_ICON),
+    ).toBeOnTheScreen();
+    expect(getByText('Protect your Money account')).toBeOnTheScreen();
+    expect(
+      getByText('Add 2-step verification for your Money account transactions.'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the two-weeks-later balance', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyHomeView />,
       {
         state: {
@@ -637,6 +652,7 @@ describe('MoneyHomeView', () => {
             onboardingStepperProgress: {
               [STEPPER_IDS.MONEY_FINISH_SETUP]: 0,
               [STEPPER_IDS.MONEY_PASSKEY_COUNT]: 0,
+              [STEPPER_IDS.MONEY_EMAIL_VERIFIED]: 0,
               [STEPPER_IDS.MONEY_TWO_WEEKS_LATER]: 1,
             },
           },
@@ -648,24 +664,26 @@ describe('MoneyHomeView', () => {
       '$500.00',
     );
     expect(
-      getByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
-    ).toBeOnTheScreen();
-    expect(
-      getByText('Add 2-step verification for your Money account transactions.'),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(MoneyFinishSetupCardTestIds.CONTAINER),
+      queryByTestId(MoneyHeaderTestIds.MENU_NOTIFICATION_DOT),
     ).not.toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyHeaderTestIds.MENU_NOTIFICATION_DOT),
-    ).toBeOnTheScreen();
+  });
 
-    fireEvent.press(getByText('Set up now'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
-      params: { returnToMoneyHome: true },
+  it('hides the Money account protection prompt after passkey and authenticator setup', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
+      state: {
+        user: {
+          ...userInitialState,
+          onboardingStepperProgress: {
+            [STEPPER_IDS.MONEY_PASSKEY_COUNT]: 1,
+            [STEPPER_IDS.MONEY_SECURITY_AUTHENTICATOR]: 1,
+          },
+        },
+      },
     });
+
+    expect(
+      queryByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the onboarding card', () => {
@@ -1175,14 +1193,15 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ACTIVITY);
   });
 
-  it('opens the Add money sheet from the action row Add button', () => {
+  it('funds the prototype account with $500 from the action row Add button', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
+    expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
+      '$500.00',
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens the More sheet when menu button is pressed', () => {

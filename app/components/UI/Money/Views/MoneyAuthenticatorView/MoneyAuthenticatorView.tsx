@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -57,6 +58,7 @@ import {
   MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT,
 } from '../../constants/moneyAuthenticator';
 import { MoneyAuthenticatorViewTestIds } from './MoneyAuthenticatorView.testIds';
+import MoneySecuritySetupTitle from '../../components/MoneySecuritySetupTitle';
 
 type AuthenticatorStep = 'setup' | 'verify';
 
@@ -79,6 +81,12 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     letterSpacing: 0.6,
   },
+  setupKeyRow: {
+    marginTop: 12,
+  },
+  setupKeyText: {
+    flex: 1,
+  },
   footer: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -86,7 +94,7 @@ const styles = StyleSheet.create({
   codeInputContainer: {
     position: 'relative',
     height: 64,
-    marginTop: 16,
+    marginTop: 40,
   },
   hiddenCodeInput: {
     position: 'absolute',
@@ -105,28 +113,71 @@ const styles = StyleSheet.create({
   },
 });
 
+// Prototype-only keypad colors have no direct design-token equivalent.
+/* eslint-disable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
+const createKeypadStyles = (isDark: boolean) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: isDark ? '#1C1C1E' : '#DEDEDE',
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    rows: { gap: 14 },
+    row: { flexDirection: 'row', gap: 14 },
+    key: {
+      flex: 1,
+      height: 56,
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? '#252527' : '#FAFAFA',
+    },
+    specialKey: {
+      flex: 1,
+      height: 56,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });
+/* eslint-enable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
+
+const KEYPAD_ROWS = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+] as const;
+
 const MoneyAuthenticatorView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<MoneyNavigationParamList, 'MoneyAuthenticator'>>();
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { colors, themeAppearance } = useTheme();
+  const keypadStyles = useMemo(
+    () => createKeypadStyles(themeAppearance === 'dark'),
+    [themeAppearance],
+  );
   const { toastRef } = useContext(ToastContext);
-  const { deletePasskey, markTaskComplete } = useMoneyFinishSetup();
+  const { deletePasskey, markTaskComplete, passkeyCount, removeEmail } =
+    useMoneyFinishSetup();
   const {
     addAuthenticator,
     isSocialLogin,
     removeSms,
     setTransactionVerificationEnabled,
-  } = useMoneySecurityMethods();
+  } = useMoneySecurityMethods(passkeyCount);
   const codeInputRef = useRef<TextInput>(null);
   const [step, setStep] = useState<AuthenticatorStep>(
     route.params.initialStep ?? 'setup',
   );
   const isTransactionVerification =
     route.params.verificationAction?.type === 'verify-transaction';
+  const isAdditionalFactorPrompt =
+    route.params.entryPoint === 'additional_factor';
+  const isProtectMoneySetup = route.params.entryPoint === 'protect_money';
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleCodeChange = useCallback((value: string) => {
     setCode(value.replace(/\D/g, '').slice(0, 6));
@@ -156,6 +207,17 @@ const MoneyAuthenticatorView = () => {
     [colors.error.default, colors.success.default, toastRef],
   );
 
+  const navigateToMoneyHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
+
+  const handleNotNow = useCallback(() => {
+    navigateToMoneyHome();
+  }, [navigateToMoneyHome]);
+
   const handleBack = useCallback(() => {
     if (step === 'verify') {
       if (route.params.verificationAction) {
@@ -178,6 +240,16 @@ const MoneyAuthenticatorView = () => {
           navigation.goBack();
           return;
         }
+        if (
+          route.params.verificationAction.type ===
+            'enable-transaction-verification' ||
+          (route.params.verificationAction.type ===
+            'disable-transaction-verification' &&
+            route.params.verificationAction.returnToMoneyHome)
+        ) {
+          navigateToMoneyHome();
+          return;
+        }
         navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
         return;
       }
@@ -185,9 +257,16 @@ const MoneyAuthenticatorView = () => {
       setIsCodeInvalid(false);
       return;
     }
+    if (isAdditionalFactorPrompt || isProtectMoneySetup) {
+      navigateToMoneyHome();
+      return;
+    }
     navigation.goBack();
   }, [
+    isAdditionalFactorPrompt,
+    isProtectMoneySetup,
     navigation,
+    navigateToMoneyHome,
     route.params.fallbackToMethodChooser,
     route.params.verificationAction,
     showSuccessToast,
@@ -196,12 +275,26 @@ const MoneyAuthenticatorView = () => {
 
   const handleCopyKey = useCallback(async () => {
     await ClipboardManager.setString(MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT);
+    setIsCopied(true);
+  }, []);
+
+  const handleContinue = useCallback(() => {
     setStep('verify');
-    setTimeout(
-      () => showSuccessToast(strings('money.authenticator.copied')),
-      100,
+    setCode('');
+    setIsCodeInvalid(false);
+  }, []);
+
+  const handleDigitPress = useCallback((digit: string) => {
+    setCode((currentCode) =>
+      currentCode.length >= 6 ? currentCode : `${currentCode}${digit}`,
     );
-  }, [showSuccessToast]);
+    setIsCodeInvalid(false);
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    setCode((currentCode) => currentCode.slice(0, -1));
+    setIsCodeInvalid(false);
+  }, []);
 
   const handleVerify = useCallback(() => {
     const { verificationAction } = route.params;
@@ -209,7 +302,46 @@ const MoneyAuthenticatorView = () => {
       switch (verificationAction.type) {
         case 'disable-transaction-verification':
           setTransactionVerificationEnabled(false);
-          navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+          if (verificationAction.returnToPrevious) {
+            navigation.goBack();
+            setTimeout(
+              () =>
+                showSuccessToast(
+                  strings('money.security.disabled_success_toast'),
+                ),
+              300,
+            );
+          } else if (verificationAction.returnToMoneyHome) {
+            navigation.navigate(Routes.HOME_TABS, {
+              screen: Routes.MONEY.ROOT,
+              params: { screen: Routes.MONEY.HOME },
+            });
+            setTimeout(
+              () =>
+                showSuccessToast(
+                  strings('money.security.disabled_success_toast'),
+                ),
+              300,
+            );
+          } else {
+            navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+          }
+          return;
+        case 'enable-transaction-verification':
+          setTransactionVerificationEnabled(true);
+          if (verificationAction.returnToPrevious) {
+            navigation.goBack();
+          } else {
+            navigation.navigate(Routes.HOME_TABS, {
+              screen: Routes.MONEY.ROOT,
+              params: { screen: Routes.MONEY.HOME },
+            });
+          }
+          setTimeout(
+            () =>
+              showSuccessToast(strings('money.security.enabled_success_toast')),
+            300,
+          );
           return;
         case 'delete-passkey':
           deletePasskey(verificationAction.passkeyIndex);
@@ -217,6 +349,12 @@ const MoneyAuthenticatorView = () => {
             entryPoint: 'security',
           });
           showSuccessToast(strings('money.passkey_details.removed_toast'));
+          return;
+        case 'remove-email':
+          removeEmail();
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
+            successToast: strings('money.email_details.removed_toast'),
+          });
           return;
         case 'remove-sms':
           removeSms();
@@ -233,14 +371,24 @@ const MoneyAuthenticatorView = () => {
     }
 
     addAuthenticator();
-    markTaskComplete('recovery_method');
     const successToast = strings('money.authenticator.success_toast');
 
     if (route.params.entryPoint === 'finish_setup') {
-      navigation.navigate(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      if (!isSocialLogin) {
+        markTaskComplete('secure_money');
+        setTransactionVerificationEnabled(true);
+        navigation.navigate(Routes.MONEY.SMS_SETUP, {
+          additionalFactorPrompt: true,
+        });
+        setTimeout(() => showSuccessToast(successToast), 300);
+        return;
+      }
+
+      markTaskComplete('recovery_method');
+      navigateToMoneyHome();
+      setTimeout(() => showSuccessToast(successToast), 300);
+    } else if (isAdditionalFactorPrompt || isProtectMoneySetup) {
+      navigateToMoneyHome();
       setTimeout(() => showSuccessToast(successToast), 300);
     } else {
       navigation.navigate(Routes.MONEY.MANAGE_SECURITY, { successToast });
@@ -248,19 +396,26 @@ const MoneyAuthenticatorView = () => {
   }, [
     addAuthenticator,
     deletePasskey,
+    isAdditionalFactorPrompt,
+    isProtectMoneySetup,
+    isSocialLogin,
     markTaskComplete,
     navigation,
+    navigateToMoneyHome,
     route.params,
     removeSms,
+    removeEmail,
     setTransactionVerificationEnabled,
     showSuccessToast,
   ]);
 
   const handleAlternativeMethod = useCallback(() => {
     navigation.navigate(Routes.MONEY.SMS_SETUP, {
-      returnToMoneyHome: true,
+      ...(isAdditionalFactorPrompt
+        ? { additionalFactorPrompt: true }
+        : { returnToMoneyHome: true }),
     });
-  }, [navigation]);
+  }, [isAdditionalFactorPrompt, navigation]);
 
   const handleSetUpWithQrCode = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -309,9 +464,6 @@ const MoneyAuthenticatorView = () => {
             testID={MoneyAuthenticatorViewTestIds.BACK_BUTTON}
           />
         )}
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-          {strings('money.authenticator.header')}
-        </Text>
         {isTransactionVerification && route.params.showCloseButton ? (
           <ButtonIcon
             iconName={IconName.Close}
@@ -344,53 +496,105 @@ const MoneyAuthenticatorView = () => {
         >
           {step === 'setup' ? (
             <>
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-              >
-                {strings('money.authenticator.how_to_setup_title')}
-              </Text>
+              <MoneySecuritySetupTitle>
+                {strings(
+                  isAdditionalFactorPrompt
+                    ? 'money.authenticator.additional_factor_title'
+                    : 'money.authenticator.setup_title',
+                )}
+              </MoneySecuritySetupTitle>
               <Text
                 variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
                 color={TextColor.TextAlternative}
                 twClassName="mt-2"
               >
-                {strings('money.authenticator.instruction_combined')}
+                {strings(
+                  isAdditionalFactorPrompt
+                    ? 'money.authenticator.additional_factor_description'
+                    : 'money.authenticator.instruction_combined',
+                )}
               </Text>
 
-              <Box twClassName="mt-6 rounded-xl bg-muted p-4">
+              {isAdditionalFactorPrompt && (
+                <>
+                  <Text
+                    variant={TextVariant.HeadingSm}
+                    fontWeight={FontWeight.Bold}
+                    twClassName="mt-6"
+                  >
+                    {strings(
+                      'money.authenticator.additional_factor_setup_title',
+                    )}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                    twClassName="mt-2"
+                  >
+                    {strings('money.authenticator.instruction_combined')}
+                  </Text>
+                </>
+              )}
+
+              <Box
+                twClassName={
+                  isAdditionalFactorPrompt
+                    ? 'mt-4 rounded-xl bg-muted p-4'
+                    : 'mt-6 rounded-xl bg-muted p-4'
+                }
+              >
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
                   {strings('money.authenticator.setup_key')}
                 </Text>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  style={styles.setupKey}
-                  twClassName="mt-3"
+                <Box
+                  style={styles.setupKeyRow}
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
                 >
-                  {MONEY_AUTHENTICATOR_SETUP_KEY}
-                </Text>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    style={[styles.setupKey, styles.setupKeyText]}
+                  >
+                    {MONEY_AUTHENTICATOR_SETUP_KEY}
+                  </Text>
+                  <Pressable
+                    onPress={handleCopyKey}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings(
+                      'money.authenticator.copy_key_link',
+                    )}
+                    testID={MoneyAuthenticatorViewTestIds.COPY_BUTTON}
+                  >
+                    <Icon
+                      name={isCopied ? IconName.CopySuccess : IconName.Copy}
+                      size={IconSize.Md}
+                      color={
+                        isCopied
+                          ? IconColor.SuccessDefault
+                          : IconColor.IconDefault
+                      }
+                    />
+                  </Pressable>
+                </Box>
               </Box>
-
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleCopyKey}
-                testID={MoneyAuthenticatorViewTestIds.COPY_BUTTON}
-                twClassName="mt-4"
-              >
-                {strings('money.authenticator.copy_key_link')}
-              </Button>
             </>
           ) : (
             <>
               <Text
+                variant={TextVariant.HeadingLg}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('money.email_code_verification.title')}
+              </Text>
+              <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                twClassName="mt-2"
               >
                 {strings('money.authenticator.verify_description')}
               </Text>
@@ -409,7 +613,7 @@ const MoneyAuthenticatorView = () => {
                     <Box
                       key={index}
                       style={styles.codeCell}
-                      twClassName="bg-muted"
+                      twClassName="bg-muted border border-muted"
                     >
                       <Text
                         variant={TextVariant.HeadingMd}
@@ -427,8 +631,10 @@ const MoneyAuthenticatorView = () => {
                   onChangeText={handleCodeChange}
                   onLayout={focusCodeInput}
                   keyboardType="number-pad"
+                  keyboardAppearance={themeAppearance}
                   textContentType="oneTimeCode"
                   autoComplete="one-time-code"
+                  showSoftInputOnFocus={false}
                   maxLength={6}
                   autoFocus
                   caretHidden
@@ -448,26 +654,118 @@ const MoneyAuthenticatorView = () => {
           )}
         </ScrollView>
 
-        {step === 'setup' &&
-          route.params.entryPoint === 'finish_setup' &&
-          isSocialLogin && (
-            <Box
-              style={[
-                styles.footer,
-                { paddingBottom: Math.max(insets.bottom, 16) },
-              ]}
-            >
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleAlternativeMethod}
-                testID={MoneyAuthenticatorViewTestIds.ALTERNATIVE_BUTTON}
-              >
-                {strings('money.authenticator.use_sms_instead')}
-              </Button>
+        {step === 'verify' && (
+          <Box
+            style={[
+              keypadStyles.container,
+              { paddingBottom: Math.max(insets.bottom, 12) },
+            ]}
+          >
+            <Box style={keypadStyles.rows}>
+              {KEYPAD_ROWS.map((row) => (
+                <Box key={row.join('')} style={keypadStyles.row}>
+                  {row.map((digit) => (
+                    <Pressable
+                      key={digit}
+                      style={keypadStyles.key}
+                      onPress={() => handleDigitPress(digit)}
+                      accessibilityRole="button"
+                      accessibilityLabel={digit}
+                      testID={`money-authenticator-key-${digit}`}
+                    >
+                      <Text
+                        variant={TextVariant.HeadingLg}
+                        fontWeight={FontWeight.Regular}
+                      >
+                        {digit}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </Box>
+              ))}
+              <Box style={keypadStyles.row}>
+                <Box style={keypadStyles.specialKey} />
+                <Pressable
+                  style={keypadStyles.key}
+                  onPress={() => handleDigitPress('0')}
+                  accessibilityRole="button"
+                  accessibilityLabel="0"
+                  testID="money-authenticator-key-0"
+                >
+                  <Text
+                    variant={TextVariant.HeadingLg}
+                    fontWeight={FontWeight.Regular}
+                  >
+                    0
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={keypadStyles.specialKey}
+                  onPress={handleDelete}
+                  accessibilityRole="button"
+                  accessibilityLabel="Delete"
+                  testID="money-authenticator-key-delete"
+                >
+                  <Icon
+                    name={IconName.Backspace}
+                    size={IconSize.Xl}
+                    color={IconColor.IconDefault}
+                  />
+                </Pressable>
+              </Box>
             </Box>
-          )}
+          </Box>
+        )}
+
+        {step === 'setup' && (
+          <Box
+            style={[
+              styles.footer,
+              { paddingBottom: Math.max(insets.bottom, 16) },
+            ]}
+          >
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleContinue}
+              testID={MoneyAuthenticatorViewTestIds.CONTINUE_BUTTON}
+            >
+              {strings('money.authenticator.continue')}
+            </Button>
+            {((route.params.entryPoint === 'finish_setup' && isSocialLogin) ||
+              isAdditionalFactorPrompt) && (
+              <>
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleAlternativeMethod}
+                  testID={MoneyAuthenticatorViewTestIds.ALTERNATIVE_BUTTON}
+                  twClassName="mt-2"
+                >
+                  {strings(
+                    isAdditionalFactorPrompt
+                      ? 'money.authenticator.add_sms_instead'
+                      : 'money.authenticator.use_sms_instead',
+                  )}
+                </Button>
+                {isAdditionalFactorPrompt && (
+                  <Button
+                    variant={ButtonVariant.Tertiary}
+                    size={ButtonSize.Lg}
+                    isFullWidth
+                    onPress={handleNotNow}
+                    testID={MoneyAuthenticatorViewTestIds.NOT_NOW_BUTTON}
+                    twClassName="mt-2"
+                  >
+                    {strings('money.authenticator.not_now')}
+                  </Button>
+                )}
+              </>
+            )}
+          </Box>
+        )}
       </KeyboardAvoidingView>
     </Box>
   );

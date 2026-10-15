@@ -8579,7 +8579,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.39.0":
+"@metamask/design-system-react-native@npm:0.39.0":
   version: 0.39.0
   resolution: "@metamask/design-system-react-native@npm:0.39.0"
   dependencies:
@@ -8597,6 +8597,27 @@ __metadata:
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
   checksum: 10/664ba221283a7a09824aa857578d1a98670f266d154a6a87d1884594555b314d299feb0c5c3a00137faafa9f878e9a308b870b6c876aa90ee76b72cdcfdffeca
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.39.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.39.0-b07f61faa2.patch":
+  version: 0.39.0
+  resolution: "@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.39.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.39.0-b07f61faa2.patch::version=0.39.0&hash=f89fd5"
+  dependencies:
+    "@metamask/design-system-shared": "npm:^0.32.0"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.8.0
+    "@metamask/design-tokens": ^8.2.0
+    "@metamask/utils": ^11.11.0
+    lodash: ^4.17.21
+    react: ">=18.2.0"
+    react-native: ">=0.76.0"
+    react-native-gesture-handler: ">=2.25.0"
+    react-native-reanimated: ">=4.2.0"
+    react-native-safe-area-context: ">=5.0.0"
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/af94e954f54ed4c2ebeb4cad54b7e38ccfea3cca2a6b849ea794399475f781ad18e95b821694860b7f57275e67143ea01d981d3e7f2e3b5c9c55d50b0d872e1c
   languageName: node
   linkType: hard
 
@@ -36232,7 +36253,7 @@ __metadata:
     "@metamask/core-backend": "npm:^8.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.39.0"
+    "@metamask/design-system-react-native": "patch:@metamask/design-system-react-native@npm%3A0.39.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.39.0-b07f61faa2.patch"
     "@metamask/design-system-twrnc-preset": "npm:^0.8.0"
     "@metamask/design-tokens": "npm:^8.7.0"
     "@metamask/device-mcp": "npm:^0.3.0"

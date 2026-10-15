@@ -20,6 +20,9 @@ import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
+import PrivacySettings from '../../Views/Settings/PrivacySettings';
+import AssetsSettingsView from '../../Views/Settings/AssetsSettingsView';
+import BrowserSettings from '../../Views/Settings/BrowserSettings';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
@@ -129,11 +132,15 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MoneySecuritySetupView from '../../UI/Money/Views/MoneySecuritySetupView';
+import MoneyEmailVerificationView from '../../UI/Money/Views/MoneyEmailVerificationView';
+import MoneyEmailCodeVerificationView from '../../UI/Money/Views/MoneyEmailCodeVerificationView';
 import MoneySecurityView from '../../UI/Money/Views/MoneySecurityView';
 import MoneyPasskeysView from '../../UI/Money/Views/MoneyPasskeysView';
 import MoneyPasskeyDetailsView from '../../UI/Money/components/MoneyPasskeyDetailsSheet';
 import MoneyAuthenticatorView from '../../UI/Money/Views/MoneyAuthenticatorView';
 import MoneyAuthenticatorDetailsView from '../../UI/Money/Views/MoneyAuthenticatorDetailsView';
+import MoneyEmailDetailsView from '../../UI/Money/Views/MoneyEmailDetailsView';
 import MoneySmsSetupView from '../../UI/Money/Views/MoneySmsSetupView';
 import MoneySmsDetailsView from '../../UI/Money/Views/MoneySmsDetailsView';
 import MoneySocialDetailsView from '../../UI/Money/Views/MoneySocialDetailsView';
@@ -483,6 +490,12 @@ const SettingsFlow = () => {
         name="SecuritySettings"
         component={SecuritySettings}
       />
+      <NativeStack.Screen name="PrivacySettings" component={PrivacySettings} />
+      <NativeStack.Screen
+        name="AssetsSettingsView"
+        component={AssetsSettingsView}
+      />
+      <NativeStack.Screen name="BrowserSettings" component={BrowserSettings} />
       <NativeStack.Screen
         name={Routes.RAMP.SETTINGS}
         component={RampSettings}
@@ -1268,6 +1281,21 @@ const MainNavigator = () => {
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
+            name={Routes.MONEY.SECURITY_SETUP}
+            component={MoneySecuritySetupView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.EMAIL_VERIFICATION}
+            component={MoneyEmailVerificationView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.EMAIL_CODE_VERIFICATION}
+            component={MoneyEmailCodeVerificationView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
             name={Routes.MONEY.MANAGE_SECURITY}
             component={MoneySecurityView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
@@ -1290,6 +1318,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.AUTHENTICATOR_DETAILS}
             component={MoneyAuthenticatorDetailsView}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.EMAIL_DETAILS}
+            component={MoneyEmailDetailsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen

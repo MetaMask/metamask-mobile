@@ -10,6 +10,8 @@ let mockRouteParams:
   | {
       defaultMethod?: string;
       variant?: 'info' | 'disable-transaction-verification';
+      returnToMoneyHome?: boolean;
+      returnToPrevious?: boolean;
     }
   | undefined = { defaultMethod: 'Passkeys' };
 
@@ -93,5 +95,45 @@ describe('MoneySecurityInfoSheet', () => {
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards the Money return destination when disabling from More', () => {
+    mockRouteParams = {
+      variant: 'disable-transaction-verification',
+      returnToMoneyHome: true,
+    };
+    const { getByText } = renderWithProvider(<MoneySecurityInfoSheet />);
+
+    fireEvent.press(getByText('Disable'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: {
+          type: 'disable-transaction-verification',
+          returnToMoneyHome: true,
+        },
+      },
+    });
+  });
+
+  it('forwards the previous-screen destination when disabling from Settings', () => {
+    mockRouteParams = {
+      variant: 'disable-transaction-verification',
+      returnToPrevious: true,
+    };
+    const { getByText } = renderWithProvider(<MoneySecurityInfoSheet />);
+
+    fireEvent.press(getByText('Disable'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: {
+          type: 'disable-transaction-verification',
+          returnToPrevious: true,
+        },
+      },
+    });
   });
 });

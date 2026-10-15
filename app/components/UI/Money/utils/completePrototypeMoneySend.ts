@@ -29,5 +29,5 @@ export const completePrototypeMoneySend = (
       },
     ],
   });
-  showSuccessToast(strings('money.toasts.withdraw_success_title'));
+  showSuccessToast(strings('money.toasts.prototype_send_success_title'));
 };

@@ -9,6 +9,8 @@ export const WalletRecoveryPrototypeTestIds = {
   TELEGRAM: 'wallet-recovery-prototype-telegram',
   IMPORT_SRP: 'wallet-recovery-prototype-import-srp',
   GOOGLE_ACCOUNT: 'wallet-recovery-prototype-google-account',
+  VERIFICATION_SHEET: 'wallet-recovery-prototype-verification-sheet',
+  GET_VERIFICATION_CODE: 'wallet-recovery-prototype-get-verification-code',
   PASSKEY_SHEET: 'wallet-recovery-prototype-passkey-sheet',
   USE_PASSKEY: 'wallet-recovery-prototype-use-passkey',
   USE_PASSWORD: 'wallet-recovery-prototype-use-password',
@@ -24,4 +26,5 @@ export const WalletRecoveryPrototypeTestIds = {
   WALLET_HOME: 'wallet-recovery-prototype-wallet-home',
   MONEY_TAB: 'wallet-recovery-prototype-money-tab',
   MONEY_VERIFIED: 'wallet-recovery-prototype-money-verified',
+  ENABLE_FACE_ID: 'wallet-recovery-prototype-enable-face-id',
 } as const;

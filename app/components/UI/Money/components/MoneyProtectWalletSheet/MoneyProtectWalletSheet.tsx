@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -24,10 +24,25 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyProtectWalletSheetTestIds } from './MoneyProtectWalletSheet.testIds';
+import MoneySecuritySetupImage from '../../../../../images/money-security-setup.png';
 
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  artwork: {
+    width: 96,
+    height: 96,
+    alignSelf: 'center',
+  },
+  centeredText: {
+    textAlign: 'center',
+  },
+  benefits: {
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   benefitIcon: {
     width: 24,
@@ -73,18 +88,32 @@ const MoneyProtectWalletSheet = () => {
       keyboardAvoidingViewEnabled={false}
       testID={MoneyProtectWalletSheetTestIds.CONTAINER}
     >
-      <BottomSheetHeader onClose={handleNotNow}>
-        {strings('money.protect_wallet_sheet.title')}
-      </BottomSheetHeader>
+      <BottomSheetHeader onClose={handleNotNow}>{null}</BottomSheetHeader>
       <Box style={styles.content}>
+        <Image
+          source={MoneySecuritySetupImage}
+          style={styles.artwork}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
+        <Text
+          variant={TextVariant.HeadingLg}
+          fontWeight={FontWeight.Bold}
+          style={styles.centeredText}
+          twClassName="mt-4"
+        >
+          {strings('money.passkeys.empty_title')}
+        </Text>
         <Text
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Regular}
           color={TextColor.TextAlternative}
-          twClassName="mb-2"
+          style={styles.centeredText}
+          twClassName="mt-2"
         >
           {strings('money.passkeys.empty_description')}
         </Text>
-        <Box twClassName="py-2">
+        <Box style={styles.benefits} twClassName="bg-muted mt-6">
           {BENEFITS.map(({ icon, labelKey }) => (
             <Box
               key={labelKey}
@@ -102,7 +131,7 @@ const MoneyProtectWalletSheet = () => {
               </Box>
               <Text
                 variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
+                fontWeight={FontWeight.Regular}
                 twClassName="flex-1"
               >
                 {strings(labelKey)}
@@ -110,7 +139,7 @@ const MoneyProtectWalletSheet = () => {
             </Box>
           ))}
         </Box>
-        <Box twClassName="gap-3 pt-3">
+        <Box twClassName="mt-6">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -119,15 +148,6 @@ const MoneyProtectWalletSheet = () => {
             testID={MoneyProtectWalletSheetTestIds.ADD_PASSKEY_BUTTON}
           >
             {strings('money.protect_wallet_sheet.add_passkey')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleNotNow}
-            testID={MoneyProtectWalletSheetTestIds.NOT_NOW_BUTTON}
-          >
-            {strings('money.protect_wallet_sheet.not_now')}
           </Button>
         </Box>
       </Box>

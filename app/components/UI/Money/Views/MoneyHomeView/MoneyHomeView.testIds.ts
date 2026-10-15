@@ -3,4 +3,5 @@ export const MoneyHomeViewTestIds = {
   SCROLL_VIEW: 'money-home-view-scroll-view',
   BALANCE_UNAVAILABLE_BANNER: 'money-home-view-balance-unavailable-banner',
   PROTECT_MONEY_BANNER: 'money-home-view-protect-money-banner',
+  PROTECT_MONEY_BANNER_ICON: 'money-home-view-protect-money-banner-icon',
 } as const;

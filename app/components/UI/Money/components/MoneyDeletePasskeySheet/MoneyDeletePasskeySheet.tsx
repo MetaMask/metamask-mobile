@@ -54,9 +54,10 @@ const MoneyDeletePasskeySheet = () => {
     useRoute<
       RouteProp<MoneyModalsNavigationParamList, 'MoneyDeletePasskeySheet'>
     >();
-  const { passkeys } = useMoneyFinishSetup();
+  const { isEmailVerified, passkeys } = useMoneyFinishSetup();
   const { hasAlternativeSecurityMethod } = useMoneySecurityMethods();
-  const canDelete = passkeys.length > 1 || hasAlternativeSecurityMethod;
+  const canDelete =
+    passkeys.length > 1 || isEmailVerified || hasAlternativeSecurityMethod;
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

@@ -11,6 +11,7 @@ import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController
 import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import Routes from '../../../../../constants/navigation/Routes';
+import { InitSendLocation } from '../../../../Views/confirmations/constants/send';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -177,7 +178,7 @@ describe('MoneyTransferSheet', () => {
     expect(global.alert).not.toHaveBeenCalled();
   });
 
-  it('opens prototype verification when live withdrawal setup fails', async () => {
+  it('opens the normal send flow when live withdrawal setup fails', async () => {
     mockInitiateWithdrawal.mockRejectedValueOnce(
       new Error('Missing vault config'),
     );
@@ -188,9 +189,15 @@ describe('MoneyTransferSheet', () => {
     );
 
     await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
-        params: { action: { type: 'verify-transaction' } },
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.AMOUNT,
+        params: {
+          asset: expect.objectContaining({
+            symbol: 'mUSD',
+            balance: '500',
+          }),
+          location: InitSendLocation.MoneyAccount,
+        },
       }),
     );
   });

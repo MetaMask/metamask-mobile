@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Switch, View } from 'react-native';
+import { Switch, View, type StyleProp, type TextStyle } from 'react-native';
 import { createStyles } from './styles';
 import {
   FontWeight,
@@ -16,6 +16,9 @@ interface SecurityOptionsToggleProps {
   onOptionUpdated: (enabled: boolean) => void;
   testId?: string;
   disabled?: boolean;
+  descriptionVariant?: TextVariant;
+  descriptionFontWeight?: FontWeight;
+  descriptionStyle?: StyleProp<TextStyle>;
 }
 
 /**
@@ -29,6 +32,9 @@ const SecurityOptionToggle = ({
   testId,
   onOptionUpdated,
   disabled,
+  descriptionVariant = TextVariant.BodySm,
+  descriptionFontWeight = FontWeight.Medium,
+  descriptionStyle,
 }: SecurityOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
@@ -68,10 +74,10 @@ const SecurityOptionToggle = ({
       </View>
       {description ? (
         <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
+          variant={descriptionVariant}
+          fontWeight={descriptionFontWeight}
           color={TextColor.TextAlternative}
-          style={styles.desc}
+          style={[styles.desc, descriptionStyle]}
         >
           {description}
         </Text>

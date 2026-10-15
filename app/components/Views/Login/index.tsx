@@ -86,6 +86,7 @@ import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEv
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { hasTestOverrides, isTestEnvironment } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import { isEmulator } from 'react-native-device-info';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
@@ -119,6 +120,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
 
   const [password, setPassword] = useState('');
+  const [isRunningOnEmulator, setIsRunningOnEmulator] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startFoxAnimation, setStartFoxAnimation] = useState<
@@ -149,6 +151,31 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
     setStartFoxAnimation('Start');
   }, [saveOnboardingEvent]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    if (typeof isEmulator !== 'function') {
+      return () => {
+        isActive = false;
+      };
+    }
+
+    isEmulator()
+      .then((emulator) => {
+        if (isActive && emulator) {
+          setIsRunningOnEmulator(true);
+          setPassword(RECOVERY_PROTOTYPE_LOGIN_PASSWORD);
+        }
+      })
+      .catch(() => {
+        // Fall back to the standard login flow if detection is unavailable.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   useEffect(() => {
     const subscription = BackHandler.addEventListener(
@@ -308,7 +335,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     if (loading) return;
 
     const unlockPassword =
-      isTestEnvironment && password === RECOVERY_PROTOTYPE_LOGIN_PASSWORD
+      (isTestEnvironment || isRunningOnEmulator) &&
+      password === RECOVERY_PROTOTYPE_LOGIN_PASSWORD
         ? RECOVERY_PROTOTYPE_PASSWORD
         : password;
 
@@ -364,6 +392,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(false);
   }, [
     password,
+    isRunningOnEmulator,
     loading,
     handleLoginError,
     unlockWallet,

@@ -493,6 +493,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {stage !== CustomAmountStage.AmountInput && (
             <CustomAmountConfirmButton
               alertTitle={alertTitle}
+              amountFiat={amountFiat}
               isDisabled={
                 disableConfirm || isAccountSelectionNeeded || isPrefillPending
               }

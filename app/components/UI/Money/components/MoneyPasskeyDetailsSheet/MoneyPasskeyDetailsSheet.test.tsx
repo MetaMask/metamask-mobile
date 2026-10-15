@@ -8,6 +8,7 @@ import { MoneyPasskeyDetailsSheetTestIds } from './MoneyPasskeyDetailsSheet.test
 const mockRenamePasskey = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+let mockIsSocialLogin = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -33,10 +34,17 @@ jest.mock('../../hooks/useMoneyFinishSetup', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useMoneySecurityMethods', () => ({
+  useMoneySecurityMethods: () => ({
+    isSocialLogin: mockIsSocialLogin,
+  }),
+}));
+
 describe('MoneyPasskeyDetailsSheet', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockIsSocialLogin = false;
   });
 
   afterEach(() => {
@@ -52,6 +60,8 @@ describe('MoneyPasskeyDetailsSheet', () => {
     expect(getByText('Added Sep 2, 2026 at 12:00 PM')).toBeOnTheScreen();
     expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(queryByText('Today')).not.toBeOnTheScreen();
+    expect(queryByText('Wallet recovery')).not.toBeOnTheScreen();
+    expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(MoneyPasskeyDetailsSheetTestIds.RENAME_BUTTON));
     expect(
@@ -64,6 +74,13 @@ describe('MoneyPasskeyDetailsSheet', () => {
     fireEvent.press(getByTestId(MoneyPasskeyDetailsSheetTestIds.SAVE_BUTTON));
 
     expect(mockRenamePasskey).toHaveBeenCalledWith(0, 'Travel wallet');
+  });
+
+  it('shows wallet recovery usage for social-login users', () => {
+    mockIsSocialLogin = true;
+    const { getByText } = renderWithProvider(<MoneyPasskeyDetailsSheet />);
+
+    expect(getByText('Wallet recovery')).toBeOnTheScreen();
   });
 
   it('opens the delete confirmation bottom sheet', () => {

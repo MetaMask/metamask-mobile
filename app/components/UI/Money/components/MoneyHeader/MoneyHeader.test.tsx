@@ -30,6 +30,20 @@ describe('MoneyHeader', () => {
     expect(mockOnMenuPress).toHaveBeenCalledTimes(1);
   });
 
+  it('shows a small prototype refresh button and handles presses', () => {
+    const mockOnRefreshPress = jest.fn();
+    const { getByTestId } = render(
+      <MoneyHeader
+        onMenuPress={jest.fn()}
+        onRefreshPress={mockOnRefreshPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyHeaderTestIds.REFRESH_BUTTON));
+
+    expect(mockOnRefreshPress).toHaveBeenCalledTimes(1);
+  });
+
   it('uses the same horizontal padding as the Home page header', () => {
     const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
@@ -52,6 +66,20 @@ describe('MoneyHeader', () => {
     fireEvent.press(getByTestId(MoneyHeaderTestIds.SECURITY_BUTTON));
 
     expect(mockOnSecurityPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('highlights the title security indicator when protection is completed', () => {
+    const { getByTestId } = render(
+      <MoneyHeader
+        onMenuPress={jest.fn()}
+        showSecurityIndicator
+        protectionHighlightTrigger={1}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyHeaderTestIds.SECURITY_HIGHLIGHT),
+    ).toBeOnTheScreen();
   });
 
   it('shows a notification dot on the More button when setup moved there', () => {

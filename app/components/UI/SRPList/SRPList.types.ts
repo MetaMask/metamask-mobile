@@ -4,4 +4,5 @@ export interface SRPListProps {
   onKeyringSelect: (id: string) => void;
   containerStyle?: ViewStyle;
   showArrowName?: string;
+  scrollEnabled?: boolean;
 }

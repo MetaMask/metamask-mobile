@@ -81,7 +81,7 @@ const MoneySmsDetailsView = () => {
     styles.footer,
     { paddingBottom: Math.max(insets.bottom, 16) },
   ];
-  const { isSmsAdded, smsCreatedAt, smsPhoneNumber } =
+  const { isSmsAdded, isSocialLogin, smsCreatedAt, smsPhoneNumber } =
     useMoneySecurityMethods();
 
   if (!isSmsAdded) {
@@ -159,10 +159,12 @@ const MoneySmsDetailsView = () => {
           {strings('money.passkeys.used_for')}
         </Text>
         <Box>
-          <UsageRow
-            icon={IconName.Lock}
-            label={strings('money.passkeys.wallet_recovery')}
-          />
+          {isSocialLogin && (
+            <UsageRow
+              icon={IconName.Lock}
+              label={strings('money.passkeys.wallet_recovery')}
+            />
+          )}
           <UsageRow
             icon={IconName.SecurityTick}
             label={strings('money.passkeys.verifying_transactions')}

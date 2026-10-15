@@ -31,6 +31,7 @@ import type { MoneyNavigationParamList } from '../../types/navigation';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
+import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
 import { formatMoneySecurityMethodAddedAt } from '../../utils/formatMoneySecurityMethodAddedAt';
 import { MoneyPasskeyDetailsSheetTestIds } from './MoneyPasskeyDetailsSheet.testIds';
 
@@ -115,6 +116,7 @@ const MoneyPasskeyDetailsView = () => {
   ];
   const { colors } = useTheme();
   const { passkeys, renamePasskey } = useMoneyFinishSetup();
+  const { isSocialLogin } = useMoneySecurityMethods();
   const passkey = passkeys[route.params.passkeyIndex];
   const [mode, setMode] = useState<DetailsMode>('details');
   const [draftName, setDraftName] = useState(passkey?.name ?? '');
@@ -264,10 +266,12 @@ const MoneyPasskeyDetailsView = () => {
               {strings('money.passkeys.used_for')}
             </Text>
             <Box>
-              <UsageRow
-                icon={IconName.Lock}
-                label={strings('money.passkeys.wallet_recovery')}
-              />
+              {isSocialLogin && (
+                <UsageRow
+                  icon={IconName.Lock}
+                  label={strings('money.passkeys.wallet_recovery')}
+                />
+              )}
               <UsageRow
                 icon={IconName.SecurityTick}
                 label={strings('money.passkeys.verifying_transactions')}

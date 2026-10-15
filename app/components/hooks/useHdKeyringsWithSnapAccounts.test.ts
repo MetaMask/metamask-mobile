@@ -139,4 +139,46 @@ describe('useHdKeyringsWithSnapAccounts', () => {
 
     expect(result.current).toEqual([]);
   });
+
+  it('recovers HD keyring metadata from internal accounts', () => {
+    const hdAccountWithEntropySource = {
+      ...mockHdAccount,
+      options: {
+        entropySource: 'keyring1',
+      },
+    };
+    const { result } = renderHookWithProvider(
+      () => useHdKeyringsWithSnapAccounts(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  accounts: {
+                    [hdAccountWithEntropySource.id]: hdAccountWithEntropySource,
+                  },
+                  selectedAccount: hdAccountWithEntropySource.id,
+                },
+              },
+              KeyringController: {
+                keyrings: [],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current).toEqual([
+      {
+        type: KeyringTypes.hd,
+        accounts: [hdAccountWithEntropySource.address],
+        metadata: {
+          id: 'keyring1',
+          name: '',
+        },
+      },
+    ]);
+  });
 });

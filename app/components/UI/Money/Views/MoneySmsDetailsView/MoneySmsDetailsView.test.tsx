@@ -6,6 +6,7 @@ import MoneySmsDetailsView from './MoneySmsDetailsView';
 import { MoneySmsDetailsViewTestIds } from './MoneySmsDetailsView.testIds';
 
 const mockNavigate = jest.fn();
+let mockIsSocialLogin = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -18,6 +19,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useMoneySecurityMethods', () => ({
   useMoneySecurityMethods: () => ({
     isSmsAdded: true,
+    isSocialLogin: mockIsSocialLogin,
     smsCreatedAt: new Date(2026, 8, 8, 12),
     smsPhoneNumber: '+14155550123',
   }),
@@ -26,6 +28,7 @@ jest.mock('../../hooks/useMoneySecurityMethods', () => ({
 describe('MoneySmsDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsSocialLogin = false;
   });
 
   it('shows the phone, metadata, and usages', () => {
@@ -38,8 +41,15 @@ describe('MoneySmsDetailsView', () => {
     expect(getByText('Added Sep 8, 2026 at 12:00 PM')).toBeOnTheScreen();
     expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(queryByText('Today')).not.toBeOnTheScreen();
-    expect(getByText('Wallet recovery')).toBeOnTheScreen();
+    expect(queryByText('Wallet recovery')).not.toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
+  });
+
+  it('shows wallet recovery usage for social-login users', () => {
+    mockIsSocialLogin = true;
+    const { getByText } = renderWithProvider(<MoneySmsDetailsView />);
+
+    expect(getByText('Wallet recovery')).toBeOnTheScreen();
   });
 
   it('opens the remove SMS confirmation sheet', () => {

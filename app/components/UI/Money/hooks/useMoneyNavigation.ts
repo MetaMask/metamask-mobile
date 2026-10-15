@@ -61,9 +61,13 @@ export const useMoneyNavigation = () => {
   const onboardingProgress = useSelector(selectOnboardingStepperProgress) ?? {};
   const isRecoveryVerificationPending =
     onboardingProgress[STEPPER_IDS.MONEY_RECOVERY_VERIFICATION_PENDING] === 1;
+  const isSocialLoginRecoveryWallet =
+    onboardingProgress[STEPPER_IDS.MONEY_RECOVERY_SOCIAL_LOGIN_WALLET] === 1;
+  const shouldVerifyRecovery =
+    isRecoveryVerificationPending && isSocialLoginRecoveryWallet;
 
   const navigateToMoneyHome = useCallback(() => {
-    if (isRecoveryVerificationPending) {
+    if (shouldVerifyRecovery) {
       NavigationService.navigation.navigate(Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
@@ -83,7 +87,7 @@ export const useMoneyNavigation = () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-  }, [isRecoveryVerificationPending, redirectToOnboardingIfNeeded]);
+  }, [redirectToOnboardingIfNeeded, shouldVerifyRecovery]);
 
   return { isOnboardingRedirectNeeded, navigateToMoneyHome };
 };

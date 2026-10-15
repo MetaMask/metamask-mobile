@@ -1,17 +1,20 @@
 import React, { useCallback, useRef } from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Switch, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -25,6 +28,7 @@ import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
+import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
@@ -33,27 +37,27 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import finishSetupIcon from '../../../../../images/money-finish-setup-clock.png';
+import { useTheme } from '../../../../../util/theme';
 
 interface MenuOption {
   label: string;
   icon: IconName;
   onPress: () => void;
   testID: string;
-  showDot?: boolean;
-  useFinishSetupIcon?: boolean;
 }
 
 const MoneyMoreSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
+  const { colors, brandColors } = useTheme();
+  const { isEmailVerified, passkeyCount } = useMoneyFinishSetup();
   const {
-    advanceTwoWeeks,
-    isTwoWeeksLater,
-    isVisible: isFinishSetupVisible,
-    resetProgress,
-  } = useMoneyFinishSetup();
+    isAuthenticatorAdded,
+    isSmsAdded,
+    isTransactionVerificationEnabled,
+    setTransactionVerificationEnabled,
+  } = useMoneySecurityMethods(passkeyCount);
 
   const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
@@ -92,17 +96,6 @@ const MoneyMoreSheet = () => {
     });
   }, [closeAndNavigate, navigation, trackSurfaceClicked]);
 
-  const handleManageSecurity = useCallback(() => {
-    trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_MANAGE_SECURITY,
-      redirect_target: SCREEN_NAMES.MONEY_MANAGE_SECURITY,
-    });
-
-    closeAndNavigate(() => {
-      navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
-    });
-  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
-
   const handleContactSupport = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
@@ -120,21 +113,55 @@ const MoneyMoreSheet = () => {
     openSupportWithConsent,
   ]);
 
-  const handleRefreshPrototype = useCallback(() => {
-    closeAndNavigate(resetProgress);
-  }, [closeAndNavigate, resetProgress]);
+  const handleTransactionVerificationChange = useCallback(
+    (enabled: boolean) => {
+      if (!enabled && isTransactionVerificationEnabled) {
+        closeAndNavigate(() => {
+          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.SECURITY_INFO_SHEET,
+            params: {
+              variant: 'disable-transaction-verification',
+              returnToMoneyHome: true,
+            },
+          });
+        });
+        return;
+      }
 
-  const handleAdvanceTwoWeeks = useCallback(() => {
-    closeAndNavigate(advanceTwoWeeks);
-  }, [advanceTwoWeeks, closeAndNavigate]);
+      if (enabled && !isTransactionVerificationEnabled) {
+        const hasVerificationMethod =
+          passkeyCount > 0 ||
+          isEmailVerified ||
+          isAuthenticatorAdded ||
+          isSmsAdded;
+        closeAndNavigate(() => {
+          if (hasVerificationMethod) {
+            navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+              screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+              params: {
+                action: { type: 'enable-transaction-verification' },
+              },
+            });
+          } else {
+            navigation.navigate(Routes.MONEY.SECURITY_SETUP);
+          }
+        });
+        return;
+      }
 
-  const handleFinishSetup = useCallback(() => {
-    closeAndNavigate(() => {
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.FINISH_SETUP_SHEET,
-      });
-    });
-  }, [closeAndNavigate, navigation]);
+      setTransactionVerificationEnabled(enabled);
+    },
+    [
+      closeAndNavigate,
+      isAuthenticatorAdded,
+      isEmailVerified,
+      isSmsAdded,
+      isTransactionVerificationEnabled,
+      navigation,
+      passkeyCount,
+      setTransactionVerificationEnabled,
+    ],
+  );
 
   const options: MenuOption[] = [
     {
@@ -142,24 +169,6 @@ const MoneyMoreSheet = () => {
       icon: IconName.Book,
       onPress: handleHowItWorks,
       testID: MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION,
-    },
-    ...(isTwoWeeksLater && isFinishSetupVisible
-      ? [
-          {
-            label: strings('money.finish_setup.card.title'),
-            icon: IconName.Clock,
-            onPress: handleFinishSetup,
-            testID: MoneyMoreSheetTestIds.FINISH_SETUP_OPTION,
-            showDot: true,
-            useFinishSetupIcon: true,
-          },
-        ]
-      : []),
-    {
-      label: strings('money.more_sheet.manage_security'),
-      icon: IconName.SecurityTick,
-      onPress: handleManageSecurity,
-      testID: MoneyMoreSheetTestIds.MANAGE_SECURITY_OPTION,
     },
     {
       label: strings('money.more_sheet.what_you_get'),
@@ -172,18 +181,6 @@ const MoneyMoreSheet = () => {
       icon: IconName.Sms,
       onPress: handleContactSupport,
       testID: MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION,
-    },
-    {
-      label: strings('money.more_sheet.refresh_prototype'),
-      icon: IconName.Refresh,
-      onPress: handleRefreshPrototype,
-      testID: MoneyMoreSheetTestIds.REFRESH_OPTION,
-    },
-    {
-      label: strings('money.more_sheet.two_weeks_later_prototype'),
-      icon: IconName.Calendar,
-      onPress: handleAdvanceTwoWeeks,
-      testID: MoneyMoreSheetTestIds.TWO_WEEKS_LATER_OPTION,
     },
   ];
 
@@ -200,6 +197,43 @@ const MoneyMoreSheet = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
+        <Box
+          style={styles.securityRow}
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
+          testID={MoneyMoreSheetTestIds.TWO_STEP_VERIFICATION_OPTION}
+        >
+          <Box style={styles.iconContainer}>
+            <Icon
+              name={IconName.SecurityTick}
+              size={IconSize.Md}
+              color={IconColor.IconDefault}
+            />
+          </Box>
+          <Box style={styles.securityCopy}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('money.more_sheet.manage_security')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              style={styles.securityDescription}
+            >
+              {strings('money.more_sheet.verification_description')}
+            </Text>
+          </Box>
+          <Switch
+            value={isTransactionVerificationEnabled}
+            onValueChange={handleTransactionVerificationChange}
+            trackColor={{
+              false: colors.border.muted,
+              true: colors.primary.default,
+            }}
+            thumbColor={brandColors.white}
+            ios_backgroundColor={colors.border.muted}
+            testID={MoneyMoreSheetTestIds.TWO_STEP_VERIFICATION_SWITCH}
+          />
+        </Box>
         {options.map((item) => (
           <TouchableOpacity
             key={item.testID}
@@ -207,26 +241,12 @@ const MoneyMoreSheet = () => {
             style={styles.row}
             testID={item.testID}
           >
-            <Box style={styles.iconContainer} twClassName="bg-background-muted">
-              {item.useFinishSetupIcon ? (
-                <Image
-                  source={finishSetupIcon}
-                  style={styles.customIcon}
-                  testID={MoneyMoreSheetTestIds.FINISH_SETUP_ICON}
-                />
-              ) : (
-                <Icon
-                  name={item.icon}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
-                />
-              )}
-              {item.showDot && (
-                <View
-                  style={styles.notificationDot}
-                  testID={MoneyMoreSheetTestIds.FINISH_SETUP_DOT}
-                />
-              )}
+            <Box style={styles.iconContainer}>
+              <Icon
+                name={item.icon}
+                size={IconSize.Md}
+                color={IconColor.IconDefault}
+              />
             </Box>
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {item.label}

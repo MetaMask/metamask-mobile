@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { act, fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
@@ -90,13 +91,26 @@ describe('WalletRecoveryPrototype', () => {
     jest.useRealTimers();
   });
 
-  it('continues from Google recovery to the real wallet route', () => {
+  it('shows the Face ID permission prompt before continuing to the wallet', () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
     const { getByTestId, getByText, store } = renderPrototype();
 
     fireEvent.press(getByTestId(WalletRecoveryPrototypeTestIds.GOOGLE_ACCOUNT));
-    expect(getByText('Finding your wallet…')).toBeOnTheScreen();
-
-    act(() => jest.advanceTimersByTime(500));
+    expect(getByText('alex.wallet@gmail.com')).toBeOnTheScreen();
+    const verificationSheet = getByTestId(
+      WalletRecoveryPrototypeTestIds.VERIFICATION_SHEET,
+    );
+    expect(
+      within(verificationSheet).getByText('Verify it’s you'),
+    ).toBeOnTheScreen();
+    expect(
+      within(verificationSheet).getByText('Get a verification code'),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      within(verificationSheet).getByTestId(
+        WalletRecoveryPrototypeTestIds.USE_PASSKEY,
+      ),
+    );
     const passkeySheet = getByTestId(
       WalletRecoveryPrototypeTestIds.PASSKEY_SHEET,
     );
@@ -111,6 +125,24 @@ describe('WalletRecoveryPrototype', () => {
     act(() => jest.advanceTimersByTime(700));
     act(() => jest.advanceTimersByTime(700));
 
+    expect(getByText('Log in with Face ID')).toBeOnTheScreen();
+    expect(getByText('Use Face ID to log into your wallet.')).toBeOnTheScreen();
+    expect(mockReplace).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(WalletRecoveryPrototypeTestIds.ENABLE_FACE_ID));
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      'Do you want to allow “MetaMask” to use Face ID?',
+      'Allow MetaMask to use Face ID to unlock the app',
+      expect.arrayContaining([
+        expect.objectContaining({ text: 'Don’t Allow' }),
+        expect.objectContaining({ text: 'OK' }),
+      ]),
+    );
+    const buttons = alertSpy.mock.calls[0][2];
+    buttons?.[0]?.onPress?.();
+    buttons?.[1]?.onPress?.();
+    expect(mockReplace).toHaveBeenCalledTimes(2);
     expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
     expect(
       store.getState().user.onboardingStepperProgress[
@@ -151,22 +183,33 @@ describe('WalletRecoveryPrototype', () => {
     const { getByTestId, getByText, queryByTestId } = renderPrototype();
 
     fireEvent.press(getByTestId(WalletRecoveryPrototypeTestIds.GOOGLE_ACCOUNT));
-    act(() => jest.advanceTimersByTime(500));
+    const verificationSheet = getByTestId(
+      WalletRecoveryPrototypeTestIds.VERIFICATION_SHEET,
+    );
+    expect(
+      within(verificationSheet).getByText('Verify it’s you'),
+    ).toBeOnTheScreen();
+    expect(
+      within(verificationSheet).queryByTestId(
+        WalletRecoveryPrototypeTestIds.USE_PASSWORD,
+      ),
+    ).toBeNull();
+    fireEvent.press(
+      within(verificationSheet).getByTestId(
+        WalletRecoveryPrototypeTestIds.USE_PASSKEY,
+      ),
+    );
     fireEvent.press(getByText('Other options'));
 
-    expect(getByText('Verify it’s you')).toBeOnTheScreen();
     expect(
-      getByTestId(WalletRecoveryPrototypeTestIds.USE_PASSWORD),
+      getByTestId(WalletRecoveryPrototypeTestIds.VERIFICATION_SHEET),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(WalletRecoveryPrototypeTestIds.USE_SMS),
+      getByTestId(WalletRecoveryPrototypeTestIds.GET_VERIFICATION_CODE),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(WalletRecoveryPrototypeTestIds.USE_AUTHENTICATOR),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(WalletRecoveryPrototypeTestIds.REFRESH),
-    ).not.toBeOnTheScreen();
+      queryByTestId(WalletRecoveryPrototypeTestIds.USE_PASSWORD),
+    ).toBeNull();
   });
 
   it('opens Money after passkey verification', () => {

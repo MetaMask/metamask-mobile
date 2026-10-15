@@ -665,7 +665,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       dispatch(
         setOnboardingStepperStep(
           STEPPER_IDS.MONEY_RECOVERY_VERIFICATION_PENDING,
-          1,
+          0,
         ),
       );
     }

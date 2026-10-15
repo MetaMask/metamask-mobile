@@ -115,13 +115,20 @@ describe('Settings', () => {
     expect(advancedSettings).toBeDefined();
   });
 
-  it('renders updated security and advanced descriptions', () => {
+  it('renders the redesigned settings sections and entries', () => {
     const { getByText } = renderWithProvider(<Settings />, {
       state: initialState,
     });
 
-    expect(getByText(strings('app_settings.advanced_desc'))).toBeOnTheScreen();
-    expect(getByText(strings('app_settings.security_desc'))).toBeOnTheScreen();
+    expect(getByText('General')).toBeOnTheScreen();
+    expect(getByText('Security and privacy')).toBeOnTheScreen();
+    expect(getByText('Transactions and assets')).toBeOnTheScreen();
+    expect(getByText('More')).toBeOnTheScreen();
+    expect(getByText('Preferences and display')).toBeOnTheScreen();
+    expect(getByText('Security and password')).toBeOnTheScreen();
+    expect(getByText('Assets')).toBeOnTheScreen();
+    expect(getByText('Browser')).toBeOnTheScreen();
+    expect(getByText('Developer features')).toBeOnTheScreen();
   });
   it('does not render contacts (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
@@ -198,6 +205,22 @@ describe('Settings', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
   });
 
+  it('filters settings from the header search', () => {
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <Settings />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId(SettingsViewSelectorsIDs.SEARCH_BUTTON));
+    fireEvent.changeText(
+      getByTestId(SettingsViewSelectorsIDs.SEARCH_INPUT),
+      'privacy',
+    );
+
+    expect(getByText('Privacy')).toBeOnTheScreen();
+    expect(queryByText('Preferences and display')).not.toBeOnTheScreen();
+  });
+
   describe('Feature Flag Override', () => {
     const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
@@ -219,18 +242,16 @@ describe('Settings', () => {
       }
     });
 
-    it('renders feature flag override drawer when METAMASK_ENVIRONMENT is not production', () => {
+    it('opens Developer options from Developer features when enabled', () => {
       process.env.METAMASK_ENVIRONMENT = 'development';
 
-      const { getByText } = renderWithProvider(<Settings />, {
+      const { getByTestId } = renderWithProvider(<Settings />, {
         state: initialState,
       });
 
-      const featureFlagOverrideTitle = getByText(
-        strings('app_settings.feature_flag_override.title'),
-      );
+      fireEvent.press(getByTestId(SettingsViewSelectorsIDs.DEVELOPER_FEATURES));
 
-      expect(featureFlagOverrideTitle).toBeDefined();
+      expect(mockNavigate).toHaveBeenCalledWith('DeveloperOptions');
     });
   });
 });

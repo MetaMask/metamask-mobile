@@ -30,6 +30,10 @@ class AppDelegate: ExpoAppDelegate {
   private var reactNativeFactory: RCTReactNativeFactory?
   private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
   private var isForwardingNotificationResponse = false
+  private var launchOptionsForReactNative: [UIApplication.LaunchOptionsKey: Any]?
+  private var connectedWindowScene: UIWindowScene?
+  private weak var connectedSceneDelegate: SceneDelegate?
+  private var didStartReactNative = false
 
   @objc static var braze: Braze?
 
@@ -55,9 +59,7 @@ class AppDelegate: ExpoAppDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-
-    window = UIWindow(frame: UIScreen.main.bounds)
-    window?.makeKeyAndVisible()
+    launchOptionsForReactNative = launchOptions
 
     // Safe Firebase configuration — validates plist before configure() to prevent
     // FIRInstallations from throwing an uncatchable NSException on launch when
@@ -71,9 +73,6 @@ class AppDelegate: ExpoAppDelegate {
        apiKey.hasPrefix("AIzaSy") {
       FirebaseApp.configure()
     }
-
-    let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
-    let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
@@ -110,14 +109,8 @@ class AppDelegate: ExpoAppDelegate {
       BrazeHelperPopulateInitialPayload(launchOptions)
     }
 
-    factory.startReactNative(
-      withModuleName: "MetaMask",
-      in: window,
-      initialProperties: initialProps,
-      launchOptions: launchOptions
-    )
-
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    startReactNativeIfNeeded()
 
     // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations.
     // Braze (push.automation=true) and Notifee both try to set themselves as delegate
@@ -126,6 +119,48 @@ class AppDelegate: ExpoAppDelegate {
     claimNotificationCenterDelegate()
 
     return superResult
+  }
+
+  func application(
+    _ application: UIApplication,
+    configurationForConnecting connectingSceneSession: UISceneSession,
+    options: UIScene.ConnectionOptions
+  ) -> UISceneConfiguration {
+    let configuration = UISceneConfiguration(
+      name: "Default Configuration",
+      sessionRole: connectingSceneSession.role
+    )
+    configuration.delegateClass = SceneDelegate.self
+    return configuration
+  }
+
+  func connectReactNative(to windowScene: UIWindowScene, sceneDelegate: SceneDelegate) {
+    connectedWindowScene = windowScene
+    connectedSceneDelegate = sceneDelegate
+    startReactNativeIfNeeded()
+  }
+
+  private func startReactNativeIfNeeded() {
+    guard !didStartReactNative,
+      let factory = reactNativeFactory,
+      let windowScene = connectedWindowScene
+    else {
+      return
+    }
+
+    didStartReactNative = true
+    let window = UIWindow(windowScene: windowScene)
+    self.window = window
+    connectedSceneDelegate?.window = window
+
+    let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
+    factory.startReactNative(
+      withModuleName: "MetaMask",
+      in: window,
+      initialProperties: ["foxCode": foxCode],
+      launchOptions: launchOptionsForReactNative
+    )
+    window.makeKeyAndVisible()
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
@@ -288,6 +323,23 @@ extension AppDelegate: BrazeDelegate {
       return false
     }
     return false
+  }
+}
+
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+  var window: UIWindow?
+
+  func scene(
+    _ scene: UIScene,
+    willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions
+  ) {
+    guard let windowScene = scene as? UIWindowScene,
+      let appDelegate = UIApplication.shared.delegate as? AppDelegate
+    else {
+      return
+    }
+    appDelegate.connectReactNative(to: windowScene, sceneDelegate: self)
   }
 }
 

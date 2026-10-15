@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 import {
   type RouteProp,
@@ -32,14 +26,10 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { MoneyModalsNavigationParamList } from '../../types/navigation';
 import { selectSeedlessOnboardingUserEmail } from '../../../../../selectors/seedlessOnboardingController';
 import { useTheme } from '../../../../../util/theme';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
 import MoneyDivider from '../MoneyDivider';
@@ -49,36 +39,37 @@ import {
 } from '../../constants/moneyPasskey';
 import { MoneyAddPasskeySheetTestIds } from './MoneyAddPasskeySheet.testIds';
 
-type PasskeyFlowStep =
-  | 'verifyFace'
-  | 'confirm'
-  | 'options'
-  | 'signing'
-  | 'done';
+type PasskeyFlowStep = 'options' | 'confirm' | 'signing' | 'done';
 
 const SIGNING_HOLD_MS = 1200;
 const DONE_HOLD_MS = 900;
 
 const styles = StyleSheet.create({
   content: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingBottom: 24,
   },
   optionRow: {
-    minHeight: 58,
+    minHeight: 66,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
   optionDivider: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 36,
+    marginLeft: 52,
   },
-  centeredText: {
-    textAlign: 'center',
+  providerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  verifySpinner: {
-    marginTop: 16,
+  heroIcon: {
+    height: 72,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   statusArea: {
     height: 240,
@@ -124,12 +115,16 @@ const MoneyAddPasskeySheet = () => {
     useRoute<
       RouteProp<MoneyModalsNavigationParamList, 'MoneyAddPasskeySheet'>
     >();
+  const continueToAuthenticatorSetup =
+    route.params?.continueToAuthenticatorSetup ?? false;
   const returnToMoneyHome = route.params?.returnToMoneyHome ?? false;
+  const returnToSecurity = route.params?.returnToSecurity ?? false;
+  const showAdditionalFactorPrompt =
+    route.params?.showAdditionalFactorPrompt ?? false;
   const email = useSelector(selectSeedlessOnboardingUserEmail);
   const { colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { registerPasskey } = useMoneyFinishSetup();
-  const [flowStep, setFlowStep] = useState<PasskeyFlowStep>('verifyFace');
+  const [flowStep, setFlowStep] = useState<PasskeyFlowStep>('options');
   const [selectedDestination, setSelectedDestination] =
     useState<MoneyPasskeyMethod>('one_password');
 
@@ -137,50 +132,7 @@ const MoneyAddPasskeySheet = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const showSuccessToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ToastIconName.Check,
-      iconColor: colors.success.default,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('money.add_passkey_sheet.success_toast'),
-          isBold: true,
-        },
-      ],
-    });
-  }, [colors.success.default, toastRef]);
-
   useEffect(() => {
-    if (flowStep === 'verifyFace') {
-      let isActive = true;
-      const verifyFace = async () => {
-        try {
-          const isRunningOnEmulator = await isEmulator();
-          if (!isRunningOnEmulator) {
-            await authenticateAsync({
-              promptMessage: strings(
-                'money.add_passkey_sheet.system_face_id_prompt',
-              ),
-              cancelLabel: strings('money.passkey_details.cancel'),
-              disableDeviceFallback: true,
-            });
-          }
-        } catch {
-          // The design prototype assumes verification succeeds.
-        } finally {
-          if (isActive) {
-            setFlowStep('confirm');
-          }
-        }
-      };
-      verifyFace();
-      return () => {
-        isActive = false;
-      };
-    }
-
     if (flowStep === 'confirm' || flowStep === 'options') {
       return undefined;
     }
@@ -193,26 +145,56 @@ const MoneyAddPasskeySheet = () => {
     const timer = setTimeout(() => {
       registerPasskey(selectedDestination);
       sheetRef.current?.onCloseBottomSheet(() => {
-        if (returnToMoneyHome) {
+        if (continueToAuthenticatorSetup) {
+          navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
+            entryPoint: 'protect_money',
+          });
+        } else if (returnToSecurity) {
+          navigation.goBack();
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
+            successToast: strings('money.add_passkey_sheet.success_toast'),
+          });
+        } else if (showAdditionalFactorPrompt) {
+          navigation.goBack();
+          navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
+            entryPoint: 'additional_factor',
+          });
+        } else if (returnToMoneyHome) {
           navigation.goBack();
         }
-        showSuccessToast();
       });
     }, DONE_HOLD_MS);
     return () => clearTimeout(timer);
   }, [
+    continueToAuthenticatorSetup,
     flowStep,
     navigation,
     registerPasskey,
     returnToMoneyHome,
+    returnToSecurity,
     selectedDestination,
-    showSuccessToast,
+    showAdditionalFactorPrompt,
   ]);
 
   const account = email || strings('money.add_passkey_sheet.your_account');
 
-  const handleContinue = useCallback(() => {
-    setFlowStep('signing');
+  const handleContinue = useCallback(async () => {
+    try {
+      const isRunningOnEmulator = await isEmulator();
+      if (!isRunningOnEmulator) {
+        await authenticateAsync({
+          promptMessage: strings(
+            'money.add_passkey_sheet.system_face_id_prompt',
+          ),
+          cancelLabel: strings('money.passkey_details.cancel'),
+          disableDeviceFallback: true,
+        });
+      }
+    } catch {
+      // The design prototype assumes verification succeeds.
+    } finally {
+      setFlowStep('signing');
+    }
   }, []);
 
   return (
@@ -223,43 +205,25 @@ const MoneyAddPasskeySheet = () => {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        {strings('money.add_passkey_sheet.sign_in')}
+        {null}
       </BottomSheetHeader>
       <Box style={styles.content}>
-        {flowStep === 'verifyFace' && (
-          <Box style={styles.statusArea}>
-            <ActivityIndicator
-              size="small"
-              color={colors.primary.default}
-              style={styles.verifySpinner}
-            />
-          </Box>
-        )}
-
         {flowStep === 'confirm' && (
           <>
-            <Box
-              twClassName="h-16 items-center justify-center mb-2"
-              accessibilityElementsHidden
-            >
+            <Box style={styles.heroIcon} accessibilityElementsHidden>
               <Icon
                 name={IconName.FaceId}
                 size={IconSize.Xl}
                 color={IconColor.PrimaryDefault}
               />
             </Box>
-            <Text
-              variant={TextVariant.HeadingSm}
-              fontWeight={FontWeight.Bold}
-              style={styles.centeredText}
-            >
+            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
               {strings('money.add_passkey_sheet.confirm_title')}
             </Text>
             <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              style={styles.centeredText}
-              twClassName="mt-2 px-2"
+              twClassName="mt-3"
             >
               {strings('money.add_passkey_sheet.confirm_description', {
                 account,
@@ -276,51 +240,32 @@ const MoneyAddPasskeySheet = () => {
               >
                 {strings('money.add_passkey_sheet.continue')}
               </Button>
-              <Pressable
-                onPress={() => setFlowStep('options')}
-                accessibilityRole="button"
-                testID={MoneyAddPasskeySheetTestIds.MORE_OPTIONS_BUTTON}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.PrimaryDefault}
-                  style={styles.centeredText}
-                  twClassName="py-2"
-                >
-                  {strings('money.add_passkey_sheet.more_options')}
-                </Text>
-              </Pressable>
             </Box>
           </>
         )}
 
         {flowStep === 'options' && (
           <>
-            <Box twClassName="h-12 items-center justify-center">
+            <Box style={styles.heroIcon} accessibilityElementsHidden>
               <Icon
                 name={IconName.FaceId}
-                size={IconSize.Lg}
+                size={IconSize.Xl}
                 color={IconColor.PrimaryDefault}
               />
             </Box>
-            <Text
-              variant={TextVariant.HeadingSm}
-              fontWeight={FontWeight.Bold}
-              style={styles.centeredText}
-            >
-              {strings('money.add_passkey_sheet.choose_method_title')}
+            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+              {strings('money.add_passkey_sheet.options_title')}
             </Text>
             <Text
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              style={styles.centeredText}
-              twClassName="mt-1"
+              twClassName="mt-3"
             >
-              {strings('money.add_passkey_sheet.choose_method_description', {
+              {strings('money.add_passkey_sheet.options_description', {
                 account,
               })}
             </Text>
-            <Box twClassName="rounded-xl bg-muted px-3 overflow-hidden mt-4">
+            <Box twClassName="rounded-xl bg-muted px-4 overflow-hidden mt-4">
               {OPTIONS.map((option, index) => {
                 const selected = selectedDestination === option.id;
                 return (
@@ -332,11 +277,13 @@ const MoneyAddPasskeySheet = () => {
                       accessibilityState={{ selected }}
                       testID={`${MoneyAddPasskeySheetTestIds.CONTAINER}-option-${option.id}`}
                     >
-                      <Icon
-                        name={option.icon}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
+                      <Box style={styles.providerIcon} twClassName="bg-default">
+                        <Icon
+                          name={option.icon}
+                          size={IconSize.Md}
+                          color={IconColor.IconDefault}
+                        />
+                      </Box>
                       <Text variant={TextVariant.BodyMd} twClassName="flex-1">
                         {strings(option.labelKey)}
                       </Text>
@@ -355,15 +302,24 @@ const MoneyAddPasskeySheet = () => {
                 );
               })}
             </Box>
-            <Box twClassName="pt-5">
+            <Box twClassName="gap-3 pt-5">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 isFullWidth
-                onPress={handleContinue}
+                onPress={() => setFlowStep('confirm')}
                 testID={MoneyAddPasskeySheetTestIds.ADD_BUTTON}
               >
-                {strings('money.add_passkey_sheet.continue')}
+                {strings('money.add_passkey_sheet.add_button')}
+              </Button>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={() => setSelectedDestination('passwords')}
+                testID={MoneyAddPasskeySheetTestIds.MORE_OPTIONS_BUTTON}
+              >
+                {strings('money.add_passkey_sheet.more_options')}
               </Button>
             </Box>
           </>

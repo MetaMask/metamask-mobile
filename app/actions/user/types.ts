@@ -37,6 +37,7 @@ export enum UserActionType {
   SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
   SET_ONBOARDING_STEPPER_STEP = 'SET_ONBOARDING_STEPPER_STEP',
   SET_MONEY_PASSKEY_NAMES = 'SET_MONEY_PASSKEY_NAMES',
+  SET_MONEY_EMAIL = 'SET_MONEY_EMAIL',
   SET_MONEY_SMS_PHONE_NUMBER = 'SET_MONEY_SMS_PHONE_NUMBER',
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
 }
@@ -165,6 +166,10 @@ export type SetMoneySmsPhoneNumberAction =
     payload: { phoneNumber: string };
   };
 
+export type SetMoneyEmailAction = Action<UserActionType.SET_MONEY_EMAIL> & {
+  payload: { email: string };
+};
+
 export type SetAppInstallEventFiredAction =
   Action<UserActionType.SET_APP_INSTALL_EVENT_FIRED>;
 
@@ -205,5 +210,6 @@ export type UserAction =
   | SetTokenIndicatorsAction
   | SetOnboardingStepperStepAction
   | SetMoneyPasskeyNamesAction
+  | SetMoneyEmailAction
   | SetMoneySmsPhoneNumberAction
   | SetAppInstallEventFiredAction;

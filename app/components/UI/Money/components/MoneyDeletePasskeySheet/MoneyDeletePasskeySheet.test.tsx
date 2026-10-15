@@ -8,6 +8,7 @@ import { MoneyDeletePasskeySheetTestIds } from './MoneyDeletePasskeySheet.testId
 const mockNavigate = jest.fn();
 const mockCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 let mockHasAlternativeSecurityMethod = true;
+let mockIsEmailVerified = false;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -22,6 +23,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useMoneyFinishSetup', () => ({
   useMoneyFinishSetup: () => ({
+    isEmailVerified: mockIsEmailVerified,
     passkeys: [{ name: 'Passkey #1' }],
   }),
 }));
@@ -57,6 +59,7 @@ describe('MoneyDeletePasskeySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasAlternativeSecurityMethod = true;
+    mockIsEmailVerified = false;
   });
 
   it('confirms deletion in the bottom sheet', () => {
@@ -64,7 +67,7 @@ describe('MoneyDeletePasskeySheet', () => {
       <MoneyDeletePasskeySheet />,
     );
 
-    expect(getAllByText('Delete passkey')).toHaveLength(2);
+    expect(getAllByText('Remove passkey')).toHaveLength(2);
     fireEvent.press(getByTestId(MoneyDeletePasskeySheetTestIds.CONFIRM_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
@@ -81,9 +84,24 @@ describe('MoneyDeletePasskeySheet', () => {
       <MoneyDeletePasskeySheet />,
     );
 
-    expect(getByText("Passkey can't be deleted")).toBeOnTheScreen();
+    expect(getByText("Passkey can't be removed")).toBeOnTheScreen();
     expect(
       queryByTestId(MoneyDeletePasskeySheetTestIds.CONFIRM_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('allows deleting the only passkey when email is verified', () => {
+    mockHasAlternativeSecurityMethod = false;
+    mockIsEmailVerified = true;
+    const { getByTestId } = renderWithProvider(<MoneyDeletePasskeySheet />);
+
+    fireEvent.press(getByTestId(MoneyDeletePasskeySheetTestIds.CONFIRM_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: { type: 'delete-passkey', passkeyIndex: 0 },
+      },
+    });
   });
 });

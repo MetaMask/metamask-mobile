@@ -1,40 +1,36 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = ({ theme }: { theme: Theme }) =>
+const styleSheet = ({ theme: _theme }: { theme: Theme }) =>
   StyleSheet.create({
     list: {
-      paddingBottom: 16,
+      paddingBottom: 8,
     },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 16,
+      gap: 12,
       paddingHorizontal: 16,
-      paddingVertical: 8,
-      minHeight: 59,
+      paddingVertical: 6,
+      minHeight: 56,
+    },
+    securityRow: {
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      minHeight: 68,
+    },
+    securityCopy: {
+      flex: 1,
+    },
+    securityDescription: {
+      marginTop: 4,
     },
     iconContainer: {
-      position: 'relative',
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 24,
+      height: 24,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    customIcon: {
-      width: 20,
-      height: 20,
-      tintColor: theme.colors.icon.alternative,
-    },
-    notificationDot: {
-      position: 'absolute',
-      top: -2,
-      right: -2,
-      width: 6,
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: theme.colors.error.default,
     },
   });
 

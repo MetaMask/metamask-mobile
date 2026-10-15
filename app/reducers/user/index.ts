@@ -37,6 +37,7 @@ export const userInitialState: UserState = {
   tokenIndicators: [],
   onboardingStepperProgress: {},
   moneyPasskeyNames: {},
+  moneyEmail: '',
   moneySmsPhoneNumber: '',
   appInstallEventFired: false,
 };
@@ -209,6 +210,11 @@ const userReducer = (
       return {
         ...state,
         moneyPasskeyNames: action.payload.names,
+      };
+    case UserActionType.SET_MONEY_EMAIL:
+      return {
+        ...state,
+        moneyEmail: action.payload.email,
       };
     case UserActionType.SET_MONEY_SMS_PHONE_NUMBER:
       return {

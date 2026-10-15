@@ -21,6 +21,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useMoneySecurityMethods } from '../../../../../UI/Money/hooks/useMoneySecurityMethods';
 import { completePrototypeMoneySend } from '../../../../../UI/Money/utils/completePrototypeMoneySend';
+import {
+  beginPrototypeMoneySendFallback,
+  resetPrototypeMoneySendFallback,
+} from '../../../../../UI/Money/constants/moneySendPrototype';
 
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../context/confirmation-context');
@@ -40,6 +44,7 @@ jest.mock('@react-navigation/native', () => ({
 
 function render(props: {
   alertTitle?: string;
+  amountFiat?: string;
   isDisabled?: boolean;
   onContinue?: () => void;
   stage?: CustomAmountStage;
@@ -47,6 +52,7 @@ function render(props: {
   return renderWithProvider(
     <CustomAmountConfirmButton
       alertTitle={props.alertTitle}
+      amountFiat={props.amountFiat}
       isDisabled={props.isDisabled ?? false}
       onContinue={props.onContinue}
       stage={props.stage ?? CustomAmountStage.ShowTotals}
@@ -80,6 +86,7 @@ describe('CustomAmountConfirmButton', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    resetPrototypeMoneySendFallback();
 
     useRouteMock.mockReturnValue({
       key: 'mock-route',
@@ -227,7 +234,7 @@ describe('CustomAmountConfirmButton', () => {
       txParams: { from: '0x123' },
     } as never);
 
-    const { getByTestId } = render({});
+    const { getByTestId } = render({ amountFiat: '42.5' });
 
     await act(async () => {
       fireEvent.press(
@@ -238,7 +245,37 @@ describe('CustomAmountConfirmButton', () => {
     expect(onConfirmMock).not.toHaveBeenCalled();
     expect(navigateMock).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
-      params: { action: { type: 'verify-transaction' } },
+      params: {
+        action: { type: 'verify-transaction', amountFiat: '42.5' },
+      },
+    });
+  });
+
+  it('opens verification after the fallback completes the normal send flow', async () => {
+    beginPrototypeMoneySendFallback();
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+      generalAlerts: [],
+      fieldAlerts: [],
+      hasBlockingAlerts: true,
+    } as unknown as AlertsContextParams);
+
+    const { getByTestId } = render({
+      amountFiat: '20',
+      isDisabled: true,
+    });
+    const button = getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
+    expect(button).toBeEnabled();
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    expect(navigateMock).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
+      params: {
+        action: { type: 'verify-transaction', amountFiat: '20' },
+      },
     });
   });
 

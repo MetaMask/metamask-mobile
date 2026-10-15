@@ -5,9 +5,17 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, StyleSheet, TextInput } from 'react-native';
+import BigNumber from 'bignumber.js';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  TextInput,
+} from 'react-native';
 import {
   type RouteProp,
+  StackActions,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -40,9 +48,12 @@ import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
 import { useMoneySecurityToast } from '../../hooks/useMoneySecurityToast';
 import type { MoneyModalsNavigationParamList } from '../../types/navigation';
 import { completePrototypeMoneySend } from '../../utils/completePrototypeMoneySend';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneySecurityVerificationSheetTestIds } from './MoneySecurityVerificationSheet.testIds';
+import MoneySecuritySetupImage from '../../../../../images/money-security-setup.png';
+import { MONEY_PASSKEY_METHOD_NAMES } from '../../constants/moneyPasskey';
 
-type VerificationMethod = 'passkey' | 'authenticator' | 'sms';
+type VerificationMethod = 'passkey' | 'email' | 'authenticator' | 'sms';
 
 const styles = StyleSheet.create({
   content: {
@@ -75,7 +86,57 @@ const styles = StyleSheet.create({
   centeredText: {
     textAlign: 'center',
   },
+  transactionContent: {
+    paddingHorizontal: 18,
+    paddingBottom: 16,
+  },
+  transactionArtwork: {
+    width: 96,
+    height: 96,
+  },
+  transactionDescription: {
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  transactionPrimaryButton: {
+    marginTop: 20,
+  },
+  passkeyContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  passkeyHeroIcon: {
+    height: 56,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  passkeyDescription: {
+    marginTop: 20,
+  },
+  passkeyStatus: {
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  passkeyDoneRing: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
+
+type PasskeyVerificationStep = 'signing' | 'done' | null;
+
+const maskEmail = (email: string) => {
+  const [localPart, domain] = email.split('@');
+  if (!localPart || !domain) {
+    return email;
+  }
+  return `${localPart[0]}••••@${domain}`;
+};
 
 interface MethodButtonProps {
   icon: IconName;
@@ -133,8 +194,15 @@ const MoneySecurityVerificationSheet = () => {
         'MoneySecurityVerificationSheet'
       >
     >();
-  const { themeAppearance } = useTheme();
-  const { deletePasskey, passkeyCount } = useMoneyFinishSetup();
+  const { colors, themeAppearance } = useTheme();
+  const {
+    deletePasskey,
+    isEmailVerified,
+    moneyEmail,
+    passkeyCount,
+    passkeys,
+    removeEmail,
+  } = useMoneyFinishSetup();
   const {
     defaultVerificationMethod,
     isAuthenticatorAdded,
@@ -151,7 +219,8 @@ const MoneySecurityVerificationSheet = () => {
   const hasAutoRoutedSmsRef = useRef(false);
   const [code, setCode] = useState('');
   const [isCodeInvalid, setIsCodeInvalid] = useState(false);
-  const [isVerifyingPasskey, setIsVerifyingPasskey] = useState(false);
+  const [passkeyVerificationStep, setPasskeyVerificationStep] =
+    useState<PasskeyVerificationStep>(null);
   const [isCompletingTransaction, setIsCompletingTransaction] = useState(false);
 
   const availableMethods = useMemo(() => {
@@ -161,6 +230,9 @@ const MoneySecurityVerificationSheet = () => {
     if (passkeyCount - (action.type === 'delete-passkey' ? 1 : 0) > 0) {
       methods.push('passkey');
     }
+    if (isEmailVerified && action.type !== 'remove-email') {
+      methods.push('email');
+    }
     if (isAuthenticatorAdded && action.type !== 'remove-authenticator') {
       methods.push('authenticator');
     }
@@ -169,10 +241,26 @@ const MoneySecurityVerificationSheet = () => {
     }
 
     return methods;
-  }, [isAuthenticatorAdded, isSmsAdded, passkeyCount, route.params]);
+  }, [
+    isAuthenticatorAdded,
+    isEmailVerified,
+    isSmsAdded,
+    passkeyCount,
+    route.params,
+  ]);
 
   const isTransactionVerification =
     route.params.action.type === 'verify-transaction';
+  const usesUpdatedVerificationChooser =
+    isTransactionVerification ||
+    route.params.action.type === 'enable-transaction-verification' ||
+    route.params.action.type === 'disable-transaction-verification' ||
+    route.params.action.type === 'remove-authenticator' ||
+    route.params.action.type === 'remove-sms';
+  const transactionAmount =
+    route.params.action.type === 'verify-transaction'
+      ? moneyFormatUsd(new BigNumber(route.params.action.amountFiat || '20'))
+      : undefined;
   const configuredDefaultMethod: VerificationMethod =
     defaultVerificationMethod === 'passkeys'
       ? 'passkey'
@@ -188,7 +276,9 @@ const MoneySecurityVerificationSheet = () => {
       route.params.showMethodChooser && availableMethods.length > 1
         ? null
         : isTransactionVerification
-          ? resolvedDefaultMethod
+          ? isEmailVerified && availableMethods.includes('passkey')
+            ? null
+            : resolvedDefaultMethod
           : availableMethods.length === 1
             ? availableMethods[0]
             : null,
@@ -248,7 +338,57 @@ const MoneySecurityVerificationSheet = () => {
     switch (action.type) {
       case 'disable-transaction-verification':
         setTransactionVerificationEnabled(false);
-        destination = () => navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+        destination = action.returnToPrevious
+          ? () => {
+              setTimeout(
+                () =>
+                  showSuccessToast(
+                    strings('money.security.disabled_success_toast'),
+                  ),
+                300,
+              );
+            }
+          : action.returnToMoneyHome
+            ? () => {
+                navigation.navigate(Routes.HOME_TABS, {
+                  screen: Routes.MONEY.ROOT,
+                  params: { screen: Routes.MONEY.HOME },
+                });
+                setTimeout(
+                  () =>
+                    showSuccessToast(
+                      strings('money.security.disabled_success_toast'),
+                    ),
+                  300,
+                );
+              }
+            : () => navigation.navigate(Routes.MONEY.MANAGE_SECURITY);
+        break;
+      case 'enable-transaction-verification':
+        setTransactionVerificationEnabled(true);
+        destination = action.returnToPrevious
+          ? () => {
+              setTimeout(
+                () =>
+                  showSuccessToast(
+                    strings('money.security.enabled_success_toast'),
+                  ),
+                300,
+              );
+            }
+          : () => {
+              navigation.navigate(Routes.HOME_TABS, {
+                screen: Routes.MONEY.ROOT,
+                params: { screen: Routes.MONEY.HOME },
+              });
+              setTimeout(
+                () =>
+                  showSuccessToast(
+                    strings('money.security.enabled_success_toast'),
+                  ),
+                300,
+              );
+            };
         break;
       case 'delete-passkey':
         deletePasskey(action.passkeyIndex);
@@ -258,6 +398,13 @@ const MoneySecurityVerificationSheet = () => {
           });
           showSuccessToast(strings('money.passkey_details.removed_toast'));
         };
+        break;
+      case 'remove-email':
+        removeEmail();
+        destination = () =>
+          navigation.navigate(Routes.MONEY.MANAGE_SECURITY, {
+            successToast: strings('money.email_details.removed_toast'),
+          });
         break;
       case 'remove-authenticator':
         removeAuthenticator();
@@ -292,6 +439,7 @@ const MoneySecurityVerificationSheet = () => {
     deletePasskey,
     navigation,
     removeAuthenticator,
+    removeEmail,
     removeSms,
     route.params,
     setTransactionVerificationEnabled,
@@ -361,6 +509,65 @@ const MoneySecurityVerificationSheet = () => {
     ],
   );
 
+  const handleEmailMethod = useCallback(() => {
+    isRoutingToMethodRef.current = true;
+    if (isTransactionVerification) {
+      const parentNavigation =
+        navigation.getParent<AppNavigationProp>() ?? navigation;
+      parentNavigation.reset({
+        index: 1,
+        routes: [
+          {
+            name: Routes.HOME_TABS,
+            params: {
+              screen: Routes.MONEY.ROOT,
+              params: { screen: Routes.MONEY.HOME },
+            },
+          },
+          {
+            name: Routes.MONEY.EMAIL_CODE_VERIFICATION,
+            params: {
+              email: moneyEmail,
+              verificationAction: route.params.action,
+            },
+          },
+        ],
+      });
+      return;
+    }
+    navigation.dispatch(
+      StackActions.replace(Routes.MONEY.EMAIL_CODE_VERIFICATION, {
+        email: moneyEmail,
+        verificationAction: route.params.action,
+      }),
+    );
+  }, [isTransactionVerification, moneyEmail, navigation, route.params.action]);
+
+  const verificationCodeMethod = (
+    ['email', 'sms', 'authenticator'] as VerificationMethod[]
+  ).find((method) => availableMethods.includes(method));
+
+  const handleVerificationCodeMethod = useCallback(() => {
+    switch (verificationCodeMethod) {
+      case 'email':
+        handleEmailMethod();
+        break;
+      case 'sms':
+        handleSmsMethod();
+        break;
+      case 'authenticator':
+        handleAuthenticatorMethod();
+        break;
+      default:
+        break;
+    }
+  }, [
+    handleAuthenticatorMethod,
+    handleEmailMethod,
+    handleSmsMethod,
+    verificationCodeMethod,
+  ]);
+
   useEffect(() => {
     if (
       selectedMethod !== 'authenticator' ||
@@ -402,15 +609,27 @@ const MoneySecurityVerificationSheet = () => {
   }, []);
 
   useEffect(() => {
-    if (!isVerifyingPasskey) {
+    if (selectedMethod !== 'passkey') {
+      setPasskeyVerificationStep(null);
       return undefined;
     }
-    const timer = setTimeout(completeAction, 700);
+    if (passkeyVerificationStep === null) {
+      setPasskeyVerificationStep('signing');
+      return undefined;
+    }
+    if (passkeyVerificationStep === 'signing') {
+      const timer = setTimeout(() => setPasskeyVerificationStep('done'), 1200);
+      return () => clearTimeout(timer);
+    }
+    const timer = setTimeout(completeAction, 900);
     return () => clearTimeout(timer);
-  }, [completeAction, isVerifyingPasskey]);
+  }, [completeAction, passkeyVerificationStep, selectedMethod]);
 
   useEffect(() => {
-    if (selectedMethod !== 'sms' || code.length !== 6) {
+    if (
+      (selectedMethod !== 'sms' && selectedMethod !== 'email') ||
+      code.length !== 6
+    ) {
       return undefined;
     }
 
@@ -431,6 +650,8 @@ const MoneySecurityVerificationSheet = () => {
     switch (method) {
       case 'passkey':
         return IconName.Key;
+      case 'email':
+        return IconName.Mail;
       case 'authenticator':
         return IconName.QrCode;
       case 'sms':
@@ -442,6 +663,8 @@ const MoneySecurityVerificationSheet = () => {
     switch (method) {
       case 'passkey':
         return strings('money.security.verify_with_passkey');
+      case 'email':
+        return strings('money.security.verify_with_email');
       case 'authenticator':
         return strings('money.security.verify_with_authenticator');
       case 'sms':
@@ -453,6 +676,8 @@ const MoneySecurityVerificationSheet = () => {
     switch (method) {
       case 'passkey':
         return MoneySecurityVerificationSheetTestIds.PASSKEY_METHOD;
+      case 'email':
+        return MoneySecurityVerificationSheetTestIds.EMAIL_METHOD;
       case 'authenticator':
         return MoneySecurityVerificationSheetTestIds.AUTHENTICATOR_METHOD;
       case 'sms':
@@ -477,10 +702,183 @@ const MoneySecurityVerificationSheet = () => {
   const alternativeMethods = availableMethods.filter(
     (method) => method !== resolvedDefaultMethod,
   );
-  const codeDescription = strings('money.security.sms_code_description');
+  const codeDescription = strings(
+    selectedMethod === 'email'
+      ? 'money.security.email_code_description'
+      : 'money.security.sms_code_description',
+  );
 
   if (isCompletingTransaction) {
     return null;
+  }
+
+  if (selectedMethod === 'passkey') {
+    const passkeyMethod = passkeys[0]?.method ?? 'passwords';
+    const account = moneyEmail ? maskEmail(moneyEmail) : 'your Money account';
+
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={handleSheetGoBack}
+        testID={MoneySecurityVerificationSheetTestIds.CONTAINER}
+      >
+        <BottomSheetHeader onClose={handleTransactionMethodDismiss}>
+          {null}
+        </BottomSheetHeader>
+        <Box style={styles.passkeyContent}>
+          <Box style={styles.passkeyHeroIcon} accessibilityElementsHidden>
+            <Icon
+              name={IconName.FaceId}
+              size={IconSize.Xl}
+              color={IconColor.PrimaryDefault}
+            />
+          </Box>
+          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+            {strings('money.security.passkey_verification_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            style={styles.passkeyDescription}
+          >
+            {strings('money.security.passkey_verification_description', {
+              account,
+              method: MONEY_PASSKEY_METHOD_NAMES[passkeyMethod],
+            })}
+          </Text>
+          <Box style={styles.passkeyStatus}>
+            {passkeyVerificationStep === 'done' ? (
+              <>
+                <Box
+                  style={[
+                    styles.passkeyDoneRing,
+                    { borderColor: colors.primary.default },
+                  ]}
+                >
+                  <Icon
+                    name={IconName.CheckBold}
+                    size={IconSize.Xl}
+                    color={IconColor.PrimaryDefault}
+                  />
+                </Box>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  twClassName="mt-2"
+                >
+                  {strings('money.add_passkey_sheet.done')}
+                </Text>
+              </>
+            ) : (
+              <>
+                <ActivityIndicator
+                  size="large"
+                  color={colors.primary.default}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  twClassName="mt-3"
+                >
+                  {strings('money.add_passkey_sheet.signing_in')}
+                </Text>
+              </>
+            )}
+          </Box>
+        </Box>
+      </BottomSheet>
+    );
+  }
+
+  if (
+    usesUpdatedVerificationChooser &&
+    !selectedMethod &&
+    availableMethods.includes('passkey') &&
+    verificationCodeMethod
+  ) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={handleSheetGoBack}
+        testID={MoneySecurityVerificationSheetTestIds.CONTAINER}
+      >
+        <BottomSheetHeader onClose={closeSheet}>{null}</BottomSheetHeader>
+        <Box style={styles.transactionContent}>
+          <Box alignItems={BoxAlignItems.Center}>
+            <Image
+              source={MoneySecuritySetupImage}
+              style={styles.transactionArtwork}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+            />
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              style={styles.centeredText}
+              twClassName="mt-4"
+            >
+              {strings('money.security.transaction_confirmation_title')}
+            </Text>
+            {isTransactionVerification ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={styles.transactionDescription}
+              >
+                {strings(
+                  'money.security.transaction_confirmation_description',
+                  { amount: transactionAmount },
+                )}
+              </Text>
+            ) : null}
+          </Box>
+
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            startIconName={IconName.FaceId}
+            onPress={() => setSelectedMethod('passkey')}
+            testID={MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON}
+            style={styles.transactionPrimaryButton}
+            twClassName="bg-icon-default"
+          >
+            {strings('money.security.transaction_verify_with_passkey')}
+          </Button>
+
+          {verificationCodeMethod ? (
+            <>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={3}
+                twClassName="my-3"
+              >
+                <Box style={styles.divider} twClassName="bg-border-muted" />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('money.security.verification_or')}
+                </Text>
+                <Box style={styles.divider} twClassName="bg-border-muted" />
+              </Box>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={handleVerificationCodeMethod}
+                testID={MoneySecurityVerificationSheetTestIds.EMAIL_METHOD}
+                twClassName="bg-muted"
+              >
+                {strings('money.security.transaction_get_verification_code')}
+              </Button>
+            </>
+          ) : null}
+        </Box>
+      </BottomSheet>
+    );
   }
 
   return (
@@ -567,43 +965,6 @@ const MoneySecurityVerificationSheet = () => {
               </Box>
             </>
           )
-        ) : selectedMethod === 'passkey' ? (
-          <>
-            <Box alignItems={BoxAlignItems.Center} twClassName="gap-4">
-              <Icon
-                name={IconName.FaceId}
-                size={IconSize.Xl}
-                color={IconColor.PrimaryDefault}
-              />
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                style={styles.centeredText}
-              >
-                {strings('money.security.verify_with_passkey')}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                style={styles.centeredText}
-              >
-                {strings('money.security.verify_with_passkey_description')}
-              </Text>
-            </Box>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              isLoading={isVerifyingPasskey}
-              onPress={() => setIsVerifyingPasskey(true)}
-              testID={
-                MoneySecurityVerificationSheetTestIds.PASSKEY_VERIFY_BUTTON
-              }
-              twClassName="mt-6"
-            >
-              {strings('money.security.verify_action')}
-            </Button>
-          </>
         ) : (
           <>
             <Text

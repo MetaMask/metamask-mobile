@@ -23,7 +23,6 @@ import {
   MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS,
   useMoneySecurityMethods,
 } from '../../hooks/useMoneySecurityMethods';
-import { MONEY_SOCIAL_PROVIDER_LABEL_KEYS } from '../../constants/moneySocial';
 import { MoneySecurityViewTestIds } from '../../Views/MoneySecurityView/MoneySecurityView.testIds';
 
 const styles = StyleSheet.create({
@@ -147,12 +146,10 @@ const MoneySecurityMethodsSection = ({
   const {
     defaultVerificationMethod: defaultVerificationMethodType,
     isAuthenticatorAdded,
-    isSocialAdded,
     isSocialLogin,
     isSmsAdded,
     isTransactionVerificationEnabled,
     setTransactionVerificationEnabled,
-    socialProvider,
   } = useMoneySecurityMethods(passkeyCount);
   const defaultVerificationMethodLabel = strings(
     MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS[defaultVerificationMethodType],
@@ -189,7 +186,11 @@ const MoneySecurityMethodsSection = ({
           color={TextColor.TextAlternative}
           twClassName="mt-1"
         >
-          {strings('money.security.hero_description')}
+          {strings(
+            isSocialLogin
+              ? 'money.security.hero_description'
+              : 'money.security.hero_description_transactions_only',
+          )}
         </Text>
       </Box>
 
@@ -217,41 +218,19 @@ const MoneySecurityMethodsSection = ({
           }
           testID={MoneySecurityViewTestIds.PASSKEYS_ROW}
         />
-        {isSocialLogin ? (
-          <SecurityMethodRow
-            title={strings('money.security.sms')}
-            icon={IconName.Mobile}
-            isAdded={isSmsAdded}
-            showInlineCheckWhenAdded
-            showChevron
-            onPress={() =>
-              navigation.navigate(
-                isSmsAdded ? Routes.MONEY.SMS_DETAILS : Routes.MONEY.SMS_SETUP,
-              )
-            }
-            testID={MoneySecurityViewTestIds.SMS_ROW}
-          />
-        ) : (
-          <SecurityMethodRow
-            title={strings('money.security.social')}
-            icon={IconName.Connect}
-            isAdded={isSocialAdded}
-            showInlineCheckWhenAdded
-            addedLabel={
-              isSocialAdded
-                ? strings(MONEY_SOCIAL_PROVIDER_LABEL_KEYS[socialProvider])
-                : undefined
-            }
-            onPress={() =>
-              isSocialAdded
-                ? navigation.navigate(Routes.MONEY.SOCIAL_DETAILS)
-                : navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-                    screen: Routes.MONEY.MODALS.ADD_SOCIAL_SHEET,
-                  })
-            }
-            testID={MoneySecurityViewTestIds.SECONDARY_METHOD_ROW}
-          />
-        )}
+        <SecurityMethodRow
+          title={strings('money.security.sms')}
+          icon={IconName.Mobile}
+          isAdded={isSmsAdded}
+          showInlineCheckWhenAdded
+          showChevron
+          onPress={() =>
+            navigation.navigate(
+              isSmsAdded ? Routes.MONEY.SMS_DETAILS : Routes.MONEY.SMS_SETUP,
+            )
+          }
+          testID={MoneySecurityViewTestIds.SMS_ROW}
+        />
         <SecurityMethodRow
           title={strings('money.security.authenticator')}
           icon={IconName.QrCode}

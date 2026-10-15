@@ -1,6 +1,7 @@
 export const MoneySecurityVerificationSheetTestIds = {
   CONTAINER: 'money-security-verification-sheet',
   PASSKEY_METHOD: 'money-security-verification-passkey',
+  EMAIL_METHOD: 'money-security-verification-email',
   AUTHENTICATOR_METHOD: 'money-security-verification-authenticator',
   SMS_METHOD: 'money-security-verification-sms',
   PASSKEY_VERIFY_BUTTON: 'money-security-verification-passkey-button',

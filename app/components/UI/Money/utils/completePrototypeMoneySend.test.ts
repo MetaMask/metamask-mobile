@@ -33,6 +33,6 @@ describe('completePrototypeMoneySend', () => {
         },
       ],
     });
-    expect(showSuccessToast).toHaveBeenCalledWith('Transfer complete');
+    expect(showSuccessToast).toHaveBeenCalledWith('Transaction submitted');
   });
 });

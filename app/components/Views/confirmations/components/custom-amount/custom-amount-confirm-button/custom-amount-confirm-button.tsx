@@ -25,18 +25,24 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED } from '../../../../../UI/Money/constants/moneySendPrototype';
+import {
+  consumePrototypeMoneySendFallback,
+  isPrototypeMoneySendFallbackActive,
+  MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED,
+} from '../../../../../UI/Money/constants/moneySendPrototype';
 import { useMoneySecurityMethods } from '../../../../../UI/Money/hooks/useMoneySecurityMethods';
 import { useMoneySecurityToast } from '../../../../../UI/Money/hooks/useMoneySecurityToast';
 import { completePrototypeMoneySend } from '../../../../../UI/Money/utils/completePrototypeMoneySend';
 
 export function CustomAmountConfirmButton({
   alertTitle,
+  amountFiat,
   isDisabled,
   onContinue,
   stage,
 }: Readonly<{
   alertTitle: string | undefined;
+  amountFiat?: string;
   isDisabled: boolean;
   onContinue?: () => void;
   stage: CustomAmountStage;
@@ -50,17 +56,22 @@ export function CustomAmountConfirmButton({
   const transaction = useTransactionMetadataRequest();
   const { isTransactionVerificationEnabled } = useMoneySecurityMethods();
   const showSuccessToast = useMoneySecurityToast();
+  const isPrototypeFallbackSend = isPrototypeMoneySendFallbackActive();
   const isPrototypeMoneySend =
     MONEY_SEND_VERIFICATION_PROTOTYPE_ENABLED &&
-    hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw]);
+    (isPrototypeFallbackSend ||
+      hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw]));
 
   const handleConfirm = useCallback(async () => {
     if (isPrototypeMoneySend) {
+      consumePrototypeMoneySendFallback();
       onContinue?.();
       if (isTransactionVerificationEnabled) {
         navigation.navigate(Routes.MONEY.MODALS.ROOT, {
           screen: Routes.MONEY.MODALS.SECURITY_VERIFICATION_SHEET,
-          params: { action: { type: 'verify-transaction' } },
+          params: {
+            action: { type: 'verify-transaction', amountFiat },
+          },
         });
       } else {
         completePrototypeMoneySend(navigation, showSuccessToast);
@@ -80,6 +91,7 @@ export function CustomAmountConfirmButton({
   }, [
     isPrototypeMoneySend,
     isTransactionVerificationEnabled,
+    amountFiat,
     navigation,
     onConfirm,
     onContinue,
@@ -88,9 +100,9 @@ export function CustomAmountConfirmButton({
   ]);
 
   const disabled =
-    isDisabled ||
+    (isDisabled && !isPrototypeFallbackSend) ||
     stage !== CustomAmountStage.ShowTotals ||
-    hasBlockingAlerts ||
+    (hasBlockingAlerts && !isPrototypeFallbackSend) ||
     isHeadlessBuyInProgress;
 
   const enabledButtonLabel = useButtonLabel(transaction);

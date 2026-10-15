@@ -28,6 +28,7 @@ import MoneySecurityVerificationSheet from '../components/MoneySecurityVerificat
 import MoneySecurityInfoSheet from '../components/MoneySecurityInfoSheet';
 import MoneyDeletePasskeySheet from '../components/MoneyDeletePasskeySheet';
 import MoneyRemoveAuthenticatorSheet from '../components/MoneyRemoveAuthenticatorSheet';
+import MoneyRemoveEmailSheet from '../components/MoneyRemoveEmailSheet';
 import MoneyAuthenticatorKeySheet from '../components/MoneyAuthenticatorKeySheet';
 import MoneyRemoveSmsSheet from '../components/MoneyRemoveSmsSheet';
 import MoneyAddSocialSheet from '../components/MoneyAddSocialSheet';
@@ -188,6 +189,11 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.REMOVE_AUTHENTICATOR_SHEET}
         component={MoneyRemoveAuthenticatorSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.REMOVE_EMAIL_SHEET}
+        component={MoneyRemoveEmailSheet}
         options={{ headerShown: false }}
       />
       <ModalStack.Screen

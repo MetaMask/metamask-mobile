@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet } from 'react-native';
 import {
   type RouteProp,
   useNavigation,
@@ -31,11 +31,31 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
 import { MoneyPasskeysViewTestIds } from './MoneyPasskeysView.testIds';
+import MoneySecuritySetupImage from '../../../../../images/money-security-setup.png';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   headerSpacer: { width: 40 },
   content: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 },
+  emptyContent: {
+    alignItems: 'center',
+    paddingTop: 12,
+  },
+  heroImage: {
+    width: 92,
+    height: 92,
+    marginBottom: 24,
+  },
+  centeredText: {
+    textAlign: 'center',
+  },
+  benefitsCard: {
+    alignSelf: 'stretch',
+    marginTop: 32,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
   benefitIcon: { width: 24, alignItems: 'flex-start' },
   credentialIcon: {
     width: 44,
@@ -66,7 +86,7 @@ const PasskeyBenefit = ({ icon, title }: PasskeyBenefitProps) => (
     twClassName="py-3"
   >
     <Box style={styles.benefitIcon} twClassName="pt-0.5">
-      <Icon name={icon} size={IconSize.Md} color={IconColor.IconAlternative} />
+      <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
     </Box>
     <Text
       variant={TextVariant.BodyMd}
@@ -87,10 +107,14 @@ const MoneyPasskeysView = () => {
   const hasPasskey = isTaskComplete('secure_money');
 
   const handlePrimaryPress = useCallback(() => {
+    const isFinishSetup = route.params?.entryPoint === 'finish_setup';
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
       params: {
-        returnToMoneyHome: route.params?.entryPoint === 'finish_setup',
+        returnToMoneyHome: isFinishSetup,
+        ...(isFinishSetup
+          ? { showAdditionalFactorPrompt: true }
+          : { returnToSecurity: true }),
       },
     });
   }, [navigation, route.params?.entryPoint]);
@@ -127,9 +151,13 @@ const MoneyPasskeysView = () => {
           accessibilityLabel={strings('money.security.back')}
           testID={MoneyPasskeysViewTestIds.BACK_BUTTON}
         />
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-          {strings('money.passkeys.title')}
-        </Text>
+        {hasPasskey ? (
+          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+            {strings('money.passkeys.title')}
+          </Text>
+        ) : (
+          <Box style={styles.headerSpacer} />
+        )}
         <Box style={styles.headerSpacer} />
       </Box>
 
@@ -180,30 +208,42 @@ const MoneyPasskeysView = () => {
             ))}
           </>
         ) : (
-          <>
-            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+          <Box style={styles.emptyContent}>
+            <Image
+              source={MoneySecuritySetupImage}
+              style={styles.heroImage}
+              resizeMode="contain"
+            />
+            <Text
+              variant={TextVariant.HeadingLg}
+              fontWeight={FontWeight.Bold}
+              style={styles.centeredText}
+            >
               {strings('money.passkeys.empty_title')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              twClassName="mt-2 mb-6"
+              style={styles.centeredText}
+              twClassName="mt-2"
             >
               {strings('money.passkeys.empty_description')}
             </Text>
-            <PasskeyBenefit
-              icon={IconName.FaceId}
-              title={strings('money.passkeys.biometrics_title')}
-            />
-            <PasskeyBenefit
-              icon={IconName.Mobile}
-              title={strings('money.passkeys.sync_title')}
-            />
-            <PasskeyBenefit
-              icon={IconName.SecurityKey}
-              title={strings('money.passkeys.verify_title')}
-            />
-          </>
+            <Box style={styles.benefitsCard} twClassName="bg-muted">
+              <PasskeyBenefit
+                icon={IconName.FaceId}
+                title={strings('money.passkeys.biometrics_title')}
+              />
+              <PasskeyBenefit
+                icon={IconName.Mobile}
+                title={strings('money.passkeys.sync_title')}
+              />
+              <PasskeyBenefit
+                icon={IconName.SecurityTick}
+                title={strings('money.passkeys.verify_title')}
+              />
+            </Box>
+          </Box>
         )}
       </ScrollView>
 

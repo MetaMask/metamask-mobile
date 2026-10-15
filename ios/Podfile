@@ -186,6 +186,16 @@ post_install do |installer|
     end
   end
 
+  # Xcode 27 rejects deployment targets below 15.0.
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      deployment_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+      if deployment_target.nil? || deployment_target.to_f < 15.1
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      end
+    end
+  end
+
   # This is necessary for Xcode 14, because it signs resource bundles by default
   # when building for devices.
   installer.target_installation_results.pod_target_installation_results

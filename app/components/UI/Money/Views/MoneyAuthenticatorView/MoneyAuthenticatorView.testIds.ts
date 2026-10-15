@@ -5,6 +5,7 @@ export const MoneyAuthenticatorViewTestIds = {
   QR_SETUP_BUTTON: 'money-authenticator-view-qr-setup-button',
   CONTINUE_BUTTON: 'money-authenticator-view-continue-button',
   ALTERNATIVE_BUTTON: 'money-authenticator-view-alternative-button',
+  NOT_NOW_BUTTON: 'money-authenticator-view-not-now-button',
   CODE_ENTRY: 'money-authenticator-view-code-entry',
   CODE_INPUT: 'money-authenticator-view-code-input',
 } as const;

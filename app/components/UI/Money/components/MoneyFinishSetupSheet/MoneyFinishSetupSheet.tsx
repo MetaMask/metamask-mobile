@@ -19,10 +19,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyFinishSetup } from '../../hooks/useMoneyFinishSetup';
-import {
-  MONEY_FINISH_SETUP_TASKS,
-  type MoneyFinishSetupTaskId,
-} from '../../constants/moneyFinishSetupTasks';
+import type { MoneyFinishSetupTaskId } from '../../constants/moneyFinishSetupTasks';
 import { useMoneySecurityMethods } from '../../hooks/useMoneySecurityMethods';
 import MoneyFinishSetupProgressRing from '../MoneyFinishSetupProgressRing';
 import styleSheet from './MoneyFinishSetupSheet.styles';
@@ -48,6 +45,7 @@ const MoneyFinishSetupSheet = () => {
     fundPrototypeAccount,
     isTaskComplete,
     markTaskComplete,
+    tasks,
     totalTasks,
   } = useMoneyFinishSetup();
   const { isSocialLogin } = useMoneySecurityMethods();
@@ -86,19 +84,12 @@ const MoneyFinishSetupSheet = () => {
       }
 
       if (taskId === 'recovery_method') {
+        if (!isSocialLogin) {
+          return;
+        }
         sheetRef.current?.onCloseBottomSheet(() => {
-          if (isSocialLogin) {
-            navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
-              entryPoint: 'finish_setup',
-            });
-            return;
-          }
-
-          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-            screen: Routes.MONEY.MODALS.ADD_SOCIAL_SHEET,
-            params: {
-              returnToMoneyHome: true,
-            },
+          navigation.navigate(Routes.MONEY.AUTHENTICATOR, {
+            entryPoint: 'finish_setup',
           });
         });
         return;
@@ -160,7 +151,7 @@ const MoneyFinishSetupSheet = () => {
           </Text>
         </Box>
 
-        {MONEY_FINISH_SETUP_TASKS.map((task, index) => {
+        {tasks.map((task, index) => {
           const complete = isTaskComplete(task.id);
           const lineCounts = taskLineCounts[task.id];
           const isMultiLine =
@@ -234,9 +225,7 @@ const MoneyFinishSetupSheet = () => {
                   </View>
                 )}
               </TouchableOpacity>
-              {index < MONEY_FINISH_SETUP_TASKS.length - 1 && (
-                <View style={styles.divider} />
-              )}
+              {index < tasks.length - 1 && <View style={styles.divider} />}
             </React.Fragment>
           );
         })}

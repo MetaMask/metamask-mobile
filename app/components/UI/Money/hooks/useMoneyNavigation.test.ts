@@ -38,10 +38,12 @@ const setupSelectorMocks = ({
   hasSeenOnboarding = false,
   isOnboardingEnabled = true,
   isRecoveryVerificationPending = false,
+  isSocialLoginRecoveryWallet = false,
 }: {
   hasSeenOnboarding?: boolean;
   isOnboardingEnabled?: boolean;
   isRecoveryVerificationPending?: boolean;
+  isSocialLoginRecoveryWallet?: boolean;
 } = {}) => {
   useSelector.mockImplementation((selector: unknown) => {
     if (selector === selectMoneyOnboardingSeen) return hasSeenOnboarding;
@@ -49,6 +51,8 @@ const setupSelectorMocks = ({
       return {
         [STEPPER_IDS.MONEY_RECOVERY_VERIFICATION_PENDING]:
           isRecoveryVerificationPending ? 1 : 0,
+        [STEPPER_IDS.MONEY_RECOVERY_SOCIAL_LOGIN_WALLET]:
+          isSocialLoginRecoveryWallet ? 1 : 0,
       };
     }
     if (selector === selectMoneyOnboardingStepperAnimationEnabled)
@@ -65,8 +69,11 @@ describe('useMoneyNavigation', () => {
   });
 
   describe('navigateToMoneyHome', () => {
-    it('requires recovery verification before the first Money visit', () => {
-      setupSelectorMocks({ isRecoveryVerificationPending: true });
+    it('requires recovery verification for a social-login recovery wallet', () => {
+      setupSelectorMocks({
+        isRecoveryVerificationPending: true,
+        isSocialLoginRecoveryWallet: true,
+      });
 
       const { result } = renderHook(() => useMoneyNavigation());
 
@@ -81,6 +88,24 @@ describe('useMoneyNavigation', () => {
         Routes.ONBOARDING.RECOVERY_PROTOTYPE,
         { initialStage: 'verifyMoney' },
       );
+    });
+
+    it('skips recovery verification for an SRP wallet', () => {
+      setupSelectorMocks({
+        hasSeenOnboarding: true,
+        isRecoveryVerificationPending: true,
+        isSocialLoginRecoveryWallet: false,
+      });
+
+      const { result } = renderHook(() => useMoneyNavigation());
+
+      act(() => result.current.navigateToMoneyHome());
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
 
     it('navigates to onboarding when user has not seen onboarding and flag is enabled', () => {

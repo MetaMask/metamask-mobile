@@ -64,7 +64,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>MetaMask needs camera access to scan QR codes</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>$(PRODUCT_NAME) needs to authenticate</string>
+	<string>Allow MetaMask to use Face ID to unlock the app</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>MetaMask needs location access to enable Bluetooth connectivity with hardware wallets.</string>
 	<key>NSMicrophoneUsageDescription</key>

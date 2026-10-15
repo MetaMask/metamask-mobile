@@ -17,7 +17,11 @@ const mockSetTransactionVerificationEnabled = jest.fn();
 const mockMarkTaskComplete = jest.fn();
 const mockShowToast = jest.fn();
 const mockCompletePrototypeMoneySend = jest.fn();
-let mockEntryPoint: 'finish_setup' | 'security' = 'security';
+let mockEntryPoint:
+  | 'finish_setup'
+  | 'additional_factor'
+  | 'protect_money'
+  | 'security' = 'security';
 let mockIsSocialLogin = false;
 let mockInitialStep: 'setup' | 'verify' | undefined;
 let mockVerificationAction: MoneySecurityVerificationAction | undefined;
@@ -106,19 +110,15 @@ describe('MoneyAuthenticatorView', () => {
   it('shows manual setup and opens the QR code sheet', async () => {
     const { getByTestId, getByText, queryByTestId, queryByText } = renderView();
 
-    expect(queryByText('Set up an authenticator app')).not.toBeOnTheScreen();
-    expect(
-      getByText('JBSW Y3DP EHPK 3PXP KRSX G5DS\nMFRG GZDF'),
-    ).toBeOnTheScreen();
-    expect(getByText('How to set up')).toBeOnTheScreen();
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    expect(getByText('AABB CCDD EEFF GGGH WEJE 2321')).toBeOnTheScreen();
     expect(
       getByText(
-        'Download an authenticator app, add a new account manually, and paste the setup key.',
+        'In your authenticator app, add a new account and enter the setup key or scan the QR code.',
       ),
     ).toBeOnTheScreen();
     expect(getByText('Setup key')).toBeOnTheScreen();
     expect(queryByText('Or')).not.toBeOnTheScreen();
-    expect(getByText('Copy key')).toBeOnTheScreen();
     expect(queryByTestId('qr-code')).not.toBeOnTheScreen();
 
     fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.QR_SETUP_BUTTON));
@@ -130,26 +130,17 @@ describe('MoneyAuthenticatorView', () => {
     fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.COPY_BUTTON));
     await waitFor(() =>
       expect(ClipboardManager.setString).toHaveBeenCalledWith(
-        'JBSWY3DPEHPK3PXPKRSXG5DSMFRGGZDF',
+        'AABBCCDDEEFFGGGHWEJE2321',
       ),
     );
-    await waitFor(() =>
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: [
-            expect.objectContaining({
-              label: 'Copied',
-            }),
-          ],
-        }),
-      ),
-    );
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
 
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.CONTINUE_BUTTON));
     expect(
       getByText('Open your authenticator app and enter the 6-digit code.'),
     ).toBeOnTheScreen();
     expect(getByTestId(MoneyAuthenticatorViewTestIds.CODE_ENTRY)).toHaveStyle({
-      marginTop: 16,
+      marginTop: 40,
     });
   });
 
@@ -157,7 +148,7 @@ describe('MoneyAuthenticatorView', () => {
     jest.useFakeTimers();
     const { getByTestId } = renderView();
 
-    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.COPY_BUTTON));
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.CONTINUE_BUTTON));
     await waitFor(() =>
       expect(
         getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
@@ -170,7 +161,7 @@ describe('MoneyAuthenticatorView', () => {
     act(() => jest.advanceTimersByTime(250));
 
     expect(mockAddAuthenticator).toHaveBeenCalledTimes(1);
-    expect(mockMarkTaskComplete).toHaveBeenCalledWith('recovery_method');
+    expect(mockMarkTaskComplete).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MANAGE_SECURITY, {
       successToast: 'Authenticator app added',
     });
@@ -181,7 +172,7 @@ describe('MoneyAuthenticatorView', () => {
     jest.useFakeTimers();
     const { getByTestId, getByText } = renderView();
 
-    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.COPY_BUTTON));
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.CONTINUE_BUTTON));
     await waitFor(() =>
       expect(
         getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
@@ -303,6 +294,108 @@ describe('MoneyAuthenticatorView', () => {
     expect(
       queryByTestId(MoneyAuthenticatorViewTestIds.ALTERNATIVE_BUTTON),
     ).toBeNull();
+  });
+
+  it('opens SMS as the optional second factor after SRP authenticator setup', async () => {
+    jest.useFakeTimers();
+    mockEntryPoint = 'finish_setup';
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.CONTINUE_BUTTON));
+    await waitFor(() =>
+      expect(
+        getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
+      ).toBeOnTheScreen(),
+    );
+    fireEvent.changeText(
+      getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
+      '123456',
+    );
+    act(() => jest.advanceTimersByTime(250));
+
+    expect(mockMarkTaskComplete).toHaveBeenCalledWith('secure_money');
+    expect(mockSetTransactionVerificationEnabled).toHaveBeenCalledWith(true);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SMS_SETUP, {
+      additionalFactorPrompt: true,
+    });
+  });
+
+  it('offers authenticator or SMS as an optional additional factor', () => {
+    mockEntryPoint = 'additional_factor';
+    const { getByTestId, getByText } = renderView();
+
+    expect(getByText('Add another Money-account factor')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'Add another factor so you can still access your Money account if one factor is lost or unavailable.',
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Add SMS instead')).toBeOnTheScreen();
+    expect(getByText('Not now')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(MoneyAuthenticatorViewTestIds.ALTERNATIVE_BUTTON),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.SMS_SETUP, {
+      additionalFactorPrompt: true,
+    });
+  });
+
+  it('shows only the standard authenticator setup for Money protection', () => {
+    mockEntryPoint = 'protect_money';
+    const { getByText, queryByTestId, queryByText } = renderView();
+
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    expect(
+      getByText(
+        'In your authenticator app, add a new account and enter the setup key or scan the QR code.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText('Add another Money-account factor'),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyAuthenticatorViewTestIds.ALTERNATIVE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyAuthenticatorViewTestIds.NOT_NOW_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('skips the optional additional factor and returns to Money Home', () => {
+    mockEntryPoint = 'additional_factor';
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.NOT_NOW_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  });
+
+  it('adds the optional authenticator without completing another task', async () => {
+    jest.useFakeTimers();
+    mockEntryPoint = 'additional_factor';
+    const { getByTestId } = renderView();
+
+    fireEvent.press(getByTestId(MoneyAuthenticatorViewTestIds.CONTINUE_BUTTON));
+    await waitFor(() =>
+      expect(
+        getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
+      ).toBeOnTheScreen(),
+    );
+    fireEvent.changeText(
+      getByTestId(MoneyAuthenticatorViewTestIds.CODE_INPUT),
+      '123456',
+    );
+    act(() => jest.advanceTimersByTime(250));
+
+    expect(mockMarkTaskComplete).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('offers SMS recovery to social-login users', () => {

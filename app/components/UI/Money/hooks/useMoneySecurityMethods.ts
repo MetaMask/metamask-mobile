@@ -47,6 +47,12 @@ export const hasVerificationMethodsAfterRemoval = (
   hasOtherMethod: boolean,
 ) => passkeyCount > 0 || hasOtherMethod;
 
+export const getIsMoneySmsAdded = (
+  isSocialLogin: boolean,
+  isRemoved: boolean,
+  createdAtTimestamp?: number,
+) => !isRemoved && (isSocialLogin || Boolean(createdAtTimestamp));
+
 const SOCIAL_LOGIN_ACCOUNT_TYPES = new Set<AccountType>([
   AccountType.MetamaskGoogle,
   AccountType.ImportedGoogle,
@@ -55,6 +61,16 @@ const SOCIAL_LOGIN_ACCOUNT_TYPES = new Set<AccountType>([
   AccountType.MetamaskTelegram,
   AccountType.ImportedTelegram,
 ]);
+
+export const getIsMoneySocialLogin = (
+  onboardingAccountType: AccountType | null | undefined,
+  hasOtherSocialSignal: boolean,
+) =>
+  Boolean(
+    (onboardingAccountType &&
+      SOCIAL_LOGIN_ACCOUNT_TYPES.has(onboardingAccountType)) ||
+      hasOtherSocialSignal,
+  );
 
 export const useMoneySecurityMethods = (passkeyCount = 0) => {
   const dispatch = useDispatch();
@@ -74,15 +90,16 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
   const hasPrototypeSocial = progress[STEPPER_IDS.MONEY_SECURITY_SOCIAL] === 1;
   const isPrototypeSocialLoginWallet =
     progress[STEPPER_IDS.MONEY_RECOVERY_SOCIAL_LOGIN_WALLET] === 1;
-  const isSocialLogin = onboardingAccountType
-    ? SOCIAL_LOGIN_ACCOUNT_TYPES.has(onboardingAccountType)
-    : Boolean(
-        hasSeedlessVault ||
-          seedlessUserId ||
-          effectiveSocialLoginProvider ||
-          socialLoginEmail ||
-          isPrototypeSocialLoginWallet,
-      );
+  const isSocialLogin = getIsMoneySocialLogin(
+    onboardingAccountType,
+    Boolean(
+      hasSeedlessVault ||
+        seedlessUserId ||
+        effectiveSocialLoginProvider ||
+        socialLoginEmail ||
+        isPrototypeSocialLoginWallet,
+    ),
+  );
   const isSocialAdded =
     hasPrototypeSocial ||
     (isSocialLogin &&
@@ -105,10 +122,13 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
     !hasPrototypeSocial && socialLoginEmail
       ? socialLoginEmail
       : MONEY_SOCIAL_DEMO_ACCOUNTS[socialProvider];
-  const isSmsAdded =
-    isSocialLogin && progress[STEPPER_IDS.MONEY_SECURITY_SMS_REMOVED] !== 1;
   const smsCreatedAtTimestamp =
     progress[STEPPER_IDS.MONEY_SECURITY_SMS_CREATED_AT];
+  const isSmsAdded = getIsMoneySmsAdded(
+    isSocialLogin,
+    progress[STEPPER_IDS.MONEY_SECURITY_SMS_REMOVED] === 1,
+    smsCreatedAtTimestamp,
+  );
   const smsCreatedAt = smsCreatedAtTimestamp
     ? new Date(smsCreatedAtTimestamp)
     : undefined;
@@ -171,6 +191,9 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
     dispatch(
       setOnboardingStepperStep(STEPPER_IDS.MONEY_SECURITY_AUTHENTICATOR, 1),
     );
+    dispatch(
+      setOnboardingStepperStep(STEPPER_IDS.MONEY_TRANSACTION_VERIFICATION, 1),
+    );
     if (!isAuthenticatorAdded) {
       dispatch(
         setOnboardingStepperStep(
@@ -179,7 +202,15 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
         ),
       );
     }
-  }, [dispatch, isAuthenticatorAdded]);
+    if (passkeyCount > 0) {
+      dispatch(
+        setOnboardingStepperStep(
+          STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER,
+          Date.now(),
+        ),
+      );
+    }
+  }, [dispatch, isAuthenticatorAdded, passkeyCount]);
 
   const removeAuthenticator = useCallback(() => {
     dispatch(
@@ -212,6 +243,9 @@ export const useMoneySecurityMethods = (passkeyCount = 0) => {
         );
       }
       dispatch(setMoneySmsPhoneNumber(phoneNumber));
+      dispatch(
+        setOnboardingStepperStep(STEPPER_IDS.MONEY_TRANSACTION_VERIFICATION, 1),
+      );
     },
     [dispatch, isSmsAdded],
   );

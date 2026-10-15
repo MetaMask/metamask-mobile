@@ -50,7 +50,7 @@ describe('MoneyPasskeysView', () => {
   });
 
   it('shows concise passkey benefits without descriptions', () => {
-    const { getByText, queryByText } = renderWithProvider(
+    const { getAllByText, getByText, queryByText } = renderWithProvider(
       <MoneyPasskeysView />,
     );
 
@@ -61,8 +61,17 @@ describe('MoneyPasskeysView', () => {
       ),
     ).toBeOnTheScreen();
     expect(getByText('Log in without your password')).toBeOnTheScreen();
-    expect(getByText('Syncs across devices automatically')).toBeOnTheScreen();
-    expect(getByText('Verify Money account transactions')).toBeOnTheScreen();
+    expect(getByText('Use it across your devices')).toBeOnTheScreen();
+    expect(getByText('Approve every Money transaction')).toBeOnTheScreen();
+    expect(
+      getAllByText(
+        /Approve every Money transaction|Use it across your devices|Log in without your password/,
+      ).map((item) => item.props.children),
+    ).toEqual([
+      'Log in without your password',
+      'Use it across your devices',
+      'Approve every Money transaction',
+    ]);
     expect(queryByText('Use Face ID to unlock and approve.')).toBeNull();
     expect(
       queryByText('Your passkey stays available through your device account.'),
@@ -76,7 +85,25 @@ describe('MoneyPasskeysView', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
-      params: { returnToMoneyHome: false },
+      params: {
+        returnToMoneyHome: false,
+        returnToSecurity: true,
+      },
+    });
+  });
+
+  it('requests the additional-factor prompt from finish setup', () => {
+    mockEntryPoint = 'finish_setup';
+    const { getByTestId } = renderWithProvider(<MoneyPasskeysView />);
+
+    fireEvent.press(getByTestId(MoneyPasskeysViewTestIds.ADD_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.ADD_PASSKEY_SHEET,
+      params: {
+        returnToMoneyHome: true,
+        showAdditionalFactorPrompt: true,
+      },
     });
   });
 
