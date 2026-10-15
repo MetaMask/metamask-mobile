@@ -13,12 +13,16 @@ final class PrivacyCover: NSObject {
 
   private var coverWindow: UIWindow?
   private let foxSide: CGFloat = 144
+  /// Set for the whole background visit. A `hide` already queued on the main
+  /// queue belongs to the previous resume and must not uncover the snapshot.
+  private var shownForBackground = false
 
   private override init() {
     super.init()
   }
 
   @objc func show(in host: UIWindow?) {
+    shownForBackground = true
     // The keyboard window sits above this cover and comes back on foreground
     // while the field is still first responder. Resign here. `inactive` does
     // not call show, so Control Center and Face ID keep the keyboard.
@@ -33,7 +37,17 @@ final class PrivacyCover: NSObject {
   }
 
   @objc func hide() {
+    // A dismiss queued before background belongs to the previous resume.
+    // `markActive` allows the dismiss from the next foreground.
+    if shownForBackground {
+      return
+    }
     coverWindow?.isHidden = true
+  }
+
+  /// Call from `applicationDidBecomeActive` before JavaScript dismisses the cover.
+  @objc func markActive() {
+    shownForBackground = false
   }
 
   private func dismissKeyboard() {

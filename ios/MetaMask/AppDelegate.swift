@@ -139,6 +139,7 @@ class AppDelegate: ExpoAppDelegate {
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
+    PrivacyCover.shared.markActive()
     super.applicationDidBecomeActive(application)
     // Re-assert our delegate on every foreground entry so Braze/Notifee cannot reclaim
     // it asynchronously. Notifee tap forwarding is handled explicitly in didReceive
