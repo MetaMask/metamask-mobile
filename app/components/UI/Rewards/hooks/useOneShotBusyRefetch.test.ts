@@ -171,6 +171,21 @@ describe('useOneShotBusyRefetch', () => {
     expect(refetch).not.toHaveBeenCalled();
   });
 
+  it('does not schedule a refetch when armed after blur', () => {
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      mockFocusCleanup?.();
+      result.current.arm(busyError(2), refetch);
+    });
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+  });
+
   it('drops the scheduled refetch on unmount', () => {
     const refetch = jest.fn();
     const { result, unmount } = renderHook(() => useOneShotBusyRefetch());

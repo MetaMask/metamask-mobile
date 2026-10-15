@@ -82,6 +82,18 @@ export const useCursorPaginatedList = <T>({
 
   const cachedRows = nonEmpty(cachedItems);
 
+  // Declared before fetchList: the busy refetch calls the latest fetch, and
+  // that call sits inside the callback that creates it.
+  const fetchListRef = useRef<
+    (args: {
+      isFirstPage: boolean;
+      currentCursor?: string | null;
+      forceFresh?: boolean;
+      preserveItems?: boolean;
+      followUp?: boolean;
+    }) => Promise<{ cancelled: boolean }>
+  >(async () => ({ cancelled: false }));
+
   const fetchList = useCallback(
     async ({
       isFirstPage,
@@ -194,7 +206,6 @@ export const useCursorPaginatedList = <T>({
       feature,
     ],
   );
-  const fetchListRef = useRef(fetchList);
   fetchListRef.current = fetchList;
 
   const loadMore = useCallback(() => {

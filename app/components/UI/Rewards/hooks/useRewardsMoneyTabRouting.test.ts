@@ -436,6 +436,23 @@ describe('useRewardsMoneyTabRouting', () => {
       expect(result.current.navigatorKey).toBe(referrerKey);
     });
 
+    it('leaves the Money family when the flag is turned off', () => {
+      state = buildState(
+        { [PROFILE_A]: { roles: ['REFERRER'], ui_variant: 'REFERRER' } },
+        PROFILE_A,
+      );
+
+      const { result, rerender } = render();
+
+      expect(result.current.navigatorKey).toContain('rewards-money');
+
+      moneyEnabled = false;
+      rerender();
+      triggerFocus();
+
+      expect(result.current.navigatorKey).not.toContain('rewards-money');
+    });
+
     it('changes when the resolved profile changes', async () => {
       state = buildState({
         [PROFILE_A]: { roles: [], ui_variant: 'NONE' },

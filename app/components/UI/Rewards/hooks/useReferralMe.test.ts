@@ -94,20 +94,20 @@ describe('useReferralMe', () => {
     });
   };
 
-  // The focus effect intentionally does not return its promise (a returned
-  // value would be treated as a cleanup), so drain the queue instead.
-  const flushPromises = () =>
-    new Promise((resolve) => {
-      setTimeout(resolve, 0);
-    });
+  // nextTick, not setTimeout: the busy-refetch test uses fake timers.
+  const flushPromises = () => new Promise(process.nextTick);
 
+  // useOneShotBusyRefetch registers first so arm knows the screen is focused;
+  // this hook's fetch effect is last. Only the latest pair is run so an
+  // overlapping second instance is not pulled in.
   const triggerFocus = async () => {
-    const focusCallback =
-      mockUseFocusEffect.mock.calls[
-        mockUseFocusEffect.mock.calls.length - 1
-      ][0];
+    const focusCallbacks = mockUseFocusEffect.mock.calls
+      .slice(-2)
+      .map((call) => call[0]);
     await act(async () => {
-      focusCallback();
+      for (const focusCallback of focusCallbacks) {
+        focusCallback();
+      }
       await flushPromises();
     });
   };
@@ -182,15 +182,7 @@ describe('useReferralMe', () => {
       const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2);
       mockMessenger({ referralMeError: busy });
       renderHook(() => useReferralMe());
-      const focusCallback =
-        mockUseFocusEffect.mock.calls[
-          mockUseFocusEffect.mock.calls.length - 1
-        ][0];
-
-      await act(async () => {
-        focusCallback();
-        await new Promise(process.nextTick);
-      });
+      await triggerFocus();
 
       expect(captureException).not.toHaveBeenCalled();
 

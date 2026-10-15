@@ -280,9 +280,12 @@ export function useRewardsMoneyTabRouting(): RewardsMoneyTabRouting {
     !moneyEnabled ||
     (resolution.resolved &&
       (profileId === undefined || resolution.profileId === profileId));
-  const destinationFamily = isMoneyDashboard(moneyPersona)
-    ? 'rewards-money'
-    : 'rewards';
+  // The flag is part of the key. RewardsHome applies its initial route only
+  // when this key changes, so turning Money off has to leave that family.
+  const destinationFamily =
+    moneyEnabled && isMoneyDashboard(moneyPersona)
+      ? 'rewards-money'
+      : 'rewards';
   const navigatorKey = `${routingProfileId ?? 'unknown'}:${destinationFamily}`;
 
   return {

@@ -111,6 +111,33 @@ describe('usePrefetchRewardsIdentity', () => {
     );
   });
 
+  it('does not store the payload when the session changes during the fetch', async () => {
+    const profileIds = [PROFILE_ID, 'profile-b'];
+    let sessionReads = 0;
+    mockCall.mockImplementation(((action: string) => {
+      if (action === 'AuthenticationController:getSessionProfile') {
+        const profileId =
+          profileIds[Math.min(sessionReads, profileIds.length - 1)];
+        sessionReads += 1;
+        return Promise.resolve({ profileId });
+      }
+      if (action === 'RewardsMoneyController:getReferralMe') {
+        return Promise.resolve(referralMe);
+      }
+      return Promise.resolve(undefined);
+    }) as typeof mockCall);
+
+    renderHook(() => usePrefetchRewardsIdentity());
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(sessionReads).toBe(2);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
   it('leaves Redux untouched when the fetch fails', async () => {
     mockCall.mockImplementation(((action: string) => {
       if (action === 'AuthenticationController:getSessionProfile') {
