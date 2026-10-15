@@ -136,7 +136,11 @@ jest.mock('react-native-screens', () => {
     onAppearRef.current = props.onAppear;
 
     React.useEffect(() => {
-      onAppearRef.current?.({ nativeEvent: { target: null } });
+      const appearTimeout = setTimeout(() => {
+        onAppearRef.current?.({ nativeEvent: { target: null } });
+      }, 0);
+
+      return () => clearTimeout(appearTimeout);
     }, []);
 
     return React.createElement(actual.ScreenStackItem, { ...props, ref });
