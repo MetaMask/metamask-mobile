@@ -889,13 +889,22 @@ describe('ManagePriceAlertsView', () => {
   });
 
   describe('redirect to CreatePriceAlert', () => {
-    it('does not redirect or fetch before the initial query can run offline', async () => {
+    it('shows loading without redirecting or fetching before the initial query can run offline', async () => {
       mockNetworkTier = 'NONE';
 
-      renderView();
+      const screen = renderView();
 
       await act(async () => undefined);
 
+      expect(
+        screen.getByTestId(ManagePriceAlertsTestIds.LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ManagePriceAlertsTestIds.ALERT_LIST),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      ).not.toBeOnTheScreen();
       expect(mockFetchAlerts).not.toHaveBeenCalled();
       expect(mockReplace).not.toHaveBeenCalled();
     });

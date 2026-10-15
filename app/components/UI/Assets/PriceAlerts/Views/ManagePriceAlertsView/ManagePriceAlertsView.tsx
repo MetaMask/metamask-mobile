@@ -156,6 +156,7 @@ const ManagePriceAlertsView: React.FC = () => {
     staleTime: 0,
     gcTime: 0,
   });
+  const isInitialFetchPending = isLoading || !isFetched;
 
   useEffect(() => {
     if (!isFetched || isLoading || hasResolvedInitialFetch.current) {
@@ -497,7 +498,7 @@ const ManagePriceAlertsView: React.FC = () => {
           onBack={handleBack}
         />
 
-        {isLoading ? (
+        {isInitialFetchPending ? (
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
@@ -520,7 +521,7 @@ const ManagePriceAlertsView: React.FC = () => {
           </Box>
         )}
 
-        {!isLoading && alerts.length > 0 && (
+        {!isInitialFetchPending && alerts.length > 0 && (
           <>
             <View style={tw.style('px-4 pb-4 pt-2')}>
               <Button
