@@ -31,13 +31,17 @@ import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
  * verification.
  */
 export type VbaHomeCard =
-  /** No card: not eligible, account already usable, or nothing fits. */
+  /** No card: not eligible, no wallet, or nothing fits. */
   | { type: 'none' }
   /** GET_STARTED — Figma node 2267-17522. */
   | { type: 'get_started' }
-  /** ACCOUNT_IS_READY — Figma node 2158-5306. */
+  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved with a usable autoramp. */
   | { type: 'account_is_ready' }
-  /** KYC_PENDING — Figma node 2254-13372. */
+  /**
+   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, flow
+   * submitted, or approved but provisioning has not produced a usable
+   * autoramp yet.
+   */
   | { type: 'kyc_pending' }
   /** FINISH_VERIFICATION — Figma node 2267-18364. */
   | { type: 'finish_verification' }
@@ -131,19 +135,26 @@ const hasWalletRegistration = (
   );
 
 /**
- * Pure decision resolving the single VBA status card for Money home. Mirrors
- * George Weiler's decision order from TRAM-4099 (first match wins), which in
- * turn mirrors the controller's own `resolveVbaKycStatus` /
+ * Pure decision resolving the single VBA status card for Money home. For the
+ * approved states it mirrors the onboarding funnel's own destination logic
+ * (`getVbaDestinationForSnapshot`: approved + ready route → complete,
+ * approved + route missing → still provisioning) and the controller's
  * `#hasUsableAutorampForWallet` semantics — do not reinvent them here.
+ *
+ * TRAM-4079: the original TRAM-4099 order returned `none` whenever a usable
+ * autoramp existed and showed `account_is_ready` only while it was still
+ * missing — the exact inverse of the card's copy ("You're all set", view the
+ * Pix details) and of the funnel. Rule 3 now keys the card off the usable
+ * autoramp.
  *
  * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
  * (relay approval counts while the vendor `finalStatus` is still pending).
  *
- * Rules 1–2 (none) and 3 (get_started) short-circuit before the session
- * rules, so an approved session always reaches rule 4 and a fresh user
- * without any evidence always reaches rule 3. Anything left after rule 7
- * (for example a wallet whose only autoramp is dead, with no session, terms,
- * or registration) renders no card — reinstall discovery is a follow-up.
+ * Rules 1–2 (none and get_started) short-circuit before the session rules, so
+ * an approved session always reaches rule 3 and a fresh user without any
+ * evidence always reaches rule 2. Anything left after rule 6 (for example a
+ * wallet whose only autoramp is dead, with no session, terms, or
+ * registration) renders no card — reinstall discovery is a follow-up.
  *
  * @returns The card identity. `{ type: 'kyc_decision' }` is a stub that hosts
  * render as `none` until the rejected/retry design lands.
@@ -168,12 +179,7 @@ export function getVbaHomeCard({
     return { type: 'none' };
   }
 
-  // 2. A usable autoramp means the account is ready to use.
-  if (hasUsableAutorampForWallet(walletAddress, autoramps)) {
-    return { type: 'none' };
-  }
-
-  // 3. Brand-new user: nothing started and no evidence of prior setup.
+  // 2. Brand-new user: nothing started and no evidence of prior setup.
   if (
     !hasAcceptedVendorTerms &&
     !sessionStatus &&
@@ -187,13 +193,18 @@ export function getVbaHomeCard({
     sessionStatus?.finalStatus === 'approved' ||
     sessionStatus?.kycStatus === 'approved';
 
-  // 4. KYC approved and no usable autoramp (rule 2 removed usable routes) —
-  // finish setting the account up.
+  // 3. KYC approved. A usable autoramp means the virtual account details are
+  // ready — show the account_is_ready card ("You're all set" / view the Pix
+  // details). Without one, provisioning is still running: kyc_pending,
+  // mirroring the onboarding funnel's `kycPending` destination for an approved
+  // session whose route is not ready yet.
   if (isApproved) {
-    return { type: 'account_is_ready' };
+    return hasUsableAutorampForWallet(walletAddress, autoramps)
+      ? { type: 'account_is_ready' }
+      : { type: 'kyc_pending' };
   }
 
-  // 5. KYC rejected or retry — no card exists in Figma yet (design question
+  // 4. KYC rejected or retry — no card exists in Figma yet (design question
   // pending in TRAM-4099). Stub: hosts render this as `none` for now.
   if (
     sessionStatus?.finalStatus === 'rejected' ||
@@ -202,9 +213,9 @@ export function getVbaHomeCard({
     return { type: 'kyc_decision' };
   }
 
-  // 6. Vendor still processing, or the provider flow was submitted.
-  // Note rule 3 above: an incomplete session (terms accepted or not) lands in
-  // rule 7 instead; submitted-but-new reaches this rule.
+  // 5. Vendor still processing, or the provider flow was submitted.
+  // Note rule 2 above: an incomplete session (terms accepted or not) lands in
+  // rule 6 instead; submitted-but-new reaches this rule.
   if (
     sessionStatus?.finalStatus === 'pending' ||
     sessionStatus?.kycStatus === 'pending' ||
@@ -213,8 +224,8 @@ export function getVbaHomeCard({
     return { type: 'kyc_pending' };
   }
 
-  // 7. Started but incomplete: terms accepted, or a live (non-terminal)
-  // session. Submitted provider flows already returned in rule 6.
+  // 6. Started but incomplete: terms accepted, or a live (non-terminal)
+  // session. Submitted provider flows already returned in rule 5.
   if (
     hasAcceptedVendorTerms ||
     (sessionStatus && !TERMINAL_SESSION_STATUSES.has(sessionStatus.finalStatus))

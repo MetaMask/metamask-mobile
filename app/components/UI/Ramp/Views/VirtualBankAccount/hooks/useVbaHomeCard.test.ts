@@ -149,16 +149,18 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'none' });
   });
 
-  it('renders no card when a usable autoramp exists for the wallet (decision rule 2)', () => {
+  it('renders no card when a usable autoramp exists without an approved session', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       autoramps: [makeAutoramp({ status: AutorampStatus.Created })],
     });
 
+    // The autoramp is evidence, so not get_started either; without an approved
+    // session no card fits.
     expect(card).toEqual({ type: 'none' });
   });
 
-  it('renders no card for an approved session while the autoramp is usable (rule 2 beats rule 4)', () => {
+  it('renders account_is_ready for an approved session with a usable autoramp (decision rule 3)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -168,7 +170,17 @@ describe('getVbaHomeCard', () => {
       autoramps: [makeAutoramp()],
     });
 
-    expect(card).toEqual({ type: 'none' });
+    expect(card).toEqual({ type: 'account_is_ready' });
+  });
+
+  it('renders kyc_pending for a pending session even with a usable autoramp', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession(),
+      autoramps: [makeAutoramp()],
+    });
+
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
 
   it('ignores autoramps belonging to a different wallet', () => {
@@ -232,7 +244,7 @@ describe('getVbaHomeCard', () => {
     expect(active).toEqual({ type: 'none' });
   });
 
-  it('renders account_is_ready when finalStatus is approved and no usable autoramp exists (decision rule 4)', () => {
+  it('renders kyc_pending for an approved session while no usable autoramp exists (decision rule 3 mirrors the funnel)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -241,7 +253,7 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
 
   it('renders account_is_ready when only kycStatus is approved (relay approval counts)', () => {
@@ -251,6 +263,7 @@ describe('getVbaHomeCard', () => {
         finalStatus: 'pending',
         kycStatus: 'approved',
       }),
+      autoramps: [makeAutoramp()],
     });
 
     expect(card).toEqual({ type: 'account_is_ready' });
@@ -354,7 +367,7 @@ describe('getVbaHomeCard', () => {
 
   it('renders no card when no rule matches', () => {
     // A dead autoramp cursor with no session, terms, or registration: rules
-    // 3-7 all fail. Reinstall discovery is a follow-up.
+    // 2-6 all fail. Reinstall discovery is a follow-up.
     const card = getVbaHomeCard({
       ...baseInputs,
       autoramps: [makeAutoramp({ status: AutorampStatus.Rejected })],
