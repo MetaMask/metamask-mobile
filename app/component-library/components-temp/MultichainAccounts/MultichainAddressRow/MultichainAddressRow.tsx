@@ -52,7 +52,7 @@ const MultichainAddressRow = ({
 }: MultichainAddressRowProps) => {
   const networkImageSource = getNetworkImageSource({ chainId });
   const accountTypeLabel = accountType
-    ? ACCOUNT_TYPE_LABELS[accountType as KeyringAccountType]
+    ? ACCOUNT_TYPE_LABELS[accountType]
     : undefined;
   const truncatedAddress = useMemo(
     () => formatAddress(address, 'short'),
