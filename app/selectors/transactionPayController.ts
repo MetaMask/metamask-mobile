@@ -5,7 +5,6 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { selectTransactionMetadataById } from './transactionController';
 
 /**
  * Check whether a quote is a no-op quote. The controller stores one when a
@@ -150,6 +149,17 @@ export const selectTransactionPayTokensByTransactionId = createSelector(
 export const selectTransactionPaymentTokenByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.paymentToken,
+);
+
+// Read transaction metadata directly rather than importing
+// `./transactionController`, whose import graph cycles back through
+// `../reducers` and leaves its selectors undefined at module load.
+const selectTransactionMetadataById = createSelector(
+  (state: RootState) =>
+    state.engine.backgroundState.TransactionController?.transactions,
+  (_state: RootState, transactionId: string) => transactionId,
+  (transactions, transactionId) =>
+    transactions?.find((transaction) => transaction.id === transactionId),
 );
 
 export const selectTransactionPaySourceByTransactionId = createSelector(
