@@ -3,7 +3,10 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
+import {
+  MARKETING_CONSENT_SHEET_TEST_ID,
+  NotificationSettingsSectionContent,
+} from './NotificationSettingsSectionContent';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -12,7 +15,18 @@ import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEvent
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import Logger from '../../../../util/Logger';
-import type { WalletActivityPreference } from '@metamask/authenticated-user-storage';
+import type {
+  NotificationPreferences,
+  WalletActivityPreference,
+} from '@metamask/authenticated-user-storage';
+import { engineWithMarketingConsent } from '../../../../util/test/marketingConsentState';
+
+const mockMessengerCall = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: (...args: unknown[]) => mockMessengerCall(...args),
+  },
+}));
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
@@ -58,9 +72,11 @@ const arrangePreferences = ({
     inAppNotificationsEnabled: true,
     accounts: [],
   },
+  overrides = {},
 }: {
   hasPreferences?: boolean;
   walletActivity?: WalletActivityPreference;
+  overrides?: Partial<NotificationPreferences>;
 } = {}) => {
   jest.mocked(useNotificationStoragePreferences).mockReturnValue({
     preferences: hasPreferences
@@ -88,6 +104,7 @@ const arrangePreferences = ({
             pushNotificationsEnabled: true,
             inAppNotificationsEnabled: true,
           },
+          ...overrides,
         }
       : undefined,
     hasNotificationPreferences: hasPreferences,
@@ -105,15 +122,18 @@ const renderContent = (
   props: Partial<
     React.ComponentProps<typeof NotificationSettingsSectionContent>
   > = {},
+  { hasMarketingConsent = false }: { hasMarketingConsent?: boolean } = {},
 ) =>
   renderWithProvider(
     <NotificationSettingsSectionContent type="priceAlerts" {...props} />,
+    { state: { engine: engineWithMarketingConsent(hasMarketingConsent) } },
   );
 
 describe('NotificationSettingsSectionContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUpdateSectionChannel.mockResolvedValue(undefined);
+    mockMessengerCall.mockResolvedValue(undefined);
     arrangePreferences();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -394,5 +414,173 @@ describe('NotificationSettingsSectionContent', () => {
         'By turning this on, you agree to receive product news and marketing updates from MetaMask.',
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('marketing consent', () => {
+    const SET_MARKETING_CONSENT_ACTION =
+      'MarketingConsentController:setMarketingConsent';
+
+    const turnMarketingChannelOn = async (
+      toggleTestId: string,
+      hasMarketingConsent = false,
+    ) => {
+      renderContent({ type: 'marketing' }, { hasMarketingConsent });
+
+      await act(async () => {
+        fireEvent(screen.getByTestId(toggleTestId), 'onValueChange', true);
+      });
+    };
+
+    it('opens the opt-in sheet without saving when Push is turned on without marketing consent', async () => {
+      await turnMarketingChannelOn(PUSH_TOGGLE);
+
+      expect(
+        screen.getByTestId(MARKETING_CONSENT_SHEET_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('value', false);
+      expect(mockUpdateSectionChannel).not.toHaveBeenCalled();
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('saves marketing consent and turns on only Push when the opt-in sheet is confirmed', async () => {
+      await turnMarketingChannelOn(PUSH_TOGGLE);
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(`${MARKETING_CONSENT_SHEET_TEST_ID}-confirm`),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(1);
+      });
+      expect(mockMessengerCall).toHaveBeenCalledWith(
+        SET_MARKETING_CONSENT_ACTION,
+        true,
+      );
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'marketing',
+        'pushNotificationsEnabled',
+        true,
+      );
+      expect(mockMessengerCall.mock.invocationCallOrder[0]).toBeLessThan(
+        mockUpdateSectionChannel.mock.invocationCallOrder[0],
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+        )
+          .addProperties({
+            has_marketing_consent: true,
+            updated_after_onboarding: true,
+            location: 'notification_settings',
+          })
+          .build(),
+      );
+    });
+
+    it('turns on only In-app when the opt-in sheet opened from In-app is confirmed', async () => {
+      await turnMarketingChannelOn(IN_APP_TOGGLE);
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(`${MARKETING_CONSENT_SHEET_TEST_ID}-confirm`),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockUpdateSectionChannel).toHaveBeenCalledTimes(1);
+      });
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'marketing',
+        'inAppNotificationsEnabled',
+        true,
+      );
+    });
+
+    it('keeps the opt-in sheet open with an error and saves nothing when saving marketing consent fails', async () => {
+      mockMessengerCall.mockRejectedValue(new Error('AUS error'));
+      await turnMarketingChannelOn(PUSH_TOGGLE);
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(`${MARKETING_CONSENT_SHEET_TEST_ID}-confirm`),
+        );
+      });
+
+      expect(
+        await screen.findByTestId(`${MARKETING_CONSENT_SHEET_TEST_ID}-error`),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(MARKETING_CONSENT_SHEET_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(mockUpdateSectionChannel).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('turns Push on directly without the opt-in sheet when the user consented to marketing', async () => {
+      await turnMarketingChannelOn(PUSH_TOGGLE, true);
+
+      expect(
+        screen.queryByTestId(MARKETING_CONSENT_SHEET_TEST_ID),
+      ).not.toBeOnTheScreen();
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'marketing',
+        'pushNotificationsEnabled',
+        true,
+      );
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('turns a non-marketing channel on directly without marketing consent', async () => {
+      arrangePreferences({
+        overrides: {
+          perps: {
+            pushNotificationsEnabled: false,
+            inAppNotificationsEnabled: false,
+          },
+        },
+      });
+      renderContent({ type: 'perps' });
+
+      await act(async () => {
+        fireEvent(screen.getByTestId(PUSH_TOGGLE), 'onValueChange', true);
+      });
+
+      expect(
+        screen.queryByTestId(MARKETING_CONSENT_SHEET_TEST_ID),
+      ).not.toBeOnTheScreen();
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'perps',
+        'pushNotificationsEnabled',
+        true,
+      );
+    });
+
+    it('turns a marketing channel off directly without marketing consent', async () => {
+      arrangePreferences({
+        overrides: {
+          marketing: {
+            pushNotificationsEnabled: true,
+            inAppNotificationsEnabled: true,
+          },
+        },
+      });
+      renderContent({ type: 'marketing' });
+
+      await act(async () => {
+        fireEvent(screen.getByTestId(PUSH_TOGGLE), 'onValueChange', false);
+      });
+
+      expect(
+        screen.queryByTestId(MARKETING_CONSENT_SHEET_TEST_ID),
+      ).not.toBeOnTheScreen();
+      expect(mockUpdateSectionChannel).toHaveBeenCalledWith(
+        'marketing',
+        'pushNotificationsEnabled',
+        false,
+      );
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
   });
 });

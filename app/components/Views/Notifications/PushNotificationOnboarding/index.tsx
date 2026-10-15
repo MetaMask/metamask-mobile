@@ -244,13 +244,17 @@ const PushNotificationOnboarding = ({
     dismissPrePrompt();
     onComplete('engage');
     trackPrePromptButtonClicked('marketing_consent', 'confirm');
-    enableMarketingConsent().catch(() => undefined);
     showMarketingConsentToast(true);
     // This variant is shown only when OS permission is already granted, so no
     // OS prompt runs. Still initialize AUS notification preferences here —
     // otherwise later settings toggles no-op and Braze never gets notifications_*
     // attributes. Android < 13 with notifications on only ever sees this sheet.
-    enableNotificationsInBackground(nativeOsPermissionEnabled === true);
+    // Consent is recorded first, since marketing notifications follow it.
+    enableMarketingConsent()
+      .catch(() => undefined)
+      .then(() =>
+        enableNotificationsInBackground(nativeOsPermissionEnabled === true),
+      );
   }, [
     dismissPrePrompt,
     enableMarketingConsent,

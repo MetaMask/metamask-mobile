@@ -4,6 +4,7 @@ import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
+import { updateNotificationPreferences } from '../../../../../actions/notification/helpers';
 import Logger from '../../../../../util/Logger';
 import { useNotificationStoragePreferences } from './useNotificationStoragePreferences';
 
@@ -23,15 +24,17 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../actions/notification/helpers', () => ({
+  updateNotificationPreferences: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
 const GET_ACTION = 'AuthenticatedUserStorageService:getNotificationPreferences';
-const PUT_ACTION = 'AuthenticatedUserStorageService:putNotificationPreferences';
 const REFRESH_SOCIAL_CACHE_ACTION =
   'SocialService:refreshNotificationPreferencesCache';
-const CLIENT_TYPE = 'mobile';
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseQueryClient = useQueryClient as jest.MockedFunction<
@@ -43,6 +46,9 @@ const mockCancelQueries = jest.fn();
 const mockRefetch = jest.fn();
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 const mockUseSelector = useSelector as unknown as jest.Mock;
+const mockUpdateNotificationPreferences = jest.mocked(
+  updateNotificationPreferences,
+);
 
 let queryCache: NotificationPreferences | null | undefined;
 
@@ -130,6 +136,7 @@ describe('useNotificationStoragePreferences', () => {
     mockCancelQueries.mockResolvedValue(undefined);
     mockRefetch.mockResolvedValue(undefined);
     mockCall.mockResolvedValue(undefined);
+    mockUpdateNotificationPreferences.mockResolvedValue(undefined);
     // Default: aiSocialAusCacheRefreshEnabled flag on. The hook's only
     // useSelector call is for that flag.
     mockUseSelector.mockReturnValue(true);
@@ -157,7 +164,7 @@ describe('useNotificationStoragePreferences', () => {
     expect(result.current.error).toBe(error);
   });
 
-  it('optimistically updates cache and PUTs latest cached preferences', async () => {
+  it('optimistically updates cache and writes latest cached preferences through notification services', async () => {
     queryCache = buildPreferences();
     mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
 
@@ -175,14 +182,17 @@ describe('useNotificationStoragePreferences', () => {
       queryKey: [GET_ACTION],
     });
     expect(queryCache?.perps.pushNotificationsEnabled).toBe(false);
-    expect(mockCall).toHaveBeenCalledWith(
-      PUT_ACTION,
+    expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
       expect.objectContaining({
         perps: expect.objectContaining({
           pushNotificationsEnabled: false,
         }),
       }),
-      CLIENT_TYPE,
+    );
+    expect(mockCall).not.toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:putNotificationPreferences',
+      expect.anything(),
+      expect.anything(),
     );
     expect(mockCall).not.toHaveBeenCalledWith(GET_ACTION);
     expect(mockCall).toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
@@ -193,12 +203,7 @@ describe('useNotificationStoragePreferences', () => {
     queryCache = initialPreferences;
     mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
     const persistError = new Error('network down');
-    mockCall.mockImplementation(async (action: string) => {
-      if (action === PUT_ACTION) {
-        throw persistError;
-      }
-      return undefined;
-    });
+    mockUpdateNotificationPreferences.mockRejectedValue(persistError);
 
     const { result } = renderHook(() => useNotificationStoragePreferences());
 
@@ -235,11 +240,7 @@ describe('useNotificationStoragePreferences', () => {
     });
 
     // The AUS write still happens...
-    expect(mockCall).toHaveBeenCalledWith(
-      PUT_ACTION,
-      expect.anything(),
-      CLIENT_TYPE,
-    );
+    expect(mockUpdateNotificationPreferences).toHaveBeenCalledTimes(1);
     // ...but the gated Social API cache-refresh does not.
     expect(mockCall).not.toHaveBeenCalledWith(REFRESH_SOCIAL_CACHE_ACTION);
   });
@@ -268,14 +269,12 @@ describe('useNotificationStoragePreferences', () => {
       'trader-1',
       'trader-2',
     ]);
-    expect(mockCall).toHaveBeenCalledWith(
-      PUT_ACTION,
+    expect(mockUpdateNotificationPreferences).toHaveBeenCalledWith(
       expect.objectContaining({
         socialAI: expect.objectContaining({
           mutedTraderProfileIds: ['trader-1', 'trader-2'],
         }),
       }),
-      CLIENT_TYPE,
     );
   });
 
@@ -284,12 +283,7 @@ describe('useNotificationStoragePreferences', () => {
     queryCache = initialPreferences;
     mockUseQuery.mockReturnValue(makeQueryResult({ data: queryCache }));
     const persistError = new Error('network down');
-    mockCall.mockImplementation(async (action: string) => {
-      if (action === PUT_ACTION) {
-        throw persistError;
-      }
-      return undefined;
-    });
+    mockUpdateNotificationPreferences.mockRejectedValue(persistError);
     const { result } = renderHook(() => useNotificationStoragePreferences());
     let thrownError: unknown;
 
@@ -323,13 +317,9 @@ describe('useNotificationStoragePreferences', () => {
     });
     const putPayloads: NotificationPreferences[] = [];
     let putCount = 0;
-    mockCall.mockImplementation(async (action: string, payload: unknown) => {
-      if (action !== PUT_ACTION) {
-        return undefined;
-      }
-
+    mockUpdateNotificationPreferences.mockImplementation(async (payload) => {
       putCount += 1;
-      putPayloads.push(payload as NotificationPreferences);
+      putPayloads.push(payload);
       if (putCount === 1) {
         await firstPut;
       }

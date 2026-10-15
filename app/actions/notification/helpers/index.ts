@@ -1,4 +1,5 @@
 import EventEmitter2 from 'eventemitter2';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import type {
   MarkAsReadNotificationsParam,
   NotificationServicesControllerEnableNotificationsOptions,
@@ -9,11 +10,8 @@ import { markBrazePushRegistrationDesired } from '../../../core/Braze/pushRegist
 import Logger from '../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
-const CLIENT_TYPE = 'mobile' as const;
 const GET_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;
-const PUT_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
 const previewTokenEventEmitter = new EventEmitter2();
 const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
@@ -85,10 +83,48 @@ export const hasNotificationPreferences = async () => {
   return preferences != null;
 };
 
+const hasMarketingConsent = () =>
+  Engine.context.AnalyticsController.state.optedInToMarketing === true;
+
+/**
+ * Saves notification preferences through NotificationServicesController,
+ * which rejects the whole write when a marketing ("Updates and rewards")
+ * channel is on without marketing consent. Marketing channels are turned off
+ * here when consent is off, so a stale copy of the preferences can't get the
+ * other sections' changes rejected with it.
+ *
+ * @param preferences - The full notification preferences to save.
+ */
+export const updateNotificationPreferences = async (
+  preferences: NotificationPreferences,
+) => {
+  await Engine.context.NotificationServicesController.updateNotificationPreferences(
+    hasMarketingConsent()
+      ? preferences
+      : {
+          ...preferences,
+          marketing: {
+            inAppNotificationsEnabled: false,
+            pushNotificationsEnabled: false,
+          },
+        },
+  );
+};
+
+/**
+ * Turns the marketing ("Updates and rewards") notification channels on or
+ * off. They only turn on once the user consented to marketing.
+ *
+ * @param isEnabled - Whether to turn the marketing channels on.
+ */
 export const setMarketingNotificationPreferencesEnabled = async (
   isEnabled: boolean,
 ) => {
   assertIsFeatureEnabled();
+  if (isEnabled && !hasMarketingConsent()) {
+    return;
+  }
+
   const preferences = await Engine.controllerMessenger.call(
     GET_NOTIFICATION_PREFERENCES_ACTION,
   );
@@ -97,18 +133,13 @@ export const setMarketingNotificationPreferencesEnabled = async (
     return;
   }
 
-  await Engine.controllerMessenger.call(
-    PUT_NOTIFICATION_PREFERENCES_ACTION,
-    {
-      ...preferences,
-      marketing: {
-        ...preferences.marketing,
-        inAppNotificationsEnabled: isEnabled,
-        pushNotificationsEnabled: isEnabled,
-      },
+  await updateNotificationPreferences({
+    ...preferences,
+    marketing: {
+      inAppNotificationsEnabled: isEnabled,
+      pushNotificationsEnabled: isEnabled,
     },
-    CLIENT_TYPE,
-  );
+  });
 };
 
 /**

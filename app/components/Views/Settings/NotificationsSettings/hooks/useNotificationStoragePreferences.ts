@@ -7,14 +7,12 @@ import type {
   NotificationPreferences as NotificationPreferencesType,
 } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
+import { updateNotificationPreferences } from '../../../../../actions/notification/helpers';
 import Logger from '../../../../../util/Logger';
 import { selectAiSocialAusCacheRefreshEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 
-const CLIENT_TYPE = 'mobile' as const;
 const GET_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;
-const PUT_ACTION =
-  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 // Tells the social API to re-read this user's preferences from AUS and refresh
 // its cache so the change is honoured near-instantly (see @metamask/social-controllers).
 const REFRESH_SOCIAL_CACHE_ACTION =
@@ -164,11 +162,7 @@ export const useNotificationStoragePreferences =
 
         const persistWrite = writeChainRef.current.then(async () => {
           await cancelQueriesPromise;
-          await Engine.controllerMessenger.call(
-            PUT_ACTION,
-            nextPreferences,
-            CLIENT_TYPE,
-          );
+          await updateNotificationPreferences(nextPreferences);
         });
         writeChainRef.current = persistWrite.catch(() => undefined);
 
