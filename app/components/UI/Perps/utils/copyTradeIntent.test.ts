@@ -1,5 +1,5 @@
 import type { OrderResult, OrderType } from '@metamask/perps-controller';
-import { buildPerpsCopyTradeIntent, getCopyTradeOid } from './copyTradeIntents';
+import { buildPerpsCopyTradeIntent, getCopyTradeOid } from './copyTradeIntent';
 
 const COMMENT_ID = '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c';
 const ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';

@@ -218,7 +218,7 @@ import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
 } from '../../../../../util/social/copyTradeIntent';
-import { buildPerpsCopyTradeIntent } from '../../utils/copyTradeIntents';
+import { buildPerpsCopyTradeIntent } from '../../utils/copyTradeIntent';
 
 // Navigation params interface
 interface OrderRouteParams {
