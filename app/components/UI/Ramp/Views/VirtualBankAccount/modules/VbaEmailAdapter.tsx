@@ -97,6 +97,9 @@ const VbaEmailAdapter = () => {
         await Engine.context.KycController.getSessionStatusForVendor(
           VBA_KYC_VENDOR,
         );
+      if (!active) {
+        return;
+      }
 
       let aal2Token: string | undefined;
       if (!existingSession) {

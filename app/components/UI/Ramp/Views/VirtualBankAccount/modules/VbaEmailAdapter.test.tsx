@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { MfaFlowError } from '../../../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../../core/Engine';
@@ -325,6 +325,24 @@ describe('VbaEmailAdapter', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not open email OTP after leaving during session lookup', async () => {
+    let resolveLookup: (session: null) => void = () => undefined;
+    mockKycController.getSessionStatusForVendor.mockReturnValue(
+      new Promise((resolve) => {
+        resolveLookup = resolve;
+      }),
+    );
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    screen.unmount();
+    await act(async () => {
+      resolveLookup(null);
+    });
+
+    expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 
   it('leaves the step from the error screen', async () => {
