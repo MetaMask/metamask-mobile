@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
 /**
@@ -93,6 +93,10 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
     },
     actionButtonWrapper: {
       flex: 1,
+      // Android composites elevated views above a later transparent modal.
+      // Keep these footer buttons at elevation 0 so they cannot paint over an
+      // open bottom sheet.
+      ...(Platform.OS === 'android' ? { elevation: 0 } : {}),
     },
     errorContainer: {
       flex: 1,

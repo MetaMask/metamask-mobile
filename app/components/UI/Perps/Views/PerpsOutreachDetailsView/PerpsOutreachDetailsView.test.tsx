@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, Platform, StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import {
   BottomSheetFooter,
@@ -49,6 +49,7 @@ jest.mock('react-native-reanimated', () =>
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactModule = jest.requireActual('react');
+  const { View: RNView } = jest.requireActual('react-native');
   return {
     ...actual,
     BottomSheet: ReactModule.forwardRef(
@@ -56,9 +57,15 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           goBack,
+          style,
+          collapsable,
+          testID,
         }: {
           children: React.ReactNode;
           goBack?: () => void;
+          style?: React.ComponentProps<typeof RNView>['style'];
+          collapsable?: boolean;
+          testID?: string;
         },
         ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
       ) => {
@@ -68,7 +75,11 @@ jest.mock('@metamask/design-system-react-native', () => {
             cb?.();
           },
         }));
-        return children;
+        return (
+          <RNView testID={testID} style={style} collapsable={collapsable}>
+            {children}
+          </RNView>
+        );
       },
     ),
   };
@@ -194,6 +205,24 @@ describe('PerpsOutreachDetailsView', () => {
     expect(footer.props.buttonsAlignment).toBe(ButtonsAlignment.Horizontal);
     expect(footer.props.secondaryButtonProps.startIconName).toBeUndefined();
     expect(footer.props.primaryButtonProps.startIconName).toBeUndefined();
+  });
+
+  it('lifts the sheet above the market screen on Android', () => {
+    const previousOS = Platform.OS;
+    Platform.OS = 'android';
+
+    try {
+      const { getByTestId } = render(<PerpsOutreachDetailsView />);
+      const sheet = getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SHEET);
+
+      expect(StyleSheet.flatten(sheet.props.style)).toMatchObject({
+        elevation: 24,
+        zIndex: 24,
+      });
+      expect(sheet.props.collapsable).toBe(false);
+    } finally {
+      Platform.OS = previousOS;
+    }
   });
 
   it('hides contact actions when the backend omits contact configuration', () => {
