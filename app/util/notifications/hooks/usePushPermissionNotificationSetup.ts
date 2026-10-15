@@ -38,19 +38,11 @@ export function usePushPermissionNotificationSetup() {
           const hasExistingNotificationPreferences =
             await hasNotificationPreferencesHelper();
 
+          await enableNotificationsHelper({ registerPushNotifications });
+          // New preferences already take the marketing channels from marketing
+          // consent. Existing ones turn them on only with consent.
           if (hasExistingNotificationPreferences) {
-            // Still run the enable flow for auth, trigger refresh, controller
-            // state, and push registration; existing AUS prefs are updated separately.
-            await enableNotificationsHelper({
-              registerPushNotifications,
-            });
             await setMarketingNotificationPreferencesEnabled(true);
-          } else {
-            await enableNotificationsHelper({
-              hasMarketingConsent: true,
-              productAnnouncementEnabled: true,
-              registerPushNotifications,
-            });
           }
 
           await updateNotificationSubscriptionExpiration();

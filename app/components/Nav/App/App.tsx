@@ -8,7 +8,6 @@ import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
-import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
 import ChoosePassword from '../../Views/ChoosePassword';
 import AccountBackupStep1 from '../../Views/AccountBackupStep1';
@@ -599,10 +598,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.FEATURE_NOTIFICATIONS_GATE}
       component={FeatureNotificationsGateSheet}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.DATA_COLLECTION}
-      component={DataCollectionModal}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SDK_DISCONNECT}
