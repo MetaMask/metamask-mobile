@@ -3,8 +3,8 @@ import {
   getDefaultSubscriptionControllerState,
   MoneyAccountFeature,
   PRODUCT_TYPES,
-  selectHasEntitlement,
   SUBSCRIPTION_STATUSES,
+  selectHasEntitlement,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
   type SubscriptionStatus,
@@ -246,3 +246,19 @@ export const selectMoneyAccountPlusSubscription = (
   state: RootState,
 ): Subscription | undefined =>
   selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+
+/**
+ * Selects whether the current Money Account Plus subscription is trialing.
+ *
+ * `trialedProducts` is the historical list of products this user has already
+ * trialed. It stays populated after a trial converts to paid, so current
+ * trial state is `SUBSCRIPTION_STATUSES.trialing` on the Plus subscription.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether Plus is currently in a trial.
+ */
+export const selectIsMoneyAccountPlusTrialing = createSelector(
+  selectMoneyAccountPlusSubscription,
+  (subscription): boolean =>
+    subscription?.status === SUBSCRIPTION_STATUSES.trialing,
+);

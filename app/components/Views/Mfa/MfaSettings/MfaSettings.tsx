@@ -21,6 +21,7 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../locales/i18n';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
+import { maskEmail } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
 
@@ -31,7 +32,9 @@ const getEmailSubtitle = (credential?: EnrolledCredential) => {
   if (credential.status === 'pending') {
     return strings('mfa.settings.email_pending');
   }
-  return credential.email ?? strings('mfa.settings.email_linked');
+  return credential.email
+    ? maskEmail(credential.email)
+    : strings('mfa.settings.email_linked');
 };
 
 /**
@@ -86,7 +89,6 @@ const MfaSettings = () => {
           twClassName="flex-row items-center gap-3"
           testID={MfaSettingsSelectorsIDs.EMAIL_ROW}
         >
-          <Icon name={IconName.Mail} color={IconColor.IconAlternative} />
           <Box twClassName="flex-1">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('mfa.method_email')}
@@ -119,7 +121,6 @@ const MfaSettings = () => {
           twClassName="flex-row items-center gap-3"
           testID={MfaSettingsSelectorsIDs.PASSKEY_ROW}
         >
-          <Icon name={IconName.SecurityKey} color={IconColor.IconAlternative} />
           <Box twClassName="flex-1">
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('mfa.method_passkey')}
