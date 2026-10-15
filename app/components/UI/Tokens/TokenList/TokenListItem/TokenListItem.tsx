@@ -19,7 +19,6 @@ import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercenta
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
-import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 import { Colors } from '../../../../../util/theme/models';
@@ -74,7 +73,6 @@ import {
   FontWeight,
   SensitiveText,
   SensitiveTextLength,
-  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -84,8 +82,6 @@ import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
 import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
 import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stellar-assets';
-
-export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 export interface TokenListItemCtaPressContext {
   tokenPositionInList: number;
@@ -459,10 +455,6 @@ export const TokenListItem = React.memo(
       return null;
     }
 
-    const label = asset.accountType
-      ? ACCOUNT_TYPE_LABELS[asset.accountType]
-      : undefined;
-
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const hideFiatForScamWarning = showScamWarningIcon;
@@ -624,9 +616,6 @@ export const TokenListItem = React.memo(
                 >
                   {asset.name || asset.symbol}
                 </Text>
-                {label && (
-                  <Tag testID={ACCOUNT_TYPE_LABEL_TEST_ID}>{label}</Tag>
-                )}
                 {shouldResolveCaipForSecurityBadge &&
                   caipAssetIdForSecurity && (
                     <TokenListSecurityBadge

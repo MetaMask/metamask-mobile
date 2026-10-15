@@ -209,7 +209,7 @@ describe('TokenDetailsStickyFooter', () => {
     });
 
     it('renders the expanded trader position sheet with footer actions', () => {
-      const { getByTestId, getByText, getAllByText } = render(
+      const { getByTestId, getByText, getAllByText, queryByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           traderPositionPnl={{
@@ -234,7 +234,7 @@ describe('TokenDetailsStickyFooter', () => {
       expect(
         getByTestId('token-details-trader-position-pnl-expanded-details'),
       ).toBeOnTheScreen();
-      expect(getByText('Share to feed')).toBeOnTheScreen();
+      expect(queryByText('Share to feed')).toBeNull();
       expect(getByText('Average cost')).toBeOnTheScreen();
       expect(getByText('Realized P&L')).toBeOnTheScreen();
       expect(getAllByText('Unrealized P&L')).toHaveLength(2);

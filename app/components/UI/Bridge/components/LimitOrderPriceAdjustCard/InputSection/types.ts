@@ -1,8 +1,18 @@
 import type { TextInputSelectionChangeEvent } from 'react-native';
+import type { BridgeToken } from '../../../types';
 import {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
+
+/**
+ * Identity of the token shown in the quote-unit chip. The parent swaps this
+ * when the chip is pressed, so the avatar follows the toggle.
+ */
+export type QuoteUnitToken = Pick<
+  BridgeToken,
+  'address' | 'symbol' | 'image' | 'chainId'
+>;
 
 export interface InputSectionRef {
   blur: () => void;
@@ -19,6 +29,11 @@ export interface InputSectionProps {
    * Quoted-token symbol for the unit chip, e.g. "WBTC".
    */
   quotedSymbol?: string;
+  /**
+   * Quoted token rendered as the chip avatar. Changes with the quote-unit
+   * toggle.
+   */
+  quotedToken?: QuoteUnitToken;
   /**
    * When true the primary amount is fiat and a currency prefix is shown.
    */

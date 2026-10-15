@@ -62,7 +62,7 @@ const fallback = (
   </Text>
 );
 
-const renderReady = (avatarPresetId = 'fox-photo') =>
+const renderReady = (avatarPresetId = 'visor') =>
   render(
     <ProfileReadyAnimation
       displayName="Wen Cat"
@@ -119,7 +119,7 @@ describe('ProfileReadyAnimation', () => {
         .spyOn(Image, 'resolveAssetSource')
         .mockReturnValue({ uri, width: 1, height: 1, scale: 1 });
 
-      renderReady('fox-photo');
+      renderReady('visor');
 
       await waitFor(() =>
         expect(__mockRiveImagePropertySet).toHaveBeenCalledWith({
@@ -145,7 +145,7 @@ describe('ProfileReadyAnimation', () => {
       .mocked(RiveImages.loadFromURLAsync)
       .mockRejectedValueOnce(new Error('404'));
 
-    renderReady('fox-photo');
+    renderReady('visor');
     await act(async () => undefined);
 
     expect(RiveImages.loadFromURLAsync).toHaveBeenCalled();
@@ -170,7 +170,7 @@ describe('ProfileReadyAnimation', () => {
         }),
     );
 
-    const { unmount } = renderReady('fox-photo');
+    const { unmount } = renderReady('visor');
     unmount();
     await act(async () => {
       resolveImage({ byteSize: 1 } as RiveImage);
@@ -199,8 +199,8 @@ describe('ProfileReadyAnimation', () => {
     );
   });
 
-  it('keeps the embedded avatar for emoji presets', async () => {
-    renderReady('fox-emoji');
+  it('keeps the embedded avatar for unknown presets', async () => {
+    renderReady('retired-preset');
 
     await act(async () => undefined);
 
