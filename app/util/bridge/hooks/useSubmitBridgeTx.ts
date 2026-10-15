@@ -36,6 +36,10 @@ import {
 } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { useUnifiedSwapBridgeContext } from '../../../components/UI/Bridge/hooks/useUnifiedSwapBridgeContext';
+import {
+  isSocialTradeSource,
+  recordSocialTrade,
+} from '../../social/socialActivityStorage';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -147,32 +151,37 @@ export default function useSubmitBridgeTx() {
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        if (quoteResponse.quote.intent) {
-          return await Engine.context.BridgeStatusController.submitIntent({
-            quoteResponse,
-            accountAddress: walletAddress,
-            location,
-            abTests,
-            activeAbTests: mergedActiveAbTests,
-            tokenSecurityTypeDestination,
-            inputPrimaryDenomination,
-            quotesReceivedContext,
-            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-          });
+        const submittedTransaction = quoteResponse.quote.intent
+          ? await Engine.context.BridgeStatusController.submitIntent({
+              quoteResponse,
+              accountAddress: walletAddress,
+              location,
+              abTests,
+              activeAbTests: mergedActiveAbTests,
+              tokenSecurityTypeDestination,
+              inputPrimaryDenomination,
+              quotesReceivedContext,
+              migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+            })
+          : await Engine.context.BridgeStatusController.submitTx(
+              walletAddress,
+              quoteResponse,
+              stxEnabled,
+              quotesReceivedContext,
+              location,
+              abTests,
+              mergedActiveAbTests,
+              tokenSecurityTypeDestination,
+              undefined, // batchSellTrades
+              inputPrimaryDenomination,
+              BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+            );
+
+        if (isSocialTradeSource(location)) {
+          recordSocialTrade(walletAddress);
         }
-        return await Engine.context.BridgeStatusController.submitTx(
-          walletAddress,
-          quoteResponse,
-          stxEnabled,
-          quotesReceivedContext,
-          location,
-          abTests,
-          mergedActiveAbTests,
-          tokenSecurityTypeDestination,
-          undefined, // batchSellTrades
-          inputPrimaryDenomination,
-          BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-        );
+
+        return submittedTransaction;
       },
     );
   };

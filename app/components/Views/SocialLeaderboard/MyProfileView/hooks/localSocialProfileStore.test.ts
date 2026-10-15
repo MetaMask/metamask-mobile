@@ -31,6 +31,7 @@ describe('localSocialProfileStore', () => {
 
     expect(profile?.handle).toBe('giga-whale');
     expect(profile?.displayName).toBe('Giga Whale');
+    expect(profile?.createdAt).toEqual(expect.any(String));
   });
 
   it('clears the profile on reset', () => {

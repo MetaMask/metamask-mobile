@@ -20,6 +20,7 @@ export interface MySocialProfile {
   profileId: string;
   displayName: string;
   handle: string;
+  createdAt?: string | null;
   bio?: string | null;
   imageUrl?: string | null;
   /** Local onboarding preset. Ignored once `imageUrl` is a remote avatar. */

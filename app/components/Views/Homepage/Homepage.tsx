@@ -34,6 +34,7 @@ import {
   getHomepageSectionMountMode,
   shouldPlacePerpsAboveTokens,
 } from './hooks/homepageSectionMountPolicy';
+import { useIsSocialTopTradersEligible } from './hooks/useIsSocialTopTradersEligible';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useABTest } from '../../../hooks';
 import { useNetworkTierState } from '../../../hooks/useNetworkTier';
@@ -167,6 +168,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }),
     );
     const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
+    const isSocialTopTradersEligible = useIsSocialTopTradersEligible();
+    const showTopTradersAboveAllocation =
+      isTopTradersEnabled &&
+      shouldMountOptionalSections &&
+      isSocialTopTradersEligible;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -201,6 +207,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const enabledSections = useMemo(
       () =>
         [
+          ...(showTopTradersAboveAllocation
+            ? [{ name: HomeSectionNames.TOP_TRADERS, enabled: true }]
+            : []),
           // Order must match the JSX below — this drives `sectionIndex` on Home Viewed.
           ...(showPerpsAboveTokens
             ? [
@@ -222,7 +231,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           },
           {
             name: HomeSectionNames.TOP_TRADERS,
-            enabled: isTopTradersEnabled && shouldMountOptionalSections,
+            enabled:
+              isTopTradersEnabled &&
+              shouldMountOptionalSections &&
+              !showTopTradersAboveAllocation,
           },
           {
             name: HomeSectionNames.DEFI,
@@ -234,6 +246,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         shouldRenderPerps,
         shouldMountOptionalSections,
         showPerpsAboveTokens,
+        showTopTradersAboveAllocation,
         shouldRenderEarnSection,
         isPredictEnabled,
         isDeFiEnabled,
@@ -304,6 +317,14 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               {balanceBreakdownSectionProps ? (
                 <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
               ) : null}
+              {showTopTradersAboveAllocation && (
+                <TopTradersSection
+                  key="top-traders"
+                  ref={topTradersSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
               {showPerpsAboveTokens ? (
                 <>
                   {perpsSection}
@@ -337,8 +358,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                   totalSectionsLoaded={totalSectionsLoaded}
                 />
               )}
-              {shouldMountOptionalSections && isTopTradersEnabled && (
+              {shouldMountOptionalSections &&
+                isTopTradersEnabled &&
+                !showTopTradersAboveAllocation && (
                 <TopTradersSection
+                  key="top-traders"
                   ref={topTradersSectionRef}
                   sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
                   totalSectionsLoaded={totalSectionsLoaded}
