@@ -14,7 +14,7 @@ import SheetHeader from '../../../../../component-library/components/Sheet/Sheet
 import { strings } from '../../../../../../locales/i18n';
 import { formatPrice } from '../../utils/format';
 import { SLIPPAGE_BUY } from '../../providers/polymarket/constants';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 
 interface FeeRowProps {
   title: string;
@@ -145,7 +145,7 @@ const PredictFeeBreakdownSheet = forwardRef<
             {feePolicyDiscountType === DiscountType.SUBSCRIPTION &&
               originalTotal !== undefined && (
                 <>
-                  <RewardsVipBadge hasProEntitlement />
+                  <MembershipVipBadge hasProEntitlement />
                   <Text
                     color={TextColor.TextAlternative}
                     variant={TextVariant.BodyMd}

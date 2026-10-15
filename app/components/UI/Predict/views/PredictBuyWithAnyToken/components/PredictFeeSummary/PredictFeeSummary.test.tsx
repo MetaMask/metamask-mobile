@@ -16,7 +16,7 @@ jest.mock('../../../../hooks/usePredictRewards', () => ({
 }));
 
 jest.mock(
-  '../../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
+  '../../../../../shared/MembershipVipBadge/MembershipVipBadge',
   () => {
     const ReactActual = jest.requireActual('react');
     const { Text } = jest.requireActual('react-native');

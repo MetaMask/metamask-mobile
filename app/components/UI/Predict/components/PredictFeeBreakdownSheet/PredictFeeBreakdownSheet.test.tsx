@@ -60,7 +60,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>

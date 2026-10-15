@@ -25,7 +25,7 @@ import {
   TextVariant as LegacyTextVariant,
 } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
-import RewardsVipBadge from '../../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../../../shared/MembershipVipBadge/MembershipVipBadge';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../../../Rewards/components/RewardPointsAnimation';
@@ -125,7 +125,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
               {feePolicyDiscountType === DiscountType.SUBSCRIPTION &&
                 originalTotal !== undefined && (
                   <>
-                    <RewardsVipBadge hasProEntitlement />
+                    <MembershipVipBadge hasProEntitlement />
                     <Text
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
