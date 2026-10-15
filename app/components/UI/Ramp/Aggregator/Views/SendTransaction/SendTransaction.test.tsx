@@ -843,6 +843,76 @@ describe('SendTransaction View', () => {
       `);
     });
 
+    it('does not call the Snap when the asset id is missing', async () => {
+      const cryptoCurrency = {
+        ...(mockSolanaOrder.data as SellOrder).cryptoCurrency,
+      };
+      delete cryptoCurrency.assetId;
+      const orderWithoutAssetId = {
+        ...mockSolanaOrder,
+        data: {
+          ...mockSolanaOrder.data,
+          cryptoCurrency,
+        },
+      } as FiatOrder;
+
+      render(SendTransaction, [orderWithoutAssetId]);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+      );
+    });
+
+    it('tracks rejected and re-enables Next when the Snap throws', async () => {
+      mockSendMultichainTransactionForReview.mockRejectedValueOnce(
+        new Error('User rejected the request'),
+      );
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_REJECTED',
+      );
+      expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
+    });
+
+    it('sends an eip155 chain id through the EVM transaction path', async () => {
+      const cryptoCurrency = {
+        ...(mockOrder.data as SellOrder).cryptoCurrency,
+        network: {
+          ...(mockOrder.data as SellOrder).cryptoCurrency.network,
+          chainId: 'eip155:1',
+        },
+      };
+      const evmCaipOrder = {
+        ...mockOrder,
+        id: 'test-id-eip155',
+        data: {
+          ...mockOrder.data,
+          id: 'test-id-eip155',
+          cryptoCurrency,
+        },
+      } as FiatOrder;
+
+      mockUseParamsValues = { orderId: 'test-id-eip155' };
+      mockGetInternalAccountByAddress.mockReset();
+      render(SendTransaction, [evmCaipOrder]);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+    });
+
     it('does not call the Snap when the account has no snap id', async () => {
       mockGetInternalAccountByAddress.mockReturnValue({
         ...mockSolanaAccount,

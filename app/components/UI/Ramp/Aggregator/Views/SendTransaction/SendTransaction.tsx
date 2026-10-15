@@ -233,9 +233,14 @@ function SendTransaction() {
       return;
     }
 
+    // Sell orders may carry a CAIP-2 EVM id (`eip155:1`) as well as the legacy
+    // numeric id (`1`). toHex only accepts the reference.
+    const evmChainReference = chainId.startsWith('eip155:')
+      ? chainId.slice('eip155:'.length)
+      : chainId;
     let chainIdAsHex: `0x${string}`;
     try {
-      chainIdAsHex = toHex(chainId);
+      chainIdAsHex = toHex(evmChainReference);
     } catch {
       return;
     }
