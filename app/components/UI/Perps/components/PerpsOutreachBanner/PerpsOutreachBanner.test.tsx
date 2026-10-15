@@ -108,7 +108,7 @@ describe('PerpsOutreachBanner', () => {
     jest.clearAllMocks();
   });
 
-  it('uses the surface background and default text', () => {
+  it('uses the section background and default text', () => {
     const { getByTestId, UNSAFE_getAllByType } = renderBanner();
 
     const bannerStyle = flattenStyle(
@@ -118,8 +118,8 @@ describe('PerpsOutreachBanner', () => {
       (node) => node.props.children === BANNER.body,
     );
 
-    expect(bannerStyle.backgroundColor).toBe(brandColor.white);
-    expect(bannerStyle.backgroundColor).not.toBe(brandColor.purple100);
+    expect(bannerStyle.backgroundColor).toBe(brandColor.grey050);
+    expect(bannerStyle.backgroundColor).not.toBe(brandColor.white);
     expect(body?.props.color).toBe(TextColor.TextDefault);
   });
 

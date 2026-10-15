@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, Platform, StyleSheet } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import {
   BottomSheetFooter,
@@ -207,22 +207,40 @@ describe('PerpsOutreachDetailsView', () => {
     expect(footer.props.primaryButtonProps.startIconName).toBeUndefined();
   });
 
-  it('lifts the sheet above the market screen on Android', () => {
-    const previousOS = Platform.OS;
-    Platform.OS = 'android';
+  describe('safe area', () => {
+    const originalPlatform = Platform.OS;
 
-    try {
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('measures the modal window on Android so the footer clears the navigation bar', () => {
+      Platform.OS = 'android';
+
       const { getByTestId } = render(<PerpsOutreachDetailsView />);
-      const sheet = getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SHEET);
 
-      expect(StyleSheet.flatten(sheet.props.style)).toMatchObject({
-        elevation: 24,
-        zIndex: 24,
-      });
-      expect(sheet.props.collapsable).toBe(false);
-    } finally {
-      Platform.OS = previousOS;
-    }
+      expect(
+        getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SAFE_AREA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the root inset source on iOS', () => {
+      Platform.OS = 'ios';
+
+      const { queryByTestId, getByTestId } = render(
+        <PerpsOutreachDetailsView />,
+      );
+
+      expect(
+        queryByTestId(PerpsOutreachDetailsViewSelectorsIDs.SAFE_AREA),
+      ).toBeNull();
+      expect(
+        getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('hides contact actions when the backend omits contact configuration', () => {

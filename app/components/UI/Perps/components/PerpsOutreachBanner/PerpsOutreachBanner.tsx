@@ -119,7 +119,7 @@ const PerpsOutreachBannerContent = ({
     <Animated.View
       entering={SlideInUp.duration(AnimationDuration.Promptly)}
       style={[
-        tw.style('w-full bg-default'),
+        tw.style('w-full bg-background-section'),
         includesTopInset && { paddingTop: insets.top },
       ]}
       testID={PerpsOutreachBannerSelectorsIDs.BANNER}
@@ -196,9 +196,8 @@ const PerpsOutreachBannerContent = ({
 /**
  * Dismissible outreach banner shown above the header on Perps surfaces.
  *
- * The background is the surface colour in the active theme, so the banner
- * matches the screen behind it and the text stays readable without pinning
- * a theme.
+ * The background is the section surface, a step off the page background, so
+ * the banner reads as its own strip in light and dark mode.
  */
 const PerpsOutreachBanner = (props: PerpsOutreachBannerProps) => (
   <PerpsOutreachBannerContent {...props} />
