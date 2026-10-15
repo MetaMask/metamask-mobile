@@ -451,7 +451,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
 
     if (isBannerActive) {
-      handleRetry();
+      void handleRetry();
       return;
     }
     if (isChangePaymentMode) {

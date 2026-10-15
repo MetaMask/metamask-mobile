@@ -15,6 +15,7 @@ import type {
 import { getPredictTicksWorse } from '../utils/prices';
 import { sanitizePredictFailureReason } from '../utils/analytics';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
+import type { RefetchPreviewResult } from './usePredictOrderPreview';
 import type {
   PredictOrderRetrySheetRef,
   PredictOrderRetrySheetVariant,
@@ -26,11 +27,7 @@ interface UsePredictOrderRetryParams {
    * Re-fetches the live order book and classifies the outcome.
    * Every retry must confirm a freshly fetched quote before submitting.
    */
-  refetchPreview: () => Promise<
-    | { status: 'ok'; preview: OrderPreview }
-    | { status: 'no_match' }
-    | { status: 'unavailable' }
-  >;
+  refetchPreview: () => Promise<RefetchPreviewResult>;
   /**
    * The preview behind the most recent submit attempt (original order or
    * previous retry). Its price is the 1-tick honesty baseline: a fresh quote
@@ -59,6 +56,55 @@ interface UsePredictOrderRetryParams {
 /** Applied band as a percentage string, e.g. 0.05 → '5%' (sell) / 0.03 → '3%'. */
 function getSlippageBand(slippage: number): string {
   return `${Math.round(slippage * 100)}%`;
+}
+
+/**
+ * Classification of a freshly fetched quote against the 1-tick baseline.
+ * Keeps the branching out of handleRetry so the flow stays readable.
+ */
+type FreshQuoteClassification =
+  | {
+      outcome: 'quoted';
+      quote: OrderPreview;
+      previousPrice: number | null;
+      movedBeyondOneTick: boolean;
+      oneTickDecision: PredictOneTickDecisionValue;
+    }
+  | { outcome: 'no_match' }
+  | { outcome: 'unavailable' };
+
+function classifyFreshQuote(
+  fetchResult: RefetchPreviewResult,
+  referencePrice: number | undefined,
+): FreshQuoteClassification {
+  switch (fetchResult.status) {
+    case 'no_match':
+      return { outcome: 'no_match' };
+    case 'unavailable':
+      return { outcome: 'unavailable' };
+    case 'ok': {
+      const freshPreview = fetchResult.preview;
+      const ticksWorse =
+        referencePrice === undefined
+          ? 0
+          : getPredictTicksWorse({
+              side: freshPreview.side,
+              referencePrice,
+              freshPrice: freshPreview.sharePrice,
+              tickSize: freshPreview.tickSize,
+            });
+      return {
+        outcome: 'quoted',
+        quote: freshPreview,
+        previousPrice: referencePrice ?? null,
+        movedBeyondOneTick: ticksWorse > 1,
+        oneTickDecision:
+          ticksWorse > 1
+            ? PredictEventValues.ONE_TICK_DECISION.BEYOND_ONE_TICK
+            : PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK,
+      };
+    }
+  }
 }
 
 export function usePredictOrderRetry({
@@ -116,31 +162,23 @@ export function usePredictOrderRetry({
       if (!isOrderNotFilledRef.current || isRetryBlockedRef.current) {
         return;
       }
-      if (fetchResult.status === 'no_match') {
+      const classification = classifyFreshQuote(
+        fetchResult,
+        lastSubmittedPreview?.sharePrice,
+      );
+      if (classification.outcome === 'no_match') {
         // Empty/unfillable book: never submit into it — offer try again / later.
         setRetryQuote(null);
         setRetrySheetVariant('no_match');
-      } else if (fetchResult.status === 'ok') {
-        const freshPreview = fetchResult.preview;
-        const referencePrice = lastSubmittedPreview?.sharePrice;
-        const ticksWorse =
-          referencePrice === undefined
-            ? 0
-            : getPredictTicksWorse({
-                side: freshPreview.side,
-                referencePrice,
-                freshPrice: freshPreview.sharePrice,
-                tickSize: freshPreview.tickSize,
-              });
-        oneTickDecisionRef.current =
-          ticksWorse > 1
-            ? PredictEventValues.ONE_TICK_DECISION.BEYOND_ONE_TICK
-            : PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK;
-        setRetryQuote(freshPreview);
-        setRetryPreviousPrice(referencePrice ?? null);
+      } else if (classification.outcome === 'quoted') {
+        oneTickDecisionRef.current = classification.oneTickDecision;
+        setRetryQuote(classification.quote);
+        setRetryPreviousPrice(classification.previousPrice);
         // 1-tick honesty: a move beyond one tick re-confirms the new price
         // explicitly; otherwise the single confirmation proceeds.
-        setRetrySheetVariant(ticksWorse > 1 ? 'price_moved' : 'confirm');
+        setRetrySheetVariant(
+          classification.movedBeyondOneTick ? 'price_moved' : 'confirm',
+        );
       } else {
         setRetryQuote(null);
         setRetrySheetVariant('quote_unavailable');
@@ -195,7 +233,7 @@ export function usePredictOrderRetry({
 
     try {
       if (!isPredictBuy) {
-        Engine.context.PredictController.trackPredictOrderEvent({
+        void Engine.context.PredictController.trackPredictOrderEvent({
           status: PredictTradeStatus.RETRY_SUBMITTED,
           analyticsProperties,
           sharePrice: retryQuote.sharePrice,
@@ -240,7 +278,7 @@ export function usePredictOrderRetry({
       settleFailed();
     } finally {
       if (!isPredictBuy && retryOutcome) {
-        Engine.context.PredictController.trackPredictOrderEvent({
+        void Engine.context.PredictController.trackPredictOrderEvent({
           status: PredictTradeStatus.RETRY_COMPLETED,
           analyticsProperties,
           sharePrice: retryQuote.sharePrice,
@@ -286,14 +324,14 @@ export function usePredictOrderRetry({
       // the banner CTA drives the fetch + confirm flow.
       if (!isSheetMode) {
         retrySheetRef.current?.onOpenBottomSheet();
-        handleRetry();
+        void handleRetry();
       }
 
       if (
         analyticsProperties?.transactionType !==
         PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
       ) {
-        Engine.context.PredictController.trackPredictOrderEvent({
+        void Engine.context.PredictController.trackPredictOrderEvent({
           status: PredictTradeStatus.RETRY_PROMPTED,
           analyticsProperties,
           sharePrice: preview?.sharePrice,

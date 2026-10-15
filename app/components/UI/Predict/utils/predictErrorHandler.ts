@@ -100,7 +100,17 @@ export function isPredictNoMatchError(error: unknown): boolean {
   if (!error) {
     return false;
   }
-  const message = error instanceof Error ? error.message : String(error);
+  // Exact-match classification: only Error messages and plain strings can
+  // match. Any other payload (structured objects, numbers) has no meaning
+  // here and must not be stringified into '[object Object]'.
+  let message: string;
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === 'string') {
+    message = error;
+  } else {
+    return false;
+  }
   return getNoMatchErrorMessages().includes(message);
 }
 
