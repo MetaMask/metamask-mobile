@@ -5,8 +5,8 @@ import type {
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { useCommissions } from '../hooks/useCommissions';
-import { useSessionProfileId } from '../hooks/useReferralMe';
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows';
 import RewardsTradingCommissionsView, {
   REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS,
@@ -20,10 +20,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../Views/ErrorBoundary', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
+
 jest.mock('../hooks/useCommissions');
-jest.mock('../hooks/useReferralMe');
 
 const PROFILE_ID = 'profile-a';
+const KEYRING_ID = 'entropy-source-1';
 const LOCALIZED_TEXT = {
   tradingCommissionsSection: 'Trading commissions',
   tradeCommissions: 'Trade commissions',
@@ -43,6 +53,28 @@ const COMMISSION: CommissionEntryView = {
 };
 
 const stateWith = (localizedText: Partial<ReferralLocalizedText>) => ({
+  engine: {
+    backgroundState: {
+      AuthenticationController: {
+        isSignedIn: true,
+        srpSessionData: {
+          [KEYRING_ID]: {
+            profile: { profileId: PROFILE_ID },
+          },
+        },
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.hd,
+            accounts: [],
+            metadata: { id: KEYRING_ID, name: '' },
+          },
+        ],
+      },
+    },
+  },
   rewardsMoney: {
     referralMe: {
       [PROFILE_ID]: {
@@ -59,10 +91,6 @@ describe('RewardsTradingCommissionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSessionProfileId as jest.Mock).mockReturnValue({
-      profileId: PROFILE_ID,
-      isResolved: true,
-    });
     (useCommissions as jest.Mock).mockReturnValue({
       items: [COMMISSION],
       isLoading: false,
@@ -117,6 +145,16 @@ describe('RewardsTradingCommissionsView', () => {
   it('renders no rows until localized text is available', () => {
     const { queryByTestId } = renderWithProvider(
       <RewardsTradingCommissionsView />,
+      {
+        state: {
+          ...stateWith({}),
+          rewardsMoney: {
+            referralMe: {
+              [PROFILE_ID]: { loading: false, error: false, data: null },
+            },
+          },
+        },
+      },
     );
 
     expect(

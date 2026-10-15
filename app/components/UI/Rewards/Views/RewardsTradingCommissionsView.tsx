@@ -2,10 +2,10 @@ import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { CommissionEntryView } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { PerformanceCommissionRow } from '../components/Money/PerformanceActivityRows';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
-import { useSessionProfileId } from '../hooks/useReferralMe';
 import { useCommissions } from '../hooks/useCommissions';
 
 export const REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS = {
@@ -15,7 +15,7 @@ export const REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS = {
 } as const;
 
 const RewardsTradingCommissionsView: React.FC = () => {
-  const { profileId } = useSessionProfileId();
+  const profileId = useSelector(selectSessionProfileId);
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );

@@ -84,5 +84,6 @@ export const useCashbackLedger = (
     fetchPage,
     onFirstPage,
     errorMessage: 'Failed to fetch cashback ledger',
+    feature: 'rewards-money',
   });
 };

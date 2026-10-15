@@ -18,7 +18,6 @@ jest.mock('../../../hooks/useReferralMe', () => ({
   useReferralMe: () => ({
     fetchReferralMe: jest.fn(),
   }),
-  useSessionProfileId: jest.fn(),
 }));
 
 jest.mock('../RewardsOptInSection', () => {
@@ -77,12 +76,15 @@ const createReferralMe = (
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: null,
   referred_by: null,
   earn_rates: {
     revshare_rate_bps: 2500,
     cashback_rate_bps: 500,
-    revshare_earning_term_minutes: null,
-    cashback_earning_term_minutes: null,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
@@ -149,9 +151,6 @@ describe('WaysToEarnTab', () => {
         referral_code: null,
         referred_by: {
           referral_code: 'SOPHIE',
-          earning_start: null,
-          earning_end: null,
-          cashback_earning_end: null,
         },
       }),
     });

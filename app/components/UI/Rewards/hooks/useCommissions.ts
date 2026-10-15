@@ -71,5 +71,6 @@ export const useCommissions = (
     fetchPage,
     onFirstPage,
     errorMessage: 'Failed to fetch commissions',
+    feature: 'rewards-money',
   });
 };

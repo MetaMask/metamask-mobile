@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import type { CommissionsPageDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -18,6 +19,10 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
 }));
 
 const PROFILE_A = 'profile-a';
@@ -57,12 +62,18 @@ describe('useCommissions', () => {
     typeof useSelector
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
+  const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+    typeof useFocusEffect
+  >;
   const flushPromises = () => new Promise(process.nextTick);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
     mockUseSelector.mockReturnValue(undefined);
+    mockUseFocusEffect.mockImplementation((effect) => {
+      effect();
+    });
     mockEngineCall.mockResolvedValue(page);
   });
 
