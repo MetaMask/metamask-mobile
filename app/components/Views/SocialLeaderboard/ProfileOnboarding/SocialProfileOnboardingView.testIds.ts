@@ -5,6 +5,8 @@ export const SocialProfileOnboardingSelectorsIDs = {
   CLOSE_BUTTON: 'social-profile-onboarding-close-button',
   PROGRESS: 'social-profile-onboarding-progress',
   INTRO: 'social-profile-onboarding-intro',
+  INTRO_ANIMATION: 'social-profile-onboarding-intro-animation',
+  INTRO_FALLBACK: 'social-profile-onboarding-intro-fallback',
   CONNECT_X_BUTTON: 'social-profile-onboarding-connect-x-button',
   CREATE_MANUALLY_BUTTON: 'social-profile-onboarding-create-manually-button',
   USERNAME_STEP: 'social-profile-onboarding-username-step',
@@ -22,6 +24,8 @@ export const SocialProfileOnboardingSelectorsIDs = {
   SHARE_ACTIVITY_SWITCH: 'social-profile-onboarding-share-activity-switch',
   READY_STEP: 'social-profile-onboarding-ready-step',
   READY_HANDLE: 'social-profile-onboarding-ready-handle',
+  READY_ANIMATION: 'social-profile-onboarding-ready-animation',
+  READY_FALLBACK: 'social-profile-onboarding-ready-fallback',
   CONTINUE_BUTTON: 'social-profile-onboarding-continue-button',
   LETS_GO_BUTTON: 'social-profile-onboarding-lets-go-button',
 } as const;
