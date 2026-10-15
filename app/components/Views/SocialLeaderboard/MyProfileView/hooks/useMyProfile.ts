@@ -20,6 +20,8 @@ export interface MySocialProfile {
   imageUrl?: string | null;
   /** Local onboarding preset. Ignored once `imageUrl` is a remote avatar. */
   avatarPresetId?: string | null;
+  /** Backdrop color picked with the onboarding preset. */
+  avatarBackgroundId?: string | null;
   rankingTag?: ProfileRankingTag | null;
   xHandle?: string | null;
   followerCount?: number | null;

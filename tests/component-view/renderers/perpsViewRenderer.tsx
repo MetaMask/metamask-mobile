@@ -503,8 +503,12 @@ export interface PerpsStreamOverrides {
   account?: unknown;
   /** When set, usePerpsLivePositions() receives this array (e.g. to show Close/Modify on Market Details). */
   positions?: unknown[];
-  /** When set, usePerpsMarkets() receives this array (e.g. to test category badges in Market List: crypto + commodity). */
-  marketData?: unknown[];
+  /**
+   * When set, usePerpsMarkets() receives this array (e.g. to test category
+   * badges in Market List: crypto + commodity). `null` leaves the channel
+   * empty until `emitMarketData`, so home stays on its loading skeleton.
+   */
+  marketData?: unknown[] | null;
   /** When set, usePerpsLiveOrders() receives this array (e.g. to test CancelAllOrders with/without orders). */
   orders?: unknown[];
   /** When set, usePerpsLivePrices() receives these prices on first subscription. */
@@ -532,9 +536,12 @@ function createTestStreamManager(
   const positions = createPositionsChannel(streamOverrides?.positions ?? []);
   const orders = createOrdersChannel(streamOverrides?.orders ?? []);
   const fills = mutableChannelWithInitialValue<OrderFill[]>([]);
-  const marketData = createMarketDataChannel(
-    streamOverrides?.marketData ?? initialMarketData,
-  );
+  const marketData =
+    streamOverrides?.marketData === null
+      ? mutableChannelWithInitialValue<PerpsMarketData[] | null>(null)
+      : createMarketDataChannel(
+          streamOverrides?.marketData ?? initialMarketData,
+        );
   const account = createAccountChannel(
     streamOverrides?.account ?? initialAccount,
   );

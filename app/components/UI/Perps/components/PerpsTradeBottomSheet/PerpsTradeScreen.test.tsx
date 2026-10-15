@@ -16,6 +16,8 @@ import {
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 
+jest.mock('../../../../../util/haptics');
+
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
@@ -69,7 +71,7 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
   },
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
