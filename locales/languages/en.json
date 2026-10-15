@@ -9130,8 +9130,8 @@
         "cta": "View Pix details"
       },
       "kyc_pending": {
-        "title": "Still verifying your identity",
-        "description": "We’re reviewing your details. We’ll notify you when your account is ready.",
+        "title": "Verifying your identity",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
         "cta": "Verifying"
       },
       "finish_verification": {
@@ -9141,7 +9141,7 @@
       },
       "kyc_decision": {
         "title": "We can’t verify your identity",
-        "description": "We’re unable to create virtual account details right now.",
+        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
         "cta": "Learn more",
         "dismiss": "Dismiss"
       }
