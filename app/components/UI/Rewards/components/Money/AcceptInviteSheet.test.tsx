@@ -712,6 +712,7 @@ describe('AcceptInviteSheet', () => {
     await act(async () => {
       await Promise.resolve();
     });
+    expect(mockAcceptReferralCode).toHaveBeenCalledTimes(1);
 
     mockUseAcceptMoneyReferralCode.mockReturnValue({
       acceptReferralCode: mockAcceptReferralCode,
@@ -719,6 +720,7 @@ describe('AcceptInviteSheet', () => {
       errorMessage: strings(
         'rewards.onboarding.not_supported_region_description',
       ),
+      acceptBlockedUntil: null,
       clearError: jest.fn(),
     });
 
@@ -731,11 +733,20 @@ describe('AcceptInviteSheet', () => {
       );
     });
 
+    // acceptStartedRef keeps the sheet up; acceptAllowedForGeo must still
+    // disable Accept so a second press cannot call registerReferee again.
     expect(queryByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
       strings('rewards.onboarding.not_supported_region_description'),
     );
     expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
+      { disabled: true },
+    );
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+
+    expect(mockAcceptReferralCode).toHaveBeenCalledTimes(1);
   });
 
   it.each([
