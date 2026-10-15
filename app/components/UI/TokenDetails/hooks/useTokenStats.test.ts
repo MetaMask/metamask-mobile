@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
-import { useTokenStatBarStats } from './useTokenStatBarStats';
-import { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
+import { useTokenStats } from './useTokenStats';
+import { TokenStatKey } from '../constants/tokenStats';
 
 const buildMarketData = (
   overrides: Partial<FungibleAssetPrice> = {},
@@ -53,15 +53,17 @@ const buildSecurityData = (
         telegramChannelId: null,
       },
     },
-    created: '2026-10-05T21:57:11',
+    // Zoned, as the API sends it. Without the `Z` this parses as local time
+    // and the late hour lands on the next UTC day in half the world.
+    created: '2026-10-05T21:57:11Z',
     ...overrides,
   }) as TokenSecurityData;
 
 const renderStats = (
-  params: Partial<Parameters<typeof useTokenStatBarStats>[0]> = {},
+  params: Partial<Parameters<typeof useTokenStats>[0]> = {},
 ) =>
   renderHook(() =>
-    useTokenStatBarStats({
+    useTokenStats({
       marketData: buildMarketData(),
       isMarketDataLoading: false,
       securityData: buildSecurityData(),
@@ -70,7 +72,7 @@ const renderStats = (
     }),
   ).result.current;
 
-describe('useTokenStatBarStats', () => {
+describe('useTokenStats', () => {
   it('formats every stat from complete data', () => {
     const stats = renderStats();
 
@@ -236,5 +238,135 @@ describe('useTokenStatBarStats', () => {
     expect(stats[TokenStatKey.CirculatingSupply]?.isLoading).toBe(true);
     expect(stats[TokenStatKey.Holders]?.isLoading).toBeUndefined();
     expect(stats[TokenStatKey.Tax]?.isLoading).toBeUndefined();
+  });
+
+  // The five stats only the Security tab shows. They moved here from
+  // `securityFacts` so that every figure on either surface comes from one
+  // place, even the ones the bar has no cell for.
+  describe('the Security tab stats', () => {
+    it('names the deepest market as the primary pool', () => {
+      const stats = renderStats();
+
+      expect(stats[TokenStatKey.PrimaryPool]?.value).toBe(
+        'Uniswap \u00b7 X/WETH',
+      );
+    });
+
+    // "Primary" is the largest reserve, which is a choice: `markets[]` carries
+    // no primary-pool flag.
+    it('picks the deepest of several markets', () => {
+      const stats = renderStats({
+        securityData: buildSecurityData({
+          financialStats: {
+            ...buildSecurityData().financialStats,
+            markets: [
+              {
+                marketType: 'uniswap_v2',
+                marketName: 'Shallow',
+                pairName: 'X/WETH',
+                reserveUSD: 10_000,
+              },
+              {
+                marketType: 'uniswap_v2',
+                marketName: 'Deep',
+                pairName: 'X/USDC',
+                reserveUSD: 900_000,
+              },
+            ],
+          },
+        }),
+      });
+
+      expect(stats[TokenStatKey.PrimaryPool]?.value).toBe('Deep \u00b7 X/USDC');
+    });
+
+    it('dashes the pool out when no markets came back', () => {
+      const stats = renderStats({
+        securityData: buildSecurityData({
+          financialStats: {
+            ...buildSecurityData().financialStats,
+            markets: [],
+          },
+        }),
+      });
+
+      expect(stats[TokenStatKey.PrimaryPool]?.value).toBeNull();
+    });
+
+    it('keeps zero locked liquidity as a reading rather than a dash', () => {
+      const stats = renderStats({
+        securityData: buildSecurityData({
+          financialStats: {
+            ...buildSecurityData().financialStats,
+            lockedLiquidityPct: 0,
+          },
+        }),
+      });
+
+      expect(stats[TokenStatKey.LpBurnedLocked]?.value).toBe('0.0%');
+    });
+
+    it('dashes LP locked out when the payload omits it', () => {
+      const stats = renderStats();
+
+      expect(stats[TokenStatKey.LpBurnedLocked]?.value).toBeNull();
+    });
+
+    // These four featureIds are ones Blockaid states explicitly, so "none
+    // detected" is a real reading rather than an inference from silence.
+    it('says none detected when no volume feature fired', () => {
+      const stats = renderStats();
+
+      expect(stats[TokenStatKey.VolumeFlags]?.value).toBe('None detected');
+    });
+
+    it('counts the volume flags that fired', () => {
+      const stats = renderStats({
+        securityData: buildSecurityData({
+          features: [
+            { featureId: 'WASH_TRADING', type: 'Warning', description: '' },
+            { featureId: 'FAKE_VOLUME', type: 'Warning', description: '' },
+          ],
+        }),
+      });
+
+      expect(stats[TokenStatKey.VolumeFlags]?.value).toBe('2 detected');
+    });
+
+    it.each([
+      [[{ featureId: 'LISTED_ON_CENTRALIZED_EXCHANGE' }], 'Yes'],
+      [[], 'No'],
+    ])('reports a centralized exchange listing as %#: %s', (features, word) => {
+      const stats = renderStats({
+        securityData: buildSecurityData({
+          features: features.map((f) => ({
+            ...f,
+            type: 'Benign',
+            description: '',
+          })),
+        }),
+      });
+
+      expect(stats[TokenStatKey.ListedOnExchange]?.value).toBe(word);
+    });
+
+    // Formatted in UTC: the API sends midnight UTC, so device-local
+    // formatting would show the previous day everywhere west of Greenwich.
+    it('formats the creation date on the day the API meant', () => {
+      const stats = renderStats();
+
+      expect(stats[TokenStatKey.Created]?.value).toBe('Oct 5, 2026');
+    });
+
+    it.each([['' as const], ['not-a-date']])(
+      'dashes the date out for %p rather than rendering Invalid Date',
+      (created) => {
+        const stats = renderStats({
+          securityData: buildSecurityData({ created }),
+        });
+
+        expect(stats[TokenStatKey.Created]?.value).toBeNull();
+      },
+    );
   });
 });

@@ -25,6 +25,7 @@ import type { OrderType } from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
@@ -330,7 +331,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { fireImpact } = useHaptics();
   const [showAssetValue, setShowAssetValue] = useState(false);
+  const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
+    fireImpact(ImpactMoment.PageNavigation);
+    navigateTo(screen);
+  };
   const { draft: assetDraft, setDraftFromKeypad } = useAssetAmountDraft({
     isActive: showAssetValue,
     usdAmount: amount,
@@ -372,7 +378,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   // another bottom sheet; the parent only records the press for analytics.
   const handlePayWithPress = () => {
     onPayWithPress();
-    navigateTo('payWith');
+    navigateWithHaptic('payWith');
   };
   const limitPriceDisplay = limitPrice
     ? isLimitPriceFocused
@@ -564,7 +570,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   {leverage}x
                 </Text>
               }
-              onPress={() => navigateTo('leverage')}
+              onPress={() => navigateWithHaptic('leverage')}
             />
             {orderType === 'limit' ? (
               <>
@@ -616,7 +622,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                         {autoCloseText}
                       </Text>
                     }
-                    onPress={() => navigateTo('tpsl')}
+                    onPress={() => navigateWithHaptic('tpsl')}
                   />
                 ) : null}
                 {showPayWith ? (

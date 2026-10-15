@@ -16,6 +16,8 @@ import {
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 
+jest.mock('../../../../../util/haptics');
+
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }

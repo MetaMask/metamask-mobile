@@ -1,9 +1,17 @@
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../../../../selectors/featureFlagController';
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import type { RootState } from '../../../../../reducers';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
@@ -436,6 +444,37 @@ export const selectPerpsPositionModifyPreviewEnabledFlag = createSelector(
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
+);
+
+/**
+ * Client-config / Redux key for social features inside Perps.
+ * LaunchDarkly key (camelCase, same as the client key): `perpsSocialEnabled`.
+ */
+export const PERPS_SOCIAL_ENABLED_FLAG_KEY = 'perpsSocialEnabled' as const;
+
+export const selectPerpsSocialEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_SOCIAL_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectIsPerpsSocialEnabled = createSelector(
+  selectPerpsSocialEnabledFlag,
+  selectRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+  (isPerpsSocialFlagEnabled, remoteFeatureFlags, thresholdGroups) =>
+    isPerpsSocialFlagEnabled &&
+    resolveABTestAssignment(
+      remoteFeatureFlags,
+      SOCIAL_V1_AB_KEY,
+      Object.values(SocialV1Variant),
+      thresholdGroups,
+    ).variantName === SocialV1Variant.Treatment,
 );
 
 /**
