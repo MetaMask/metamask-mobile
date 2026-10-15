@@ -24,6 +24,7 @@ import {
   selectKycSessionStatus,
 } from '../../../../../../selectors/kycController';
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 import {
@@ -39,8 +40,15 @@ jest.mock('../../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
+      KycController: {
+        fetchSessionStatusOnce: jest.fn(),
+        refreshSessionStatus: jest.fn(),
+        startSessionStatusPolling: jest.fn(),
+      },
       RampsController: {
         hydrateVbaOnboarding: jest.fn(),
+        refreshAutoramps: jest.fn(),
+        state: { autoramps: [] as AutorampAccount[] },
       },
     },
   },
@@ -48,6 +56,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../../../../selectors/rampsController');
 jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
+jest.mock('../../../../../../hooks/useNetworkTier');
 jest.mock('../vbaVendorTermsStorage');
 jest.mock('../vbaDevOverrides', () => ({
   ...jest.requireActual('../vbaDevOverrides'),
@@ -75,6 +84,19 @@ const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
 const mockHydrateVbaOnboarding = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,
 );
+const mockRefreshAutoramps = jest.mocked(
+  Engine.context.RampsController.refreshAutoramps,
+);
+const mockFetchSessionStatusOnce = jest.mocked(
+  Engine.context.KycController.fetchSessionStatusOnce,
+);
+const mockRefreshSessionStatus = jest.mocked(
+  Engine.context.KycController.refreshSessionStatus,
+);
+const mockStartSessionStatusPolling = jest.mocked(
+  Engine.context.KycController.startSessionStatusPolling,
+);
+const mockUseNetworkTier = jest.mocked(useNetworkTier);
 
 const WALLET = '0xMoneyAccountWallet';
 const OTHER_WALLET = '0xOtherWallet';
@@ -575,12 +597,15 @@ describe('useVbaHomeCardRefresh', () => {
   let focusCallback: () => undefined | (() => void);
 
   const setupRefreshSelectors = ({
+    isEligible = true,
     walletAddress = WALLET,
     sessionStatus = null,
   }: {
+    isEligible?: boolean;
     walletAddress?: string | null;
     sessionStatus?: KycSessionStatus | null;
   } = {}) => {
+    mockUseVbaEligibility.mockReturnValue(makeEligibility({ isEligible }));
     mockSelectSelectedVbaWalletAddress.mockReturnValue(walletAddress);
     mockSelectKycSessionStatus.mockReturnValue(sessionStatus);
   };
@@ -593,54 +618,72 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseFocusEffect.mockImplementation((callback) => {
       focusCallback = callback as typeof focusCallback;
     });
-    mockHydrateVbaOnboarding.mockResolvedValue({} as VbaOnboardingSnapshot);
+    // Unknown network takes the product default — never read as offline.
+    mockUseNetworkTier.mockReturnValue(null);
+    Engine.context.RampsController.state.autoramps = [];
+    mockFetchSessionStatusOnce.mockResolvedValue(makeSession());
+    mockRefreshAutoramps.mockResolvedValue([]);
   });
 
-  it('does not hydrate during initial render before focus', () => {
+  it('does not fetch during initial render before focus', () => {
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());
 
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('starts a one-shot KYC refresh on focus for a non-terminal session', () => {
+  it('fetches the stored session status once with its session id on focus', () => {
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());
     focusCallback();
 
-    expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(1);
-    expect(mockHydrateVbaOnboarding).toHaveBeenCalledWith({
-      walletAddress: WALLET,
-      refreshKyc: true,
-    });
-  });
-
-  it('does not hydrate when there is no session', () => {
-    setupRefreshSelectors({ sessionStatus: null });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    focusCallback();
-
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it.each(['approved', 'rejected', 'retry'])(
-    'does not hydrate for a terminal session (%s)',
-    (finalStatus) => {
-      setupRefreshSelectors({
-        sessionStatus: makeSession({ finalStatus }),
-      });
+  it('fetches once per focus: the next focus may fetch again', async () => {
+    setupRefreshSelectors({ sessionStatus: makeSession() });
 
-      renderHook(() => useVbaHomeCardRefresh());
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
       focusCallback();
+    });
+    await act(async () => {
+      focusCallback();
+    });
 
-      expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-    },
-  );
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(2);
+  });
 
-  it('does not hydrate without a selected wallet', () => {
+  it('makes no VBA request when the eligibility gate fails (flag or region)', () => {
+    setupRefreshSelectors({ isEligible: false, sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+  });
+
+  it('makes no VBA request while the geo lookup is still loading', () => {
+    mockUseVbaEligibility.mockReturnValue(
+      makeEligibility({ isEligible: false, isLoading: true }),
+    );
+    mockSelectSelectedVbaWalletAddress.mockReturnValue(WALLET);
+    mockSelectKycSessionStatus.mockReturnValue(makeSession());
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+  });
+
+  it('makes no VBA request without a selected wallet', () => {
     setupRefreshSelectors({
       sessionStatus: makeSession(),
       walletAddress: null,
@@ -649,10 +692,112 @@ describe('useVbaHomeCardRefresh', () => {
     renderHook(() => useVbaHomeCardRefresh());
     focusCallback();
 
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+  });
+
+  it.each(['approved', 'rejected', 'retry'])(
+    'makes no session GET for a terminal stored status (%s)',
+    (finalStatus) => {
+      setupRefreshSelectors({
+        sessionStatus: makeSession({ finalStatus }),
+      });
+
+      renderHook(() => useVbaHomeCardRefresh());
+      focusCallback();
+
+      expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+      expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+    },
+  );
+
+  it('makes no VBA request when the network is known to be offline', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+  });
+
+  it('fetches when the user becomes eligible mid-focus', () => {
+    setupRefreshSelectors({ isEligible: false, sessionStatus: makeSession() });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+
+    mockUseVbaEligibility.mockReturnValue(makeEligibility());
+    rerender();
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refresh the autoramp list when the fetched status is not approved', async () => {
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'pending' }),
+    );
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+  });
+
+  it('refreshes the autoramp list once when the fetch returns approved and the wallet has no usable autoramp', async () => {
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'approved' }),
+    );
+    Engine.context.RampsController.state.autoramps = [];
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('starts no polling loop after the one-shot refresh', () => {
+  it('does not refresh the autoramp list when the wallet already has a usable autoramp', async () => {
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'approved' }),
+    );
+    Engine.context.RampsController.state.autoramps = [makeAutoramp()];
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+  });
+
+  it('does not treat a Rejected autoramp as usable when deciding the list refresh', async () => {
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'approved' }),
+    );
+    Engine.context.RampsController.state.autoramps = [
+      makeAutoramp({
+        status: AutorampStatus.Rejected,
+        lastSeenStatus: AutorampStatus.Rejected,
+      }),
+    ];
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts no polling loop after the one-shot fetch', () => {
     jest.useFakeTimers();
     try {
       setupRefreshSelectors({ sessionStatus: makeSession() });
@@ -662,18 +807,20 @@ describe('useVbaHomeCardRefresh', () => {
       // Outlive the KYC 15s poll cadence.
       jest.advanceTimersByTime(45_000);
 
-      expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+      expect(mockStartSessionStatusPolling).not.toHaveBeenCalled();
+      expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
     } finally {
       jest.useRealTimers();
     }
   });
 
-  it('logs and swallows a failed refresh', async () => {
+  it('logs and swallows a failed session fetch', async () => {
     const errorSpy = jest
       .spyOn(Logger, 'error')
       .mockImplementation(() => undefined);
-    const failure = new Error('hydrate failed');
-    mockHydrateVbaOnboarding.mockRejectedValue(failure);
+    const failure = new Error('session status fetch failed');
+    mockFetchSessionStatusOnce.mockRejectedValue(failure);
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());

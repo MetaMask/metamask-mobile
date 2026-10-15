@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import {
   AutorampStatus,
   type AutorampAccount,
@@ -371,9 +372,9 @@ export const useVbaHomeCard = (): VbaHomeCard => {
 /**
  * Whether focusing Money home should trigger the one-shot KYC session
  * refresh: a KYC session must exist and its `finalStatus` must be
- * non-terminal, matching `hydrateVbaOnboarding`'s own `refreshKyc` gate
- * (one session-status GET for a non-terminal persisted session). With no
- * session, or a terminal one, there is nothing to refresh.
+ * non-terminal — the same terminal-status gate the KYC 15s poll uses to
+ * decide whether to keep ticking. With no session, or a terminal one, there
+ * is nothing to refresh.
  *
  * @param sessionFinalStatus - `KycSessionStatus.finalStatus` when a session
  * is persisted, else `null`.
@@ -387,40 +388,63 @@ export const shouldRefreshKycSessionOnFocus = (
 
 /**
  * One-shot KYC session refresh for Money home. Wire it on the hosting screen
- * (MoneyHomeView) so it runs on `useFocusEffect`: when a KYC session exists
- * and is non-terminal, it calls
- * `RampsController.hydrateVbaOnboarding({ walletAddress, refreshKyc: true })`
- * — a single GET, never `refreshSessionStatus` and never the 15s poll. With
- * no session or a terminal status it does nothing. The gate reads only
- * primitive state (`walletAddress`, `finalStatus`), so unrelated
- * KycController state writes never re-arm the refresh mid-focus, and
- * `hydrateVbaOnboarding` is never called during initial render.
+ * (MoneyHomeView) so it runs on `useFocusEffect` for an eligible user with a
+ * selected Money wallet and a persisted session whose `finalStatus` is not
+ * terminal: it calls `KycController.fetchSessionStatusOnce(sessionId)` — a
+ * single GET, never `refreshSessionStatus`, never the 15s poll, and never
+ * `hydrateVbaOnboarding`, whose disclaimers, consent, and vendor-customer
+ * lookups the card does not need. When that fetch returns `approved` and this
+ * wallet has no usable autoramp, one autoramp-list refresh
+ * (`RampsController.refreshAutoramps`) catches up on statuses missed while no
+ * process was polling. It never signs and never creates an autoramp. With no
+ * wallet, an ineligible user, a known-offline network, or a terminal status,
+ * it does nothing. The gate reads only primitive state, so unrelated
+ * KycController state writes never re-arm the refresh mid-focus, and no
+ * request is made during initial render.
  */
 export const useVbaHomeCardRefresh = (): void => {
+  const { isEligible } = useVbaEligibility();
+  // Device-capability matrix: every hardware tier skips network work on a
+  // known-offline network; `null` (unknown) takes the product default.
+  const networkTier = useNetworkTier();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const sessionFinalStatus = useSelector(selectKycSessionStatus)?.finalStatus;
+  const sessionStatus = useSelector(selectKycSessionStatus);
+  const sessionId = sessionStatus?.id;
+  const sessionFinalStatus = sessionStatus?.finalStatus;
 
   useFocusEffect(
     useCallback(() => {
+      if (!isEligible || !walletAddress || networkTier === 'NONE') {
+        return undefined;
+      }
       if (
-        !walletAddress ||
+        !sessionId ||
         !shouldRefreshKycSessionOnFocus(sessionFinalStatus ?? null)
       ) {
         return undefined;
       }
-      Engine.context.RampsController.hydrateVbaOnboarding({
-        walletAddress,
-        refreshKyc: true,
-      }).catch((error) => {
-        Logger.error(error as Error, {
-          tags: { feature: 'money-home' },
-          context: {
-            name: 'useVbaHomeCardRefresh',
-            data: { walletAddress },
-          },
+
+      Engine.context.KycController.fetchSessionStatusOnce(sessionId)
+        .then((status) => {
+          if (status.finalStatus !== 'approved') {
+            return undefined;
+          }
+          const { autoramps } = Engine.context.RampsController.state;
+          if (hasUsableAutorampForWallet(walletAddress, autoramps)) {
+            return undefined;
+          }
+          return Engine.context.RampsController.refreshAutoramps();
+        })
+        .catch((error) => {
+          Logger.error(error as Error, {
+            tags: { feature: 'money-home' },
+            context: {
+              name: 'useVbaHomeCardRefresh',
+              data: { walletAddress },
+            },
+          });
         });
-      });
       return undefined;
-    }, [walletAddress, sessionFinalStatus]),
+    }, [isEligible, networkTier, walletAddress, sessionId, sessionFinalStatus]),
   );
 };
