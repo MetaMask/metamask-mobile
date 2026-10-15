@@ -60,7 +60,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(View, { testID }, children),
-    FontWeight: { Bold: 'bold', Medium: 'medium' },
+    FontFamily: { Hero: 'hero' },
+    FontWeight: { Regular: 'regular', Bold: 'bold', Medium: 'medium' },
     Text: ({ children, ...props }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, props, children),
     TextVariant: { BodyMd: 'bodyMd', DisplayMd: 'displayMd' },

@@ -114,6 +114,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextColor: {
       TextAlternative: 'text-alternative',
     },
+    FontFamily: { Hero: 'hero' },
     FontWeight: {
       Regular: 'Regular',
       Bold: 'Bold',

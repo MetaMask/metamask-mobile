@@ -1,31 +1,24 @@
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
+import type Animated from 'react-native-reanimated';
+import type {
+  ButtonProps,
+  TextProps,
+} from '@metamask/design-system-react-native';
 import type { Theme } from '@metamask/design-system-twrnc-preset';
 
 /**
- * A pinned action on a marketing moment.
+ * A pinned action on a marketing moment. Everything except `label` is spread
+ * onto the design-system `Button`.
  */
-export interface MarketingMomentAction {
+export type MarketingMomentAction = Omit<
+  ButtonProps,
+  'variant' | 'children'
+> & {
   /**
    * Button label. Callers pass already-localized copy.
    */
-  label: string;
-  /**
-   * Called when the user presses the button.
-   */
-  onPress: () => void | Promise<void>;
-  /**
-   * Optional test ID for the button.
-   */
-  testID?: string;
-  /**
-   * Shows the button loading state.
-   */
-  isLoading?: boolean;
-  /**
-   * Disables the button.
-   */
-  isDisabled?: boolean;
-}
+  label: ReactNode;
+};
 
 /**
  * Full-screen marketing moment: title and description at the top, flexible
@@ -33,17 +26,33 @@ export interface MarketingMomentAction {
  */
 export interface MarketingMomentProps {
   /**
-   * Page heading.
+   * Page heading. Strings render in the hero `Text`; any other node replaces
+   * it.
    */
-  title: string;
+  title?: ReactNode;
   /**
-   * One sentence, or two paragraphs for a fact that does not belong in the first.
+   * Props spread onto the hero `Text` when `title` is a string.
    */
-  description: string | string[];
+  titleProps?: Partial<TextProps>;
+  /**
+   * Supporting copy under the title. Strings render in the body `Text`; any
+   * other node replaces it.
+   */
+  description?: ReactNode;
+  /**
+   * Props spread onto the body `Text` when `description` is a string.
+   */
+  descriptionProps?: Partial<TextProps>;
   /**
    * Optional content under the description, such as tags or attribution.
    */
-  supportingContent?: ReactNode;
+  children?: ReactNode;
+  /**
+   * Props spread onto the animated view that wraps `children`.
+   */
+  childrenWrapperAnimatedViewProps?: Partial<
+    ComponentProps<typeof Animated.View>
+  >;
   /**
    * Product artwork, centered in the flexible region.
    */
@@ -51,11 +60,11 @@ export interface MarketingMomentProps {
   /**
    * Recommended action.
    */
-  primaryAction: MarketingMomentAction;
+  primaryAction?: MarketingMomentAction;
   /**
    * Dismiss action, rendered as a tertiary "Not now".
    */
-  secondaryAction: MarketingMomentAction;
+  secondaryAction?: MarketingMomentAction;
   /**
    * Optional full-bleed page background, such as a brand gradient. The root
    * is transparent when provided.
@@ -70,12 +79,4 @@ export interface MarketingMomentProps {
    * Optional test ID for the root.
    */
   testID?: string;
-  /**
-   * Optional test ID for the title.
-   */
-  titleTestID?: string;
-  /**
-   * Optional test IDs for each description paragraph, in order.
-   */
-  descriptionTestIDs?: string[];
 }

@@ -40,7 +40,7 @@ interface VipSplashScreenLayoutProps {
   onPrimaryPress: () => void;
   onNotNow: () => void;
   primaryButtonLabel: string;
-  supportingContent?: ReactNode;
+  children?: ReactNode;
 }
 
 const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
@@ -48,7 +48,7 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
   onPrimaryPress,
   onNotNow,
   primaryButtonLabel,
-  supportingContent,
+  children,
 }) => {
   const tw = useTailwind();
 
@@ -65,10 +65,9 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
         />
       }
       title={strings('rewards.vip.splash_title')}
-      titleTestID={testIDs.title}
+      titleProps={{ testID: testIDs.title, numberOfLines: 3 }}
       description={strings('rewards.vip.splash_description')}
-      descriptionTestIDs={[testIDs.description]}
-      supportingContent={supportingContent}
+      descriptionProps={{ testID: testIDs.description }}
       artwork={
         <Image
           source={VipSplashFox}
@@ -87,7 +86,9 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
         onPress: onNotNow,
         testID: testIDs.notNowButton,
       }}
-    />
+    >
+      {children}
+    </MarketingMoment>
   );
 };
 

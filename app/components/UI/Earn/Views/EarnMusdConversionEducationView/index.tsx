@@ -381,41 +381,6 @@ const EarnMusdConversionEducationView = () => {
       description={strings('earn.musd_conversion.education.description', {
         percentage: MUSD_CONVERSION_APY,
       })}
-      supportingContent={
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-wrap gap-1"
-        >
-          {[
-            'earn.musd_conversion.education.checklist.dollar_backed',
-            'earn.musd_conversion.education.checklist.no_lockups',
-            'earn.musd_conversion.education.checklist.daily_bonus',
-            'earn.musd_conversion.education.checklist.metamask_stablecoins',
-            'earn.musd_conversion.education.checklist.no_metamask_fee',
-          ].map((key) => (
-            <TagBase
-              key={key}
-              shape={TagShape.Rectangle}
-              severity={TagSeverity.Neutral}
-              gap={4}
-              startAccessory={
-                <Icon
-                  name={IconName.CheckBold}
-                  size={IconSize.Sm}
-                  color={IconColor.SuccessDefault}
-                />
-              }
-              textProps={{
-                variant: ComponentTextVariant.BodySMMedium,
-                numberOfLines: 1,
-              }}
-            >
-              {strings(key)}
-            </TagBase>
-          ))}
-        </Box>
-      }
       artwork={
         <Image
           source={backgroundImage}
@@ -434,7 +399,41 @@ const EarnMusdConversionEducationView = () => {
         onPress: handleNotNow,
         testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
       }}
-    />
+    >
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="flex-wrap gap-1"
+      >
+        {[
+          'earn.musd_conversion.education.checklist.dollar_backed',
+          'earn.musd_conversion.education.checklist.no_lockups',
+          'earn.musd_conversion.education.checklist.daily_bonus',
+          'earn.musd_conversion.education.checklist.metamask_stablecoins',
+          'earn.musd_conversion.education.checklist.no_metamask_fee',
+        ].map((key) => (
+          <TagBase
+            key={key}
+            shape={TagShape.Rectangle}
+            severity={TagSeverity.Neutral}
+            gap={4}
+            startAccessory={
+              <Icon
+                name={IconName.CheckBold}
+                size={IconSize.Sm}
+                color={IconColor.SuccessDefault}
+              />
+            }
+            textProps={{
+              variant: ComponentTextVariant.BodySMMedium,
+              numberOfLines: 1,
+            }}
+          >
+            {strings(key)}
+          </TagBase>
+        ))}
+      </Box>
+    </MarketingMoment>
   );
 };
 
