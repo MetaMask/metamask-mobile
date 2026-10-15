@@ -160,6 +160,26 @@ describe('VbaEmailAdapter', () => {
     });
   });
 
+  it('shows an error when email verification returns no access token', async () => {
+    mockVerifyOrEnroll.mockResolvedValue({
+      credentials: [],
+      token: undefined,
+    });
+
+    const screen = renderWithProvider(<VbaEmailAdapter />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
+      ).toHaveTextContent(
+        'Something went wrong opening email verification. Please try again.',
+      );
+    });
+    expect(mockKycController.startSession).not.toHaveBeenCalled();
+    expect(mockAdvance).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('starts the session when the credential has no address', async () => {
     mockVerifyOrEnroll.mockResolvedValue({
       credentials: [{ type: 'email_otp', status: 'active', verified: true }],
