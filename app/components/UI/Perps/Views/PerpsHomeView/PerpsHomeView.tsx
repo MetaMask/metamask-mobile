@@ -25,7 +25,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandardAnimated,
   IconName,
   useHeaderStandardAnimated,
   SensitiveText,
@@ -137,9 +136,8 @@ import PerpsMoreSection, {
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
-import HeaderGlass, {
-  useHeaderGlassInset,
-} from '../../../../../component-library/components-temp/HeaderGlass';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
@@ -1247,7 +1245,9 @@ const PerpsHomeView = () => {
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   const header = (
-    <HeaderStandardAnimated
+    <HeaderStandardAnimatedGlass
+      isGlass={isBrandRefresh}
+      onLayout={handleFloatingHeaderLayout}
       includesTopInset={headerIncludesTopInset}
       // h-16 (64px) matches the Figma header when the Lite pill is shown
       // (HeaderBase defaults to 56px).
@@ -1260,18 +1260,6 @@ const PerpsHomeView = () => {
         accessibilityLabel: 'Back',
         testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
       }}
-      startAccessory={
-        isBrandRefresh ? (
-          <ButtonIconGlass
-            isCapsule
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={handleBackPress}
-            accessibilityLabel="Back"
-            testID={PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON}
-          />
-        ) : undefined
-      }
       endAccessory={
         <Box
           accessible={false}
@@ -1407,9 +1395,7 @@ const PerpsHomeView = () => {
       {isBrandRefresh ? (
         <View style={styles.scrollView}>
           {/* Mounted before the content so assistive tech reads the header first. */}
-          <HeaderGlass onLayout={handleFloatingHeaderLayout}>
-            {header}
-          </HeaderGlass>
+          {header}
           {content}
         </View>
       ) : (
