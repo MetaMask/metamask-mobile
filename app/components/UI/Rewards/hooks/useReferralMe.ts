@@ -9,6 +9,7 @@ import {
   setReferralMeLoading,
 } from '../../../../reducers/rewardsMoney';
 import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 const referralMeRequestGenerationByProfile = new Map<string, number>();
@@ -168,7 +169,6 @@ async function settleReferralMeFailure({
   if (gate.kind === 'discarded') {
     return discardedReferralRead(gate);
   }
-  captureRewardsMoney(error, 'referralMe.fetch_failed');
   onFailure();
   return {
     shouldSettleLoading: true,
@@ -271,6 +271,12 @@ export const useReferralMe = ({
           requestGeneration,
           setProfileId,
           onFailure: () => {
+            reportRewardsMoneyReadFailure(
+              error,
+              'referralMe.fetch_failed',
+              followUp,
+              'rewards-money',
+            );
             dispatch(
               setReferralMeError({ profileId: sessionProfileId, error: true }),
             );

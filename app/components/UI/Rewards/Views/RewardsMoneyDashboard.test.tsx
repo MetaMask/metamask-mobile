@@ -306,6 +306,29 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders an error with retry when a session re-read settles loading without an error flag', () => {
+    const { getByTestId, getByText, queryByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: null,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByText(strings('rewards.referral_details_error.retry_button')),
+    );
+
+    expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
+  });
+
   it('renders an error with retry when referral me settles without data', () => {
     const { getByTestId, getByText, queryByTestId } = renderDashboard({
       referralMeEntry: {

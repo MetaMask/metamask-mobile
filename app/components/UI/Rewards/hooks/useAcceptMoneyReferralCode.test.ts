@@ -469,6 +469,32 @@ describe('useAcceptMoneyReferralCode', () => {
       }
     });
 
+    it('asks to try again shortly without blocking when validation is still a 503', async () => {
+      mockMessenger({
+        validateError: new RewardsMoneyHttpError(
+          'Validate referral code failed: 503',
+          503,
+          'SERVER_BUSY',
+          2,
+        ),
+      });
+
+      const { result } = renderAcceptHook();
+      let accepted: boolean | undefined;
+      await act(async () => {
+        accepted = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(accepted).toBe(false);
+      expect(result.current.errorMessage).toBe(
+        strings('rewards.error_messages.something_went_wrong'),
+      );
+      expect(result.current.acceptBlockedUntil).toBeNull();
+      expect(callsFor('RewardsMoneyController:registerReferee')).toHaveLength(
+        0,
+      );
+    });
+
     it('shows too many tries without blocking when a 429 has no Retry-After', async () => {
       mockMessenger({
         registerError: new RewardsMoneyHttpError(

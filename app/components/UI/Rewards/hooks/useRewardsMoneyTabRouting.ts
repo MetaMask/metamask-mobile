@@ -52,6 +52,16 @@ function resolutionForFocus({
   return { resolved: false, profileId: currentProfileId };
 }
 
+/** A moved session is retried. More than this, with no pause, is a request loop. */
+const DISCARDED_REFRESH_LIMIT = 3;
+const DISCARDED_REFRESH_DELAY_MS = 1_000;
+
+function delayDiscardedRefresh(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, DISCARDED_REFRESH_DELAY_MS);
+  });
+}
+
 /** A failed refresh keeps the route a saved entry already opened. */
 function keepCachedRouteOnRefreshFailure(
   active: boolean,
@@ -81,6 +91,7 @@ async function refreshUntilSettled({
   updateResolution: (next: ReferralResolution) => void;
   profileId: () => string | undefined;
 }): Promise<void> {
+  let discarded = 0;
   try {
     while (isActive()) {
       const result = await fetchReferralMe();
@@ -88,7 +99,18 @@ async function refreshUntilSettled({
         return;
       }
       if (result.status === 'discarded') {
+        discarded += 1;
         noteDiscardedProfile(result.profileId, resolution, updateResolution);
+        if (discarded >= DISCARDED_REFRESH_LIMIT) {
+          keepCachedRouteOnRefreshFailure(
+            isActive(),
+            resolution(),
+            profileId(),
+            updateResolution,
+          );
+          return;
+        }
+        await delayDiscardedRefresh();
         continue;
       }
       updateResolution({ resolved: true, profileId: result.profileId });

@@ -2,15 +2,39 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
+let mockFocusCleanup: (() => void) | undefined;
+
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual('react');
+  return {
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        const cleanup = effect();
+        mockFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
+        return mockFocusCleanup;
+      }, [effect]);
+    },
+  };
+});
+
 const busyError = (retryAfterSeconds?: number) =>
   new RewardsMoneyHttpError('busy', 503, undefined, retryAfterSeconds);
 
 describe('useOneShotBusyRefetch', () => {
   beforeEach(() => {
     jest.useFakeTimers();
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -32,6 +56,48 @@ describe('useOneShotBusyRefetch', () => {
     });
 
     expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches a 30 second Retry-After after that wait plus jitter', () => {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 1000;
+        }
+        return array;
+      });
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(busyError(30), refetch);
+    });
+    act(() => {
+      jest.advanceTimersByTime(30_000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not schedule a refetch for a Retry-After over 30 seconds', () => {
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(busyError(31), refetch);
+    });
+    act(() => {
+      jest.advanceTimersByTime(31_000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
   });
 
   it('does not schedule a refetch for an error without Retry-After', () => {
@@ -86,6 +152,23 @@ describe('useOneShotBusyRefetch', () => {
 
     expect(firstRefetch).not.toHaveBeenCalled();
     expect(secondRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops the scheduled refetch when the screen blurs', () => {
+    const refetch = jest.fn();
+    const { result } = renderHook(() => useOneShotBusyRefetch());
+
+    act(() => {
+      result.current.arm(busyError(2), refetch);
+    });
+    act(() => {
+      mockFocusCleanup?.();
+    });
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(refetch).not.toHaveBeenCalled();
   });
 
   it('drops the scheduled refetch on unmount', () => {

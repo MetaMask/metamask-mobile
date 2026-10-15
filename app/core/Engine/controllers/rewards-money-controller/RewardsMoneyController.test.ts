@@ -529,6 +529,41 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(referee);
     });
 
+    it('shares one in-flight referral me per profile', async () => {
+      let resolveReferral: (value: ReferralMeDto) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return new Promise<ReferralMeDto>((resolve) => {
+            resolveReferral = resolve;
+          });
+        }
+        return undefined;
+      });
+
+      const first = controller.getReferralMe();
+      const second = controller.getReferralMe();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getReferralMe',
+        ),
+      ).toHaveLength(1);
+
+      resolveReferral(mockReferralMe);
+      await jest.advanceTimersByTimeAsync(0);
+
+      await expect(first).resolves.toEqual(mockReferralMe);
+      await expect(second).resolves.toEqual(mockReferralMe);
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
+        mockReferralMe,
+      );
+    });
+
     it('caches earnings summary by origin-type scope', async () => {
       withProfileAndData(
         'RewardsMoneyDataService:getEarningsSummary',

@@ -214,6 +214,7 @@ export class RewardsMoneyController extends BaseController<
 > {
   readonly #isDisabled: () => boolean;
   readonly #referralMeRequestGeneration = new Map<string, number>();
+  readonly #referralMeInFlight = new Map<string, Promise<ReferralMeDto>>();
   readonly #earningsSummaryInFlight = new Map<
     string,
     Promise<EarningsSummaryDto>
@@ -304,14 +305,14 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    let requestGeneration = 0;
-    const fetchFresh = () => {
-      requestGeneration = this.#startReferralMeRequest(profileId);
-      return this.messenger.call('RewardsMoneyDataService:getReferralMe');
-    };
 
+    // A forceFresh asks for data newer than a read already running, and its
+    // result has to win if that older read lands last. It does not join.
     if (params.forceFresh) {
-      const fresh = await fetchFresh();
+      const requestGeneration = this.#startReferralMeRequest(profileId);
+      const fresh = await this.messenger.call(
+        'RewardsMoneyDataService:getReferralMe',
+      );
       this.#writeReferralMeIfLatest(profileId, fresh, requestGeneration);
       return fresh;
     }
@@ -320,10 +321,38 @@ export class RewardsMoneyController extends BaseController<
       key: profileId,
       ttl: REFERRAL_ME_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.referralMe[key],
-      fetchFresh,
-      writeCache: (key, payload) =>
-        this.#writeReferralMeIfLatest(key, payload, requestGeneration),
+      fetchFresh: () => this.#fetchReferralMe(profileId),
+      // #fetchReferralMe writes under the generation that started the shared
+      // read. Writing again here would let that older payload replace a
+      // forceFresh that finished first.
+      writeCache: () => undefined,
     });
+  }
+
+  /**
+   * One network read per profile. The unlock warm-up and a Rewards open that
+   * arrives while it is running share this promise.
+   */
+  #fetchReferralMe(profileId: string): Promise<ReferralMeDto> {
+    const inFlight = this.#referralMeInFlight.get(profileId);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const requestGeneration = this.#startReferralMeRequest(profileId);
+    const pending = this.messenger
+      .call('RewardsMoneyDataService:getReferralMe')
+      .then((payload) => {
+        this.#writeReferralMeIfLatest(profileId, payload, requestGeneration);
+        return payload;
+      })
+      .finally(() => {
+        if (this.#referralMeInFlight.get(profileId) === pending) {
+          this.#referralMeInFlight.delete(profileId);
+        }
+      });
+    this.#referralMeInFlight.set(profileId, pending);
+    return pending;
   }
 
   async getReferralFunnel(
