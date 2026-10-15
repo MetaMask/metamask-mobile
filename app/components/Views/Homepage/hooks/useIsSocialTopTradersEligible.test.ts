@@ -45,7 +45,7 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (callback: () => void) => mockFocusEffect(callback),
 }));
 
-const walletAddress = '0x1234567890123456789012345678901234567890';
+const walletId = 'entropy:wallet-1';
 const PROFILE_CREATED_AT = new Date().toISOString();
 const NOW = Date.parse(PROFILE_CREATED_AT);
 const recentSocialProfile = {
@@ -68,7 +68,7 @@ describe('useIsSocialTopTradersEligible', () => {
     });
     mockHasRecentSocialTrade.mockReturnValue(false);
     mockIsRecentSocialActivityTimestamp.mockReturnValue(false);
-    mockUseSelector.mockReturnValue(walletAddress);
+    mockUseSelector.mockReturnValue(walletId);
   });
 
   describe('evaluateIsSocialTopTradersEligible', () => {
@@ -77,7 +77,7 @@ describe('useIsSocialTopTradersEligible', () => {
 
       const result = evaluateIsSocialTopTradersEligible(
         recentSocialProfile,
-        walletAddress,
+        walletId,
         NOW,
       );
 
@@ -88,7 +88,7 @@ describe('useIsSocialTopTradersEligible', () => {
     it('returns false for a stale social profile without a recent trade', () => {
       const result = evaluateIsSocialTopTradersEligible(
         staleSocialProfile,
-        walletAddress,
+        walletId,
         NOW,
       );
 
@@ -98,21 +98,14 @@ describe('useIsSocialTopTradersEligible', () => {
     it('returns true for a user with a recent social trade', () => {
       mockHasRecentSocialTrade.mockReturnValue(true);
 
-      const result = evaluateIsSocialTopTradersEligible(
-        null,
-        walletAddress,
-        NOW,
-      );
+      const result = evaluateIsSocialTopTradersEligible(null, walletId, NOW);
 
       expect(result).toBe(true);
+      expect(mockHasRecentSocialTrade).toHaveBeenCalledWith(walletId, NOW);
     });
 
     it('returns false without a social profile or recent trade', () => {
-      const result = evaluateIsSocialTopTradersEligible(
-        null,
-        walletAddress,
-        NOW,
-      );
+      const result = evaluateIsSocialTopTradersEligible(null, walletId, NOW);
 
       expect(result).toBe(false);
     });
@@ -120,7 +113,7 @@ describe('useIsSocialTopTradersEligible', () => {
     it('returns false for a profile without a creation timestamp', () => {
       const result = evaluateIsSocialTopTradersEligible(
         { profileId: 'unlinked-profile' } as MySocialProfile,
-        walletAddress,
+        walletId,
         NOW,
       );
 

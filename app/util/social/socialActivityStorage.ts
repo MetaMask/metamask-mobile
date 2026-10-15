@@ -21,8 +21,8 @@ export const isRecentSocialActivityTimestamp = (
 };
 
 /** Builds the storage key for one wallet's last social trade. */
-export const getSocialLastTradeStorageKey = (walletAddress: string): string =>
-  `${SOCIAL_LAST_TRADE_AT}:${walletAddress}`;
+export const getSocialLastTradeStorageKey = (walletId: string): string =>
+  `${SOCIAL_LAST_TRADE_AT}:${walletId}`;
 
 const SOCIAL_TRADE_SOURCES = new Set<string>([
   'notification',
@@ -49,16 +49,16 @@ export const isSocialTradeSource = (source?: string): boolean =>
  * asynchronous storage errors are intentionally ignored.
  */
 export const recordSocialTrade = (
-  walletAddress: string,
+  walletId: string,
   timestamp: number = Date.now(),
 ): void => {
-  if (!walletAddress) {
+  if (!walletId) {
     return;
   }
 
   try {
     StorageWrapper.setItem(
-      getSocialLastTradeStorageKey(walletAddress),
+      getSocialLastTradeStorageKey(walletId),
       String(timestamp),
     )?.catch(() => undefined);
   } catch {
@@ -68,15 +68,15 @@ export const recordSocialTrade = (
 
 /** Synchronous by design so homepage section order is decided during render. */
 export const hasRecentSocialTrade = (
-  walletAddress: string | undefined,
+  walletId: string | undefined,
   now: number = Date.now(),
 ): boolean => {
-  if (!walletAddress) {
+  if (!walletId) {
     return false;
   }
 
   const stored = StorageWrapper.getItemSync(
-    getSocialLastTradeStorageKey(walletAddress),
+    getSocialLastTradeStorageKey(walletId),
   );
   if (!stored) {
     return false;

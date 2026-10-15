@@ -54,6 +54,10 @@ import {
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../../constants/socialV1';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
@@ -153,6 +157,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       PERPS_SECTION_PRIORITY_VARIANTS,
       PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
     );
+    const { variant: socialV1Variant } = useABTest(
+      SOCIAL_V1_AB_KEY,
+      SOCIAL_V1_VARIANTS,
+      { trackExposure: false },
+    );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
     // Decide the Perps position from the initial Homepage layout. Deferred
@@ -172,6 +181,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const showTopTradersAboveAllocation =
       isTopTradersEnabled &&
       shouldMountOptionalSections &&
+      socialV1Variant.useSocialV1 &&
       isSocialTopTradersEligible;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
