@@ -9812,7 +9812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^12.0.0, @metamask/core-backend@npm:^12.0.1":
+"@metamask/core-backend@npm:^12.0.0":
   version: 12.0.1
   resolution: "@metamask/core-backend@npm:12.0.1"
   dependencies:
@@ -9828,6 +9828,25 @@ __metadata:
     cockatiel: "npm:^3.2.1"
     uuid: "npm:^11.1.1"
   checksum: 10/2c4477ea4c863760a238a70aa4f1ea92e7b3064e2c9116b53f849b961d1d8512beb26751c2af983f6a80fa35ca9d34db01bf207d24d1c9ffc0fcca7eb31a5963
+  languageName: node
+  linkType: hard
+
+"@metamask/core-backend@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@metamask/core-backend@npm:12.1.0"
+  dependencies:
+    "@metamask/account-tree-controller": "npm:^11.0.1"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/keyring-controller": "npm:^28.1.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/profile-sync-controller": "npm:^34.0.3"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/utils": "npm:^12.0.0"
+    "@tanstack/query-core": "npm:^5.103.2"
+    async-mutex: "npm:^0.5.0"
+    cockatiel: "npm:^3.2.1"
+    uuid: "npm:^11.1.1"
+  checksum: 10/96d4580b36f91a534ff3874b27802209caa7d09817eaf22cfbb48607c1698495bbbf395f034643c808acb94b9d00f6a772a322cd98f287e4e24a3aec158cc86e
   languageName: node
   linkType: hard
 
@@ -12106,18 +12125,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.7.0":
-  version: 3.7.0
-  resolution: "@metamask/social-controllers@npm:3.7.0"
+"@metamask/social-controllers@npm:^3.8.0":
+  version: 3.8.0
+  resolution: "@metamask/social-controllers@npm:3.8.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^12.0.1"
+    "@metamask/core-backend": "npm:^12.1.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/9b56bb917f0518d661940680d1261b4573454ae53b84ddf46a46c78cc39e80aae62d36961b189842a599a3fa845e63bb88821eccae399f791bf91cdc2f9238a0
+  checksum: 10/1c83af99f05d4a91e38ab06e254c2ed9cee0f58a331565fb76172bf736769cfd7c1268f9de4fc54b34f1bead7815ec1bab68ccebada7b29cab79f0f25acdd88f
   languageName: node
   linkType: hard
 
@@ -39208,7 +39227,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
-    "@metamask/social-controllers": "npm:^3.7.0"
+    "@metamask/social-controllers": "npm:^3.8.0"
     "@metamask/solana-wallet-snap": "npm:^7.0.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
