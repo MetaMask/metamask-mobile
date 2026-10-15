@@ -423,6 +423,7 @@ enum EVENT_NAME {
   SEND_AMOUNT_SELECTED = 'Send Amount Selected',
   SEND_RECIPIENT_SELECTED = 'Send Recipient Selected',
   SEND_EXIT = 'Send Flow Exited',
+  SEND_FAILED = 'Send Failed',
 
   // Swaps
   SWAPS_OPENED = 'Swaps Opened',
@@ -2596,6 +2597,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SEND,
     DESCRIPTION.SEND_EXIT,
   ),
+  SEND_FAILED: generateOpt(EVENT_NAME.SEND_FAILED),
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

@@ -409,7 +409,7 @@ describe('useDepositPrefillAmount', () => {
       const { result } = runHook();
 
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
-      expect(result.current.prefillAmount).toBe('1000');
+      expect(result.current.prefillAmount).toBe('500');
     });
 
     it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
@@ -431,6 +431,25 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('prefillAmount computation', () => {
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])('computes 50% for stablecoin %s transactions', (transactionType) => {
+      setupMocks({
+        transactionMeta: makeTransactionMeta({ type: transactionType }),
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '1000' }),
+        prefilledAmountDefault: { enabled: true },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
+    });
+
     it('computes 100% for stablecoin', () => {
       setupMocks({
         stablecoin: true,
@@ -579,6 +598,45 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
       expect(result.current.prefillAmount).toBe('59.64');
+    });
+
+    it('skips a stablecoin whose whole balance is sub-cent dust', () => {
+      // Dust renders as $0.00 and the percentage path refuses to apply it,
+      // so a prefill here would leave the previous token's amount in place.
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.005' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+      expect(result.current.percentage).toBeUndefined();
+    });
+
+    it('skips a non-stablecoin whose 50% share is sub-cent dust', () => {
+      setupMocks({
+        stablecoin: false,
+        payToken: makePayToken({ balanceUsd: '0.015' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    it('still prefills a balance of exactly one cent', () => {
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.01' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('0.01');
     });
 
     it('settles instead of loading when the balance snapshot is not numeric', () => {

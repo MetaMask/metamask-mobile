@@ -53,6 +53,9 @@ const QuickBuyActionFooter: React.FC = () => {
   } = useQuickBuyContext();
 
   const dispatch = useDispatch();
+  // The "Add funds" CTA must stay reachable when there is nothing to pay with.
+  const showQuickAmounts =
+    features.quickAmountPills && !hasValidAmount && !hasNoPayWithFunds;
   const isEstReceiveLoading = hasValidAmount && isBlockingQuoteLoad;
   const pickerToken = tradeMode === 'sell' ? selectedReceiveToken : sourceToken;
   const pickerBalanceFiat =
@@ -82,12 +85,6 @@ const QuickBuyActionFooter: React.FC = () => {
         isDisabled={hasNoPayWithFunds}
         testID="quick-buy-disabled-footer"
       >
-        {features.quickAmountPills ? (
-          <Box twClassName="pb-3">
-            <QuickBuyQuickAmounts />
-          </Box>
-        ) : null}
-
         {isEstReceiveLoading || estimatedReceiveFiat ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -200,15 +197,19 @@ const QuickBuyActionFooter: React.FC = () => {
         </Box>
       </QuickBuyDisabledSection>
 
-      <QuickBuyConfirmButton
-        state={confirmButtonState}
-        label={getButtonLabel()}
-        hasValidAmount={hasValidAmount}
-        isDisabled={isConfirmDisabled}
-        onPress={handleBuy}
-        tradeMode={tradeMode}
-        testID={QuickBuySheetSelectorsIDs.CONFIRM_BUTTON}
-      />
+      {showQuickAmounts ? (
+        <QuickBuyQuickAmounts />
+      ) : (
+        <QuickBuyConfirmButton
+          state={confirmButtonState}
+          label={getButtonLabel()}
+          hasValidAmount={hasValidAmount}
+          isDisabled={isConfirmDisabled}
+          onPress={handleBuy}
+          tradeMode={tradeMode}
+          testID={QuickBuySheetSelectorsIDs.CONFIRM_BUTTON}
+        />
+      )}
     </Box>
   );
 };

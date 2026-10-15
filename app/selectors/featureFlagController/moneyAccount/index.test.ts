@@ -4,7 +4,10 @@ import {
   selectMoneyAccountVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
   selectMoneyMovementBrazilNeobankEnabled,
+  isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
+  selectProSubscriptionEnabled,
+  SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
   MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
@@ -163,6 +166,32 @@ describe('Money Account feature flag selectors', () => {
     });
   });
 
+  describe('isVbaGeoBypassEnabled', () => {
+    const originalBypass = process.env.MM_MONEY_VBA_GEO_BYPASS;
+
+    afterEach(() => {
+      if (originalBypass === undefined) {
+        delete process.env.MM_MONEY_VBA_GEO_BYPASS;
+      } else {
+        process.env.MM_MONEY_VBA_GEO_BYPASS = originalBypass;
+      }
+    });
+
+    it('returns true only when the bypass env var is "true"', () => {
+      process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
+
+      expect(isVbaGeoBypassEnabled()).toBe(true);
+    });
+
+    it('returns false when the bypass env var is unset or not "true"', () => {
+      delete process.env.MM_MONEY_VBA_GEO_BYPASS;
+      expect(isVbaGeoBypassEnabled()).toBe(false);
+
+      process.env.MM_MONEY_VBA_GEO_BYPASS = 'false';
+      expect(isVbaGeoBypassEnabled()).toBe(false);
+    });
+  });
+
   describe('selectMoneyAccountDepositQuotePipelineEnabled', () => {
     const originalLocalOverride =
       process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED;
@@ -232,6 +261,94 @@ describe('Money Account feature flag selectors', () => {
       expect(
         selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({
           [MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY]: true,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectProSubscriptionEnabled', () => {
+    const originalLocalOverride = process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED;
+
+    afterEach(() => {
+      if (originalLocalOverride === undefined) {
+        delete process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED;
+      } else {
+        process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED = originalLocalOverride;
+      }
+    });
+
+    it('uses the camelCased key as served by client-config-api-mobile', () => {
+      expect(SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY).toBe(
+        'subscriptionMoneyAccountOrangeEnabled',
+      );
+    });
+
+    it('returns the remote value when the flag is served as a boolean', () => {
+      expect(
+        selectProSubscriptionEnabled.resultFunc({
+          [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: true,
+        }),
+      ).toBe(true);
+      expect(
+        selectProSubscriptionEnabled.resultFunc({
+          [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: false,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
+      const result = selectProSubscriptionEnabled.resultFunc({
+        [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const result = selectProSubscriptionEnabled.resultFunc({
+        [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectProSubscriptionEnabled.resultFunc({
+        [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when the local override is enabled, regardless of remote flag', () => {
+      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED = 'true';
+
+      expect(
+        selectProSubscriptionEnabled.resultFunc({
+          [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(true);
+    });
+
+    it('defaults to false when the flag is absent or malformed', () => {
+      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED = 'false';
+
+      expect(selectProSubscriptionEnabled.resultFunc({})).toBe(false);
+      expect(
+        selectProSubscriptionEnabled.resultFunc({
+          [SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY]: 'not-a-flag',
         }),
       ).toBe(false);
     });

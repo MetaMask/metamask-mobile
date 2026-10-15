@@ -3,14 +3,8 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act, waitFor, screen } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
-import {
-  InteractionManager,
-  BackHandler,
-  Image,
-  Platform,
-  Alert,
-} from 'react-native';
-import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { InteractionManager, BackHandler, Platform, Alert } from 'react-native';
+import { OnboardingAnimationSelectorIDs } from '../../UI/OnboardingAnimation/OnboardingAnimation.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -213,7 +207,6 @@ jest.mock('../../../util/validators', () => ({
   parseVaultValue: jest.fn(),
 }));
 
-jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
 // Mock FadeOutOverlay to prevent animation state updates after unmount (React 19)
@@ -480,9 +473,7 @@ describe('Login', () => {
       mockRoute.mockReturnValue({
         params: { locked: false, oauthLoginSuccess: false },
       });
-      const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
-        <Login />,
-      );
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
       expect(
         getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
@@ -492,11 +483,9 @@ describe('Login', () => {
       expect(
         queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
       ).not.toBeOnTheScreen();
-      const images = UNSAFE_root.findAllByType(Image as never);
-      const hasMetaMaskLogo = images.some(
-        (img) => img.props.source === METAMASK_NAME,
-      );
-      expect(hasMetaMaskLogo).toBe(true);
+      expect(
+        getByTestId(OnboardingAnimationSelectorIDs.WORDMARK),
+      ).toBeOnTheScreen();
     });
 
     it('disables login button when password is empty', () => {
@@ -792,9 +781,7 @@ describe('Login', () => {
 
       it('renders static MetaMask logo and fox animation', () => {
         // Arrange & Act
-        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
-          <Login />,
-        );
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
         // Assert - Fox animation is rendered
         expect(getByTestId('fox-animation-mock')).toBeDefined();
@@ -809,12 +796,9 @@ describe('Login', () => {
         ).toBeNull();
 
         // Assert - metaMask logo is rendered
-        const images = UNSAFE_root.findAllByType(Image as never);
-        const hasMetaMaskLogo = images.some(
-          (img) => img.props.source === METAMASK_NAME,
-        );
-
-        expect(hasMetaMaskLogo).toBe(true);
+        expect(
+          getByTestId(OnboardingAnimationSelectorIDs.WORDMARK),
+        ).toBeOnTheScreen();
       });
     });
 

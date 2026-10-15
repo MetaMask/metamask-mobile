@@ -38,6 +38,11 @@ import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useRampScreenPerformance } from '../../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../../constants/rampScreenPerformance';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -113,6 +118,16 @@ function PaymentSelectionModal() {
 
   const { data: quotes, loading: quotesLoading } =
     useRampsQuotes(quoteFetchParams);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.PAYMENT_SELECTION_MODAL,
+    contentReady: !paymentMethodsLoading,
+    contentState: paymentMethodsError
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : paymentMethods.length === 0
+        ? RAMP_SCREEN_CONTENT_STATE.EMPTY
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const handleChangeProviderPress = useCallback(() => {
     trackEvent(

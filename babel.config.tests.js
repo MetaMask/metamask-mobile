@@ -94,7 +94,7 @@ const newOverrides = [
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
-      'app/core/devApiEnv.ts',
+      'app/core/apiEnv.ts',
       'app/core/coreBackendApiUrls.ts',
       'app/core/coreBackendApiUrls.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
@@ -120,6 +120,8 @@ const newOverrides = [
       'tests/framework/fixtures/FixtureHelper.ts',
       'tests/framework/fixtures/playwright/sessionReuse.ts',
       'tests/framework/fixtures/playwright/sessionReuse.test.ts',
+      'tests/performance/helpers/appProfiling.ts',
+      'tests/performance/helpers/appProfiling.test.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',

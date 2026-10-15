@@ -3,6 +3,7 @@
  * Provides risk assessment and margin calculation functions for position management
  */
 import { MARGIN_ADJUSTMENT_CONFIG } from '@metamask/perps-controller';
+import { MARGIN_REMOVAL_PRICE_MOVE_BUFFER } from '../constants/perpsConfig';
 
 export type RiskLevel = 'safe' | 'warning' | 'danger';
 
@@ -27,6 +28,8 @@ export interface CalculateMaxRemovableMarginParams {
   positionLeverage: number;
   /** Optional pre-calculated notional value (e.g., from position.positionValue) for immediate display before live prices load */
   notionalValue?: number;
+  /** Share of notional kept back for price movement; 0 returns the exact exchange boundary */
+  priceMoveBufferRatio?: number;
 }
 
 export interface EstimateLiquidationPriceParams {
@@ -111,6 +114,7 @@ export function calculateMaxRemovableMargin(
     currentPrice,
     positionLeverage,
     notionalValue: providedNotionalValue,
+    priceMoveBufferRatio = MARGIN_REMOVAL_PRICE_MOVE_BUFFER,
   } = params;
 
   // Validate inputs
@@ -162,8 +166,12 @@ export function calculateMaxRemovableMargin(
   // Note: Unrealized PnL is NOT counted as part of "remaining margin" for withdrawals
   // Per Hyperliquid docs, unrealized PnL helps prevent liquidation but doesn't
   // increase your available withdrawal limit for margin transfers
-  // Maximum removable = current margin - required (must be non-negative)
-  return Math.max(0, currentMargin - transferMarginRequired);
+  // Keep headroom for the mark price moving before the exchange processes the
+  // request; offering the exact boundary gets rejected on any adverse tick.
+  const priceMoveBuffer = notionalValue * priceMoveBufferRatio;
+
+  // Maximum removable = current margin - required - headroom (non-negative)
+  return Math.max(0, currentMargin - transferMarginRequired - priceMoveBuffer);
 }
 
 /**

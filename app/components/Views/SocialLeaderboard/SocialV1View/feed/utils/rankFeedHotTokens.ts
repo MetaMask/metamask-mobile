@@ -1,8 +1,8 @@
 import type {
   SocialV1FeedItem,
   SocialV1FeedPost,
-  SocialV1HotToken,
-} from '../types';
+} from '../../../../../UI/SocialFeed/types';
+import type { SocialV1HotToken } from '../types';
 
 /** How many chips the feed rail shows. */
 export const SOCIAL_V1_HOT_TOKEN_LIMIT = 10;

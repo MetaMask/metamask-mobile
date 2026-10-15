@@ -1,30 +1,16 @@
-import React, { useCallback, useMemo, useSyncExternalStore } from 'react';
-import {
-  ScrollView,
-  TouchableOpacity,
-  useWindowDimensions,
-} from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { ScrollView, useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  FontWeight,
+  IconName,
+  MainActionButton,
   SectionHeader,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  default as Icon,
-  IconColor,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
-import I18n, {
-  I18nEvents,
-  strings,
-} from '../../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { PredictEventValues } from '../../../../constants/eventNames';
@@ -81,13 +67,6 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { width: windowWidth } = useWindowDimensions();
   const categoriesConfig = useSelector(selectPredictHomeCategoriesConfig);
-  const locale = useSyncExternalStore(
-    (onStoreChange) => {
-      I18nEvents.addListener('localeChanged', onStoreChange);
-      return () => I18nEvents.removeListener('localeChanged', onStoreChange);
-    },
-    () => I18n.locale,
-  );
 
   const categories = useMemo(
     () => resolvePredictHomeCategories(categoriesConfig),
@@ -137,32 +116,17 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
         contentContainerStyle={tw.style('px-4 gap-3')}
       >
         {categories.map((category) => (
-          <TouchableOpacity
-            key={`${category.id}-${locale}`}
+          <MainActionButton
+            key={category.id}
             testID={`${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`}
             onPress={() => handlePress(category)}
-            accessibilityRole="button"
             accessibilityLabel={resolvePredictHomeCategoryDisplayTitle(
               category,
             )}
+            iconName={category.iconName as IconName}
+            label={resolvePredictHomeCategoryDisplayTitle(category)}
             style={{ width: tileWidth }}
-          >
-            <Box twClassName="aspect-square items-center justify-center gap-2 rounded-xl bg-muted p-2">
-              <Icon
-                name={category.iconName}
-                size={IconSize.Lg}
-                color={IconColor.Default}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-              >
-                {resolvePredictHomeCategoryDisplayTitle(category)}
-              </Text>
-            </Box>
-          </TouchableOpacity>
+          />
         ))}
       </ScrollView>
     </Box>

@@ -75,7 +75,13 @@ const awaitMarketDetailsAboutReady = async (
       within(screen).getByText(MOCK_PREDICT_MARKET.title),
     ).toBeOnTheScreen();
   });
-  await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+  await waitFor(() => {
+    expect(
+      within(screen).getByTestId(
+        PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+      ),
+    ).toBeOnTheScreen();
+  });
 };
 
 /** Redux delta that makes the user eligible to trade. */
@@ -684,12 +690,14 @@ describe('PredictMarketDetails', () => {
     it('shows the resolved outcome and opens on the Outcomes tab', async () => {
       givenMarket(MOCK_PREDICT_CLOSED_MARKET);
 
-      const { findByTestId, findByText } = renderPredictMarketDetailsView({
+      const { findByTestId, getByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
       await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
-      expect(await findByText('Market resulted to Yes')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(getByText('Market resulted to Yes')).toBeOnTheScreen();
+      });
     });
 
     it('lets the user switch to the About tab on a closed market', async () => {

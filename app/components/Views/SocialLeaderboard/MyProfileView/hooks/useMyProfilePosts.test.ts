@@ -4,8 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   mockFeedResponse,
   mockSpotFeedItem,
-} from '../../FeedView/mocks/coreFeed.mock';
-import { FEED_PAGE_LIMIT } from '../../FeedView/hooks/traderFeedQueries';
+} from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
+import { FEED_PAGE_LIMIT } from '../../../../UI/SocialFeed/data/socialFeedQueries';
 import { useMyProfilePosts } from './useMyProfilePosts';
 
 const mockCall = jest.fn();
@@ -35,7 +35,7 @@ jest.mock('../../../../../util/social/socialServiceTelemetry', () => ({
     error ? (error instanceof Error ? error.message : String(error)) : null,
 }));
 
-jest.mock('../../FeedView/utils/mapFeedItem', () => ({
+jest.mock('../../../../UI/SocialFeed/utils/mapFeedItem', () => ({
   mapFeedItem: (core: { positionId?: string }) => ({
     id: core.positionId ?? 'item',
     timestamp: 1_700_000_000,
@@ -43,8 +43,8 @@ jest.mock('../../FeedView/utils/mapFeedItem', () => ({
   }),
 }));
 
-jest.mock('../../SocialV1View/feed/mocks/wrapLiveFeedPosts', () => ({
-  wrapLiveFeedPosts: (rows: { item: { id: string } }[]) =>
+jest.mock('../../../../UI/SocialFeed/utils/toSocialFeedPosts', () => ({
+  toSocialFeedPosts: (rows: { item: { id: string } }[]) =>
     rows.map((row) => ({
       id: row.item.id,
       authorHandle: 'owner',

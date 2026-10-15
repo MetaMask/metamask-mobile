@@ -1,5 +1,16 @@
 import { within } from '@testing-library/react-native';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import Engine from '../../../app/core/Engine';
+import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
+import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
+import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
+import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
 import type {
   PredictGameLive,
@@ -359,6 +370,93 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/** One cursor-addressable Positions page: `cursor` is the incoming page
+ * cursor (absent for the first page) and `nextCursor` links to the next
+ * page, mirroring `PredictPositionsPage`. */
+export interface PredictNextPositionsPageFixture {
+  cursor?: string;
+  positions: readonly unknown[];
+  nextCursor?: string;
+}
+
+/**
+ * Composes the real Order workflow service the way the Engine init does,
+ * against whatever `globalThis.fetch` is installed when called: the concrete
+ * trading adapter is bound to the stubbed transport and the bearer-token
+ * provider resolves through the mocked Engine context.
+ */
+export const composePredictNextOrderService = (): PredictOrderService => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const messenger = getPredictOrderServiceMessenger(
+    rootMessenger as unknown as Parameters<
+      typeof getPredictOrderServiceMessenger
+    >[0],
+  );
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictOrderService({
+    messenger,
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+};
+
+/**
+ * Composes the real Order workflow and Portfolio read services the way the
+ * Engine init does — both on one root messenger, with the concrete adapters
+ * bound to whatever `globalThis.fetch` is installed when called. Compose
+ * per-test after stubbing fetch. A UI query client observes these services
+ * by delegating its messenger adapter to the returned root.
+ */
+export const composePredictNextPortfolioTrading = () => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  const portfolioService = new PredictPortfolioService({
+    messenger: getPredictPortfolioServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictPortfolioServiceMessenger
+      >[0],
+    ),
+    portfolio: adapter.portfolio,
+    venueId: adapter.venueId,
+  });
+  const orderService = new PredictOrderService({
+    messenger: getPredictOrderServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictOrderServiceMessenger
+      >[0],
+    ),
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+  return {
+    rootMessenger,
+    orderService,
+    portfolioService,
+    destroy: () => {
+      orderService.destroy();
+      portfolioService.destroy();
+    },
+  };
+};
+
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
 ) => ({
@@ -422,6 +520,51 @@ export const makePredictNextSettlement = (
   ...overrides,
 });
 
+/** A canonical sell (Cash Out) Order Preview wire payload for fetch stubs. */
+export const makePredictNextSellPreview = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'sell',
+  requestedContracts: 75,
+  estimatedContracts: 70,
+  averagePrice: '0.4800',
+  limitPrice: '0.4000',
+  fee: '0.34',
+  feeBreakdown: [
+    { source: 'venue', amount: '0.17' },
+    { source: 'metamask', amount: '0.17' },
+  ],
+  estimatedProceeds: '33.60',
+  estimatedNetProceeds: '33.26',
+  expiresAt: new Date(Date.now() + 30_000).toISOString(),
+  ...overrides,
+});
+
+/** A canonical sell Order Receipt wire payload for fetch stubs. */
+export const makePredictNextSellReceipt = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  operationId: 'd4e5f6a7-1111-4222-8333-444455556666',
+  previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
+  venueId: 'kalshi',
+  marketId: 'KXTEST-26-A',
+  side: 'yes',
+  action: 'sell',
+  status: 'filled',
+  quotedContracts: 70,
+  venueOrderId: 'venue-order-1',
+  filledContracts: '70.00',
+  averageFillPrice: '0.4800',
+  fee: '0.34',
+  actualProceeds: '33.60',
+  netProceeds: '33.26',
+  ...overrides,
+});
+
 const publishPredictNextLiveUpdate = (eventName: string, update: unknown) => {
   const listeners = (
     Engine.controllerMessenger.subscribe as unknown as jest.Mock
@@ -446,12 +589,16 @@ export const configurePredictNextFeeds = ({
   ncaa = ncaaEvents,
   details,
   positions,
+  positionPages,
   activity,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
+  /** Cursor-addressable Positions pages, for tests that exercise
+   * pagination; `positions` is ignored when this is set. */
+  positionPages?: readonly PredictNextPositionsPageFixture[];
   activity?: readonly unknown[] | Error;
 } = {}) => {
   const defaultDetails = [
@@ -460,7 +607,7 @@ export const configurePredictNextFeeds = ({
   ];
 
   messengerCall.mockImplementation(
-    (action: string, _venueId: string, resourceId: string) => {
+    (action: string, _venueId: string, resourceId: string, cursor?: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -470,6 +617,19 @@ export const configurePredictNextFeeds = ({
       }
 
       if (action === 'PredictPortfolioService:getPositions') {
+        if (positionPages) {
+          const page = positionPages.find(
+            (candidate) => candidate.cursor === cursor,
+          );
+          if (!page) {
+            return Promise.reject(new Error('Unknown Positions page'));
+          }
+          return Promise.resolve({
+            venueId: 'kalshi',
+            positions: page.positions,
+            ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
+          });
+        }
         return positions instanceof Error
           ? Promise.reject(positions)
           : Promise.resolve({

@@ -79,6 +79,8 @@ export const useLaunchSumSub = (
   // Guards against React 18 strict-mode double-invoke and re-renders launching
   // the SDK more than once per attempt.
   const inFlightRef = useRef(false);
+  const attemptRef = useRef(attempt);
+  attemptRef.current = attempt;
 
   const retry = useCallback(() => {
     setHasError(false);
@@ -89,12 +91,13 @@ export const useLaunchSumSub = (
 
   useEffect(() => {
     if (initialNeedsMoreInfo && attempt === 0) {
-      return;
+      return undefined;
     }
     if (inFlightRef.current) {
-      return;
+      return undefined;
     }
     inFlightRef.current = true;
+    let cancelled = false;
 
     const launch = async () => {
       try {
@@ -104,8 +107,14 @@ export const useLaunchSumSub = (
         }
 
         await recordSessionConsents();
+        if (cancelled) {
+          return;
+        }
 
         const outcome = await KycController.launchProviderFlow({});
+        if (cancelled) {
+          return;
+        }
         if (outcome === 'submitted') {
           await onSubmitted({ status: 'submitted' });
         } else if (outcome === 'abandoned') {
@@ -115,17 +124,27 @@ export const useLaunchSumSub = (
           throw new Error('KYC provider flow failed');
         }
       } catch (error) {
+        if (cancelled) {
+          return;
+        }
         Logger.error(error as Error, {
           tags: { feature: 'vba-kyc', provider: 'sumsub' },
         });
         setHasError(true);
         setIsLaunching(false);
       } finally {
-        inFlightRef.current = false;
+        if (attemptRef.current === attempt) {
+          inFlightRef.current = false;
+        }
       }
     };
 
     launch();
+
+    return () => {
+      cancelled = true;
+      inFlightRef.current = false;
+    };
   }, [attempt, initialNeedsMoreInfo, onSubmitted]);
 
   return { isLaunching, needsMoreInfo, hasError, retry };

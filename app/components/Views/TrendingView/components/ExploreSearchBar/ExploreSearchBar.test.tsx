@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { View } from 'react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+import { ExploreSearchScreenSelectorsIDs } from '../../Views/ExploreSearchScreen/ExploreSearchScreen.testIds';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -32,7 +34,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      expect(getByTestId('explore-view-search-button')).toBeDefined();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      ).toBeDefined();
       expect(getByText('Search')).toBeDefined();
     });
 
@@ -43,7 +47,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByTestId('explore-view-search-button'));
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      );
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
@@ -76,6 +82,51 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('explore-view-search-input')).toBeDefined();
       expect(getByDisplayValue('bitcoin')).toBeDefined();
       expect(getByTestId('textfieldsearch')).toBeDefined();
+    });
+
+    it('renders the clipboard icon when enabled', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          clipboardButtonTestID={
+            ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON
+          }
+        />,
+      );
+
+      expect(
+        getByTestId(ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onPastePress when the clipboard icon is pressed', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          clipboardButtonTestID={
+            ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON
+          }
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON),
+      );
+      expect(mockOnPastePress).toHaveBeenCalledTimes(1);
     });
 
     it('calls onSearchChange when text is entered', () => {
@@ -269,6 +320,24 @@ describe('ExploreSearchBar', () => {
       ).toBeDefined();
       expect(
         queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      ).toBeNull();
+    });
+
+    it('renders a custom start accessory in place of the back button', () => {
+      const { getByTestId, queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          dismissVariant="back"
+          startAccessory={<View testID="custom-start-accessory" />}
+        />,
+      );
+
+      expect(getByTestId('custom-start-accessory')).toBeOnTheScreen();
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
       ).toBeNull();
     });
 

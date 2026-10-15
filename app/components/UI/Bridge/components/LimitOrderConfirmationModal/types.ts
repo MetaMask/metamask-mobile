@@ -1,7 +1,8 @@
-import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
 import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
+import type { LimitOrderTriggerInput } from '../../utils/limitOrders/getLimitOrderTriggerParams';
+import type { LimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
 
 /**
  * Market comparison shown under the trigger price, e.g. "(-5% from market)".
@@ -49,18 +50,17 @@ export interface LimitOrderConfirmationModalParams {
    */
   order: Omit<LimitOrderDelegationsParams, 'costTolerance'>;
   /**
-   * The condition that fills the order, in the shape `POST /v2/limit-orders`
-   * takes. Built by the caller, which is the only place holding the raw limit
-   * price and the side it is quoted on, and where a price shown in another
-   * display currency is converted to the USD equivalent the API requires.
-   * Left undefined when the price cannot be expressed as a trigger, which this
-   * screen surfaces rather than placing an order the API would reject.
+   * The limit price exactly as entered, with the side it is quoted on. The
+   * caller is the only place holding it. This screen turns it into the
+   * `POST /v2/limit-orders` trigger itself, converting a price in another
+   * display currency to USD with the live rate, so the order is placed at the
+   * rate shown in the notice at the time it is created.
    */
-  trigger?: CreateLimitOrderParams['trigger'];
+  triggerInput: LimitOrderTriggerInput;
 }
 
 export interface LimitOrderConfirmationModalProps
-  extends Omit<LimitOrderConfirmationModalParams, 'order' | 'trigger'> {
+  extends Omit<LimitOrderConfirmationModalParams, 'order' | 'triggerInput'> {
   /**
    * Cost tolerance label, e.g. "2%". Read from state by the host screen so
    * edits made in the cost tolerance modal are reflected here.
@@ -81,15 +81,17 @@ export interface LimitOrderConfirmationModalProps
    */
   feeToken?: BridgeToken;
   /**
-   * USD price the order triggers at, e.g. "$3,412.2". Set only for a price
+   * Rate of one US dollar in the display currency the trigger is converted
+   * at, e.g. `{ rate: '85.05', currency: 'RUB' }`. Set only for a price
    * entered in fiat while the display currency is not USD, since the order is
-   * placed at this USD price rather than the one on screen.
+   * placed at the USD equivalent of the price on screen.
    */
-  usdTriggerPrice?: string;
+  usdExchangeRate?: LimitOrderUsdExchangeRate;
   primaryButton: {
     onPress: () => void;
     label: string;
     isLoading?: boolean;
+    isDisabled?: boolean;
   };
   error?: string;
   /**

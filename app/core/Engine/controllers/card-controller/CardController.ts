@@ -43,6 +43,7 @@ import {
   CardProviderErrorCode,
   CardStatus,
   emptyCardHomeData,
+  type ApplePayProvisioningParams,
   type CardAuthSession,
   type CardAuthResult,
   type CardAuthStep,
@@ -1836,8 +1837,16 @@ export class CardController extends BaseController<
 
   // -- Data pass-throughs --
 
-  getCapabilities(): CardProviderCapabilities {
-    const provider = this.getActiveProvider();
+  getCapabilities(providerId?: CardProviderId): CardProviderCapabilities {
+    const provider = providerId
+      ? this.providers[providerId]
+      : this.getActiveProvider();
+    if (!provider) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `No provider: ${providerId}`,
+      );
+    }
     return provider.capabilities;
   }
 
@@ -2512,12 +2521,9 @@ export class CardController extends BaseController<
     );
   }
 
-  async createApplePayProvisioningRequest(params: {
-    leafCertificate: string;
-    intermediateCertificate: string;
-    nonce: string;
-    nonceSignature: string;
-  }): Promise<{
+  async createApplePayProvisioningRequest(
+    params: ApplePayProvisioningParams,
+  ): Promise<{
     encryptedPassData: string;
     activationData: string;
     ephemeralPublicKey: string;

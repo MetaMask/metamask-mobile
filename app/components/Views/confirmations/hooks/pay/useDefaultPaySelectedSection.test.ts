@@ -48,8 +48,8 @@ const updateFiatPaymentMock = jest.mocked(
   Engine.context.TransactionPayController.updateFiatPayment,
 );
 
-const render = () =>
-  renderHookWithProvider(() => useDefaultPaySelectedSection());
+const render = (options?: { disable?: boolean }) =>
+  renderHookWithProvider(() => useDefaultPaySelectedSection(options));
 
 describe('useDefaultPaySelectedSection', () => {
   beforeEach(() => {
@@ -289,6 +289,37 @@ describe('useDefaultPaySelectedSection', () => {
       updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
 
       expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
+    });
+
+    it('does not set override when disabled', () => {
+      (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(true);
+      (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+        id: TRANSACTION_ID,
+        type: TransactionType.perpsDepositAndOrder,
+      });
+
+      render({ disable: true });
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
+    });
+
+    it('still applies an explicit payWithOption when disabled', () => {
+      (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(false);
+      (useParams as jest.Mock).mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+      (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+        id: TRANSACTION_ID,
+        type: TransactionType.perpsDepositAndOrder,
+      });
+
+      render({ disable: true });
+
+      expect(setTransactionConfigMock).toHaveBeenCalledWith(
+        TRANSACTION_ID,
+        expect.any(Function),
+      );
     });
 
     it('does not set override when useIsMoneyAccountFlagDefault returns false', () => {

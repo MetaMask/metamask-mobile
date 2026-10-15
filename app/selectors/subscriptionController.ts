@@ -3,10 +3,11 @@ import {
   getDefaultSubscriptionControllerState,
   MoneyAccountFeature,
   PRODUCT_TYPES,
+  SUBSCRIPTION_STATUSES,
   selectHasEntitlement,
-  selectIsActiveSubscriber,
   type CachedLastSelectedPaymentMethod,
   type ProductType,
+  type SubscriptionStatus,
   type Subscription,
   type SubscriptionBenefitsState,
   type SubscriptionControllerState,
@@ -16,6 +17,26 @@ import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
+
+/**
+ * Statuses that grant subscription benefits. Mirrors Core's
+ * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
+ * exports.
+ */
+const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+  SUBSCRIPTION_STATUSES.active,
+  SUBSCRIPTION_STATUSES.trialing,
+  SUBSCRIPTION_STATUSES.provisional,
+]);
+/**
+ * Statuses under which the user still holds a subscription they can manage.
+ * Extends the active set with `paused`, which grants no benefits but must
+ * still reach Pro Hub so the user can fix the payment problem or cancel.
+ */
+const EXISTING_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+  ...ACTIVE_SUBSCRIPTION_STATUSES,
+  SUBSCRIPTION_STATUSES.paused,
+]);
 const MONEY_ACCOUNT_PLUS_FEATURES = Object.values(MoneyAccountFeature);
 
 /**
@@ -92,6 +113,42 @@ export const selectTrialedSubscriptionProducts = createSelector(
 );
 
 /**
+ * Selects whether the user has an active Money Account Plus (Pro)
+ * subscription. Active covers `active`, `trialing`, and `provisional`.
+ *
+ * @param state - The root Redux state.
+ * @returns True when a subscription grants Money Account Plus.
+ */
+export const selectIsMoneyAccountPlusSubscriber = createSelector(
+  selectSubscriptions,
+  (subscriptions) =>
+    subscriptions.some(
+      (subscription) =>
+        ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
+    ),
+);
+
+/**
+ * Selects whether the user holds a Money Account Plus subscription they can
+ * still manage. Covers every active status plus `paused`, so a subscriber
+ * whose payment lapsed is routed to Pro Hub rather than the upsell and can
+ * resolve the problem or cancel from Membership.
+ *
+ * @param state - The root Redux state.
+ * @returns True when a manageable Money Account Plus subscription exists.
+ */
+export const selectHasExistingMoneyAccountPlusSubscription = createSelector(
+  selectSubscriptions,
+  (subscriptions) =>
+    subscriptions.some(
+      (subscription) =>
+        EXISTING_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+        hasProduct(subscription, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS),
+    ),
+);
+
+/**
  * Selects the current subscription that contains the given product. A
  * subscription may contain multiple products; matching is by
  * `subscription.products`.
@@ -144,23 +201,6 @@ export const selectLastSelectedPaymentMethodByProduct = (
   ];
 
 /**
- * Selects whether the user has an active Money Account Plus subscription.
- * Active covers `active`, `trialing`, and `provisional`; every other status
- * fails closed.
- *
- * @param state - The root Redux state.
- * @returns Whether the user is an active Plus subscriber.
- */
-export const selectIsMoneyAccountPlusSubscriber = createSelector(
-  selectSubscriptionControllerState,
-  (subscriptionControllerState): boolean =>
-    selectIsActiveSubscriber(
-      subscriptionControllerState ?? DEFAULT_CONTROLLER_STATE,
-      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-    ),
-);
-
-/**
  * Selects whether the user still holds any Money Account Plus entitlement.
  *
  * Entitlements are granted by the server independently of subscription
@@ -206,3 +246,19 @@ export const selectMoneyAccountPlusSubscription = (
   state: RootState,
 ): Subscription | undefined =>
   selectSubscriptionByProduct(state, PRODUCT_TYPES.MONEY_ACCOUNT_PLUS);
+
+/**
+ * Selects whether the current Money Account Plus subscription is trialing.
+ *
+ * `trialedProducts` is the historical list of products this user has already
+ * trialed. It stays populated after a trial converts to paid, so current
+ * trial state is `SUBSCRIPTION_STATUSES.trialing` on the Plus subscription.
+ *
+ * @param state - The root Redux state.
+ * @returns Whether Plus is currently in a trial.
+ */
+export const selectIsMoneyAccountPlusTrialing = createSelector(
+  selectMoneyAccountPlusSubscription,
+  (subscription): boolean =>
+    subscription?.status === SUBSCRIPTION_STATUSES.trialing,
+);

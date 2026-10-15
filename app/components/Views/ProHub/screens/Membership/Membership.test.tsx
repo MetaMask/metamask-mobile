@@ -169,16 +169,20 @@ describe('Membership', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.PLAN_ROW)).toHaveTextContent(
-        toRegex('Pro (Annual)'),
+        toRegex(strings('pro_subscription.plans.annual.label')),
       );
     });
 
-    it('renders an unavailable value for earnings absent from controller state', () => {
+    it('renders the lifetime earnings row with an unavailable value absent from controller state', () => {
       const { getByTestId } = renderMembership();
-
-      expect(getByTestId(MembershipTestIds.EARNED_ROW)).toHaveTextContent(
-        toRegex('--'),
+      const lifetimeEarningsRow = getByTestId(
+        MembershipTestIds.LIFETIME_EARNINGS_ROW,
       );
+
+      expect(lifetimeEarningsRow).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.lifetime_earnings')),
+      );
+      expect(lifetimeEarningsRow).toHaveTextContent(toRegex('--'));
     });
   });
 
@@ -287,50 +291,6 @@ describe('Membership', () => {
       renderMembership();
 
       expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  // ── Stat info bottom sheet ────────────────────────────────────────────────
-
-  describe('stat info bottom sheet', () => {
-    it('is not visible by default', () => {
-      const { queryByTestId } = renderMembership();
-
-      expect(queryByTestId(MembershipTestIds.STAT_INFO_SHEET)).toBeNull();
-    });
-
-    it('opens when the Earned this month row is pressed', () => {
-      const { getByTestId } = renderMembership();
-
-      fireEvent.press(getByTestId(MembershipTestIds.EARNED_ROW));
-
-      expect(getByTestId(MembershipTestIds.STAT_INFO_SHEET)).toBeOnTheScreen();
-    });
-
-    it('shows the earned info title and description when earned row is pressed', () => {
-      const { getByTestId } = renderMembership();
-
-      fireEvent.press(getByTestId(MembershipTestIds.EARNED_ROW));
-
-      expect(
-        getByTestId(MembershipTestIds.STAT_INFO_SHEET_TITLE),
-      ).toHaveTextContent(strings('pro_hub.membership.earned_info.title'));
-      expect(
-        getByTestId(MembershipTestIds.STAT_INFO_SHEET_DESCRIPTION),
-      ).toHaveTextContent(
-        strings('pro_hub.membership.earned_info.description'),
-      );
-    });
-
-    it('closes the sheet when onClose is fired', () => {
-      const { getByTestId, queryByTestId } = renderMembership();
-
-      fireEvent.press(getByTestId(MembershipTestIds.EARNED_ROW));
-      expect(getByTestId(MembershipTestIds.STAT_INFO_SHEET)).toBeOnTheScreen();
-
-      fireEvent(getByTestId(MembershipTestIds.STAT_INFO_SHEET), 'close');
-
-      expect(queryByTestId(MembershipTestIds.STAT_INFO_SHEET)).toBeNull();
     });
   });
 

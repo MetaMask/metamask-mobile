@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { formatChainIdToDec } from '@metamask/bridge-controller';
+import { parseCaipAssetType } from '@metamask/utils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
@@ -11,19 +12,23 @@ import {
   selectLimitOrderMarketComparison,
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDelegations/schema';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
 import type { SignedLimitOrderDelegation } from '../../api/limitOrders/create/schema';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { getCurrencySymbol } from '../../utils/currencyUtils';
-import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { getLimitOrderTriggerParams } from '../../utils/limitOrders/getLimitOrderTriggerParams';
+import { getLimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import type { LimitOrderConfirmationModalParams } from './types';
 import { strings } from '../../../../../../locales/i18n';
+import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -32,6 +37,7 @@ import { strings } from '../../../../../../locales/i18n';
  */
 enum LimitOrderConfirmError {
   MissingTrigger = 'missingTrigger',
+  AccountUpgrade = 'accountUpgrade',
   Delegations = 'delegations',
   Signature = 'signature',
   Create = 'create',
@@ -40,13 +46,13 @@ enum LimitOrderConfirmError {
 const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
   [LimitOrderConfirmError.MissingTrigger]:
     'bridge.limit.error_missing_trigger_price',
+  [LimitOrderConfirmError.AccountUpgrade]:
+    'bridge.limit.error_upgrading_account',
   [LimitOrderConfirmError.Delegations]:
     'bridge.limit.error_fetching_delegations',
   [LimitOrderConfirmError.Signature]: 'bridge.limit.error_signing_delegations',
   [LimitOrderConfirmError.Create]: 'bridge.limit.error_creating_order',
 };
-
-const USD_CURRENCY = 'usd';
 
 export const LimitOrderConfirmationModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -54,31 +60,42 @@ export const LimitOrderConfirmationModalScreen = () => {
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const sourceWalletAddress = useSelector(selectSourceWalletAddress);
   const delegationFee = useEIP7702UpgradeFee();
+  const feeTokenValidation = useSentinelFeeTokenValidation({
+    chainId: parseCaipAssetType(params.order.sourceAssetId).chainId,
+    sourceAssetId: params.order.sourceAssetId,
+    destinationAssetId: params.order.destAssetId,
+  });
   const sourceChainId = params.sourceToken?.chainId;
+  const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
+    address: sourceWalletAddress,
+    chainId: sourceChainId,
+  });
   const feeToken = useMemo(
     () => (sourceChainId ? getNativeSourceToken(sourceChainId) : undefined),
     [sourceChainId],
   );
 
   // A price entered in fiat is sent as its USD equivalent, which only matches
-  // what is on screen when the display currency is already USD. Reading it off
-  // the trigger shows exactly the price the order is placed at. A ratio trigger
-  // is priced in the counter token, so no exchange rate is involved.
-  const { trigger } = params;
-  const usdTriggerPrice = useMemo(() => {
-    if (
-      !trigger ||
-      trigger.kind === 'ratio' ||
-      currentCurrency?.toLowerCase() === USD_CURRENCY
-    ) {
+  // what is on screen when the display currency is already USD. The order is
+  // not created until it is confirmed, so the price is converted with the live
+  // rate, and the notice shows that same rate: whatever it reads when the
+  // order is confirmed is what the order is placed at. A ratio trigger is
+  // priced in the counter token, so no exchange rate is involved.
+  const { triggerInput } = params;
+  const fiatToUsdRate = useFiatToUsdRate(sourceChainId);
+  const trigger = useMemo(
+    () => getLimitOrderTriggerParams({ ...triggerInput, fiatToUsdRate }),
+    [triggerInput, fiatToUsdRate],
+  );
+  const usdExchangeRate = useMemo(() => {
+    if (!trigger || trigger.kind === 'ratio') {
       return undefined;
     }
 
-    return `${getCurrencySymbol(USD_CURRENCY)}${formatAmountWithLocaleSeparators(
-      trigger.price,
-    )}`;
-  }, [currentCurrency, trigger]);
+    return getLimitOrderUsdExchangeRate(currentCurrency, fiatToUsdRate);
+  }, [currentCurrency, fiatToUsdRate, trigger]);
 
   const [confirmError, setConfirmError] = useState<LimitOrderConfirmError>();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
@@ -93,6 +110,18 @@ export const LimitOrderConfirmationModalScreen = () => {
   const createLimitOrder = useCreateLimitOrder();
 
   const error = useMemo(() => {
+    if (feeTokenValidation.reason === 'unsupported-pair') {
+      return {
+        bannerMessage: strings('bridge.limit.unsupported_fee_token_pair'),
+      };
+    }
+
+    if (feeTokenValidation.reason === 'unavailable') {
+      return {
+        bannerMessage: strings('bridge.limit.fee_tokens_unavailable'),
+      };
+    }
+
     if (delegationFee.status === 'error') {
       return {
         bannerMessage: strings('bridge.limit.error_calculation_network_fees'),
@@ -106,9 +135,13 @@ export const LimitOrderConfirmationModalScreen = () => {
         primaryButtonLabel: strings('bridge.limit.try_again'),
       };
     }
-  }, [delegationFee, confirmError]);
+  }, [delegationFee, confirmError, feeTokenValidation.reason]);
 
   const handleConfirm = useCallback(async () => {
+    if (!feeTokenValidation.isValid) {
+      return;
+    }
+
     if (delegationFee.status === 'error') {
       delegationFee.retry();
       return;
@@ -116,15 +149,27 @@ export const LimitOrderConfirmationModalScreen = () => {
 
     setConfirmError(undefined);
 
-    // Nothing here can reconstruct the trigger: the raw limit price lives on
-    // the limit order screen. Failing in the banner beats sending an order
-    // whose fill condition we would have had to guess.
-    if (!params.trigger) {
+    // An unusable price, or a fiat one with no rate to convert it to USD,
+    // leaves no trigger. Failing in the banner beats sending an order whose
+    // fill condition we would have had to guess.
+    if (!trigger) {
       setConfirmError(LimitOrderConfirmError.MissingTrigger);
       return;
     }
 
     setIsCreatingOrder(true);
+
+    try {
+      await autoUpgradeEIP7702Account();
+    } catch (upgradeError) {
+      Logger.error(
+        upgradeError as Error,
+        'LimitOrderConfirmationModalScreen: Failed to upgrade account',
+      );
+      setConfirmError(LimitOrderConfirmError.AccountUpgrade);
+      setIsCreatingOrder(false);
+      return;
+    }
 
     // A retry starts over from the delegations, which hands back the same
     // `clientOrderId` for these order params. The API treats that id as
@@ -168,7 +213,7 @@ export const LimitOrderConfirmationModalScreen = () => {
         // The delegations response reports the chain as CAIP-2 (`eip155:56`);
         // the create request takes it in decimal (`56`).
         chainId: formatChainIdToDec(delegationsResponse.chainId),
-        trigger: params.trigger,
+        trigger,
         // Bookkeeping only, and explicitly the amount as requested rather than
         // the one the tolerance was applied to: the enforceable floor is the
         // one in the signed caveat.
@@ -202,12 +247,14 @@ export const LimitOrderConfirmationModalScreen = () => {
       showCloseButton: false,
     });
   }, [
+    autoUpgradeEIP7702Account,
     createLimitOrder,
     delegationFee,
     fetchLimitOrdersDelegations,
+    feeTokenValidation.isValid,
     navigation,
     params.order.destAmount,
-    params.trigger,
+    trigger,
     costTolerancePercent,
   ]);
 
@@ -217,7 +264,7 @@ export const LimitOrderConfirmationModalScreen = () => {
       triggerComparison={triggerComparison}
       delegationFee={delegationFee}
       feeToken={feeToken}
-      usdTriggerPrice={usdTriggerPrice}
+      usdExchangeRate={usdExchangeRate}
       costTolerance={`${costTolerancePercent}%`}
       goBack={navigation.goBack}
       error={error?.bannerMessage}
@@ -226,6 +273,7 @@ export const LimitOrderConfirmationModalScreen = () => {
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
         isLoading: delegationFee.status === 'loading' || isCreatingOrder,
+        isDisabled: !feeTokenValidation.isValid,
       }}
     />
   );

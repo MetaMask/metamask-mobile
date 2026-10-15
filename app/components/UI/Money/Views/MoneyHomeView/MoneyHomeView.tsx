@@ -239,6 +239,7 @@ const MoneyHomeView = () => {
     hasMoneyAccountRequirements,
     hasMoneyAccountBaseRequirements,
     isResidencyBlocked,
+    isMoneyCardSectionAvailable,
   } = useMoneyAccountCardLinkage();
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
@@ -251,8 +252,8 @@ const MoneyHomeView = () => {
     hasMoneyAccountBaseRequirements,
     hasMoneyAccountRequirements,
     isCardStateResolved,
+    isMoneyCardSectionAvailable,
   });
-
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };

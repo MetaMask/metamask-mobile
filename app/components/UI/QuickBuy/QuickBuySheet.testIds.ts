@@ -21,13 +21,11 @@ export const QuickBuySheetSelectorsIDs = {
   CLOSE_BUTTON: 'quick-buy-close-button',
   SETTINGS_BUTTON: 'quick-buy-settings-button',
   SUB_SCREEN_BACK: 'quick-buy-sub-screen-back-button',
-  SUB_SCREEN_CLOSE: 'quick-buy-sub-screen-close-button',
   PRICE_IMPACT_DESCRIPTION: 'price-impact-description',
   KEYPAD: 'quick-buy-keypad',
   KEYPAD_REVEAL: 'quick-buy-keypad-reveal',
   KEYPAD_KEY_1: 'keypad-key-1',
-  BUY_PILL_PREFIX: 'quick-buy-buy-pill-',
-  SELL_PILL_PREFIX: 'quick-buy-sell-pill-',
+  PERCENT_PILL_PREFIX: 'quick-buy-percent-pill-',
   PAY_WITH_ROW_PREFIX: 'quick-buy-pay-with-row-',
   CHAIN_FILTER_PREFIX: 'quick-buy-chain-filter-',
   TRADE_MODE_TOGGLE: 'quick-buy-trade-mode-toggle',
@@ -40,11 +38,8 @@ export const QuickBuySheetSelectorsIDs = {
 
 export type QuickBuySheetSelectorsIDsType = typeof QuickBuySheetSelectorsIDs;
 
-export const getQuickBuyBuyPillTestId = (presetValue: number | string) =>
-  `${QuickBuySheetSelectorsIDs.BUY_PILL_PREFIX}${presetValue}`;
-
-export const getQuickBuySellPillTestId = (percent: number | string) =>
-  `${QuickBuySheetSelectorsIDs.SELL_PILL_PREFIX}${percent}`;
+export const getQuickBuyPercentPillTestId = (percent: number | string) =>
+  `${QuickBuySheetSelectorsIDs.PERCENT_PILL_PREFIX}${percent}`;
 
 export const getQuickBuyPayWithRowTestId = (address: string, chainId: string) =>
   `${QuickBuySheetSelectorsIDs.PAY_WITH_ROW_PREFIX}${address.toLowerCase()}:${chainId}`;
