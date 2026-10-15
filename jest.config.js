@@ -125,6 +125,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/messenger',
   '@metamask/native-utils',
   '@metamask/perps-controller',
+  '@metamask/permission-controller',
+  '@metamask/selected-network-controller',
   '@metamask/superstruct',
   '@metamask/react-native-acm',
   '@metamask/react-native-actionsheet',
