@@ -294,7 +294,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
-  it('renders kyc_pending when finalStatus is pending (decision rule 6)', () => {
+  it('renders kyc_pending when the relay kycStatus is pending (decision rule 5)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession(),
@@ -342,6 +342,24 @@ describe('getVbaHomeCard', () => {
       ...baseInputs,
       sessionStatus: makeSession({
         finalStatus: 'new',
+        kycStatus: 'new',
+      }),
+      providerFlowStatus: 'abandoned',
+      hasAcceptedVendorTerms: true,
+    });
+
+    expect(card).toEqual({ type: 'finish_verification' });
+  });
+
+  it('renders finish_verification for an abandoned flow despite a pending finalStatus', () => {
+    // Device-observed state (TRAM-4079): after backing out of SumSub, the
+    // relay keeps `finalStatus: 'pending'` while `kycStatus` is still 'new'
+    // and the provider flow is 'abandoned'. Nothing is being reviewed, so the
+    // card must ask the user to finish verification, not spin.
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
         kycStatus: 'new',
       }),
       providerFlowStatus: 'abandoned',

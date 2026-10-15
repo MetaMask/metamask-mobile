@@ -213,11 +213,12 @@ export function getVbaHomeCard({
     return { type: 'kyc_decision' };
   }
 
-  // 5. Vendor still processing, or the provider flow was submitted.
-  // Note rule 2 above: an incomplete session (terms accepted or not) lands in
-  // rule 6 instead; submitted-but-new reaches this rule.
+  // 5. Genuinely in review: the relay decision is pending, or the provider
+  // flow was submitted. `finalStatus === 'pending'` alone does NOT mean
+  // review — an abandoned flow keeps `finalStatus: 'pending'` with
+  // `kycStatus: 'new'` (observed on device), and must fall through to rule 6
+  // so the user finishes verification instead of seeing a spinner.
   if (
-    sessionStatus?.finalStatus === 'pending' ||
     sessionStatus?.kycStatus === 'pending' ||
     providerFlowStatus === 'submitted'
   ) {
