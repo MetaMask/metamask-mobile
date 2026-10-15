@@ -916,6 +916,23 @@ describe('usePredictPlaceOrder', () => {
       expect(mockOnError).not.toHaveBeenCalled();
     });
 
+    it('keeps the submitted preview recorded when the order is not filled', async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      // The recorded preview is the 1-tick baseline for the retry flow: it
+      // must be written before the submit attempt and survive a not-filled
+      // failure. Without it, a retry treats the fresh quote as zero ticks
+      // worse and submits on a single confirmation.
+      expect(result.current.lastSubmittedPreview).toBe(mockOrderParams.preview);
+    });
+
     it('resets isOrderNotFilled and error when resetOrderNotFilled is called', async () => {
       mockPlaceOrder.mockRejectedValue(
         new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),

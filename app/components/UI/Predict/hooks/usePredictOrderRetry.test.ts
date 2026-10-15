@@ -327,6 +327,117 @@ describe('usePredictOrderRetry', () => {
       expect(result.current.retryQuote).toBeNull();
       expect(params.placeOrder).not.toHaveBeenCalled();
     });
+
+    it('ignores the fresh quote when the episode is dismissed mid-fetch', async () => {
+      let resolveFetch!: (value: unknown) => void;
+      const params = createDefaultParams({
+        // Sheet mode: the not-filled edge does not auto-fetch, the banner CTA
+        // (handleRetry) drives the flow — matching a real user tap.
+        isSheetMode: true,
+        refetchPreview: jest.fn().mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              resolveFetch = resolve;
+            }),
+        ),
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+      const onOpen = jest.fn();
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      let inFlight: Promise<void> | undefined;
+      await act(async () => {
+        inFlight = result.current.handleRetry();
+      });
+
+      // The user dismisses the episode while the fetch is still in flight.
+      await act(async () => {
+        params.isOrderNotFilled = false;
+        rerender();
+      });
+
+      await act(async () => {
+        resolveFetch({
+          status: 'ok',
+          preview: createMockPreview({ sharePrice: 0.62 }),
+        });
+        await inFlight;
+      });
+
+      // A dismissed episode must not have a quote surfaced for it after the
+      // fetch resolves: it could then be confirmed and submitted.
+      expect(result.current.retryQuote).toBeNull();
+      expect(result.current.retrySheetVariant).toBe('busy');
+      expect(params.placeOrder).not.toHaveBeenCalled();
+      expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it.each(['pending', 'filled', 'canceled'] as const)(
+      'ignores the fresh quote when the order becomes %s mid-fetch',
+      async (orderState) => {
+        let resolveFetch!: (value: unknown) => void;
+        const params = createDefaultParams({
+          isSheetMode: true,
+          refetchPreview: jest.fn().mockImplementation(
+            () =>
+              new Promise((resolve) => {
+                resolveFetch = resolve;
+              }),
+          ),
+        });
+        const { result, rerender } = renderHook(() =>
+          usePredictOrderRetry(params),
+        );
+        const onOpen = jest.fn();
+        (
+          result.current.retrySheetRef as unknown as {
+            current: { onOpenBottomSheet: jest.Mock };
+          }
+        ).current = { onOpenBottomSheet: onOpen };
+
+        await act(async () => {
+          params.isOrderNotFilled = true;
+          rerender();
+        });
+
+        let inFlight: Promise<void> | undefined;
+        await act(async () => {
+          inFlight = result.current.handleRetry();
+        });
+
+        // The order resolves while the fetch is still in flight.
+        await act(async () => {
+          params.orderState = orderState;
+          rerender();
+        });
+
+        await act(async () => {
+          resolveFetch({
+            status: 'ok',
+            preview: createMockPreview({ sharePrice: 0.62 }),
+          });
+          await inFlight;
+        });
+
+        // A terminal/in-flight order must never be retried as a fresh
+        // failure: the post-fetch guard has to catch the transition.
+        expect(result.current.retryQuote).toBeNull();
+        expect(result.current.retrySheetVariant).toBe('busy');
+        expect(params.placeOrder).not.toHaveBeenCalled();
+        expect(onOpen).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('1-tick honesty', () => {
