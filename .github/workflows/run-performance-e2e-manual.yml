@@ -94,9 +94,23 @@ jobs:
   # patches/, android/, ios/, bundler config, scripts/, etc. must keep
   # fingerprint / build validation.
   # The reuse_main_builds checkbox overrides detection and always forces the main APK path.
+  list-fold-devices:
+    name: List App Automate Fold devices
+    if: github.event_name == 'workflow_dispatch' && inputs.performance_tags == 'list-fold-devices'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query account device list
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: |
+          curl -fsS -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+            https://api-cloud.browserstack.com/app-automate/devices.json \
+            | jq '[.[] | select(.os == "android" and (.device | test("Fold|fold"))) | {device, os_version}]'
+
   detect-changes:
     name: Detect app vs test-only changes
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.performance_tags != 'list-fold-devices'
     runs-on: ubuntu-latest
     outputs:
       reuse_main_builds: ${{ steps.decide.outputs.reuse_main_builds }}
@@ -142,7 +156,7 @@ jobs:
 
   manual:
     name: Manual Performance E2E (${{ inputs.build_variant }})
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && inputs.performance_tags != 'list-fold-devices'
     needs: [detect-changes]
     permissions:
       contents: write
