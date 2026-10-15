@@ -1,9 +1,15 @@
+import type {
+  CopyTradeIntentResponse,
+  CreateCopyTradeIntentOptions,
+} from '@metamask/social-controllers';
 import Engine from '../../core/Engine';
 import Logger from '../Logger';
 import {
   buildSocialLoggerErrorOptions,
   type SocialSurface,
 } from './socialServiceTelemetry';
+
+export type { CreateCopyTradeIntentOptions } from '@metamask/social-controllers';
 
 /**
  * Social post a trade is being copied from. Threaded from the feed into the
@@ -16,22 +22,11 @@ export interface CopyTradeOrigin {
   asset?: string;
 }
 
-export type CopyTradeIntentExecution =
-  | { product: 'swaps'; quoteId: string }
-  | { product: 'perps'; oid: string };
-
-/** Body of `POST /v1/copy-trade-intents`. */
-export interface CreateCopyTradeIntentOptions {
-  origin: { kind: 'comment'; id: string };
-  copierAccount: { caip10: string };
-  execution: CopyTradeIntentExecution;
-}
-
 interface CreateCopyTradeIntentMessenger {
   call: (
     action: 'SocialService:createCopyTradeIntent',
     options: CreateCopyTradeIntentOptions,
-  ) => Promise<unknown>;
+  ) => Promise<CopyTradeIntentResponse>;
 }
 
 const getMessenger = (): CreateCopyTradeIntentMessenger =>
@@ -44,7 +39,7 @@ const getMessenger = (): CreateCopyTradeIntentMessenger =>
  */
 export const createCopyTradeIntent = (
   options: CreateCopyTradeIntentOptions,
-): Promise<unknown> =>
+): Promise<CopyTradeIntentResponse> =>
   new Promise((resolve) => {
     resolve(
       getMessenger().call('SocialService:createCopyTradeIntent', options),
@@ -54,7 +49,7 @@ export const createCopyTradeIntent = (
 export const buildCopyTradeIntentOptions = (
   origin: CopyTradeOrigin,
   caip10: string,
-  execution: CopyTradeIntentExecution,
+  execution: CreateCopyTradeIntentOptions['execution'],
 ): CreateCopyTradeIntentOptions => ({
   origin: { kind: 'comment', id: origin.commentId },
   copierAccount: { caip10 },
