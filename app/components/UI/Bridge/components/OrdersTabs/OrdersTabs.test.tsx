@@ -332,8 +332,8 @@ describe('OrdersTabs', () => {
 
   it('renders the open orders tab title without a count when there are no open orders', () => {
     const { getByTestId } = renderOrdersTabs({
-      openOrders: { items: [] },
-      history: { items: [] },
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
     });
 
     expect(
@@ -346,12 +346,8 @@ describe('OrdersTabs', () => {
 
   it('renders the number of open orders in the tab title', () => {
     const { getByTestId } = renderOrdersTabs({
-      openOrders: {
-        items: [{ id: 'a' }, { id: 'b' }],
-        renderItem: (item) => <Text>{item.id}</Text>,
-        keyExtractor: (item) => item.id,
-      },
-      history: { items: [] },
+      openOrders: chainOrdersTab([ETH_ORDER, ETH_ORDER_2]),
+      history: chainOrdersTab([]),
     });
 
     expect(
@@ -362,25 +358,14 @@ describe('OrdersTabs', () => {
   it('counts only open orders matching the selected network in the tab title', () => {
     const { getByTestId } = renderOrdersTabs(
       {
-        openOrders: {
-          items: [
-            { id: 'eth-order', chainId: '0x1' as const },
-            { id: 'op-order', chainId: '0xa' as const },
-            { id: 'op-order-2', chainId: '0xa' as const },
-          ],
-          renderItem: (item) => <Text>{item.id}</Text>,
-          keyExtractor: (item) => item.id,
-          getItemChainId: (item) => item.chainId,
-        },
-        history: { items: [] },
+        openOrders: chainOrdersTab([
+          ETH_ORDER,
+          OPTIMISM_ORDER,
+          { id: 'optimism-order-2', chainId: OPTIMISM_ORDER.chainId },
+        ]),
+        history: chainOrdersTab([]),
       },
-      {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          ordersNetworkFilter: formatChainIdToCaip('0xa'),
-        },
-      },
+      stateWithOrdersNetworkFilter(OPTIMISM_ORDER.chainId),
     );
 
     expect(
