@@ -774,7 +774,23 @@ describe('SendTransaction View', () => {
       );
     });
 
-    it('tracks rejected and does not store a hash when the Snap returns no transaction id', async () => {
+    it('leaves the screen without storing a hash when the Snap succeeds without a transaction id', async () => {
+      mockSendMultichainTransactionForReview.mockResolvedValueOnce({
+        valid: true,
+      });
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+      await act(async () => fireEvent.press(nextButton));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockTrackEvent.mock.lastCall?.[0]).toBe(
+        'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+      );
+    });
+
+    it('tracks rejected and stays when the Snap rejects the transfer', async () => {
       mockSendMultichainTransactionForReview.mockResolvedValueOnce({
         valid: false,
         errors: [{ code: 'rejected' }],

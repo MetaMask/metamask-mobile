@@ -194,17 +194,10 @@ function SendTransaction() {
           amount: String(orderData.cryptoAmount ?? '0'),
         })) as { transactionId?: string; valid?: boolean } | undefined;
 
-        if (result?.transactionId && order?.id) {
-          dispatch(setFiatSellTxHash(order.id, result.transactionId));
-          navigation.goBack();
-          trackEvent(
-            'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
-            //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
-            // transactionAnalyticsPayload expecting chain_id_source to be a string
-            // but RampTransaction type / interface expecting it to be a number
-            transactionAnalyticsPayload,
-          );
-        } else {
+        // Match the existing non-EVM send: only `valid === false` is a
+        // rejection. A completed transfer can omit transactionId, and staying
+        // on this screen would let Next broadcast it again.
+        if (result?.valid === false) {
           trackEvent(
             'OFFRAMP_SEND_TRANSACTION_REJECTED',
             //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
@@ -212,7 +205,20 @@ function SendTransaction() {
             // but RampTransaction type / interface expecting it to be a number
             transactionAnalyticsPayload,
           );
+          return;
         }
+
+        if (result?.transactionId && order?.id) {
+          dispatch(setFiatSellTxHash(order.id, result.transactionId));
+        }
+        navigation.goBack();
+        trackEvent(
+          'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
+          transactionAnalyticsPayload,
+        );
       } catch {
         trackEvent(
           'OFFRAMP_SEND_TRANSACTION_REJECTED',
