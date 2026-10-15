@@ -18,10 +18,8 @@ import { CardProviderIds } from '../../../../../core/Engine/controllers/card-con
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MarketingMoment from '../../../MarketingMoment';
-import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 
 /**
  * Route params for Complete screen
@@ -42,7 +40,9 @@ const Complete = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const headerHandlers = useCardHeaderHandlers('back');
+  const handleNotNow = () => {
+    navigation.navigate(Routes.WALLET.HOME);
+  };
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
@@ -114,14 +114,6 @@ const Complete = () => {
 
   return (
     <MarketingMoment
-      edges={['bottom']}
-      header={
-        <HeaderStandard
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
-        />
-      }
       title={strings('card.card_onboarding.complete.title')}
       description={strings('card.card_onboarding.complete.description')}
       artwork={
@@ -137,6 +129,12 @@ const Complete = () => {
         isDisabled: isLoading,
         isLoading,
         testID: 'complete-confirm-button',
+      }}
+      secondaryAction={{
+        label: strings('card.card_onboarding.not_now_button'),
+        onPress: handleNotNow,
+        isDisabled: isLoading,
+        testID: 'complete-not-now-button',
       }}
     />
   );

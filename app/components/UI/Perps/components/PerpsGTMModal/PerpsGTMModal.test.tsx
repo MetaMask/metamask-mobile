@@ -40,13 +40,14 @@ jest.mock('../../../../../util/metrics', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -133,11 +134,8 @@ describe('PerpsGTMModal', () => {
       action: PERPS_GTM_MODAL_DECLINE,
     });
     expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      { screen: Routes.WALLET.HOME },
-      { pop: true },
-    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('tracks Whats New Link Clicked with engage action when try now is pressed', async () => {

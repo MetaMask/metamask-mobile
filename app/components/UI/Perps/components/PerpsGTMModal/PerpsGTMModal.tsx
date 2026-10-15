@@ -3,7 +3,7 @@ import NavigationService from '../../../../../core/NavigationService';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import React from 'react';
-import { Image, Platform } from 'react-native';
+import { Image } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
@@ -21,20 +21,11 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
-import { hasNonLatinCharacters } from '../../utils/textUtils';
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { navigate } = useNavigation<AppNavigationProp>();
+  const { goBack, navigate } = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-
-  const titleText = strings('perps.gtm_content.title');
-  const subtitleText = strings('perps.gtm_content.title_description');
-  const useSystemFont =
-    hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
-  const systemFontStyle = useSystemFont
-    ? { fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto' }
-    : undefined;
 
   const handleClose = async () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true');
@@ -49,7 +40,7 @@ const PerpsGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.HOME_TABS, { screen: Routes.WALLET.HOME }, { pop: true });
+    goBack();
   };
 
   const tryPerpsNow = async () => {
@@ -75,10 +66,8 @@ const PerpsGTMModal = () => {
   return (
     <MarketingMoment
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
-      title={titleText}
-      description={subtitleText}
-      titleStyle={systemFontStyle}
-      descriptionStyle={systemFontStyle}
+      title={strings('perps.gtm_content.title')}
+      description={strings('perps.gtm_content.title_description')}
       artwork={
         <Image
           source={Character}
