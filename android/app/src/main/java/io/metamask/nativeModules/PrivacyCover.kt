@@ -28,13 +28,16 @@ import io.metamask.R
  * `onPause`, so this view is what the user sees on the way back in.
  *
  * A decor-view child sits under React Native modals, which are their own
- * windows. [coverDialog] is added while pausing so it is the top app window.
- * It does not take focus, so the biometric prompt can still appear above it.
+ * windows. [coverDialog] is added while pausing so it is the top app window,
+ * and it takes focus so TalkBack and key events land on the fox.
  */
 internal object PrivacyCover {
     private const val TAG = "PrivacyCover"
 
-    /** Holds focus in the activity so a focused field cannot reopen the keyboard. */
+    /**
+     * Activity cover used when [coverDialog] cannot be shown. It also parks
+     * focus in that fallback so a focused field cannot reopen the keyboard.
+     */
     private var overlay: View? = null
     /** App window above React Native modals. Null when the cover is hidden. */
     private var coverDialog: Dialog? = null
@@ -86,12 +89,14 @@ internal object PrivacyCover {
         cover.bringToFront()
         cover.visibility = View.VISIBLE
         // Added after any modal dialog, so this is the top application window.
-        // Not focusable: the activity keeps window focus for BiometricPrompt.
+        // It takes focus. Requesting focus on the activity cover afterward
+        // would hand the active window back to the modal underneath.
         showAboveDialogs(activity)
-        // The IME is a separate window above this cover. Move focus to the
-        // visible cover before hiding it so the input cannot immediately
-        // reclaim focus and reopen the keyboard on resume.
-        cover.requestFocus()
+        if (coverDialog?.isShowing != true) {
+            cover.requestFocus()
+        }
+        // The IME is a separate window above this cover. Hide it with the
+        // token captured before the cover dialog took focus.
         dismissKeyboard(activity, keyboardWindowToken)
         // NO_HIDE_DESCENDANTS on the cover would hide the fox and leave the
         // wallet readable. Hide the siblings instead, and let TalkBack land here.
@@ -136,6 +141,9 @@ internal object PrivacyCover {
         }
         try {
             dialog.show()
+            dialog.findViewById<ViewGroup>(android.R.id.content)
+                ?.getChildAt(0)
+                ?.requestFocus()
         } catch (error: RuntimeException) {
             Log.w(TAG, "Unable to show privacy cover window", error)
         }
@@ -145,6 +153,8 @@ internal object PrivacyCover {
         val content = View(activity).apply {
             setBackgroundResource(R.drawable.app_background)
             isClickable = true
+            isFocusable = true
+            isFocusableInTouchMode = true
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
             contentDescription = activity.getString(R.string.app_name)
             ViewCompat.setAccessibilityPaneTitle(this, contentDescription)
@@ -166,12 +176,10 @@ internal object PrivacyCover {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT,
                 )
-                // FLAG_NOT_FOCUSABLE keeps the activity focused. FLAG_SECURE
-                // blanks this window in the Android 12 Recents snapshot; the
-                // activity flag does not apply to a separate window.
+                // FLAG_SECURE blanks this window in the Android 12 Recents
+                // snapshot. The activity flag does not apply to a separate window.
                 addFlags(
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                         WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS or
                         WindowManager.LayoutParams.FLAG_SECURE,
                 )
