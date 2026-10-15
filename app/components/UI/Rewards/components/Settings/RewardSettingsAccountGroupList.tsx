@@ -145,8 +145,7 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
             testID="rewards-settings-add-all-button"
             variant={ButtonVariant.Secondary}
             onPress={startBulkLink}
-            style={tw.style('mt-2')}
-            twClassName="w-full"
+            twClassName="mt-4 w-full"
           >
             {strings('rewards.settings.add_all_accounts')}
           </Button>
