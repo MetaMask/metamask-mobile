@@ -20,12 +20,8 @@ import {
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { KYC_REDIRECT_URL } from '../../../constants';
-import {
-  deriveNextImmersveAction,
-  type ImmersveNextAction,
-} from '../../../util/immersvePrerequisites';
-import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
+import { type ImmersveNextAction } from '../../../util/immersvePrerequisites';
+import { loadImmersveNextAction } from '../../../util/loadImmersveNextAction';
 import { CardActions, withCardProvider } from '../../../util/metrics';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 
@@ -101,20 +97,15 @@ export function useImmersveCardProvisioning(
     (async () => {
       try {
         const controller = Engine.context.CardController;
-        const id = await resolveImmersveFundingSourceId({
+        const { fundingSourceId, action } = await loadImmersveNextAction({
           fundingChannelId,
-          existingId,
+          existingFundingSourceId: existingId,
+          kycRegion,
         });
         if (cancelled) return;
         if (!existingId) {
-          dispatch(setImmersveFundingSourceId(id));
+          dispatch(setImmersveFundingSourceId(fundingSourceId));
         }
-        const { prerequisites } = await controller.getSpendingPrerequisites(
-          id,
-          { kycRegion, kycRedirectUrl: KYC_REDIRECT_URL },
-        );
-        if (cancelled) return;
-        const action = deriveNextImmersveAction(prerequisites);
         if (action.type === 'active') {
           // Funding lifecycle only when we actually create the card.
           trackEventRef.current(
@@ -128,7 +119,7 @@ export function useImmersveCardProvisioning(
               .build(),
           );
           try {
-            await controller.createCard(id);
+            await controller.createCard(fundingSourceId);
             if (cancelled) return;
             trackEventRef.current(
               createEventBuilderRef

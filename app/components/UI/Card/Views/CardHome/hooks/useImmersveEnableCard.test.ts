@@ -2,7 +2,12 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { CardProviderIds } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import Engine from '../../../../../../core/Engine';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+  CardProviderIds,
+} from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { CardActions } from '../../../util/metrics';
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
@@ -14,6 +19,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: () => jest.fn(),
 }));
 
 jest.mock('./useImmersveCardProvisioning', () => ({
@@ -31,6 +37,21 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+const mockLoadImmersveNextAction = jest.fn();
+jest.mock('../../../util/loadImmersveNextAction', () => ({
+  loadImmersveNextAction: (...args: unknown[]) =>
+    mockLoadImmersveNextAction(...args),
+}));
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      createCard: jest.fn().mockResolvedValue({ cardId: 'card-2' }),
+      fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+    },
+  },
 }));
 
 const mockNavigate = jest.fn();
@@ -198,5 +219,85 @@ describe('useImmersveEnableCard', () => {
 
     expect(result.current.provisioningView).toBe('provisioning');
     expect(result.current.canEnableCard).toBe(false);
+  });
+
+  describe('cancelled card', () => {
+    const cancelledData = {
+      actions: [{ type: 'enable_card', reason: 'card_cancelled' }],
+      alerts: [],
+    } as never;
+
+    it('shows Enable card without a cancelled banner', () => {
+      const { result } = renderHook(() => useImmersveEnableCard(cancelledData));
+
+      expect(result.current.canEnableCard).toBe(true);
+      expect(result.current.provisioningView).toBe('hidden');
+    });
+
+    it('creates a replacement when spending prerequisites are active', async () => {
+      mockLoadImmersveNextAction.mockResolvedValue({
+        fundingSourceId: 'fs-1',
+        action: { type: 'active' },
+      });
+      const { result } = renderHook(() => useImmersveEnableCard(cancelledData));
+
+      await act(async () => {
+        await result.current.enableCard();
+      });
+
+      expect(Engine.context.CardController.createCard).toHaveBeenCalledWith(
+        'fs-1',
+      );
+      expect(
+        Engine.context.CardController.fetchCardHomeData,
+      ).toHaveBeenCalledWith({ force: true });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('resumes onboarding when a prerequisite is still required', async () => {
+      mockLoadImmersveNextAction.mockResolvedValue({
+        fundingSourceId: 'fs-1',
+        action: { type: 'contact', needsEmail: true, needsPhone: false },
+      });
+      const { result } = renderHook(() => useImmersveEnableCard(cancelledData));
+
+      await act(async () => {
+        await result.current.enableCard();
+      });
+
+      expect(Engine.context.CardController.createCard).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.ROOT,
+        expect.objectContaining({
+          screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        }),
+      );
+    });
+
+    it('does not refresh home data when the issuer rejects another card', async () => {
+      mockLoadImmersveNextAction.mockResolvedValue({
+        fundingSourceId: 'fs-1',
+        action: { type: 'active' },
+      });
+      (
+        Engine.context.CardController.createCard as jest.Mock
+      ).mockRejectedValueOnce(
+        new CardProviderError(
+          CardProviderErrorCode.Forbidden,
+          'max cards',
+          403,
+          'MAX_CARDS_EXCEEDED',
+        ),
+      );
+      const { result } = renderHook(() => useImmersveEnableCard(cancelledData));
+
+      await act(async () => {
+        await result.current.enableCard();
+      });
+
+      expect(
+        Engine.context.CardController.fetchCardHomeData,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

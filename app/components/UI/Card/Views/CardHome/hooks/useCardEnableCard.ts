@@ -14,12 +14,14 @@ export interface CardEnableCardState {
   /** Provider-owned Enable card handler, or `null` to use the default action. */
   enableCard: (() => void) | null;
   provisioningView: CardProvisioningView;
+  isEnableCardLoading: boolean;
 }
 
 const DEFAULT_STATE: CardEnableCardState = {
   canEnableCard: false,
   enableCard: null,
   provisioningView: 'provisioning',
+  isEnableCardLoading: false,
 };
 
 /**
@@ -44,11 +46,13 @@ export function useCardEnableCard(
       canEnableCard: immersve.canEnableCard,
       enableCard: immersve.canEnableCard ? immersve.enableCard : null,
       provisioningView: immersve.provisioningView,
+      isEnableCardLoading: immersve.isEnableCardLoading,
     };
   }, [
     providerId,
     immersve.canEnableCard,
     immersve.enableCard,
     immersve.provisioningView,
+    immersve.isEnableCardLoading,
   ]);
 }

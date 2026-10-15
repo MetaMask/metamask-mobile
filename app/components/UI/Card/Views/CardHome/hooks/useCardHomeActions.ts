@@ -483,6 +483,30 @@ export function useCardHomeActions({
     [navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
+  const cancelCardAction = useCallback(() => {
+    const cardId = data?.card?.id;
+    if (!cardId) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CANCEL_CARD_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.CANCEL_CARD,
+      params: { cardId },
+    });
+  }, [
+    data?.card?.id,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
+
   const revokeAllowanceAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -637,6 +661,7 @@ export function useCardHomeActions({
     digitalWalletInstructionsAction,
     howToUseApplePayAction,
     unlinkMoneyAccountAction,
+    cancelCardAction,
     revokeAllowanceAction,
     logoutAction,
     orderMetalCardAction,

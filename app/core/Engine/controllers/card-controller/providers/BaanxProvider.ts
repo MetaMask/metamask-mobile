@@ -395,6 +395,7 @@ export class BaanxProvider implements ICardProvider {
     supportsTransactionHistory: true,
     supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
+    supportsCancelCard: false,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;

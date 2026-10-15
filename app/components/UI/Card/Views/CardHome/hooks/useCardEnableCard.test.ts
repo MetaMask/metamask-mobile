@@ -32,6 +32,7 @@ function mockImmersveState(
     isKycUnderReview: false,
     hasPendingAction: false,
     provisioningView: 'hidden',
+    isEnableCardLoading: false,
     ...overrides,
   });
 }

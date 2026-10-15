@@ -230,6 +230,8 @@ export interface CardProviderCapabilities {
   supportsTransactionHistory: boolean;
   supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
+  /** Permanent card cancellation. Immersve only; Baanx has no cancel API. */
+  supportsCancelCard: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -331,9 +333,11 @@ export interface CardAlert {
   action?: CardAlertAction;
 }
 
+export type CardCancelResult = 'cancelled' | 'pending';
+
 export type CardAction =
   | { type: 'add_funds'; enabled: boolean }
-  | { type: 'enable_card' };
+  | { type: 'enable_card'; reason?: 'card_cancelled' };
 
 // -- Card Home Data --
 
@@ -656,6 +660,15 @@ export interface ICardProvider {
   getCardDetails(tokens: CardAuthTokens): Promise<CardDetails>;
   freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
   unfreezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
+  /**
+   * Permanently cancels a card. `'cancelled'` means the issuer has confirmed
+   * the terminal state; `'pending'` means the async cancel was accepted but
+   * the card had not reached that state before polling stopped.
+   */
+  cancelCard?(
+    cardId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCancelResult>;
   getCardDetailsView?(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,
