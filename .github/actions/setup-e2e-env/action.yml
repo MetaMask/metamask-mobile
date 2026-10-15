@@ -127,23 +127,6 @@ runs:
     ## Common Setup ##
     - run: echo "Setup E2E Environment started"
       shell: bash
-
-    # The github-env ignores below rely on this action never running PR code
-    # with secrets. Privileged triggers (pull_request_target, workflow_run,
-    # issue_comment) must dispatch a trusted run instead of calling it.
-    - name: Require a trusted trigger
-      env:
-        EVENT_NAME: ${{ github.event_name }}
-      run: |
-        case "${EVENT_NAME}" in
-          push | pull_request | merge_group | schedule | workflow_dispatch) ;;
-          *)
-            echo "::error::setup-e2e-env does not support '${EVENT_NAME}'. Its GITHUB_ENV/GITHUB_PATH writes are only safe on trusted triggers."
-            exit 1
-            ;;
-        esac
-      shell: bash
-
     ## Android Setup (early for fail-fast) ##
 
     # Set Android environment variables (self-hosted runner has SDK pre-installed)
@@ -279,7 +262,8 @@ runs:
     - name: Set ANDROID_AVD_HOME for downstream steps
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       shell: bash
-      run: | # zizmor: ignore[github-env] fixed paths; trigger guarded above
+      run:
+        | # zizmor: ignore[github-env] value is only runner-set $HOME, no event data or inputs to inject
         echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
         mkdir -p "$HOME/.android/avd"
 
@@ -397,7 +381,8 @@ runs:
     - name: Install Foundry
       if: ${{ inputs.install-foundry == 'true' }}
       shell: bash
-      run: | # zizmor: ignore[github-env] fixed paths; trigger guarded above
+      run:
+        | # zizmor: ignore[github-env] fixed path to this checkout's node_modules/.bin, if node_modules/.bin is affected, we would be compromised already
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
         yarn install:foundryup
         echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
@@ -448,7 +433,9 @@ runs:
 
     - name: Add binstubs to PATH
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH" # zizmor: ignore[github-env] fixed paths; trigger guarded above
+      run:
+        | # zizmor: ignore[github-env] fixed path to binstubs from this checkout's ios/Gemfile, which bundle install already runs; no new trust.
+        echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH"
       shell: bash
 
     - name: Verify CocoaPods
