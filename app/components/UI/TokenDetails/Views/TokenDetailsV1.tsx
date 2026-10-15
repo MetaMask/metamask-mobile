@@ -483,8 +483,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
    * stays in step if that entry revalidates.
    */
   const handleOpenContractSecurity = useCallback(() => {
-    navigation.navigate(Routes.CONTRACT_SECURITY, { token });
-  }, [navigation, token]);
+    navigation.navigate(Routes.CONTRACT_SECURITY, {
+      token,
+      tdpVersion: analyticsBase.tdp_version,
+      tokenCategory: analyticsBase.token_category,
+    });
+  }, [navigation, token, analyticsBase]);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -581,6 +585,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         <TokenDetailsInlineHeader
           token={token}
           securityData={securityData}
+          tdpVersion="v3"
           onBackPress={handleBackPress}
           onSharePress={shareUrl ? handleShare : undefined}
           starButton={starButton}
@@ -661,6 +666,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 token={token}
                 networkName={networkConfigurationByChainId?.name}
                 severity={securityData?.resultType}
+                tdpVersion="v3"
               />
 
               <TokenDetailsV1TabBar

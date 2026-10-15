@@ -458,6 +458,7 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    tdpVersion: 'v2',
   });
 
   const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
@@ -650,6 +651,7 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
+        tdpVersion="v2"
         onBackPress={handleBackPress}
         onSharePress={handleShare}
         starButton={starButton}

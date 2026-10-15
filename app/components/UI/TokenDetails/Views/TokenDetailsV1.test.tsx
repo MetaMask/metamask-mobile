@@ -751,6 +751,8 @@ describe('TokenDetailsV1', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CONTRACT_SECURITY, {
         token: baseToken,
+        tdpVersion: 'v3',
+        tokenCategory: 'memecoin',
       });
     });
   });

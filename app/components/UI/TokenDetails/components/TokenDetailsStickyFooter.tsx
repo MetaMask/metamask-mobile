@@ -42,12 +42,6 @@ import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  trackActionButtonClick,
-  ActionButtonType,
-  ActionLocation,
-} from '../../../../util/analytics/actionButtonTracking';
 import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import type { QuickBuyFooterLayout } from '../../QuickBuy/abTestConfig';
@@ -159,8 +153,8 @@ interface TokenStickyFooterProps {
   isTokenDetailsV1?: boolean;
   /**
    * Token Details page analytics version. `'v3'` for the new (V1) page, `'v2'`
-   * for the legacy page. Threaded into the buy/sell `ACTION_BUTTON_CLICKED`
-   * event and the shared security warning bottom-sheet events.
+   * for the legacy page. Threaded into the footer `TOKEN_DETAILS_CTA_CLICKED`
+   * events and the shared security warning bottom-sheet events.
    */
   tdpVersion?: TdpVersion;
   /** Optional trader position header rendered above the footer actions. */
@@ -192,7 +186,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   traderPositionPnl,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -493,23 +486,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       tokenAddress: token.address ?? '',
       chainId: token.chainId ?? '',
       indicatorsActive,
+      tdp_version: tdpVersion,
     });
-    // The V1 buy_sell footer routes Buy/Sell through here instead of the
-    // legacy action buttons (which fire ACTION_BUTTON_CLICKED via
-    // `useHandleOnBuy`), so emit the same event here for parity. Gated on the
-    // V1 flag so legacy behavior is unchanged.
-    if (isTokenDetailsV1) {
-      trackActionButtonClick(trackEvent, createEventBuilder, {
-        action_name:
-          mode === 'sell' ? ActionButtonType.SELL : ActionButtonType.BUY,
-        button_label:
-          mode === 'sell'
-            ? strings('asset_overview.sell_button')
-            : buyButtonLabel,
-        location: ActionLocation.ASSET_DETAILS,
-        tdp_version: tdpVersion,
-      });
-    }
     handleFooterAction(
       () => onOpenQuickBuy(mode),
       strings(
@@ -572,6 +550,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           tokenAddress: token.address ?? '',
           chainId: token.chainId ?? '',
           indicatorsActive,
+          tdp_version: tdpVersion,
         });
         handleFooterAction(moneyDepositCta.onPress, moneyDepositCta.label);
       }}
@@ -644,6 +623,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(
                 onSwap,
@@ -678,6 +658,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(onBuy, buyButtonLabel, onBuyPress);
             }}
@@ -729,6 +710,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
                 indicatorsActive,
+                tdp_version: tdpVersion,
               });
               handleFooterAction(
                 onQuickBuyPress,

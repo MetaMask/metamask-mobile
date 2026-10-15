@@ -630,6 +630,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -753,6 +754,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -769,6 +771,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -785,6 +788,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -805,6 +809,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
   });
@@ -1210,6 +1215,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -1295,13 +1301,13 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('ACTION_BUTTON_CLICKED on the V1 buy_sell footer', () => {
+  describe('TOKEN_DETAILS_CTA_CLICKED on the buy_sell footer', () => {
     const actionButtonEvents = () =>
       mockTrackEvent.mock.calls
         .map(([event]) => event)
         .filter((event) => event?.name === 'Action Button Clicked');
 
-    it('fires buy with button_label, asset-details location and tdp_version', () => {
+    it('fires the CTA event with tdp_version v3 for the V1 buy button', () => {
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
@@ -1315,21 +1321,16 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByTestId('token-details-footer-quick-buy'));
 
-      const events = actionButtonEvents();
-      expect(events).toHaveLength(1);
-      expect(events[0].properties).toEqual(
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
         expect.objectContaining({
-          action_name: 'buy',
-          button_label: strings('asset_overview.buy_token_button', {
-            symbol: mockToken.symbol,
-          }),
-          location: 'asset details',
+          ctaType: 'quick_buy',
           tdp_version: 'v3',
         }),
       );
+      expect(actionButtonEvents()).toHaveLength(0);
     });
 
-    it('fires sell with button_label, asset-details location and tdp_version', () => {
+    it('fires the CTA event with tdp_version v3 for the V1 sell button', () => {
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
@@ -1343,23 +1344,21 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByTestId('token-details-footer-quick-sell'));
 
-      const events = actionButtonEvents();
-      expect(events).toHaveLength(1);
-      expect(events[0].properties).toEqual(
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
         expect.objectContaining({
-          action_name: 'sell',
-          button_label: strings('asset_overview.sell_button'),
-          location: 'asset details',
+          ctaType: 'quick_sell',
           tdp_version: 'v3',
         }),
       );
+      expect(actionButtonEvents()).toHaveLength(0);
     });
 
-    it('does not fire the action button event on the legacy footer', () => {
+    it('fires the CTA event with tdp_version v2 on the legacy footer', () => {
       const { getByTestId } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
           isTokenDetailsV1={false}
+          tdpVersion="v2"
           hasTokenBalance
           quickBuyEntrypointLayout="buy_sell"
           onOpenQuickBuy={jest.fn()}
@@ -1368,6 +1367,12 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByTestId('token-details-footer-quick-sell'));
 
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_sell',
+          tdp_version: 'v2',
+        }),
+      );
       expect(actionButtonEvents()).toHaveLength(0);
     });
   });
