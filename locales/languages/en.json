@@ -28,7 +28,7 @@
   },
   "arc_usage_notice": {
     "title": "Notice",
-    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with the Arc team."
   },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
@@ -2547,6 +2547,8 @@
       "order_type_accessibility_label": "Order type: {{orderType}}",
       "toggle_amount_display": "Toggle between fiat and token amount",
       "total_inc_pnl": "Total (inc. P&L)",
+      "total_receive": "Total receive",
+      "included_pnl": "Included P&L",
       "margin": "Margin",
       "includes_pnl": "includes P&L",
       "pnl": "P&L",
@@ -3133,6 +3135,8 @@
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
+      "explore": "Explore",
+      "see_more": "See more",
       "see_all_perps": "See all perps",
       "products": "Products",
       "top_movers": "Top movers",

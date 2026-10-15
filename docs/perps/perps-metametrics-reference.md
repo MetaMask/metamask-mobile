@@ -109,7 +109,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **`source = explore`**: `'perps_movers'` | `'perps_crypto'` | `'perps_stocks_commodities'` | `'perps_markets'`
   - **`source = perp_markets`**: `'all_markets'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'new'` | `'watchlist'` | `'active_search'`
   - _All values come from `PERPS_EVENT_VALUE.SOURCE_SECTION` in `@metamask/perps-controller`._
-- `section_name` (optional): Stable identifier for a home screen section viewed via scroll impression. Present only on `perps_home` impression events emitted by `usePerpsHomeSectionTracking`. Values: `'balance'` | `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_movers'` | `'explore_crypto'` | `'explore_commodities'` | `'explore_stocks'` | `'explore_forex'` | `'recent_activity'`. _(`PERPS_EVENT_PROPERTY.SECTION_NAME`; values from `PERPS_EVENT_VALUE.SECTION_NAME`.)_
+- `section_name` (optional): Stable identifier for a home screen section viewed via scroll impression. Present only on `perps_home` impression events emitted by `usePerpsHomeSectionTracking`. Values: `'balance'` | `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_movers'` | `'explore_crypto'` | `'explore_commodities'` | `'explore_stocks'` | `'explore_forex'` | `'recent_activity'` | `'explore'` | `'recently_added'`. _(`PERPS_EVENT_PROPERTY.SECTION_NAME`; values from `PERPS_EVENT_VALUE.SECTION_NAME`, including `EXPLORE` and `RECENTLY_ADDED`.)_
 - `section_index` (optional): 1-based position of the section among visible (rendered) sections, ranked by y-position. Reflects the real on-screen order and adjusts automatically for A/B reordering or hidden sections. Present alongside `section_name` on impression events. _(`PERPS_EVENT_PROPERTY.SECTION_INDEX`.)_
 - `sections_displayed` (optional): Ordered array of `section_name` values visible on the home screen at the time `screen_type = perps_home` fires. Captures the layout composition in one field, enabling analysis of section co-occurrence. _(`PERPS_EVENT_PROPERTY.SECTIONS_DISPLAYED`.)_
 - `watchlist_count` (optional): Number of markets in the user's watchlist at event time. Included in the base `perps_home` screen view. _(`PERPS_EVENT_PROPERTY.WATCHLIST_COUNT`.)_
@@ -175,7 +175,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `max_slippage_pct` (optional): Current max slippage percentage (number, used with slippage interactions)
 - `max_slippage_source` (optional): How the slippage value was set: `'default' | 'user_configured'` (used with slippage interactions)
 - `estimated_slippage_pct` (optional): Estimated slippage percentage (number, used with `slippage_limit_blocked_order`)
-- `section_viewed` (optional): Stable section name scrolled into view (e.g., `'explore_crypto'`, `'explore_stocks'`, `'recent_activity'`; used with `slide` interaction). Values match `PERPS_EVENT_VALUE.SECTION_NAME` constants.
+- `section_viewed` (optional): Stable section name scrolled into view (e.g., `'explore_crypto'`, `'explore_stocks'`, `'recent_activity'`, `'explore'`, `'recently_added'`; used with `slide` interaction). Values match `PERPS_EVENT_VALUE.SECTION_NAME` constants.
 - `location` (optional): Location context for scroll tracking (e.g., `'perps_home'`)
 - `source` (optional): Source context for favorites (e.g., `'perp_asset_screen'`)
 - `tab_name` (optional): Tab being viewed (e.g., `'trades'` | `'orders'` | `'funding'` | `'deposits'`)
@@ -710,8 +710,10 @@ Section names used in impression events:
 | Orders              | `'orders'`              | `ORDERS`                                  |
 | Watchlist           | `'watchlist'`           | `WATCHLIST`                               |
 | What's Happening    | `'whats_happening'`     | `WHATS_HAPPENING`                         |
+| Explore             | `'explore'`             | `EXPLORE`                                 |
 | Products            | `'products'`            | `PRODUCTS`                                |
 | Top Movers          | `'top_movers'`          | `TOP_MOVERS`                              |
+| Recently added      | `'recently_added'`      | `RECENTLY_ADDED`                          |
 | Explore Crypto      | `'explore_crypto'`      | `EXPLORE_CRYPTO`                          |
 | Explore Commodities | `'explore_commodities'` | `EXPLORE_COMMODITIES`                     |
 | Explore Stocks      | `'explore_stocks'`      | `EXPLORE_STOCKS`                          |
@@ -720,7 +722,7 @@ Section names used in impression events:
 
 `section_index` = 1-based rank by y-position among rendered sections. Adjusts automatically for hidden or A/B-reordered sections.
 
-> **All `source_section` and `section_name` values are sourced from `@metamask/perps-controller`** (`PERPS_EVENT_VALUE.SOURCE_SECTION` and `PERPS_EVENT_VALUE.SECTION_NAME`).
+> **`source_section` and `section_name` values are sourced from `@metamask/perps-controller`** (`PERPS_EVENT_VALUE.SOURCE_SECTION` and `PERPS_EVENT_VALUE.SECTION_NAME`).
 
 ---
 

@@ -44,14 +44,10 @@ import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesCont
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import Tag from '../../../../component-library/components/Tags/Tag';
-import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
-
-export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 interface BalanceProps {
   asset: TokenI;
@@ -198,10 +194,6 @@ const Balance = ({
     [asset.chainId, asset.isNative],
   );
 
-  const label = asset.accountType
-    ? ACCOUNT_TYPE_LABELS[asset.accountType]
-    : undefined;
-
   return (
     <View style={styles.wrapper}>
       {!hideTitleHeading && (
@@ -246,7 +238,6 @@ const Balance = ({
             <Text variant={TextVariant.BodyMD}>
               {asset.name || asset.symbol}
             </Text>
-            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
 
           <View style={styles.balanceRow}>
