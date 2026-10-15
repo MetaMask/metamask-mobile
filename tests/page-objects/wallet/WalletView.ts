@@ -170,17 +170,20 @@ class WalletView extends WalletHomeSectionsBase {
     expectedName: string,
     timeout = 10_000,
   ): Promise<void> {
-    if (isPerformanceSuiteActive()) {
-      try {
-        await Assertions.expectElementToHaveLabel(
-          this.accountHubButton,
-          expectedName,
-          { timeout: Math.min(timeout, 3_000) },
-        );
-        return;
-      } catch {
-        // Control header has no hub button; fall back to the name text below.
-      }
+    // The compact header's avatar button exposes the name only as its label.
+    // Pick the check from what is on screen instead of catching a failed
+    // label assertion, which would also hide a wrong account name.
+    const hasHubButton =
+      isPerformanceSuiteActive() &&
+      (await Utilities.isElementVisible(this.accountHubButton, 3_000));
+
+    if (hasHubButton) {
+      await Assertions.expectElementToHaveLabel(
+        this.accountHubButton,
+        expectedName,
+        { timeout },
+      );
+      return;
     }
 
     await Assertions.expectElementToHaveText(

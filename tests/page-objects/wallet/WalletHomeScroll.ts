@@ -2,6 +2,7 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import {
   type AppiumElement,
   createLogger,
@@ -183,41 +184,38 @@ export class WalletHomeScroll {
    * Scrolls the home list just far enough that `target` is not covered by the
    * floating tab bar. A header that peeks out from behind the bar counts as
    * displayed, but tapping its center hits the bar (e.g. Money) instead.
-   * Measurement problems leave the target untouched.
+   * Leaves the target untouched when the tab bar is not on screen.
    */
   async scrollClearOfTabBar(
     target: Promise<AppiumElement>,
     description: string,
   ): Promise<AppiumElement> {
-    try {
-      const fresh = await this.resolveFreshWalletHomeTarget(target);
-      const tabBarButton = await TabBarComponent.tabBarWalletButton;
-      const [tabBarLocation, location, size, scrollView] = await Promise.all([
-        tabBarButton.unwrap().getLocation(),
-        fresh.unwrap().getLocation(),
-        fresh.unwrap().getSize(),
-        Promise.resolve(this.walletScrollView),
-      ]);
-      const needed = pixelsToClearTabBar(
-        { y: location.y, height: size.height },
-        tabBarLocation.y,
-      );
-      if (needed === 0) {
-        return fresh;
-      }
-
-      const viewHeight = (await scrollView.unwrap().getSize()).height;
-      logger.debug(
-        `Scrolling ${needed}px so "${description}" clears the floating tab bar`,
-      );
-      await this.scrollWalletHome('down', needed / viewHeight);
-      return await this.resolveFreshWalletHomeTarget(target);
-    } catch (error) {
-      logger.warn(
-        `Could not check "${description}" against the tab bar: ${String(error)}`,
-      );
+    const tabBarButton = TabBarComponent.tabBarWalletButton;
+    if (!(await Utilities.isElementVisible(tabBarButton, 1_000))) {
       return target;
     }
+
+    const fresh = await this.resolveFreshWalletHomeTarget(target);
+    const [tabBarLocation, location, size, scrollView] = await Promise.all([
+      (await tabBarButton).unwrap().getLocation(),
+      fresh.unwrap().getLocation(),
+      fresh.unwrap().getSize(),
+      Promise.resolve(this.walletScrollView),
+    ]);
+    const needed = pixelsToClearTabBar(
+      { y: location.y, height: size.height },
+      tabBarLocation.y,
+    );
+    if (needed === 0) {
+      return fresh;
+    }
+
+    const viewHeight = (await scrollView.unwrap().getSize()).height;
+    logger.debug(
+      `Scrolling ${needed}px so "${description}" clears the floating tab bar`,
+    );
+    await this.scrollWalletHome('down', needed / viewHeight);
+    return this.resolveFreshWalletHomeTarget(target);
   }
 
   async tapIfAlreadyVisible(
