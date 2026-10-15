@@ -4,6 +4,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import React from 'react';
 import { Image } from 'react-native';
+import { BoxJustifyContent } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
@@ -21,6 +22,8 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
+
+const CHARACTER_ASPECT_RATIO = 1179 / 1263;
 
 const PerpsGTMModal = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -68,10 +71,15 @@ const PerpsGTMModal = () => {
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
       title={strings('perps.gtm_content.title')}
       description={strings('perps.gtm_content.title_description')}
+      artworkWrapperProps={{
+        justifyContent: BoxJustifyContent.End,
+      }}
       artwork={
         <Image
           source={Character}
-          style={tw.style('h-full w-full')}
+          style={tw.style('w-full shrink', {
+            aspectRatio: CHARACTER_ASPECT_RATIO,
+          })}
           resizeMode="contain"
         />
       }

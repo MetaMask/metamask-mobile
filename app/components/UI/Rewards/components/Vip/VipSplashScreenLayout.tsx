@@ -5,7 +5,26 @@ import { Theme, useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import VipSplashFox from '../../../../../images/rewards/vip_splash.png';
 import MarketingMoment from '../../../MarketingMoment';
-import { VIP_SPLASH_BACKGROUND_GRADIENT_COLORS } from './Vip.constants';
+import {
+  VIP_GOLD_BORDER_DEFAULT,
+  VIP_GOLD_TEXT_DEFAULT,
+  VIP_GOLD_TEXT_MUTED,
+  VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
+  VIP_SPLASH_BACKGROUND_GRADIENT_COLORS,
+} from './Vip.constants';
+import VipSplashGradientTitle from './VipSplashGradientTitle';
+
+// The fox sits in the top of the PNG with its shadow and transparent padding
+// below, so the image is shifted down to center the fox itself.
+const VIP_SPLASH_FOX_OFFSET = '12%';
+
+const primaryButtonStyle = {
+  backgroundColor: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
+  borderColor: VIP_GOLD_BORDER_DEFAULT,
+  borderWidth: 1,
+};
+const primaryButtonTextStyle = { color: VIP_GOLD_TEXT_DEFAULT };
+const secondaryButtonTextStyle = { color: VIP_GOLD_TEXT_MUTED };
 
 export const VIP_SPLASH_SCREEN_TEST_IDS = {
   CONTAINER: 'rewards-vip-splash-screen',
@@ -64,14 +83,21 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
           style={tw.style('flex-1')}
         />
       }
-      title={strings('rewards.vip.splash_title')}
-      titleProps={{ testID: testIDs.title, numberOfLines: 3 }}
+      title={
+        <VipSplashGradientTitle
+          title={strings('rewards.vip.splash_title')}
+          testID={testIDs.title}
+        />
+      }
       description={strings('rewards.vip.splash_description')}
       descriptionProps={{ testID: testIDs.description }}
       artwork={
         <Image
           source={VipSplashFox}
-          style={tw.style('h-full w-full')}
+          style={[
+            tw.style('h-full w-full max-w-[320px]'),
+            { transform: [{ translateY: VIP_SPLASH_FOX_OFFSET }] },
+          ]}
           resizeMode="contain"
           testID={testIDs.fox}
         />
@@ -80,11 +106,14 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
         label: primaryButtonLabel,
         onPress: onPrimaryPress,
         testID: testIDs.primaryButton,
+        style: primaryButtonStyle,
+        textProps: { style: primaryButtonTextStyle },
       }}
       secondaryAction={{
         label: strings('rewards.vip.splash_not_now'),
         onPress: onNotNow,
         testID: testIDs.notNowButton,
+        textProps: { style: secondaryButtonTextStyle },
       }}
     >
       {children}

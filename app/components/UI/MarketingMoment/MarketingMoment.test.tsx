@@ -170,11 +170,13 @@ describe('MarketingMoment', () => {
     expect(getByTestId('marketing-moment-children')).toBeOnTheScreen();
   });
 
-  it('renders the artwork', () => {
+  it('renders the artwork in a box that accepts props', () => {
     const { getByTestId } = renderMoment({
       artwork: <View testID="marketing-moment-custom-art" />,
+      artworkWrapperProps: { testID: 'artwork-wrapper' },
     });
 
+    expect(getByTestId('artwork-wrapper')).toBeOnTheScreen();
     expect(getByTestId('marketing-moment-custom-art')).toBeOnTheScreen();
   });
 
