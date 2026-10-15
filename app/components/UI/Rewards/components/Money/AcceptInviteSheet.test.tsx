@@ -772,6 +772,32 @@ describe('AcceptInviteSheet', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
+    it.each([
+      ['accepted', TEST_IDS.ACCEPT],
+      ['declined', TEST_IDS.DECLINE],
+      ['dismissed', TEST_IDS.CLOSE],
+    ] as const)(
+      'records %s with the edited code, not the route prefill',
+      async (action, testId) => {
+        const { getByTestId } = await renderSheet('KOL1');
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+
+        fireEvent.changeText(getByTestId(TEST_IDS.CODE_INPUT), 'ab12cd');
+        await advanceDebounce();
+
+        await act(async () => {
+          fireEvent.press(getByTestId(testId));
+        });
+
+        const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: 'AB12CD',
+          interaction_type: action,
+        });
+      },
+    );
+
     it('tracks accepted after registration succeeds', async () => {
       const { getByTestId } = await renderSheet('KOL1');
       mockTrackEvent.mockClear();
@@ -859,6 +885,38 @@ describe('AcceptInviteSheet', () => {
         });
       },
     );
+
+    it('keeps accepted as the answer when goBack runs before the hook reports loading', async () => {
+      let resolveAccept: (didAccept: boolean) => void = () => undefined;
+      mockAcceptReferralCode.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveAccept = resolve;
+          }),
+      );
+
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      // Swipe, overlay, and hardware back share this handler. They can arrive
+      // before React commits the hook's loading state.
+      fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      getByTestId(TEST_IDS.CONTAINER).props.goBack();
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveAccept(true);
+      });
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'accepted',
+      });
+    });
 
     it.each([
       ['declined', TEST_IDS.DECLINE],
