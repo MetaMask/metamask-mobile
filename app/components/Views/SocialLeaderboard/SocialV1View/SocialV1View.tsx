@@ -524,6 +524,7 @@ const SocialV1View: React.FC = () => {
                 <ProfileAvatar
                   imageUrl={myProfile?.imageUrl}
                   avatarPresetId={myProfile?.avatarPresetId}
+                  avatarBackgroundId={myProfile?.avatarBackgroundId}
                   size="sm"
                 />
               </SocialHeaderGlassSurface>

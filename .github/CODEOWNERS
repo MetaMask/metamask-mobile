@@ -132,6 +132,7 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 **/Identity/**                                              @MetaMask/accounts-engineers
 **/identity/**                                              @MetaMask/accounts-engineers
 app/components/UI/HardwareWallet                            @MetaMask/accounts-engineers
+app/components/Views/Mfa                                    @MetaMask/accounts-engineers
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
@@ -327,6 +328,7 @@ app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
 app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
 app/components/Views/Settings                    @MetaMask/mobile-core-ux
 app/components/Views/Settings/NotificationsSettings @MetaMask/mobile-core-ux @MetaMask/engagement
+app/components/Views/Settings/SecuritySettings/Sections/MfaSection @MetaMask/accounts-engineers
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux

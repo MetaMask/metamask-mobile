@@ -73,6 +73,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           <ProfileAvatar
             imageUrl={profile.imageUrl}
             avatarPresetId={profile.avatarPresetId}
+            avatarBackgroundId={profile.avatarBackgroundId}
             size="lg"
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',

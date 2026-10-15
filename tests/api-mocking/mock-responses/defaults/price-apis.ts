@@ -95,7 +95,10 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           'bip122:000000000019d6689c085ae165831e93',
         ],
-        partialSupport: [],
+        partialSupport: {
+          spotPricesV2: [],
+          spotPricesV3: [],
+        },
       },
     },
     {
