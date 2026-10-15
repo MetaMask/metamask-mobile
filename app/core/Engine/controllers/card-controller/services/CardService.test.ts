@@ -177,7 +177,7 @@ describe('CardService', () => {
         linkRow,
         { ...linkRow, closedReason: null },
       ]);
-      expect(result[0]).not.toHaveProperty('migration');
+      expect(result?.[0]).not.toHaveProperty('migration');
     });
 
     it('returns an empty list for a profile without links', async () => {
