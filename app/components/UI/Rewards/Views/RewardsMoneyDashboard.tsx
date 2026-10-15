@@ -8,7 +8,6 @@ import {
   ButtonIconSize,
   HeaderStandardAnimated,
   IconName,
-  SectionDivider,
   TitleStandard,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
@@ -30,15 +29,11 @@ import {
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
 } from '../../../../reducers/rewardsMoney/selectors';
-import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
-import BenefitsPreview from '../components/Benefits/BenefitsPreview';
-import RefererHeroCard from '../components/Money/RefererHeroCard';
-import RefereeHeroCard from '../components/Money/RefereeHeroCard';
-import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
+import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
@@ -52,15 +47,15 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
   EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
   EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
+  PERFORMANCE_TAB: 'rewards-money-dashboard-performance-tab',
   WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
   EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
-  BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
+  PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
 } as const;
 
-type RewardsMoneyTab = 'waysToEarn' | 'earnings';
+type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
-const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings'];
+const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
 
 const hasClaimableEarnings = (claimable?: string): boolean => {
   if (!claimable) {
@@ -105,50 +100,6 @@ function dashboardStillLoading(
   return Boolean(profileId) && !hasReferral && !settledEmpty;
 }
 
-function WaysToEarnBody({
-  profileId,
-  referralMe,
-  subscriptionId,
-}: {
-  profileId: string;
-  referralMe: ReferralMeDto;
-  subscriptionId: string | null | undefined;
-}) {
-  const persona = moneyDashboardPersona(referralMe);
-  return (
-    <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}>
-      {persona === 'referrer' ? (
-        <RefererHeroCard
-          profileId={profileId}
-          referralCode={referralMe.referral_code}
-          localizedText={referralMe.localized_text}
-        />
-      ) : null}
-      {persona === 'referee' ? (
-        <RefereeHeroCard
-          profileId={profileId}
-          referredBy={referralMe.referred_by}
-          localizedText={referralMe.localized_text}
-        />
-      ) : null}
-      {subscriptionId ? (
-        <>
-          <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION}>
-            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
-            <CampaignsPreview />
-          </Box>
-          <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION}>
-            <SectionDivider marginVertical={0} twClassName="mt-8 mb-5" />
-            <BenefitsPreview />
-          </Box>
-        </>
-      ) : (
-        <RewardsOptInSection localizedText={referralMe.localized_text} />
-      )}
-    </Box>
-  );
-}
-
 const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -182,6 +133,14 @@ const RewardsMoneyDashboard: React.FC = () => {
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
+  const tabPanelProps = (isActive: boolean) => ({
+    accessibilityElementsHidden: !isActive,
+    importantForAccessibility: isActive
+      ? ('auto' as const)
+      : ('no-hide-descendants' as const),
+    pointerEvents: isActive ? ('auto' as const) : ('none' as const),
+    style: tw.style(!isActive && 'hidden'),
+  });
 
   const tabs = useMemo<TabItem[]>(
     () => [
@@ -202,6 +161,12 @@ const RewardsMoneyDashboard: React.FC = () => {
             twClassName="h-1.5 w-1.5 rounded-full bg-success-default"
           />
         ) : undefined,
+      },
+      {
+        key: 'performance',
+        label: localizedText?.performanceTitle ?? '',
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB,
       },
     ],
     [localizedText, showEarningsDot],
@@ -327,19 +292,30 @@ const RewardsMoneyDashboard: React.FC = () => {
               onScroll={onScroll}
               scrollEventThrottle={16}
             >
-              {/* Only the active tab is mounted. Earnings and Performance,
-                  when those screens land, fetch on open rather than with
-                  Ways to earn. Claim history reads its cached page on focus
-                  and refreshes behind it. */}
-              {activeTab === 'waysToEarn' ? (
-                <WaysToEarnBody
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                {...tabPanelProps(activeTab === 'waysToEarn')}
+              >
+                <WaysToEarnTab
                   profileId={profileId}
                   referralMe={referralMe}
-                  subscriptionId={subscriptionId}
+                  isSubscribed={Boolean(subscriptionId)}
                 />
-              ) : (
-                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY} />
-              )}
+              </Box>
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}
+                {...tabPanelProps(activeTab === 'earnings')}
+              />
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
+                {...tabPanelProps(activeTab === 'performance')}
+              >
+                <PerformanceTab
+                  profileId={profileId}
+                  persona={moneyDashboardPersona(referralMe)}
+                  active={activeTab === 'performance'}
+                />
+              </Box>
             </Animated.ScrollView>
           </Animated.View>
         </Box>
