@@ -11,6 +11,7 @@ import {
   getOriginScanFlow,
   hasValidTransactionParams,
   hasValidTypedDataParams,
+  isChainPermissionRequest,
   isDappConnectionRequest,
   isEthSendTransaction,
   isEthSignTypedData,
@@ -450,6 +451,31 @@ describe('address-scan-util', () => {
     });
   });
 
+  describe('isChainPermissionRequest', () => {
+    it.each(['wallet_addEthereumChain', 'wallet_switchEthereumChain'] as const)(
+      'returns true for %s method',
+      (method) => {
+        const req = {
+          jsonrpc: '2.0' as const,
+          id: 1,
+          method,
+        } as unknown as Parameters<typeof isChainPermissionRequest>[0];
+
+        expect(isChainPermissionRequest(req)).toBe(true);
+      },
+    );
+
+    it('returns false for wallet_watchAsset', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'wallet_watchAsset',
+      } as unknown as Parameters<typeof isChainPermissionRequest>[0];
+
+      expect(isChainPermissionRequest(req)).toBe(false);
+    });
+  });
+
   describe('isDappConnectionRequest', () => {
     it.each(['eth_requestAccounts', 'wallet_requestPermissions'] as const)(
       'returns true for %s method',
@@ -483,6 +509,8 @@ describe('address-scan-util', () => {
       ['eth_signTypedData_v3', RequestSourceFlow.Confirmations],
       ['eth_signTypedData_v4', RequestSourceFlow.Confirmations],
       ['wallet_sendCalls', RequestSourceFlow.Confirmations],
+      ['wallet_addEthereumChain', RequestSourceFlow.Confirmations],
+      ['wallet_switchEthereumChain', RequestSourceFlow.Confirmations],
       ['eth_requestAccounts', RequestSourceFlow.DappConnection],
       ['wallet_requestPermissions', RequestSourceFlow.DappConnection],
       ['eth_accounts', RequestSourceFlow.RpcTrustSignals],

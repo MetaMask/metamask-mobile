@@ -211,6 +211,15 @@ export function isDappConnectionRequest(req: BasicJsonRpcRequest): boolean {
 }
 
 /**
+ * Check if request can open a chain permission approval
+ */
+export function isChainPermissionRequest(req: BasicJsonRpcRequest): boolean {
+  return ['wallet_addEthereumChain', 'wallet_switchEthereumChain'].includes(
+    req.method,
+  );
+}
+
+/**
  * Classify the user flow that triggered an origin scan, so the scan request
  * can be attributed via the request-source header.
  *
@@ -222,7 +231,8 @@ export function getOriginScanFlow(req: BasicJsonRpcRequest): RequestSourceFlow {
     isEthSendTransaction(req) ||
     isEthSignTypedData(req) ||
     isPersonalSign(req) ||
-    isWalletSendCalls(req)
+    isWalletSendCalls(req) ||
+    isChainPermissionRequest(req)
   ) {
     return RequestSourceFlow.Confirmations;
   }
