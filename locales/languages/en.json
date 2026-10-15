@@ -11534,7 +11534,7 @@
       "try_again": "Try again",
       "cancel": "Cancel",
       "verification_pending_title": "Verification pending",
-      "verification_pending_description": "Verification is pending on {{devices}}. Open the card in Apple Wallet and contact the card issuer using the details on the back of the card.",
+      "verification_pending_description": "Open the card in Apple Wallet to verify it on {{devices}}.",
       "open_in_apple_wallet": "Open in Apple Wallet",
       "device_iphone": "iPhone",
       "device_apple_watch": "Apple Watch",
