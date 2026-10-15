@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, processColor } from 'react-native';
-import { render, screen } from '@testing-library/react-native';
+import { processColor } from 'react-native';
+import { render } from '@testing-library/react-native';
 import { BlurView } from 'expo-blur';
 import { makeMutable } from 'react-native-reanimated';
 import HeaderGlassBackdrop from './HeaderGlassBackdrop';
 import { mockTheme } from '../../../util/theme';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
+import { backdropFadeOpacity } from './test-utils';
 
 const mockLiquidGlass = {
   isGlassEnabled: false,
@@ -23,19 +24,6 @@ const backgroundAt = (opacities: number[]) =>
       colorWithOpacity(mockTheme.colors.background.default, opacity),
     ),
   );
-
-// The fade sits a few views above the gradient; read the nearest opacity.
-const fadeOpacity = (target: ReturnType<typeof screen.getByTestId>) => {
-  let node = target.parent;
-  while (node) {
-    const opacity = StyleSheet.flatten(node.props.style)?.opacity;
-    if (opacity !== undefined) {
-      return opacity;
-    }
-    node = node.parent;
-  }
-  return undefined;
-};
 
 describe('HeaderGlassBackdrop', () => {
   beforeEach(() => {
@@ -88,7 +76,7 @@ describe('HeaderGlassBackdrop', () => {
   it('stays fully on without a scroll distance', () => {
     const { getByTestId } = render(<HeaderGlassBackdrop testID="backdrop" />);
 
-    expect(fadeOpacity(getByTestId('backdrop'))).toBe(1);
+    expect(backdropFadeOpacity(getByTestId('backdrop'))).toBe(1);
   });
 
   describe('scroll', () => {
@@ -106,7 +94,7 @@ describe('HeaderGlassBackdrop', () => {
         />,
       );
 
-      expect(fadeOpacity(getByTestId('backdrop'))).toBe(opacity);
+      expect(backdropFadeOpacity(getByTestId('backdrop'))).toBe(opacity);
     });
 
     it('fades in over a custom distance', () => {
@@ -118,7 +106,7 @@ describe('HeaderGlassBackdrop', () => {
         />,
       );
 
-      expect(fadeOpacity(getByTestId('backdrop'))).toBe(1);
+      expect(backdropFadeOpacity(getByTestId('backdrop'))).toBe(1);
     });
 
     it('builds up the blur strength with the scroll on iOS', () => {
@@ -132,7 +120,7 @@ describe('HeaderGlassBackdrop', () => {
       );
 
       expect(UNSAFE_getByType(BlurView).props.intensity).toBe(30);
-      expect(fadeOpacity(getByTestId('backdrop'))).toBe(0.5);
+      expect(backdropFadeOpacity(getByTestId('backdrop'))).toBe(0.5);
     });
   });
 });

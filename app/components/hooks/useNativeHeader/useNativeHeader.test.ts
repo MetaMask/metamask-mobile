@@ -80,6 +80,17 @@ describe('useNativeHeader', () => {
     );
   });
 
+  it('stays off and leaves the navigator alone where the OS cannot draw Liquid Glass', () => {
+    jest.mocked(isLiquidGlassAvailable).mockReturnValue(false);
+
+    const { result } = renderHook(() =>
+      useNativeHeader({ leftItems, rightItems }),
+    );
+
+    expect(result.current).toBe(false);
+    expect(mockSetOptions).not.toHaveBeenCalled();
+  });
+
   it('leaves the navigator options alone when the screen gate is off', () => {
     const { result } = renderHook(() =>
       useNativeHeader({ leftItems, rightItems, isEnabled: false }),
