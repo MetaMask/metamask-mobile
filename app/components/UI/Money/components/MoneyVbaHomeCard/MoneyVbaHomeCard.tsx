@@ -77,7 +77,7 @@ const MoneyVbaHomeCard = ({
         },
       });
     });
-  }, [config, openVbaOnboarding, trackButtonClicked]);
+  }, [config, openVbaOnboarding, trackButtonClicked, variant]);
   return (
     <Box
       testID={testIds.CONTAINER}
