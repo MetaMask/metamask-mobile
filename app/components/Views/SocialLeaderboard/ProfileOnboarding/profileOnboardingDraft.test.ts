@@ -48,6 +48,7 @@ describe('profileOnboardingDraft', () => {
 
     expect(profile.handle).toBe('wen-cat');
     expect(profile.displayName).toBe('Wen Cat');
+    expect(profile.createdAt).toEqual(expect.any(String));
     expect(profile.avatarPresetId).toBe('zombie');
     expect(profile.avatarBackgroundId).toBe('lime');
     expect(profile.linkedAccountId).toBe('acc-1');

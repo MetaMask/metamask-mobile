@@ -38,6 +38,7 @@ describe('profileControllerToMySocialProfile', () => {
       handle: 'alice',
       bio: 'Trading in the open.',
       imageUrl: 'https://example.com/avatar.png',
+      createdAt: '2026-01-01T00:00:00Z',
       xHandle: 'alice',
       linkedAccountAddress: '0x123',
       shareTradingActivity: false,

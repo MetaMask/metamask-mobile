@@ -161,6 +161,11 @@ jest.mock('../../UI/Perps/hooks', () => ({
   })),
 }));
 
+const mockUseSocialTopTradersEligible = jest.fn(() => false);
+jest.mock('./hooks/useIsSocialTopTradersEligible', () => ({
+  useIsSocialTopTradersEligible: () => mockUseSocialTopTradersEligible(),
+}));
+
 jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
   usePerpsConnection: jest.fn(() => ({
     isConnected: true,
@@ -459,6 +464,7 @@ describe('Homepage', () => {
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
+    mockUseSocialTopTradersEligible.mockReturnValue(false);
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
@@ -752,6 +758,56 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
+    });
+
+    it('moves Top Traders before the Tokens and Perps sections for eligible users', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+    });
+
+    it('keeps Perps before Tokens below Top Traders when Perps priority also applies', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      const perpsHooksMock = jest.mocked(
+        jest.requireMock<typeof import('../../UI/Perps/hooks')>(
+          '../../UI/Perps/hooks',
+        ),
+      );
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant:
+              PERPS_SECTION_PRIORITY_VARIANTS[
+                PerpsSectionPriorityVariant.Treatment
+              ],
+            variantName: PerpsSectionPriorityVariant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(2);
+
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
     });
   });
 
