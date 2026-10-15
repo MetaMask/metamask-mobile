@@ -52,8 +52,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
   // The composer and profile onboarding are registered on MainNavigator only
-  // under this gate. Without a position to attach the composer would open
-  // empty, so the button stays disabled until one loads.
+  // under this gate. Without a position to attach, Share to feed is omitted.
   const sharePosition = header.sharePosition;
   const canShareToFeed =
     isSocialLeaderboardEnabled &&

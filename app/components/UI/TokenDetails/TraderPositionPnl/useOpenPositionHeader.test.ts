@@ -76,7 +76,12 @@ const solanaAccount = createMockInternalAccount(
   SolAccountType.DataAccount,
 );
 
-const token = { address: '0xabc', chainId: '0x1' } as TokenDetailsRouteParams;
+const token = {
+  address: '0xabc',
+  chainId: '0x1',
+  symbol: 'USDC',
+  name: 'USD Coin',
+} as TokenDetailsRouteParams;
 
 /** Runs whatever inline selector the hook passes to `useSelector`. */
 const runSelectors = () => {
@@ -197,6 +202,16 @@ describe('useOpenPositionHeader', () => {
     expect(result.current.positionValue).toBe('$90.00');
     expect(result.current.pnl).toEqual(
       expect.objectContaining({ amount: '+$50.00', isProfit: true }),
+    );
+    expect(result.current.sharePosition).toEqual(
+      expect.objectContaining({
+        positionId: USDC_MAINNET,
+        tokenSymbol: 'USDC',
+        chain: 'ethereum',
+        isOpen: true,
+        currentValueUSD: 150,
+        trades: [],
+      }),
     );
   });
 });

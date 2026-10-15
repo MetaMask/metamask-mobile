@@ -14,6 +14,7 @@ import {
   assetChainScope,
   resolveOpenPositionWallet,
 } from './openPositionWallet';
+import { toSharePosition } from './sharePosition';
 import type { TraderPosition } from './types';
 import { useOpenPositionForAsset } from './useOpenPositionForAsset';
 import { useUsdToFiatRate } from './useUsdToFiatRate';
@@ -45,26 +46,26 @@ export const useOpenPositionHeader = (
     [scope, scopedAccount, selectedAccount],
   );
 
-  const { position, sharePosition, isLoading } = useOpenPositionForAsset(
+  const { position, earliestTradeAt, isLoading } = useOpenPositionForAsset(
     walletAddress,
     assetId ?? undefined,
     walletAddress,
   );
   const { fiatBalance } = useTokenBalance(token);
   const conversion = useUsdToFiatRate();
-  const tradeTimestamps =
-    sharePosition?.trades.map((trade) => trade.timestamp) ?? [];
-  const earliestTrade = tradeTimestamps.reduce<number | null>(
-    (earliest, timestamp) =>
-      earliest == null || timestamp < earliest ? timestamp : earliest,
-    null,
+  const sharePosition = useMemo(
+    () =>
+      position
+        ? toSharePosition(token, assetId, position, earliestTradeAt)
+        : null,
+    [assetId, earliestTradeAt, position, token],
   );
   const header = toOpenPositionHeader({
     position,
     isLoading,
     walletFiatBalance: fiatBalance,
     conversion,
-    earliestTradeAt: earliestTrade ?? sharePosition?.lastTradeAt,
+    earliestTradeAt,
   });
 
   return {

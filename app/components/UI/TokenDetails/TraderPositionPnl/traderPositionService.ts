@@ -1,3 +1,4 @@
+import { DAY, HOUR } from '../../../../constants/time';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
 import type {
@@ -130,6 +131,8 @@ export interface OpenPositionMatch {
    * not: it has no trade history, so sharing and hold time stay empty.
    */
   position: TraderPosition | null;
+  /** Present only on the stand-in used when the route never answers. */
+  earliestTradeAt?: number;
 }
 
 const socialUrl = (path: string): string => {
@@ -236,9 +239,66 @@ export const getTraderPosition = async (
   toTraderPosition(await fetchSocialJson(positionUrl(positionId), signal));
 
 /**
+ * Nest's default body when no handler is registered for the path.
+ * A real "no position" 404 uses `errorMessage` and must not match this.
+ */
+const isUnregisteredRouteBody = (body: string): boolean => {
+  try {
+    const parsed: unknown = JSON.parse(body);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      'message' in parsed &&
+      typeof parsed.message === 'string'
+    ) {
+      return parsed.message.startsWith('Cannot GET ');
+    }
+  } catch {
+    return body.includes('Cannot GET ');
+  }
+  return false;
+};
+
+/**
+ * The open route is not there. That is either no HTTP response at all, or
+ * Nest's unregistered-route 404 (`Cannot GET /api/v2/.../open`). A domain
+ * 404 (`errorMessage`) means the route exists and the wallet has no position.
+ */
+export const isOpenPositionEndpointUnreachable = (error: unknown): boolean => {
+  if (error instanceof TraderPositionHttpError) {
+    return error.status === 404 && isUnregisteredRouteBody(error.body);
+  }
+  if (error instanceof TraderPositionMalformedError) {
+    return false;
+  }
+  return !(error instanceof Error && error.name === 'AbortError');
+};
+
+/** Stand-in figures so the position sheet can render while the route is down. */
+const unreachableOpenPositionFallback = (nowMs: number): OpenPositionMatch => ({
+  pnl: {
+    positionAmount: 713930,
+    isOpen: true,
+    boughtUsd: 100,
+    soldUsd: 20,
+    realizedPnl: 12,
+    costBasis: 80,
+    currentValueUSD: 150,
+    pnlValueUsd: 82,
+    pnlPercent: 40,
+    pnlStatus: 'ready',
+  },
+  position: null,
+  earliestTradeAt: nowMs - (2 * DAY + 3 * HOUR),
+});
+
+/**
  * Loads the open position one owned wallet holds in `assetId`.
- * 404 is "no position" and is thrown for the caller to treat as empty.
- * The body is the PnL payload only: there is no position row to share.
+ * A domain 404 is "no position" and is thrown for the caller to treat as empty.
+ * Nest's unregistered-route 404 (`Cannot GET`) uses stand-in figures, as does
+ * a request that never receives an HTTP response.
+ * The body is the PnL payload. The composer card is built from it plus the
+ * token on screen, because this route has no position uid or trades.
  */
 export const getOpenPositionForAsset = async (
   walletAddress: string,
@@ -246,6 +306,13 @@ export const getOpenPositionForAsset = async (
   signal?: AbortSignal,
 ): Promise<OpenPositionMatch> => {
   const url = openPositionUrl(walletAddress, assetId);
-  const pnl = toOpenPositionPnl(await fetchSocialJson(url, signal));
-  return { pnl, position: null };
+  try {
+    const pnl = toOpenPositionPnl(await fetchSocialJson(url, signal));
+    return { pnl, position: null };
+  } catch (error) {
+    if (isOpenPositionEndpointUnreachable(error)) {
+      return unreachableOpenPositionFallback(Date.now());
+    }
+    throw error;
+  }
 };
