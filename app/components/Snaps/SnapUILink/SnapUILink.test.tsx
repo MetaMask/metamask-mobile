@@ -33,7 +33,7 @@ describe('SnapUILink', () => {
     expect(children[1].props.style).toEqual({ width: 4 });
 
     const icon = UNSAFE_getByType(Icon);
-    expect(icon.props.name).toBe(IconName.Export);
+    expect(icon.props.name).toBe(IconName.ArrowSquareOut);
     expect(icon.props.color).toBe(IconColor.Primary);
   });
 
