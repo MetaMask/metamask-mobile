@@ -35,8 +35,9 @@ export const resolveSwipeTargetTab = (
   activeTab: TokenDetailsV1TabKey,
   translationX: number,
   velocityX: number,
+  tabs: readonly TokenDetailsV1TabKey[] = TOKEN_DETAILS_V1_TABS,
 ): TokenDetailsV1TabKey | null => {
-  const activeIndex = TOKEN_DETAILS_V1_TABS.indexOf(activeTab);
+  const activeIndex = tabs.indexOf(activeTab);
   if (activeIndex < 0) {
     return null;
   }
@@ -47,7 +48,7 @@ export const resolveSwipeTargetTab = (
     return null;
   }
   const targetIndex = translationX > 0 ? activeIndex - 1 : activeIndex + 1;
-  return TOKEN_DETAILS_V1_TABS[targetIndex] ?? null;
+  return tabs[targetIndex] ?? null;
 };
 
 export interface UseTokenDetailsV1TabsResult {
@@ -59,6 +60,8 @@ export interface UseTokenDetailsV1TabsResult {
 
 export interface UseTokenDetailsV1TabsOptions {
   initialTab?: TokenDetailsV1TabKey;
+  /** Tabs currently shown. Swipes stay inside this list. */
+  tabs?: readonly TokenDetailsV1TabKey[];
   onTabChange?: (
     targetTab: TokenDetailsV1TabKey,
     currentTab: TokenDetailsV1TabKey,
@@ -81,6 +84,7 @@ export const useTokenDetailsV1Tabs = (
       ? initialTabOrOptions
       : (options?.initialTab ?? TOKEN_DETAILS_V1_TABS[0]);
   const onTabChange = options?.onTabChange ?? options?.onTabWillChange;
+  const tabs = options?.tabs ?? TOKEN_DETAILS_V1_TABS;
 
   const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>(initialTab);
   const [mountedTabs, setMountedTabs] = useState<Set<TokenDetailsV1TabKey>>(
@@ -112,12 +116,13 @@ export const useTokenDetailsV1Tabs = (
         activeTab,
         translationX,
         velocityX,
+        tabs,
       );
       if (targetTab) {
         activateTab(targetTab);
       }
     },
-    [activeTab, activateTab],
+    [activeTab, activateTab, tabs],
   );
 
   const swipeGesture = useMemo(
@@ -242,6 +247,8 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Visible tabs. Defaults to the full Overview, Security, Feed order. */
+  tabs?: readonly TokenDetailsV1TabKey[];
 }
 
 const getTabLabel = (tab: TokenDetailsV1TabKey): string =>
@@ -251,28 +258,33 @@ const getTabTestID = (tab: TokenDetailsV1TabKey): string =>
   `token-details-v1-tab-${tab}`;
 
 const TokenDetailsV1TabBar = memo(
-  ({ activeTab, onTabPress, onLayout }: TokenDetailsV1TabBarProps) => {
-    const tabs = useMemo<TabItem[]>(
+  ({
+    activeTab,
+    onTabPress,
+    onLayout,
+    tabs = TOKEN_DETAILS_V1_TABS,
+  }: TokenDetailsV1TabBarProps) => {
+    const tabItems = useMemo<TabItem[]>(
       () =>
-        TOKEN_DETAILS_V1_TABS.map((tab) => ({
+        tabs.map((tab) => ({
           key: tab,
           label: getTabLabel(tab),
           content: null,
           testID: getTabTestID(tab),
         })),
-      [],
+      [tabs],
     );
 
-    const activeIndex = TOKEN_DETAILS_V1_TABS.indexOf(activeTab);
+    const activeIndex = tabs.indexOf(activeTab);
 
     const handleTabPress = useMemo(
       () => (index: number) => {
-        const tab = TOKEN_DETAILS_V1_TABS[index];
+        const tab = tabs[index];
         if (tab) {
           onTabPress(tab);
         }
       },
-      [onTabPress],
+      [onTabPress, tabs],
     );
 
     return (
@@ -289,7 +301,7 @@ const TokenDetailsV1TabBar = memo(
         onLayout={onLayout}
       >
         <TabsBar
-          tabs={tabs}
+          tabs={tabItems}
           activeIndex={activeIndex}
           onTabPress={handleTabPress}
         />
