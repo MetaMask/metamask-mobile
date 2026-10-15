@@ -42,7 +42,8 @@ import {
   selectMetaMaskPayFlags,
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
-import { isRouteToken } from '../../utils/relayFixedSpread';
+import { selectStablecoins } from '../../../../../selectors/featureFlagController/stableTokens';
+import { mockedEmptyFlagsState } from '../../../../../selectors/featureFlagController/mocks';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { DepositPrefillStatus } from './useDepositPrefillAmount';
@@ -60,10 +61,6 @@ jest.mock(
     selectDepositLimits: jest.fn(),
   }),
 );
-jest.mock('../../utils/relayFixedSpread', () => ({
-  ...jest.requireActual('../../utils/relayFixedSpread'),
-  isRouteToken: jest.fn(),
-}));
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
 }));
@@ -98,6 +95,15 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.useFakeTimers();
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
+/** Ethereum USDT from the stableTokens flag. Max-prefill cases use this address. */
+const ETHEREUM_USDT_ADDRESS =
+  '0xdac17f958d2ee523a2206206994597c13d831ec7' as Hex;
+/** Ethereum USDC, used when a second listed stablecoin must also prefill to max. */
+const ETHEREUM_USDC_ADDRESS =
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex;
+/** Ethereum DAI. On the production stableTokens flag, not the in-app fallback. */
+const ETHEREUM_DAI_ADDRESS =
+  '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex;
 const TOKEN_TRANSFER_DATA =
   '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
 const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
@@ -281,7 +287,6 @@ describe('useTransactionCustomAmount', () => {
       },
     });
     (selectDepositLimits as unknown as jest.Mock).mockReturnValue({});
-    (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -871,7 +876,6 @@ describe('useTransactionCustomAmount', () => {
         },
       },
     });
-    (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
     useParamsMock.mockReturnValue({ amount: '5' });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -907,7 +911,6 @@ describe('useTransactionCustomAmount', () => {
         },
       },
     });
-    (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
     useParamsMock.mockReturnValue({ amount: '5' });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
@@ -2270,20 +2273,81 @@ describe('useTransactionCustomAmount', () => {
       );
     });
 
-    it('prefills stablecoin with 100% of balance via Max path', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
+    const fallbackStablecoins = Object.entries(
+      selectStablecoins(mockedEmptyFlagsState),
+    ).flatMap(([chainId, addresses]) =>
+      addresses.map((address) => ({ chainId, address })),
+    );
+
+    it.each(fallbackStablecoins)(
+      'prefills stablecoin $address on $chainId to max',
+      async ({ address, chainId }) => {
+        useTransactionPayTokenMock.mockReturnValue({
+          payToken: {
+            address,
+            balanceUsd: '500',
+            balanceRaw: '500000000',
+            decimals: 6,
+            chainId: chainId as Hex,
+          } as TransactionPaymentToken,
+        } as ReturnType<typeof useTransactionPayToken>);
+
+        const { result } = runHook({
+          transactionMeta: depositTransactionMeta,
+        });
+
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
+        expect(result.current.amountFiat).toBe('500');
+
+        // 100% prefill must set isMaxAmount like pressing Max, so the
+        // insufficient-funds alert can skip a Max money account deposit.
+        const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
+          const cfg: Record<string, unknown> = {};
+          call[1](cfg);
+          return cfg.isMaxAmount === true;
+        });
+        expect(isMaxCall).toBeDefined();
+
+        expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+          properties: {
+            mm_pay_amount_input_type: 'prefilled_max',
+            mm_pay_amount_input_prefill_presented: true,
+          },
+        });
+      },
+    );
+
+    it('prefills a stableTokens-flag token that is not in the fallback list to max', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_DAI_ADDRESS,
           balanceUsd: '500',
           balanceRaw: '500000000',
-          decimals: 6,
+          decimals: 18,
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { result } = runHook({
         transactionMeta: depositTransactionMeta,
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  stableTokens: {
+                    rc: true,
+                    '0x1': [ETHEREUM_USDT_ADDRESS, ETHEREUM_DAI_ADDRESS],
+                  },
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        },
       });
 
       await act(async () => {
@@ -2292,25 +2356,15 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('500');
 
-      // 100% prefill must set isMaxAmount like pressing Max, so the
-      // insufficient-funds alert can skip a Max money account deposit.
       const isMaxCall = setTransactionConfigMock.mock.calls.find((call) => {
         const cfg: Record<string, unknown> = {};
         call[1](cfg);
         return cfg.isMaxAmount === true;
       });
       expect(isMaxCall).toBeDefined();
-
-      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
-        properties: {
-          mm_pay_amount_input_type: 'prefilled_max',
-          mm_pay_amount_input_prefill_presented: true,
-        },
-      });
     });
 
     it('prefills non-stablecoin with 50% of balance via percentage path', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(false);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           address: TOKEN_ADDRESS_MOCK,
@@ -2344,10 +2398,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('caps at deposit limit when balance exceeds it without Max flags', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '200000',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2398,10 +2451,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('resets amountFiat to zero when switching to zero-balance token', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2434,10 +2486,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('resets amountFiat to zero when switching to a sub-cent balance token', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2475,10 +2526,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('updates prefill amount when switching to a different funded token', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2496,7 +2546,7 @@ describe('useTransactionCustomAmount', () => {
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0xdifferent' as Hex,
+          address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2514,10 +2564,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('only prefills once even if balance changes', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2535,7 +2584,7 @@ describe('useTransactionCustomAmount', () => {
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '9999',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2550,10 +2599,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('preserves user-edited amount when hasPrefilled re-toggles', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2580,7 +2628,7 @@ describe('useTransactionCustomAmount', () => {
       // This mimics the transient tokenKey change that causes the bug.
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '0',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2593,7 +2641,7 @@ describe('useTransactionCustomAmount', () => {
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2608,10 +2656,9 @@ describe('useTransactionCustomAmount', () => {
     });
 
     it('allows prefill after pay token address changes even if user previously edited', async () => {
-      (isRouteToken as unknown as jest.Mock).mockReturnValue(true);
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: TOKEN_ADDRESS_MOCK,
+          address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
@@ -2634,11 +2681,9 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('42');
 
       // Switch to a genuinely different token — userHasEditedRef resets
-      const differentAddress =
-        '0x9876543210987654321098765432109876543210' as Hex;
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: differentAddress,
+          address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
           chainId: '0x1' as Hex,
         } as TransactionPaymentToken,
