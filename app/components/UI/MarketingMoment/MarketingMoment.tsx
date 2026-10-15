@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleProp, ViewStyle } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -15,12 +14,24 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  ThemeProvider,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 import { MarketingMomentSelectorsIDs } from './MarketingMoment.testIds';
 import type {
   MarketingMomentAction,
   MarketingMomentProps,
 } from './MarketingMoment.types';
+
+const ENTRANCE_DURATION_MS = 400;
+const ENTRANCE_STAGGER_MS = 120;
+
+const enterDown = (step: number) =>
+  FadeInDown.duration(ENTRANCE_DURATION_MS).delay(step * ENTRANCE_STAGGER_MS);
+
+const enterFade = (step: number) =>
+  FadeIn.duration(ENTRANCE_DURATION_MS).delay(step * ENTRANCE_STAGGER_MS);
 
 const renderAction = (
   action: MarketingMomentAction,
@@ -34,126 +45,88 @@ const renderAction = (
     isLoading={action.isLoading}
     isDisabled={action.isDisabled}
     testID={action.testID}
-    twClassName={action.twClassName}
-    style={action.style}
-    textProps={{
-      twClassName: action.textClassName,
-      style: action.textStyle,
-    }}
   >
     {action.label}
   </Button>
 );
 
-const Frame = ({
-  style,
-  children,
-}: {
-  style?: StyleProp<ViewStyle>;
-  children: React.ReactNode;
-}) => {
-  if (!style) {
-    return <>{children}</>;
-  }
-
-  return <Animated.View style={style}>{children}</Animated.View>;
-};
-
-const MarketingMoment = ({
+const MarketingMomentContent = ({
   title,
   description,
+  supportingContent,
   artwork,
   primaryAction,
   secondaryAction,
-  header,
-  supportingContent,
-  backdrop,
-  footerContent,
-  renderTitle,
+  background,
   testID = MarketingMomentSelectorsIDs.CONTAINER,
   titleTestID = MarketingMomentSelectorsIDs.TITLE,
   descriptionTestIDs,
-  edges = ['top', 'bottom'],
-  twClassName = 'bg-default',
-  descriptionClassName,
-  descriptionStyle,
-  descriptionFontWeight,
-  titleStyle,
-  titleFrameStyle,
-  descriptionFrameStyle,
-  actionsFrameStyle,
-}: MarketingMomentProps) => {
+}: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
   const paragraphs = Array.isArray(description) ? description : [description];
-
-  const titleNode = renderTitle ? (
-    renderTitle(title)
-  ) : (
-    <Text
-      variant={TextVariant.DisplayMd}
-      fontWeight={FontWeight.Bold}
-      accessibilityRole="header"
-      style={titleStyle}
-      twClassName="text-center"
-      testID={titleTestID}
-    >
-      {title}
-    </Text>
-  );
 
   return (
     <Box
       testID={testID}
       flexDirection={BoxFlexDirection.Column}
-      twClassName={`relative min-h-0 w-full flex-1 ${twClassName}`}
+      twClassName={`relative min-h-0 w-full flex-1 ${
+        background ? 'bg-transparent' : 'bg-default'
+      }`}
     >
-      {backdrop ? (
+      {background ? (
         <Box pointerEvents="none" twClassName="absolute inset-0">
-          {backdrop}
+          {background}
         </Box>
       ) : null}
-      <SafeAreaView style={tw.style('min-h-0 flex-1')} edges={edges}>
-        {header}
+      <SafeAreaView style={tw.style('min-h-0 flex-1')}>
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="min-h-0 w-full flex-1"
+          gap={4}
+          paddingHorizontal={6}
+          twClassName="mt-12 shrink-0"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Column}
-            gap={4}
-            paddingHorizontal={6}
-            twClassName={header ? 'shrink-0' : 'mt-12 shrink-0'}
-          >
-            <Frame style={titleFrameStyle}>{titleNode}</Frame>
-            <Frame style={descriptionFrameStyle}>
-              <Box flexDirection={BoxFlexDirection.Column} gap={4}>
-                {paragraphs.map((paragraph, index) => (
-                  <Text
-                    key={`${paragraph}-${index}`}
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    fontWeight={descriptionFontWeight}
-                    style={descriptionStyle}
-                    twClassName={
-                      descriptionClassName
-                        ? `text-center ${descriptionClassName}`
-                        : 'text-center'
-                    }
-                    testID={
-                      descriptionTestIDs?.[index] ??
-                      (paragraphs.length === 1
-                        ? MarketingMomentSelectorsIDs.DESCRIPTION
-                        : `${MarketingMomentSelectorsIDs.DESCRIPTION}-${index}`)
-                    }
-                  >
-                    {paragraph}
-                  </Text>
-                ))}
-              </Box>
-            </Frame>
-            {supportingContent}
-          </Box>
+          <Animated.View entering={enterDown(0)}>
+            <Text
+              variant={TextVariant.DisplayLg}
+              fontWeight={FontWeight.Bold}
+              accessibilityRole="header"
+              twClassName="text-center"
+              testID={titleTestID}
+            >
+              {title}
+            </Text>
+          </Animated.View>
+          <Animated.View entering={enterDown(1)}>
+            <Box flexDirection={BoxFlexDirection.Column} gap={4}>
+              {paragraphs.map((paragraph, index) => (
+                <Text
+                  key={`${paragraph}-${index}`}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-center"
+                  testID={
+                    descriptionTestIDs?.[index] ??
+                    (paragraphs.length === 1
+                      ? MarketingMomentSelectorsIDs.DESCRIPTION
+                      : `${MarketingMomentSelectorsIDs.DESCRIPTION}-${index}`)
+                  }
+                >
+                  {paragraph}
+                </Text>
+              ))}
+            </Box>
+          </Animated.View>
+          {supportingContent ? (
+            <Animated.View entering={enterDown(2)}>
+              {supportingContent}
+            </Animated.View>
+          ) : null}
+        </Box>
 
+        <Animated.View
+          entering={enterFade(2)}
+          style={tw.style('min-h-0 w-full flex-1')}
+        >
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
@@ -163,26 +136,32 @@ const MarketingMoment = ({
           >
             {artwork}
           </Box>
+        </Animated.View>
 
-          <Frame style={actionsFrameStyle}>
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              gap={2}
-              paddingHorizontal={4}
-              paddingBottom={8}
-              twClassName="shrink-0"
-            >
-              {footerContent}
-              {renderAction(primaryAction, ButtonVariant.Primary)}
-              {secondaryAction
-                ? renderAction(secondaryAction, ButtonVariant.Tertiary)
-                : null}
-            </Box>
-          </Frame>
-        </Box>
+        <Animated.View entering={enterDown(3)}>
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            gap={2}
+            paddingHorizontal={4}
+            paddingBottom={8}
+            twClassName="shrink-0"
+          >
+            {renderAction(primaryAction, ButtonVariant.Primary)}
+            {renderAction(secondaryAction, ButtonVariant.Tertiary)}
+          </Box>
+        </Animated.View>
       </SafeAreaView>
     </Box>
   );
 };
+
+const MarketingMoment = ({ theme, ...props }: MarketingMomentProps) =>
+  theme ? (
+    <ThemeProvider theme={theme}>
+      <MarketingMomentContent {...props} />
+    </ThemeProvider>
+  ) : (
+    <MarketingMomentContent {...props} />
+  );
 
 export default MarketingMoment;

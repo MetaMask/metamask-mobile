@@ -40,6 +40,11 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
+    useRoute: () => ({
+      key: 'RewardsVipSplashView',
+      name: 'RewardsVipSplashView',
+      params: undefined,
+    }),
   };
 });
 

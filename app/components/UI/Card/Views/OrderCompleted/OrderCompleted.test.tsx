@@ -9,6 +9,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockReset = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -23,6 +24,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       dispatch: mockDispatch,
+      reset: mockReset,
     }),
     StackActions: {
       replace: jest.fn((routeName, params) => ({
@@ -81,7 +83,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
-    HeaderStandard: () => null,
     Box: ({
       children,
       ...props
@@ -226,6 +227,17 @@ describe('OrderCompleted', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
       expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('resets the stack to Card Home when "Not now" is pressed', () => {
+      const { getByTestId } = render(<OrderCompleted />);
+
+      fireEvent.press(getByTestId(OrderCompletedSelectors.NOT_NOW_BUTTON));
+
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [{ name: Routes.CARD.HOME }],
+      });
     });
   });
 });
