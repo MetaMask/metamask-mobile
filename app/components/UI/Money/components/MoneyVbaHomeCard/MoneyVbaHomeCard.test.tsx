@@ -206,6 +206,52 @@ describe('MoneyVbaHomeCard', () => {
     });
   });
 
+  it('shows a busy CTA and ignores repeated taps while opening', () => {
+    // Note: this pins the isLoading-disabled mechanism — RN Pressability
+    // short-circuits presses on a disabled button, so the second press never
+    // reaches onPress. The `isOpening` guard in handleCtaPress is
+    // defense-in-depth for non-disabled entry points.
+    mockOpenVbaOnboarding.mockImplementation(
+      () =>
+        new Promise<void>(() => {
+          /* never settles: the hydrate is in flight */
+        }),
+    );
+
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+    const cta = getByTestId(
+      MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
+    );
+
+    fireEvent.press(cta);
+    fireEvent.press(cta);
+
+    expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
+    expect(cta.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true, busy: true }),
+    );
+  });
+
+  it('re-enables the CTA once opening settles', async () => {
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+    const cta = getByTestId(
+      MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(cta);
+    });
+    await act(async () => {
+      fireEvent.press(cta);
+    });
+
+    expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(2);
+    expect(cta.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: false }),
+    );
+    expect(cta.props.accessibilityState?.busy).toBeFalsy();
+  });
+
   it('offers Dismiss only on the kyc_decision card', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.isDismissible).toBe(true);
     const otherVariants = VARIANTS.filter(

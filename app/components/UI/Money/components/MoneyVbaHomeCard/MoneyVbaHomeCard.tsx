@@ -70,6 +70,10 @@ const MoneyVbaHomeCard = ({
   const openVbaOnboarding = useOpenVbaOnboarding(config.source);
   const hasTrackedCardViewRef = useRef(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  // True while the CTA's in-place hydrate runs. The spinner replaces the CTA
+  // icon and blocks re-presses so repeated taps cannot start concurrent
+  // hydrates.
+  const [isOpening, setIsOpening] = useState(false);
 
   useEffect(() => {
     if (hasTrackedCardViewRef.current) {
@@ -80,24 +84,30 @@ const MoneyVbaHomeCard = ({
   }, [trackComponentViewed]);
 
   const handleCtaPress = useCallback(() => {
+    if (isOpening) {
+      return;
+    }
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: config.buttonIntent,
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
+    setIsOpening(true);
     // Intentionally not awaited: openVbaOnboarding already routes internal
     // failures to the recoverable-error screen. Log anything that escapes.
-    openVbaOnboarding().catch((error) => {
-      Logger.error(error as Error, {
-        tags: { feature: 'money-home' },
-        context: {
-          name: 'MoneyVbaHomeCard',
-          data: { variant, step: 'openVbaOnboarding' },
-        },
-      });
-    });
-  }, [config, openVbaOnboarding, trackButtonClicked, variant]);
+    openVbaOnboarding()
+      .catch((error) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'money-home' },
+          context: {
+            name: 'MoneyVbaHomeCard',
+            data: { variant, step: 'openVbaOnboarding' },
+          },
+        });
+      })
+      .finally(() => setIsOpening(false));
+  }, [config, isOpening, openVbaOnboarding, trackButtonClicked, variant]);
 
   const handleDismissPress = useCallback(() => {
     trackButtonClicked({
@@ -116,6 +126,7 @@ const MoneyVbaHomeCard = ({
     <ButtonBase
       size={ButtonBaseSize.Lg}
       isFullWidth
+      isLoading={isOpening}
       startIconName={config.ctaStartIconName}
       twClassName={config.ctaClassName}
       textProps={{ twClassName: config.ctaTextClassName }}
@@ -165,9 +176,12 @@ const MoneyVbaHomeCard = ({
       {config.isDismissible ? (
         <Box twClassName="flex-row gap-3">
           <Box twClassName="flex-1">
+            {/* No isOpening guard here — the disabled Pressable blocks
+                presses; keep both in sync if these handlers move. */}
             <ButtonBase
               size={ButtonBaseSize.Lg}
               isFullWidth
+              isDisabled={isOpening}
               twClassName="bg-muted"
               textProps={{ twClassName: 'text-default' }}
               onPress={handleDismissPress}
