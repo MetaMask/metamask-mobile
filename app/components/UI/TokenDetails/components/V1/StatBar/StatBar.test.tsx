@@ -3,12 +3,13 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import StatBar from './StatBar';
 import { StatBarSelectors } from './StatBar.testIds';
-import { TokenStatKey, type TokenStatValues } from './StatBar.types';
 import {
   STAT_EMPTY_VALUE,
   STAT_EXPLAINER_KEYS,
-  STAT_KEYS_BY_VARIANT,
-} from './StatBar.constants';
+  TokenStatKey,
+  type TokenStatValues,
+} from '../../../constants/tokenStats';
+import { STAT_KEYS_BY_VARIANT } from './StatBar.constants';
 import { TokenDetailsVariant } from '../../../constants/constants';
 import { mockTheme } from '../../../../../../util/theme';
 
@@ -30,13 +31,9 @@ const STATS: TokenStatValues = {
 };
 
 const MEMECOIN_KEYS = STAT_KEYS_BY_VARIANT[TokenDetailsVariant.Memecoin];
-const ALL_STAT_KEYS = Object.values(TokenStatKey);
+const ALL_STAT_KEYS: TokenStatKey[] = Object.values(TokenStatKey);
 
 describe('StatBar', () => {
-  afterEach(() => {
-    STAT_KEYS_BY_VARIANT[TokenDetailsVariant.Memecoin] = MEMECOIN_KEYS;
-  });
-
   it('renders the memecoin stats in the order ASSETS-4019 fixes', () => {
     const { queryAllByTestId } = render(
       <StatBar variant={TokenDetailsVariant.Memecoin} stats={STATS} />,
@@ -205,10 +202,12 @@ describe('StatBar', () => {
   it('renders only the stats its variant lists', () => {
     // Stands in for a future variant with a shorter bar, which is the whole
     // reason the stats are keyed off the variant rather than hardcoded.
-    STAT_KEYS_BY_VARIANT[TokenDetailsVariant.Memecoin] = [
+    // `replaceProperty` rather than assignment, since the list is `as const`
+    // so that `BarStatKey` can be derived from it.
+    jest.replaceProperty(STAT_KEYS_BY_VARIANT, TokenDetailsVariant.Memecoin, [
       TokenStatKey.MarketCap,
       TokenStatKey.Holders,
-    ];
+    ]);
 
     const { getByTestId, queryByTestId } = render(
       <StatBar variant={TokenDetailsVariant.Memecoin} stats={STATS} />,

@@ -117,18 +117,18 @@ export type TokenDetailsVariant =
   (typeof TokenDetailsVariant)[keyof typeof TokenDetailsVariant];
 
 /**
- * Tabs on the V1 (meme) Token Details view. Overview is the default tab; the
- * Security and Feed tabs render placeholder panels until their stories land.
- * Index order matters — it aligns with the tab bar and the swipeable pager
- * pages, so keep it in sync with `strings('token_details_v1.tabs.*')`.
+ * Tabs on the V1 (meme) Token Details view. Feed is the default (landing) tab;
+ * the Overview and Security tabs follow. Index order matters — it aligns with
+ * the tab bar and the swipeable pager pages, so keep it in sync with
+ * `strings('token_details_v1.tabs.*')`.
  */
 export type TokenDetailsV1TabKey = 'overview' | 'security' | 'feed';
 
 /** Stable tab order — pager page order and tab bar order share this array. */
 export const TOKEN_DETAILS_V1_TABS: TokenDetailsV1TabKey[] = [
+  'feed',
   'overview',
   'security',
-  'feed',
 ];
 
 /**
