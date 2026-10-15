@@ -114,8 +114,8 @@ const renderShell = (
   post: SocialV1FeedPost,
   options?: {
     onAuthorPress?: (post: SocialV1FeedPost) => void;
+    onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
-    onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
   },
@@ -583,8 +583,27 @@ describe('SocialFeedPostShell', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
           },
         });
+      });
+    });
+
+    it('opens the perps order without a copy-trade origin for a post with no comment id', async () => {
+      renderShell(basePost({ commentId: undefined }));
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.not.objectContaining({
+              copyTradeOrigin: expect.anything(),
+            }),
+          }),
+        );
       });
     });
 
@@ -597,7 +616,7 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
       );
 
-      expect(onCopyTrade).toHaveBeenCalledWith(item);
+      expect(onCopyTrade).toHaveBeenCalledWith(item, 'comment-1');
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

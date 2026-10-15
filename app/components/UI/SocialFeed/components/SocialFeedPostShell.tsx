@@ -35,7 +35,7 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
-  onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
+  onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   /** Opens the position details. The card's own buttons keep their press. */
   onPositionPress?: (post: SocialV1FeedPost) => void;
@@ -74,12 +74,13 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   );
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
+    post.commentId,
   );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
-    onSpotCopyTrade?.(post.item);
-  }, [onSpotCopyTrade, post.item]);
+    onSpotCopyTrade?.(post.item, post.commentId);
+  }, [onSpotCopyTrade, post.item, post.commentId]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
