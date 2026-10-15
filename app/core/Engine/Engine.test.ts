@@ -1,5 +1,6 @@
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
+import { ExtendedMessenger } from '../ExtendedMessenger';
 import { backgroundState } from '../../util/test/initial-root-state';
 import {
   createMockAccountsControllerState,
@@ -145,6 +146,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AssetsController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
+    expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('KeyringController');
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
@@ -1394,6 +1396,207 @@ describe('Engine', () => {
       await engine.resetState();
 
       expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('clears asset controllers kept after the legacy cleanup', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const tokensResetSpy = jest
+        .spyOn(engine.context.TokensController, 'resetState')
+        .mockImplementation(() => undefined);
+      const nftResetSpy = jest
+        .spyOn(engine.context.NftController, 'resetState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(tokensResetSpy).toHaveBeenCalled();
+      expect(nftResetSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('hasFunds', () => {
+    const hasFundsAccountId = 'mock-account-id-1';
+    const hasFundsAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+    const usdcAssetId =
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
+    // Real fiat computes to 0 because the only priced native asset has a zero
+    // balance (`ethAmount: '0'`), so `hasFunds` is decided purely by whether a
+    // token balance / NFT is present in this state.
+    const buildHasFundsState = (tokenAmount: string | null) => ({
+      onboarding: { completedOnboarding: true },
+      engine: {
+        backgroundState: {
+          NftController: { nfts: [] },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [hasFundsAccountId]: {
+                  ...createMockInternalAccount(hasFundsAddress, 'Account 1'),
+                  id: hasFundsAccountId,
+                  type: 'eip155:eoa' as const,
+                },
+              },
+              selectedAccount: hasFundsAccountId,
+            },
+          },
+          NetworkController: mockNetworkState({
+            chainId: '0x1',
+            id: '0x1',
+            nickname: 'mainnet',
+            ticker: 'ETH',
+          }),
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native' as const,
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+              [usdcAssetId]: {
+                type: 'erc20' as const,
+                symbol: 'USDC',
+                name: 'USDC',
+                decimals: 6,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 0,
+                usdPrice: 0,
+                lastUpdated: 0,
+              },
+            },
+            assetsBalance: {
+              [hasFundsAccountId]: {
+                'eip155:1/slip44:60': { amount: '0' },
+                ...(tokenAmount === null
+                  ? {}
+                  : { [usdcAssetId]: { amount: tokenAmount } }),
+              },
+            },
+            customAssets: {},
+            assetPreferences: {},
+          },
+        },
+      },
+    });
+
+    it('returns falsy when fiat, token balances and NFTs are all empty', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      (store.getState as jest.Mock).mockReturnValue(buildHasFundsState(null));
+
+      expect(engine.hasFunds()).toBeFalsy();
+    });
+
+    it('returns truthy when a token balance is non-zero', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      (store.getState as jest.Mock).mockReturnValue(buildHasFundsState('1'));
+
+      expect(engine.hasFunds()).toBeTruthy();
+    });
+  });
+
+  describe('AccountActivityService:balanceUpdated forwarding', () => {
+    const wsAddress = '0xabc';
+    const wsAssetId =
+      'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+    const wsUpdate = {
+      asset: { type: wsAssetId, unit: 'USDC', decimals: 6 },
+      postBalance: { amount: '0xf4240' }, // 1000000 minimal units -> '1' USDC
+    };
+
+    const buildWsPayload = (updates: unknown[]) => ({
+      address: wsAddress,
+      chain: 'eip155:8453',
+      updates,
+    });
+
+    const getHandleAssetsUpdateSpy = (engine: Engine) => {
+      const spy = jest.fn().mockResolvedValue(undefined);
+      (
+        engine.context.AssetsController as unknown as {
+          handleAssetsUpdate: unknown;
+        }
+      ).handleAssetsUpdate = spy;
+      return spy;
+    };
+
+    // The root messenger only allows publishing `Root:`-prefixed events, so we
+    // capture the handler Engine subscribes and invoke it directly.
+    type BalanceUpdatedHandler = (payload: unknown) => void;
+    const captureBalanceUpdatedHandler = (): {
+      engine: Engine;
+      handler: BalanceUpdatedHandler;
+    } => {
+      // Engine builds a fresh root messenger per init, so spy on the
+      // ExtendedMessenger prototype to catch the constructor's subscription.
+      const subscribeSpy = jest.spyOn(ExtendedMessenger.prototype, 'subscribe');
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const balanceUpdatedCall = subscribeSpy.mock.calls.find(
+        ([eventName]) => eventName === 'AccountActivityService:balanceUpdated',
+      );
+      subscribeSpy.mockRestore();
+      if (!balanceUpdatedCall) {
+        throw new Error('balanceUpdated handler was not subscribed');
+      }
+      const handler = balanceUpdatedCall[1] as BalanceUpdatedHandler;
+      return { engine, handler };
+    };
+
+    it('forwards a balance push to AssetsController as a merge update', () => {
+      const { engine, handler } = captureBalanceUpdatedHandler();
+      const handleAssetsUpdateSpy = getHandleAssetsUpdateSpy(engine);
+      jest
+        .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+        .mockReturnValue({ id: 'account-1' } as never);
+
+      handler(buildWsPayload([wsUpdate]));
+
+      expect(handleAssetsUpdateSpy).toHaveBeenCalledWith(
+        {
+          updateMode: 'merge',
+          assetsBalance: {
+            'account-1': { [wsAssetId]: { amount: '1' } },
+          },
+          assetsInfo: {
+            [wsAssetId]: {
+              type: 'erc20',
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+            },
+          },
+        },
+        'BackendWebsocketDataSource',
+      );
+    });
+
+    it('does not forward when the address resolves to no account', () => {
+      const { engine, handler } = captureBalanceUpdatedHandler();
+      const handleAssetsUpdateSpy = getHandleAssetsUpdateSpy(engine);
+      jest
+        .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+        .mockReturnValue(undefined as never);
+
+      handler(buildWsPayload([wsUpdate]));
+
+      expect(handleAssetsUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not forward when the push has no applicable updates', () => {
+      const { engine, handler } = captureBalanceUpdatedHandler();
+      const handleAssetsUpdateSpy = getHandleAssetsUpdateSpy(engine);
+      jest
+        .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+        .mockReturnValue({ id: 'account-1' } as never);
+
+      handler(buildWsPayload([]));
+
+      expect(handleAssetsUpdateSpy).not.toHaveBeenCalled();
     });
   });
 });
