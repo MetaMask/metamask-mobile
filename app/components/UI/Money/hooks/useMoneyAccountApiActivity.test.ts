@@ -18,6 +18,7 @@ import {
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { RateHistoryIndexerBehindError } from './moneyAccountCardSpendRate';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountVedaTokenConfig } from '../../../../selectors/cardController';
 import { MINUTE } from '../../../../constants/time';
@@ -26,6 +27,12 @@ import type { AccountsApiActivity } from '../types/moneyActivity';
 jest.mock('@tanstack/react-query', () => ({
   useInfiniteQuery: jest.fn(),
   useQuery: jest.fn(),
+}));
+jest.mock('../../Earn/constants/musd', () => ({
+  MUSD_MONEY_ACCOUNT_CHAIN_IDS: ['0x89'],
+}));
+jest.mock('../../Card/util/vedaToken', () => ({
+  MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID: 'eip155:143',
 }));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -46,6 +53,9 @@ jest.mock('../../../../core/apiClient', () => ({
   },
 }));
 
+jest.mock('../selectors/featureFlags', () => ({
+  selectMoneyCardActivityCashbackMultisendContracts: jest.fn(),
+}));
 jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
@@ -130,6 +140,9 @@ function setupSelectors(
           lensAddress: string;
         }
       | undefined;
+    vedaTokenConfig?:
+      | { address: string; caipChainId: string; decimals: number }
+      | undefined;
   } = {},
 ) {
   // Distinguish "not provided" (default account) from an explicit `undefined`.
@@ -150,11 +163,13 @@ function setupSelectors(
           };
     }
     if (selector === selectMoneyAccountVedaTokenConfig) {
-      return {
-        address: VMUSD_ADDRESS,
-        caipChainId: 'eip155:143',
-        decimals: 6,
-      };
+      return 'vedaTokenConfig' in opts
+        ? opts.vedaTokenConfig
+        : {
+            address: VMUSD_ADDRESS,
+            caipChainId: 'eip155:143',
+            decimals: 6,
+          };
     }
     if (selector === selectMoneyCardActivityCashbackMultisendContracts) {
       return CASHBACK_MULTISEND_CONTRACTS;
@@ -266,6 +281,67 @@ describe('useMoneyAccountApiActivity', () => {
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
+  });
+
+  it('recognizes vmUSD activity by symbol when the token config is missing', () => {
+    // Arrange
+    setupSelectors({ vedaTokenConfig: undefined });
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
+        blockNumber: 10,
+      },
+    ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
+
+    // Act
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    // Assert
+    expect(result.current.activity[0]).toEqual(
+      expect.objectContaining({ isVaultShare: true }),
+    );
+  });
+
+  it('rejects card activity from another chain as vault shares', () => {
+    // Arrange
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        chainId: '0x1',
+        token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
+        blockNumber: 10,
+      },
+    ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
+
+    // Act
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    // Assert
+    expect(result.current.activity[0]).not.toHaveProperty('isVaultShare');
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('returns the retry limit only for indexer-behind errors', () => {
+    // Arrange
+    renderHook(() => useMoneyAccountApiActivity());
+    const { retry } = mockUseQuery.mock.calls[0][0] as unknown as {
+      retry: (failureCount: number, error: Error) => boolean;
+    };
+
+    // Act & Assert
+    expect(retry(0, new RateHistoryIndexerBehindError())).toBe(true);
+    expect(retry(2, new RateHistoryIndexerBehindError())).toBe(true);
+    expect(retry(3, new RateHistoryIndexerBehindError())).toBe(false);
+    expect(retry(0, new Error('network failure'))).toBe(false);
   });
 
   it('marks recognizable vmUSD card activity as shares if vault config is missing', () => {
