@@ -926,6 +926,45 @@ describe('PerpsHomeView', () => {
       ).toBeNull();
     });
 
+    it('shows only the volume leaders when Crypto has more markets than the preview cap', async () => {
+      const previewLimit = HOME_SCREEN_CONFIG.TrendingMarketsLimit;
+      const markets = Array.from({ length: previewLimit + 1 }, (_, index) =>
+        createEthMarketForViews({
+          symbol: `C${index}`,
+          name: `Crypto ${index}`,
+          volume: `$${previewLimit + 1 - index}B`,
+          price: '$1.00',
+        }),
+      );
+      const hiddenMarket = markets[markets.length - 1];
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets,
+      });
+
+      expect(
+        await screen.findByTestId(
+          getPerpsMarketRowItemSelector.rowItem(markets[0].symbol),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      markets.slice(0, previewLimit).forEach((market) => {
+        expect(
+          screen.getByTestId(
+            getPerpsMarketRowItemSelector.rowItem(market.symbol),
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(hiddenMarket.symbol),
+        ),
+      ).toBeNull();
+    });
+
     it('hides the Watchlist tab and defaults to Crypto when watchlist is disabled', async () => {
       renderExploreHome({
         variant: PerpsHomeExploreVariant.Treatment,
