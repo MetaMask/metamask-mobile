@@ -3,6 +3,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedItem } from '../types';
+import { formatFeedPostAge } from '../utils/formatters';
 import { mockedFieldLabel } from '../utils/mockedFieldLabel';
 import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
@@ -38,6 +39,35 @@ export interface PositionCardBodyProps {
 
 const statId = getSocialFeedPositionCardStatTestId;
 
+const marketCapSuffix = () =>
+  strings('social_leaderboard.position_sheet.market_cap_suffix');
+
+/**
+ * A spot figure quoted as market cap when the fills recorded one (`Entry (MC)`,
+ * `$3.7T`), and as a unit price otherwise. Perps never have a market cap.
+ */
+const priceOrMarketCapRow = (
+  key: 'entry' | 'exit',
+  id: string,
+  priceLabel?: string,
+  marketCapLabel?: string,
+): PositionCardStatRow => {
+  const label = strings(`social_leaderboard.feed.position_card.${key}`);
+  return {
+    key,
+    label: marketCapLabel ? `${label} ${marketCapSuffix()}` : label,
+    value: marketCapLabel ?? priceLabel,
+    testID: statId(id, key),
+  };
+};
+
+export const closedAgeLabel = (closedAtMs?: number): string | undefined =>
+  closedAtMs == null
+    ? undefined
+    : strings('social_leaderboard.feed.position_card.closed_ago', {
+        age: formatFeedPostAge(closedAtMs),
+      });
+
 /**
  * The closed-card stats, identical for perps and spot. Three short values that
  * sit side by side: what it was entered at, what it left at, and what it cost.
@@ -47,21 +77,23 @@ const statId = getSocialFeedPositionCardStatTestId;
 const closedStats = (item: {
   id: string;
   entryPriceLabel?: string;
+  entryMarketCapLabel?: string;
   exitPriceLabel?: string;
+  exitMarketCapLabel?: string;
   costLabel?: string;
 }): PositionCardStatRow[] => [
-  {
-    key: 'entry',
-    label: strings('social_leaderboard.feed.position_card.entry'),
-    value: item.entryPriceLabel,
-    testID: statId(item.id, 'entry'),
-  },
-  {
-    key: 'exit',
-    label: strings('social_leaderboard.feed.position_card.exit'),
-    value: item.exitPriceLabel,
-    testID: statId(item.id, 'exit'),
-  },
+  priceOrMarketCapRow(
+    'entry',
+    item.id,
+    item.entryPriceLabel,
+    item.entryMarketCapLabel,
+  ),
+  priceOrMarketCapRow(
+    'exit',
+    item.id,
+    item.exitPriceLabel,
+    item.exitMarketCapLabel,
+  ),
   {
     key: 'cost',
     label: strings('social_leaderboard.feed.position_card.cost'),
@@ -75,8 +107,8 @@ const closedStats = (item: {
  *
  * Two shapes, not four: an open position puts its running P&L beside the title
  * and offers Copy trade, a closed one puts its settled result under the title and
- * offers nothing to copy. The asset class only decides which stat rows sit
- * between -- perps carry the auto-close bracket, spot carries hold time.
+ * offers nothing to copy. The asset class only decides how entry and exit are
+ * quoted -- spot as market cap when the fills recorded one, perps as price.
  * Composer spot shares reuse the open layout and gate Copy trade with
  * `showCopyTrade`.
  *
@@ -88,12 +120,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   onCopyTrade,
 }) => {
   const { showMockedFields } = useSocialFeedSurface();
-  const autoCloseLabel = mockedFieldLabel(
-    item.variant === 'perpsOpen' ? item.autoCloseLabel : undefined,
-    'autoClose',
-    item.mockedFields,
-    showMockedFields,
-  );
   const markPriceLabel = mockedFieldLabel(
     'markPriceLabel' in item ? item.markPriceLabel : undefined,
     'markPrice',
@@ -106,44 +132,30 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     item.variant === 'spotOpen' ||
     item.variant === 'spotShare'
   ) {
-    const entryRow: PositionCardStatRow = {
-      key: 'entry',
-      label: strings('social_leaderboard.feed.position_card.entry_price'),
-      value: item.entryPriceLabel,
-      testID: statId(item.id, 'entry'),
-    };
-    const costRow: PositionCardStatRow = {
-      key: 'cost',
-      label: strings('social_leaderboard.feed.position_card.cost'),
-      value: item.costLabel,
-      testID: statId(item.id, 'cost'),
-    };
-    // Leverage is not a row: it rides in the title, next to the direction it
-    // qualifies (`BTC · 40x Short`).
-    const stats: PositionCardStatRow[] =
-      item.variant === 'perpsOpen'
-        ? [
-            entryRow,
-            {
-              key: 'autoClose',
-              label: strings(
-                'social_leaderboard.feed.position_card.auto_close',
-              ),
-              value: autoCloseLabel,
-              testID: statId(item.id, 'autoClose'),
-            },
-            costRow,
-          ]
-        : [
-            entryRow,
-            {
-              key: 'holdTime',
-              label: strings('social_leaderboard.feed.position_card.hold_time'),
-              value: item.holdTimeLabel,
-              testID: statId(item.id, 'holdTime'),
-            },
-            costRow,
-          ];
+    const marketCapLabel =
+      item.variant === 'spotOpen' ? item.marketCapLabel : undefined;
+    // Leverage is not a row: it rides in the side tag, next to the direction
+    // it qualifies (`40x Short`).
+    const stats: PositionCardStatRow[] = [
+      priceOrMarketCapRow(
+        'entry',
+        item.id,
+        item.entryPriceLabel,
+        item.variant === 'spotOpen' ? item.entryMarketCapLabel : undefined,
+      ),
+      {
+        key: 'holdTime',
+        label: strings('social_leaderboard.feed.position_card.hold_time'),
+        value: item.holdTimeLabel,
+        testID: statId(item.id, 'holdTime'),
+      },
+      {
+        key: 'cost',
+        label: strings('social_leaderboard.feed.position_card.cost'),
+        value: item.costLabel,
+        testID: statId(item.id, 'cost'),
+      },
+    ];
 
     const showCopyTrade = isCopyTradeable(item);
 
@@ -158,7 +170,11 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             item.variant === 'perpsOpen' ? item.leverageLabel : undefined
           }
           side={item.variant === 'perpsOpen' ? undefined : item.side}
-          markPriceLabel={markPriceLabel}
+          subtitleLabel={
+            marketCapLabel
+              ? `${marketCapLabel} ${marketCapSuffix()}`
+              : markPriceLabel
+          }
           valueLabel={item.valueLabel}
           pnlLabel={item.pnlLabel}
           pnlValueLabel={item.pnlValueLabel}
@@ -189,6 +205,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         valueLabel={item.valueLabel}
         pnlLabel={item.pnlLabel}
         isPnlPositive={item.isPnlPositive}
+        closedAgeLabel={closedAgeLabel(item.closedAtMs)}
       />
       <PositionCardStats
         rows={closedStats(item)}

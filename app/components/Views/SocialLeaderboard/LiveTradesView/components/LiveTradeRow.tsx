@@ -1,29 +1,18 @@
-import {
-  AvatarTokenSize,
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useSocialEntryOptions } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { getSocialEntryOptionsTriggerTestId } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
-import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
+import PositionCardHeader from '../../../../UI/SocialFeed/components/PositionCardHeader';
+import PositionCardShell from '../../../../UI/SocialFeed/components/PositionCardShell';
+import { closedAgeLabel } from '../../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import SocialTraderIdentityRow from '../../../../UI/SocialFeed/components/SocialTraderIdentityRow';
-import LiveTradeCardTitle from './LiveTradeCardTitle';
 import type { LiveTradeRowModel } from '../types';
-import LiveTradeCardSurface from './LiveTradeCardSurface';
 import {
-  getLiveTradeAmountTestId,
   getLiveTradeCardTestId,
-  getLiveTradeMarkPriceTestId,
+  getLiveTradeHeaderTestId,
   getLiveTradeRowTestId,
-  getLiveTradeValueTestId,
 } from './LiveTradeRow.testIds';
 
 /** Lines the card up with the identity text: avatar (32) plus its gap-2 (8). */
@@ -37,8 +26,9 @@ export interface LiveTradeRowProps {
 }
 
 /**
- * Compact Social V1 Live trades row: shared trader identity plus a gradient
- * trade card showing unit price and token amount.
+ * Compact Social V1 Live trades row: shared trader identity plus the feed's
+ * position header, without the stats. An open trade shows running P&L on a
+ * neutral card; a closing one takes the tone of its realized result.
  */
 const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
   item,
@@ -69,6 +59,12 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
     return null;
   }
 
+  const tone = item.isClosed
+    ? item.isPnlPositive
+      ? 'positive'
+      : 'negative'
+    : 'neutral';
+
   return (
     <Box twClassName="px-4 py-3 gap-3" testID={getLiveTradeRowTestId(item.id)}>
       <SocialTraderIdentityRow
@@ -94,54 +90,24 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
           tw.style(CARD_INDENT_CLASSNAME, pressed && 'opacity-60')
         }
       >
-        <LiveTradeCardSurface>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={3}
-          >
-            <PositionTokenAvatar
-              position={item.avatar}
-              size={AvatarTokenSize.Md}
-              showChainBadge
-            />
-            <Box twClassName="flex-1 min-w-0">
-              <LiveTradeCardTitle
-                symbol={item.symbol}
-                direction={item.direction}
-                leverageLabel={item.leverageLabel}
-                side={item.side}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                testID={getLiveTradeMarkPriceTestId(item.id)}
-              >
-                {item.markPriceLabel}
-              </Text>
-            </Box>
-            <Box alignItems={BoxAlignItems.End} twClassName="shrink-0">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-                testID={getLiveTradeValueTestId(item.id)}
-              >
-                {item.valueLabel}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                testID={getLiveTradeAmountTestId(item.id)}
-              >
-                {item.amountLabel}
-              </Text>
-            </Box>
-          </Box>
-        </LiveTradeCardSurface>
+        <PositionCardShell tone={tone}>
+          <PositionCardHeader
+            layout={item.isClosed ? 'closed' : 'open'}
+            avatar={item.avatar}
+            symbol={item.symbol}
+            valueLabel={item.valueLabel}
+            pnlLabel={item.pnlLabel}
+            pnlValueLabel={item.pnlValueLabel}
+            isPnlPositive={item.isPnlPositive}
+            direction={item.direction}
+            leverageLabel={item.leverageLabel}
+            side={item.side}
+            subtitleLabel={item.subtitleLabel}
+            closedAgeLabel={closedAgeLabel(item.closedAtMs)}
+            showChainBadge
+            testID={getLiveTradeHeaderTestId(item.id)}
+          />
+        </PositionCardShell>
       </Pressable>
       {optionsSheet}
     </Box>

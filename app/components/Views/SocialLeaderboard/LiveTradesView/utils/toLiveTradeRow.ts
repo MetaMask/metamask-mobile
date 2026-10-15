@@ -9,11 +9,20 @@ import {
   getPerpTradeDirection,
   isPerpPosition,
 } from '../../../../UI/SocialFeed/utils/perp';
+import { strings } from '../../../../../../locales/i18n';
 import {
-  formatTokenAmount,
+  formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
-  formatUnsignedFullUsdNoDecimals,
 } from '../../../../UI/SocialFeed/utils/formatters';
+import {
+  buildFeedItemPresentation,
+  isFeedItemClosed,
+} from '../../../../UI/SocialFeed/utils/mapFeedItem';
+import {
+  deriveCurrentPrice,
+  deriveMarketCapPerPrice,
+  toMarketCapLabel,
+} from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import {
   isEntryAction,
   type TradeAction,
@@ -87,8 +96,9 @@ const deriveMarkPrice = (
   core: CoreFeedItem,
   trade: Trade | undefined,
 ): number | null => {
-  if (isPresentNumber(core.currentValueUSD) && core.positionAmount > 0) {
-    return core.currentValueUSD / core.positionAmount;
+  const currentPrice = deriveCurrentPrice(core);
+  if (currentPrice != null) {
+    return currentPrice;
   }
   if (trade) {
     const tokenAmount = Math.abs(trade.tokenAmount);
@@ -106,9 +116,10 @@ const toLeverageLabel = (
 /**
  * Maps a core social-api feed item into the compact Live trades row model.
  *
- * Unit price is `currentValueUSD / positionAmount` when both are present
- * (matching the screenshot: 506,243,213.9 × $0.0₄1842 = $9,325), falling back
- * to the triggering fill. Token amount is `positionAmount`.
+ * Unit price is `currentValueUSD / positionAmount` when both are present,
+ * falling back to the triggering fill; spot quotes it as market cap when the
+ * fills recorded one. P&L and the open/closed verdict come from the same
+ * helpers the feed card uses, so a trade reads the same on both surfaces.
  */
 export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
   const card = asFeedCardItem(core);
@@ -119,8 +130,12 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     ? getPerpsDisplaySymbol(core.tokenSymbol)
     : core.tokenSymbol;
   const markPrice = deriveMarkPrice(core, trade);
-  const amount = Math.abs(core.positionAmount);
+  const marketCapLabel = isPerp
+    ? undefined
+    : toMarketCapLabel(deriveMarketCapPerPrice(core), markPrice);
   const leverage = core.perpLeverage ?? trade?.perpLeverage ?? null;
+  const isClosed = isFeedItemClosed(core);
+  const presentation = buildFeedItemPresentation(core, isClosed);
 
   const author = {
     id: core.actor.profileId,
@@ -146,9 +161,20 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     authorImageUrl: core.actor.imageUrl ?? null,
     symbol: displaySymbol,
     avatar: buildTokenAvatar(core),
-    markPriceLabel: formatTradeUnitPrice(markPrice),
-    amountLabel: `${formatTokenAmount(amount)} ${displaySymbol}`,
-    valueLabel: formatUnsignedFullUsdNoDecimals(core.currentValueUSD),
+    subtitleLabel: marketCapLabel
+      ? `${marketCapLabel} ${strings('social_leaderboard.position_sheet.market_cap_suffix')}`
+      : formatTradeUnitPrice(markPrice),
+    isClosed,
+    valueLabel: presentation.valueLabel,
+    pnlLabel: presentation.pnlLabel,
+    pnlValueLabel: isPresentNumber(core.pnlValueUsd)
+      ? formatSignedAbbreviatedUsd(core.pnlValueUsd)
+      : undefined,
+    isPnlPositive: presentation.isPnlPositive,
+    closedAtMs:
+      isClosed && isPresentNumber(core.lastTradeAt)
+        ? tradeTimestampToMs(core.lastTradeAt)
+        : undefined,
     positionId: core.positionId,
     marketCapUsd,
     position: core,
