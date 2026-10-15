@@ -114,7 +114,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     >) => React.createElement(Text, { testID, ...props }, children),
     TextVariant: {
       BodyMd: 'BodyMd',
-      DisplayLg: 'DisplayLg',
+      DisplayMd: 'DisplayMd',
     },
     FontFamily: {
       Accent: 'accent',

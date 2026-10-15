@@ -105,9 +105,8 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
           <VipSplashGradientTitle testID={testIDs.title} />
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
             style={tw.style(
-              'mt-[18px] max-w-[326px] text-center leading-[22px]',
+              'mt-[18px] max-w-[326px] text-center',
               descriptionColorStyle,
             )}
             testID={testIDs.description}
@@ -131,7 +130,7 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
             accessibilityRole="button"
             onPress={onPrimaryPress}
             style={tw.style(
-              'items-center justify-center rounded-[10px] border',
+              'items-center justify-center rounded-full border',
               isSmallScreen ? 'h-10' : 'h-12',
               primaryButtonBorderStyle,
               primaryButtonBackgroundStyle,
