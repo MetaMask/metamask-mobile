@@ -15,13 +15,13 @@ import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
-import { VbaKycPendingAdapter } from './modules/VbaStatusAdapters';
-import { VbaOnboardingRoutes } from './routes';
+import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
-} from './vbaOnboardingSnapshot';
-import { VbaKycPendingSelectorsIDs } from './VbaKycPending';
+} from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
+import { VbaKycPendingSelectorsIDs } from './KycPending';
 
 const VbaKycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'vba-kyc-pending-open-from-previous-screen',

@@ -1,10 +1,10 @@
-import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import {
   getVbaIdentityVerificationInitialProviderParams,
   getVbaIdentityVerificationInitialRoute,
   replaceProviderTermsWithProvider,
-} from './VbaIdentityVerificationModule';
-import { VbaIdentityVerificationRoutes } from '../routes';
+} from './IdentityVerification';
+import { VbaIdentityVerificationRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 
 describe('getVbaIdentityVerificationInitialRoute', () => {
   it('resumes at the first incomplete internal step', () => {

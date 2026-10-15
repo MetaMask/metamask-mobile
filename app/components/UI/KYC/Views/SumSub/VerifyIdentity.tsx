@@ -28,9 +28,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import VbaIllustration, { VbaIllustrationSource } from './VbaIllustration';
-import VbaProviderTermsSheet from './VbaProviderTermsSheet';
-import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import VbaIllustration, {
+  VbaIllustrationSource,
+} from '../../components/Illustration';
+import VbaProviderTermsSheet from './ProviderTermsSheet';
+import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 
 const VERIFICATION_STEPS = [
   {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { KycCatalogDocument } from '@metamask/kyc-controller';
-import Engine from '../../../../../../core/Engine';
+import Engine from '../../../../core/Engine';
 
 export type KycCatalogDisclaimerLink = KycCatalogDocument & {
   /** Stable list key; documents are unique per catalog group + `key`. */

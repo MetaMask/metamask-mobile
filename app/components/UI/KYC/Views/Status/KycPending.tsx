@@ -16,7 +16,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import VbaIllustration, { VbaIllustrationSource } from './VbaIllustration';
+import VbaIllustration, {
+  VbaIllustrationSource,
+} from '../../components/Illustration';
 
 export const VbaKycPendingSelectorsIDs = {
   CONTAINER: 'vba-kyc-pending-container',

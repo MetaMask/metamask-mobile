@@ -6,14 +6,14 @@ import {
   KYC_STATUSES,
   TERMINAL_SESSION_STATUSES,
 } from '@metamask/kyc-controller';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import { selectKycSessionStatus } from '../../../../../../selectors/kycController';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { selectKycSessionStatus } from '../../../../selectors/kycController';
 import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
-} from './useVbaOnboardingRouting';
+} from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 
 const VBA_KYC_STATUS_REDIRECT_SOURCE = 'kyc_pending-status-change';
 

@@ -5,10 +5,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
-import { useKycSessionDisclaimers } from './hooks/useKycSessionDisclaimers';
+import {
+  METAMASK_PRIVACY_POLICY_URL,
+  METAMASK_TERMS_URL,
+} from '../../../Ramp/Views/VirtualBankAccount/constants';
+import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 
-jest.mock('./hooks/useKycSessionDisclaimers');
+jest.mock('../../hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
 const mockRetry = jest.fn();
 const mockOnSuccess = jest.fn();

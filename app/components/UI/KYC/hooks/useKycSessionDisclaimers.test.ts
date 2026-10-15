@@ -1,11 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import Engine from '../../../../../../core/Engine';
+import Engine from '../../../../core/Engine';
 import { useKycSessionDisclaimers } from './useKycSessionDisclaimers';
 
 const mockFetchSessionDisclaimers = jest.fn();
 const mockGetGeoCountry = jest.fn();
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
       fetchSessionDisclaimers: (...args: unknown[]) =>

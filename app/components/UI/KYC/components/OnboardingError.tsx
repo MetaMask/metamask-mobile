@@ -22,8 +22,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import VbaOnboardingPlaceholder from './VbaOnboardingPlaceholder';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import VbaOnboardingPlaceholder from './OnboardingPlaceholder';
 
 export const VbaOnboardingErrorSelectorsIDs = {
   CONTAINER: 'vba-onboarding-error-container',

@@ -1,11 +1,11 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import VbaOnboardingError, {
   type VbaOnboardingErrorItem,
   VbaOnboardingErrorSelectorsIDs,
-} from './VbaOnboardingError';
+} from './OnboardingError';
 
 const mockGoBack = jest.fn();
 const mockPrimaryPress = jest.fn();

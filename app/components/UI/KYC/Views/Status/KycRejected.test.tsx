@@ -2,8 +2,8 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import VbaKycRejected, { VbaKycRejectedSelectorsIDs } from './VbaKycRejected';
-import { VbaOnboardingErrorSelectorsIDs } from './VbaOnboardingError';
+import VbaKycRejected, { VbaKycRejectedSelectorsIDs } from './KycRejected';
+import { VbaOnboardingErrorSelectorsIDs } from '../../components/OnboardingError';
 
 const mockGoBack = jest.fn();
 const mockOnRetry = jest.fn();

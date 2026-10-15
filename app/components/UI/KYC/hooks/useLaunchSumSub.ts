@@ -4,9 +4,9 @@ import type {
   KycConsentDocument,
   KycConsentRecord,
 } from '@metamask/kyc-controller';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import type { VbaIdentityVerificationCompletion } from '../modules/types';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
 
 export interface UseLaunchSumSubResult {
   /** Whether the SDK launch is in flight (show a spinner). */

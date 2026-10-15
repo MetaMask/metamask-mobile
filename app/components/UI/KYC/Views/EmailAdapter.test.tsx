@@ -1,12 +1,10 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { MfaFlowError } from '../../../../../../util/identity/mfa/engine/errors';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../../core/Engine';
-import { VBA_KYC_VENDOR } from '../constants';
-import VbaEmailAdapter, {
-  VbaEmailAdapterSelectorsIDs,
-} from './VbaEmailAdapter';
+import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import Engine from '../../../../core/Engine';
+import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
+import VbaEmailAdapter, { VbaEmailAdapterSelectorsIDs } from './EmailAdapter';
 
 const mockAdvance = jest.fn();
 const mockGetState = jest.fn();
@@ -22,11 +20,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../hooks/useVbaOnboardingRouting', () => ({
-  useOpenVbaOnboarding: () => mockAdvance,
-}));
+jest.mock(
+  '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    useOpenVbaOnboarding: () => mockAdvance,
+  }),
+);
 
-jest.mock('../../../../../../util/identity/mfa', () => ({
+jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: () => ({
     credentials: [],
     verifyOrEnroll: mockVerifyOrEnroll,
@@ -34,7 +35,7 @@ jest.mock('../../../../../../util/identity/mfa', () => ({
   }),
 }));
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
       state: { email: null as string | null },
@@ -45,24 +46,24 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../../core/redux', () => ({
+jest.mock('../../../../core/redux', () => ({
   store: {
     getState: () => mockGetState(),
   },
 }));
 
-jest.mock('../../../../../../selectors/rampsController', () => ({
+jest.mock('../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
     (state: { address?: string }) => state.address ?? null,
   ),
 }));
 
-jest.mock('../vbaVendorTermsStorage', () => ({
+jest.mock('../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage', () => ({
   getVbaVendorTermsAcceptance: (...args: unknown[]) =>
     mockGetVbaVendorTermsAcceptance(...args),
 }));
 
-jest.mock('../../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),

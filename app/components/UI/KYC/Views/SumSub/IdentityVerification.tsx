@@ -5,17 +5,17 @@ import {
   type NativeStackScreenProps,
 } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import VerifyIdentity from '../VerifyIdentity';
-import VbaSumSubKyc from '../VbaSumSubKyc';
-import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+import VerifyIdentity from './VerifyIdentity';
+import VbaSumSubKyc from './SumSubKyc';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   VbaIdentityVerificationRoutes,
   type VbaIdentityVerificationParamList,
   type VbaIdentityVerificationRoute,
   type VbaOnboardingParamList,
   VbaOnboardingRoutes,
-} from '../routes';
-import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
+} from '../../../Ramp/Views/VirtualBankAccount/routes';
+import type { VbaOnboardingSnapshot } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 
 const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 
