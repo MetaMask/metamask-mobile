@@ -529,7 +529,7 @@ await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
 
 ### `selectAccountByDevice(deviceName)`
 
-Select the account mapped to the current device for parallel testing:
+Select the account mapped to the current device for parallel testing. The device is looked up in `device-matrix.json` without its brand, so `Pixel 8 Pro` and `Google Pixel 8 Pro` resolve to the same entry. A device that is not in the matrix throws `Account name not found for device`:
 
 ```typescript
 import { selectAccountByDevice } from '../../flows/wallet.flow';
