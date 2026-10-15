@@ -18,29 +18,31 @@ const AvatarSocialMeta = {
       control: {
         type: 'select',
       },
-      defaultValue: FoxiconVariant.Base,
     },
     backgroundColor: {
       options: AvatarSocialBackgroundColor,
       control: {
         type: 'select',
       },
-      defaultValue: AvatarSocialBackgroundColor.Orange,
     },
     size: {
       options: AvatarBaseSize,
       control: {
         type: 'select',
       },
-      defaultValue: AvatarBaseSize.Md,
     },
     shape: {
       options: AvatarBaseShape,
       control: {
         type: 'select',
       },
-      defaultValue: AvatarBaseShape.Circle,
     },
+  },
+  args: {
+    variant: FoxiconVariant.Base,
+    backgroundColor: AvatarSocialBackgroundColor.Orange,
+    size: AvatarBaseSize.Md,
+    shape: AvatarBaseShape.Circle,
   },
 };
 export default AvatarSocialMeta;

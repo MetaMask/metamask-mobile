@@ -11,12 +11,14 @@ const FoxiconMeta = {
       control: {
         type: 'select',
       },
-      defaultValue: FoxiconVariant.Base,
     },
     size: {
       control: { type: 'number' },
-      defaultValue: 48,
     },
+  },
+  args: {
+    variant: FoxiconVariant.Base,
+    size: 48,
   },
 };
 export default FoxiconMeta;
