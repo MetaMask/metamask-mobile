@@ -1515,7 +1515,7 @@ describe('Engine', () => {
       updates,
     });
 
-    const getHandleAssetsUpdateSpy = (engine: Engine) => {
+    const getHandleAssetsUpdateSpy = (engine: EngineClass) => {
       const spy = jest.fn().mockResolvedValue(undefined);
       (
         engine.context.AssetsController as unknown as {
@@ -1529,7 +1529,7 @@ describe('Engine', () => {
     // capture the handler Engine subscribes and invoke it directly.
     type BalanceUpdatedHandler = (payload: unknown) => void;
     const captureBalanceUpdatedHandler = (): {
-      engine: Engine;
+      engine: EngineClass;
       handler: BalanceUpdatedHandler;
     } => {
       // Engine builds a fresh root messenger per init, so spy on the
