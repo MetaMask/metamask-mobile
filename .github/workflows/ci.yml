@@ -2015,6 +2015,7 @@ jobs:
           MAX_ATTEMPTS=20
           SLEEP_INTERVAL=15
           ERROR_STREAK=0
+          COVERAGE_ONLY_STREAK=0
           ERROR_STREAK_TO_FAIL=8
           for i in $(seq 1 $MAX_ATTEMPTS); do
             RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
@@ -2038,17 +2039,25 @@ jobs:
                   end
               ' 2>/dev/null || echo "unknown")
               if [[ "$COVERAGE_ONLY" == "yes" ]]; then
-                echo "Quality Gate ERROR is coverage-only. PR unit/CV coverage is not collected."
-                exit 0
+                COVERAGE_ONLY_STREAK=$((COVERAGE_ONLY_STREAK + 1))
+                ERROR_STREAK=0
+                if [[ $COVERAGE_ONLY_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                  echo "Quality Gate ERROR is coverage-only across $COVERAGE_ONLY_STREAK polls. PR unit/CV coverage is not collected."
+                  exit 0
+                fi
+                echo "Got coverage-only ERROR ($COVERAGE_ONLY_STREAK/$ERROR_STREAK_TO_FAIL). It may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+              else
+                COVERAGE_ONLY_STREAK=0
+                ERROR_STREAK=$((ERROR_STREAK + 1))
+                if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                  echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                  exit 1
+                fi
+                echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
               fi
-              ERROR_STREAK=$((ERROR_STREAK + 1))
-              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
-                exit 1
-              fi
-              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
             else
               ERROR_STREAK=0
+              COVERAGE_ONLY_STREAK=0
               echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
             fi
 
