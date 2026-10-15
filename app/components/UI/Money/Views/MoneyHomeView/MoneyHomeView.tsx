@@ -1075,7 +1075,7 @@ const MoneyHomeView = () => {
           card={{ onPress: handleActionButtonCardPress }}
         />
         {vbaHomeCard.type !== 'none' && (
-          <MoneyVbaHomeCard variant={vbaHomeCard.type} />
+          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
         )}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (

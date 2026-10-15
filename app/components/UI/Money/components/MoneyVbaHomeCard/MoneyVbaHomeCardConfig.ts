@@ -37,6 +37,11 @@ interface MoneyVbaHomeCardConfig {
   ctaTextClassName: string;
   /** Optional leading icon on the CTA (e.g. the KYC_PENDING spinner). */
   ctaStartIconName?: IconName;
+  /**
+   * Shows a Dismiss button beside the CTA. Dismissing hides the card until the
+   * home screen remounts.
+   */
+  isDismissible?: boolean;
 }
 
 const IDENTITY_HERO_ART: MoneyVbaHomeCardHeroArt = {
@@ -107,5 +112,6 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     },
     ctaClassName: 'bg-muted',
     ctaTextClassName: 'text-default',
+    isDismissible: true,
   },
 };

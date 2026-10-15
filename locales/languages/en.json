@@ -9142,7 +9142,8 @@
       "kyc_decision": {
         "title": "We can’t verify your identity",
         "description": "We’re unable to create virtual account details right now.",
-        "cta": "Learn more"
+        "cta": "Learn more",
+        "dismiss": "Dismiss"
       }
     },
     "first_time_deposit": {

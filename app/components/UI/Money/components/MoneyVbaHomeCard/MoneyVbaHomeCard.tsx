@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { brandColor } from '@metamask/design-tokens';
@@ -15,7 +15,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { MONEY_BUTTON_TYPES, SCREEN_NAMES } from '../../constants/moneyEvents';
+import {
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import {
   MONEY_VBA_HOME_CARD_CONFIG,
   type MoneyVbaHomeCardVariant,
@@ -65,6 +69,7 @@ const MoneyVbaHomeCard = ({
   });
   const openVbaOnboarding = useOpenVbaOnboarding(config.source);
   const hasTrackedCardViewRef = useRef(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
     if (hasTrackedCardViewRef.current) {
@@ -93,6 +98,19 @@ const MoneyVbaHomeCard = ({
       });
     });
   }, [config, openVbaOnboarding, trackButtonClicked, variant]);
+
+  const handleDismissPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+      label_key: `${config.i18nPrefix}.dismiss`,
+    });
+    setIsDismissed(true);
+  }, [config, trackButtonClicked]);
+
+  if (isDismissed) {
+    return null;
+  }
 
   const ctaButton = (
     <ButtonBase
@@ -144,7 +162,25 @@ const MoneyVbaHomeCard = ({
           {strings(`${config.i18nPrefix}.description`)}
         </Text>
       </Box>
-      {ctaButton}
+      {config.isDismissible ? (
+        <Box twClassName="flex-row gap-3">
+          <Box twClassName="flex-1">
+            <ButtonBase
+              size={ButtonBaseSize.Lg}
+              isFullWidth
+              twClassName="bg-muted"
+              textProps={{ twClassName: 'text-default' }}
+              onPress={handleDismissPress}
+              testID={testIds.DISMISS_BUTTON}
+            >
+              {strings(`${config.i18nPrefix}.dismiss`)}
+            </ButtonBase>
+          </Box>
+          <Box twClassName="flex-1">{ctaButton}</Box>
+        </Box>
+      ) : (
+        ctaButton
+      )}
     </Box>
   );
 };

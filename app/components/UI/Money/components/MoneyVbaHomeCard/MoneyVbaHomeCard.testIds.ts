@@ -11,6 +11,7 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     TITLE: string;
     DESCRIPTION: string;
     CTA_BUTTON: string;
+    DISMISS_BUTTON?: string;
   }
 > = {
   get_started: {
@@ -42,5 +43,6 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     TITLE: 'money-vba-kyc-decision-card-title',
     DESCRIPTION: 'money-vba-kyc-decision-card-description',
     CTA_BUTTON: 'money-vba-kyc-decision-card-cta-button',
+    DISMISS_BUTTON: 'money-vba-kyc-decision-card-dismiss-button',
   },
 };

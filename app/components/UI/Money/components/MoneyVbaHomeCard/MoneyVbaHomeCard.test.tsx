@@ -142,6 +142,35 @@ describe('MoneyVbaHomeCard', () => {
     },
   );
 
+  it('hides the kyc_decision card when Dismiss is pressed', () => {
+    const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision;
+    const { getByTestId, queryByTestId } = render(
+      <MoneyVbaHomeCard variant="kyc_decision" />,
+    );
+
+    fireEvent.press(getByTestId(testIds.DISMISS_BUTTON as string));
+
+    expect(queryByTestId(testIds.CONTAINER)).toBeNull();
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+        label_key: 'money.vba_home_card.kyc_decision.dismiss',
+      }),
+    );
+    expect(mockOpenVbaOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('offers Dismiss only on the kyc_decision card', () => {
+    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.isDismissible).toBe(true);
+    const otherVariants = VARIANTS.filter(
+      (variant) => variant !== 'kyc_decision',
+    );
+    otherVariants.forEach((variant) => {
+      expect(MONEY_VBA_HOME_CARD_CONFIG[variant].isDismissible).toBeUndefined();
+    });
+  });
+
   it('shows the spinner icon only on the kyc_pending CTA', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.ctaStartIconName).toBe(
       IconName.Loading,
