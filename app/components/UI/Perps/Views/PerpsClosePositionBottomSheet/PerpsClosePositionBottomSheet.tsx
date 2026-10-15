@@ -18,7 +18,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -316,7 +316,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
+                <MembershipVipBadge />
               ) : null}
               <Text
                 variant={TextVariant.BodyXs}
