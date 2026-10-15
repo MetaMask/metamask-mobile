@@ -16,7 +16,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import { StepperCardProps } from './StepperCard.types';
-import GlassSurface from '../GlassSurface';
+import BoxGlass from '../BoxGlass';
 import ButtonGlass from '../ButtonGlass';
 
 const StepperCard = ({
@@ -133,7 +133,7 @@ const StepperCard = ({
   );
 
   return (
-    <GlassSurface
+    <BoxGlass
       isGlass={isGlass}
       radiusClassName="rounded-3xl"
       hasSheen
@@ -141,7 +141,7 @@ const StepperCard = ({
       testID={getTestId('container')}
     >
       {content}
-    </GlassSurface>
+    </BoxGlass>
   );
 };
 

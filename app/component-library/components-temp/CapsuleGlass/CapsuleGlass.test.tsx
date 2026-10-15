@@ -2,7 +2,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 
-import GlassCapsule from './GlassCapsule';
+import CapsuleGlass from './CapsuleGlass';
 
 const mockUseLiquidGlass = jest.fn();
 jest.mock('../../hooks/useLiquidGlass', () => ({
@@ -33,7 +33,7 @@ jest.mock('expo-blur', () => {
 
 const CAPSULE_TEST_ID = 'glass-capsule';
 
-describe('GlassCapsule', () => {
+describe('CapsuleGlass', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -47,9 +47,9 @@ describe('GlassCapsule', () => {
     });
 
     render(
-      <GlassCapsule testID={CAPSULE_TEST_ID}>
+      <CapsuleGlass testID={CAPSULE_TEST_ID}>
         <Text>child</Text>
-      </GlassCapsule>,
+      </CapsuleGlass>,
     );
 
     expect(screen.getByTestId(CAPSULE_TEST_ID)).toBeOnTheScreen();
@@ -72,9 +72,9 @@ describe('GlassCapsule', () => {
     });
 
     render(
-      <GlassCapsule testID={CAPSULE_TEST_ID}>
+      <CapsuleGlass testID={CAPSULE_TEST_ID}>
         <Text>child</Text>
-      </GlassCapsule>,
+      </CapsuleGlass>,
     );
 
     expect(screen.getByTestId(CAPSULE_TEST_ID)).toBeOnTheScreen();
@@ -94,9 +94,9 @@ describe('GlassCapsule', () => {
     });
 
     render(
-      <GlassCapsule testID={CAPSULE_TEST_ID}>
+      <CapsuleGlass testID={CAPSULE_TEST_ID}>
         <Text>child</Text>
-      </GlassCapsule>,
+      </CapsuleGlass>,
     );
 
     expect(screen.getByTestId(CAPSULE_TEST_ID)).toBeOnTheScreen();
@@ -114,9 +114,9 @@ describe('GlassCapsule', () => {
     });
 
     render(
-      <GlassCapsule testID={CAPSULE_TEST_ID} nonGlassClassName="px-3">
+      <CapsuleGlass testID={CAPSULE_TEST_ID} nonGlassClassName="px-3">
         <Text>child</Text>
-      </GlassCapsule>,
+      </CapsuleGlass>,
     );
 
     expect(screen.getByTestId(CAPSULE_TEST_ID)).toHaveStyle({
@@ -132,9 +132,9 @@ describe('GlassCapsule', () => {
     });
 
     render(
-      <GlassCapsule testID={CAPSULE_TEST_ID} nonGlassClassName="px-3">
+      <CapsuleGlass testID={CAPSULE_TEST_ID} nonGlassClassName="px-3">
         <Text>child</Text>
-      </GlassCapsule>,
+      </CapsuleGlass>,
     );
 
     expect(mockGlassView).toHaveBeenCalledWith(

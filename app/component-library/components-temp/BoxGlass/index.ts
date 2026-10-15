@@ -2,5 +2,5 @@ export {
   default,
   GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID,
   GLASS_SURFACE_SHEEN_TEST_ID,
-} from './GlassSurface';
-export type { GlassSurfaceProps } from './GlassSurface';
+} from './BoxGlass';
+export type { BoxGlassProps } from './BoxGlass';

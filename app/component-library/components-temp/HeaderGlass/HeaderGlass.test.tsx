@@ -1,16 +1,16 @@
 import React from 'react';
 import { Text, processColor } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
-import FloatingHeader, { FLOATING_HEADER_FADE_TEST_ID } from './FloatingHeader';
+import HeaderGlass, { FLOATING_HEADER_FADE_TEST_ID } from './HeaderGlass';
 import { mockTheme } from '../../../util/theme';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 
-describe('FloatingHeader', () => {
+describe('HeaderGlass', () => {
   it('renders the header over a fade from the screen colour', () => {
     const { getByTestId, getByText } = render(
-      <FloatingHeader onLayout={jest.fn()} testID="header">
+      <HeaderGlass onLayout={jest.fn()} testID="header">
         <Text>Header</Text>
-      </FloatingHeader>,
+      </HeaderGlass>,
     );
 
     expect(getByText('Header')).toBeOnTheScreen();
@@ -25,9 +25,9 @@ describe('FloatingHeader', () => {
 
   it('floats at the top and pads for the status bar', () => {
     const { getByTestId } = render(
-      <FloatingHeader onLayout={jest.fn()} topInset={47} testID="header">
+      <HeaderGlass onLayout={jest.fn()} topInset={47} testID="header">
         <Text>Header</Text>
-      </FloatingHeader>,
+      </HeaderGlass>,
     );
 
     expect(getByTestId('header')).toHaveStyle({
@@ -40,9 +40,9 @@ describe('FloatingHeader', () => {
   it('reports its layout so the screen can inset its content', () => {
     const onLayout = jest.fn();
     const { getByTestId } = render(
-      <FloatingHeader onLayout={onLayout} testID="header">
+      <HeaderGlass onLayout={onLayout} testID="header">
         <Text>Header</Text>
-      </FloatingHeader>,
+      </HeaderGlass>,
     );
     const event = { nativeEvent: { layout: { height: 103 } } };
 
