@@ -53,7 +53,7 @@ export function useIsGaslessLoading() {
   const isSponsoredMusdRescueSend = Boolean(
     transactionMeta &&
       isMusdRescueSendTx(transactionMeta) &&
-      transactionMeta.isGasFeeSponsored &&
+      transactionMeta.forceIsGasFeeSponsored &&
       isGaslessSupportedFinished &&
       isGasFeeTokensEmpty,
   );

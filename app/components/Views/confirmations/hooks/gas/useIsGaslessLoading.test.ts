@@ -64,7 +64,7 @@ async function runHook({
     gasFeeTokens,
     excludeNativeTokenForFee,
     selectedGasFeeToken,
-    isGasFeeSponsored: transactionSponsored,
+    forceIsGasFeeSponsored: transactionSponsored,
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockSelectUseTransactionSimulations.mockReturnValue(simulationEnabled);
   const { result } = renderHookWithProvider(useIsGaslessLoading);
@@ -150,6 +150,28 @@ describe('useIsGaslessLoading', () => {
     });
 
     expect(result.isGaslessLoading).toBe(false);
+  });
+
+  it('continues waiting for fee tokens when a rescue send only has the published sponsorship record', async () => {
+    mockIsMusdRescueSendTx.mockReturnValue(true);
+    mockedUseIsGaslessSupported.mockReturnValue({
+      isSupported: true,
+      isSmartTransaction: false,
+      pending: false,
+    });
+    mockedUseHasInsufficientBalance.mockReturnValue({
+      hasInsufficientBalance: true,
+      nativeCurrency: 'USD',
+    });
+    mockedUseTransactionMetadataRequest.mockReturnValue({
+      gasFeeTokens: [],
+      isGasFeeSponsored: true,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    mockSelectUseTransactionSimulations.mockReturnValue(true);
+
+    const { result } = renderHookWithProvider(useIsGaslessLoading);
+
+    expect(result.current.isGaslessLoading).toBe(true);
   });
 
   it('continues waiting for fee tokens for an unsponsored rescue send', async () => {
