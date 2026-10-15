@@ -392,6 +392,19 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 const mockEnableAllPopularNetworks = jest.fn();
 let mockPopularNetworks: string[] = [];
 const mockIsNetworkEnabled = jest.fn(() => true);
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = 'WIFI';
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -462,6 +475,8 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'WIFI';
     mockHomepageEarnSectionVisible = false;
   });
 
@@ -501,6 +516,17 @@ describe('Homepage', () => {
 
     expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: false,
+    });
+  });
+
+  it('defers optional Homepage mounting on constrained devices', () => {
+    mockHardwareTier = 'LOW';
+    mockNetworkTier = 'WIFI';
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenNthCalledWith(1, {
       isEnabled: false,
     });
   });
