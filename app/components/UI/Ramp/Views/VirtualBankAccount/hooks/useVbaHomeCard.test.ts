@@ -695,6 +695,17 @@ describe('useVbaHomeCardRefresh', () => {
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
   });
 
+  it('makes no VBA request without a persisted session', () => {
+    setupRefreshSelectors({ sessionStatus: null });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+  });
+
   it.each(['approved', 'rejected', 'retry'])(
     'makes no session GET for a terminal stored status (%s)',
     (finalStatus) => {
@@ -719,6 +730,22 @@ describe('useVbaHomeCardRefresh', () => {
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
     expect(mockRefreshAutoramps).not.toHaveBeenCalled();
+  });
+
+  it('fetches when the network recovers mid-focus from a known-offline tier', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+
+    mockUseNetworkTier.mockReturnValue(null);
+    rerender();
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
   });
 
   it('fetches when the user becomes eligible mid-focus', () => {
@@ -797,6 +824,27 @@ describe('useVbaHomeCardRefresh', () => {
     expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
   });
 
+  it('does not treat a Cancelled autoramp as usable when deciding the list refresh', async () => {
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'approved' }),
+    );
+    Engine.context.RampsController.state.autoramps = [
+      makeAutoramp({
+        status: AutorampStatus.Cancelled,
+        lastSeenStatus: AutorampStatus.Cancelled,
+      }),
+    ];
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+  });
+
   it('starts no polling loop after the one-shot fetch', () => {
     jest.useFakeTimers();
     try {
@@ -831,9 +879,46 @@ describe('useVbaHomeCardRefresh', () => {
     expect(errorSpy).toHaveBeenCalledWith(
       failure,
       expect.objectContaining({
-        context: expect.objectContaining({ name: 'useVbaHomeCardRefresh' }),
+        tags: expect.objectContaining({ feature: 'money-home' }),
+        context: expect.objectContaining({
+          name: 'useVbaHomeCardRefresh',
+          data: { walletAddress: WALLET },
+        }),
       }),
     );
+    errorSpy.mockRestore();
+  });
+
+  it('logs and swallows a failed autoramp catch-up', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    const failure = new Error('autoramp list refresh failed');
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'approved' }),
+    );
+    Engine.context.RampsController.state.autoramps = [];
+    mockRefreshAutoramps.mockRejectedValue(failure);
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      failure,
+      expect.objectContaining({
+        tags: expect.objectContaining({ feature: 'money-home' }),
+        context: expect.objectContaining({
+          name: 'useVbaHomeCardRefresh',
+          data: { walletAddress: WALLET },
+        }),
+      }),
+    );
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+    expect(mockStartSessionStatusPolling).not.toHaveBeenCalled();
+    expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 });
