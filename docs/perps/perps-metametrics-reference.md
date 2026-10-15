@@ -703,20 +703,21 @@ When navigating from `PerpsMarketListView` → `PerpsMarketDetailsView`, `source
 
 Section names used in impression events:
 
-| Home section        | `section_name` value    | `PERPS_EVENT_VALUE.SECTION_NAME` constant |
-| ------------------- | ----------------------- | ----------------------------------------- |
-| Balance             | `'balance'`             | `BALANCE`                                 |
-| Positions           | `'positions'`           | `POSITIONS`                               |
-| Orders              | `'orders'`              | `ORDERS`                                  |
-| Watchlist           | `'watchlist'`           | `WATCHLIST`                               |
-| What's Happening    | `'whats_happening'`     | `WHATS_HAPPENING`                         |
-| Products            | `'products'`            | `PRODUCTS`                                |
-| Top Movers          | `'top_movers'`          | `TOP_MOVERS`                              |
-| Explore Crypto      | `'explore_crypto'`      | `EXPLORE_CRYPTO`                          |
-| Explore Commodities | `'explore_commodities'` | `EXPLORE_COMMODITIES`                     |
-| Explore Stocks      | `'explore_stocks'`      | `EXPLORE_STOCKS`                          |
-| Explore Forex       | `'explore_forex'`       | `EXPLORE_FOREX`                           |
-| Recent Activity     | `'recent_activity'`     | `RECENT_ACTIVITY`                         |
+| Home section        | `section_name` value    | `PERPS_EVENT_VALUE.SECTION_NAME` constant                   |
+| ------------------- | ----------------------- | ----------------------------------------------------------- |
+| Balance             | `'balance'`             | `BALANCE`                                                   |
+| Positions           | `'positions'`           | `POSITIONS`                                                 |
+| Orders              | `'orders'`              | `ORDERS`                                                    |
+| Watchlist           | `'watchlist'`           | `WATCHLIST`                                                 |
+| What's Happening    | `'whats_happening'`     | `WHATS_HAPPENING`                                           |
+| Products            | `'products'`            | `PRODUCTS`                                                  |
+| Top Movers          | `'top_movers'`          | `TOP_MOVERS`                                                |
+| Social Feed         | `'social_feed'`         | _(local constant, pending addition to `PERPS_EVENT_VALUE`)_ |
+| Explore Crypto      | `'explore_crypto'`      | `EXPLORE_CRYPTO`                                            |
+| Explore Commodities | `'explore_commodities'` | `EXPLORE_COMMODITIES`                                       |
+| Explore Stocks      | `'explore_stocks'`      | `EXPLORE_STOCKS`                                            |
+| Explore Forex       | `'explore_forex'`       | `EXPLORE_FOREX`                                             |
+| Recent Activity     | `'recent_activity'`     | `RECENT_ACTIVITY`                                           |
 
 `section_index` = 1-based rank by y-position among rendered sections. Adjusts automatically for hidden or A/B-reordered sections.
 

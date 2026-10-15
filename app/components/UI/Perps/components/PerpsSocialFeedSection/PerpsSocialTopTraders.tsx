@@ -15,6 +15,7 @@ import {
   SocialV1TraderRowSkeleton,
 } from '../../../../Views/SocialLeaderboard/TopTradersView/components';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
 import { usePerpsTopTraders } from '../../hooks/usePerpsTopTraders';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
@@ -35,6 +36,7 @@ const PerpsSocialTopTraders: React.FC<PerpsSocialTopTradersProps> = ({
   onSeeMorePress,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { profile: myProfile } = useMyProfile();
   const { traders, showSkeleton, showError, refresh } = usePerpsTopTraders({
     limit: PERPS_HOME_TOP_TRADERS_LIMIT,
   });
@@ -49,9 +51,11 @@ const PerpsSocialTopTraders: React.FC<PerpsSocialTopTradersProps> = ({
         traderAvatarUri: trader?.avatarUri,
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
         traderRank: trader?.rank,
+        viewerProfileId: myProfile?.profileId ?? undefined,
+        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [navigation, traders],
+    [navigation, traders, myProfile],
   );
 
   if (showError) {

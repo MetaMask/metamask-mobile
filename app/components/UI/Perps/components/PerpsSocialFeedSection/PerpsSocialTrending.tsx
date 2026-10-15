@@ -14,6 +14,7 @@ import {
   type SocialV1FeedPost,
 } from '../../../SocialFeed';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
 
 export const PERPS_TRENDING_POST_COUNT = 3;
 
@@ -25,6 +26,7 @@ const PERPS_TRENDING_SOURCE: SocialFeedSource = {
 
 const PerpsSocialTrending: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { profile: myProfile } = useMyProfile();
   const { posts, isLoading, error, refresh } = useSocialFeed(
     PERPS_TRENDING_SOURCE,
     { pageSize: PERPS_TRENDING_POST_COUNT },
@@ -39,9 +41,11 @@ const PerpsSocialTrending: React.FC = () => {
         traderAvatarUri:
           post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        viewerProfileId: myProfile?.profileId ?? undefined,
+        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [navigation],
+    [navigation, myProfile],
   );
 
   const handlePositionPress = useCallback(
