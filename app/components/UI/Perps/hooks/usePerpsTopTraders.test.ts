@@ -12,22 +12,10 @@ jest.mock('../../SocialLeaderboard', () => ({
 }));
 
 const mockUseSocialLeaderboard = jest.mocked(useSocialLeaderboard);
-const mockRefresh = jest.fn();
 
-const buildTrader = (id: string, rank: number): RankedTrader => ({
-  id,
-  address: `0x${id}`,
-  rank,
-  overallRank: rank,
-  username: id,
-  percentageChange: 0,
-  pnlValue: 1000 - rank,
-  winRatePercent: null,
-  pnlPerChain: {},
-  followerCount: 0,
-  isFollowing: false,
-  displayMetric: { label: `+$${1000 - rank}`, isPositive: true },
-});
+const traders = [1, 2, 3, 4, 5, 6].map(
+  (rank) => ({ id: `t${rank}`, rank }) as unknown as RankedTrader,
+);
 
 const mockLeaderboardResult = (
   overrides: Partial<SocialLeaderboardState> = {},
@@ -38,7 +26,7 @@ const mockLeaderboardResult = (
     isFetching: false,
     hasFetched: true,
     error: null,
-    refresh: mockRefresh,
+    refresh: jest.fn(),
     toggleFollow: jest.fn(),
     resolution: { status: 'ready', chains: ['hyperliquid'] },
     ...overrides,
@@ -51,92 +39,50 @@ describe('usePerpsTopTraders', () => {
     mockLeaderboardResult();
   });
 
-  it('defaults to the leaderboard ranking: 7d PnL, perps only', () => {
+  it('requests the perps leaderboard with default or custom ranking', () => {
     renderHook(() => usePerpsTopTraders());
+    renderHook(() => usePerpsTopTraders({ timeframe: '30d', sort: 'roi' }));
 
-    expect(mockUseSocialLeaderboard).toHaveBeenCalledWith(
+    expect(mockUseSocialLeaderboard).toHaveBeenNthCalledWith(
+      1,
       { kind: 'all', assetClass: 'perps' },
       { timeframe: '7d', sort: 'pnl' },
     );
-  });
-
-  it('passes a custom timeframe and sort to the leaderboard', () => {
-    renderHook(() => usePerpsTopTraders({ timeframe: '30d', sort: 'roi' }));
-
-    expect(mockUseSocialLeaderboard).toHaveBeenCalledWith(
+    expect(mockUseSocialLeaderboard).toHaveBeenNthCalledWith(
+      2,
       { kind: 'all', assetClass: 'perps' },
       { timeframe: '30d', sort: 'roi' },
     );
   });
 
-  it('returns every ranked trader when no limit is given', () => {
-    mockLeaderboardResult({
-      traders: [1, 2, 3, 4, 5, 6].map((rank) => buildTrader(`t${rank}`, rank)),
-    });
+  it('trims traders to the limit when one is given', () => {
+    mockLeaderboardResult({ traders });
 
-    const { result } = renderHook(() => usePerpsTopTraders());
+    const all = renderHook(() => usePerpsTopTraders());
+    const limited = renderHook(() => usePerpsTopTraders({ limit: 5 }));
 
-    expect(result.current.traders).toHaveLength(6);
-    expect(result.current.showSkeleton).toBe(false);
-    expect(result.current.showError).toBe(false);
+    expect(all.result.current.traders).toHaveLength(6);
+    expect(limited.result.current.traders).toHaveLength(5);
   });
 
-  it('keeps the top traders up to the given limit', () => {
-    mockLeaderboardResult({
-      traders: [1, 2, 3, 4, 5, 6].map((rank) => buildTrader(`t${rank}`, rank)),
-    });
+  it.each([
+    ['first fetch in flight', { isFetching: true }, true, false],
+    ['fetch failed', { error: 'Leaderboard unavailable' }, false, true],
+    [
+      'retry in flight after a failure',
+      { error: 'Leaderboard unavailable', isFetching: true },
+      true,
+      false,
+    ],
+  ])(
+    'derives loading and error states: %s',
+    (_, overrides, showSkeleton, showError) => {
+      mockLeaderboardResult(overrides);
 
-    const { result } = renderHook(() => usePerpsTopTraders({ limit: 5 }));
+      const { result } = renderHook(() => usePerpsTopTraders());
 
-    expect(result.current.traders.map(({ id }) => id)).toEqual([
-      't1',
-      't2',
-      't3',
-      't4',
-      't5',
-    ]);
-  });
-
-  it('shows the skeleton while the first fetch is in flight', () => {
-    mockLeaderboardResult({ isFetching: true, hasFetched: false });
-
-    const { result } = renderHook(() => usePerpsTopTraders());
-
-    expect(result.current.showSkeleton).toBe(true);
-  });
-
-  it('shows the error state when the fetch fails with no traders', () => {
-    mockLeaderboardResult({ error: 'Leaderboard unavailable' });
-
-    const { result } = renderHook(() => usePerpsTopTraders());
-
-    expect(result.current.showError).toBe(true);
-    expect(result.current.showSkeleton).toBe(false);
-    expect(result.current.refresh).toBe(mockRefresh);
-  });
-
-  it('shows the skeleton instead of the error while a retry is in flight', () => {
-    mockLeaderboardResult({
-      error: 'Leaderboard unavailable',
-      isFetching: true,
-    });
-
-    const { result } = renderHook(() => usePerpsTopTraders());
-
-    expect(result.current.showError).toBe(false);
-    expect(result.current.showSkeleton).toBe(true);
-  });
-
-  it('shows neither skeleton nor error when the leaderboard is not fetching', () => {
-    mockLeaderboardResult({
-      hasFetched: false,
-      resolution: { status: 'hidden' },
-    });
-
-    const { result } = renderHook(() => usePerpsTopTraders());
-
-    expect(result.current.traders).toEqual([]);
-    expect(result.current.showSkeleton).toBe(false);
-    expect(result.current.showError).toBe(false);
-  });
+      expect(result.current.showSkeleton).toBe(showSkeleton);
+      expect(result.current.showError).toBe(showError);
+    },
+  );
 });

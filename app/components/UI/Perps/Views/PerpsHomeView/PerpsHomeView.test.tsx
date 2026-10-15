@@ -1302,44 +1302,6 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
-  it('does not render the Social feed section when Perps social is off', () => {
-    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
-
-    expect(UNSAFE_queryByType('PerpsSocialFeedSection' as never)).toBeNull();
-  });
-
-  it('renders the Social feed section directly after Top movers', () => {
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
-    );
-    mockUsePerpsTopMovers.mockReturnValue({
-      data: [{ symbol: 'BTC' }],
-      isLoading: false,
-    });
-    mockUsePerpsSocialEnabled.mockReturnValue(true);
-    mockUsePerpsHomeData.mockReturnValue({
-      ...mockDefaultData,
-      perpsMarkets: [{ symbol: 'BTC' }],
-    });
-
-    const { UNSAFE_root } = render(<PerpsHomeView />);
-
-    const sectionOrder = UNSAFE_root.findAll(
-      (node) =>
-        typeof node.type === 'string' &&
-        [
-          'PerpsTopMoversSection',
-          'PerpsSocialFeedSection',
-          'PerpsMarketTypeSection',
-        ].includes(node.type),
-    ).map((node) => node.type);
-    expect(sectionOrder.slice(0, 3)).toEqual([
-      'PerpsTopMoversSection',
-      'PerpsSocialFeedSection',
-      'PerpsMarketTypeSection',
-    ]);
-  });
-
   it('passes enabled: false to usePerpsTopMovers when top movers flag is off', () => {
     mockUseSelector.mockReturnValue(false);
 

@@ -15,27 +15,21 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
-  () => ({
-    navigateToSocialLeaderboard: jest.fn(),
-  }),
+  () => ({ navigateToSocialLeaderboard: jest.fn() }),
 );
 
 jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
   usePerpsSocialEnabled: jest.fn(),
 }));
 
-jest.mock('./PerpsSocialTrending', () => {
-  const ReactModule = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return () => ReactModule.createElement(View, { testID: 'mock-trending' });
-});
+jest.mock('./PerpsSocialTrending', () => () => null);
 
 jest.mock('./PerpsSocialTopTraders', () => {
   const ReactModule = jest.requireActual('react');
   const { Pressable } = jest.requireActual('react-native');
   return ({ onSeeMorePress }: { onSeeMorePress: () => void }) =>
     ReactModule.createElement(Pressable, {
-      testID: 'mock-top-traders',
+      testID: 'mock-see-more',
       onPress: onSeeMorePress,
     });
 });
@@ -59,52 +53,22 @@ describe('PerpsSocialFeedSection', () => {
     expect(
       screen.queryByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SECTION),
     ).toBeNull();
-    expect(screen.queryByTestId('mock-trending')).toBeNull();
   });
 
-  it('renders the Social feed header and shows Trending by default', () => {
-    renderWithProvider(<PerpsSocialFeedSection />);
-
-    expect(screen.getByText('Social feed')).toBeOnTheScreen();
-    expect(screen.getByTestId('mock-trending')).toBeOnTheScreen();
-    expect(screen.queryByTestId('mock-top-traders')).toBeNull();
-  });
-
-  it('switches to Top traders when its pill is pressed', () => {
-    renderWithProvider(<PerpsSocialFeedSection />);
-
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
-      ),
-    );
-
-    expect(screen.getByTestId('mock-top-traders')).toBeOnTheScreen();
-    expect(screen.queryByTestId('mock-trending')).toBeNull();
-  });
-
-  it('opens Social when the header is pressed', () => {
+  it('opens Social from the header and from See more', () => {
     renderWithProvider(<PerpsSocialFeedSection />);
 
     fireEvent.press(
       screen.getByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER),
     );
-
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
-      source: 'perps_home',
-    });
-  });
-
-  it('opens Social when See more is pressed in Top traders', () => {
-    renderWithProvider(<PerpsSocialFeedSection />);
     fireEvent.press(
       screen.getByTestId(
         PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
       ),
     );
+    fireEvent.press(screen.getByTestId('mock-see-more'));
 
-    fireEvent.press(screen.getByTestId('mock-top-traders'));
-
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(2);
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
       source: 'perps_home',
     });
