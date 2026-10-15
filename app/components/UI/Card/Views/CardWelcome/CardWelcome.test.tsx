@@ -1,4 +1,5 @@
 import React from 'react';
+import { lightTheme } from '@metamask/design-tokens';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { StatusBar } from 'react-native';
 import { Provider } from 'react-redux';
@@ -265,6 +266,12 @@ describe('CardWelcome', () => {
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
       ).toHaveTextContent(strings('card.card_onboarding.description'));
+      expect(
+        getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
+      ).toHaveStyle({ color: lightTheme.colors.accent02.light });
+      expect(
+        getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
+      ).toHaveStyle({ color: lightTheme.colors.accent02.light });
     });
 
     it('tracks view event on mount', () => {
