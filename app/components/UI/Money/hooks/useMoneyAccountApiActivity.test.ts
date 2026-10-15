@@ -121,6 +121,15 @@ const PAGE_MOCK = {
 function setupSelectors(
   opts: {
     account?: { address: string } | undefined;
+    vaultConfig?:
+      | {
+          boringVault: string;
+          chainId: string;
+          tellerAddress: string;
+          accountantAddress: string;
+          lensAddress: string;
+        }
+      | undefined;
   } = {},
 ) {
   // Distinguish "not provided" (default account) from an explicit `undefined`.
@@ -130,13 +139,15 @@ function setupSelectors(
       return account;
     }
     if (selector === selectMoneyAccountVaultConfig) {
-      return {
-        boringVault: VAULT_ADDRESS,
-        chainId: '0x8f',
-        tellerAddress: '0x1',
-        accountantAddress: '0x2',
-        lensAddress: '0x3',
-      };
+      return 'vaultConfig' in opts
+        ? opts.vaultConfig
+        : {
+            boringVault: VAULT_ADDRESS,
+            chainId: '0x8f',
+            tellerAddress: '0x1',
+            accountantAddress: '0x2',
+            lensAddress: '0x3',
+          };
     }
     if (selector === selectMoneyAccountVedaTokenConfig) {
       return {
@@ -232,7 +243,8 @@ describe('useMoneyAccountApiActivity', () => {
         ],
         enabled: true,
         staleTime: 5 * MINUTE,
-        retry: false,
+        retry: expect.any(Function),
+        retryDelay: 5 * MINUTE,
       }),
     );
   });
@@ -251,6 +263,32 @@ describe('useMoneyAccountApiActivity', () => {
     renderHook(() => useMoneyAccountApiActivity());
 
     // Assert
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('marks recognizable vmUSD card activity as shares if vault config is missing', () => {
+    // Arrange
+    setupSelectors({ vaultConfig: undefined });
+    mockParse.mockReturnValueOnce([
+      {
+        ...CARD,
+        token: { address: VMUSD_ADDRESS, symbol: 'vmUSD', decimals: 6 },
+        blockNumber: 10,
+      },
+    ]);
+    mockQueryResult({
+      data: { pages: [PAGE_MOCK], pageParams: [] },
+    });
+
+    // Act
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    // Assert
+    expect(result.current.activity[0]).toEqual(
+      expect.objectContaining({ isVaultShare: true }),
+    );
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
