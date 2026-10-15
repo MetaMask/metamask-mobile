@@ -832,7 +832,8 @@ const Wallet = ({
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isCompactHeader) {
+      // Drives the compact header and the floating header's backdrop.
+      if (isCompactHeader || isInterimHeader) {
         homepageScrollY.value = event.nativeEvent.contentOffset.y;
       }
       const now = Date.now();
@@ -841,7 +842,7 @@ const Wallet = ({
         scrollSubscribersRef.current.forEach((cb) => cb());
       }
     },
-    [homepageScrollY, isCompactHeader],
+    [homepageScrollY, isCompactHeader, isInterimHeader],
   );
 
   const touchAreaSlop = useMemo(
@@ -1361,6 +1362,7 @@ const Wallet = ({
                   // Mounted before the content so assistive tech reads the header first.
                   <HeaderGlass
                     onLayout={handleFloatingHeaderLayout}
+                    scrollDistance={homepageScrollY}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
                   >
                     {renderWalletHeader()}
