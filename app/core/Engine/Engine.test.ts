@@ -1199,6 +1199,27 @@ describe('Engine', () => {
     );
   });
 
+  it('refreshes marketing consent when the app returns to the foreground', () => {
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+    const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
+
+    mockAppStateListener('background');
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'MarketingConsentController:refresh',
+    );
+
+    mockAppStateListener('active');
+    expect(messengerSpy).toHaveBeenCalledWith(
+      'MarketingConsentController:refresh',
+    );
+  });
+
   it('does not call `SnapController:setClientActive` for other app states', () => {
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {

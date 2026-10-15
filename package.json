@@ -14,6 +14,12 @@
       "./app/*/index.js"
     ]
   },
+  "previewBuilds": {
+    "@metamask/notification-services-controller": {
+      "type": "breaking",
+      "previewVersion": "29.0.3-preview-32b6da31c"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/MetaMask/metamask-mobile.git"
@@ -373,6 +379,7 @@
     "@metamask/keyring-utils": "^5.0.0",
     "@metamask/kyc-controller": "^0.10.0",
     "@metamask/logging-controller": "^9.0.0",
+    "@metamask/marketing-consent-controller": "npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-32b6da31c",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/messenger": "^3.0.0",
     "@metamask/metamask-eth-abis": "3.1.1",

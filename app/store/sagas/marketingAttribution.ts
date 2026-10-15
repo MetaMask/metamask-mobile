@@ -1,7 +1,6 @@
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import {
   ActionType,
-  setDataCollectionForMarketing,
   type SetDataCollectionForMarketing,
 } from '../../actions/security';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
@@ -13,49 +12,34 @@ import {
   INIT_BG_STATE_KEY,
   UPDATE_BG_STATE_KEY,
 } from '../../core/EngineService/constants';
-import { analytics } from '../../util/analytics/analytics';
+import Engine from '../../core/Engine';
 import { ensureError } from '../../util/errorUtils';
 import Logger from '../../util/Logger';
 import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
 import { selectAttributionRecord } from '../../selectors/attribution';
 
+const saveMarketingConsent = (enabled: boolean) =>
+  Engine.controllerMessenger.call(
+    'MarketingConsentController:setMarketingConsent',
+    enabled,
+  );
+
 /**
- * Copy each marketing preference the UI writes into AnalyticsController.
+ * Save each marketing preference the UI writes through
+ * MarketingConsentController, which applies it locally and syncs it to
+ * Authenticated User Storage.
  */
 export function* watchMarketingAttributionOnConsentChange() {
   yield takeEvery(
     ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
     function* setDataCollectionForMarketingHandler({
       enabled,
-      skipControllerSync,
     }: SetDataCollectionForMarketing) {
-      if (skipControllerSync) {
-        return;
-      }
-      // Redux remains the preference the UI writes. This saga copies each
-      // marketing preference into AnalyticsController consent.
       try {
-        yield call(
-          [analytics, analytics.setDataCollectionForMarketing],
-          enabled,
-        );
+        yield call(saveMarketingConsent, enabled);
       } catch (error) {
-        Logger.error(
-          ensureError(error),
-          'Failed to copy marketing preference into AnalyticsController',
-        );
-        if (enabled === false) {
-          const controllerOptedIn: boolean | undefined = yield select(
-            selectAnalyticsOptedInToMarketing,
-          );
-          // The failed opt-out did not change the controller. Restore the switch
-          // only when marketing delivery is still on, and do not record a new opt-in.
-          if (controllerOptedIn === true) {
-            yield put(
-              setDataCollectionForMarketing(true, { skipControllerSync: true }),
-            );
-          }
-        }
+        // The controller already re-applied the consent AUS holds.
+        Logger.error(ensureError(error), 'Failed to save marketing consent');
       }
     },
   );

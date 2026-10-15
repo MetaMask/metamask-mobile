@@ -195,6 +195,7 @@ import { authenticatedUserStorageServiceInit } from './controllers/authenticated
 import { socialControllerInit } from './controllers/social-controller-init';
 import { profileServiceInit } from './controllers/profile-service-init';
 import { profileControllerInit } from './controllers/profile-controller-init';
+import { marketingConsentControllerInit } from './controllers/marketing-consent-controller-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
@@ -426,6 +427,9 @@ export class Engine {
         ProfileService: profileServiceInit,
         ProfileController: profileControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
+        // Reads AnalyticsController, AuthenticationController and
+        // KeyringController state on construction, so it comes after them.
+        MarketingConsentController: marketingConsentControllerInit,
         CardController: cardControllerInit,
         UiSlotsController: uiSlotsControllerInit,
         QrSyncController: qrSyncControllerInit,
@@ -740,6 +744,8 @@ export class Engine {
       ProfileService: messengerClientsByName.ProfileService,
       ProfileController: messengerClientsByName.ProfileController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
+      MarketingConsentController:
+        messengerClientsByName.MarketingConsentController,
       CardController: cardController,
       UiSlotsController: uiSlotsController,
       QrSyncController: messengerClientsByName.QrSyncController,
@@ -934,6 +940,12 @@ export class Engine {
           'ClientController:setUiOpen',
           state === 'active',
         );
+
+        if (state === 'active') {
+          // Marketing consent may have changed on another device. The
+          // controller only reads AUS once unlocked and signed in.
+          this.controllerMessenger.call('MarketingConsentController:refresh');
+        }
 
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         const { isUnlocked } = this.controllerMessenger.call(
@@ -1696,6 +1708,7 @@ export default {
       ClientController,
       SocialController,
       ProfileController,
+      MarketingConsentController,
       ComplianceController,
       KycController,
       ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1779,6 +1792,7 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       ProfileController: ProfileController.state,
+      MarketingConsentController: MarketingConsentController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
       ClientController: ClientController.state,

@@ -33,6 +33,8 @@ export function getNotificationServicesControllerMessenger(
       // Authenticated user storage (notification preferences, etc.)
       'AuthenticatedUserStorageService:getNotificationPreferences',
       'AuthenticatedUserStorageService:putNotificationPreferences',
+      // Marketing notifications follow marketing consent
+      'AnalyticsController:getState',
     ],
     events: [
       // Keyring Events

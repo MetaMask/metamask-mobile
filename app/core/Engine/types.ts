@@ -516,6 +516,7 @@ type DelegationControllerState = DelegationController['state'];
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
+  ControllerStateChangedEvent,
 } from '@metamask/base-controller';
 import {
   ProfileMetricsController,
@@ -585,6 +586,12 @@ import {
   type AuthenticatedUserStorageActions,
   type AuthenticatedUserStorageEvents,
 } from '@metamask/authenticated-user-storage';
+import {
+  MarketingConsentController,
+  type MarketingConsentControllerActions,
+  type MarketingConsentControllerEvents,
+  type MarketingConsentControllerState,
+} from '@metamask/marketing-consent-controller';
 import {
   ComplianceController,
   ComplianceControllerActions,
@@ -668,6 +675,22 @@ interface SubscriptionControllerRegisterAddressAction {
   type: `SubscriptionController:registerAddress`;
   handler: (caipAccountId: string) => Promise<void>;
 }
+
+/**
+ * BaseController publishes `stateChanged` next to the deprecated
+ * `stateChange`, but these controllers only declare the latter.
+ * MarketingConsentController subscribes to `stateChanged`.
+ */
+type AnalyticsControllerStateChangedEvent = ControllerStateChangedEvent<
+  'AnalyticsController',
+  AnalyticsControllerState
+>;
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
+type AuthenticationControllerStateChangedEvent = ControllerStateChangedEvent<
+  'AuthenticationController',
+  AuthenticationController.AuthenticationControllerState
+>;
+///: END:ONLY_INCLUDE_IF
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
@@ -795,6 +818,7 @@ export type GlobalActions =
   | ProfileControllerActions
   | ProfileServiceActions
   | AuthenticatedUserStorageActions
+  | MarketingConsentControllerActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | KycControllerActions
@@ -831,6 +855,7 @@ export type GlobalEvents =
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
   | AuthenticationController.Events
+  | AuthenticationControllerStateChangedEvent
   | UserStorageController.Events
   | NotificationServicesControllerMessengerEvents
   | NotificationServicesPushControllerEvents
@@ -851,6 +876,7 @@ export type GlobalEvents =
   | SignatureControllerEvents
   | LoggingControllerEvents
   | AnalyticsControllerEvents
+  | AnalyticsControllerStateChangedEvent
   | StorageServiceEvents
   | SubscriptionControllerEvents
   | SubscriptionServiceEvents
@@ -913,6 +939,7 @@ export type GlobalEvents =
   | ProfileControllerEvents
   | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
+  | MarketingConsentControllerEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
   | KycControllerEvents
@@ -1079,6 +1106,7 @@ export type MessengerClients = {
   ProfileController: ProfileController;
   ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
+  MarketingConsentController: MarketingConsentController;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   KycService: KycService;
@@ -1179,6 +1207,7 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ProfileController: ProfileControllerState;
+  MarketingConsentController: MarketingConsentControllerState;
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
@@ -1307,6 +1336,7 @@ export type MessengerClientsToInitialize =
   | 'ProfileService'
   | 'ProfileController'
   | 'AuthenticatedUserStorageService'
+  | 'MarketingConsentController'
   | 'ComplianceService'
   | 'ComplianceController'
   | 'KycService'

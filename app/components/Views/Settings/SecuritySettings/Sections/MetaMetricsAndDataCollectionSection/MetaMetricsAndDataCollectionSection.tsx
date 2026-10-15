@@ -89,7 +89,8 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       });
       setAnalyticsEnabled(false);
       updateCachedConsent(false);
-      dispatch(setDataCollectionForMarketing(false));
+      // Marketing consent is synced across devices, so a device-local Basic
+      // Functionality switch only disables the toggle and never revokes it.
       return;
     }
 

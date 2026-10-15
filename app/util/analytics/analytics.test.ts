@@ -380,35 +380,11 @@ describe('analytics', () => {
       );
     });
 
-    it('maps a true marketing preference to optInToMarketing', async () => {
-      await analytics.setDataCollectionForMarketing(true);
-
-      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
-        'optInToMarketing',
-      );
-      expect(
-        mockQueueManagerFromFactory.queueOperation,
-      ).not.toHaveBeenCalledWith('optOutOfMarketing');
-    });
-
-    it('maps a false marketing preference to optOutOfMarketing', async () => {
-      await analytics.setDataCollectionForMarketing(false);
-
-      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
-        'optOutOfMarketing',
-      );
-      expect(
-        mockQueueManagerFromFactory.queueOperation,
-      ).not.toHaveBeenCalledWith('optInToMarketing');
-    });
-
     it('rejects when the marketing opt-out queue operation rejects', async () => {
       const error = new Error('Queue operation failed');
       mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
 
-      await expect(analytics.setDataCollectionForMarketing(false)).rejects.toBe(
-        error,
-      );
+      await expect(analytics.optOutOfMarketing()).rejects.toBe(error);
     });
   });
 

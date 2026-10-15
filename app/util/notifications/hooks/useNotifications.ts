@@ -12,7 +12,6 @@ import {
 import {
   getNotificationsList,
   selectIsFetchingMetamaskNotifications,
-  selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotifications,
 } from '../../../selectors/notifications';
@@ -22,10 +21,6 @@ import {
   setUserHasTurnedOffNotificationsOnce,
   updateNotificationSubscriptionExpiration,
 } from '../constants/notification-storage-keys';
-import type { RootState } from '../../../reducers';
-
-const selectHasMarketingConsent = (state: RootState) =>
-  Boolean(state.security.dataCollectionForMarketing);
 
 interface UseEnableNotificationsProps {
   nudgeEnablePush?: boolean;
@@ -121,19 +116,13 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
   );
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<unknown>(null);
-  const hasMarketingConsent = useSelector(selectHasMarketingConsent);
-  const isFeatureAnnouncementsEnabled = useSelector(
-    selectIsFeatureAnnouncementsEnabled,
-  );
-  const productAnnouncementEnabled =
-    isFeatureAnnouncementsEnabled || !isMetamaskNotificationsEnabled;
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
     try {
+      // First-time preferences take the marketing channels from marketing
+      // consent in NotificationServicesController.
       await enableNotificationsHelper({
-        hasMarketingConsent,
-        productAnnouncementEnabled,
         // Push registration is performed once, below, after shared notification
         // setup and the OS-permission check.
         registerPushNotifications: false,
@@ -148,12 +137,7 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
-  }, [
-    throwOnError,
-    hasMarketingConsent,
-    productAnnouncementEnabled,
-    togglePushNotification,
-  ]);
+  }, [throwOnError, togglePushNotification]);
 
   const contiguousLoading = useContiguousLoading(loading, pushLoading);
 

@@ -3,20 +3,23 @@ import { select } from 'redux-saga/effects';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../actions/security';
 import { clearAttribution } from '../../core/redux/slices/attribution';
-import { analytics } from '../../util/analytics/analytics';
+import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
 import Logger from '../../util/Logger';
 import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
 import { selectAttributionRecord } from '../../selectors/attribution';
-import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
 import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
   watchMarketingAttributionOnControllerConsent,
 } from './marketingAttribution';
 
-jest.mock('../../util/analytics/analytics', () => ({
-  analytics: {
-    setDataCollectionForMarketing: jest.fn().mockResolvedValue(undefined),
+const mockMessengerCall = jest.fn();
+jest.mock('../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    get controllerMessenger() {
+      return { call: mockMessengerCall };
+    },
   },
 }));
 
@@ -27,69 +30,49 @@ jest.mock('../../util/Logger', () => ({
   },
 }));
 
+const attribution = { utm_source: 'source', capturedAt: 1 };
+const bgStateUpdate = {
+  type: UPDATE_BG_STATE_KEY,
+  payload: { key: 'AnalyticsController' },
+};
+
 describe('marketingAttribution sagas', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockMessengerCall.mockResolvedValue(undefined);
+  });
+
   describe('watchMarketingAttributionOnConsentChange', () => {
-    it('opts the controller out when marketing is disabled', async () => {
+    it.each([true, false])(
+      'saves a marketing preference of %s through MarketingConsentController',
+      async (enabled) => {
+        await expectSaga(watchMarketingAttributionOnConsentChange)
+          .dispatch(setDataCollectionForMarketing(enabled))
+          .silentRun(50);
+
+        expect(mockMessengerCall).toHaveBeenCalledWith(
+          'MarketingConsentController:setMarketingConsent',
+          enabled,
+        );
+      },
+    );
+
+    it('logs a failed save', async () => {
+      const error = new Error('AUS did not save the change');
+      mockMessengerCall.mockRejectedValueOnce(error);
+
       await expectSaga(watchMarketingAttributionOnConsentChange)
         .dispatch(setDataCollectionForMarketing(false))
-        .call([analytics, analytics.setDataCollectionForMarketing], false)
-        .silentRun(50);
-    });
-
-    it('opts the controller in when marketing is enabled', async () => {
-      await expectSaga(watchMarketingAttributionOnConsentChange)
-        .dispatch(setDataCollectionForMarketing(true))
-        .call([analytics, analytics.setDataCollectionForMarketing], true)
-        .not.put(clearAttribution())
-        .silentRun(50);
-    });
-
-    it('restores the switch without a controller opt-in when marketing delivery is still on', async () => {
-      const error = new Error('controller opt-out failed');
-      jest
-        .mocked(analytics.setDataCollectionForMarketing)
-        .mockRejectedValueOnce(error);
-
-      await expectSaga(watchMarketingAttributionOnConsentChange)
-        .provide([[select(selectAnalyticsOptedInToMarketing), true]])
-        .dispatch(setDataCollectionForMarketing(false))
-        .call([analytics, analytics.setDataCollectionForMarketing], false)
-        .put(setDataCollectionForMarketing(true, { skipControllerSync: true }))
-        .not.call([analytics, analytics.setDataCollectionForMarketing], true)
-        .not.put(clearAttribution())
         .silentRun(50);
 
       expect(jest.mocked(Logger.error)).toHaveBeenCalledWith(
         error,
-        'Failed to copy marketing preference into AnalyticsController',
+        'Failed to save marketing consent',
       );
-    });
-
-    it('keeps a failed opt-out from granting consent when the controller is not opted in', async () => {
-      jest
-        .mocked(analytics.setDataCollectionForMarketing)
-        .mockRejectedValueOnce(new Error('controller opt-out failed'));
-
-      await expectSaga(watchMarketingAttributionOnConsentChange)
-        .provide([[select(selectAnalyticsOptedInToMarketing), false]])
-        .dispatch(setDataCollectionForMarketing(false))
-        .call([analytics, analytics.setDataCollectionForMarketing], false)
-        .not.put(
-          setDataCollectionForMarketing(true, { skipControllerSync: true }),
-        )
-        .not.call([analytics, analytics.setDataCollectionForMarketing], true)
-        .not.put(clearAttribution())
-        .silentRun(50);
     });
   });
 
   describe('watchMarketingAttributionOnControllerConsent', () => {
-    const attribution = { utm_source: 'source', capturedAt: 1 };
-    const bgStateUpdate = {
-      type: UPDATE_BG_STATE_KEY,
-      payload: { key: 'AnalyticsController' },
-    };
-
     it('clears attribution when the controller reports marketing off', async () => {
       await expectSaga(watchMarketingAttributionOnControllerConsent)
         .provide([
