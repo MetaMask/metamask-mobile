@@ -2480,6 +2480,34 @@ describe('CardHome Component', () => {
         screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
       ).toBeNull();
     });
+
+    it('hides learn more on Android even when the card can be added', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      mockUsePushProvisioning.mockReturnValue({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON),
+      ).toBeNull();
+    });
   });
 
   describe('How to use Apple Wallet', () => {
