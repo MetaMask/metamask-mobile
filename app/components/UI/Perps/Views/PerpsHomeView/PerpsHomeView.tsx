@@ -136,10 +136,10 @@ import PerpsMoreSection, {
 } from '../../components/PerpsMoreSection';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import ButtonIconCapsule from '../../../../../component-library/components-temp/ButtonIconCapsule';
-import FloatingHeader, {
-  useFloatingHeaderInset,
-} from '../../../../../component-library/components-temp/FloatingHeader';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderGlass, {
+  useHeaderGlassInset,
+} from '../../../../../component-library/components-temp/HeaderGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
@@ -338,7 +338,7 @@ const PerpsHomeView = () => {
     !outreachCampaign && !isServiceInterruptionBannerEnabled;
   const safeAreaInsets = useSafeAreaInsets();
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useFloatingHeaderInset(
+    useHeaderGlassInset(
       isBrandRefresh,
       headerIncludesTopInset ? safeAreaInsets.top : 0,
     );
@@ -1250,7 +1250,7 @@ const PerpsHomeView = () => {
       }}
       startAccessory={
         isBrandRefresh ? (
-          <ButtonIconCapsule
+          <ButtonIconGlass
             isCapsule
             iconName={IconName.ArrowLeft}
             size={ButtonIconSize.Md}
@@ -1267,7 +1267,7 @@ const PerpsHomeView = () => {
           alignItems={BoxAlignItems.Center}
           gap={2}
         >
-          <ButtonIconCapsule
+          <ButtonIconGlass
             isCapsule={isBrandRefresh}
             iconName={IconName.Search}
             size={ButtonIconSize.Md}
@@ -1395,9 +1395,9 @@ const PerpsHomeView = () => {
       {isBrandRefresh ? (
         <View style={styles.scrollView}>
           {/* Mounted before the content so assistive tech reads the header first. */}
-          <FloatingHeader onLayout={handleFloatingHeaderLayout}>
+          <HeaderGlass onLayout={handleFloatingHeaderLayout}>
             {header}
-          </FloatingHeader>
+          </HeaderGlass>
           {content}
         </View>
       ) : (

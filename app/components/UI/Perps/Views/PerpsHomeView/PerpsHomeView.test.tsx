@@ -10,7 +10,7 @@ import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
-import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/FloatingHeader';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
 import {

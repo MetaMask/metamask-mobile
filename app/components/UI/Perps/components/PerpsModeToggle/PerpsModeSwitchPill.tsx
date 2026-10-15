@@ -31,7 +31,7 @@ import {
   PERPS_PRO_GOLD,
 } from '../../constants/perpsModeColors';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
-import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 
 export const GLOW_TOTAL_MS = 680;
 const GLOW_SWEEP_MS = 630;
@@ -267,7 +267,7 @@ const PerpsModeSwitchPill = ({
       twClassName={isCapsule ? 'relative h-10' : 'relative h-8'}
       onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
     >
-      {isCapsule ? <GlassCapsule>{button}</GlassCapsule> : button}
+      {isCapsule ? <CapsuleGlass>{button}</CapsuleGlass> : button}
 
       {isShimmering && width > 0 ? (
         <Animated.View

@@ -38,7 +38,7 @@ import { getLatestActiveOrUpcomingCampaignOfType } from '../../../Rewards/compon
 import { CampaignType } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types';
-import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 
 // Rewards campaigns are only in Redux once the Rewards tab has been opened, so
 // the banner can render before the campaign is known. Dismissals in that window
@@ -189,7 +189,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
 
   return (
     <Pressable style={styles.container} onPress={handlePress} testID={testID}>
-      <GlassSurface
+      <BoxGlass
         isGlass={isGlass}
         radiusClassName="rounded-xl"
         isInteractive
@@ -231,7 +231,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
             {strings('perps.competition_banner.description')}
           </Text>
         </Box>
-      </GlassSurface>
+      </BoxGlass>
     </Pressable>
   );
 };
