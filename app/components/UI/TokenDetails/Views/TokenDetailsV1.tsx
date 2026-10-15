@@ -53,13 +53,12 @@ import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
 import WatchlistStarButton from '../../Assets/watchlist/components/WatchlistStarButton';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
+import { SECURITY_ATTRIBUTION_EXPLAINER } from '../components/V1/SecurityAttribution/SecurityAttribution';
 import SecuritySocialSection from '../components/V1/SecuritySocialSection/SecuritySocialSection';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
-import { SECURITY_EXPLAINER_KEYS } from '../components/V1/SecurityTab/SecurityTab.constants';
+import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
-import { STAT_EXPLAINER_KEYS } from '../components/V1/StatBar/StatBar.constants';
-import type { TokenStatKey } from '../components/V1/StatBar/StatBar.types';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
@@ -81,15 +80,11 @@ import {
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useElapsedMinutes } from '../hooks/useElapsedMinutes';
+import { useSecurityFacts } from '../hooks/useSecurityFacts';
+import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
-import { useTokenStatBarStats } from '../hooks/useTokenStatBarStats';
-import {
-  MOCK_SECURITY_FACTS_EVM,
-  MOCK_SECURITY_FACTS_SOLANA,
-  MOCK_SECURITY_FLAG_COUNT,
-  MOCK_SECURITY_VERDICT,
-} from '../mocks/tokenDetailsV1Mocks';
+import { useTokenStats } from '../hooks/useTokenStats';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
@@ -240,10 +235,21 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     trackEvent,
   ]);
 
-  const { securityData } = useTokenSecurityData({
-    assetId: caip19AssetId,
-    prefetchedData: token.securityData,
-  });
+  /**
+   * Read off the entry the token list badges already populate, rather than the
+   * `securityData` route param: that param is a snapshot taken at tap time and
+   * never revalidates, and carries no indication of when it was fetched.
+   */
+  const {
+    data: fetchedSecurityData,
+    isPending: isSecurityDataLoading,
+    error: securityDataError,
+    dataUpdatedAt: securityDataUpdatedAt,
+  } = useTokenSecurityQuery(caip19AssetId);
+
+  // `undefined` before the first fetch resolves, which the consumers below and
+  // `useSecurityFacts` treat the same as "no data".
+  const securityData = fetchedSecurityData ?? null;
 
   // Resolved once here and shared with the Overview tab's market details list,
   // so the screen does not fetch the same data from two places.
@@ -252,7 +258,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     useTokenMarketData(caip19AssetId);
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
-  const statBarStats = useTokenStatBarStats({
+  // Feeds both the stat bar and the Security tab. Ten of these figures appear
+  // on both, and deriving them once is what stops the two disagreeing.
+  const tokenStats = useTokenStats({
     marketData,
     isMarketDataLoading,
     securityData,
@@ -272,18 +280,25 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     null,
   );
 
-  const handleStatPress = useCallback((statKey: TokenStatKey) => {
-    setExplainerCopy(STAT_EXPLAINER_KEYS[statKey]);
-  }, []);
-
-  const handleSecurityRowPress = useCallback((rowKey: SecurityRowKey) => {
-    setExplainerCopy(SECURITY_EXPLAINER_KEYS[rowKey]);
+  /**
+   * Opens the definition for a tapped label, from either surface.
+   *
+   * One handler rather than one each: the stat bar's keys and the Security
+   * tab's rows are both `SecurityRowKey` now, so there is nothing left to tell
+   * apart.
+   */
+  const handleRowExplain = useCallback((rowKey: SecurityRowKey) => {
+    setExplainerCopy(EXPLAINER_KEYS_BY_ROW[rowKey]);
   }, []);
 
   const handleExplainerClose = useCallback(() => setExplainerCopy(null), []);
 
   const handleAgePress = useCallback(() => {
     setExplainerCopy(AGE_EXPLAINER_COPY);
+  }, []);
+
+  const handleAttributionPress = useCallback(() => {
+    setExplainerCopy(SECURITY_ATTRIBUTION_EXPLAINER);
   }, []);
 
   const isNativeToken = Boolean(token.isETH || token.isNative);
@@ -341,11 +356,44 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     handleScrollViewLayout,
     tabContentContainerStyle,
     clampScrollToTabBar,
+    scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+
+  /**
+   * Selecting the tab alone would leave the reader looking at the price hero
+   * while the thing they asked for sat a chart's height below the fold, so the
+   * verdict pill scrolls the page as well as switching tabs.
+   */
+  const handleSecurityPress = useCallback(() => {
+    activateTab('security');
+    scrollToTabBar();
+  }, [activateTab, scrollToTabBar]);
+
+  const securityFacts = useSecurityFacts({
+    securityData,
+    isLoading: isSecurityDataLoading,
+    error: securityDataError,
+  });
+
+  // Gated on the tab because tabs stay mounted once visited, so an ungated
+  // clock would keep ticking behind Overview for a line nobody is looking at.
+  const securityFetchedMinutesAgo = useElapsedMinutes({
+    since: securityDataUpdatedAt,
+    enabled: activeTab === 'security',
+  });
+
+  /**
+   * No payload rides along: the detail screen subscribes to the same query
+   * entry this tab just read, so it renders from cache without a request and
+   * stays in step if that entry revalidates.
+   */
+  const handleOpenContractSecurity = useCallback(() => {
+    navigation.navigate(Routes.CONTRACT_SECURITY, { token });
+  }, [navigation, token]);
 
   const renderTabPage = useCallback(
     (tab: TokenDetailsV1TabKey) => {
@@ -364,19 +412,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         );
       }
       if (tab === 'security') {
-        // TODO(ASSETS-4022): replace with real facts derived from
-        // `securityData`. The fixture is chosen by chain because the two
-        // namespaces render materially different tabs — Solana has no fee or
-        // creation data at all — so a single fixture would leave one of them
-        // unverified.
         return (
           <SecurityTab
-            facts={
-              isNonEvmChainId(token.chainId as string)
-                ? MOCK_SECURITY_FACTS_SOLANA
-                : MOCK_SECURITY_FACTS_EVM
-            }
-            onExplain={handleSecurityRowPress}
+            facts={securityFacts}
+            stats={tokenStats}
+            onExplain={handleRowExplain}
+            onOpenContractDetails={handleOpenContractSecurity}
+            onExplainAttribution={handleAttributionPress}
+            fetchedMinutesAgo={securityFetchedMinutesAgo}
           />
         );
       }
@@ -392,7 +435,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       currentCurrency,
       securityData,
       marketData,
-      handleSecurityRowPress,
+      securityFacts,
+      securityFetchedMinutesAgo,
+      tokenStats,
+      handleRowExplain,
+      handleAttributionPress,
+      handleOpenContractSecurity,
       socialEnabled,
     ],
   );
@@ -500,18 +548,18 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
                 <Box twClassName="px-4">
                   <SecuritySocialSection
-                    securityVerdict={MOCK_SECURITY_VERDICT}
-                    securityFlagCount={MOCK_SECURITY_FLAG_COUNT}
+                    securityVerdict={securityFacts.verdict}
+                    securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={() => activateTab('security')}
+                    onSecurityPress={handleSecurityPress}
                   />
                 </Box>
                 <Box twClassName="py-4">
                   <StatBar
                     variant={variant}
-                    stats={statBarStats}
-                    onStatPress={handleStatPress}
+                    stats={tokenStats}
+                    onStatPress={handleRowExplain}
                   />
                 </Box>
 
