@@ -5,6 +5,10 @@ import Engine from '../../../../core/Engine';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import {
+  clearReportedMoneyInterestError,
+  reportMoneyInterestError,
+} from '../utils/reportMoneyInterestError';
 import useMoneyAccountInterest from './useMoneyAccountInterest';
 
 jest.mock('react-redux', () => ({
@@ -39,6 +43,15 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
+jest.mock('../utils/reportMoneyInterestError', () => ({
+  reportMoneyInterestError: jest.fn(),
+  clearReportedMoneyInterestError: jest.fn(),
+}));
+
+const mockReportMoneyInterestError = jest.mocked(reportMoneyInterestError);
+const mockClearReportedMoneyInterestError = jest.mocked(
+  clearReportedMoneyInterestError,
+);
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
 const mockMessengerCall = jest.mocked(Engine.controllerMessenger.call);
@@ -180,5 +193,46 @@ describe('useMoneyAccountInterest', () => {
 
     expect(mockMessengerCall).not.toHaveBeenCalled();
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it('reports each failed interest window', () => {
+    setSelectors();
+    const last30DaysError = new Error('30d down');
+    const sinceInceptionError = new Error('inception down');
+    mockUseQuery
+      .mockReturnValueOnce({
+        ...MOCK_QUERY_RESULT,
+        isError: true,
+        error: last30DaysError,
+      } as never)
+      .mockReturnValueOnce({
+        ...MOCK_QUERY_RESULT,
+        isError: true,
+        error: sinceInceptionError,
+      } as never);
+
+    renderHook(() => useMoneyAccountInterest());
+
+    expect(mockReportMoneyInterestError).toHaveBeenCalledWith(
+      '30d',
+      last30DaysError,
+    );
+    expect(mockReportMoneyInterestError).toHaveBeenCalledWith(
+      'since_inception',
+      sinceInceptionError,
+    );
+  });
+
+  it('clears reported failures when the interest windows succeed', () => {
+    setSelectors();
+    mockUseQuery.mockReturnValue(MOCK_QUERY_RESULT as never);
+
+    renderHook(() => useMoneyAccountInterest());
+
+    expect(mockReportMoneyInterestError).not.toHaveBeenCalled();
+    expect(mockClearReportedMoneyInterestError).toHaveBeenCalledWith('30d');
+    expect(mockClearReportedMoneyInterestError).toHaveBeenCalledWith(
+      'since_inception',
+    );
   });
 });
