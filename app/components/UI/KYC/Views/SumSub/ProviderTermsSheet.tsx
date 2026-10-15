@@ -18,8 +18,11 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { METAMASK_PRIVACY_POLICY_URL, METAMASK_TERMS_URL } from './constants';
-import type { KycCatalogDisclaimerLink } from './hooks/useKycSessionDisclaimers';
+import {
+  METAMASK_PRIVACY_POLICY_URL,
+  METAMASK_TERMS_URL,
+} from '../../../Ramp/Views/VirtualBankAccount/constants';
+import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 
 interface TermsLink {

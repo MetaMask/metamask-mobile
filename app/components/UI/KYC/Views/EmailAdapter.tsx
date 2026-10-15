@@ -16,21 +16,18 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
-import Engine from '../../../../../../core/Engine';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import ReduxService from '../../../../../../core/redux';
-import Logger from '../../../../../../util/Logger';
-import {
-  useMfa,
-  type MfaFlowErrorCode,
-} from '../../../../../../util/identity/mfa';
-import { getErrorMessage } from '../../../../../Views/Mfa/labels';
-import type { RootState } from '../../../../../../reducers';
-import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
-import { strings } from '../../../../../../../locales/i18n';
-import { VBA_KYC_VENDOR } from '../constants';
-import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
-import { getVbaVendorTermsAcceptance } from '../vbaVendorTermsStorage';
+import Engine from '../../../../core/Engine';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import ReduxService from '../../../../core/redux';
+import Logger from '../../../../util/Logger';
+import { useMfa, type MfaFlowErrorCode } from '../../../../util/identity/mfa';
+import { getErrorMessage } from '../../../Views/Mfa/labels';
+import type { RootState } from '../../../../reducers';
+import { selectSelectedVbaWalletAddress } from '../../../../selectors/rampsController';
+import { strings } from '../../../../../locales/i18n';
+import { VBA_KYC_VENDOR } from '../../Ramp/Views/VirtualBankAccount/constants';
+import { useOpenVbaOnboarding } from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { getVbaVendorTermsAcceptance } from '../../Ramp/Views/VirtualBankAccount/vbaVendorTermsStorage';
 
 export const VbaEmailAdapterSelectorsIDs = {
   CONTAINER: 'vba-email-adapter-container',

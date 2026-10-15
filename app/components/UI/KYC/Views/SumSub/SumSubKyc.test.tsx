@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './VbaSumSubKyc';
+import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';

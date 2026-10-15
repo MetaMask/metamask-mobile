@@ -1,19 +1,19 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import { act, renderHook } from '@testing-library/react-native';
-import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
-import { flushPromises } from '../../../../../../util/test/utils';
-import type { VbaOnboardingDestinationId } from '../vbaOnboardingFunnel';
-import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { flushPromises } from '../../../../util/test/utils';
+import type { VbaOnboardingDestinationId } from '../../Ramp/Views/VirtualBankAccount/vbaOnboardingFunnel';
+import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
   type ResolvedVbaOnboarding,
-} from './useVbaOnboardingRouting';
+} from '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   isTerminalVbaKycStatus,
   useVbaKycStatusRedirect,
-} from './useVbaKycStatusRedirect';
+} from './useKycStatusRedirect';
 
 interface MockSessionStatus {
   finalStatus: string;
@@ -33,12 +33,15 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('./useVbaOnboardingRouting', () => ({
-  resolveVbaOnboarding: jest.fn(),
-  navigateToVbaOnboardingDestination: jest.fn(),
-}));
+jest.mock(
+  '../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    resolveVbaOnboarding: jest.fn(),
+    navigateToVbaOnboardingDestination: jest.fn(),
+  }),
+);
 
-jest.mock('../../../../../../core/Engine', () => ({
+jest.mock('../../../../core/Engine', () => ({
   context: {
     KycController: {
       refreshSessionStatus: jest.fn(),
@@ -46,7 +49,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../../util/Logger', () => ({
+jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     log: jest.fn(),

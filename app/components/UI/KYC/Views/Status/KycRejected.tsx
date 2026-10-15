@@ -1,8 +1,10 @@
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import VbaIllustration, { VbaIllustrationSource } from './VbaIllustration';
-import VbaOnboardingError from './VbaOnboardingError';
+import VbaIllustration, {
+  VbaIllustrationSource,
+} from '../../components/Illustration';
+import VbaOnboardingError from '../../components/OnboardingError';
 
 export const VbaKycRejectedSelectorsIDs = {
   CONTAINER: 'vba-kyc-rejected-container',

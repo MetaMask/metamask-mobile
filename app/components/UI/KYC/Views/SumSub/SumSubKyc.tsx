@@ -21,10 +21,12 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { strings } from '../../../../../../locales/i18n';
-import { useLaunchSumSub } from './hooks/useLaunchSumSub';
-import type { VbaIdentityVerificationCompletion } from './modules/types';
-import VbaIllustration, { VbaIllustrationSource } from './VbaIllustration';
-import VbaOnboardingError from './VbaOnboardingError';
+import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
+import type { VbaIdentityVerificationCompletion } from './types';
+import VbaIllustration, {
+  VbaIllustrationSource,
+} from '../../components/Illustration';
+import VbaOnboardingError from '../../components/OnboardingError';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
