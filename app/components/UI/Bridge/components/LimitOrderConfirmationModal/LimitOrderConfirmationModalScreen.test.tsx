@@ -697,6 +697,32 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('clears the token amounts and preserves the remaining form state once the order is created', async () => {
+    const { getByTestId, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '0.1',
+          destAmount: '341.22',
+          limitOrderCostTolerance: '0.5',
+        },
+      }),
+    );
+    const initialSourceToken = store.getState().bridge.sourceToken;
+    const initialDestToken = store.getState().bridge.destToken;
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBeUndefined();
+      expect(store.getState().bridge.destAmount).toBeUndefined();
+    });
+    expect(store.getState().bridge.sourceToken).toEqual(initialSourceToken);
+    expect(store.getState().bridge.destToken).toEqual(initialDestToken);
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
+  });
+
   it('shows the order created success toast once the order is created', async () => {
     const { getByTestId } = renderScreen(createBridgeTestState({}));
 
@@ -717,7 +743,14 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
   it('displays an error banner when the order cannot be created', async () => {
     mockCreateLimitOrder.mockRejectedValue(new Error('boom'));
-    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+    const { getByTestId, getByText, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '0.1',
+          destAmount: '341.22',
+        },
+      }),
+    );
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -731,6 +764,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();
+    expect(store.getState().bridge.sourceAmount).toBe('0.1');
+    expect(store.getState().bridge.destAmount).toBe('341.22');
   });
 
   it('retries the order creation when pressed after a failure', async () => {
