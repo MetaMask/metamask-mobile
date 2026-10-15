@@ -81,7 +81,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       ),
     ButtonSize: { Lg: 'lg' },
     ButtonVariant: { Primary: 'primary', Tertiary: 'tertiary' },
-    FontWeight: { Bold: 'bold' },
+    FontFamily: { Hero: 'hero' },
+    FontWeight: { Regular: 'regular', Bold: 'bold' },
     TextColor: { TextAlternative: 'text-alternative' },
     TextVariant: { DisplayLg: 'display-lg', BodyMd: 'body-md' },
     BoxFlexDirection: { Column: 'column' },
@@ -117,7 +118,7 @@ describe('MarketingMoment', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the title as a header with one description', () => {
+  it('renders a string title as a header and a string description', () => {
     const { getByTestId } = renderMoment();
 
     expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
@@ -131,29 +132,49 @@ describe('MarketingMoment', () => {
     ).toHaveTextContent('Long or short with up to 40x leverage.');
   });
 
-  it('renders two description paragraphs', () => {
+  it('spreads titleProps and descriptionProps onto the text', () => {
     const { getByTestId } = renderMoment({
-      description: [
-        'It should arrive in 4 to 6 weeks.',
-        'Set up your virtual card.',
-      ],
+      titleProps: { testID: 'custom-title' },
+      descriptionProps: { testID: 'custom-description' },
     });
 
-    expect(
-      getByTestId(`${MarketingMomentSelectorsIDs.DESCRIPTION}-0`),
-    ).toHaveTextContent('It should arrive in 4 to 6 weeks.');
-    expect(
-      getByTestId(`${MarketingMomentSelectorsIDs.DESCRIPTION}-1`),
-    ).toHaveTextContent('Set up your virtual card.');
+    expect(getByTestId('custom-title')).toHaveTextContent('Perps are here');
+    expect(getByTestId('custom-description')).toHaveTextContent(
+      'Long or short with up to 40x leverage.',
+    );
   });
 
-  it('renders supporting content and artwork', () => {
+  it('replaces the title and description text with custom nodes', () => {
+    const { getByTestId, queryByTestId } = renderMoment({
+      title: <View testID="custom-title-node" />,
+      description: <View testID="custom-description-node" />,
+    });
+
+    expect(getByTestId('custom-title-node')).toBeOnTheScreen();
+    expect(getByTestId('custom-description-node')).toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.TITLE),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders children in a wrapper that accepts animated view props', () => {
     const { getByTestId } = renderMoment({
-      supportingContent: <View testID="marketing-moment-supporting" />,
+      children: <View testID="marketing-moment-children" />,
+      childrenWrapperAnimatedViewProps: { testID: 'children-wrapper' },
+    });
+
+    expect(getByTestId('children-wrapper')).toBeOnTheScreen();
+    expect(getByTestId('marketing-moment-children')).toBeOnTheScreen();
+  });
+
+  it('renders the artwork', () => {
+    const { getByTestId } = renderMoment({
       artwork: <View testID="marketing-moment-custom-art" />,
     });
 
-    expect(getByTestId('marketing-moment-supporting')).toBeOnTheScreen();
     expect(getByTestId('marketing-moment-custom-art')).toBeOnTheScreen();
   });
 
@@ -171,6 +192,34 @@ describe('MarketingMoment', () => {
     fireEvent.press(getByTestId(MarketingMomentSelectorsIDs.SECONDARY_BUTTON));
 
     expect(onSecondaryPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('omits every slot that is not provided', () => {
+    const { getByTestId, queryByTestId } = renderMoment({
+      title: undefined,
+      description: undefined,
+      primaryAction: undefined,
+      secondaryAction: undefined,
+    });
+
+    expect(
+      getByTestId(MarketingMomentSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.TITLE),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.ARTWORK),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.PRIMARY_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MarketingMomentSelectorsIDs.SECONDARY_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders a page background and forced theme when provided', () => {
