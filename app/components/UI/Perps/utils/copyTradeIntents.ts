@@ -11,9 +11,9 @@ const HYPERLIQUID_ARBITRUM_CAIP_CHAIN_ID = 'eip155:42161';
 /**
  * Exchange order ids a copy-trade intent can be matched against.
  *
- * Scale orders expand into one exchange order per rung, so each child id is
- * returned. TWAP and chase return a strategy handle instead of an exchange
- * order id, and their fills carry other ids, so they return none.
+ * Advanced multi-order strategies are not supported by the copy-trade flow.
+ * TWAP and chase return a strategy handle instead of an exchange order id,
+ * while scale returns multiple child order ids.
  *
  * @param orderType - Type of the submitted order.
  * @param result - Result of the placement.
@@ -23,12 +23,15 @@ export const getCopyTradeOids = (
   orderType: OrderType,
   result: OrderResult | undefined,
 ): string[] => {
-  if (!result || orderType === 'twap' || orderType === 'chase') {
+  if (
+    !result ||
+    orderType === 'scale' ||
+    orderType === 'twap' ||
+    orderType === 'chase'
+  ) {
     return [];
   }
-  const ids =
-    orderType === 'scale' ? (result.childOrderIds ?? []) : [result.orderId];
-  return ids.filter(
+  return [result.orderId].filter(
     (id): id is string => typeof id === 'string' && id.length > 0,
   );
 };

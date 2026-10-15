@@ -39,26 +39,7 @@ describe('getCopyTradeOids', () => {
     expect(oids).toStrictEqual(['42']);
   });
 
-  it('returns every child order id for a scale order', () => {
-    const result = createResult({
-      orderId: 'scale-group-1',
-      childOrderIds: ['101', '102', '103'],
-    });
-
-    const oids = getCopyTradeOids('scale', result);
-
-    expect(oids).toStrictEqual(['101', '102', '103']);
-  });
-
-  it('returns no ids for a scale order without children', () => {
-    const result = createResult({ orderId: 'scale-group-1' });
-
-    const oids = getCopyTradeOids('scale', result);
-
-    expect(oids).toStrictEqual([]);
-  });
-
-  it.each(['twap', 'chase'] as OrderType[])(
+  it.each(['scale', 'twap', 'chase'] as OrderType[])(
     'returns no ids for a %s order',
     (orderType) => {
       const result = createResult({ orderId: '777' });
@@ -69,12 +50,12 @@ describe('getCopyTradeOids', () => {
     },
   );
 
-  it('drops empty order ids', () => {
-    const result = createResult({ childOrderIds: ['101', '', '103'] });
+  it('returns no ids when the order id is empty', () => {
+    const result = createResult({ orderId: '' });
 
-    const oids = getCopyTradeOids('scale', result);
+    const oids = getCopyTradeOids('market', result);
 
-    expect(oids).toStrictEqual(['101', '103']);
+    expect(oids).toStrictEqual([]);
   });
 
   it('returns no ids when the order id is missing', () => {
@@ -104,20 +85,6 @@ describe('buildPerpsCopyTradeIntents', () => {
         copierAccount: { caip10: `eip155:42161:${ADDRESS}` },
         execution: { product: 'perps', oid: '123456789' },
       },
-    ]);
-  });
-
-  it('builds one intent per scale child', () => {
-    const params = createParams({
-      orderType: 'scale',
-      result: createResult({ childOrderIds: ['101', '102'] }),
-    });
-
-    const intents = buildPerpsCopyTradeIntents(params);
-
-    expect(intents.map((intent) => intent.execution)).toStrictEqual([
-      { product: 'perps', oid: '101' },
-      { product: 'perps', oid: '102' },
     ]);
   });
 
