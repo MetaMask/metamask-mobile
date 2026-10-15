@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { Image } from 'react-native';
+import { Image, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
@@ -21,6 +21,7 @@ import marksDark from '../../Views/ApplePayConfirmation/assets/marks-dark.png';
 import hand from './assets/hand.png';
 import { ApplePayUsageSheetSelectors } from './ApplePayUsageSheet.testIds';
 
+const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
 const HAND_WIDTH = 240;
 const HAND_ASPECT_RATIO = 720 / 531;
 const MARKS_WIDTH = 141;
@@ -38,6 +39,10 @@ const ApplePayUsageSheet = () => {
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleLearnMore = useCallback(() => {
+    Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
   }, []);
 
   return (
@@ -105,6 +110,16 @@ const ApplePayUsageSheet = () => {
             testID={ApplePayUsageSheetSelectors.CONTINUE_BUTTON}
           >
             {strings('card.apple_pay_usage.continue')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            twClassName="mt-1"
+            onPress={handleLearnMore}
+            testID={ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON}
+          >
+            {strings('card.apple_pay_usage.learn_more')}
           </Button>
         </Box>
       </Box>

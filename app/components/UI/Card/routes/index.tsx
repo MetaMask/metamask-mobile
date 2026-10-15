@@ -51,6 +51,7 @@ import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/C
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
 import ApplePayUsageSheet from '../components/ApplePayUsageSheet';
+import ApplePayAddSheet from '../components/ApplePayAddSheet';
 import {
   clearNativeStackNavigatorOptions,
   fullScreenModalSlideFromBottomNativeOptions,
@@ -262,6 +263,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.APPLE_PAY_USAGE}
       component={ApplePayUsageSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.APPLE_PAY_ADD}
+      component={ApplePayAddSheet}
     />
   </ModalsStack.Navigator>
 );

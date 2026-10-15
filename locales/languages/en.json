@@ -11558,7 +11558,14 @@
     "apple_pay_splash": {
       "title": "Your iPhone is now your MetaMask card.",
       "lockup_label": "MetaMask and Apple Pay",
-      "close": "Close"
+      "close": "Close",
+      "continue": "Continue"
+    },
+    "apple_pay_add": {
+      "title": "Add your MetaMask Card to Apple Pay",
+      "description": "Apple Pay is an easy, secure and private way to pay with your iPhone and Apple Watch.",
+      "details": "There are no additional app downloads, sign ups or fees. Get setup in seconds.",
+      "got_it": "Got it"
     },
     "apple_pay_usage": {
       "learn_more": "Learn more about Apple Pay",

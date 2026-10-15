@@ -282,6 +282,95 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('keeps the current add state while a same-card refocus check is in flight', async () => {
+      let resolveRecheck: (value: {
+        isAvailable: boolean;
+        canAddCard: boolean;
+        existingCardStatus: 'active';
+      }) => void = () => undefined;
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockReturnValue(
+        new Promise((resolve) => {
+          resolveRecheck = resolve;
+        }),
+      );
+
+      act(() => {
+        getFocusEffect()?.();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.canAddToWallet).toBe(true);
+
+      await act(async () => {
+        resolveRecheck({
+          isAvailable: true,
+          canAddCard: false,
+          existingCardStatus: 'active',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.canAddToWallet).toBe(false);
+      });
+
+      unmount();
+    });
+
+    it('shows loading when the card changes before the new eligibility check resolves', async () => {
+      let resolveNext: (value: {
+        isAvailable: boolean;
+        canAddCard: boolean;
+        recommendedAction: 'add_card';
+      }) => void = () => undefined;
+      const { result, rerender, unmount } = renderHook(
+        ({ walletProvisioning }) =>
+          usePushProvisioning({ ...defaultOptions, walletProvisioning }),
+        { initialProps: { walletProvisioning: mockWalletProvisioning } },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      mockWalletAdapter.getEligibility.mockReturnValue(
+        new Promise((resolve) => {
+          resolveNext = resolve;
+        }),
+      );
+
+      rerender({
+        walletProvisioning: { ...mockWalletProvisioning, lastFour: '5678' },
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.canAddToWallet).toBe(false);
+
+      await act(async () => {
+        resolveNext({
+          isAvailable: true,
+          canAddCard: true,
+          recommendedAction: 'add_card',
+        });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.canAddToWallet).toBe(true);
+      });
+
+      unmount();
+    });
+
     it('does not check eligibility when wallet provisioning is missing', async () => {
       const { unmount } = renderHook(() =>
         usePushProvisioning({ ...defaultOptions, walletProvisioning: null }),

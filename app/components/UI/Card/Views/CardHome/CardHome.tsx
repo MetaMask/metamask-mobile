@@ -246,10 +246,10 @@ const CardHome = () => {
     isLoading: isPushProvisioningLoading,
     canAddToWallet,
     isCardInWallet,
-    walletEntry,
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
+    walletEntry,
   } = useCardWalletProvisioning(data, { platformWalletSupported });
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
   const handleOpenInWallet = useCallback(() => {
@@ -262,6 +262,9 @@ const CardHome = () => {
   const handleLearnMoreAboutApplePay = useCallback(() => {
     Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
   }, []);
+  const handleHowToUseApplePay = useCallback(() => {
+    actions.howToUseApplePayAction(isCardInWallet && !canAddToWallet);
+  }, [actions, canAddToWallet, isCardInWallet]);
 
   const { canEnableCard, enableCard, provisioningView, isEnableCardLoading } =
     useCardEnableCard(data);
@@ -897,7 +900,7 @@ const CardHome = () => {
                 borderRadius={4}
               />
             )}
-            {Platform.OS === 'ios' && (
+            {Platform.OS === 'ios' && !isCardInWallet && (
               <Button
                 variant={ButtonVariant.Tertiary}
                 size={ButtonSize.Sm}
@@ -972,7 +975,7 @@ const CardHome = () => {
               actions.digitalWalletInstructionsAction
             }
             showHowToUseApplePay={isCardInWallet}
-            onHowToUseApplePay={actions.howToUseApplePayAction}
+            onHowToUseApplePay={handleHowToUseApplePay}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

@@ -329,7 +329,8 @@ const MoneyHomeView = () => {
   const last30DaysInterest =
     formattedLast30DaysInterest ?? projectedMonthlyFallback;
   const sinceInceptionInterest =
-    formattedSinceInceptionInterest ?? formattedZero;
+    formattedSinceInceptionInterest ??
+    (sinceInceptionQuery.isError ? undefined : formattedZero);
 
   const isEarningsLoading =
     last30DaysQuery.isInitialLoading ||
@@ -337,9 +338,7 @@ const MoneyHomeView = () => {
     (formattedLast30DaysInterest === undefined &&
       (vaultApyQuery.isLoading || isBalanceLoading));
 
-  const hasEarningsContent = Boolean(
-    last30DaysInterest && sinceInceptionInterest,
-  );
+  const hasEarningsContent = Boolean(last30DaysInterest);
   const earningsFailed =
     (last30DaysQuery.isError || sinceInceptionQuery.isError) &&
     !hasEarningsContent;

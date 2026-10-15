@@ -114,6 +114,35 @@ describe('useApplePaySplashPrompt', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps the splash closed on the next Card Home mount after it was seen', () => {
+    const { store, unmount } = renderHookWithProvider(
+      () => useApplePaySplashPrompt(readyEligibility),
+      {
+        state: { card: cardInitialState },
+      },
+    );
+
+    act(() => {
+      focusEffect?.();
+    });
+
+    expect(store.getState().card.applePaySplashSeen).toBe(true);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    unmount();
+    mockNavigate.mockClear();
+
+    renderHookWithProvider(() => useApplePaySplashPrompt(readyEligibility), {
+      state: { card: store.getState().card },
+    });
+
+    act(() => {
+      focusEffect?.();
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('waits until the card can be added to Apple Wallet', () => {
     const eligibility = {
       canAddToWallet: false,

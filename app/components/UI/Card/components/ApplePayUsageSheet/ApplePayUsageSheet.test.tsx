@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { mockTheme } from '../../../../../util/theme';
@@ -90,5 +91,13 @@ describe('ApplePayUsageSheet', () => {
     fireEvent.press(getByTestId(ApplePayUsageSheetSelectors.CONTINUE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the Apple Pay learn-more page', () => {
+    const { getByTestId } = renderWithProvider(<ApplePayUsageSheet />);
+
+    fireEvent.press(getByTestId(ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON));
+
+    expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
   });
 });
