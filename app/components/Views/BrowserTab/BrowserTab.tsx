@@ -138,6 +138,7 @@ import UrlAutocomplete, {
 } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import { parseCaipAccountId } from '@metamask/utils';
 import { selectBrowserFullscreen } from '../../../selectors/browser';
 import {
@@ -386,7 +387,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return true;
         }
 
-        const testResult = await getPhishingTestResultAsync(urlToCheck);
+        const testResult = await getPhishingTestResultAsync(
+          urlToCheck,
+          RequestSourceFlow.Browser,
+        );
         return !testResult?.result;
       },
       [whitelist],

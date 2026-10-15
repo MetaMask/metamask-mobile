@@ -1,5 +1,8 @@
 import { Hex, Json, JsonRpcRequest } from '@metamask/utils';
-import type { PhishingController } from '@metamask/phishing-controller';
+import {
+  RequestSourceFlow,
+  type PhishingController,
+} from '@metamask/phishing-controller';
 import { parseApprovalTransactionData } from '../../components/Views/confirmations/utils/approvals';
 import { parseAndNormalizeSignTypedData } from '../../components/Views/confirmations/utils/signature';
 import {
@@ -185,6 +188,45 @@ export function isEthSignTypedData(req: BasicJsonRpcRequest): boolean {
 }
 
 /**
+ * Check if request is wallet_sendCalls
+ */
+export function isWalletSendCalls(req: BasicJsonRpcRequest): boolean {
+  return req.method === 'wallet_sendCalls';
+}
+
+/**
+ * Check if request asks the user to connect accounts to a dapp
+ */
+export function isDappConnectionRequest(req: BasicJsonRpcRequest): boolean {
+  return ['eth_requestAccounts', 'wallet_requestPermissions'].includes(
+    req.method,
+  );
+}
+
+/**
+ * Classify the user flow that triggered an origin scan, so the scan request
+ * can be attributed via the request-source header.
+ *
+ * @param req - The JSON-RPC request
+ * @returns The request-source flow for the origin scan
+ */
+export function getOriginScanFlow(req: BasicJsonRpcRequest): RequestSourceFlow {
+  if (
+    isEthSendTransaction(req) ||
+    isEthSignTypedData(req) ||
+    isWalletSendCalls(req)
+  ) {
+    return RequestSourceFlow.Confirmations;
+  }
+
+  if (isDappConnectionRequest(req)) {
+    return RequestSourceFlow.DappConnection;
+  }
+
+  return RequestSourceFlow.RpcTrustSignals;
+}
+
+/**
  * Scan an address using the phishing controller
  *
  * @param phishingController - The phishing controller
@@ -208,13 +250,15 @@ export async function scanAddress(
  *
  * @param phishingController - The phishing controller
  * @param origin - The origin URL to scan
+ * @param flow - The user flow that triggered the scan
  */
 export async function scanUrl(
   phishingController: PhishingController,
   origin: string,
+  flow: RequestSourceFlow,
 ): Promise<void> {
   try {
-    await phishingController.scanUrl(origin);
+    await phishingController.scanUrl(origin, flow);
   } catch (error) {
     Logger.log(`[scanUrl] Failed to scan URL ${origin}:`, error);
   }
