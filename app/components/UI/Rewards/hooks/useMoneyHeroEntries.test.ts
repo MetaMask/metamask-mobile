@@ -14,12 +14,13 @@ const PROFILE_ID = 'profile-a';
 const mockFetchEarningsSummary = jest.fn();
 const mockFetchReferralMe = jest.fn();
 const summary = { lifetime_total: '1' } as EarningsSummaryDto;
+const referralData = { roles: [] } as unknown as ReferralMeDto;
 
 const renderEntries = ({
   referral = {
     loading: false,
     error: false,
-    data: { roles: [] } as ReferralMeDto,
+    data: referralData,
   },
   earnings = { loading: false, error: false, data: summary },
 }: {
@@ -115,7 +116,7 @@ describe('useMoneyHeroEntries', () => {
       referral: {
         loading: false,
         error: true,
-        data: { roles: [] } as ReferralMeDto,
+        data: referralData,
       },
       earnings: { loading: false, error: true, data: summary },
     });

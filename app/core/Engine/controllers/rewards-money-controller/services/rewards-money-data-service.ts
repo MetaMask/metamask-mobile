@@ -279,9 +279,16 @@ function retryAfterSeconds(header: string | null): number | undefined {
  * means the header was missing: jitter alone, so a registration the server
  * shed with no `Retry-After` still waits before its one retry.
  */
+/** 0..BUSY_RETRY_JITTER_MS inclusive. Jitter only, not a secret. */
+function busyRetryJitterMs(): number {
+  const values = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(values);
+  return values[0] % (BUSY_RETRY_JITTER_MS + 1);
+}
+
 function busyRetryDelayMs(waitSeconds: number | undefined): number {
   const baseMs = waitSeconds === undefined ? 0 : waitSeconds * 1000;
-  return baseMs + Math.floor(Math.random() * (BUSY_RETRY_JITTER_MS + 1));
+  return baseMs + busyRetryJitterMs();
 }
 
 function delay(ms: number): Promise<void> {

@@ -75,6 +75,107 @@ export type FetchReferralMeResult =
   | { status: 'settled'; profileId: string | undefined }
   | { status: 'discarded'; profileId: string | undefined };
 
+function captureRewardsMoney(error: unknown, context: string): void {
+  captureException(error instanceof Error ? error : new Error(String(error)), {
+    tags: { feature: 'rewards-money', context },
+  });
+}
+
+type SessionGate =
+  | { kind: 'unavailable' }
+  | {
+      kind: 'discarded';
+      profileId: string | undefined;
+      shouldSettleLoading: boolean;
+    }
+  | { kind: 'current' };
+
+/**
+ * A session that moved, or a newer request for the same profile, discards
+ * this read. An unanswered re-read is not a sign-out.
+ */
+async function sessionGate(
+  sessionProfileId: string,
+  setProfileId: (profileId: string | undefined) => void,
+  requestGeneration: number,
+): Promise<SessionGate> {
+  const recheck = await recheckSession(sessionProfileId, setProfileId);
+  if (recheck.status === 'unavailable') {
+    return { kind: 'unavailable' };
+  }
+  if (recheck.status === 'changed') {
+    return {
+      kind: 'discarded',
+      profileId: recheck.profileId,
+      shouldSettleLoading: true,
+    };
+  }
+  if (!isLatestReferralMeRequest(sessionProfileId, requestGeneration)) {
+    return {
+      kind: 'discarded',
+      profileId: sessionProfileId,
+      shouldSettleLoading: false,
+    };
+  }
+  return { kind: 'current' };
+}
+
+function discardedReferralRead(
+  gate: Extract<SessionGate, { kind: 'discarded' }>,
+): {
+  shouldSettleLoading: boolean;
+  result: FetchReferralMeResult;
+} {
+  return {
+    shouldSettleLoading: gate.shouldSettleLoading,
+    result: { status: 'discarded', profileId: gate.profileId },
+  };
+}
+
+/**
+ * A session miss after the read started is rethrown and writes nothing. A
+ * moved or superseded session discards the read. Anything else is this
+ * profile's own failure.
+ */
+async function settleReferralMeFailure({
+  error,
+  sessionProfileId,
+  requestGeneration,
+  setProfileId,
+  onFailure,
+}: {
+  error: unknown;
+  sessionProfileId: string;
+  requestGeneration: number;
+  setProfileId: (profileId: string | undefined) => void;
+  onFailure: () => void;
+}): Promise<{
+  shouldSettleLoading: boolean;
+  result: FetchReferralMeResult;
+}> {
+  if (error instanceof SessionProfileUnavailableError) {
+    captureRewardsMoney(error, 'referralMe.session_unavailable');
+    throw error;
+  }
+  const gate = await sessionGate(
+    sessionProfileId,
+    setProfileId,
+    requestGeneration,
+  );
+  if (gate.kind === 'unavailable') {
+    throw error;
+  }
+  if (gate.kind === 'discarded') {
+    return discardedReferralRead(gate);
+  }
+  captureRewardsMoney(error, 'referralMe.fetch_failed');
+  onFailure();
+  return {
+    shouldSettleLoading: true,
+    result: { status: 'settled', profileId: sessionProfileId },
+  };
+}
+
 /**
  * Fetches `GET /referral/me` and writes it into the profile-keyed
  * `rewardsMoney` slice.
@@ -104,7 +205,12 @@ export const useReferralMe = ({
       forceFresh?: boolean;
       followUp?: boolean;
     }) => Promise<FetchReferralMeResult>
-  >(async () => ({ status: 'settled', profileId: undefined }));
+  >(() =>
+    Promise.resolve({
+      status: 'settled',
+      profileId: undefined,
+    }),
+  );
 
   const runFetch = useCallback(
     async (
@@ -120,15 +226,7 @@ export const useReferralMe = ({
       try {
         sessionProfileId = await resolveSessionProfileId();
       } catch (error) {
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              feature: 'rewards-money',
-              context: 'referralMe.session_unavailable',
-            },
-          },
-        );
+        captureRewardsMoney(error, 'referralMe.session_unavailable');
         throw error;
       }
       setProfileId(sessionProfileId);
@@ -150,60 +248,41 @@ export const useReferralMe = ({
           'RewardsMoneyController:getReferralMe',
           { forceFresh },
         );
-        const recheck = await recheckSession(sessionProfileId, setProfileId);
-        if (recheck.status === 'unavailable') {
+        const gate = await sessionGate(
+          sessionProfileId,
+          setProfileId,
+          requestGeneration,
+        );
+        if (gate.kind === 'unavailable') {
           throw new SessionProfileUnavailableError();
         }
-        if (recheck.status === 'changed') {
-          return { status: 'discarded', profileId: recheck.profileId };
-        }
-        if (!isLatestReferralMeRequest(sessionProfileId, requestGeneration)) {
-          shouldSettleLoading = false;
-          return { status: 'discarded', profileId: sessionProfileId };
+        if (gate.kind === 'discarded') {
+          shouldSettleLoading = gate.shouldSettleLoading;
+          return discardedReferralRead(gate).result;
         }
         dispatch(
           setReferralMe({ profileId: sessionProfileId, data: referralMe }),
         );
         return { status: 'settled', profileId: sessionProfileId };
       } catch (error) {
-        if (error instanceof SessionProfileUnavailableError) {
-          captureException(error, {
-            tags: {
-              feature: 'rewards-money',
-              context: 'referralMe.session_unavailable',
-            },
-          });
-          throw error;
-        }
-        const recheck = await recheckSession(sessionProfileId, setProfileId);
-        if (recheck.status === 'unavailable') {
-          throw error;
-        }
-        if (recheck.status === 'changed') {
-          return { status: 'discarded', profileId: recheck.profileId };
-        }
-        if (!isLatestReferralMeRequest(sessionProfileId, requestGeneration)) {
-          shouldSettleLoading = false;
-          return { status: 'discarded', profileId: sessionProfileId };
-        }
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              feature: 'rewards-money',
-              context: 'referralMe.fetch_failed',
-            },
+        const failed = await settleReferralMeFailure({
+          error,
+          sessionProfileId,
+          requestGeneration,
+          setProfileId,
+          onFailure: () => {
+            dispatch(
+              setReferralMeError({ profileId: sessionProfileId, error: true }),
+            );
+            if (!followUp) {
+              armBusyRefetch(error, () => {
+                void fetchRef.current({ forceFresh: true, followUp: true });
+              });
+            }
           },
-        );
-        dispatch(
-          setReferralMeError({ profileId: sessionProfileId, error: true }),
-        );
-        if (!followUp) {
-          armBusyRefetch(error, () => {
-            void fetchRef.current({ forceFresh: true, followUp: true });
-          });
-        }
-        return { status: 'settled', profileId: sessionProfileId };
+        });
+        shouldSettleLoading = failed.shouldSettleLoading;
+        return failed.result;
       } finally {
         // A session-change discard settles the old profile's loading state.
         // A same-profile superseded request does not: its newer request owns

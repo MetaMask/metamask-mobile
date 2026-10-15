@@ -333,7 +333,7 @@ const RewardsDashboard: React.FC = () => {
         return undefined;
       }
       const handle = runAfterInteractions(() => {
-        refreshOptInSummaryRef.current();
+        void refreshOptInSummaryRef.current();
       });
       return () => handle.cancel();
     }, []),
@@ -459,7 +459,7 @@ const RewardsDashboard: React.FC = () => {
       vipUnlockTimerRef.current = null;
     }
 
-    (async () => {
+    void (async () => {
       try {
         // The controller flips `subscription.features.vip.enabled` as a side
         // effect when the VIP dashboard fetch returns a non-null payload, so
