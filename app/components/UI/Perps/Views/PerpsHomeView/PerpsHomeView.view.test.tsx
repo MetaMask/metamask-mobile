@@ -719,6 +719,10 @@ describe('PerpsHomeView', () => {
         overrides: socialOverrides,
         socialEnabled: true,
       });
+      const firstPostId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`;
+      expect(
+        await screen.findByTestId(firstPostId, {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
       await openTopTraders();
 
       for (const id of topFiveIds) {
@@ -729,6 +733,7 @@ describe('PerpsHomeView', () => {
       expect(
         screen.queryByTestId(getTraderRowTestId('trader-6')),
       ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(firstPostId)).not.toBeOnTheScreen();
       expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
         'SocialService:fetchLeaderboard',
         { limit: 50, chains: ['hyperliquid'], sort: 'pnl' },
