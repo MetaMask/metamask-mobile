@@ -3,14 +3,11 @@ import {
   mockPerpFeedItem,
   mockSpotFeedItem,
 } from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
-import {
-  formatAbbreviatedUsd,
-  formatTradeUnitPrice,
-} from '../../../../UI/SocialFeed/utils/formatters';
+import { formatTradeUnitPrice } from '../../../../UI/SocialFeed/utils/formatters';
 import { toLiveTradeRow } from './toLiveTradeRow';
 
 describe('toLiveTradeRow', () => {
-  it('maps a spot fill onto market cap, buy side, and an open card', () => {
+  it('maps a spot fill onto unit price, buy side, and an open card', () => {
     const core = mockSpotFeedItem({
       positionId: 'pepe-1',
       tokenSymbol: 'PEPE',
@@ -49,10 +46,7 @@ describe('toLiveTradeRow', () => {
     expect(row.author.winRatePercent).toBe(50);
     expect(row.author.pnl30d).toBe(48_000);
     expect(row.marketCapUsd).toBe(5_200_000_000);
-    // Current price equals the fill price here, so the market cap holds.
-    expect(row.subtitleLabel).toBe(
-      `${formatAbbreviatedUsd(5_200_000_000)} (MC)`,
-    );
+    expect(row.subtitleLabel).toBe(formatTradeUnitPrice(0.5));
     expect(row.isClosed).toBe(false);
     expect(row.closedAtMs).toBeUndefined();
     expect(row.traderId).toBe('trader-1');
@@ -165,30 +159,6 @@ describe('toLiveTradeRow', () => {
 
     expect(row.type).toBe('spot');
     expect(row.side).toBeUndefined();
-  });
-
-  it('quotes a spot fill without a recorded market cap in unit price', () => {
-    const core = mockSpotFeedItem({
-      positionAmount: 100,
-      currentValueUSD: 50,
-      trades: [
-        {
-          direction: 'buy',
-          intent: 'enter',
-          action: 'opened',
-          tokenAmount: 100,
-          usdCost: 50,
-          timestamp: 1_700_000_000,
-          transactionHash: '0x1',
-          classification: 'spot',
-        },
-      ],
-      timestamp: 1_700_000_000,
-    });
-
-    const row = toLiveTradeRow(core);
-
-    expect(row.subtitleLabel).toBe(formatTradeUnitPrice(0.5));
   });
 
   it('quotes a perp in unit price even when its fill carries a market cap', () => {

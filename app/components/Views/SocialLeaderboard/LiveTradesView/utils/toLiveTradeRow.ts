@@ -9,7 +9,6 @@ import {
   getPerpTradeDirection,
   isPerpPosition,
 } from '../../../../UI/SocialFeed/utils/perp';
-import { strings } from '../../../../../../locales/i18n';
 import {
   formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
@@ -18,11 +17,7 @@ import {
   buildFeedItemPresentation,
   isFeedItemClosed,
 } from '../../../../UI/SocialFeed/utils/mapFeedItem';
-import {
-  deriveCurrentPrice,
-  deriveMarketCapPerPrice,
-  toMarketCapLabel,
-} from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
+import { deriveCurrentPrice } from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import {
   isEntryAction,
   type TradeAction,
@@ -117,9 +112,10 @@ const toLeverageLabel = (
  * Maps a core social-api feed item into the compact Live trades row model.
  *
  * Unit price is `currentValueUSD / positionAmount` when both are present,
- * falling back to the triggering fill; spot quotes it as market cap when the
- * fills recorded one. P&L and the open/closed verdict come from the same
- * helpers the feed card uses, so a trade reads the same on both surfaces.
+ * falling back to the triggering fill. Unlike the feed card, spot is quoted
+ * as a price here, never a market cap. P&L and the open/closed verdict come
+ * from the same helpers the feed card uses, so a trade reads the same on both
+ * surfaces.
  */
 export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
   const card = asFeedCardItem(core);
@@ -130,9 +126,6 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     ? getPerpsDisplaySymbol(core.tokenSymbol)
     : core.tokenSymbol;
   const markPrice = deriveMarkPrice(core, trade);
-  const marketCapLabel = isPerp
-    ? undefined
-    : toMarketCapLabel(deriveMarketCapPerPrice(core), markPrice);
   const leverage = core.perpLeverage ?? trade?.perpLeverage ?? null;
   const isClosed = isFeedItemClosed(core);
   const presentation = buildFeedItemPresentation(core, isClosed);
@@ -161,9 +154,7 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     authorImageUrl: core.actor.imageUrl ?? null,
     symbol: displaySymbol,
     avatar: buildTokenAvatar(core),
-    subtitleLabel: marketCapLabel
-      ? `${marketCapLabel} ${strings('social_leaderboard.position_sheet.market_cap_suffix')}`
-      : formatTradeUnitPrice(markPrice),
+    subtitleLabel: formatTradeUnitPrice(markPrice),
     isClosed,
     valueLabel: presentation.valueLabel,
     pnlLabel: presentation.pnlLabel,

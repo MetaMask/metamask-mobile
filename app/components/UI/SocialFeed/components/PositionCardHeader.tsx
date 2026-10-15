@@ -53,8 +53,6 @@ export interface PositionCardHeaderProps {
   side?: SocialV1SpotSide;
   /** `Closed 2 hr ago`, right-aligned on the closed card. */
   closedAgeLabel?: string;
-  /** Badges the token with its network, for surfaces that mix chains. */
-  showChainBadge?: boolean;
   testID?: string;
 }
 
@@ -117,11 +115,7 @@ const ClosedHeader: React.FC<PositionCardHeaderProps> = (props) => {
       twClassName="w-full min-w-0"
       testID={props.testID ?? 'position-card-header-closed'}
     >
-      <PositionTokenAvatar
-        position={avatar}
-        size={AvatarTokenSize.Md}
-        showChainBadge={props.showChainBadge}
-      />
+      <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
       <Box twClassName="flex-1 min-w-0">
         <Text
           variant={TextVariant.BodyXs}
@@ -175,11 +169,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
       gap={2}
       testID={props.testID}
     >
-      <PositionTokenAvatar
-        position={avatar}
-        size={AvatarTokenSize.Md}
-        showChainBadge={props.showChainBadge}
-      />
+      <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
       <Box twClassName="flex-1 min-w-0">
         <Box
           flexDirection={BoxFlexDirection.Row}

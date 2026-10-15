@@ -104,7 +104,6 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
             side={item.side}
             subtitleLabel={item.subtitleLabel}
             closedAgeLabel={closedAgeLabel(item.closedAtMs)}
-            showChainBadge
             testID={getLiveTradeHeaderTestId(item.id)}
           />
         </PositionCardShell>

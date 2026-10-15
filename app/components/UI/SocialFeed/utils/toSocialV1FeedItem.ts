@@ -111,7 +111,7 @@ export const deriveCurrentPrice = (core: Position): number | null =>
  * Constant while supply is, so any price on this position scales into a
  * market cap -- the same ratio the position details sheet charts against.
  */
-export const deriveMarketCapPerPrice = (core: Position): number | null => {
+const deriveMarketCapPerPrice = (core: Position): number | null => {
   const fills = [...(core.trades ?? [])].sort(
     (a, b) => tradeTimestampToMs(b.timestamp) - tradeTimestampToMs(a.timestamp),
   );
@@ -124,7 +124,7 @@ export const deriveMarketCapPerPrice = (core: Position): number | null => {
   return null;
 };
 
-export const toMarketCapLabel = (
+const toMarketCapLabel = (
   marketCapPerPrice: number | null,
   price: number | null,
 ): string | undefined =>
