@@ -193,6 +193,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/tooling-insight@^1.0.1": "npm:@metamask-previews/tooling-insight@1.0.1-preview-cd6ed5e",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "36.0.0",
