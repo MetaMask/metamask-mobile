@@ -175,10 +175,10 @@ const CardWelcome = () => {
       }
       title={strings('card.card_onboarding.title')}
       description={strings('card.card_onboarding.description')}
-      titleTestID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
-      descriptionTestIDs={[
-        CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
-      ]}
+      titleProps={{ testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT }}
+      descriptionProps={{
+        testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
+      }}
       artwork={
         animationState === 'pending' ? null : (
           <CardWelcomeCardsAnimation

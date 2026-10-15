@@ -3,6 +3,13 @@ import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import MarketingMoment from '../../../MarketingMoment';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -73,15 +80,27 @@ const OrderCompleted: React.FC = () => {
     <MarketingMoment
       testID={OrderCompletedSelectors.CONTAINER}
       title={strings('card.order_completed.title')}
-      description={[
-        strings('card.order_completed.subtitle'),
-        strings('card.order_completed.description'),
-      ]}
-      titleTestID={OrderCompletedSelectors.TITLE}
-      descriptionTestIDs={[
-        OrderCompletedSelectors.SUBTITLE,
-        OrderCompletedSelectors.DESCRIPTION,
-      ]}
+      titleProps={{ testID: OrderCompletedSelectors.TITLE }}
+      description={
+        <Box flexDirection={BoxFlexDirection.Column} gap={4}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={OrderCompletedSelectors.SUBTITLE}
+          >
+            {strings('card.order_completed.subtitle')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={OrderCompletedSelectors.DESCRIPTION}
+          >
+            {strings('card.order_completed.description')}
+          </Text>
+        </Box>
+      }
       artwork={
         <Image
           source={MM_METAL_CARD}

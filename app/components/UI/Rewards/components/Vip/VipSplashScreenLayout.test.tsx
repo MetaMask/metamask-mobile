@@ -17,7 +17,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(View, { testID }, children),
-    FontWeight: { Bold: 'bold' },
+    FontFamily: { Hero: 'hero' },
+    FontWeight: { Regular: 'regular', Bold: 'bold' },
     Text: ({
       children,
       testID,
@@ -145,14 +146,11 @@ describe('VipSplashScreenLayout', () => {
     expect(onNotNow).toHaveBeenCalledTimes(1);
   });
 
-  it('renders optional supporting content under the description', () => {
+  it('renders optional children under the description', () => {
     const { getByTestId } = render(
-      <VipSplashScreenLayout
-        {...defaultProps}
-        supportingContent={
-          <Text testID="vip-splash-referred-by">Referred by TESTCODE</Text>
-        }
-      />,
+      <VipSplashScreenLayout {...defaultProps}>
+        <Text testID="vip-splash-referred-by">Referred by TESTCODE</Text>
+      </VipSplashScreenLayout>,
     );
 
     expect(getByTestId('vip-splash-referred-by')).toHaveTextContent(

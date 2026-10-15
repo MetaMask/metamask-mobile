@@ -85,21 +85,20 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
       onPrimaryPress={handleContinue}
       onNotNow={handleNotNow}
       primaryButtonLabel={strings('rewards.vip.referee_splash_continue')}
-      supportingContent={
-        referredByVipCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY}
-          >
-            {strings('rewards.vip.referee_referred_by', {
-              code: referredByVipCode,
-            })}
-          </Text>
-        ) : null
-      }
-    />
+    >
+      {referredByVipCode ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY}
+        >
+          {strings('rewards.vip.referee_referred_by', {
+            code: referredByVipCode,
+          })}
+        </Text>
+      ) : null}
+    </VipSplashScreenLayout>
   );
 };
 
