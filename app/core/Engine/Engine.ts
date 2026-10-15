@@ -166,7 +166,6 @@ import { rewardsDataServiceInit } from './controllers/rewards-data-service-init'
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
-import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
@@ -186,7 +185,6 @@ import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
-import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
@@ -312,12 +310,10 @@ export class Engine {
     const { messengerClientsByName } = initMessengerClients({
       wallet: this.#wallet,
       initFunctions: {
-        LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
-        SelectedNetworkController: selectedNetworkControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
@@ -369,7 +365,6 @@ export class Engine {
         // AssetsController must be initialized before ClientController so it
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
-        ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
@@ -489,7 +484,7 @@ export class Engine {
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
     const uiSlotsController = messengerClientsByName.UiSlotsController;
-    const clientController = messengerClientsByName.ClientController;
+    const clientController = this.#wallet.getInstance('ClientController');
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
     const kycService = messengerClientsByName.KycService;

@@ -109,7 +109,6 @@ import { getGeolocationControllerMessenger } from './geolocation-controller-mess
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getRewardsMoneyDataServiceMessenger } from './rewards-money-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
-import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
   getRampsControllerInitMessenger,
@@ -145,7 +144,6 @@ import { getProfileControllerMessenger } from './profile-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
-import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
@@ -192,10 +190,6 @@ export const MESSENGER_FACTORIES = {
   },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
-    getInitMessenger: noop,
-  },
-  LoggingController: {
-    getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionPayController: {
@@ -482,10 +476,6 @@ export const MESSENGER_FACTORIES = {
   },
   QrSyncProvisioningService: {
     getMessenger: getQrSyncProvisioningServiceMessenger,
-    getInitMessenger: noop,
-  },
-  ClientController: {
-    getMessenger: getClientControllerMessenger,
     getInitMessenger: noop,
   },
   ComplianceService: {
