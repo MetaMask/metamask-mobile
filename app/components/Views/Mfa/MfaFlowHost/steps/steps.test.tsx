@@ -123,7 +123,7 @@ describe('IntroStep', () => {
 describe('PickerStep', () => {
   it('leads with the passkey, then the other methods below an "or"', () => {
     const onAction = jest.fn();
-    const { getByTestId, getByText } = render(
+    const { getAllByText, getByTestId, getByText } = render(
       <PickerStep
         {...buildState({
           name: 'picker',
@@ -135,8 +135,12 @@ describe('PickerStep', () => {
       />,
     );
 
-    expect(getByText('Verify with Passkey')).toBeOnTheScreen();
-    expect(getByText('or')).toBeOnTheScreen();
+    // The options come email first; the passkey still leads.
+    expect(
+      getAllByText(/^(Verify with Passkey|or|Get a verification code)$/).map(
+        (node) => node.props.children,
+      ),
+    ).toStrictEqual(['Verify with Passkey', 'or', 'Get a verification code']);
     fireEvent.press(getByText('Get a verification code'));
     expect(onAction).toHaveBeenCalledWith({
       type: 'choose',

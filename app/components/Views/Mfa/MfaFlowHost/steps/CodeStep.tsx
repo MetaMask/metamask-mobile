@@ -25,6 +25,15 @@ import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { StepError, type StepProps } from './StepLayout';
 
 const CELL_COUNT = 6;
+/**
+ * Keeps the digits of typed or pasted text, up to a full code.
+ *
+ * @param text - What was typed or pasted.
+ * @returns The code's digits.
+ */
+const getCodeDigits = (text: string) =>
+  text.replace(/\D/g, '').slice(0, CELL_COUNT);
+
 const COOLDOWN_CODES = new Set(['otp_resend_cooldown', 'rate_limited']);
 
 // The clock is state, as the React Compiler caches what render computes:
@@ -104,7 +113,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
     if (busy && codeSent) {
       return;
     }
-    setCode(text.replace(/\D/g, '').slice(0, CELL_COUNT));
+    setCode(getCodeDigits(text));
   };
 
   const paste = async () => handleChange(await Clipboard.getString());
