@@ -7,9 +7,11 @@
  *   ids     → JSON.stringify(ids)
  *
  * Performance:
- *   ["ALL"] → ''   (empty string = run all; conservative fallback)
- *   []      → '[]' (skip)
- *   ids     → JSON.stringify(ids)
+ *   ["ALL"] / ["all"] → '["ALL"]' (run every performance test)
+ *   []                → '[]'      (skip)
+ *   [""] / blank tags → '[]'      (skip)
+ *   ids               → JSON.stringify(ids)
+ *   missing or error  → '[]'      (skip; never the run-all token)
  */
 
 export function mapSmartE2eOutputs(result) {
@@ -21,7 +23,7 @@ export function mapSmartE2eOutputs(result) {
   const performance = result?.performance_tests ?? {};
   const performanceTags = Array.isArray(performance.selected_tags)
     ? performance.selected_tags
-    : ['ALL'];
+    : [];
   const performanceReasoning =
     typeof performance.reasoning === 'string' ? performance.reasoning : '';
 
@@ -34,10 +36,18 @@ export function mapSmartE2eOutputs(result) {
 }
 
 function mapPerformanceTags(tags) {
-  if (tags.includes('ALL')) {
-    return '';
+  const normalized = tags
+    .filter((tag) => typeof tag === 'string')
+    .map((tag) => tag.trim())
+    .filter((tag) => tag.length > 0);
+
+  if (normalized.length === 0) {
+    return '[]';
   }
-  return JSON.stringify(tags);
+  if (normalized.some((tag) => tag.toUpperCase() === 'ALL')) {
+    return '["ALL"]';
+  }
+  return JSON.stringify(normalized);
 }
 
 export function parseResultJson(raw) {

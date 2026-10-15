@@ -1,10 +1,12 @@
 import AppConstants from '../../../../core/AppConstants';
 import {
+  findPositionByTokenAddress,
   getOpenPositionForAsset,
   getTraderPosition,
-  openPositionUrl,
+  openPositionsListUrl,
   toOpenPositionPnl,
   toTraderPosition,
+  tokenAddressesMatch,
   TraderPositionHttpError,
   TraderPositionMalformedError,
 } from './traderPositionService';
@@ -63,6 +65,7 @@ const jsonResponse = (status: number, body: unknown): Response =>
     ok: status >= 200 && status < 300,
     status,
     json: async () => body,
+    text: async () => JSON.stringify(body),
   }) as Response;
 
 describe('getTraderPosition', () => {
@@ -296,6 +299,8 @@ const openPositionBody = {
 };
 
 describe('getOpenPositionForAsset', () => {
+  const traderId = 'bbda626e-5ef2-4652-8d07-4589318872e5';
+
   beforeEach(() => {
     mockCall.mockReset();
     mockCall.mockResolvedValue('test-token');
@@ -303,29 +308,77 @@ describe('getOpenPositionForAsset', () => {
     global.fetch = mockFetch;
   });
 
-  it('requests the wallet and percent-encoded CAIP-19 asset', async () => {
-    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
-    const assetId = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  it('requests the open-positions list for the trader id', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, { positions: [positionBody] }),
+    );
 
-    await getOpenPositionForAsset('0xAbc', assetId);
+    await getOpenPositionForAsset(traderId, positionBody.tokenAddress);
 
-    expect(openPositionUrl('0xAbc', assetId)).toBe(
-      'https://social.test/api/v2/traders/0xAbc/eip155%3A1%2Ferc20%3A0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48/open',
+    expect(openPositionsListUrl(traderId)).toBe(
+      `https://social.test/api/v2/traders/${traderId}/positions/open`,
     );
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://social.test/api/v2/traders/0xAbc/eip155%3A1%2Ferc20%3A0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48/open',
+      `https://social.test/api/v2/traders/${traderId}/positions/open`,
       expect.objectContaining({
         headers: { Authorization: 'Bearer test-token' },
       }),
     );
   });
 
-  it('returns a ready position', async () => {
-    mockFetch.mockResolvedValue(jsonResponse(200, openPositionBody));
+  it('keeps the row for the token address and treats it as ready', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, {
+        positions: [
+          { ...positionBody, tokenAddress: 'Es9vMFrzaCER' },
+          positionBody,
+        ],
+      }),
+    );
 
-    const result = await getOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60');
+    const result = await getOpenPositionForAsset(
+      traderId,
+      '0x6982508145454CE325dDbE47a25d4ec3d2311933',
+    );
 
-    expect(result).toEqual(openPositionBody);
+    expect(result?.pnl).toEqual({
+      positionAmount: positionBody.positionAmount,
+      isOpen: true,
+      boughtUsd: positionBody.boughtUsd,
+      soldUsd: positionBody.soldUsd,
+      realizedPnl: positionBody.realizedPnl,
+      costBasis: positionBody.costBasis,
+      currentValueUSD: positionBody.currentValueUSD,
+      pnlValueUsd: positionBody.pnlValueUsd,
+      pnlPercent: positionBody.pnlPercent,
+      pnlStatus: 'ready',
+    });
+  });
+
+  it('returns null when the token is not in the list', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(200, { positions: [positionBody] }),
+    );
+
+    const result = await getOpenPositionForAsset(traderId, '0xnotthis');
+
+    expect(result).toBeNull();
+  });
+
+  it('matches an EVM address ignoring case and a Solana address exactly', () => {
+    expect(tokenAddressesMatch('0xAbC', '0xabc')).toBe(true);
+    expect(tokenAddressesMatch('Es9vMFrzaCER', 'es9vmfrzacer')).toBe(false);
+    expect(
+      findPositionByTokenAddress(
+        [
+          {
+            ...toTraderPosition(positionBody),
+            tokenAddress: 'Es9vMFrzaCER',
+          },
+        ],
+        'Es9vMFrzaCER',
+      )?.tokenAddress,
+    ).toBe('Es9vMFrzaCER');
   });
 
   it('keeps an in-progress payload', () => {

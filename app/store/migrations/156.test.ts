@@ -1,4 +1,5 @@
 import { captureException } from '@sentry/react-native';
+
 import migrate, { migrationVersion } from './156';
 import { ensureValidState } from './util';
 
@@ -13,32 +14,83 @@ jest.mock('./util', () => ({
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedCaptureException = jest.mocked(captureException);
 
-interface TestState {
-  engine: {
-    backgroundState: Record<string, unknown>;
-    preserved?: boolean;
-  };
-  preserved?: boolean;
+const TEMPO_CHAIN_ID = '0x1079';
+const OTHER_CHAIN_ID = '0x1';
+
+interface NetworkConfiguration {
+  blockExplorerUrls: string[];
+  chainId: string;
+  defaultBlockExplorerUrlIndex: number;
+  defaultRpcEndpointIndex: number;
+  name: string;
+  nativeCurrency: string;
+  rpcEndpoints: {
+    networkClientId: string;
+    type: string;
+    url: string;
+  }[];
 }
 
-function buildValidState(
-  authenticationController?: Record<string, unknown>,
-): TestState {
+interface TestState {
+  engine: {
+    backgroundState: {
+      NetworkController?: {
+        networkConfigurationsByChainId: Record<string, NetworkConfiguration>;
+        selectedNetworkClientId: string;
+      };
+      [key: string]: unknown;
+    };
+  };
+}
+
+function buildNetworkConfiguration(
+  chainId: string,
+  nativeCurrency: string,
+): NetworkConfiguration {
+  return {
+    blockExplorerUrls: ['https://explorer.example'],
+    chainId,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Test Network',
+    nativeCurrency,
+    rpcEndpoints: [
+      {
+        networkClientId: 'test-network',
+        type: 'custom',
+        url: 'https://rpc.example',
+      },
+    ],
+  };
+}
+
+function buildState(tempoNativeCurrency?: string): TestState {
   return {
     engine: {
       backgroundState: {
-        ...(authenticationController !== undefined
-          ? { AuthenticationController: authenticationController }
-          : {}),
-        OtherController: { preserved: true },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            [OTHER_CHAIN_ID]: buildNetworkConfiguration(OTHER_CHAIN_ID, 'ETH'),
+            ...(tempoNativeCurrency !== undefined && {
+              [TEMPO_CHAIN_ID]: buildNetworkConfiguration(
+                TEMPO_CHAIN_ID,
+                tempoNativeCurrency,
+              ),
+            }),
+          },
+          selectedNetworkClientId: 'mainnet',
+        },
       },
-      preserved: true,
     },
-    preserved: true,
   };
 }
 
-describe(`Migration ${migrationVersion}: Reset AuthenticationController needsSocialPairing`, () => {
+function getConfiguration(state: TestState, chainId: string) {
+  return state.engine.backgroundState.NetworkController
+    ?.networkConfigurationsByChainId[chainId];
+}
+
+describe(`migration #${migrationVersion}`, () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedEnsureValidState.mockReturnValue(true);
@@ -48,80 +100,77 @@ describe(`Migration ${migrationVersion}: Reset AuthenticationController needsSoc
     expect(migrationVersion).toBe(156);
   });
 
-  it('sets needsSocialPairing to true when it was false and keeps other fields', () => {
-    const state = buildValidState({
-      isSignedIn: true,
-      needsProfilePairing: false,
-      needsSocialPairing: false,
-      srpSessionData: { id: { accessToken: 'token' } },
-    });
+  it.each(['pathUSD', 'PATHUSD'])(
+    'replaces the Tempo native currency %s with USD',
+    (nativeCurrency) => {
+      const state = buildState(nativeCurrency);
+
+      const result = migrate(state) as TestState;
+
+      expect(getConfiguration(result, TEMPO_CHAIN_ID)?.nativeCurrency).toBe(
+        'USD',
+      );
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    },
+  );
+
+  it('does not modify other networks', () => {
+    const state = buildState('pathUSD');
 
     const result = migrate(state) as TestState;
 
-    expect(
-      result.engine.backgroundState.AuthenticationController,
-    ).toStrictEqual({
-      isSignedIn: true,
-      needsProfilePairing: false,
-      needsSocialPairing: true,
-      srpSessionData: { id: { accessToken: 'token' } },
-    });
-    expect(result.engine.backgroundState.OtherController).toStrictEqual({
-      preserved: true,
-    });
-    expect(result.engine.preserved).toBe(true);
-    expect(result.preserved).toBe(true);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(getConfiguration(result, OTHER_CHAIN_ID)).toStrictEqual(
+      buildNetworkConfiguration(OTHER_CHAIN_ID, 'ETH'),
+    );
   });
 
-  it('sets needsSocialPairing to true when the field is absent', () => {
-    const state = buildValidState({ isSignedIn: false });
+  it.each(['USD', 'CUSTOM'])(
+    'leaves Tempo unchanged when the native currency is %s',
+    (nativeCurrency) => {
+      const state = buildState(nativeCurrency);
 
-    const result = migrate(state) as TestState;
+      const result = migrate(state) as TestState;
 
-    expect(
-      result.engine.backgroundState.AuthenticationController,
-    ).toStrictEqual({ isSignedIn: false, needsSocialPairing: true });
-  });
+      expect(getConfiguration(result, TEMPO_CHAIN_ID)?.nativeCurrency).toBe(
+        nativeCurrency,
+      );
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    },
+  );
 
-  it('keeps needsSocialPairing true when it is already true', () => {
-    const state = buildValidState({ needsSocialPairing: true });
-
-    const result = migrate(state) as TestState;
-
-    expect(
-      result.engine.backgroundState.AuthenticationController,
-    ).toStrictEqual({ needsSocialPairing: true });
-  });
-
-  it('does not change state when AuthenticationController is absent', () => {
-    const state = buildValidState();
-    const snapshot = JSON.stringify(state);
+  it('is a no-op when Tempo is not configured', () => {
+    const state = buildState();
+    const stateBeforeMigration = JSON.stringify(state);
 
     const result = migrate(state);
 
-    expect(JSON.stringify(result)).toBe(snapshot);
+    expect(JSON.stringify(result)).toBe(stateBeforeMigration);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged when ensureValidState fails', () => {
-    mockedEnsureValidState.mockReturnValue(false);
-    const state = { invalid: true };
+  it('is a no-op when the Tempo configuration is invalid', () => {
+    const state = buildState();
+    (
+      state.engine.backgroundState.NetworkController
+        ?.networkConfigurationsByChainId as Record<string, unknown>
+    )[TEMPO_CHAIN_ID] = { chainId: TEMPO_CHAIN_ID };
+    const stateBeforeMigration = JSON.stringify(state);
 
     const result = migrate(state);
 
-    expect(result).toBe(state);
+    expect(JSON.stringify(result)).toBe(stateBeforeMigration);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged when AuthenticationController is not an object', () => {
-    const state = {
-      engine: { backgroundState: { AuthenticationController: 'invalid' } },
+  it('is a no-op when NetworkController is missing', () => {
+    const state: TestState = {
+      engine: { backgroundState: { OtherController: {} } },
     };
+    const stateBeforeMigration = JSON.stringify(state);
 
     const result = migrate(state);
 
-    expect(result).toBe(state);
+    expect(JSON.stringify(result)).toBe(stateBeforeMigration);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });
