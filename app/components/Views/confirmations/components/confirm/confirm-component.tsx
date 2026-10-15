@@ -19,7 +19,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { StakingConfirmationProps } from '../../../../UI/Stake/types/confirmations';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
@@ -143,7 +143,7 @@ const ConfirmWrapped = ({
   route,
 }: {
   styles: ReturnType<typeof styleSheet>;
-  route?: UnstakeConfirmationViewProps['route'];
+  route?: StakingConfirmationProps['route'];
 }) => {
   const isScrollDisabled = useDisableScroll();
 
@@ -178,7 +178,7 @@ const ConfirmWrapped = ({
 };
 
 interface ConfirmProps {
-  route?: UnstakeConfirmationViewProps['route'];
+  route?: StakingConfirmationProps['route'];
   /** When true, disables SafeAreaView insets when confirmation is full screen. Defaults to false. */
   disableSafeArea?: boolean;
   /** Optional style applied to the full-screen confirmation container. */

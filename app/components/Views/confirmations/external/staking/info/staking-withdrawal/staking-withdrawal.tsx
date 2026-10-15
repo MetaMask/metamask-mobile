@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import { UnstakeConfirmationViewProps } from '../../../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { StakingConfirmationProps } from '../../../../../../UI/Stake/types/confirmations';
 import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { ConfirmationInfoComponentIDs } from '../../../../constants/info-ids';
 import useClearConfirmationOnBackSwipe from '../../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -18,7 +18,7 @@ import { TraceName } from '../../../../../../../util/trace';
 import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
 import { ScrollView } from 'react-native-gesture-handler';
 
-const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
+const StakingWithdrawal = ({ route }: StakingConfirmationProps) => {
   const amountWei = route?.params?.amountWei;
 
   useNavbar(strings('stake.unstake'));
