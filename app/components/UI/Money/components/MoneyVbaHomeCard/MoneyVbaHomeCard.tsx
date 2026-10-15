@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { brandColor } from '@metamask/design-tokens';
 import {
   Box,
   ButtonBase,
@@ -12,7 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import moneyVbaIdentityArt from '../../../../../images/money-vba-identity-art.png';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { MONEY_BUTTON_TYPES, SCREEN_NAMES } from '../../constants/moneyEvents';
@@ -31,10 +31,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  heroArt: {
-    height: 88,
-    aspectRatio: 431 / 355,
-  },
 });
 
 /**
@@ -43,7 +39,7 @@ const styles = StyleSheet.create({
  * `#C66EF5` fallback. React Native renders a single gradient layer, so the
  * spec's second layer is dropped.
  */
-const HERO_GRADIENT_COLORS = ['#C66EF5', '#73A6FF'];
+const HERO_GRADIENT_COLORS = [brandColor.purple300, brandColor.indigo200];
 const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
@@ -51,7 +47,7 @@ const HERO_GRADIENT_ANGLE = 224;
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
  * kyc_decision); all per-variant differences — copy, analytics names, CTA
- * treatment — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * treatment, hero art — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}; this component only
  * renders and reports.
@@ -97,6 +93,21 @@ const MoneyVbaHomeCard = ({
       });
     });
   }, [config, openVbaOnboarding, trackButtonClicked, variant]);
+
+  const ctaButton = (
+    <ButtonBase
+      size={ButtonBaseSize.Lg}
+      isFullWidth
+      startIconName={config.ctaStartIconName}
+      twClassName={config.ctaClassName}
+      textProps={{ twClassName: config.ctaTextClassName }}
+      onPress={handleCtaPress}
+      testID={testIds.CTA_BUTTON}
+    >
+      {strings(`${config.i18nPrefix}.cta`)}
+    </ButtonBase>
+  );
+
   return (
     <Box
       testID={testIds.CONTAINER}
@@ -110,8 +121,8 @@ const MoneyVbaHomeCard = ({
         style={styles.heroContainer}
       >
         <Image
-          source={moneyVbaIdentityArt}
-          style={styles.heroArt}
+          source={config.heroArt.source}
+          style={{ width: config.heroArt.width, height: config.heroArt.height }}
           resizeMode="contain"
         />
       </LinearGradient>
@@ -133,17 +144,7 @@ const MoneyVbaHomeCard = ({
           {strings(`${config.i18nPrefix}.description`)}
         </Text>
       </Box>
-      <ButtonBase
-        size={ButtonBaseSize.Lg}
-        isFullWidth
-        startIconName={config.ctaStartIconName}
-        twClassName={config.ctaClassName}
-        textProps={{ twClassName: config.ctaTextClassName }}
-        onPress={handleCtaPress}
-        testID={testIds.CTA_BUTTON}
-      >
-        {strings(`${config.i18nPrefix}.cta`)}
-      </ButtonBase>
+      {ctaButton}
     </Box>
   );
 };
