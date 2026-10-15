@@ -52,7 +52,7 @@ interface ManageCardOptionsProps {
   onUnlinkMoneyAccount: () => void;
   showRevokeAllowance?: boolean;
   onRevokeAllowance?: () => void;
-  onCancelCard?: () => void;
+  onReissueCard?: () => void;
   fundingAccountName?: string;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
@@ -93,7 +93,7 @@ const ManageCardOptions = ({
   onUnlinkMoneyAccount,
   showRevokeAllowance = false,
   onRevokeAllowance,
-  onCancelCard,
+  onReissueCard,
   fundingAccountName,
   onOrderMetalCard,
   isSpendingLimitActive,
@@ -360,17 +360,17 @@ const ManageCardOptions = ({
           !isLoading &&
           card &&
           card.status !== CardStatus.BLOCKED &&
-          capabilities?.supportsCancelCard &&
+          capabilities?.supportsReissueCard &&
           !hideManageOptions &&
-          onCancelCard && (
+          onReissueCard && (
             <ManageCardListItem
-              title={strings('card.card_home.manage_card_options.cancel_card')}
+              title={strings('card.card_home.manage_card_options.reissue_card')}
               description={strings(
-                'card.card_home.manage_card_options.cancel_card_description',
+                'card.card_home.manage_card_options.reissue_card_description',
               )}
               rightIcon={IconName.ArrowRight}
-              onPress={onCancelCard}
-              testID={CardHomeSelectors.CANCEL_CARD_ITEM}
+              onPress={onReissueCard}
+              testID={CardHomeSelectors.REISSUE_CARD_ITEM}
             />
           )}
       </Box>

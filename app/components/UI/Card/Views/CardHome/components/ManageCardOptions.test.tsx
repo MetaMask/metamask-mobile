@@ -73,7 +73,7 @@ const renderComponent = (
     showTransactionHistoryDuringSetup?: boolean;
     hasPriorityTokenBalance?: boolean;
     hasAlertOnlyState?: boolean;
-    onCancelCard?: () => void;
+    onReissueCard?: () => void;
   } = {},
 ) =>
   render(
@@ -115,7 +115,7 @@ const renderComponent = (
       showTransactionHistoryDuringSetup={
         overrides.showTransactionHistoryDuringSetup
       }
-      onCancelCard={overrides.onCancelCard}
+      onReissueCard={overrides.onReissueCard}
     />,
   );
 
@@ -523,58 +523,58 @@ describe('ManageCardOptions transaction history gating', () => {
   });
 });
 
-describe('ManageCardOptions cancel card gating', () => {
-  const onCancelCard = jest.fn();
+describe('ManageCardOptions reissue card gating', () => {
+  const onReissueCard = jest.fn();
 
-  it('shows cancel card for an Immersve card that can still be cancelled', () => {
+  it('shows replace card for an Immersve card that can be reissued', () => {
     const { getByTestId } = renderComponent(
       buildCapabilities({
         supportsFundingLimits: false,
-        supportsCancelCard: true,
+        supportsReissueCard: true,
       }),
-      { onCancelCard },
+      { onReissueCard },
     );
 
-    fireEvent.press(getByTestId(CardHomeSelectors.CANCEL_CARD_ITEM));
-    expect(onCancelCard).toHaveBeenCalledTimes(1);
+    fireEvent.press(getByTestId(CardHomeSelectors.REISSUE_CARD_ITEM));
+    expect(onReissueCard).toHaveBeenCalledTimes(1);
   });
 
-  it('hides cancel card when the provider cannot cancel', () => {
+  it('hides replace card when the provider cannot reissue', () => {
     const { queryByTestId } = renderComponent(
       buildCapabilities({
         supportsFundingLimits: false,
-        supportsCancelCard: false,
+        supportsReissueCard: false,
       }),
-      { onCancelCard },
+      { onReissueCard },
     );
 
-    expect(queryByTestId(CardHomeSelectors.CANCEL_CARD_ITEM)).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.REISSUE_CARD_ITEM)).toBeNull();
   });
 
-  it('hides cancel card when the card is blocked', () => {
+  it('hides replace card when the card is blocked', () => {
     const { queryByTestId } = renderComponent(
       buildCapabilities({
         supportsFundingLimits: false,
-        supportsCancelCard: true,
+        supportsReissueCard: true,
       }),
       {
-        onCancelCard,
+        onReissueCard,
         card: { ...CARD, status: CardStatus.BLOCKED, isFreezable: false },
       },
     );
 
-    expect(queryByTestId(CardHomeSelectors.CANCEL_CARD_ITEM)).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.REISSUE_CARD_ITEM)).toBeNull();
   });
 
-  it('hides cancel card when there is no card', () => {
+  it('hides replace card when there is no card', () => {
     const { queryByTestId } = renderComponent(
       buildCapabilities({
         supportsFundingLimits: false,
-        supportsCancelCard: true,
+        supportsReissueCard: true,
       }),
-      { onCancelCard, card: null as unknown as CardDetails },
+      { onReissueCard, card: null as unknown as CardDetails },
     );
 
-    expect(queryByTestId(CardHomeSelectors.CANCEL_CARD_ITEM)).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.REISSUE_CARD_ITEM)).toBeNull();
   });
 });

@@ -155,9 +155,9 @@ jest.mock('../Views/SetCardPin', () => {
   return () => <View testID="set-card-pin" />;
 });
 
-jest.mock('../components/ImmersveCancelCardSheet', () => {
+jest.mock('../components/ImmersveReissueCardSheet', () => {
   const { View } = require('react-native');
-  return () => <View testID="immersve-cancel-card-sheet" />;
+  return () => <View testID="immersve-reissue-card-sheet" />;
 });
 
 jest.mock('../components/MoneyUnlinkCardSheet', () => {

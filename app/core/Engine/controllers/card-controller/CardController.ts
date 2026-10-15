@@ -50,7 +50,7 @@ import {
   type CardAuthTokens,
   type CardCredentials,
   type CardContactDetails,
-  type CardCancelResult,
+  type CardReissueResult,
   type CardCreateResult,
   type CardDetails,
   type CardFundingAsset,
@@ -299,6 +299,13 @@ export class CardController extends BaseController<
   private refreshPromise: Promise<CardAuthTokens | null> | null = null;
   #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
   private fetchCardHomeDataPromise: Promise<void> | null = null;
+  /**
+   * In-flight reissue. Not controller state: Card Home keeps showing the
+   * current card, and a second tap joins this promise instead of sending
+   * another request. While it is set, home-data fetches are skipped so a
+   * mid-swap snapshot cannot replace the card on screen.
+   */
+  #reissuePromise: Promise<CardReissueResult> | null = null;
   private fetchGeneration = 0;
   private redeemGeneration = 0;
   private previousEvmAddress: string | null = null;
@@ -669,6 +676,9 @@ export class CardController extends BaseController<
   async fetchCardHomeData(
     options: FetchCardHomeDataOptions = {},
   ): Promise<void> {
+    if (this.#reissuePromise) {
+      return;
+    }
     const { force = false } = options;
     if (
       !force &&
@@ -2196,33 +2206,35 @@ export class CardController extends BaseController<
     );
   }
 
-  async cancelCard(cardId: string): Promise<CardCancelResult> {
+  async reissueCard(cardId: string): Promise<CardReissueResult> {
+    if (this.#reissuePromise) {
+      return this.#reissuePromise;
+    }
     const provider = this.getActiveProvider();
-    const cancelCard = provider.cancelCard?.bind(provider);
-    if (!cancelCard) {
+    const reissueCard = provider.reissueCard?.bind(provider);
+    if (!reissueCard) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
-        'Card cancellation not supported',
+        'Card reissue not supported',
       );
     }
-    const result = await this.#withAuthRetry((tokens) =>
-      cancelCard(cardId, tokens),
-    );
-    if (result === 'cancelled') {
-      const current = this.state.cardHomeData as unknown as CardHomeData | null;
-      if (current) {
-        this.update((s) => {
-          (s as unknown as CardControllerState).cardHomeData = {
-            ...current,
-            card: null,
-            alerts: [],
-            actions: [{ type: 'enable_card', reason: 'card_cancelled' }],
-          } as unknown as Record<string, Json>;
-        });
-      }
-    }
-    await this.fetchCardHomeData({ force: true });
-    return result;
+
+    const work = (async (): Promise<CardReissueResult> => {
+      const result = await this.#withAuthRetry((tokens) =>
+        reissueCard(cardId, tokens),
+      );
+      // Drop a fetch that started before the successor existed, then load
+      // the new card once. Goes through #doFetchCardHomeData rather than
+      // fetchCardHomeData, which returns early while this promise is set.
+      this.invalidateFetch();
+      await this.#doFetchCardHomeData(this.fetchGeneration, true);
+      return result;
+    })();
+
+    this.#reissuePromise = work.finally(() => {
+      this.#reissuePromise = null;
+    });
+    return this.#reissuePromise;
   }
 
   async createCard(fundingSourceId: string): Promise<CardCreateResult> {

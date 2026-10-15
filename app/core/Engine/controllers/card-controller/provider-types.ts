@@ -252,8 +252,8 @@ export interface CardProviderCapabilities {
   supportsTransactionHistory: boolean;
   supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
-  /** Permanent card cancellation. Immersve only; Baanx has no cancel API. */
-  supportsCancelCard: boolean;
+  /** Replaces the current card with a successor. Immersve only. */
+  supportsReissueCard: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -355,7 +355,12 @@ export interface CardAlert {
   action?: CardAlertAction;
 }
 
-export type CardCancelResult = 'cancelled' | 'pending';
+/**
+ * `'reissued'` means the successor card is active. `'pending'` means the
+ * reissue was accepted but the successor had not become active before
+ * polling stopped.
+ */
+export type CardReissueResult = 'reissued' | 'pending';
 
 export type CardAction =
   | { type: 'add_funds'; enabled: boolean }
@@ -683,14 +688,14 @@ export interface ICardProvider {
   freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
   unfreezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
   /**
-   * Permanently cancels a card. `'cancelled'` means the issuer has confirmed
-   * the terminal state; `'pending'` means the async cancel was accepted but
-   * the card had not reached that state before polling stopped.
+   * Issues a successor card linked to `cardId` (same PAN, new expiry and
+   * security code). `'reissued'` means the successor is active; `'pending'`
+   * means it had not reached that state before polling stopped.
    */
-  cancelCard?(
+  reissueCard?(
     cardId: string,
     tokens: CardAuthTokens,
-  ): Promise<CardCancelResult>;
+  ): Promise<CardReissueResult>;
   getCardDetailsView?(
     tokens: CardAuthTokens,
     params: CardSecureViewParams,

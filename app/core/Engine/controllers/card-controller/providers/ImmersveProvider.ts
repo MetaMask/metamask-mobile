@@ -23,7 +23,7 @@ import {
   CardAuthSession,
   CardAuthTokens,
   CardContactDetails,
-  CardCancelResult,
+  CardReissueResult,
   CardCreateResult,
   CardCredentials,
   CardDetails,
@@ -142,8 +142,8 @@ function isUsdStablecoin(symbol: string): boolean {
   return USD_STABLECOIN_SYMBOLS.has(symbol.toUpperCase());
 }
 
-const CANCEL_CARD_POLL_ATTEMPTS = 10;
-const CANCEL_CARD_POLL_INTERVAL_MS = 2000;
+const CARD_STATUS_POLL_ATTEMPTS = 10;
+const CARD_STATUS_POLL_INTERVAL_MS = 2000;
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => {
@@ -626,7 +626,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsTransactionHistory: true,
     supportsContactDetails: true,
     supportsMoneyAccountLinking: false,
-    supportsCancelCard: true,
+    supportsReissueCard: true,
   };
 
   private readonly service: ImmersveService;
@@ -1323,25 +1323,27 @@ export class ImmersveProvider implements ICardProvider {
     }
   }
 
-  async cancelCard(
+  async reissueCard(
     cardId: string,
     tokens: CardAuthTokens,
-  ): Promise<CardCancelResult> {
+  ): Promise<CardReissueResult> {
     try {
-      await this.service.post(`/api/cards/${cardId}/cancel-async`, {}, tokens);
-      for (let attempt = 0; attempt < CANCEL_CARD_POLL_ATTEMPTS; attempt++) {
-        await delay(CANCEL_CARD_POLL_INTERVAL_MS);
+      const { cardId: successorId } = await this.service.post<{
+        cardId: string;
+      }>(`/api/cards/${cardId}/reissue`, {}, tokens);
+      for (let attempt = 0; attempt < CARD_STATUS_POLL_ATTEMPTS; attempt++) {
+        await delay(CARD_STATUS_POLL_INTERVAL_MS);
         const detail = await this.service.get<ImmersveCardDetail>(
-          `/api/cards/${cardId}`,
+          `/api/cards/${successorId}`,
           tokens,
         );
-        if (detail.status === 'cancelled') {
-          return 'cancelled';
+        if (detail.status === 'active') {
+          return 'reissued';
         }
       }
       return 'pending';
     } catch (error) {
-      reportAndMap(error, 'cancelCard', { cardId });
+      reportAndMap(error, 'reissueCard', { cardId });
     }
   }
 

@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -86,6 +86,14 @@ export function useCardHomeActions({
     cardType: data?.card?.type,
     capabilities,
   });
+  const cardId = data?.card?.id;
+  const previousCardId = useRef(cardId);
+  useEffect(() => {
+    if (previousCardId.current && previousCardId.current !== cardId) {
+      clearCardSensitiveDetails();
+    }
+    previousCardId.current = cardId;
+  }, [cardId, clearCardSensitiveDetails]);
   const {
     generatePinToken,
     isLoading: isPinLoading,
@@ -261,7 +269,6 @@ export function useCardHomeActions({
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
       return;
     }
-    const cardId = data?.card?.id;
     if (!cardId) {
       return;
     }
@@ -287,7 +294,7 @@ export function useCardHomeActions({
     });
   }, [
     isAuthenticated,
-    data?.card?.id,
+    cardId,
     activeProviderId,
     reauthenticate,
     navigation,
@@ -483,29 +490,22 @@ export function useCardHomeActions({
     [navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
-  const cancelCardAction = useCallback(() => {
-    const cardId = data?.card?.id;
+  const reissueCardAction = useCallback(() => {
     if (!cardId) return;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties(
           withCardProvider(activeProviderId, {
-            action: CardActions.CANCEL_CARD_BUTTON,
+            action: CardActions.REISSUE_CARD_BUTTON,
           }),
         )
         .build(),
     );
     navigation.navigate(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.CANCEL_CARD,
+      screen: Routes.CARD.MODALS.REISSUE_CARD,
       params: { cardId },
     });
-  }, [
-    data?.card?.id,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-    activeProviderId,
-  ]);
+  }, [cardId, navigation, trackEvent, createEventBuilder, activeProviderId]);
 
   const revokeAllowanceAction = useCallback(() => {
     trackEvent(
@@ -661,7 +661,7 @@ export function useCardHomeActions({
     digitalWalletInstructionsAction,
     howToUseApplePayAction,
     unlinkMoneyAccountAction,
-    cancelCardAction,
+    reissueCardAction,
     revokeAllowanceAction,
     logoutAction,
     orderMetalCardAction,

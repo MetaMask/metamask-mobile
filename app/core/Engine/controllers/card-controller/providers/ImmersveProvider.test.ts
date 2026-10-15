@@ -134,7 +134,7 @@ describe('ImmersveProvider', () => {
       expect(provider.capabilities.supportsCredit).toBe(false);
       expect(provider.capabilities.supportsTransactionHistory).toBe(true);
       expect(provider.capabilities.supportsMoneyAccountLinking).toBe(false);
-      expect(provider.capabilities.supportsCancelCard).toBe(true);
+      expect(provider.capabilities.supportsReissueCard).toBe(true);
       expect(provider.capabilities.onboarding.type).toBe('webview');
       expect(provider.capabilities.pushProvisioning).toEqual({
         applePay: true,
@@ -1852,61 +1852,76 @@ describe('ImmersveProvider', () => {
     });
   });
 
-  describe('cancelCard', () => {
-    it('posts cancel-async and polls until the card is cancelled', async () => {
+  describe('reissueCard', () => {
+    it('posts an empty reissue body and polls the successor until it is active', async () => {
       const { provider, service } = createProvider();
-      service.post.mockResolvedValue({});
+      service.post.mockResolvedValue({ cardId: 'card-2' });
       service.get
-        .mockResolvedValueOnce({ ...activeCard, status: 'active' })
-        .mockResolvedValueOnce({ ...activeCard, status: 'cancelled' });
+        .mockResolvedValueOnce({
+          ...activeCard,
+          id: 'card-2',
+          status: 'created',
+        })
+        .mockResolvedValueOnce({
+          ...activeCard,
+          id: 'card-2',
+          status: 'active',
+        });
 
-      const result = provider.cancelCard('card-1', TOKENS);
+      const result = provider.reissueCard('card-1', TOKENS);
       await jest.advanceTimersByTimeAsync(2000);
       await jest.advanceTimersByTimeAsync(2000);
 
-      await expect(result).resolves.toBe('cancelled');
+      await expect(result).resolves.toBe('reissued');
       expect(service.post).toHaveBeenCalledWith(
-        '/api/cards/card-1/cancel-async',
+        '/api/cards/card-1/reissue',
         {},
         TOKENS,
       );
       expect(service.get).toHaveBeenCalledTimes(2);
-      expect(service.get).toHaveBeenLastCalledWith('/api/cards/card-1', TOKENS);
+      expect(service.get).toHaveBeenLastCalledWith('/api/cards/card-2', TOKENS);
     });
 
-    it('returns pending when the card is still active after polling', async () => {
+    it('returns pending when the successor is still not active after polling', async () => {
       const { provider, service } = createProvider();
-      service.post.mockResolvedValue({});
-      service.get.mockResolvedValue({ ...activeCard, status: 'active' });
+      service.post.mockResolvedValue({ cardId: 'card-2' });
+      service.get.mockResolvedValue({
+        ...activeCard,
+        id: 'card-2',
+        status: 'created',
+      });
 
-      const result = provider.cancelCard('card-1', TOKENS);
+      const result = provider.reissueCard('card-1', TOKENS);
       await jest.advanceTimersByTimeAsync(20_000);
 
       await expect(result).resolves.toBe('pending');
       expect(service.get).toHaveBeenCalledTimes(10);
     });
 
-    it('maps cancel failures and does not poll', async () => {
+    it('maps reissue failures, including the issuer error code, and does not poll', async () => {
       const { provider, service } = createProvider();
       const apiError = new CardApiError(
-        500,
-        '/api/cards/card-1/cancel-async',
-        'down',
+        403,
+        '/api/cards/card-1/reissue',
+        JSON.stringify({ errorCode: 'CARD_REISSUE_NOT_ALLOWED' }),
       );
       service.post.mockRejectedValue(apiError);
 
-      await expect(provider.cancelCard('card-1', TOKENS)).rejects.toMatchObject(
-        { code: CardProviderErrorCode.ServerError },
-      );
+      await expect(
+        provider.reissueCard('card-1', TOKENS),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        errorCode: 'CARD_REISSUE_NOT_ALLOWED',
+      });
       expect(service.get).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         apiError,
         expect.objectContaining({
           context: expect.objectContaining({
             data: expect.objectContaining({
-              method: 'cancelCard',
+              method: 'reissueCard',
               cardId: 'card-1',
-              httpStatus: 500,
+              httpStatus: 403,
             }),
           }),
         }),

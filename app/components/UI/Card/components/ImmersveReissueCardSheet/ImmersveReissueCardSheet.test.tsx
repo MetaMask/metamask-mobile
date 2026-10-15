@@ -2,9 +2,13 @@ import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import ImmersveCancelCardSheet from './ImmersveCancelCardSheet';
-import { ImmersveCancelCardSheetTestIds } from './ImmersveCancelCardSheet.testIds';
-import useCardCancel from '../../hooks/useCardCancel';
+import {
+  CardProviderError,
+  CardProviderErrorCode,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import ImmersveReissueCardSheet from './ImmersveReissueCardSheet';
+import { ImmersveReissueCardSheetTestIds } from './ImmersveReissueCardSheet.testIds';
+import useCardReissue from '../../hooks/useCardReissue';
 import { withBiometricAuth } from '../../util/withBiometricAuth';
 import { CardActions } from '../../util/metrics';
 
@@ -25,7 +29,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useCardCancel', () => ({
+jest.mock('../../hooks/useCardReissue', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -82,15 +86,15 @@ jest.mock('@metamask/design-system-react-native', () => {
 const renderSheet = () =>
   renderWithProvider(
     <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      <ImmersveCancelCardSheet />
+      <ImmersveReissueCardSheet />
     </ToastContext.Provider>,
   );
 
-describe('ImmersveCancelCardSheet', () => {
+describe('ImmersveReissueCardSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddProperties.mockReturnValue({ build: mockBuild });
-    (useCardCancel as jest.Mock).mockReturnValue({
+    (useCardReissue as jest.Mock).mockReturnValue({
       mutateAsync: mockMutateAsync,
     });
   });
@@ -98,7 +102,7 @@ describe('ImmersveCancelCardSheet', () => {
   it('keeps the card without authenticating', () => {
     const { getByTestId } = renderSheet();
 
-    fireEvent.press(getByTestId(ImmersveCancelCardSheetTestIds.KEEP_BUTTON));
+    fireEvent.press(getByTestId(ImmersveReissueCardSheetTestIds.KEEP_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(withBiometricAuth).not.toHaveBeenCalled();
@@ -106,8 +110,8 @@ describe('ImmersveCancelCardSheet', () => {
   });
 
   it.each([
-    ['cancelled', 'Card cancelled'],
-    ['pending', 'Cancellation is still in progress'],
+    ['reissued', 'Your new card is ready'],
+    ['pending', 'Your new card is still being set up. Check back shortly.'],
   ] as const)(
     'confirms through biometrics and toasts when the result is %s',
     async (result, label) => {
@@ -116,21 +120,21 @@ describe('ImmersveCancelCardSheet', () => {
 
       await act(async () => {
         fireEvent.press(
-          getByTestId(ImmersveCancelCardSheetTestIds.CONFIRM_BUTTON),
+          getByTestId(ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON),
         );
       });
 
       expect(withBiometricAuth).toHaveBeenCalledTimes(1);
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          action: CardActions.CANCEL_CARD_CONFIRM,
+          action: CardActions.REISSUE_CARD_CONFIRM,
           provider: 'immersve',
         }),
       );
       expect(mockShowToast).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          labelOptions: [{ label: 'Cancelling your card' }],
+          labelOptions: [{ label: 'Getting your new card ready' }],
           hasNoTimeout: true,
         }),
       );
@@ -143,19 +147,49 @@ describe('ImmersveCancelCardSheet', () => {
     },
   );
 
-  it('toasts an error when cancellation fails', async () => {
-    mockMutateAsync.mockRejectedValue(new Error('cancel failed'));
+  it('toasts when the card cannot be replaced', async () => {
+    mockMutateAsync.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.Forbidden,
+        'Forbidden on reissueCard',
+        403,
+        'CARD_REISSUE_NOT_ALLOWED',
+      ),
+    );
     const { getByTestId } = renderSheet();
 
     await act(async () => {
       fireEvent.press(
-        getByTestId(ImmersveCancelCardSheetTestIds.CONFIRM_BUTTON),
+        getByTestId(ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON),
       );
     });
 
     expect(mockShowToast).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        labelOptions: [{ label: "Couldn't cancel your card. Try again." }],
+        labelOptions: [
+          {
+            label:
+              "This card can't be replaced right now. Contact support if you need help.",
+          },
+        ],
+        hasNoTimeout: false,
+      }),
+    );
+  });
+
+  it('toasts an error when reissue fails', async () => {
+    mockMutateAsync.mockRejectedValue(new Error('reissue failed'));
+    const { getByTestId } = renderSheet();
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(mockShowToast).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: "Couldn't replace your card. Try again." }],
         hasNoTimeout: false,
       }),
     );

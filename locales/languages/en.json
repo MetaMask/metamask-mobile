@@ -10749,7 +10749,7 @@
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
       "description_unfreeze": "Enter your wallet password to resume spending on your card.",
-      "description_cancel_card": "Enter your wallet password to cancel your card.",
+      "description_reissue_card": "Enter your wallet password to replace your card.",
       "description_view_pin": "Enter your wallet password to view your card PIN.",
       "description_set_pin": "Enter your wallet password to set your card PIN.",
       "placeholder": "Password",
@@ -11209,8 +11209,8 @@
         "freeze_error": "Failed to update card status. Try again.",
         "freeze_success": "Card successfully frozen",
         "unfreeze_success": "Card successfully unfrozen",
-        "cancel_card": "Cancel card",
-        "cancel_card_description": "Permanently cancel this card",
+        "reissue_card": "Replace card",
+        "reissue_card_description": "Get a new expiry date and security code",
         "change_asset": "Change asset",
         "change_asset_description": "Select a different token",
         "contact_details": "Contact details",
@@ -11250,15 +11250,16 @@
         }
       }
     },
-    "cancel_card_sheet": {
-      "title": "Cancel card?",
-      "description": "The card will stop working, but you can create a new card afterwards.",
-      "keep_button": "Keep card",
-      "confirm_button": "Cancel card",
-      "pending": "Cancelling your card",
-      "success": "Card cancelled",
-      "in_progress": "Cancellation is still in progress",
-      "error": "Couldn't cancel your card. Try again."
+    "reissue_card_sheet": {
+      "title": "Replace your card?",
+      "description": "You'll get a replacement with the same card number and a new expiry date and security code. Apple Wallet and merchants that support automatic card updates switch over on their own. Anywhere else, update the expiry date and security code.",
+      "keep_button": "Keep current card",
+      "confirm_button": "Replace card",
+      "pending": "Getting your new card ready",
+      "success": "Your new card is ready",
+      "in_progress": "Your new card is still being set up. Check back shortly.",
+      "not_allowed": "This card can't be replaced right now. Contact support if you need help.",
+      "error": "Couldn't replace your card. Try again."
     },
     "revoke_allowance_sheet": {
       "title": "Unlink card",

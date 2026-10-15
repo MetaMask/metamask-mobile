@@ -51,6 +51,8 @@ jest.mock('../../../hooks/useCardFreeze', () => ({
   default: () => ({ freeze: jest.fn(), unfreeze: jest.fn() }),
 }));
 
+const mockClearCardSensitiveDetails = jest.fn();
+
 jest.mock('../../../hooks/useRevealCardDetails', () => ({
   useRevealCardDetails: () => ({
     isCardDetailsLoading: false,
@@ -60,7 +62,8 @@ jest.mock('../../../hooks/useRevealCardDetails', () => ({
     onCardDetailsImageError: jest.fn(),
     cardSensitiveDetails: null,
     isSensitiveDetailsLoading: false,
-    clearCardSensitiveDetails: jest.fn(),
+    clearCardSensitiveDetails: (...args: unknown[]) =>
+      mockClearCardSensitiveDetails(...args),
     copyCardDetail: jest.fn(),
     viewCardDetailsAction: jest.fn(),
   }),
@@ -116,9 +119,11 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 function setup({
   isAuthenticated = true,
   providerId = 'baanx',
+  cardId,
 }: {
   isAuthenticated?: boolean;
   providerId?: string;
+  cardId?: string;
 } = {}) {
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
@@ -138,14 +143,16 @@ function setup({
     return undefined;
   });
 
-  return renderHook(() =>
-    useCardHomeActions({
-      data: null,
-      primaryToken: null,
-      isFrozen: false,
-      cardTermsAndConditionsUrl: 'https://example.com/tos',
-      capabilities: null,
-    }),
+  return renderHook(
+    ({ currentCardId }: { currentCardId?: string }) =>
+      useCardHomeActions({
+        data: currentCardId ? ({ card: { id: currentCardId } } as never) : null,
+        primaryToken: null,
+        isFrozen: false,
+        cardTermsAndConditionsUrl: 'https://example.com/tos',
+        capabilities: null,
+      }),
+    { initialProps: { currentCardId: cardId } },
   );
 }
 
@@ -224,6 +231,30 @@ describe('useCardHomeActions — contactDetailsAction', () => {
       showAuthPrompt: true,
       postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
     });
+  });
+});
+
+describe('useCardHomeActions — revealed card details', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('clears revealed details when the card id changes', () => {
+    const { rerender } = setup({ cardId: 'card-1' });
+
+    expect(mockClearCardSensitiveDetails).not.toHaveBeenCalled();
+
+    rerender({ currentCardId: 'card-2' });
+
+    expect(mockClearCardSensitiveDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps revealed details when the card id stays the same', () => {
+    const { rerender } = setup({ cardId: 'card-1' });
+
+    rerender({ currentCardId: 'card-1' });
+
+    expect(mockClearCardSensitiveDetails).not.toHaveBeenCalled();
   });
 });
 

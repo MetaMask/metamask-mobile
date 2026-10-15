@@ -27,17 +27,20 @@ import {
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import useCardCancel from '../../hooks/useCardCancel';
+import useCardReissue from '../../hooks/useCardReissue';
 import { withBiometricAuth } from '../../util/withBiometricAuth';
 import { CardActions, withCardProvider } from '../../util/metrics';
-import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import { ImmersveCancelCardSheetTestIds } from './ImmersveCancelCardSheet.testIds';
+import {
+  CardProviderError,
+  CardProviderIds,
+} from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { ImmersveReissueCardSheetTestIds } from './ImmersveReissueCardSheet.testIds';
 
-export interface ImmersveCancelCardSheetRouteParams {
+export interface ImmersveReissueCardSheetRouteParams {
   cardId: string;
 }
 
-const ImmersveCancelCardSheet = () => {
+const ImmersveReissueCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -46,9 +49,9 @@ const ImmersveCancelCardSheet = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { reauthenticate } = useAuthentication();
   const cardId = (
-    route.params as ImmersveCancelCardSheetRouteParams | undefined
+    route.params as ImmersveReissueCardSheetRouteParams | undefined
   )?.cardId;
-  const cancelCard = useCardCancel(cardId);
+  const reissueCard = useCardReissue(cardId);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -98,7 +101,7 @@ const ImmersveCancelCardSheet = () => {
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties(
           withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.CANCEL_CARD_CONFIRM,
+            action: CardActions.REISSUE_CARD_CONFIRM,
           }),
         )
         .build(),
@@ -109,27 +112,37 @@ const ImmersveCancelCardSheet = () => {
       navigation,
       toastRef,
       passwordDescription: strings(
-        'card.password_bottomsheet.description_cancel_card',
+        'card.password_bottomsheet.description_reissue_card',
       ),
       onSuccess: () => {
         // The sheet unmounts on close and drops react-query callbacks.
         // Replace the no-timeout spinner from the mutation promise instead.
         sheetRef.current?.onCloseBottomSheet(() => {
-          showToast(strings('card.cancel_card_sheet.pending'), 'pending');
-          cancelCard
+          showToast(strings('card.reissue_card_sheet.pending'), 'pending');
+          reissueCard
             .mutateAsync()
             .then((result) => {
               showToast(
                 strings(
-                  result === 'cancelled'
-                    ? 'card.cancel_card_sheet.success'
-                    : 'card.cancel_card_sheet.in_progress',
+                  result === 'reissued'
+                    ? 'card.reissue_card_sheet.success'
+                    : 'card.reissue_card_sheet.in_progress',
                 ),
                 'success',
               );
             })
-            .catch(() => {
-              showToast(strings('card.cancel_card_sheet.error'), 'error');
+            .catch((error: unknown) => {
+              const notAllowed =
+                error instanceof CardProviderError &&
+                error.errorCode === 'CARD_REISSUE_NOT_ALLOWED';
+              showToast(
+                strings(
+                  notAllowed
+                    ? 'card.reissue_card_sheet.not_allowed'
+                    : 'card.reissue_card_sheet.error',
+                ),
+                'error',
+              );
             });
         });
       },
@@ -141,28 +154,28 @@ const ImmersveCancelCardSheet = () => {
     navigation,
     toastRef,
     showToast,
-    cancelCard,
+    reissueCard,
   ]);
 
   return (
     <BottomSheet
       ref={sheetRef}
       goBack={handleGoBack}
-      testID={ImmersveCancelCardSheetTestIds.CONTAINER}
+      testID={ImmersveReissueCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{
-          testID: ImmersveCancelCardSheetTestIds.CLOSE_BUTTON,
+          testID: ImmersveReissueCardSheetTestIds.CLOSE_BUTTON,
         }}
       >
         <Text
           variant={TextVariant.HeadingSm}
           numberOfLines={1}
-          testID={ImmersveCancelCardSheetTestIds.TITLE}
+          testID={ImmersveReissueCardSheetTestIds.TITLE}
         >
-          {strings('card.cancel_card_sheet.title')}
+          {strings('card.reissue_card_sheet.title')}
         </Text>
       </BottomSheetHeader>
       <Box twClassName="px-4">
@@ -170,9 +183,9 @@ const ImmersveCancelCardSheet = () => {
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
           twClassName="text-alternative pb-4"
-          testID={ImmersveCancelCardSheetTestIds.DESCRIPTION}
+          testID={ImmersveReissueCardSheetTestIds.DESCRIPTION}
         >
-          {strings('card.cancel_card_sheet.description')}
+          {strings('card.reissue_card_sheet.description')}
         </Text>
         <Box twClassName="gap-4 pt-4">
           <Button
@@ -180,18 +193,18 @@ const ImmersveCancelCardSheet = () => {
             size={ButtonSize.Lg}
             onPress={handleClose}
             isFullWidth
-            testID={ImmersveCancelCardSheetTestIds.KEEP_BUTTON}
+            testID={ImmersveReissueCardSheetTestIds.KEEP_BUTTON}
           >
-            {strings('card.cancel_card_sheet.keep_button')}
+            {strings('card.reissue_card_sheet.keep_button')}
           </Button>
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             onPress={handleConfirm}
             isFullWidth
-            testID={ImmersveCancelCardSheetTestIds.CONFIRM_BUTTON}
+            testID={ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON}
           >
-            {strings('card.cancel_card_sheet.confirm_button')}
+            {strings('card.reissue_card_sheet.confirm_button')}
           </Button>
         </Box>
       </Box>
@@ -199,4 +212,4 @@ const ImmersveCancelCardSheet = () => {
   );
 };
 
-export default ImmersveCancelCardSheet;
+export default ImmersveReissueCardSheet;

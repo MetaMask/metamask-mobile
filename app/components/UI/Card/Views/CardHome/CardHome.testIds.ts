@@ -15,7 +15,7 @@ export const CardHomeSelectors = {
   CONTACT_DETAILS_ITEM: 'contact-details-item',
   UNLINK_MONEY_ACCOUNT_ITEM: 'unlink-money-account-item',
   REVOKE_ALLOWANCE_ITEM: 'revoke-allowance-item',
-  CANCEL_CARD_ITEM: 'cancel-card-item',
+  REISSUE_CARD_ITEM: 'reissue-card-item',
   CARD_VIEW_TITLE: 'card-view-title',
   ADD_FUNDS_BOTTOM_SHEET: 'add-funds-bottom-sheet',
   ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION:

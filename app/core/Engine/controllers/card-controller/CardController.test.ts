@@ -2696,10 +2696,14 @@ describe('CardController — freezeCard', () => {
   });
 });
 
-describe('CardController — cancelCard', () => {
+describe('CardController — reissueCard', () => {
   const freshTokenSet: CardAuthTokens = {
     ...mockTokenSet,
     accessToken: 'fresh-at',
+  };
+  const successorHomeData: CardHomeData = {
+    ...mockCardHomeData,
+    card: { ...mockCard, id: 'card-2' },
   };
 
   beforeEach(() => {
@@ -2710,85 +2714,152 @@ describe('CardController — cancelCard', () => {
     jest.restoreAllMocks();
   });
 
-  it('throws when the active provider cannot cancel a card', async () => {
+  function authenticatedController(
+    provider: jest.Mocked<ICardProvider>,
+    cardHomeData: CardHomeData = mockCardHomeData,
+  ) {
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    return buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+      cardHomeData: cardHomeData as unknown as Record<string, null>,
+      cardHomeDataStatus: 'success',
+    });
+  }
+
+  async function settleAuth() {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
+  it('throws when the active provider cannot reissue a card', async () => {
     const { controller } =
       buildControllerWithMockMessenger(buildMockProvider());
 
-    await expect(controller.cancelCard('card-1')).rejects.toMatchObject({
+    await expect(controller.reissueCard('card-1')).rejects.toMatchObject({
       code: CardProviderErrorCode.Unknown,
-      message: 'Card cancellation not supported',
+      message: 'Card reissue not supported',
     });
   });
 
-  it('delegates to the provider, clears the cached card, and force-refreshes', async () => {
+  it('delegates to the provider and refreshes home data once the successor exists', async () => {
     const provider = buildMockProvider();
-    mockTokenStore.get.mockResolvedValue(mockTokenSet);
-    provider.validateTokens.mockReturnValue('valid');
-    provider.cancelCard = jest.fn().mockResolvedValue('cancelled');
-    const { controller } = buildControllerWithMockMessenger(provider, {
-      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
-      cardHomeDataStatus: 'success',
-    });
-    const fetchSpy = jest
-      .spyOn(controller, 'fetchCardHomeData')
-      .mockResolvedValue();
+    provider.reissueCard = jest.fn().mockResolvedValue('reissued');
+    provider.getCardHomeData.mockResolvedValue(successorHomeData);
+    const { controller } = authenticatedController(provider);
 
-    await expect(controller.cancelCard('card-1')).resolves.toBe('cancelled');
+    await expect(controller.reissueCard('card-1')).resolves.toBe('reissued');
 
-    expect(provider.cancelCard).toHaveBeenCalledWith('card-1', mockTokenSet);
+    expect(provider.reissueCard).toHaveBeenCalledWith('card-1', mockTokenSet);
+    expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
     const data = controller.state
       .cardHomeData as unknown as typeof mockCardHomeData;
-    expect(data.card).toBeNull();
-    expect(data.alerts).toStrictEqual([]);
-    expect(data.actions).toStrictEqual([
-      { type: 'enable_card', reason: 'card_cancelled' },
-    ]);
-    expect(fetchSpy).toHaveBeenCalledWith({ force: true });
+    expect(data.card?.id).toBe('card-2');
+    expect(controller.state.cardHomeDataStatus).toBe('success');
   });
 
-  it('keeps the cached card when cancellation is still pending', async () => {
+  it('keeps the cached card when the successor is still pending', async () => {
     const provider = buildMockProvider();
-    mockTokenStore.get.mockResolvedValue(mockTokenSet);
-    provider.validateTokens.mockReturnValue('valid');
-    provider.cancelCard = jest.fn().mockResolvedValue('pending');
-    const { controller } = buildControllerWithMockMessenger(provider, {
-      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
-      cardHomeDataStatus: 'success',
-    });
-    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+    provider.reissueCard = jest.fn().mockResolvedValue('pending');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = authenticatedController(provider);
 
-    await expect(controller.cancelCard('card-1')).resolves.toBe('pending');
+    await expect(controller.reissueCard('card-1')).resolves.toBe('pending');
 
     const data = controller.state
       .cardHomeData as unknown as typeof mockCardHomeData;
     expect(data.card?.id).toBe('card-1');
   });
 
+  it('shares one in-flight reissue across concurrent calls', async () => {
+    const provider = buildMockProvider();
+    let resolveReissue: (result: 'reissued') => void = () => undefined;
+    provider.reissueCard = jest.fn(
+      () =>
+        new Promise<'reissued'>((resolve) => {
+          resolveReissue = resolve;
+        }),
+    );
+    provider.getCardHomeData.mockResolvedValue(successorHomeData);
+    const { controller } = authenticatedController(provider);
+
+    const first = controller.reissueCard('card-1');
+    const second = controller.reissueCard('card-1');
+    await settleAuth();
+    expect(provider.reissueCard).toHaveBeenCalledTimes(1);
+    resolveReissue('reissued');
+
+    await expect(Promise.all([first, second])).resolves.toStrictEqual([
+      'reissued',
+      'reissued',
+    ]);
+    expect(provider.reissueCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips home-data fetches while a reissue is running and allows them after', async () => {
+    const provider = buildMockProvider();
+    let resolveReissue: (result: 'reissued') => void = () => undefined;
+    provider.reissueCard = jest.fn(
+      () =>
+        new Promise<'reissued'>((resolve) => {
+          resolveReissue = resolve;
+        }),
+    );
+    provider.getCardHomeData.mockResolvedValue(successorHomeData);
+    const { controller } = authenticatedController(provider);
+
+    const reissue = controller.reissueCard('card-1');
+    await settleAuth();
+    expect(provider.reissueCard).toHaveBeenCalledTimes(1);
+
+    await controller.fetchCardHomeData();
+    await controller.fetchCardHomeData({ force: true });
+    expect(provider.getCardHomeData).not.toHaveBeenCalled();
+
+    resolveReissue('reissued');
+    await reissue;
+    expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
+
+    provider.getCardHomeData.mockClear();
+    await controller.fetchCardHomeData({ force: true });
+    expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
+  });
+
+  it('lifts the fetch freeze when the reissue fails', async () => {
+    const provider = buildMockProvider();
+    provider.reissueCard = jest
+      .fn()
+      .mockRejectedValue(new Error('reissue down'));
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = authenticatedController(provider);
+
+    await expect(controller.reissueCard('card-1')).rejects.toThrow(
+      'reissue down',
+    );
+    expect(provider.getCardHomeData).not.toHaveBeenCalled();
+
+    await controller.fetchCardHomeData({ force: true });
+    expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
+  });
+
   it('retries once after an auth error', async () => {
     const provider = buildMockProvider();
-    mockTokenStore.get.mockResolvedValue(mockTokenSet);
-    provider.validateTokens.mockReturnValue('valid');
-    provider.cancelCard = jest
+    provider.reissueCard = jest
       .fn()
       .mockRejectedValueOnce(mockUnauthorizedError)
-      .mockResolvedValueOnce('cancelled');
+      .mockResolvedValueOnce('reissued');
     provider.refreshTokens.mockResolvedValue(freshTokenSet);
+    provider.getCardHomeData.mockResolvedValue(successorHomeData);
     mockTokenStore.set.mockResolvedValue(true);
-    const { controller } = buildControllerWithMockMessenger(provider, {
-      isAuthenticated: true,
-      cardHomeData: mockCardHomeData as unknown as Record<string, null>,
-      cardHomeDataStatus: 'success',
-    });
-    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+    const { controller } = authenticatedController(provider);
 
-    await expect(controller.cancelCard('card-1')).resolves.toBe('cancelled');
+    await expect(controller.reissueCard('card-1')).resolves.toBe('reissued');
 
-    expect(provider.cancelCard).toHaveBeenNthCalledWith(
+    expect(provider.reissueCard).toHaveBeenNthCalledWith(
       1,
       'card-1',
       mockTokenSet,
     );
-    expect(provider.cancelCard).toHaveBeenNthCalledWith(
+    expect(provider.reissueCard).toHaveBeenNthCalledWith(
       2,
       'card-1',
       freshTokenSet,
@@ -3299,7 +3370,7 @@ describe('CardController — getCapabilities', () => {
     supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
     supportsContactDetails: false,
-    supportsCancelCard: false,
+    supportsReissueCard: false,
   };
 
   it('returns base capabilities', () => {

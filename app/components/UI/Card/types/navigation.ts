@@ -8,7 +8,7 @@ import type { DaimoPayModalParams } from '../components/DaimoPayModal/DaimoPayMo
 import type { CreditBalanceTooltipParams } from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
 import type { MoneyUnlinkCardSheetRouteParams } from '../components/MoneyUnlinkCardSheet/MoneyUnlinkCardSheet';
 import type { ImmersveRevokeAllowanceSheetRouteParams } from '../components/ImmersveRevokeAllowanceSheet/ImmersveRevokeAllowanceSheet';
-import type { ImmersveCancelCardSheetRouteParams } from '../components/ImmersveCancelCardSheet/ImmersveCancelCardSheet';
+import type { ImmersveReissueCardSheetRouteParams } from '../components/ImmersveReissueCardSheet/ImmersveReissueCardSheet';
 import type { ChooseYourCardParams } from '../Views/ChooseYourCard/ChooseYourCard';
 import type { ReviewOrderParams } from '../Views/ReviewOrder/ReviewOrder';
 import type { OrderCompletedParams } from '../Views/OrderCompleted/OrderCompleted';
@@ -152,7 +152,7 @@ export type CardModalsNavigationParamList = {
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
   CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
-  CardCancelCardSheet: ImmersveCancelCardSheetRouteParams | undefined;
+  CardReissueCardSheet: ImmersveReissueCardSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
   CardDigitalWalletInstructionsModal: undefined;
   CardApplePayUsageSheet: undefined;

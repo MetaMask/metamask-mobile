@@ -2,19 +2,19 @@ import React from 'react';
 import { renderHook, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
-import useCardCancel from './useCardCancel';
+import useCardReissue from './useCardReissue';
 import Engine from '../../../../core/Engine';
 
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
 });
 
-const mockCancelCard = jest.fn();
+const mockReissueCard = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
-      cancelCard: jest.fn(),
+      reissueCard: jest.fn(),
     },
   },
 }));
@@ -31,11 +31,11 @@ const createWrapper = () => {
   return { Wrapper };
 };
 
-describe('useCardCancel', () => {
+describe('useCardReissue', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCancelCard.mockResolvedValue('cancelled');
-    (Engine.context.CardController.cancelCard as jest.Mock) = mockCancelCard;
+    mockReissueCard.mockResolvedValue('reissued');
+    (Engine.context.CardController.reissueCard as jest.Mock) = mockReissueCard;
   });
 
   afterEach(() => {
@@ -47,9 +47,9 @@ describe('useCardCancel', () => {
     }
   });
 
-  it('calls CardController.cancelCard with the provided cardId', async () => {
+  it('calls CardController.reissueCard with the provided cardId', async () => {
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useCardCancel('card-123'), {
+    const { result } = renderHook(() => useCardReissue('card-123'), {
       wrapper: Wrapper,
     });
 
@@ -57,21 +57,21 @@ describe('useCardCancel', () => {
       await result.current.mutateAsync(undefined);
     });
 
-    expect(mockCancelCard).toHaveBeenCalledWith('card-123');
+    expect(mockReissueCard).toHaveBeenCalledWith('card-123');
   });
 
   it('throws when cardId is undefined', async () => {
     const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => useCardCancel(undefined), {
+    const { result } = renderHook(() => useCardReissue(undefined), {
       wrapper: Wrapper,
     });
 
     await act(async () => {
       await expect(result.current.mutateAsync(undefined)).rejects.toThrow(
-        'Cannot cancel: no card ID',
+        'Cannot reissue: no card ID',
       );
     });
 
-    expect(mockCancelCard).not.toHaveBeenCalled();
+    expect(mockReissueCard).not.toHaveBeenCalled();
   });
 });

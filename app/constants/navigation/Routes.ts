@@ -643,7 +643,7 @@ const Routes = {
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
-      CANCEL_CARD: 'CardCancelCardSheet',
+      REISSUE_CARD: 'CardReissueCardSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
       APPLE_PAY_USAGE: 'CardApplePayUsageSheet',

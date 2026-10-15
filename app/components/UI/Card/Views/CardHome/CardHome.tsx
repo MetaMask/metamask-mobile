@@ -979,7 +979,7 @@ const CardHome = () => {
             }
             showRevokeAllowance={canRevokeAllowance}
             onRevokeAllowance={actions.revokeAllowanceAction}
-            onCancelCard={actions.cancelCardAction}
+            onReissueCard={actions.reissueCardAction}
             fundingAccountName={fundingAccountName}
             onOrderMetalCard={actions.orderMetalCardAction}
             onChangeAsset={actions.changeAssetAction}
