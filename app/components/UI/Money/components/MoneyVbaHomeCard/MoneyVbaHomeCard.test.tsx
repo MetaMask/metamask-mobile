@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import MoneyVbaHomeCard from './MoneyVbaHomeCard';
 import {
@@ -10,11 +10,13 @@ import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
+  COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
@@ -31,8 +33,16 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
+const mockLoggerError = jest.mocked(Logger.error);
 
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'get_started',
@@ -48,29 +58,39 @@ const VARIANTS: MoneyVbaHomeCardVariant[] = [
  */
 const VARIANT_EXPECTATIONS: Record<
   MoneyVbaHomeCardVariant,
-  { source: string; i18nPrefix: string; buttonIntent: MONEY_BUTTON_INTENTS }
+  {
+    source: string;
+    i18nPrefix: string;
+    buttonIntent: MONEY_BUTTON_INTENTS;
+    componentName: COMPONENT_NAMES;
+  }
 > = {
   get_started: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_GET_STARTED_CARD,
     source: 'vba-home-card-get-started',
     i18nPrefix: 'money.vba_home_card.get_started',
     buttonIntent: MONEY_BUTTON_INTENTS.GET_STARTED,
   },
   account_is_ready: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_ACCOUNT_READY_CARD,
     source: 'vba-home-card-account-is-ready',
     i18nPrefix: 'money.vba_home_card.account_is_ready',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
   kyc_pending: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_PENDING_CARD,
     source: 'vba-home-card-kyc-pending',
     i18nPrefix: 'money.vba_home_card.kyc_pending',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
   finish_verification: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_FINISH_VERIFICATION_CARD,
     source: 'vba-home-card-finish-verification',
     i18nPrefix: 'money.vba_home_card.finish_verification',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
   kyc_decision: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_DECISION_CARD,
     source: 'vba-home-card-kyc-decision',
     i18nPrefix: 'money.vba_home_card.kyc_decision',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
@@ -108,6 +128,10 @@ describe('MoneyVbaHomeCard', () => {
     const { rerender } = render(<MoneyVbaHomeCard variant={variant} />);
     rerender(<MoneyVbaHomeCard variant={variant} />);
 
+    expect(mockUseMoneyAnalytics).toHaveBeenCalledWith({
+      screen_name: SCREEN_NAMES.MONEY_HOME,
+      component_name: VARIANT_EXPECTATIONS[variant].componentName,
+    });
     expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
@@ -161,6 +185,27 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockOpenVbaOnboarding).not.toHaveBeenCalled();
   });
 
+  it('logs to Logger.error when opening VBA onboarding rejects', async () => {
+    const failure = new Error('open failed');
+    mockOpenVbaOnboarding.mockRejectedValue(failure);
+
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
+      );
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(failure, {
+      tags: { feature: 'money-home' },
+      context: {
+        name: 'MoneyVbaHomeCard',
+        data: { variant: 'get_started', step: 'openVbaOnboarding' },
+      },
+    });
+  });
+
   it('offers Dismiss only on the kyc_decision card', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_decision.isDismissible).toBe(true);
     const otherVariants = VARIANTS.filter(
@@ -170,6 +215,17 @@ describe('MoneyVbaHomeCard', () => {
       expect(MONEY_VBA_HOME_CARD_CONFIG[variant].isDismissible).toBeUndefined();
     });
   });
+
+  it.each(VARIANTS.filter((variant) => variant !== 'kyc_decision'))(
+    'renders no Dismiss button for %s',
+    (variant) => {
+      const { queryByText } = render(<MoneyVbaHomeCard variant={variant} />);
+
+      expect(
+        queryByText(strings('money.vba_home_card.kyc_decision.dismiss')),
+      ).toBeNull();
+    },
+  );
 
   it('shows the spinner icon only on the kyc_pending CTA', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_pending.ctaStartIconName).toBe(

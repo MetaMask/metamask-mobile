@@ -868,6 +868,46 @@ describe('MoneyHomeView', () => {
       );
     });
 
+    it('wires the one-shot KYC session refresh on mount', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'none',
+      } as VbaHomeCard);
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(mockUseVbaHomeCardRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('remounts the card with fresh dismiss state when the variant changes', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_decision',
+      } as VbaHomeCard);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.DISMISS_BUTTON as string,
+        ),
+      );
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
+      ).toBeNull();
+
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'get_started',
+      } as VbaHomeCard);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
+      ).toBeNull();
+    });
+
     it('renders no VBA card for the none variant', () => {
       mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
 

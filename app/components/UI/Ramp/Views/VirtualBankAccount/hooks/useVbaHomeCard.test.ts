@@ -262,6 +262,24 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_pending' });
   });
 
+  it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
+    'renders kyc_pending for an approved session whose only autoramp is %s (decision rule 3)',
+    (status) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus: makeSession({
+          finalStatus: 'approved',
+          kycStatus: 'approved',
+        }),
+        autoramps: [makeAutoramp({ status })],
+      });
+
+      // A dead autoramp route is not usable, so the account details are not
+      // ready yet and the card must not claim "You're all set".
+      expect(card).toEqual({ type: 'kyc_pending' });
+    },
+  );
+
   it('renders account_is_ready when only kycStatus is approved (relay approval counts)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
