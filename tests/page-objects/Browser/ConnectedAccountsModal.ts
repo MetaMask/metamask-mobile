@@ -181,6 +181,25 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Wait once for the accounts summary, then assert each connected account name.
+   * Prefer this after Connect returns — bare `expectTextDisplayed` on Account 2/3
+   * races the newly connected cells while Account 1 is already in the tree.
+   */
+  async expectConnectedAccountsDisplayed(
+    accountNames: string[],
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.waitForAccountsSummaryReady();
+    const timeout = options.timeout ?? 30_000;
+    for (const accountName of accountNames) {
+      await Assertions.expectTextDisplayed(accountName, {
+        timeout,
+        description: `"${accountName}" in connected accounts summary`,
+      });
+    }
+  }
+
   async tapDisconnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectButton, {
       elemDescription: 'Disconnect button',
