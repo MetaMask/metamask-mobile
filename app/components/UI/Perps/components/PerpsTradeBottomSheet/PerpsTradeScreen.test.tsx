@@ -23,6 +23,8 @@ let store = configureStore({});
 const render: typeof renderRoot = (ui, options) =>
   renderRoot(<Provider store={store}>{ui}</Provider>, options);
 
+jest.mock('../../../../../util/haptics');
+
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }

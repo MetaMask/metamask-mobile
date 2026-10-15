@@ -25,6 +25,7 @@ import type { OrderType } from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
@@ -333,6 +334,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   const { navigateTo, title, banner } = usePerpsTradeSheet();
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   const showAssetValue = denomination === 'asset';
+  const { fireImpact } = useHaptics();
+  const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
+    fireImpact(ImpactMoment.PageNavigation);
+    navigateTo(screen);
+  };
   const { draft: assetDraft, setDraftFromKeypad } = useAssetAmountDraft({
     isActive: showAssetValue,
     usdAmount: amount,
@@ -374,7 +380,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   // another bottom sheet; the parent only records the press for analytics.
   const handlePayWithPress = () => {
     onPayWithPress();
-    navigateTo('payWith');
+    navigateWithHaptic('payWith');
   };
   const limitPriceDisplay = limitPrice
     ? isLimitPriceFocused
@@ -568,7 +574,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   {leverage}x
                 </Text>
               }
-              onPress={() => navigateTo('leverage')}
+              onPress={() => navigateWithHaptic('leverage')}
             />
             {orderType === 'limit' ? (
               <>
@@ -620,7 +626,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                         {autoCloseText}
                       </Text>
                     }
-                    onPress={() => navigateTo('tpsl')}
+                    onPress={() => navigateWithHaptic('tpsl')}
                   />
                 ) : null}
                 {showPayWith ? (

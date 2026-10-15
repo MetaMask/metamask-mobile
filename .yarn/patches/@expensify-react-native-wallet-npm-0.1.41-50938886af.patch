@@ -1,8 +1,8 @@
 diff --git a/android/src/main/java/com/expensify/wallet/WalletModule.kt b/android/src/main/java/com/expensify/wallet/WalletModule.kt
-index dfa1a398e96174020d3b406472e0b10a4e57f9cc..ec97a2204f13b8108febb2e794f1940bbc2a17ed 100644
+index dfa1a398e96174020d3b406472e0b10a4e57f9cc..f27b57c452e3ee18a59770a9375ac89ebc56aced 100644
 --- a/android/src/main/java/com/expensify/wallet/WalletModule.kt
 +++ b/android/src/main/java/com/expensify/wallet/WalletModule.kt
-@@ -365,6 +365,18 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
+@@ -365,6 +365,22 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
      // no-op
    }
  
@@ -14,6 +14,10 @@ index dfa1a398e96174020d3b406472e0b10a4e57f9cc..ec97a2204f13b8108febb2e794f1940b
 +    // no-op
 +  }
 +
++  override fun presentAppleWalletPass(lastDigits: String, promise: Promise) {
++    promise.resolve(false)
++  }
++
 +  override fun activateAppleWalletPass(passData: ReadableMap?, promise: Promise?) {
 +    // no-op
 +  }
@@ -22,10 +26,10 @@ index dfa1a398e96174020d3b406472e0b10a4e57f9cc..ec97a2204f13b8108febb2e794f1940b
      // no-op
    }
 diff --git a/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java b/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
-index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..22b914caeaacfec965d6627abdb6f04cc53ef743 100644
+index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..e13c2778d5a9b947ec2df23a842396a1cc851b06 100644
 --- a/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
 +++ b/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
-@@ -65,6 +65,10 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
+@@ -65,6 +65,14 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
    @DoNotStrip
    public abstract void listTokens(Promise promise);
  
@@ -33,10 +37,14 @@ index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..22b914caeaacfec965d6627abdb6f04c
 +  @DoNotStrip
 +  public abstract void listAppleWalletPasses(Promise promise);
 +
++  @ReactMethod
++  @DoNotStrip
++  public abstract void presentAppleWalletPass(String lastDigits, Promise promise);
++
    @ReactMethod
    @DoNotStrip
    public abstract void IOSPresentAddPaymentPassView(ReadableMap cardData, Promise promise);
-@@ -73,6 +77,14 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
+@@ -73,6 +81,14 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
    @DoNotStrip
    public abstract void IOSHandleAddPaymentPassResponse(ReadableMap payload, Promise promise);
  
@@ -52,7 +60,7 @@ index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..22b914caeaacfec965d6627abdb6f04c
    @DoNotStrip
    public abstract void addListener(String eventType);
 diff --git a/ios/RNWallet.mm b/ios/RNWallet.mm
-index 4981b78a40b3b0918a07b5287e775f41e35d0d53..5c48de34bdadf584069c2d2520fc0938401982f9 100644
+index 4981b78a40b3b0918a07b5287e775f41e35d0d53..c4f6f18390a342e8ae45e1fbc8b5f4b697d187c8 100644
 --- a/ios/RNWallet.mm
 +++ b/ios/RNWallet.mm
 @@ -42,24 +42,32 @@ - (instancetype)init {
@@ -93,7 +101,7 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..5c48de34bdadf584069c2d2520fc0938
      dispatch_async(dispatch_get_main_queue(), ^{
        [self->walletManager IOSPresentAddPaymentPassViewWithCardData:cardDataDict completion:^(OperationResult result, NSDictionary* data) {
          [self handleWalletResponse:result data:data completedBlock:resolve errorPrefix:@"present_payment_pass_view_failed" defaultErrorMessage:@"Failed to present the payment pass view" rejecter:reject];
-@@ -123,6 +131,59 @@ - (instancetype)init {
+@@ -123,6 +131,69 @@ - (instancetype)init {
    resolve([walletManager getCardStatusByIdentifierWithIdentifier:identifier]);
  }
  
@@ -110,6 +118,16 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..5c48de34bdadf584069c2d2520fc0938
 +                 reject:(RCTPromiseRejectBlock)reject)
 +{
 +  resolve([walletManager listAppleWalletPasses]);
++}
++
++RCT_REMAP_METHOD(presentAppleWalletPass,
++                 presentAppleWalletPass:(NSString *)lastDigits
++                 resolve:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  dispatch_async(dispatch_get_main_queue(), ^{
++    resolve(@([self->walletManager presentAppleWalletPassWithLastDigits:lastDigits]));
++  });
 +}
 +
 +RCT_REMAP_METHOD(activateAppleWalletPass,
@@ -153,7 +171,7 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..5c48de34bdadf584069c2d2520fc0938
  - (void)addCardToGoogleWallet:
  #ifdef RCT_NEW_ARCH_ENABLED
    (JS::NativeWallet::AndroidCardData &)cardData
-@@ -175,6 +236,20 @@ - (void)handleWalletResponse:(OperationResult)result
+@@ -175,6 +246,20 @@ - (void)handleWalletResponse:(OperationResult)result
    }
  }
  
@@ -175,7 +193,7 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..5c48de34bdadf584069c2d2520fc0938
    return value ?: @"";
  }
 diff --git a/ios/WalletManager.swift b/ios/WalletManager.swift
-index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..f62303c39cafb7f7b56dc11680b44db2ce8515f5 100644
+index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..fff965e5e9aa13c76ccb65b9f71856332b0d3a83 100644
 --- a/ios/WalletManager.swift
 +++ b/ios/WalletManager.swift
 @@ -21,6 +21,8 @@ open class WalletManager: UIViewController {
@@ -228,7 +246,7 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..f62303c39cafb7f7b56dc11680b44db2
        presentingViewController.present(enrollViewController, animated: true, completion: nil)
      }
    }
-@@ -212,10 +229,213 @@ open class WalletManager: UIViewController {
+@@ -212,10 +229,228 @@ open class WalletManager: UIViewController {
        return pass.primaryAccountIdentifier == identifier as String
      }
    }
@@ -321,6 +339,21 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..f62303c39cafb7f7b56dc11680b44db2
 +    }
 +
 +    return localPasses + remotePasses
++  }
++
++  @objc public func presentAppleWalletPass(lastDigits: NSString) -> Bool {
++    let candidates = passLibrary.passes(of: .secureElement)
++      .filter { !$0.isRemotePass }
++      .compactMap(\.secureElementPass)
++      .filter {
++        $0.primaryAccountNumberSuffix.hasSuffix(lastDigits as String) &&
++          $0.passActivationState != .deactivated
++      }
++    guard let pass = candidates.first(where: { $0.passActivationState == .requiresActivation }) ?? candidates.first else {
++      return false
++    }
++    passLibrary.present(pass)
++    return true
 +  }
 +
 +  @objc public func activateAppleWalletPass(passData: NSDictionary, completion: @escaping CompletionHandler) {
@@ -442,7 +475,7 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..f62303c39cafb7f7b56dc11680b44db2
    
    private func hideModal() {
      guard let enrollVC = addPassViewController else {
-@@ -261,7 +481,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+@@ -261,7 +496,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
        let stringCertificates = certificates.map {
          $0.base64EncodedString() as NSString
        }
@@ -451,7 +484,7 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..f62303c39cafb7f7b56dc11680b44db2
        self.addPassHandler = handler
        
        // Retry the JS issuer callback if the user tries again to add a payment pass
-@@ -293,6 +513,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+@@ -293,6 +528,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
        presentAddPaymentPassCompletionHandler = nil
        addPaymentPassCompletionHandler = nil
        addPassHandler = nil
@@ -534,10 +567,10 @@ index c02a3c7c802da3c511a8971112bf65fb9c198540..13499153195d2882c6367b56a32ea644
  
    private static func getNetwork(from identifier: String) -> PKPaymentNetwork? {
 diff --git a/lib/commonjs/index.js b/lib/commonjs/index.js
-index a960e515032c8d7146695fd610f006f2f73f6ffb..356fb1b3363885c52e16712c29042de154cff53a 100644
+index a960e515032c8d7146695fd610f006f2f73f6ffb..0a8b20fd7e9c19bf3ee951b1ea94eb2152fed54a 100644
 --- a/lib/commonjs/index.js
 +++ b/lib/commonjs/index.js
-@@ -9,13 +9,16 @@ Object.defineProperty(exports, "AddToWalletButton", {
+@@ -9,13 +9,17 @@ Object.defineProperty(exports, "AddToWalletButton", {
      return _AddToWalletButton.default;
    }
  });
@@ -551,10 +584,11 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..356fb1b3363885c52e16712c29042de1
  exports.getCardStatusBySuffix = getCardStatusBySuffix;
  exports.getSecureWalletInfo = getSecureWalletInfo;
 +exports.listAppleWalletPasses = listAppleWalletPasses;
++exports.presentAppleWalletPass = presentAppleWalletPass;
  exports.listTokens = listTokens;
  exports.removeListener = removeListener;
  exports.resumeAddCardToGoogleWallet = resumeAddCardToGoogleWallet;
-@@ -126,6 +129,40 @@ async function listTokens() {
+@@ -126,6 +130,40 @@ async function listTokens() {
    }
    return _NativeWallet.default.listTokens();
  }
@@ -595,7 +629,7 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..356fb1b3363885c52e16712c29042de1
  async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
    if (_reactNative.Platform.OS === 'android') {
      throw new Error('addCardToAppleWallet is not available on Android');
-@@ -139,7 +176,7 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+@@ -139,7 +177,7 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
      return (0, _utils.getTokenizationStatus)((passData === null || passData === void 0 ? void 0 : passData.status) || -1);
    }
    async function addPaymentPassToWallet(paymentPassData) {
@@ -604,10 +638,19 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..356fb1b3363885c52e16712c29042de1
      const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
      // Response is null when a pass is successfully added to the wallet or the user cancels the process
      // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
-@@ -151,4 +188,13 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+@@ -151,4 +189,22 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
    const status = await addPaymentPassToWallet(passData);
    return (0, _utils.getTokenizationStatus)(status);
  }
++async function presentAppleWalletPass(lastDigits) {
++  if (_reactNative.Platform.OS === 'android') {
++    return false;
++  }
++  if (!_NativeWallet.default) {
++    return getModuleLinkingRejection();
++  }
++  return _NativeWallet.default.presentAppleWalletPass(lastDigits);
++}
 +async function activateAppleWalletPass(passData) {
 +  if (_reactNative.Platform.OS === 'android') {
 +    throw new Error('activateAppleWalletPass is not available on Android');
@@ -620,7 +663,7 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..356fb1b3363885c52e16712c29042de1
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
 diff --git a/lib/module/index.js b/lib/module/index.js
-index 52d87604832b3d806b84522c4196233a55c0df88..89fcef0e26cf4e3b823ab20949ab54af0a3bfed1 100644
+index 52d87604832b3d806b84522c4196233a55c0df88..7b0204f6526b4d8d32c58807859fd54f44619256 100644
 --- a/lib/module/index.js
 +++ b/lib/module/index.js
 @@ -102,6 +102,40 @@ async function listTokens() {
@@ -673,11 +716,20 @@ index 52d87604832b3d806b84522c4196233a55c0df88..89fcef0e26cf4e3b823ab20949ab54af
      const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
      // Response is null when a pass is successfully added to the wallet or the user cancels the process
      // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
-@@ -127,5 +161,14 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+@@ -127,5 +161,23 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
    const status = await addPaymentPassToWallet(passData);
    return getTokenizationStatus(status);
  }
 -export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, addCardToAppleWallet, addListener, removeListener };
++async function presentAppleWalletPass(lastDigits) {
++  if (Platform.OS === 'android') {
++    return false;
++  }
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++  return Wallet.presentAppleWalletPass(lastDigits);
++}
 +async function activateAppleWalletPass(passData) {
 +  if (Platform.OS === 'android') {
 +    throw new Error('activateAppleWalletPass is not available on Android');
@@ -687,11 +739,11 @@ index 52d87604832b3d806b84522c4196233a55c0df88..89fcef0e26cf4e3b823ab20949ab54af
 +  }
 +  return Wallet.activateAppleWalletPass(passData);
 +}
-+export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, canAddCardToAppleWallet, listAppleWalletPasses, addCardToAppleWallet, activateAppleWalletPass, addListener, removeListener };
++export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, canAddCardToAppleWallet, listAppleWalletPasses, presentAppleWalletPass, addCardToAppleWallet, activateAppleWalletPass, addListener, removeListener };
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
 diff --git a/lib/typescript/src/NativeWallet.d.ts b/lib/typescript/src/NativeWallet.d.ts
-index e204212a4121a70ba90e2ff29af9344645541c26..52114431148fcc2d8e81616b4d3c5563c56147cd 100644
+index e204212a4121a70ba90e2ff29af9344645541c26..143a3f75781f52747120555fbf715a88b16b4a2a 100644
 --- a/lib/typescript/src/NativeWallet.d.ts
 +++ b/lib/typescript/src/NativeWallet.d.ts
 @@ -33,6 +33,7 @@ type IOSCardData = {
@@ -731,7 +783,7 @@ index e204212a4121a70ba90e2ff29af9344645541c26..52114431148fcc2d8e81616b4d3c5563
  type TokenizationStatus = 'canceled' | 'success' | 'error';
  type TokenInfo = {
      identifier: string;
-@@ -64,8 +81,11 @@ export interface Spec extends TurboModule {
+@@ -64,8 +81,12 @@ export interface Spec extends TurboModule {
      addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
      resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
      listTokens(): Promise<TokenInfo[]>;
@@ -739,11 +791,12 @@ index e204212a4121a70ba90e2ff29af9344645541c26..52114431148fcc2d8e81616b4d3c5563
      IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
      IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
 +    canAddCardToAppleWallet(primaryAccountIdentifier: string): Promise<boolean>;
++    presentAppleWalletPass(lastDigits: string): Promise<boolean>;
 +    activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
      addListener: (eventType: string) => void;
      removeListeners: (count: number) => void;
  }
-@@ -73,5 +93,5 @@ declare const PACKAGE_NAME = "@expensify/react-native-wallet";
+@@ -73,5 +94,5 @@ declare const PACKAGE_NAME = "@expensify/react-native-wallet";
  declare let Wallet: Spec | undefined;
  export default Wallet;
  export { PACKAGE_NAME };
@@ -752,7 +805,7 @@ index e204212a4121a70ba90e2ff29af9344645541c26..52114431148fcc2d8e81616b4d3c5563
  //# sourceMappingURL=NativeWallet.d.ts.map
 \ No newline at end of file
 diff --git a/lib/typescript/src/index.d.ts b/lib/typescript/src/index.d.ts
-index cba33e5607d1f726b1d32294406e04ad489929ff..acd3e432d8eb022a55dfa7a03e83c4add4c2007c 100644
+index cba33e5607d1f726b1d32294406e04ad489929ff..fd48eda8db18654bd63eaa7925983d70d59a9b9f 100644
 --- a/lib/typescript/src/index.d.ts
 +++ b/lib/typescript/src/index.d.ts
 @@ -1,5 +1,13 @@
@@ -770,7 +823,7 @@ index cba33e5607d1f726b1d32294406e04ad489929ff..acd3e432d8eb022a55dfa7a03e83c4ad
  import AddToWalletButton from './AddToWalletButton';
  declare function addListener(event: string, callback: (data: onCardActivatedPayload) => void): EmitterSubscription;
  declare function removeListener(subscription: EmitterSubscription): void;
-@@ -16,7 +24,10 @@ declare function getCardStatusByIdentifier(identifier: string, tsp: string): Pro
+@@ -16,7 +24,11 @@ declare function getCardStatusByIdentifier(identifier: string, tsp: string): Pro
  declare function addCardToGoogleWallet(cardData: AndroidCardData): Promise<TokenizationStatus>;
  declare function resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<TokenizationStatus>;
  declare function listTokens(): Promise<TokenInfo[]>;
@@ -779,14 +832,15 @@ index cba33e5607d1f726b1d32294406e04ad489929ff..acd3e432d8eb022a55dfa7a03e83c4ad
 -export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, addCardToAppleWallet, addListener, removeListener, };
 +declare function canAddCardToAppleWallet(primaryAccountIdentifier: string): Promise<boolean>;
 +declare function listAppleWalletPasses(): Promise<IOSWalletPass[]>;
++declare function presentAppleWalletPass(lastDigits: string): Promise<boolean>;
 +declare function addCardToAppleWallet(cardData: IOSCardData, issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[], deviceType: IOSDeviceType) => Promise<IOSEncryptPayload>): Promise<TokenizationStatus>;
 +declare function activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
 +export type { AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, IOSDeviceType, IOSPassActivationData, IOSWalletPass, onCardActivatedPayload, TokenizationStatus, TokenInfo };
-+export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, canAddCardToAppleWallet, listAppleWalletPasses, addCardToAppleWallet, activateAppleWalletPass, addListener, removeListener, };
++export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, canAddCardToAppleWallet, listAppleWalletPasses, presentAppleWalletPass, addCardToAppleWallet, activateAppleWalletPass, addListener, removeListener, };
  //# sourceMappingURL=index.d.ts.map
 \ No newline at end of file
 diff --git a/src/NativeWallet.ts b/src/NativeWallet.ts
-index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..f9f1235e906d3f9bd3ea1caee2c2265511fa9bdf 100644
+index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..8ec45d2a8238e2b225a81561baa25082e12b8511 100644
 --- a/src/NativeWallet.ts
 +++ b/src/NativeWallet.ts
 @@ -41,6 +41,7 @@ type IOSCardData = {
@@ -831,7 +885,7 @@ index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..f9f1235e906d3f9bd3ea1caee2c22655
  type TokenizationStatus = 'canceled' | 'success' | 'error';
  
  type TokenInfo = {
-@@ -78,8 +98,11 @@ export interface Spec extends TurboModule {
+@@ -78,8 +98,12 @@ export interface Spec extends TurboModule {
    addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
    resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
    listTokens(): Promise<TokenInfo[]>;
@@ -839,11 +893,12 @@ index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..f9f1235e906d3f9bd3ea1caee2c22655
    IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
    IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
 +  canAddCardToAppleWallet(primaryAccountIdentifier: string): Promise<boolean>;
++  presentAppleWalletPass(lastDigits: string): Promise<boolean>;
 +  activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
    addListener: (eventType: string) => void;
    removeListeners: (count: number) => void;
  }
-@@ -109,7 +132,10 @@ export type {
+@@ -109,7 +133,10 @@ export type {
    onCardActivatedPayload,
    Platform,
    IOSAddPaymentPassData,
@@ -855,7 +910,7 @@ index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..f9f1235e906d3f9bd3ea1caee2c22655
    TokenInfo,
  };
 diff --git a/src/index.tsx b/src/index.tsx
-index d1801ffc288e7ac9c707b118ff9b80602bc31440..5aeb06e9b429302bc13b4aff6b05ccfbf4448150 100644
+index d1801ffc288e7ac9c707b118ff9b80602bc31440..ed9dda0d2f90a261fa451fc153cdbc7a7b3bc702 100644
 --- a/src/index.tsx
 +++ b/src/index.tsx
 @@ -12,11 +12,23 @@ import type {
@@ -943,11 +998,23 @@ index d1801ffc288e7ac9c707b118ff9b80602bc31440..5aeb06e9b429302bc13b4aff6b05ccfb
      const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
      // Response is null when a pass is successfully added to the wallet or the user cancels the process
      // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
-@@ -164,7 +217,32 @@ async function addCardToAppleWallet(
+@@ -164,7 +217,44 @@ async function addCardToAppleWallet(
    return getTokenizationStatus(status);
  }
  
 -export type {AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, onCardActivatedPayload, TokenizationStatus, TokenInfo};
++async function presentAppleWalletPass(lastDigits: string): Promise<boolean> {
++  if (Platform.OS === 'android') {
++    return false;
++  }
++
++  if (!Wallet) {
++    return getModuleLinkingRejection();
++  }
++
++  return Wallet.presentAppleWalletPass(lastDigits);
++}
++
 +async function activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean> {
 +  if (Platform.OS === 'android') {
 +    throw new Error('activateAppleWalletPass is not available on Android');
@@ -977,12 +1044,13 @@ index d1801ffc288e7ac9c707b118ff9b80602bc31440..5aeb06e9b429302bc13b4aff6b05ccfb
  export {
    AddToWalletButton,
    checkWalletAvailability,
-@@ -174,7 +252,10 @@ export {
+@@ -174,7 +264,11 @@ export {
    addCardToGoogleWallet,
    resumeAddCardToGoogleWallet,
    listTokens,
 +  canAddCardToAppleWallet,
 +  listAppleWalletPasses,
++  presentAppleWalletPass,
    addCardToAppleWallet,
 +  activateAppleWalletPass,
    addListener,
