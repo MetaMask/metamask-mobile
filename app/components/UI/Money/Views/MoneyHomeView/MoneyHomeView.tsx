@@ -6,9 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type LayoutChangeEvent } from 'react-native';
-import HeaderGlass, {
-  useHeaderGlassInset,
-} from '../../../../../component-library/components-temp/HeaderGlass';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import {
+  NativeHeaderBackdrop,
+  useNativeHeaderScroll,
+} from '../../../../hooks/useNativeHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -133,7 +135,7 @@ const MoneyHomeView = () => {
   // than rooted in the tab bar, which is the only case that gets a back
   // affordance and the title that collapses into the header on scroll.
   const isPushed = Boolean(showBackButton);
-  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+  const { titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -465,6 +467,8 @@ const MoneyHomeView = () => {
     isEnabled: isBrandRefresh,
   });
 
+  const { scrollY, scrollDistance, onScroll } =
+    useNativeHeaderScroll(isNativeHeader);
   const isFloatingHeader = isBrandRefresh && !isNativeHeader;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
     useHeaderGlassInset(isFloatingHeader, insets.top);
@@ -490,6 +494,7 @@ const MoneyHomeView = () => {
     : {
         onMenuPress: handleMenuPress,
         proButton,
+        scrollY,
       };
 
   const handleAddPress = useCallback(
@@ -1029,17 +1034,13 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      {isFloatingHeader ? (
-        // Mounted before the content so assistive tech reads the header first.
-        <HeaderGlass
-          onLayout={handleFloatingHeaderLayout}
-          topInset={insets.top}
-          testID={MoneyHomeViewTestIds.FLOATING_HEADER}
-        >
-          <MoneyHeader {...headerProps} isCapsule />
-        </HeaderGlass>
-      ) : (
-        !isNativeHeader && <MoneyHeader {...headerProps} />
+      {/* Mounted before the content so assistive tech reads the header first. */}
+      {!isNativeHeader && (
+        <MoneyHeader
+          {...headerProps}
+          isGlass={isFloatingHeader}
+          onLayout={isFloatingHeader ? handleFloatingHeaderLayout : undefined}
+        />
       )}
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
@@ -1120,6 +1121,12 @@ const MoneyHomeView = () => {
           </React.Fragment>
         ))}
       </Animated.ScrollView>
+      {isNativeHeader && (
+        <NativeHeaderBackdrop
+          scrollDistance={scrollDistance}
+          testID={MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP}
+        />
+      )}
     </Box>
   );
 };

@@ -9,6 +9,7 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -85,6 +86,27 @@ let mockIsMoneyGlass = false;
 jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
   useIsGlassSurfaceEnabled: () => mockIsMoneyGlass,
 }));
+// Glass surfaces also need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsMoneyGlass,
+    }),
+  };
+});
+
+let mockIsMoneyBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyBrandRefresh',
+  () => ({
+    selectMoneyBrandRefreshEnabled: () => mockIsMoneyBrandRefresh,
+  }),
+);
 
 let mockIsMoneyNativeHeader = false;
 jest.mock('../../components/MoneyHeader/useMoneyNativeHeader', () => ({
@@ -590,6 +612,7 @@ const expectTestIdBefore = (
 describe('MoneyHomeView', () => {
   describe('brand refresh', () => {
     afterEach(() => {
+      mockIsMoneyBrandRefresh = false;
       mockIsMoneyGlass = false;
       mockIsMoneyNativeHeader = false;
     });
@@ -615,6 +638,40 @@ describe('MoneyHomeView', () => {
         getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW).props
           .contentInsetAdjustmentBehavior,
       ).toBe('automatic');
+    });
+
+    it('puts the header backdrop under the native bar', () => {
+      mockIsMoneyBrandRefresh = true;
+      mockIsMoneyNativeHeader = true;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).toBeOnTheScreen();
+    });
+
+    it('floats the JS header on its backdrop where the native bar is off', () => {
+      mockIsMoneyBrandRefresh = true;
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the header in place without a backdrop when brand refresh is off', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).not.toBeOnTheScreen();
     });
 
     it('draws the action tiles on glass when brand refresh glass is on', () => {

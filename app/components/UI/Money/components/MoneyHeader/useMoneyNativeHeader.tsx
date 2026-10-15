@@ -101,5 +101,11 @@ export const useMoneyNativeHeader = ({
     ];
   }, [onMenuPress, proButton, isGlassEnabled]);
 
-  return useNativeHeader({ leftItems, rightItems, isEnabled });
+  return useNativeHeader({
+    leftItems,
+    rightItems,
+    isEnabled,
+    // The screen draws its own backdrop under the bar.
+    hidesScrollEdgeEffect: true,
+  });
 };

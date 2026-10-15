@@ -8,6 +8,20 @@ import musdCoinImageSource from '../../../../../images/mm_usd.png';
 import whatYouGetImageSource from '../../../../../images/mm_what_you_get.png';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
+
 describe('MoneyCondensedInfoCards', () => {
   it('renders all three cards', () => {
     const { getByTestId } = render(<MoneyCondensedInfoCards />);

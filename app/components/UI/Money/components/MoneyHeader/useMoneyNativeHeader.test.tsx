@@ -42,6 +42,15 @@ describe('useMoneyNativeHeader', () => {
     expect(renderItems({ isEnabled: false }).isEnabled).toBe(false);
   });
 
+  it('hides the UIKit scroll edge effect, since the screen draws its own backdrop', () => {
+    renderItems();
+
+    expect(
+      jest.mocked(useNativeHeader).mock.calls.at(-1)?.[0]
+        ?.hidesScrollEdgeEffect,
+    ).toBe(true);
+  });
+
   it('shows a plain inline title on the Money tab', () => {
     const { leftItems } = renderItems();
 
