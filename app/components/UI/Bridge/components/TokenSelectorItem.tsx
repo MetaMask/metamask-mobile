@@ -397,7 +397,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             accessible={false}
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
-            gap={4}
           >
             <Box
               accessible={false}
