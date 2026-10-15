@@ -115,6 +115,22 @@ describe('resolveEndAccessoryGlass', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('prefers the close button props press handler, as MMDS does', () => {
+    const onClose = jest.fn();
+    const onPress = jest.fn();
+    const { getByTestId } = renderSlot(
+      resolveEndAccessoryGlass({
+        onClose,
+        closeButtonProps: { testID: 'close', onPress },
+      }),
+    );
+
+    fireEvent.press(getByTestId('close'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('passes a custom accessory through without a capsule', () => {
     const { getByText, queryByTestId } = renderSlot(
       resolveEndAccessoryGlass({

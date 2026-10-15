@@ -3,6 +3,7 @@ import { fireEvent, render, within } from '@testing-library/react-native';
 import { makeMutable } from 'react-native-reanimated';
 import HeaderStandardAnimatedGlass from './HeaderStandardAnimatedGlass';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
+import { backdropFadeOpacity } from '../HeaderGlass/test-utils';
 
 jest.mock('../CapsuleGlass', () => {
   const { View } = jest.requireActual('react-native');
@@ -45,6 +46,22 @@ describe('HeaderStandardAnimatedGlass', () => {
     fireEvent.press(getByTestId('back'));
 
     expect(props.onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [0, 0],
+    [128, 1],
+  ])('fades the backdrop with scrollY at %ipx', (offset, opacity) => {
+    const { getByTestId } = render(
+      <HeaderStandardAnimatedGlass
+        {...baseProps()}
+        scrollY={makeMutable(offset)}
+      />,
+    );
+
+    expect(backdropFadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(
+      opacity,
+    );
   });
 
   it('drops the backdrop for none', () => {
