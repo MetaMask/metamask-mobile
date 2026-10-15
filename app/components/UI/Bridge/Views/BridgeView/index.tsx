@@ -39,6 +39,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { useEnsureDestTokenSecurityData } from '../../hooks/useEnsureDestTokenSecurityData';
 import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
@@ -70,6 +71,7 @@ const BridgeView = () => {
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
+  useEnsureDestTokenSecurityData();
 
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,

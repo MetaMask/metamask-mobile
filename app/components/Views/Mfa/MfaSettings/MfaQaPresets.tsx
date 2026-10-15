@@ -61,7 +61,25 @@ const PRESETS: Preset[] = [
       mfa.enroll({ method: 'email_otp', reason: reason('enrollEmail') }),
   },
   {
-    label: 'Email and passkey (no passkey adapter yet)',
+    label: 'Verify with passkey',
+    run: (mfa) =>
+      mfa.verifyOrEnroll({
+        methods: ['passkey'],
+        verifyWith: 'passkey',
+        reason: reason('verifyPasskey'),
+      }),
+  },
+  {
+    label: 'Email and passkey, verify with passkey (Kalshi)',
+    run: (mfa) =>
+      mfa.verifyOrEnroll({
+        methods: ['email_otp', 'passkey'],
+        verifyWith: 'passkey',
+        reason: reason('kalshi'),
+      }),
+  },
+  {
+    label: 'Email or passkey, pick one',
     run: (mfa) =>
       mfa.verifyOrEnroll({
         methods: ['passkey', 'email_otp'],

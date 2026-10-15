@@ -41,6 +41,7 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
+import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
@@ -88,6 +89,7 @@ import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import VbaOnboardingNavigator from '../../UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
+import VbaDetails from '../../UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
@@ -190,6 +192,7 @@ import {
   ManageProfileLinkedAccountView,
   TraderProfileView,
   TraderPositionView,
+  PositionDetailsSheet,
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
@@ -280,6 +283,10 @@ const AssetStackFlow = (props) => (
     <NativeStack.Screen
       name={Routes.SECURITY_TRUST}
       component={SecurityTrustScreen}
+    />
+    <NativeStack.Screen
+      name={Routes.CONTRACT_SECURITY}
+      component={ContractSecurityScreen}
     />
     <NativeStack.Screen
       name={Routes.CREATE_PRICE_ALERT}
@@ -1149,6 +1156,15 @@ const MainNavigator = () => {
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen
+        name={Routes.RAMP.VBA_DETAILS}
+        component={VbaDetails}
+        options={{
+          ...slideFromRightNativeOptions,
+          headerShown: false,
+          gestureEnabled: false,
+        }}
+      />
+      <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
         options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
@@ -1384,6 +1400,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.TRADING_SIGNALS_SETUP}
             component={TradingSignalsSetupBottomSheet}
+            options={transparentModalStackOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.POSITION_SHEET}
+            component={PositionDetailsSheet}
             options={transparentModalStackOptions}
           />
         </>
