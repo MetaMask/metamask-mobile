@@ -140,6 +140,15 @@ export interface ProfilingSummary {
   diskIO?: { reads: number; writes: number; unit?: string };
   networkIO?: { upload: number; download: number; unit?: string };
   uiRendering?: { slowFrames: number; frozenFrames: number; anrs: number };
+  /** Average frames per second over the session (TestMu). */
+  fps?: { avg: number };
+  /** App launch times in milliseconds (TestMu). */
+  startup?: { cold?: number; hot?: number; unit?: string };
+  /** Battery drained by the session in mAh (TestMu, Android). */
+  batteryDrain?: { total: number; unit?: string };
+  /** Battery temperature in degrees Celsius (TestMu, Android). */
+  temperature?: { avg: number; max: number; unit?: string };
+  crashes?: number;
   error?: string;
   timestamp?: string;
 }

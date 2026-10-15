@@ -215,6 +215,12 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
       const download = finiteNumber(meta.networkDownload);
       const upload = finiteNumber(meta.networkUpload);
       const anrs = finiteNumber(meta.anrCount);
+      const fps = finiteNumber(meta.avgFrameRate);
+      const coldStartup = finiteNumber(meta.coldStartup);
+      const hotStartup = finiteNumber(meta.hotStartup);
+      const crashes = finiteNumber(meta.crashCount);
+      const batteryDrain = seriesStats(data.battery)?.max ?? null;
+      const temperature = seriesStats(data.temperature);
 
       if (!cpu && !memory) {
         return {
@@ -245,6 +251,21 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
             anrs: anrs ?? 0,
           },
         }),
+        ...(fps !== null && { fps: { avg: fps } }),
+        ...((coldStartup !== null || hotStartup !== null) && {
+          startup: {
+            ...(coldStartup !== null && { cold: coldStartup }),
+            ...(hotStartup !== null && { hot: hotStartup }),
+            unit: 'ms',
+          },
+        }),
+        ...(batteryDrain !== null && {
+          batteryDrain: { total: batteryDrain, unit: 'mAh' },
+        }),
+        ...(temperature && {
+          temperature: { ...temperature, unit: '°C' },
+        }),
+        ...(crashes !== null && { crashes }),
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

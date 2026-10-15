@@ -37,6 +37,26 @@ function formatFrames(uiRendering) {
     : '—';
 }
 
+function formatFps(fps) {
+  return fps ? fps.avg.toFixed(1) : '—';
+}
+
+function formatStartup(startup) {
+  if (!startup) {
+    return '—';
+  }
+  const part = (value) => (typeof value === 'number' ? `${Math.round(value)}` : '—');
+  return `${part(startup.cold)} / ${part(startup.hot)} ms`;
+}
+
+function formatBattery(batteryDrain) {
+  return batteryDrain ? `${batteryDrain.total.toFixed(1)} mAh` : '—';
+}
+
+function formatTemperature(temperature) {
+  return temperature ? `${temperature.avg.toFixed(1)} / ${temperature.max.toFixed(1)} °C` : '—';
+}
+
 /**
  * Group raw calls by method + sanitized URL so hundreds of requests collapse
  * into a short, readable list.
@@ -102,8 +122,8 @@ export function buildProfilingSection(allRuns) {
   let md = `<details>\n<summary>📊 App profiling (${count})</summary>\n\n`;
 
   if (usable.length > 0) {
-    md += `| Test | Device | CPU avg / max | Memory avg / max | Network | Janky / frozen frames | ANRs |\n`;
-    md += `|------|--------|---------------|------------------|---------|-----------------------|------|\n`;
+    md += `| Test | Device | CPU avg / max | Memory avg / max | Network | Janky / frozen frames | Avg FPS | Startup cold / hot | Battery drain | Temp avg / max | ANRs | Crashes |\n`;
+    md += `|------|--------|---------------|------------------|---------|-----------------------|---------|--------------------|---------------|----------------|------|---------|\n`;
     for (const run of usable) {
       const summary = run.profilingSummary;
       md += `| ${escapeCell(run.testName)} | ${escapeCell(run.device)} | ${formatPair(
@@ -111,7 +131,13 @@ export function buildProfilingSection(allRuns) {
         '%',
       )} | ${formatPair(summary.memory, 'MB')} | ${formatNetwork(
         summary.networkIO,
-      )} | ${formatFrames(summary.uiRendering)} | ${summary.uiRendering?.anrs ?? '—'} |\n`;
+      )} | ${formatFrames(summary.uiRendering)} | ${formatFps(
+        summary.fps,
+      )} | ${formatStartup(summary.startup)} | ${formatBattery(
+        summary.batteryDrain,
+      )} | ${formatTemperature(summary.temperature)} | ${
+        summary.uiRendering?.anrs ?? '—'
+      } | ${summary.crashes ?? '—'} |\n`;
     }
   }
 

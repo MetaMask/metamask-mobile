@@ -91,7 +91,19 @@ describe('TestMuAIEnricher', () => {
           { janky: 5, frozen: 1, time: 0 },
           { janky: 7, frozen: 0, time: 1 },
         ],
+        battery: [
+          { sys: 0, time: 0 },
+          { sys: 7.68, time: 1 },
+        ],
+        temperature: [
+          { temp: 23, time: 0 },
+          { temp: 25, time: 1 },
+        ],
         meta: {
+          avgFrameRate: 103.92,
+          coldStartup: 460,
+          hotStartup: 65,
+          crashCount: 0,
           avgCpu: 14.19,
           maxCPUUtilization: 32.89,
           avgMemory: 649.66,
@@ -112,6 +124,11 @@ describe('TestMuAIEnricher', () => {
         memory: { avg: 649.66, max: 786.84, unit: 'MB' },
         networkIO: { upload: 591, download: 5046, unit: 'KB' },
         uiRendering: { slowFrames: 12, frozenFrames: 1, anrs: 2 },
+        fps: { avg: 103.92 },
+        startup: { cold: 460, hot: 65, unit: 'ms' },
+        batteryDrain: { total: 7.68, unit: 'mAh' },
+        temperature: { avg: 24, max: 25, unit: '°C' },
+        crashes: 0,
       });
     });
 
@@ -136,6 +153,9 @@ describe('TestMuAIEnricher', () => {
       });
       expect(session.profilingSummary?.networkIO).toBeUndefined();
       expect(session.profilingSummary?.uiRendering).toBeUndefined();
+      expect(session.profilingSummary?.fps).toBeUndefined();
+      expect(session.profilingSummary?.startup).toBeUndefined();
+      expect(session.profilingSummary?.batteryDrain).toBeUndefined();
     });
 
     it('reports an error listing the keys when the shape is not recognised', async () => {

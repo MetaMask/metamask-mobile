@@ -14,6 +14,11 @@ const profiling = {
   memory: { avg: 649.66, max: 786.84, unit: 'MB' },
   networkIO: { upload: 591, download: 5046, unit: 'KB' },
   uiRendering: { slowFrames: 468, frozenFrames: 0, anrs: 0 },
+  fps: { avg: 103.92 },
+  startup: { cold: 460, hot: 65, unit: 'ms' },
+  batteryDrain: { total: 7.68, unit: 'mAh' },
+  temperature: { avg: 23.9, max: 24.4, unit: '°C' },
+  crashes: 0,
 };
 
 test('aggregateApiCalls groups by method and sanitized URL, most called first', () => {
@@ -39,8 +44,18 @@ test('buildProfilingSection renders a collapsed table with the key metrics', () 
   assert.doesNotMatch(md, /<details open/);
   assert.match(
     md,
-    /\| Asset View \| Pixel 8 \(v14\.0\) \| 14\.2 \/ 32\.9 % \| 649\.7 \/ 786\.8 MB \| ↓ 4\.9 MB \/ ↑ 591 KB \| 468 \/ 0 \| 0 \|/,
+    /\| Asset View \| Pixel 8 \(v14\.0\) \| 14\.2 \/ 32\.9 % \| 649\.7 \/ 786\.8 MB \| ↓ 4\.9 MB \/ ↑ 591 KB \| 468 \/ 0 \| 103\.9 \| 460 \/ 65 ms \| 7\.7 mAh \| 23\.9 \/ 24\.4 °C \| 0 \| 0 \|/,
   );
+});
+
+test('buildProfilingSection shows a dash for metrics TestMu did not report', () => {
+  const { cpu, memory } = profiling;
+
+  const md = buildProfilingSection([
+    { testName: 'A', device: 'D', profilingSummary: { cpu, memory } },
+  ]);
+
+  assert.match(md, /\| — \| — \| — \| — \| — \| — \|\n/);
 });
 
 test('buildProfilingSection reports errored scenarios and ignores ones without data', () => {
