@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, StyleSheet } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import {
   Box,
   ButtonBase,
@@ -11,7 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
-import moneyVbaIdentityHero from '../../../../../images/money-vba-identity-hero.png';
+import moneyVbaIdentityArt from '../../../../../images/money-vba-identity-art.png';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { MONEY_BUTTON_TYPES, SCREEN_NAMES } from '../../constants/moneyEvents';
@@ -22,11 +23,29 @@ import {
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 
 const styles = StyleSheet.create({
-  hero: {
-    width: '100%',
-    height: '100%',
+  heroContainer: {
+    alignSelf: 'stretch',
+    height: 185,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  heroArt: {
+    height: 88,
+    aspectRatio: 431 / 355,
   },
 });
+
+/**
+ * Hero background gradient, from the card's Figma spec (node 2158-5306):
+ * `linear-gradient(224deg, #C66EF5 31.62%, #73A6FF 87.04%)` over a
+ * `#C66EF5` fallback. React Native renders a single gradient layer, so the
+ * spec's second layer is dropped.
+ */
+const HERO_GRADIENT_COLORS = ['#C66EF5', '#73A6FF'];
+const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
+const HERO_GRADIENT_ANGLE = 224;
 
 /**
  * VBA identity-status card on Money home. Renders every card variant
@@ -83,13 +102,19 @@ const MoneyVbaHomeCard = ({
       testID={testIds.CONTAINER}
       twClassName="mx-4 mt-2 rounded-2xl bg-muted p-4"
     >
-      <Box twClassName="h-[185px] w-full overflow-hidden rounded-[14px]">
+      <LinearGradient
+        colors={HERO_GRADIENT_COLORS}
+        locations={HERO_GRADIENT_LOCATIONS}
+        useAngle
+        angle={HERO_GRADIENT_ANGLE}
+        style={styles.heroContainer}
+      >
         <Image
-          source={moneyVbaIdentityHero}
-          style={styles.hero}
-          resizeMode="cover"
+          source={moneyVbaIdentityArt}
+          style={styles.heroArt}
+          resizeMode="contain"
         />
-      </Box>
+      </LinearGradient>
       <Box twClassName="gap-1 py-4">
         <Text
           variant={TextVariant.HeadingLg}
