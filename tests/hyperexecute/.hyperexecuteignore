@@ -1,0 +1,42 @@
+# Keep HyperExecute uploads lean. Appium sessions install the cloud lt:// app.
+/android/
+/ios/
+*.apk
+*.aab
+*.ipa
+*.app
+node_modules/
+.yarn/cache/
+.yarn/install-state.gz
+coverage/
+dist/
+build/
+.expo/
+*.log
+tmp/
+.git/
+artifacts/
+tests/test-reports/
+tests/reporters/reports/
+storybook/
+*.mp4
+*.zip
+sourcemaps/
+
+# App assets. The tests drive the cloud app, and Node cannot import
+# these, so they are dead weight in the upload (~80 MB). Patterns stay anchored
+# to app/ because tests/ ships its own images and HTML fixtures.
+/app/images/
+/app/animations/
+/app/fonts/
+/app/**/*.png
+/app/**/*.jpg
+/app/**/*.jpeg
+/app/**/*.gif
+/app/**/*.webp
+/app/**/*.svg
+/app/**/*.riv
+/app/**/*.ttf
+/app/**/*.otf
+/app/**/*.html
+/attribution.txt

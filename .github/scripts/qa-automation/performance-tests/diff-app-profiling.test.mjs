@@ -13,6 +13,8 @@ import {
   buildRegressionSummary,
   shouldIncludeScenarioInComment,
   buildEmbeddedProfilingSection,
+  buildApiCallsSection,
+  sanitizeApiCallUrl,
   COMMENT_MARKER,
 } from './diff-app-profiling.mjs';
 
@@ -92,16 +94,18 @@ test('isScenarioGreen returns true for passed tests', () => {
   );
 });
 
-test('computeDelta flags regressions above the 10% margin', () => {
+test('computeDelta flags regressions above the 15% margin', () => {
   const delta = computeDelta(10, 12);
   assert.equal(delta.absolute, 2);
   assert.equal(delta.relative, 0.2);
   assert.equal(delta.warn, true);
 });
 
-test('computeDelta does not warn within the baseline + 10% margin', () => {
+test('computeDelta does not warn within the baseline + 15% margin', () => {
   assert.equal(computeDelta(10, 10.5).warn, false); // +5%
-  assert.equal(computeDelta(10, 11).warn, false); // exactly +10%
+  assert.equal(computeDelta(10, 11).warn, false); // +10%
+  assert.equal(computeDelta(10, 11.5).warn, false); // exactly +15%
+  assert.equal(computeDelta(10, 11.6).warn, true); // just over +15%
 });
 
 test('computeDelta does not warn for improvements', () => {
@@ -209,7 +213,7 @@ test('buildScenarioComment includes marker and delta table when baseline exists'
   assert.match(md, /Full metric table/);
   assert.match(md, /\| Metric \| Baseline \| Current \| Δ \|/);
   assert.match(md, /Disclaimer — allowed variance/);
-  assert.match(md, /\+10%/);
+  assert.match(md, /\+15%/);
   assert.match(md, /Raw profilingSummary JSON/);
   assert.match(md, new RegExp(COMMENT_MARKER));
   assert.match(md, /run 222/);
@@ -545,4 +549,84 @@ test('findGreenScenarioInDir falls back to embedded profilingSummary', async () 
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('sanitizeApiCallUrl drops query/protocol, masks key-like segments and escapes pipes', () => {
+  assert.equal(
+    sanitizeApiCallUrl(
+      'https://mainnet.infura.io/v3/0123456789abcdef0123456789abcdef?x=secret#frag',
+    ),
+    'mainnet.infura.io/v3/***',
+  );
+  assert.equal(
+    sanitizeApiCallUrl(
+      'https://api.example.com/tokens/0x1234567890abcdef1234567890abcdef12345678',
+    ),
+    'api.example.com/tokens/0x1234567890abcdef1234567890abcdef12345678',
+  );
+  assert.equal(sanitizeApiCallUrl('https://a.test/x|y'), 'a.test/x%7Cy');
+});
+
+test('buildApiCallsSection is empty without calls', () => {
+  assert.equal(buildApiCallsSection(null), '');
+  assert.equal(buildApiCallsSection([]), '');
+});
+
+test('buildApiCallsSection renders a collapsed details block with a row per call', () => {
+  const md = buildApiCallsSection([
+    { method: 'GET', url: 'https://a.test/prices?token=1', status: 200, time: 42 },
+    { method: 'POST', url: 'https://b.test/rpc' },
+  ]);
+
+  assert.match(md, /<details>\n<summary>API calls \(2\)<\/summary>/);
+  assert.doesNotMatch(md, /<details open/);
+  assert.match(md, /\| 1 \| GET \| `a\.test\/prices` \| 200 \| 42 ms \|/);
+  assert.match(md, /\| 2 \| POST \| `b\.test\/rpc` \| — \| — \|/);
+});
+
+test('buildApiCallsSection caps the number of rows', () => {
+  const calls = Array.from({ length: 205 }, (_, i) => ({
+    method: 'GET',
+    url: `https://a.test/${i}`,
+  }));
+  const md = buildApiCallsSection(calls);
+
+  assert.match(md, /API calls \(205\)/);
+  assert.match(md, /and 5 more not shown/);
+  assert.equal(md.split('\n').filter((l) => l.startsWith('| ')).length, 201);
+});
+
+const apiCallsScenarioArgs = (apiCalls) => ({
+  testName: 'Swap flow',
+  platform: 'Android',
+  device: { name: 'Pixel 8', osVersion: '14.0' },
+  currentRunId: '111',
+  currentArtifact: {
+    profilingSummary: { cpu: { avg: 10, max: 20 }, issues: 0, criticalIssues: 0 },
+    apiCalls,
+  },
+  baseline: {
+    run: { databaseId: 222, headSha: 'abcdef123456', url: 'https://x.test/222' },
+    artifact: {
+      profilingSummary: { cpu: { avg: 10, max: 20 }, issues: 0, criticalIssues: 0 },
+    },
+  },
+  repo: 'MetaMask/metamask-mobile',
+  baselineBranch: 'main',
+});
+
+test('buildScenarioComment includes the collapsed API calls list when available', () => {
+  const md = buildScenarioComment(
+    apiCallsScenarioArgs([{ method: 'GET', url: 'https://a.test/x', status: 200 }]),
+  );
+
+  assert.match(md, /API calls \(1\)/);
+});
+
+test('buildEmbeddedProfilingSection leaves API calls out of the shared PR comment', () => {
+  const md = buildEmbeddedProfilingSection(
+    apiCallsScenarioArgs([{ method: 'GET', url: 'https://a.test/x', status: 200 }]),
+  );
+
+  assert.doesNotMatch(md, /API calls/);
 });
