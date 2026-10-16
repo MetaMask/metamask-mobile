@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -7,6 +7,7 @@ import type { RootState } from '../../../../reducers';
 import { setInFlightClaims } from '../../../../reducers/rewardsMoney';
 import { selectInFlightClaims } from '../../../../reducers/rewardsMoney/selectors';
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
+import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 /**
  * Per profile: how many post-claim refreshes have started, the number of the
@@ -34,17 +35,25 @@ export function useInFlightClaims(profileId: string | undefined): {
   refresh: (options?: { forceFresh?: boolean }) => Promise<void>;
 } {
   const dispatch = useDispatch();
+  const { cancel: cancelBusyRefetch, arm: armBusyRefetch } =
+    useOneShotBusyRefetch();
+  const refreshRef = useRef<
+    (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
+  >(async () => undefined);
   const storedClaims = useSelector((state: RootState) =>
     selectInFlightClaims(state, profileId),
   );
   const claims = storedClaims ?? EMPTY_IN_FLIGHT_CLAIMS;
 
   const refresh = useCallback(
-    async (options?: { forceFresh?: boolean }) => {
+    async (options?: { forceFresh?: boolean; followUp?: boolean }) => {
       if (!profileId) {
+        cancelBusyRefetch();
         return;
       }
+      const followUp = options?.followUp === true;
       const forceFresh = options?.forceFresh === true;
+      cancelBusyRefetch();
       const storedAtStart = forceFreshStoredByProfile.get(profileId) ?? 0;
       let started = forceFreshStartedByProfile.get(profileId) ?? 0;
       if (forceFresh) {
@@ -78,9 +87,14 @@ export function useInFlightClaims(profileId: string | undefined): {
         reportRewardsMoneyReadFailure(
           error,
           'inFlightClaims.fetch_failed',
-          true,
+          followUp,
           'rewards-money',
         );
+        if (!followUp) {
+          armBusyRefetch(error, () => {
+            void refreshRef.current({ forceFresh: true, followUp: true });
+          });
+        }
       } finally {
         if (forceFresh) {
           const left = (forceFreshInFlightByProfile.get(profileId) ?? 1) - 1;
@@ -92,8 +106,9 @@ export function useInFlightClaims(profileId: string | undefined): {
         }
       }
     },
-    [dispatch, profileId],
+    [armBusyRefetch, cancelBusyRefetch, dispatch, profileId],
   );
+  refreshRef.current = refresh;
 
   useFocusEffect(
     useCallback(() => {
