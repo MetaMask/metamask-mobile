@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { QuoteResponse } from '@metamask/bridge-controller';
 import Engine from '../../../../../core/Engine';
 import { useSwapsRebate } from './useSwapsRebate';
@@ -89,13 +89,14 @@ describe('useSwapsRebate', () => {
     expect(mockCall).not.toHaveBeenCalled();
   });
 
-  it('refetches only when the fee token changes', async () => {
-    mockCall.mockResolvedValue({
+  it('refetches with the new quote only when the fee token changes', async () => {
+    mockCall.mockResolvedValueOnce({
       product: 'swaps',
       eligible: true,
       rebateBips: 1000,
       reason: null,
     });
+    mockCall.mockRejectedValueOnce(new Error('503'));
 
     const { result, rerender } = renderHook(
       ({ quote }) => useSwapsRebate(quote),
@@ -106,7 +107,46 @@ describe('useSwapsRebate', () => {
     rerender({ quote: buildQuote('eip155:1/slip44:60', '20') });
     expect(mockCall).toHaveBeenCalledTimes(1);
 
+    const newQuote = buildQuote('eip155:1/erc20:0xabc');
+    rerender({ quote: newQuote });
+    await flushPromises();
+
+    expect(mockCall).toHaveBeenCalledTimes(2);
+    expect(mockCall).toHaveBeenLastCalledWith(
+      'RewardsMoneyController:getSwapsRebateQuote',
+      newQuote,
+    );
+    expect(result.current).toBeNull();
+  });
+
+  it('ignores a late response for the previous fee token', async () => {
+    let resolveFirst: (value: unknown) => void = () => undefined;
+    mockCall.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFirst = resolve;
+      }),
+    );
+    mockCall.mockResolvedValueOnce({
+      product: 'swaps',
+      eligible: false,
+      rebateBips: 0,
+      reason: null,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ quote }) => useSwapsRebate(quote),
+      { initialProps: { quote: buildQuote() } },
+    );
     rerender({ quote: buildQuote('eip155:1/erc20:0xabc') });
-    await waitFor(() => expect(mockCall).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      resolveFirst({
+        product: 'swaps',
+        eligible: true,
+        rebateBips: 1000,
+        reason: null,
+      });
+    });
+
+    expect(result.current).toBeNull();
   });
 });
