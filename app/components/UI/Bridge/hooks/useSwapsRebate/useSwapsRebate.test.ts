@@ -7,6 +7,11 @@ jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
 }));
 
+let mockIsEnabled = true;
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsEnabled,
+}));
+
 const mockCall = Engine.controllerMessenger.call as jest.Mock;
 
 const buildQuote = (assetId = 'eip155:1/slip44:60', usd = '10') =>
@@ -27,6 +32,17 @@ const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
 describe('useSwapsRebate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsEnabled = true;
+  });
+
+  it('does not call the controller when the feature flag is off', async () => {
+    mockIsEnabled = false;
+
+    const { result } = renderHook(() => useSwapsRebate(buildQuote()));
+    await flushPromises();
+
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current).toBeNull();
   });
 
   it('returns the rebate percentage for an eligible rebate', async () => {

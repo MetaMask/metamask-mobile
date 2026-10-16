@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import type { QuoteResponse } from '@metamask/bridge-controller';
 import Engine from '../../../../../core/Engine';
+import { selectSwapsRebateBannerEnabled } from '../../../../../selectors/featureFlagController/swapsRebateBanner';
 
 /**
  * Rebate percentage of the MetaMask fee for the selected swap quote, paid to
  * the user's Money account, or `null` when no rebate should show.
  *
- * Fetches once on mount and again only when the MetaMask fee token changes,
- * never on quote refresh. Any error hides the row and is not retried.
+ * Gated by the `swapsRebateBannerEnabled` remote flag. Fetches once on mount
+ * and again only when the MetaMask fee token changes, never on quote refresh.
+ * Any error hides the row and is not retried.
  *
  * @param quote - The selected bridge quote.
  * @returns The rebate percentage, or `null`.
@@ -15,6 +18,7 @@ import Engine from '../../../../../core/Engine';
 export const useSwapsRebate = (
   quote?: QuoteResponse['quote'],
 ): number | null => {
+  const isEnabled = useSelector(selectSwapsRebateBannerEnabled);
   const [rebateBips, setRebateBips] = useState<number | null>(null);
   const quoteRef = useRef(quote);
   quoteRef.current = quote;
@@ -23,7 +27,7 @@ export const useSwapsRebate = (
   useEffect(() => {
     setRebateBips(null);
     const currentQuote = quoteRef.current;
-    if (!feeAssetId || !currentQuote) {
+    if (!isEnabled || !feeAssetId || !currentQuote) {
       return;
     }
 
@@ -40,7 +44,7 @@ export const useSwapsRebate = (
     return () => {
       cancelled = true;
     };
-  }, [feeAssetId]);
+  }, [isEnabled, feeAssetId]);
 
   return rebateBips ? rebateBips / 100 : null;
 };
