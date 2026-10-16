@@ -56,7 +56,7 @@ function claim(id: string): ClaimDto {
 function renderClaims(readProfileId: () => string | undefined) {
   const store = configureStore({});
   const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store }, children);
+    React.createElement(Provider, { store, children });
   return renderHook(() => useInFlightClaims(readProfileId()), { wrapper });
 }
 
@@ -97,7 +97,7 @@ describe('useInFlightClaims', () => {
   it('shows a claim written by the other screen after this one focused', async () => {
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store, children });
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
@@ -142,7 +142,7 @@ describe('useInFlightClaims', () => {
 
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store, children });
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
@@ -168,6 +168,97 @@ describe('useInFlightClaims', () => {
     });
 
     expect(history.result.current.claims).toEqual([claim('claim-new')]);
+  });
+
+  it('leaves the slice unchanged when a cache read resolves during a fresh refresh', async () => {
+    let resolveCache: (page: { results: ClaimDto[] }) => void = () => undefined;
+    let rejectFresh: (error: Error) => void = () => undefined;
+    mockEngineCall.mockImplementation(
+      (_action: string, params: { forceFresh?: boolean }) =>
+        new Promise((resolve, reject) => {
+          if (params.forceFresh) {
+            rejectFresh = reject;
+            return;
+          }
+          resolveCache = resolve;
+        }),
+    );
+
+    const store = configureStore({});
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+    const history = renderHook(() => useInFlightClaims(PROFILE_A), {
+      wrapper,
+    });
+    const earnings = renderHook(() => useInFlightClaims(PROFILE_A), {
+      wrapper,
+    });
+
+    let cacheRead: Promise<void> = Promise.resolve();
+    let freshRead: Promise<void> = Promise.resolve();
+    act(() => {
+      freshRead = earnings.result.current.refresh({ forceFresh: true });
+      cacheRead = history.result.current.refresh();
+    });
+
+    await act(async () => {
+      resolveCache({ results: [claim('claim-open')] });
+      await cacheRead;
+    });
+
+    expect(history.result.current.claims).toEqual([]);
+    expect(earnings.result.current.claims).toEqual([]);
+
+    await act(async () => {
+      rejectFresh(new Error('offline'));
+      await freshRead;
+    });
+
+    expect(history.result.current.claims).toEqual([]);
+    expect(earnings.result.current.claims).toEqual([]);
+  });
+
+  it('keeps the later refresh page when overlapping refreshes answer out of order', async () => {
+    const pending: ((page: { results: ClaimDto[] }) => void)[] = [];
+    mockEngineCall.mockImplementation(
+      () => new Promise((resolve) => pending.push(resolve)),
+    );
+    const store = configureStore({});
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+    const history = renderHook(() => useInFlightClaims(PROFILE_A), {
+      wrapper,
+    });
+    const earnings = renderHook(() => useInFlightClaims(PROFILE_A), {
+      wrapper,
+    });
+
+    let firstRefresh: Promise<void> = Promise.resolve();
+    let cacheRead: Promise<void> = Promise.resolve();
+    let retryRefresh: Promise<void> = Promise.resolve();
+    act(() => {
+      firstRefresh = earnings.result.current.refresh({ forceFresh: true });
+      cacheRead = history.result.current.refresh();
+      retryRefresh = earnings.result.current.refresh({ forceFresh: true });
+    });
+
+    await act(async () => {
+      pending[2]({ results: [claim('claim-open'), claim('claim-retry')] });
+      await retryRefresh;
+    });
+    await act(async () => {
+      pending[0]({ results: [claim('claim-open')] });
+      await firstRefresh;
+    });
+    await act(async () => {
+      pending[1]({ results: [] });
+      await cacheRead;
+    });
+
+    expect(history.result.current.claims).toEqual([
+      claim('claim-open'),
+      claim('claim-retry'),
+    ]);
   });
 
   it('treats a page without results as an empty list', async () => {
@@ -224,6 +315,58 @@ describe('useInFlightClaims', () => {
         context: 'inFlightClaims.fetch_failed',
       },
     });
+  });
+
+  it('publishes a cache page that was already in flight when a fresh refresh fails', async () => {
+    const store = configureStore({});
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(Provider, { store, children });
+    const history = renderHook(() => useInFlightClaims(PROFILE_A), {
+      wrapper,
+    });
+    const earnings = renderHook(() => useInFlightClaims(PROFILE_A), {
+      wrapper,
+    });
+
+    mockEngineCall.mockResolvedValue({ results: [claim('claim-before')] });
+    await act(async () => {
+      await history.result.current.refresh();
+    });
+
+    let resolveCache: (page: { results: ClaimDto[] }) => void = () => undefined;
+    let rejectFresh: (error: Error) => void = () => undefined;
+    mockEngineCall.mockImplementation(
+      (_action: string, params: { forceFresh?: boolean }) =>
+        new Promise((resolve, reject) => {
+          if (params.forceFresh) {
+            rejectFresh = reject;
+            return;
+          }
+          resolveCache = resolve;
+        }),
+    );
+
+    let cacheRead: Promise<void> = Promise.resolve();
+    let freshRead: Promise<void> = Promise.resolve();
+    act(() => {
+      cacheRead = history.result.current.refresh();
+      freshRead = earnings.result.current.refresh({ forceFresh: true });
+    });
+
+    await act(async () => {
+      rejectFresh(new Error('offline'));
+      await freshRead;
+    });
+
+    expect(history.result.current.claims).toEqual([claim('claim-before')]);
+
+    await act(async () => {
+      resolveCache({ results: [claim('claim-open')] });
+      await cacheRead;
+    });
+
+    expect(history.result.current.claims).toEqual([claim('claim-open')]);
+    expect(earnings.result.current.claims).toEqual([claim('claim-open')]);
   });
 
   it('reads past the cache when a claim just opened', async () => {

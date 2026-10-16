@@ -813,6 +813,36 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.claimHistoryFirstPage).toEqual({});
     });
 
+    it('keeps the newer claim history page when an older fetch answers last', async () => {
+      const pending: ((page: ClaimHistoryPageDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => pending.push(resolve));
+        }
+        return Promise.resolve(undefined);
+      });
+      const olderPage = { ...mockClaimHistory, results: [mockClaim] };
+      const newerPage = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+
+      const older = controller.getClaimHistory({ forceFresh: true });
+      const newer = controller.getClaimHistory({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      pending[1](newerPage);
+      await newer;
+      pending[0](olderPage);
+      await older;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]?.payload).toBe(
+        newerPage,
+      );
+    });
+
     it('caches claim by id and caps the map', async () => {
       mockMessenger.call.mockImplementation((action, ...args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
