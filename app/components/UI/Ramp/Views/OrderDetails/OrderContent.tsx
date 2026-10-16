@@ -418,7 +418,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                     })}
                   </Text>
                   <Icon
-                    name={IconName.Export}
+                    name={IconName.ArrowSquareOut}
                     size={IconSize.Sm}
                     twClassName="text-primary-default"
                   />

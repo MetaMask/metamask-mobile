@@ -45,7 +45,7 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance test tags to run. Empty string '''' = run all (conservative fallback). Literal ''[]'' = skip (AI found no relevant changes). ''["@Tag",...]'' = run specific tags.'
+    description: 'Performance tags from Smart E2E Selection. ["ALL"] runs every performance test. ["@Tag",...] runs those tags. [] , a blank value, or a selection error runs none.'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
   ai_performance_test_reasoning:
     description: 'Reasoning for the performance test selection'
@@ -225,7 +225,12 @@ runs:
             echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
           fi
           printf 'ai_confidence=%s\n' "${MAPPED_CONFIDENCE:-0}" >> "$GITHUB_OUTPUT"
-          printf 'ai_performance_test_tags=%s\n' "$MAPPED_PERF_TAGS" >> "$GITHUB_OUTPUT"
+          # Blank, a failed mapping step, and a selection error all mean run none.
+          if [[ -n "$MAPPED_PERF_TAGS" ]]; then
+            printf 'ai_performance_test_tags=%s\n' "$MAPPED_PERF_TAGS" >> "$GITHUB_OUTPUT"
+          else
+            echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
+          fi
           {
             echo 'ai_performance_test_reasoning<<GHEOF'
             echo "$MAPPED_PERF_REASONING"
