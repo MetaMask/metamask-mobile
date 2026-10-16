@@ -427,8 +427,6 @@ export class Engine {
         ProfileService: profileServiceInit,
         ProfileController: profileControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
-        // Reads AnalyticsController, AuthenticationController and
-        // KeyringController state on construction, so it comes after them.
         MarketingConsentController: marketingConsentControllerInit,
         CardController: cardControllerInit,
         UiSlotsController: uiSlotsControllerInit,
@@ -632,6 +630,10 @@ export class Engine {
     // Notification Setup
     notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
+
+    // Reads AnalyticsController, AuthenticationController and
+    // KeyringController state, so it runs once every controller is registered.
+    messengerClientsByName.MarketingConsentController.initialize();
 
     this.context = {
       AnalyticsController: analyticsController,

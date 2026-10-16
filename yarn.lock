@@ -10795,17 +10795,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/marketing-consent-controller@npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-32b6da31c":
-  version: 0.0.0-preview-32b6da31c
-  resolution: "@metamask-previews/marketing-consent-controller@npm:0.0.0-preview-32b6da31c"
+"@metamask/marketing-consent-controller@npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-9bee3d25c":
+  version: 0.0.0-preview-9bee3d25c
+  resolution: "@metamask-previews/marketing-consent-controller@npm:0.0.0-preview-9bee3d25c"
   dependencies:
     "@metamask/analytics-controller": "npm:^4.0.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
     "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
-  checksum: 10/5ed2503036edc27147230fee0a7e9e22695e6c2f1f7f190ffc8bf47aa0d9002451c582d7e06acb7113080b632e570aa058d31358f054c96ec5c6705c36ff6762
+  checksum: 10/54a532d98ccb13a8089a57edd9e653e1479bc5d4ba3a2135a9bc8276b41128c45231923d67b72586ecabb34a329104ac32d032d20dc7cd362987f7e332d5f849
   languageName: node
   linkType: hard
 
@@ -11265,16 +11265,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@29.0.3-preview-32b6da31c":
-  version: 29.0.3-preview-32b6da31c
-  resolution: "@metamask-previews/notification-services-controller@npm:29.0.3-preview-32b6da31c"
+"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@29.0.3-preview-9bee3d25c":
+  version: 29.0.3-preview-9bee3d25c
+  resolution: "@metamask-previews/notification-services-controller@npm:29.0.3-preview-9bee3d25c"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.6.10"
     "@metamask/analytics-controller": "npm:^4.0.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
     "@metamask/base-controller": "npm:^10.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
     "@metamask/utils": "npm:^12.0.0"
@@ -11284,7 +11284,7 @@ __metadata:
     loglevel: "npm:^1.9.2"
     semver: "npm:^7.8.5"
     uuid: "npm:^11.1.1"
-  checksum: 10/2668ef63ccf5b04280d922650b636b02c60a28b69be5423312541862dc119eb605a75b1777c6a2acb68739525c9d579a76313490e828781883d95065299f2394
+  checksum: 10/eaeb1d0ac5f3146a475aff2b8ba592b32df64c4c7018524a40fa0a4b9445779c0bf3cec8561b22634b6d7cd49e4ec5a4b84c79f3f7d59637433606bd5230276a
   languageName: node
   linkType: hard
 
@@ -39255,7 +39255,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^5.0.0"
     "@metamask/kyc-controller": "npm:^0.10.0"
     "@metamask/logging-controller": "npm:^9.0.0"
-    "@metamask/marketing-consent-controller": "npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-32b6da31c"
+    "@metamask/marketing-consent-controller": "npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-9bee3d25c"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
