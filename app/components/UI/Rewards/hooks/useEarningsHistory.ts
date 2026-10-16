@@ -77,5 +77,6 @@ export const useEarningsHistory = (
     fetchPage,
     onFirstPage,
     errorMessage: 'Failed to fetch earnings history',
+    feature: 'rewards-money',
   });
 };

@@ -364,8 +364,27 @@ describe('EarningsTab', () => {
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeNull();
   });
 
+  it('keeps cached earnings without an error banner', () => {
+    const { getByTestId, queryByTestId, queryByText } = renderTab('referrer', {
+      summaryError: true,
+      last7Error: true,
+      historyError: 'failed',
+    });
+
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.SUMMARY_ERROR)).toBeNull();
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.LAST_7_ERROR)).toBeNull();
+    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_ERROR)).toBeNull();
+    expect(queryByText('Referral details couldn’t be loaded')).toBeNull();
+    expect(queryByText('Error loading your transactions')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeOnTheScreen();
+  });
+
   it('shows one summary banner and retries only that source', () => {
     const { getByTestId, getByText, queryByTestId } = renderTab('referrer', {
+      summary: null,
       summaryError: true,
       last7Error: true,
       historyError: 'failed',
@@ -409,16 +428,17 @@ describe('EarningsTab', () => {
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_ERROR)).toBeOnTheScreen();
   });
 
-  it('retries history from the banner when cached rows remain', () => {
-    const { getByTestId, getByText } = renderTab('referrer', {
-      historyError: 'failed',
+  it('keeps the summary error banner up while a retry is in flight', () => {
+    const { getByTestId, getByRole, queryByTestId } = renderTab('referrer', {
+      summary: null,
+      summaryError: true,
+      summaryLoading: true,
     });
 
-    expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeOnTheScreen();
-    expect(getByText('Error loading your transactions')).toBeOnTheScreen();
-
-    fireEvent.press(getByText('Retry'));
-
-    expect(retryHistory).toHaveBeenCalledTimes(1);
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.SUMMARY_ERROR)).toBeOnTheScreen();
+    expect(
+      getByRole('button', { name: 'Retry', busy: true }),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON)).toBeNull();
   });
 });

@@ -399,7 +399,7 @@ function ActivitySection<T extends { id: string }>({
 interface PerformanceTabProps {
   profileId: string;
   persona: MoneyDashboardPersona;
-  /** False while another Money tab is selected. The panel stays mounted. */
+  /** Gates this tab's reads. The dashboard mounts the tab only while it is selected. */
   active: boolean;
 }
 

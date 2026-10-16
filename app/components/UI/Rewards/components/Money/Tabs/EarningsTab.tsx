@@ -89,13 +89,17 @@ function deriveSummarySection(
   entry: EarningsSummaryEntry | undefined,
 ): SummarySectionState {
   const data = entry?.data ?? null;
+  const failed = Boolean(entry?.error);
   const loading = !data && (!entry || Boolean(entry.loading));
+  // A failed refresh keeps the last summary. The banner is only for a failure
+  // that left nothing to show, including while that retry is in flight.
+  const error = failed && !data;
   return {
     data,
     loading,
     refreshing: Boolean(entry?.loading),
-    error: Boolean(entry?.error),
-    show: loading || data !== null,
+    error,
+    show: !error && (loading || data !== null),
   };
 }
 
@@ -112,13 +116,14 @@ function deriveHistorySection(
 ): HistorySectionState {
   const items = (list.items ?? []).slice(0, EARNINGS_HISTORY_PREVIEW_COUNT);
   const loading = list.isLoading && !list.items;
-  const error = Boolean(list.error);
+  const failed = Boolean(list.error);
+  // Cached rows stay without a banner. The banner is the empty failure.
+  const error = failed && items.length === 0;
   return {
     items,
     loading,
     error,
-    // Hidden only when the request failed with nothing cached to show.
-    show: !(error && items.length === 0 && !loading),
+    show: !(error && !loading),
     listEmpty: !loading && items.length === 0,
   };
 }
@@ -449,7 +454,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   const last7Amount = last7.data ? musdAmount(last7.data.lifetime_total) : null;
   const errorSource = deriveErrorSource(
     summary.error,
-    last7.error,
+    last7.error && !last7.data,
     history.error,
   );
   // Disable the breakdown for this pilot until the section is ready to show.

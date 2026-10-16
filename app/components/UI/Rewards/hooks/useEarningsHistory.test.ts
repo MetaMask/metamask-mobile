@@ -16,6 +16,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 const PROFILE_A = 'profile-a';
 const earning = {
   type: 'earning' as const,
