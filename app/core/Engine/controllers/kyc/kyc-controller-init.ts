@@ -13,7 +13,7 @@ import { sumsubLauncher } from './sumSubLauncher';
  * the injected {@link sumsubLauncher}.
  *
  * Money-account wallet registration and autoramp creation after KYC approval
- * run in the VBA onboarding coordinator (`resolveVbaOnboarding`), not in
+ * run on the account details screen, not in `resolveVbaOnboarding` and not in
  * response to KycController state changes.
  *
  * @param request - The request object.

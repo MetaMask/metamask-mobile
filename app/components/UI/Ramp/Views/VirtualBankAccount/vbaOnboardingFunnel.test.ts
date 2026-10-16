@@ -120,6 +120,26 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       [
+        'needs wallet registration',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          kycStatus: 'approved',
+          autorampStatus: 'needs_wallet_registration',
+        }),
+      ],
+      [
+        'needs source currency',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          kycStatus: 'approved',
+          autorampStatus: 'needs_source_currency',
+        }),
+      ],
+      [
         'account provisioning in progress',
         snapshot({
           sessionExists: true,
@@ -151,13 +171,15 @@ describe('getVbaDestinationForSnapshot', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        "account provisioning failed": "accountProvisioningError",
-        "account provisioning in progress": "kycPending",
-        "account provisioning not ready": "kycPending",
+        "account provisioning failed": "identityVerified",
+        "account provisioning in progress": "identityVerified",
+        "account provisioning not ready": "identityVerified",
         "account ready": "complete",
         "email and vendor terms done": "identityVerification",
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
+        "needs source currency": "identityVerified",
+        "needs wallet registration": "identityVerified",
         "provider done": "identityVerification",
         "session exists without vendor disclaimers recorded": "identityVerification",
         "session pending before provider terms": "identityVerification",

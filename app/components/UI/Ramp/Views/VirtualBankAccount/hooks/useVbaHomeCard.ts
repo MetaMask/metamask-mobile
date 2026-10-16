@@ -197,9 +197,8 @@ export function getVbaHomeCard({
 
   // 3. KYC approved. A usable autoramp means the virtual account details are
   // ready — show the account_is_ready card ("You're all set" / view the Pix
-  // details). Without one, provisioning is still running: kyc_pending,
-  // mirroring the onboarding funnel's `kycPending` destination for an approved
-  // session whose route is not ready yet.
+  // details). Without one, the account is not set up yet, so keep the
+  // kyc_pending card until the details screen has a usable route.
   if (isApproved) {
     return hasUsableAutorampForWallet(walletAddress, autoramps)
       ? { type: 'account_is_ready' }
