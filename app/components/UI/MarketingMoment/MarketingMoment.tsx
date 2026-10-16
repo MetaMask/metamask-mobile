@@ -11,7 +11,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontFamily,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -58,6 +57,7 @@ const MarketingMomentContent = ({
   const artworkBoxProps = artworkWrapperProps ?? {};
   const { className: _artworkClassName, ...artworkBoxSpreadProps } =
     artworkBoxProps;
+  const { twClassName: titleClassName, ...titleTextProps } = titleProps ?? {};
 
   return (
     <Box
@@ -83,16 +83,14 @@ const MarketingMomentContent = ({
             <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
               {typeof title === 'string' ? (
                 <Text
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.DisplayXl}
                   fontFamily={FontFamily.Hero}
-                  fontWeight={FontWeight.Regular}
                   accessibilityRole="header"
-                  numberOfLines={2}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.5}
-                  twClassName="w-full text-center"
                   testID={MarketingMomentSelectorsIDs.TITLE}
-                  {...titleProps}
+                  {...titleTextProps}
+                  twClassName={`w-full text-center leading-[1.1] tracking-[-1.2px]${
+                    titleClassName ? ` ${titleClassName}` : ''
+                  }`}
                 >
                   {title}
                 </Text>

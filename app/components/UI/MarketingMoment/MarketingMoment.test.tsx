@@ -59,12 +59,18 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
       testID,
       accessibilityRole,
+      twClassName,
     }: {
       children?: React.ReactNode;
       testID?: string;
       accessibilityRole?: string;
+      twClassName?: string;
     }) =>
-      ReactActual.createElement(Text, { testID, accessibilityRole }, children),
+      ReactActual.createElement(
+        Text,
+        { testID, accessibilityRole, twClassName },
+        children,
+      ),
     Button: ({
       children,
       onPress,
@@ -134,11 +140,17 @@ describe('MarketingMoment', () => {
 
   it('spreads titleProps and descriptionProps onto the text', () => {
     const { getByTestId } = renderMoment({
-      titleProps: { testID: 'custom-title' },
+      titleProps: {
+        testID: 'custom-title',
+        twClassName: 'text-accent02-light',
+      },
       descriptionProps: { testID: 'custom-description' },
     });
 
     expect(getByTestId('custom-title')).toHaveTextContent('Perps are here');
+    expect(getByTestId('custom-title').props.twClassName).toBe(
+      'w-full text-center leading-[1.1] tracking-[-1.2px] text-accent02-light',
+    );
     expect(getByTestId('custom-description')).toHaveTextContent(
       'Long or short with up to 40x leverage.',
     );
