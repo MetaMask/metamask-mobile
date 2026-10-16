@@ -14,6 +14,7 @@ import type {
   InitiateClaimBody,
   InitiateClaimResult,
   LedgerEntryDto,
+  ReferralLocalizedText,
   ReferralLocalizedTextKey,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
@@ -54,6 +55,9 @@ const TRANSACTION_FAILED_EVENT =
 const WAIT_REASONS = new Set([
   'AWAITING_RELEASE',
   'VELOCITY_LIMIT_EXCEEDED',
+  // A partial claim the signature reserve held back. The message is still
+  // VELOCITY_LIMIT_EXCEEDED; the body names this reason.
+  'SIGNATURE_RESERVE',
   'RATE_LIMITED',
   'CLAIM_COOLDOWN',
 ]);
@@ -101,6 +105,7 @@ export type ClaimToastKey = Extract<
   | 'claimFailureToast'
   | 'claimFailureRetryToast'
   | 'claimFailureWaitToast'
+  | 'claimFailureWaitMinutesToast'
   | 'claimFailureMinimumToast'
   | 'claimFailureAddressBlockedToast'
   | 'claimFailureTooLargeToast'
@@ -189,7 +194,10 @@ export function evmAddressFromEarningAddress(
   return address;
 }
 
-function toastKeyForReason(reason: string): ClaimToastKey {
+function toastKeyForReason(
+  reason: string,
+  retryAfterSeconds?: number,
+): ClaimToastKey {
   if (reason === 'ADDRESS_BLOCKED') {
     return 'claimFailureAddressBlockedToast';
   }
@@ -215,6 +223,10 @@ function toastKeyForReason(reason: string): ClaimToastKey {
     return 'claimFailureToast';
   }
   if (WAIT_REASONS.has(reason)) {
+    // `{minutes}` is ceil(Retry-After / 60). No header keeps the later sentence.
+    if (retryAfterSeconds !== undefined && retryAfterSeconds > 0) {
+      return 'claimFailureWaitMinutesToast';
+    }
     return 'claimFailureWaitToast';
   }
   if (RETRY_REASONS.has(reason)) {
@@ -239,15 +251,40 @@ export function claimToastKey(outcomes: ClaimRouteOutcome[]): ClaimToastKey {
     return deferred ? 'claimPartialSuccessToast' : 'claimSuccessToast';
   }
 
-  const reasons = outcomes
-    .map((outcome) => outcome.reason)
-    .filter((reason): reason is string => Boolean(reason));
-
-  const actionable = reasons
-    .map(toastKeyForReason)
+  const actionable = outcomes
+    .filter((outcome): outcome is ClaimRouteOutcome & { reason: string } =>
+      Boolean(outcome.reason),
+    )
+    .map((outcome) =>
+      toastKeyForReason(outcome.reason, outcome.retryAfterSeconds),
+    )
     .find((key) => key !== 'claimFailureToast');
 
   return actionable ?? 'claimFailureToast';
+}
+
+/**
+ * The sentence for one press. A wait that carried `Retry-After` fills
+ * `{minutes}` with `ceil(seconds / 60)`. An older localized payload without
+ * that key keeps the later sentence.
+ */
+export function claimToastText(
+  localizedText: Pick<ReferralLocalizedText, ClaimToastKey>,
+  outcomes: ClaimRouteOutcome[],
+): string {
+  const key = claimToastKey(outcomes);
+  if (key !== 'claimFailureWaitMinutesToast') {
+    return localizedText[key];
+  }
+  const template = localizedText.claimFailureWaitMinutesToast;
+  if (!template?.includes('{minutes}')) {
+    return localizedText.claimFailureWaitToast;
+  }
+  const seconds = outcomes.reduce(
+    (longest, outcome) => Math.max(longest, outcome.retryAfterSeconds ?? 0),
+    0,
+  );
+  return template.replaceAll('{minutes}', String(Math.ceil(seconds / 60)));
 }
 
 export interface RunEarningsClaimDeps {

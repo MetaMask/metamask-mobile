@@ -39,6 +39,11 @@ export interface RewardsMoneyState {
    * not carry, keyed by Hydra profile id.
    */
   inFlightClaims: Record<string, ClaimDto[]>;
+  /**
+   * Epoch ms until Claim is enabled again after a refusal's `Retry-After`,
+   * keyed by Hydra profile id. Survives leaving the Earnings tab.
+   */
+  claimWaitingUntil: Record<string, number>;
 }
 
 export const initialState: RewardsMoneyState = {
@@ -49,6 +54,7 @@ export const initialState: RewardsMoneyState = {
   cashbackLedger: {},
   earningsHistory: {},
   inFlightClaims: {},
+  claimWaitingUntil: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -223,6 +229,19 @@ const rewardsMoneySlice = createSlice({
     ) => {
       state.inFlightClaims[action.payload.profileId] = action.payload.claims;
     },
+    setClaimWaitingUntil: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        until: number | null;
+      }>,
+    ) => {
+      if (action.payload.until === null) {
+        delete state.claimWaitingUntil[action.payload.profileId];
+        return;
+      }
+      state.claimWaitingUntil[action.payload.profileId] = action.payload.until;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -242,6 +261,8 @@ const rewardsMoneySlice = createSlice({
             persisted.earningsHistory ?? initialState.earningsHistory,
           inFlightClaims:
             persisted.inFlightClaims ?? initialState.inFlightClaims,
+          claimWaitingUntil:
+            persisted.claimWaitingUntil ?? initialState.claimWaitingUntil,
         };
       },
     );
@@ -262,6 +283,7 @@ export const {
   setCashbackLedger,
   setEarningsHistory,
   setInFlightClaims,
+  setClaimWaitingUntil,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

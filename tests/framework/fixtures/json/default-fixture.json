@@ -978,6 +978,7 @@
     },
     "rewardsMoney": {
       "cashbackLedger": {},
+      "claimWaitingUntil": {},
       "commissions": {},
       "earningsHistory": {},
       "earningsSummary": {},
