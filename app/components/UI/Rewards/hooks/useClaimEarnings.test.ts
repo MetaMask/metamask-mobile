@@ -4,6 +4,7 @@
  * state, so this stays a hook unit test.
  */
 import { act, renderHook } from '@testing-library/react-hooks';
+import type { Action } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../../core/Engine';
@@ -232,7 +233,7 @@ describe('useClaimEarnings', () => {
   beforeEach(() => {
     storedClaimWait = undefined;
     jest.clearAllMocks();
-    mockDispatch.mockImplementation((action: unknown) => {
+    mockDispatch.mockImplementation((action: Action) => {
       if (setClaimWaitingUntil.match(action)) {
         storedClaimWait =
           action.payload.until === null ? undefined : action.payload.until;

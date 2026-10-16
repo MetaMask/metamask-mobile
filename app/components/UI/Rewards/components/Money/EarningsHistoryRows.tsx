@@ -18,7 +18,10 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { isVoidedEarning } from '../../utils/earningsSummaryTotals';
+import {
+  creditedBaseUnits,
+  isVoidedEarning,
+} from '../../utils/earningsSummaryTotals';
 import {
   isPendingClaimRow,
   type EarningsHistoryListItem,
@@ -77,11 +80,14 @@ function earningAmount(item: LedgerEarningEntryDto): {
   color: TextColor;
   voided: boolean;
 } {
-  const voided = isVoidedEarning(item.voided_musd_amount);
+  const voided = isVoidedEarning(item.musd_amount, item.voided_musd_amount);
+  const units = voided
+    ? item.musd_amount
+    : creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
 
   return {
     label:
-      formatMusdBaseUnits(item.musd_amount, {
+      formatMusdBaseUnits(units, {
         signed: true,
         maximumFractionDigits: 2,
       }) ?? '—',
