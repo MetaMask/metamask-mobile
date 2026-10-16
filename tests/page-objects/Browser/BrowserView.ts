@@ -482,14 +482,6 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
-    // Product delays homepage navigation + modal dismiss by 500ms after tap
-    // (`goBackToSafety`). Asserting the URL bar while the full-screen phishing
-    // overlay is still up fails: `browser-url-display-text` is not in the
-    // accessibility tree. Wait until the modal is gone before callers continue.
-    await Assertions.expectElementToNotBeVisible(this.backToSafetyButton, {
-      description: 'Phishing warning dismissed after Back to safety',
-      timeout: 15_000,
-    });
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -521,15 +513,39 @@ class Browser {
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
     // Display text is also absent while the URL editor is focused — dismiss
     // first (same readiness path as `expectUrlToContain`).
+    //
+    // `goBackToSafety` hides the modal 500ms after tap, then an iframe rescan
+    // can mount a new Back to safety button. Waiting for that button to stay
+    // gone fails the iframe smoke (`still displayed after 15000ms`) even when
+    // the URL bar is briefly readable. Retry the URL read instead.
     await AppiumContextHelpers.switchToNativeContext();
     await this.dismissUrlEditorIfOpen();
-    await Assertions.expectElementToBeVisible(this.urlBarDisplayText, {
-      description: 'URL bar display text is visible before not-equal assert',
-      timeout: 30_000,
-    });
-    await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
+    const assertionDescription =
+      description ?? `URL input box text is not "${text}"`;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToBeVisible(this.urlBarDisplayText, {
+          description:
+            'URL bar display text is visible before not-equal assert',
+          timeout: 1_500,
+        });
+        await Assertions.expectElementToNotHaveText(
+          this.urlBarDisplayText,
+          text,
+          {
+            description: assertionDescription,
+            timeout: 1_500,
+          },
+        );
+      },
+      {
+        timeout: 20_000,
+        interval: 400,
+        description: assertionDescription,
+        elemDescription: 'browser URL bar',
+      },
+    );
   }
 
   /**
