@@ -198,6 +198,9 @@ describe('createTrustSignalsMiddleware', () => {
       const networkController = createMockNetworkController();
       const origin = 'https://example.com';
 
+      // These mocks only keep the middleware off the address-scanning paths.
+      // The flow comes from the real getOriginScanFlow, which classifies by
+      // method name and does not use the mocked helpers.
       mockIsEthSendTransaction.mockReturnValue(false);
       mockIsEthSignTypedData.mockReturnValue(false);
 
