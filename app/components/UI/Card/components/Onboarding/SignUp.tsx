@@ -51,7 +51,6 @@ import {
   CardActions,
   CardEntryPoint,
   CardFlow,
-  CardScreens,
   buildCardMigrationBadgeReasons,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
@@ -66,6 +65,8 @@ import {
 import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { UK_MIGRATION_COUNTRY_CODE } from '../../util/countryPrefill';
+import { useSignUpCountryPrefill } from '../../hooks/useSignUpCountryPrefill';
 import type { Region } from '../../types';
 import {
   selectCardImmersveCountries,
@@ -82,8 +83,6 @@ import Logger from '../../../../../util/Logger';
 import { isValidLocalPhoneNumber } from '../../util/contactDetails';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
-
-const UK_MIGRATION_COUNTRY_CODE = 'GB';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -136,7 +135,6 @@ const SignUp = () => {
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
-  const hasAutoSelectedCountry = useRef(false);
   const hasPrefillAttempted = useRef(false);
   const hasUserEditedEmail = useRef(false);
   const hasUserEditedPhoneNumber = useRef(false);
@@ -165,6 +163,7 @@ const SignUp = () => {
     allRegions,
     getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
+    isRegistrationSettingsFetched,
   } = useRegions();
   const countryRegions = useMemo(
     () => allRegions.filter((region) => region.key === CARD_AUTH_COUNTRY_CODE),
@@ -210,42 +209,18 @@ const SignUp = () => {
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedPassword = useDebouncedValue(password, 1000);
 
-  useEffect(() => {
-    if (!allRegions.length) {
-      return;
-    }
-
-    // Run at most once: prevents a background re-fetch of registrationSettings
-    // (which produces a new getRegionByCode reference) from overwriting the
-    // user's manual country selection.
-    if (hasAutoSelectedCountry.current) {
-      return;
-    }
-
-    if (fromMigration) {
-      const ukRegion = getRegionByCode(UK_MIGRATION_COUNTRY_CODE);
-      if (!ukRegion) {
-        return;
-      }
-      // Local UI only — do not call setSelectedCountry here. That would switch
-      hasAutoSelectedCountry.current = true;
-      setSelectedCountry(ukRegion);
-      setPhoneRegion(ukRegion);
-      return;
-    }
-
-    const matchedRegion = getRegionByCode(CARD_AUTH_COUNTRY_CODE);
-
-    if (matchedRegion) {
-      hasAutoSelectedCountry.current = true;
-      setSelectedCountry(matchedRegion);
-      setPhoneRegion(matchedRegion);
-      Engine.context.CardController.setUserLocation(
-        mapCountryToLocation(matchedRegion.key),
-      );
-      Engine.context.CardController.setSelectedCountry(matchedRegion.key);
-    }
-  }, [allRegions.length, fromMigration, getRegionByCode]);
+  useSignUpCountryPrefill({
+    fromMigration,
+    allRegions,
+    getRegionByCode,
+    isRegistrationSettingsFetched,
+    immersveCountries,
+    immersveOnboardingEnabled,
+    migrationAnalyticsProps,
+    selectedCountry,
+    setSelectedCountry,
+    setPhoneRegion,
+  });
 
   useEffect(() => {
     if (!fromMigration) {
@@ -347,39 +322,6 @@ const SignUp = () => {
       selectedCountry &&
       immersveCountries.includes(selectedCountry.key),
   );
-
-  const lastTrackedSignUpView = useRef<string | null>(null);
-  useEffect(() => {
-    // Wait until country is known so Immersve (e.g. GB) is not stamped as Baanx.
-    // Re-fire when provider changes (e.g. geo auto-select then user switches country).
-    if (!selectedCountry) {
-      return;
-    }
-    const provider = isImmersveCountry
-      ? CardProviderIds.Immersve
-      : CardProviderIds.Baanx;
-    const viewKey = `${CardScreens.SIGN_UP}:${provider}`;
-    if (lastTrackedSignUpView.current === viewKey) {
-      return;
-    }
-    lastTrackedSignUpView.current = viewKey;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties(
-          withCardProvider(provider, {
-            screen: CardScreens.SIGN_UP,
-            ...migrationAnalyticsProps,
-          }),
-        )
-        .build(),
-    );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    selectedCountry,
-    isImmersveCountry,
-    migrationAnalyticsProps,
-  ]);
 
   const {
     onboardingDocuments,

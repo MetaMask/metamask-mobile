@@ -167,7 +167,7 @@ describe('TraderPositionPnlSection', () => {
       });
     });
 
-    it('leaves Share to feed disabled until a sharable position loads', () => {
+    it('hides Share to feed until a sharable position loads', () => {
       mockUseOpenPositionHeader.mockReturnValue({
         positionValue: '$2,000.00',
         pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
@@ -181,7 +181,7 @@ describe('TraderPositionPnlSection', () => {
       expect(positionProp()?.expandedDetails).not.toHaveProperty('onShare');
     });
 
-    it('leaves Share to feed disabled in the Social V1 control arm', () => {
+    it('hides Share to feed in the Social V1 control arm', () => {
       mockUseSocialV1.mockReturnValue(false);
 
       renderSection();
@@ -191,7 +191,7 @@ describe('TraderPositionPnlSection', () => {
       );
     });
 
-    it('leaves Share to feed disabled when Social is off', () => {
+    it('hides Share to feed when Social is off', () => {
       mockSocialLeaderboardEnabled.mockReturnValue(false);
 
       renderSection();

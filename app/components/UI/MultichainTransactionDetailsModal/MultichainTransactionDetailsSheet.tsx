@@ -161,7 +161,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
               {formatAddress(value, 'short')}
             </Text>
             <Icon
-              name={IconName.Export}
+              name={IconName.ArrowSquareOut}
               size={IconSize.Sm}
               color={IconColor.Primary}
             />
@@ -227,7 +227,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
               strings('networks.view_details'),
             )
           }
-          endIconName={IconName.Export}
+          endIconName={IconName.ArrowSquareOut}
         />
       </Box>
     </BottomSheet>
