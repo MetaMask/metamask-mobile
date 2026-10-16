@@ -157,9 +157,6 @@ export function createTrustSignalsMiddleware({
         return;
       }
 
-      const isTransaction = isEthSendTransaction(req);
-      const isTypedDataSignature = isEthSignTypedData(req);
-
       if (req.origin) {
         // eslint-disable-next-line no-void
         void scanUrl(phishingController, req.origin, getOriginScanFlow(req));
@@ -170,9 +167,9 @@ export function createTrustSignalsMiddleware({
         return;
       }
 
-      if (isTransaction) {
+      if (isEthSendTransaction(req)) {
         handleEthSendTransaction(req, phishingController, chainId);
-      } else if (isTypedDataSignature) {
+      } else if (isEthSignTypedData(req)) {
         handleEthSignTypedData(req, phishingController, chainId);
       }
     } catch (error) {
