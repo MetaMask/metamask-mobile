@@ -1,6 +1,5 @@
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import {
-  Button,
   ButtonAnimated,
   ButtonVariant,
   Box,
@@ -37,6 +36,10 @@ import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeolocationLocation';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import ButtonGlass from '../../../../component-library/components-temp/ButtonGlass';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
+import FooterGlass from '../../../../component-library/components-temp/FooterGlass';
+import { useTokenDetailsGlassFooter } from '../hooks/useTokenDetailsGlassFooter';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
@@ -69,6 +72,19 @@ const styles = StyleSheet.create({
     paddingLeft: 0,
     paddingRight: 4,
   },
+  // On glass the wrapper takes the row's flex; the button inside keeps only its
+  // padding, as flex there would collapse its height.
+  glassButtonContainer: {
+    flex: 1,
+  },
+  iconButtonOnGlass: {
+    paddingLeft: 0,
+    paddingRight: 4,
+  },
+  moneyDepositButtonOnGlass: {
+    paddingLeft: 0,
+    paddingRight: 0,
+  },
   quickBuyButton: {
     width: 48,
     height: 48,
@@ -76,6 +92,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderRadius: 999,
+  },
+  quickBuyButtonOnGlass: {
+    borderWidth: 0,
   },
   moneyDepositButton: {
     flex: 1,
@@ -128,6 +147,10 @@ interface TokenStickyFooterProps {
   onStickyButtonsResolved?: (shown: StickyButtonLayout) => void;
   /** When true the footer omits its small bottom spacing because the parent manages it. */
   skipBottomInset?: boolean;
+  /** With the glass footer, floats over the screen so content scrolls behind it. */
+  isOverlay?: boolean;
+  /** Reports the footer's height, so an overlaid screen can inset its content. */
+  onLayout?: (event: LayoutChangeEvent) => void;
   /** Optional testID for the swap button (used by E2E tests in different screens) */
   swapTestID?: string;
   /** Optional testID for the buy button (used by E2E tests in different screens) */
@@ -164,6 +187,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   moneyDepositCta,
   onStickyButtonsResolved,
   skipBottomInset = false,
+  isOverlay = false,
+  onLayout,
   swapTestID,
   buyTestID,
   onSwapPress,
@@ -181,6 +206,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const { isGlass, isBlur, isRefreshed } = useTokenDetailsGlassFooter();
+  const glassContainerStyle = isRefreshed
+    ? styles.glassButtonContainer
+    : undefined;
+  const iconButtonStyle = isRefreshed
+    ? styles.iconButtonOnGlass
+    : styles.iconButton;
+  const withQuickBuyGlass = (button: React.ReactElement) =>
+    isRefreshed ? (
+      <CapsuleGlass twClassName="h-12 w-12 justify-center">
+        {button}
+      </CapsuleGlass>
+    ) : (
+      button
+    );
 
   const { indicators: indicatorsActive } = useTokenChartPreferences();
 
@@ -498,12 +539,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
   const legacyFooterStyle = useMemo(
     () => ({
-      backgroundColor: colors.background.default,
+      backgroundColor: isRefreshed ? 'transparent' : colors.background.default,
       paddingHorizontal: 16,
       paddingTop: 16,
       paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
-    [colors.background.default, insets.bottom, skipBottomInset],
+    [colors.background.default, insets.bottom, isRefreshed, skipBottomInset],
   );
   const bottomSheetStyle = useMemo(
     () => ({
@@ -523,10 +564,17 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   if (!tradingOpen && !isTokenDetailsV1) return null;
 
   const moneyDepositButton = showMoneyDepositButton ? (
-    <Button
+    <ButtonGlass
+      isGlass={isGlass}
+      hasSolidFill
       testID="money-asset-overview-footer-cta"
       variant={ButtonVariant.Primary}
-      style={styles.moneyDepositButton}
+      containerStyle={glassContainerStyle}
+      style={
+        isRefreshed
+          ? styles.moneyDepositButtonOnGlass
+          : styles.moneyDepositButton
+      }
       twClassName={successBg}
       textProps={SUCCESS_TEXT_PROPS}
       isLoading={moneyDepositCta?.isLoading}
@@ -553,7 +601,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       >
         {moneyDepositCta?.label}
       </Text>
-    </Button>
+    </ButtonGlass>
   ) : null;
 
   const positionContent = traderPositionPnl ? (
@@ -586,12 +634,20 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         twClassName={traderPositionPnl ? 'mt-2' : undefined}
       >
         {showSwapButton && !isBuySellLayout && (
-          <Button
+          <ButtonGlass
+            isGlass={isGlass}
+            isBlur={isBlur && !swapIsSuccess}
+            hasSolidFill={swapIsSuccess}
             testID={swapTestID}
             variant={
-              swapIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+              swapIsSuccess
+                ? ButtonVariant.Primary
+                : isRefreshed
+                  ? ButtonVariant.Tertiary
+                  : ButtonVariant.Secondary
             }
-            style={styles.iconButton}
+            containerStyle={glassContainerStyle}
+            style={iconButtonStyle}
             twClassName={
               swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
@@ -620,16 +676,24 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             }}
           >
             {strings('asset_overview.swap')}
-          </Button>
+          </ButtonGlass>
         )}
         {moneyDepositButton}
         {showBuyButton && !isBuySellLayout && (
-          <Button
+          <ButtonGlass
+            isGlass={isGlass}
+            isBlur={isBlur && !buyIsSuccess}
+            hasSolidFill={buyIsSuccess}
             testID={buyTestID}
             variant={
-              buyIsSuccess ? ButtonVariant.Primary : ButtonVariant.Secondary
+              buyIsSuccess
+                ? ButtonVariant.Primary
+                : isRefreshed
+                  ? ButtonVariant.Tertiary
+                  : ButtonVariant.Secondary
             }
-            style={styles.iconButton}
+            containerStyle={glassContainerStyle}
+            style={iconButtonStyle}
             twClassName={
               buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
             }
@@ -650,15 +714,23 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             }}
           >
             {buyButtonLabel}
-          </Button>
+          </ButtonGlass>
         )}
         {isBuySellLayout && hasTokenBalance && (
-          <Button
+          <ButtonGlass
+            isGlass={isGlass}
+            isBlur={isBlur && !isTokenDetailsV1}
+            hasSolidFill={isTokenDetailsV1}
             testID="token-details-footer-quick-sell"
             variant={
-              isTokenDetailsV1 ? ButtonVariant.Primary : ButtonVariant.Secondary
+              isTokenDetailsV1
+                ? ButtonVariant.Primary
+                : isRefreshed
+                  ? ButtonVariant.Tertiary
+                  : ButtonVariant.Secondary
             }
-            style={styles.iconButton}
+            containerStyle={glassContainerStyle}
+            style={iconButtonStyle}
             twClassName={
               isTokenDetailsV1
                 ? 'bg-error-default'
@@ -668,48 +740,59 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             onPress={() => handleOpenQuickBuy('sell')}
           >
             {strings('asset_overview.sell_button')}
-          </Button>
+          </ButtonGlass>
         )}
         {isBuySellLayout && (
-          <Button
+          <ButtonGlass
+            isGlass={isGlass}
+            hasSolidFill
             testID="token-details-footer-quick-buy"
             variant={ButtonVariant.Primary}
-            style={styles.iconButton}
+            containerStyle={glassContainerStyle}
+            style={iconButtonStyle}
             twClassName={successBg}
             textProps={SUCCESS_TEXT_PROPS}
             onPress={() => handleOpenQuickBuy('buy')}
           >
             {buyButtonLabel}
-          </Button>
+          </ButtonGlass>
         )}
-        {showQuickBuyButton && entrypointLayout === 'lightning_swap_buy' && (
-          <ButtonAnimated
-            testID={quickBuyTestID}
-            accessibilityRole="button"
-            accessibilityLabel={strings('asset_overview.buy_button')}
-            style={[styles.quickBuyButton, { borderColor: successColorHex }]}
-            onPress={() => {
-              if (!onQuickBuyPress) return;
-              trackStickyFooterTapped({
-                ctaType: 'quick_buy',
-                balanceFiatUsd,
-                tokenAddress: token.address ?? '',
-                chainId: token.chainId ?? '',
-                indicatorsActive,
-              });
-              handleFooterAction(
-                onQuickBuyPress,
-                strings('asset_overview.buy_button'),
-              );
-            }}
-          >
-            <Icon
-              name={IconName.FlashFilled}
-              size={IconSize.Md}
-              twClassName={successText}
-            />
-          </ButtonAnimated>
-        )}
+        {showQuickBuyButton &&
+          entrypointLayout === 'lightning_swap_buy' &&
+          withQuickBuyGlass(
+            <ButtonAnimated
+              testID={quickBuyTestID}
+              accessibilityRole="button"
+              accessibilityLabel={strings('asset_overview.buy_button')}
+              style={[
+                styles.quickBuyButton,
+                // On glass the capsule edge stands in for the accent outline.
+                isRefreshed
+                  ? styles.quickBuyButtonOnGlass
+                  : { borderColor: successColorHex },
+              ]}
+              onPress={() => {
+                if (!onQuickBuyPress) return;
+                trackStickyFooterTapped({
+                  ctaType: 'quick_buy',
+                  balanceFiatUsd,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  indicatorsActive,
+                });
+                handleFooterAction(
+                  onQuickBuyPress,
+                  strings('asset_overview.buy_button'),
+                );
+              }}
+            >
+              <Icon
+                name={IconName.FlashFilled}
+                size={IconSize.Md}
+                twClassName={successText}
+              />
+            </ButtonAnimated>,
+          )}
       </Box>
       {isMoneyDepositCtaActive && !moneyDepositCta?.isLoading && (
         <Text
@@ -744,6 +827,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         </View>
       </GestureDetector>
     </BottomSheetDialog>
+  ) : isRefreshed ? (
+    <FooterGlass
+      isOverlay={isOverlay}
+      onLayout={onLayout}
+      style={legacyFooterStyle}
+      testID="token-details-glass-footer"
+    >
+      {footerActions}
+    </FooterGlass>
   ) : (
     <View style={legacyFooterStyle}>{footerActions}</View>
   );

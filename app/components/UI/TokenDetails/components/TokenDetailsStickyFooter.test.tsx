@@ -2,6 +2,9 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
+import { GlassView } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
@@ -32,6 +35,16 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
     isTokenTradable: mockIsTokenTradable,
     isStockToken: mockIsStockToken,
   }),
+}));
+
+const mockLiquidGlass = {
+  isGlassEnabled: false,
+  isBlurEnabled: false,
+  glassColorScheme: 'dark',
+  blurTint: 'systemChromeMaterialDark',
+};
+jest.mock('../../../../component-library/hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => mockLiquidGlass,
 }));
 
 jest.mock('react-redux', () => ({
@@ -131,14 +144,19 @@ const defaultProps = {
   isTokenDetailsV1: true,
 };
 
-const setupSelectorMock = (geolocation?: string) => {
+const setupSelectorMock = (geolocation?: string, isBrandRefresh = false) => {
   (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
     if (selector === getDetectedGeolocation) {
       return geolocation;
     }
+    if (selector === selectTokenDetailsBrandRefreshEnabled) {
+      return isBrandRefresh;
+    }
     return undefined;
   });
 };
+
+const GLASS_FOOTER_FADE = 'token-details-glass-footer-fade';
 
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
@@ -147,6 +165,8 @@ describe('TokenDetailsStickyFooter', () => {
     mockIsTokenTradable.mockReturnValue(true);
     mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
+    mockLiquidGlass.isGlassEnabled = false;
+    mockLiquidGlass.isBlurEnabled = false;
     setupSelectorMock();
   });
 
@@ -1279,6 +1299,103 @@ describe('TokenDetailsStickyFooter', () => {
         expect.objectContaining({ ctaType: 'quick_sell' }),
       );
       expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('brand refresh', () => {
+    const renderBuySell = () =>
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+    it('draws Sell as clear glass and keeps Buy filled on glass (iOS 26)', () => {
+      setupSelectorMock(undefined, true);
+      mockLiquidGlass.isGlassEnabled = true;
+
+      const { getByTestId, UNSAFE_getAllByType } = renderBuySell();
+
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'variant',
+        ButtonVariant.Tertiary,
+      );
+      expect(getByTestId('token-details-footer-quick-buy')).toHaveProp(
+        'twClassName',
+        expect.stringContaining('bg-'),
+      );
+      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(2);
+      expect(getByTestId(GLASS_FOOTER_FADE)).toBeOnTheScreen();
+      // The glass wrapper takes the row's flex; on the inner button it
+      // collapses the button's height.
+      expect(getByTestId('token-details-footer-quick-sell')).not.toHaveStyle({
+        flex: 1,
+      });
+    });
+
+    it('blurs Sell and keeps Buy as the original on iOS before 26', () => {
+      setupSelectorMock(undefined, true);
+      mockLiquidGlass.isBlurEnabled = true;
+
+      const { getByTestId, UNSAFE_getAllByType, UNSAFE_queryAllByType } =
+        renderBuySell();
+
+      expect(UNSAFE_getAllByType(BlurView)).toHaveLength(1);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+      expect(getByTestId(GLASS_FOOTER_FADE)).toBeOnTheScreen();
+    });
+
+    it('keeps the original footer where neither glass nor blur is available', () => {
+      setupSelectorMock(undefined, true);
+
+      const { getByTestId, queryByTestId, UNSAFE_queryAllByType } =
+        renderBuySell();
+
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'variant',
+        ButtonVariant.Secondary,
+      );
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+      expect(queryByTestId(GLASS_FOOTER_FADE)).toBeNull();
+    });
+
+    it('floats over the screen and reports its height when overlaid', () => {
+      setupSelectorMock(undefined, true);
+      mockLiquidGlass.isGlassEnabled = true;
+      const onLayout = jest.fn();
+
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+          isOverlay
+          onLayout={onLayout}
+        />,
+      );
+      const footer = getByTestId('token-details-glass-footer');
+      fireEvent(footer, 'layout', { nativeEvent: { layout: { height: 104 } } });
+
+      expect(footer).toHaveStyle({ position: 'absolute', bottom: 0 });
+      expect(onLayout).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the original footer with the flag off, even with glass available', () => {
+      mockLiquidGlass.isGlassEnabled = true;
+
+      const { getByTestId, queryByTestId } = renderBuySell();
+
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'variant',
+        ButtonVariant.Secondary,
+      );
+      expect(queryByTestId(GLASS_FOOTER_FADE)).toBeNull();
     });
   });
 });

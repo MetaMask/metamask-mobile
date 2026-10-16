@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
+import { BlurView } from 'expo-blur';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import ButtonGlass from './ButtonGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
@@ -106,5 +107,53 @@ describe('ButtonGlass', () => {
 
     expect(UNSAFE_getByType(GlassView).props.tintColor).toBeUndefined();
     expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+  });
+
+  it('keeps a solid fill under the glass instead of tinting it', () => {
+    const { UNSAFE_getByType, queryByTestId } = render(
+      <ButtonGlass
+        variant={ButtonVariant.Primary}
+        hasSolidFill
+        twClassName="bg-success-default"
+        onPress={jest.fn()}
+      >
+        Buy
+      </ButtonGlass>,
+    );
+
+    expect(UNSAFE_getByType(GlassView).props.tintColor).toBeUndefined();
+    expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+  });
+
+  it('draws on blur when glass is off and blur is requested', () => {
+    const onPress = jest.fn();
+    const { UNSAFE_getByType, UNSAFE_queryAllByType, getByTestId } = render(
+      <ButtonGlass
+        isGlass={false}
+        isBlur
+        variant={ButtonVariant.Tertiary}
+        onPress={onPress}
+        testID="sell"
+      >
+        Sell
+      </ButtonGlass>,
+    );
+
+    expect(UNSAFE_getByType(BlurView)).toBeTruthy();
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+
+    fireEvent.press(getByTestId('sell'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores blur while glass is on', () => {
+    const { UNSAFE_queryAllByType } = render(
+      <ButtonGlass isBlur onPress={jest.fn()}>
+        Skip
+      </ButtonGlass>,
+    );
+
+    expect(UNSAFE_queryAllByType(BlurView)).toHaveLength(0);
   });
 });
