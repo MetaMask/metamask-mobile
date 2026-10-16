@@ -44,6 +44,7 @@ import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -153,6 +154,7 @@ import {
   PERPS_MIN_BALANCE_THRESHOLD,
 } from '../../constants/perpsConfig';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { translatePerpsError } from '../../utils/translatePerpsError';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
@@ -210,6 +212,13 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  postCopyTradeIntent,
+  type CopyTradeOrigin,
+} from '../../../../../util/social/copyTradeIntent';
+import { buildPerpsCopyTradeIntent } from '../../utils/copyTradeIntent';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -236,6 +245,8 @@ interface OrderRouteParams {
    * market details. The order still places and the same toasts still fire.
    */
   stayOnCurrentScreen?: boolean;
+  /** Social post being copied; a matching order records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -288,6 +299,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   useBottomSheet = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { fireImpact } = useHaptics();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   // Source: from route params (caller-passed) or trending session, else default
   const source =
@@ -307,6 +319,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
+  const copyTradeOrigin = route.params?.copyTradeOrigin;
+  const activePerpsProvider = useSelector(selectPerpsProvider);
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const { colors } = useTheme();
   const bottomSafeAreaInset = useBottomSafeAreaInset();
 
@@ -1201,11 +1218,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // `stayOnCurrentScreen` is set.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
-      onSuccess: (_position) => {
+      onSuccess: (_position, result) => {
         showToast(
           PerpsToastOptions.orderManagement[
             getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+        );
+        postCopyTradeIntent(
+          () =>
+            buildPerpsCopyTradeIntent({
+              copyTradeOrigin,
+              asset: orderForm.asset,
+              orderType: orderForm.type,
+              result,
+              address: getSelectedAccountByScope('eip155:1')?.address,
+              activeProvider: activePerpsProvider,
+            }),
+          { surface: 'trader_feed', source: 'PerpsOrderView' },
         );
       },
       onError: (error) => {
@@ -1456,10 +1485,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   };
 
   const handleTradeSheetLimitPricePress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     setIsInputFocused(false);
     setIsLimitPriceFocused(true);
     tradeSheetLimitPriceInputMethodRef.current = null;
-  }, []);
+  }, [fireImpact]);
 
   const handleTradeSheetLimitPriceChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
@@ -1530,6 +1560,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const handleTradeSheetLimitPriceDone = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     const inputMethod = tradeSheetLimitPriceInputMethodRef.current;
     if (inputMethod) {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -1544,12 +1575,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       tradeSheetLimitPriceInputMethodRef.current = null;
     }
     setIsLimitPriceFocused(false);
-  }, [orderForm.asset, orderForm.direction, track]);
+  }, [orderForm.asset, orderForm.direction, fireImpact, track]);
 
   // The sheet only offers market and limit, so the header control swaps
   // between them on tap rather than opening a second bottom sheet.
   const handleTradeSheetOrderTypeToggle = useCallback(() => {
     const nextType = orderForm.type === 'limit' ? 'market' : 'limit';
+
+    fireImpact(ImpactMoment.TabChange);
 
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -1579,6 +1612,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.asset,
     orderForm.direction,
     orderForm.type,
+    fireImpact,
     setLimitPrice,
     setOrderType,
     track,
@@ -1718,6 +1752,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
         });
         return;
+      }
+
+      if (useBottomSheet && !forceTrade) {
+        fireImpact(ImpactMoment.PrimaryCTA);
       }
 
       let submissionIsValid = orderValidation.isValid;
@@ -1976,8 +2014,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
           if (!tpslResult.success) {
-            const errorMessage =
-              tpslResult.error || strings('perps.errors.unknown');
+            const errorMessage = translatePerpsError(tpslResult.error);
             showToast(
               PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
                 errorMessage,
@@ -2062,6 +2099,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       liquidityError,
       vipTier,
       useBottomSheet,
+      fireImpact,
     ],
   );
 
