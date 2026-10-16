@@ -166,8 +166,8 @@ describe('ConnectedAccountsModal account summary', () => {
     it('taps confirm with disappear wait, then waits for disconnect_all to leave', async () => {
       await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
-      const [confirmTarget, confirmOpts] = jest.mocked(Gestures.waitAndTap)
-        .mock.calls[0];
+      const [confirmTarget, confirmOpts] = jest.mocked(Gestures.waitAndTap).mock
+        .calls[0];
       await expect(Promise.resolve(confirmTarget)).resolves.toBe(
         confirmDisconnectSentinel,
       );
