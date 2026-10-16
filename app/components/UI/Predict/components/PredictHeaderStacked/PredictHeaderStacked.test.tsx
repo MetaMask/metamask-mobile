@@ -142,7 +142,7 @@ describe('PredictHeaderStacked', () => {
       const onBack = jest.fn();
       const onSearchPress = jest.fn();
       const { UNSAFE_getAllByType } = renderHeader({
-        isCapsule: true,
+        isGlass: true,
         onBack,
         onSearchPress,
       });

@@ -39,9 +39,7 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
-import HeaderGlass, {
-  useHeaderGlassInset,
-} from '../../../../../component-library/components-temp/HeaderGlass';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
@@ -158,16 +156,6 @@ const PredictHome: React.FC = () => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
 
-  const header = (
-    <PredictHeaderStacked
-      scrollY={scrollY}
-      titleSectionHeight={titleSectionHeight}
-      onBack={handleBackPress}
-      onSearchPress={handleShowSearch}
-      isCapsule={isBrandRefresh}
-    />
-  );
-
   return (
     <SafeAreaView
       edges={{ bottom: 'off' }}
@@ -178,14 +166,15 @@ const PredictHome: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {isBrandRefresh ? (
-          // Mounted before the content so assistive tech reads the header first.
-          <HeaderGlass onLayout={handleFloatingHeaderLayout}>
-            {header}
-          </HeaderGlass>
-        ) : (
-          header
-        )}
+        {/* Mounted before the content so assistive tech reads the header first. */}
+        <PredictHeaderStacked
+          scrollY={scrollY}
+          titleSectionHeight={titleSectionHeight}
+          onBack={handleBackPress}
+          onSearchPress={handleShowSearch}
+          isGlass={isBrandRefresh}
+          onLayout={isBrandRefresh ? handleFloatingHeaderLayout : undefined}
+        />
 
         {showHomeError ? (
           <Box twClassName="flex-1" style={{ paddingTop: floatingHeaderInset }}>
