@@ -70,6 +70,7 @@ jest.mock('../page-objects/wallet/WalletView', () => ({
 
 jest.mock('./browser.flow', () => ({
   navigateToBrowserView: jest.fn().mockResolvedValue(undefined),
+  ensureSingleBrowserTabView: jest.fn().mockResolvedValue(undefined),
   waitForTestSnapsToLoad: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -80,7 +81,11 @@ jest.mock('./wallet.flow', () => ({
 
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestSnaps from '../page-objects/Browser/TestSnaps';
-import { waitForTestSnapsToLoad } from './browser.flow';
+import TrendingView from '../page-objects/Trending/TrendingView';
+import {
+  ensureSingleBrowserTabView,
+  waitForTestSnapsToLoad,
+} from './browser.flow';
 import { navigateFromSnapSettingsToBrowser } from './snaps.flow';
 
 describe('navigateFromSnapSettingsToBrowser', () => {
@@ -91,10 +96,24 @@ describe('navigateFromSnapSettingsToBrowser', () => {
   it('reloads the open test-snaps tab instead of opening another one', async () => {
     await navigateFromSnapSettingsToBrowser();
 
+    expect(TrendingView.tapBrowserButton).toHaveBeenCalledTimes(1);
+    expect(ensureSingleBrowserTabView).toHaveBeenCalledTimes(1);
     expect(BrowserView.tapReloadButton).toHaveBeenCalledTimes(1);
     expect(waitForTestSnapsToLoad).toHaveBeenCalledTimes(1);
-    expect(waitForTestSnapsToLoad.mock.invocationCallOrder[0]).toBeGreaterThan(
-      BrowserView.tapReloadButton.mock.invocationCallOrder[0],
+    expect(
+      jest.mocked(TrendingView.tapBrowserButton).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(ensureSingleBrowserTabView).mock.invocationCallOrder[0],
+    );
+    expect(
+      jest.mocked(ensureSingleBrowserTabView).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(BrowserView.tapReloadButton).mock.invocationCallOrder[0],
+    );
+    expect(
+      jest.mocked(waitForTestSnapsToLoad).mock.invocationCallOrder[0],
+    ).toBeGreaterThan(
+      jest.mocked(BrowserView.tapReloadButton).mock.invocationCallOrder[0],
     );
     expect(TestSnaps.navigateToTestSnap).not.toHaveBeenCalled();
     expect(BrowserView.selectTabByPartialUrl).not.toHaveBeenCalled();

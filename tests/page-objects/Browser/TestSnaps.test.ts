@@ -232,12 +232,17 @@ describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
     expect(waitForTestSnapsToLoad).toHaveBeenCalledTimes(1);
     expect(navigateToTestSnap).not.toHaveBeenCalled();
     expect(tapButton).toHaveBeenCalledTimes(3);
-    expect(Browser.tapReloadButton.mock.invocationCallOrder[0]).toBeLessThan(
-      tapButton.mock.invocationCallOrder[2],
+    expect(
+      jest.mocked(Browser.tapReloadButton).mock.invocationCallOrder[0],
+    ).toBeLessThan(tapButton.mock.invocationCallOrder[2]);
+    expect(
+      jest.mocked(waitForTestSnapsToLoad).mock.invocationCallOrder[0],
+    ).toBeGreaterThan(
+      jest.mocked(Browser.tapReloadButton).mock.invocationCallOrder[0],
     );
-    expect(waitForTestSnapsToLoad.mock.invocationCallOrder[0]).toBeGreaterThan(
-      Browser.tapReloadButton.mock.invocationCallOrder[0],
-    );
+    expect(
+      jest.mocked(waitForTestSnapsToLoad).mock.invocationCallOrder[0],
+    ).toBeLessThan(tapButton.mock.invocationCallOrder[2]);
     expect(expectEnabledSnapAlert).toHaveBeenNthCalledWith(3, 8_000);
   });
 

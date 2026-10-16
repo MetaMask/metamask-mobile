@@ -7,7 +7,11 @@ import SnapSettingsView from '../page-objects/Settings/SnapSettingsView';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
-import { navigateToBrowserView, waitForTestSnapsToLoad } from './browser.flow';
+import {
+  ensureSingleBrowserTabView,
+  navigateToBrowserView,
+  waitForTestSnapsToLoad,
+} from './browser.flow';
 import {
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
@@ -53,8 +57,9 @@ export const navigateFromBrowserToSnapSettings = async (): Promise<void> => {
  * Browser, then reloads the open test-snaps tab.
  *
  * Reload instead of `navigateToTestSnap`: that deeplink stacks a second iOS
- * tab, and later WebView taps hit the stale one. The tabs overview is also
- * avoided (`selectTabByPartialUrl` leaves Opened tabs on screen).
+ * tab, and later WebView taps hit the stale one. Explore's browser button
+ * opens the Opened tabs grid when a tab already exists, so select that tab
+ * before reload. `selectTabByPartialUrl` is not used; it leaves the grid up.
  */
 export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
   await SnapSettingsView.tapBackButton();
@@ -73,6 +78,7 @@ export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
 
   await TabBarComponent.tapExploreButton();
   await TrendingView.tapBrowserButton();
+  await ensureSingleBrowserTabView();
   await BrowserView.tapReloadButton();
   await waitForTestSnapsToLoad();
 };
