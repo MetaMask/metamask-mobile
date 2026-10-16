@@ -765,12 +765,32 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('routes the action button to handleRetry when banner is active', () => {
+    it('clears a non-fill banner instead of retrying when the action button is pressed', () => {
       mockBuyErrorBanner = {
         variant: 'order_failed',
         title: 'Order failed',
         description: 'oops',
       };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+      // The fresh-quote confirm flow is scoped to not-filled errors: for
+      // other banners the tap dismisses the banner so the normal confirm
+      // path is restored, rather than retrying into a silent no-op.
+      expect(mockClearBuyErrorBanner).toHaveBeenCalledTimes(1);
+      expect(mockHandleRetry).not.toHaveBeenCalled();
+      expect(mockHandleConfirm).not.toHaveBeenCalled();
+    });
+
+    it('routes the action button to handleRetry for a not-filled banner', () => {
+      mockBuyErrorBanner = {
+        variant: 'price_changed',
+        title: 'Price changed',
+        description: "Couldn't buy at $0.62. Try at market price?",
+      };
+      mockIsOrderNotFilled = true;
 
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
 
@@ -1019,6 +1039,8 @@ describe('PredictBuyWithAnyToken', () => {
     it('calls handleRetry when isBannerActive and isChangePaymentMode are both true (Retry takes priority)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
+      // A price_changed banner implies a not-filled episode.
+      mockIsOrderNotFilled = true;
       mockBuyErrorBanner = {
         variant: 'price_changed',
         title: 'Price changed',
@@ -1050,7 +1072,7 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('calls handleRetry when isBannerActive and isAddFundsMode are both true (Retry takes priority)', () => {
+    it('clears a non-fill banner even when isAddFundsMode is true (banner takes priority)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = false;
       mockBuyErrorBanner = {
@@ -1062,7 +1084,8 @@ describe('PredictBuyWithAnyToken', () => {
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
-      expect(mockHandleRetry).toHaveBeenCalledTimes(1);
+      expect(mockClearBuyErrorBanner).toHaveBeenCalledTimes(1);
+      expect(mockHandleRetry).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

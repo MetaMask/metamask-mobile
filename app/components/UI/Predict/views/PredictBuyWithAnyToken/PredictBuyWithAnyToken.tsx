@@ -451,7 +451,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
 
     if (isBannerActive) {
-      void handleRetry();
+      if (isOrderNotFilled) {
+        void handleRetry();
+      } else {
+        // Non-fill banners (order_failed, payment_failed) have no retry
+        // episode — the fresh-quote confirm flow is scoped to not-filled
+        // errors. Clear the banner so the action button returns to the
+        // normal confirm path instead of silently doing nothing.
+        clearBuyErrorBanner();
+      }
       return;
     }
     if (isChangePaymentMode) {
@@ -468,7 +476,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPaymentSelectorNavigationLocked,
     isChangePaymentMode,
     isAddFundsMode,
+    isOrderNotFilled,
     handleRetry,
+    clearBuyErrorBanner,
     handleChangePaymentMethod,
     handleAddFunds,
     handleConfirm,

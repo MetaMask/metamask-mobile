@@ -265,6 +265,27 @@ describe('PredictOrderRetrySheet', () => {
 
       expect(onConfirm).toHaveBeenCalledTimes(1);
     });
+
+    it('formats the band without float noise', () => {
+      // 0.07 * 100 is 7.000000000000001 in float math — the label must
+      // not show the noise.
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="confirm"
+          side={Side.SELL}
+          preview={createMockPreview({
+            side: Side.SELL,
+            sharePrice: 0.65,
+            maxAmountSpent: 9.5,
+            minAmountReceived: 6.18,
+            slippage: 0.07,
+          })}
+        />,
+      );
+
+      expect(getByText('Worst case (7% band)')).toBeOnTheScreen();
+    });
   });
 
   describe('confirm variant — BUY', () => {
@@ -388,10 +409,10 @@ describe('PredictOrderRetrySheet', () => {
         />,
       );
 
-      expect(getByText('Price moved')).toBeTruthy();
-      expect(getByText('Moved from 65¢ to 62¢')).toBeTruthy();
-      expect(getByText('Price')).toBeTruthy();
-      expect(getByText('Yes, sell at 62¢')).toBeTruthy();
+      expect(getByText('Price moved')).toBeOnTheScreen();
+      expect(getByText('Moved from 65¢ to 62¢')).toBeOnTheScreen();
+      expect(getByText('Price')).toBeOnTheScreen();
+      expect(getByText('Yes, sell at 62¢')).toBeOnTheScreen();
     });
 
     it('submits the displayed quote on confirm', () => {
@@ -421,10 +442,10 @@ describe('PredictOrderRetrySheet', () => {
         <PredictOrderRetrySheet {...defaultProps} variant="no_match" />,
       );
 
-      expect(getByText('No match')).toBeTruthy();
+      expect(getByText('No match')).toBeOnTheScreen();
       expect(
         getByText("There isn't enough liquidity to fill your order right now."),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(queryByText('Price')).toBeNull();
       expect(queryByText(/Yes, (buy|sell) at/)).toBeNull();
     });

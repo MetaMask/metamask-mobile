@@ -156,7 +156,11 @@ const PredictOrderRetrySheet = forwardRef<
       }
       const feesTotal =
         (preview.fees?.metamaskFee ?? 0) + getPredictExchangeFee(preview.fees);
-      const bandPercent = `${preview.slippage * 100}%`;
+      // `preview.slippage * 100` picks up float noise for some values
+      // (e.g. 0.07 * 100 → 7.000000000000001): format through a fixed
+      // precision and strip trailing zeros so the label reads '7%'
+      // while a genuine 0.5% band is preserved.
+      const bandPercent = `${parseFloat((preview.slippage * 100).toFixed(2))}%`;
       const priceRow = {
         label: strings('predict.order.retry_price_label'),
         value: formatCents(preview.sharePrice),
