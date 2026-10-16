@@ -65,6 +65,12 @@ export const LimitOrderConfirmationModal = ({
     });
   }, [navigation]);
 
+  const handleMetaMaskFeeInfoPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_METAMASK_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
+
   // If the user edits the cost tolerance while this sheet is still mounted,
   // that quote is stale until a new one is fetched, so close the sheet rather
   // than show outdated order details.
@@ -239,7 +245,7 @@ export const LimitOrderConfirmationModal = ({
         twClassName="pt-3"
       >
         <Pressable
-          onPress={handleAccountUpgradeFeeInfoPress}
+          onPress={handleMetaMaskFeeInfoPress}
           accessibilityRole="button"
           accessibilityLabel={strings('bridge.limit.includes_metamask_fee')}
           style={({ pressed }) => pressed && tw.style('opacity-50')}
