@@ -604,6 +604,48 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).not.toContain(lighterTpSlError);
       expect(result.current.isValid).toBe(true);
     });
+
+    it('does not re-run protocol validation when editing a trigger price on an already-gated Lighter limit order', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+      const lighterLimitParams = {
+        ...defaultParams,
+        orderForm: {
+          ...defaultOrderForm,
+          type: 'limit' as const,
+          limitPrice: '49500',
+          takeProfitPrice: '51000',
+          stopLossPrice: '48000',
+        },
+        providerId: 'lighter' as const,
+      };
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: lighterLimitParams },
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.errors).toContain(lighterTpSlError);
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      rerender({
+        ...lighterLimitParams,
+        orderForm: {
+          ...lighterLimitParams.orderForm,
+          takeProfitPrice: '52000',
+        },
+      });
+
+      expect(result.current.errors).toContain(lighterTpSlError);
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(PERFORMANCE_CONFIG.ValidationDebounceMs);
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('error handling', () => {

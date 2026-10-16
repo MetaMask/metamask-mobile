@@ -361,18 +361,15 @@ const getProtocolValidationErrors = ({
 const getLighterLimitTpSlErrors = ({
   providerId,
   orderType,
-  takeProfitPrice,
-  stopLossPrice,
+  hasTakeProfitAndStopLoss,
 }: {
   providerId?: PerpsProviderType;
   orderType: OrderFormState['type'];
-  takeProfitPrice?: string;
-  stopLossPrice?: string;
+  hasTakeProfitAndStopLoss: boolean;
 }): string[] =>
   providerId === PROVIDER_CONFIG.LighterProvider &&
   orderType === 'limit' &&
-  takeProfitPrice &&
-  stopLossPrice
+  hasTakeProfitAndStopLoss
     ? [strings('perps.order.validation.lighter_limit_tpsl_unsupported')]
     : EMPTY_ERRORS;
 
@@ -530,20 +527,17 @@ export function usePerpsOrderValidation(
       spendableBalance,
     ],
   );
+  const hasLighterLimitTakeProfitAndStopLoss = Boolean(
+    orderForm.takeProfitPrice && orderForm.stopLossPrice,
+  );
   const lighterLimitTpSlErrors = useMemo(
     () =>
       getLighterLimitTpSlErrors({
         providerId,
         orderType: orderForm.type,
-        takeProfitPrice: orderForm.takeProfitPrice,
-        stopLossPrice: orderForm.stopLossPrice,
+        hasTakeProfitAndStopLoss: hasLighterLimitTakeProfitAndStopLoss,
       }),
-    [
-      providerId,
-      orderForm.type,
-      orderForm.takeProfitPrice,
-      orderForm.stopLossPrice,
-    ],
+    [providerId, orderForm.type, hasLighterLimitTakeProfitAndStopLoss],
   );
   const localErrors = useMemo(
     () => [...immediateValidation.errors, ...lighterLimitTpSlErrors],
