@@ -31,6 +31,7 @@ export function getNotificationServicesControllerMessenger(
       'NotificationServicesPushController:deletePushNotificationLinks',
       'NotificationServicesPushController:subscribeToPushNotifications',
       // Authenticated user storage (notification preferences, etc.)
+      'AuthenticatedUserStorageService:invalidateQueries',
       'AuthenticatedUserStorageService:getNotificationPreferences',
       'AuthenticatedUserStorageService:putNotificationPreferences',
       // Marketing notifications follow marketing consent
