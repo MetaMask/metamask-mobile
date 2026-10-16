@@ -2299,15 +2299,15 @@ describe('Header and Nav Bar refresh AB test', () => {
       ).toEqual(expect.objectContaining({ paddingTop: 16 }));
     });
 
-    it('insets the balance from the floating header capsule', () => {
+    it('does not stack a second balance inset under the floating header', () => {
       const { getByTestId } = render(Wallet);
 
       expect(
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
             .props.style,
-        ),
-      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+        ).paddingTop,
+      ).toBe(0);
     });
 
     it('leaves the balance inset to the native bar when it owns the header', () => {
