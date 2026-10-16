@@ -11572,10 +11572,9 @@
       "got_it": "Got it"
     },
     "apple_pay_confirmation": {
-      "title": "You're all set",
-      "subtitle": "Your card has been added to Apple Wallet.",
-      "description": "Apple Pay is an easy, secure way to pay with your card on all your Apple devices—in-store, online, or in-app.",
-      "symbols": "Use Apple Pay wherever you see these symbols",
+      "title": "Card Added Successfully",
+      "instructions": "Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.",
+      "marks": "Use Apple Pay anywhere you see these marks below.",
       "marks_label": "Contactless and Apple Pay",
       "done": "Done"
     },

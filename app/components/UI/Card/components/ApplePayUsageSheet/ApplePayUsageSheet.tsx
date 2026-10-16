@@ -5,9 +5,6 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
-  BoxAlignItems,
-  BoxBackgroundColor,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -20,14 +17,12 @@ import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import ApplePayHandGraphic from '../ApplePayHandGraphic';
 import marksLight from '../../Views/ApplePayConfirmation/assets/marks-light.png';
 import marksDark from '../../Views/ApplePayConfirmation/assets/marks-dark.png';
-import hand from './assets/hand.png';
 import { ApplePayUsageSheetSelectors } from './ApplePayUsageSheet.testIds';
 
 const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
-const HAND_WIDTH = 240;
-const HAND_ASPECT_RATIO = 720 / 531;
 const MARKS_WIDTH = 141;
 const MARKS_ASPECT_RATIO = 465 / 129;
 
@@ -67,22 +62,10 @@ const ApplePayUsageSheet = () => {
         </Text>
       </BottomSheetHeader>
       <Box twClassName="items-center px-4 pb-4">
-        <Box
-          backgroundColor={BoxBackgroundColor.BackgroundSection}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.End}
-          twClassName="mt-2 h-[209px] w-full overflow-hidden rounded-[40px]"
-          testID={ApplePayUsageSheetSelectors.GRAPHIC}
-        >
-          <Image
-            source={hand}
-            resizeMode="contain"
-            accessible={false}
-            testID={ApplePayUsageSheetSelectors.HAND}
-            style={{
-              width: HAND_WIDTH,
-              height: HAND_WIDTH / HAND_ASPECT_RATIO,
-            }}
+        <Box twClassName="mt-2 w-full">
+          <ApplePayHandGraphic
+            testID={ApplePayUsageSheetSelectors.GRAPHIC}
+            imageTestID={ApplePayUsageSheetSelectors.HAND}
           />
         </Box>
         <Text

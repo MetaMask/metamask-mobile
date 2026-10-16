@@ -24,16 +24,17 @@ describe('ApplePayConfirmation', () => {
       <ApplePayConfirmation />,
     );
 
-    expect(getByText("You're all set")).toBeOnTheScreen();
-    expect(
-      getByText('Your card has been added to Apple Wallet.'),
-    ).toBeOnTheScreen();
+    expect(getByText('Card Added Successfully')).toBeOnTheScreen();
     expect(
       getByText(
-        'Apple Pay is an easy, secure way to pay with your card on all your Apple devices—in-store, online, or in-app.',
+        'Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.',
       ),
     ).toBeOnTheScreen();
-    expect(getByTestId('apple-pay-confirmation-check')).toBeOnTheScreen();
+    expect(
+      getByText('Use Apple Pay anywhere you see these marks below.'),
+    ).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-confirmation-graphic')).toBeOnTheScreen();
+    expect(getByTestId('apple-pay-confirmation-hand')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-confirmation-marks-light')).toBeOnTheScreen();
   });
 
