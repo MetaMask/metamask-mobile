@@ -1,5 +1,5 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Pressable } from 'react-native';
 import Animated, {
   Easing,
@@ -16,13 +16,42 @@ import type {
   HardwareTier,
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
+import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 
 const DIE_SIZE = 20;
 
+/**
+ * Jiggle beats in ms. Selection clicks fire at the start of the first three so
+ * the die rattles in the hand as well as on screen.
+ */
+export const JIGGLE_BEAT_MS = [70, 70, 60, 80] as const;
+export const SHUFFLE_HAPTIC_CLICKS = 3;
+
 const JIGGLE_STEP = {
   easing: Easing.out(Easing.quad),
   reduceMotion: ReduceMotion.System,
+};
+
+/**
+ * Three picker clicks timed to the jiggle. Returns a cancel function so a
+ * second tap can restart the roll instead of stacking overlapping rattles.
+ */
+export const scheduleShuffleUsernameHaptics = (): (() => void) => {
+  const timers: ReturnType<typeof setTimeout>[] = [];
+  let elapsed = 0;
+  for (let i = 0; i < SHUFFLE_HAPTIC_CLICKS; i++) {
+    const delay = elapsed;
+    timers.push(
+      setTimeout(() => {
+        playSelection().catch(() => undefined);
+      }, delay),
+    );
+    elapsed += JIGGLE_BEAT_MS[i];
+  }
+  return () => {
+    timers.forEach(clearTimeout);
+  };
 };
 
 /**
@@ -50,17 +79,27 @@ const UsernameShuffleDie: React.FC<UsernameShuffleDieProps> = ({
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const rotation = useSharedValue(0);
+  const cancelShuffleHaptics = useRef<(() => void) | null>(null);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
+  useEffect(
+    () => () => {
+      cancelShuffleHaptics.current?.();
+    },
+    [],
+  );
+
   const handlePress = useCallback(() => {
+    cancelShuffleHaptics.current?.();
+    cancelShuffleHaptics.current = scheduleShuffleUsernameHaptics();
     if (shouldJiggleDie(hardwareTier, networkTier)) {
       rotation.value = withSequence(
-        withTiming(-16, { duration: 70, ...JIGGLE_STEP }),
-        withTiming(14, { duration: 70, ...JIGGLE_STEP }),
-        withTiming(-8, { duration: 60, ...JIGGLE_STEP }),
-        withTiming(0, { duration: 80, ...JIGGLE_STEP }),
+        withTiming(-16, { duration: JIGGLE_BEAT_MS[0], ...JIGGLE_STEP }),
+        withTiming(14, { duration: JIGGLE_BEAT_MS[1], ...JIGGLE_STEP }),
+        withTiming(-8, { duration: JIGGLE_BEAT_MS[2], ...JIGGLE_STEP }),
+        withTiming(0, { duration: JIGGLE_BEAT_MS[3], ...JIGGLE_STEP }),
       );
     }
     onPress();

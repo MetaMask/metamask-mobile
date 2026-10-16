@@ -6,6 +6,7 @@ import {
   toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
+import { generateUsername, MAX_USERNAME_LENGTH } from './generateUsername';
 
 /**
  * Stand-in for the X account OAuth would return. Connect is mocked until the
@@ -54,14 +55,6 @@ export type UsernameStatus = 'empty' | 'invalid' | 'available';
 
 const USERNAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MIN_USERNAME_LENGTH = 3;
-export const MAX_USERNAME_LENGTH = 20;
-
-export const USERNAME_SUGGESTIONS = [
-  'wen-cat',
-  'moon-fox',
-  'signal-shrimp',
-  'quiet-otter',
-] as const;
 
 export const normalizeUsername = (value: string): string =>
   value.trim().replace(/^@+/, '').toLowerCase();
@@ -89,7 +82,7 @@ export const displayNameFromUsername = (value: string): string =>
     .join(' ');
 
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
-  const username = USERNAME_SUGGESTIONS[0];
+  const username = generateUsername();
   return {
     path: 'manual',
     username,
