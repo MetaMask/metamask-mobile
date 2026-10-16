@@ -79,6 +79,7 @@ jest.mock('./BrowserView', () => ({
   __esModule: true,
   default: {
     navigateToURL: jest.fn(),
+    tapReloadButton: jest.fn(),
   },
 }));
 
@@ -87,9 +88,12 @@ jest.mock('../wallet/ToastModal', () => ({
   default: {},
 }));
 
+import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import Matchers from '../../framework/Matchers';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import Utilities from '../../framework/Utilities';
-import TestSnaps from './TestSnaps';
+import Browser from './BrowserView';
+import TestSnaps, { TEST_SNAPS_URL } from './TestSnaps';
 
 const alertElement = { id: 'enabled-snap-alert' };
 
@@ -101,6 +105,45 @@ const baseRetryOptions = {
   description: 'Send enabled Snap alert until dialog is visible',
 };
 
+describe('TestSnaps.navigateToTestSnap', () => {
+  beforeEach(() => {
+    jest.mocked(Browser.navigateToURL).mockResolvedValue(undefined);
+    jest.mocked(PlatformDetector.isIOSAppium).mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('does not close tabs on iOS', async () => {
+    await TestSnaps.navigateToTestSnap();
+
+    expect(Browser.navigateToURL).toHaveBeenCalledWith(TEST_SNAPS_URL, {
+      closeAllTabsIfOpen: false,
+    });
+  });
+
+  it('closes tabs on Android before opening test-snaps', async () => {
+    jest.mocked(PlatformDetector.isIOSAppium).mockReturnValue(false);
+
+    await TestSnaps.navigateToTestSnap();
+
+    expect(Browser.navigateToURL).toHaveBeenCalledWith(TEST_SNAPS_URL, {
+      closeAllTabsIfOpen: true,
+    });
+  });
+
+  it('leaves Android tabs open when skipTabCleanup is set', async () => {
+    jest.mocked(PlatformDetector.isIOSAppium).mockReturnValue(false);
+
+    await TestSnaps.navigateToTestSnap({ skipTabCleanup: true });
+
+    expect(Browser.navigateToURL).toHaveBeenCalledWith(TEST_SNAPS_URL, {
+      closeAllTabsIfOpen: false,
+    });
+  });
+});
+
 describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
   let tapButton: jest.SpyInstance;
   let expectEnabledSnapAlert: jest.SpyInstance;
@@ -111,6 +154,9 @@ describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
       .mocked(Matchers.getElementByText)
       .mockReturnValue(alertElement as never);
     jest.mocked(Utilities.isElementVisible).mockResolvedValue(false);
+
+    jest.mocked(Browser.tapReloadButton).mockResolvedValue(undefined);
+    jest.mocked(waitForTestSnapsToLoad).mockResolvedValue(undefined);
 
     tapButton = jest.spyOn(TestSnaps, 'tapButton').mockResolvedValue();
     expectEnabledSnapAlert = jest
@@ -135,6 +181,7 @@ describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
     expect(expectEnabledSnapAlert).toHaveBeenCalledWith(8_000);
     expect(expectEnabledSnapAlert).not.toHaveBeenCalledWith(1_000);
     expect(Utilities.isElementVisible).not.toHaveBeenCalled();
+    expect(Browser.tapReloadButton).not.toHaveBeenCalled();
     expect(navigateToTestSnap).not.toHaveBeenCalled();
     expect(Utilities.executeWithRetry).toHaveBeenCalledWith(
       expect.any(Function),
@@ -161,6 +208,7 @@ describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
     await TestSnaps.tapSendAlertAndExpectEnabled();
 
     expect(tapButton).toHaveBeenCalledTimes(1);
+    expect(Browser.tapReloadButton).not.toHaveBeenCalled();
     expect(navigateToTestSnap).not.toHaveBeenCalled();
     expect(expectEnabledSnapAlert).not.toHaveBeenCalledWith(1_000);
     expect(expectEnabledSnapAlert).toHaveBeenCalledTimes(1);
@@ -180,11 +228,15 @@ describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
     await TestSnaps.tapSendAlertAndExpectEnabled();
 
     expect(Utilities.isElementVisible).toHaveBeenCalledTimes(2);
-    expect(navigateToTestSnap).toHaveBeenCalledTimes(1);
-    expect(navigateToTestSnap).toHaveBeenCalledWith({ skipTabCleanup: true });
+    expect(Browser.tapReloadButton).toHaveBeenCalledTimes(1);
+    expect(waitForTestSnapsToLoad).toHaveBeenCalledTimes(1);
+    expect(navigateToTestSnap).not.toHaveBeenCalled();
     expect(tapButton).toHaveBeenCalledTimes(3);
-    expect(navigateToTestSnap.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(Browser.tapReloadButton.mock.invocationCallOrder[0]).toBeLessThan(
       tapButton.mock.invocationCallOrder[2],
+    );
+    expect(waitForTestSnapsToLoad.mock.invocationCallOrder[0]).toBeGreaterThan(
+      Browser.tapReloadButton.mock.invocationCallOrder[0],
     );
     expect(expectEnabledSnapAlert).toHaveBeenNthCalledWith(3, 8_000);
   });
@@ -198,8 +250,9 @@ describe('TestSnaps.tapSendAlertAndExpectEnabled', () => {
 
     await TestSnaps.tapSendAlertAndExpectEnabled();
 
-    expect(navigateToTestSnap).toHaveBeenCalledTimes(1);
-    expect(navigateToTestSnap).toHaveBeenCalledWith({ skipTabCleanup: true });
+    expect(Browser.tapReloadButton).toHaveBeenCalledTimes(1);
+    expect(waitForTestSnapsToLoad).toHaveBeenCalledTimes(1);
+    expect(navigateToTestSnap).not.toHaveBeenCalled();
     expect(tapButton).toHaveBeenCalledTimes(4);
     expect(expectEnabledSnapAlert).toHaveBeenNthCalledWith(4, 8_000);
     expect(Utilities.isElementVisible).toHaveBeenCalledTimes(3);

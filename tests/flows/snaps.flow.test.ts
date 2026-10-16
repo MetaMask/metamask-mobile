@@ -17,6 +17,7 @@ jest.mock('../page-objects/Browser/BrowserView', () => ({
   __esModule: true,
   default: {
     tapCloseBrowserButton: jest.fn().mockResolvedValue(undefined),
+    tapReloadButton: jest.fn().mockResolvedValue(undefined),
     selectTabByPartialUrl: jest.fn().mockResolvedValue(undefined),
   },
 }));
@@ -69,6 +70,7 @@ jest.mock('../page-objects/wallet/WalletView', () => ({
 
 jest.mock('./browser.flow', () => ({
   navigateToBrowserView: jest.fn().mockResolvedValue(undefined),
+  waitForTestSnapsToLoad: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('./wallet.flow', () => ({
@@ -78,6 +80,7 @@ jest.mock('./wallet.flow', () => ({
 
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestSnaps from '../page-objects/Browser/TestSnaps';
+import { waitForTestSnapsToLoad } from './browser.flow';
 import { navigateFromSnapSettingsToBrowser } from './snaps.flow';
 
 describe('navigateFromSnapSettingsToBrowser', () => {
@@ -85,13 +88,15 @@ describe('navigateFromSnapSettingsToBrowser', () => {
     jest.clearAllMocks();
   });
 
-  it('reloads test-snaps instead of selecting the open browser tab', async () => {
+  it('reloads the open test-snaps tab instead of opening another one', async () => {
     await navigateFromSnapSettingsToBrowser();
 
-    expect(TestSnaps.navigateToTestSnap).toHaveBeenCalledTimes(1);
-    expect(TestSnaps.navigateToTestSnap).toHaveBeenCalledWith({
-      skipTabCleanup: true,
-    });
+    expect(BrowserView.tapReloadButton).toHaveBeenCalledTimes(1);
+    expect(waitForTestSnapsToLoad).toHaveBeenCalledTimes(1);
+    expect(waitForTestSnapsToLoad.mock.invocationCallOrder[0]).toBeGreaterThan(
+      BrowserView.tapReloadButton.mock.invocationCallOrder[0],
+    );
+    expect(TestSnaps.navigateToTestSnap).not.toHaveBeenCalled();
     expect(BrowserView.selectTabByPartialUrl).not.toHaveBeenCalled();
   });
 });

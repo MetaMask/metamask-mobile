@@ -7,7 +7,7 @@ import SnapSettingsView from '../page-objects/Settings/SnapSettingsView';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletView from '../page-objects/wallet/WalletView';
-import { navigateToBrowserView } from './browser.flow';
+import { navigateToBrowserView, waitForTestSnapsToLoad } from './browser.flow';
 import {
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
@@ -50,11 +50,11 @@ export const navigateFromBrowserToSnapSettings = async (): Promise<void> => {
 /**
  * Navigate from Snap Settings back to the in-app browser (test-snaps page).
  * Walks back through Snap Settings → Settings → Account menu → Explore →
- * Browser, then reloads test-snaps via URL navigation.
+ * Browser, then reloads the open test-snaps tab.
  *
- * Prefer `navigateToTestSnap` over `selectTabByPartialUrl`: the tab overview
- * path flakes on iOS (Opened tabs residual while waiting for Snap alerts) and
- * a fresh page load remounts the Snap client after enable/disable.
+ * Reload instead of `navigateToTestSnap`: that deeplink stacks a second iOS
+ * tab, and later WebView taps hit the stale one. The tabs overview is also
+ * avoided (`selectTabByPartialUrl` leaves Opened tabs on screen).
  */
 export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
   await SnapSettingsView.tapBackButton();
@@ -73,5 +73,6 @@ export const navigateFromSnapSettingsToBrowser = async (): Promise<void> => {
 
   await TabBarComponent.tapExploreButton();
   await TrendingView.tapBrowserButton();
-  await TestSnaps.navigateToTestSnap({ skipTabCleanup: true });
+  await BrowserView.tapReloadButton();
+  await waitForTestSnapsToLoad();
 };

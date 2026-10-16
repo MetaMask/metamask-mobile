@@ -414,8 +414,11 @@ class TestSnaps {
   ): Promise<void> {
     // Appium uses dapp:// deeplink for https test-snaps URLs in navigateToURL.
     // Tapping the URL bar first is unnecessary and races with browser chrome.
+    // iOS tab cleanup opens the tabs overview and flakes, so never close tabs there.
     await Browser.navigateToURL(TEST_SNAPS_URL, {
-      closeAllTabsIfOpen: !options.skipTabCleanup,
+      closeAllTabsIfOpen: PlatformDetector.isIOSAppium()
+        ? false
+        : !options.skipTabCleanup,
     });
     await waitForTestSnapsToLoad();
   }
@@ -553,11 +556,13 @@ class TestSnaps {
             return;
           }
 
-          // After two failed tap cycles, reload once so the Snap client remounts
-          // against the newly enabled Snap (toggle alone is not always enough).
+          // After two failed tap cycles, reload the open tab once so the Snap
+          // client remounts. A dapp:// deeplink would stack a second iOS tab,
+          // and the next tap would hit the stale WebView.
           if (!reloaded && attempts >= 3) {
             reloaded = true;
-            await this.navigateToTestSnap({ skipTabCleanup: true });
+            await Browser.tapReloadButton();
+            await waitForTestSnapsToLoad();
           }
         }
 
