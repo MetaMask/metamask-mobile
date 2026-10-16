@@ -43,7 +43,11 @@ import {
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
 
-const MoneyOnboardingCard = () => {
+export interface MoneyOnboardingCardProps {
+  isGlass?: boolean;
+}
+
+const MoneyOnboardingCard = ({ isGlass = false }: MoneyOnboardingCardProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedCardStepViewRef = useRef(false);
@@ -400,6 +404,7 @@ const MoneyOnboardingCard = () => {
         steps={steps}
         currentStep={effectiveCurrentStep}
         testID="money-onboarding-card"
+        isGlass={isGlass}
       />
     </Box>
   );
