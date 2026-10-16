@@ -7,20 +7,42 @@ import {
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 
+/**
+ * Stand-in for the X account OAuth would return. Connect is mocked until the
+ * authorization redirect works.
+ */
+export const MOCK_X_ONBOARDING_PROFILE = {
+  username: 'degangirl',
+  displayName: 'Degan Giri',
+  avatarUrl:
+    'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+} as const;
+
 /** Used when the signed-in session has no profile id yet. The mock service accepts it. */
 export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
+
+export type ProfileOnboardingPath = 'manual' | 'x';
 
 export type ProfileOnboardingStep =
   | 'intro'
   | 'username'
+  | 'x-identity'
   | 'avatar'
   | 'account'
   | 'ready';
 
 export interface ProfileOnboardingDraft {
+  path: ProfileOnboardingPath;
   username: string;
   displayName: string;
   displayNameEdited: boolean;
+  /** When true, the MetaMask handle is the linked X username. */
+  useXUsername: boolean;
+  /** When true, the avatar is the linked X profile picture. */
+  useXAvatar: boolean;
+  xUsername: string | null;
+  xDisplayName: string | null;
+  xAvatarUrl: string | null;
   avatarPresetId: string;
   avatarBackgroundId: string;
   linkedAccountId: string | null;
@@ -69,9 +91,15 @@ export const displayNameFromUsername = (value: string): string =>
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = USERNAME_SUGGESTIONS[0];
   return {
+    path: 'manual',
     username,
     displayName: displayNameFromUsername(username),
     displayNameEdited: false,
+    useXUsername: false,
+    useXAvatar: false,
+    xUsername: null,
+    xDisplayName: null,
+    xAvatarUrl: null,
     avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
     avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
     linkedAccountId: null,
@@ -82,6 +110,29 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
 
 export const profileUrlForHandle = (handle: string): string =>
   `https://metamask.io/${normalizeUsername(handle)}`;
+
+export const applyXOnboardingProfile = (
+  draft: ProfileOnboardingDraft,
+): ProfileOnboardingDraft => ({
+  ...draft,
+  path: 'x',
+  useXUsername: true,
+  useXAvatar: true,
+  xUsername: MOCK_X_ONBOARDING_PROFILE.username,
+  xDisplayName: MOCK_X_ONBOARDING_PROFILE.displayName,
+  xAvatarUrl: MOCK_X_ONBOARDING_PROFILE.avatarUrl,
+  username: MOCK_X_ONBOARDING_PROFILE.username,
+  displayName: MOCK_X_ONBOARDING_PROFILE.displayName,
+  displayNameEdited: true,
+});
+
+const avatarUrlForDraft = (draft: ProfileOnboardingDraft): string => {
+  if (draft.useXAvatar && draft.xAvatarUrl) {
+    return draft.xAvatarUrl;
+  }
+
+  return toFoxiconAvatarUrl(draft.avatarPresetId, draft.avatarBackgroundId);
+};
 
 export const buildCreateProfileParams = (
   draft: ProfileOnboardingDraft,
@@ -99,10 +150,7 @@ export const buildCreateProfileParams = (
     linked_addresses: [
       `eip155:1:${draft.linkedAccountAddress}` as CaipAccountId,
     ],
-    avatar_url: toFoxiconAvatarUrl(
-      draft.avatarPresetId,
-      draft.avatarBackgroundId,
-    ),
+    avatar_url: avatarUrlForDraft(draft),
     trading_privacy: draft.shareTradingActivity ? 'public' : 'private',
   };
 };
@@ -111,16 +159,18 @@ export const buildOnboardedSocialProfile = (
   draft: ProfileOnboardingDraft,
 ): MySocialProfile => {
   const handle = normalizeUsername(draft.username);
+  const usesXAvatar = draft.useXAvatar && Boolean(draft.xAvatarUrl);
   return {
     profileId: 'current-user',
     displayName: draft.displayName.trim(),
     handle,
     bio: null,
-    imageUrl: null,
-    avatarPresetId: draft.avatarPresetId,
-    avatarBackgroundId: draft.avatarBackgroundId,
+    imageUrl: usesXAvatar ? draft.xAvatarUrl : null,
+    avatarPresetId: usesXAvatar ? null : draft.avatarPresetId,
+    avatarBackgroundId: usesXAvatar ? null : draft.avatarBackgroundId,
     rankingTag: null,
-    xHandle: null,
+    xHandle: draft.path === 'x' ? draft.xUsername : null,
+    connectedToX: draft.path === 'x',
     followerCount: 0,
     shareUrl: profileUrlForHandle(handle),
     winRatePercent: null,

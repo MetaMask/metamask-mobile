@@ -76,6 +76,7 @@ import {
   useMyProfileAddress,
   useMyProfilePosts,
 } from './hooks';
+import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 import TraderStatsSheet from '../TraderProfileView/components/TraderStatsSheet';
 import { TraderStatsSheetSelectorsIDs } from '../TraderProfileView/components/TraderStatsSheet.testIds';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
@@ -264,6 +265,11 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
+  const handleResetProfile = useCallback(() => {
+    resetLocalSocialProfile();
+    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  }, [navigation]);
+
   const handleShareProfile = useCallback(() => {
     if (!displayProfile?.shareUrl) {
       return;
@@ -417,7 +423,17 @@ const MyProfileView: React.FC = () => {
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           endAccessory={
             isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+                <ButtonIcon
+                  iconName={IconName.Refresh}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleResetProfile}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.debug_reset_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+                />
                 <ButtonIcon
                   iconName={IconName.Edit}
                   iconProps={{ color: IconColor.IconDefault }}

@@ -1,5 +1,7 @@
 import {
+  MOCK_X_ONBOARDING_PROFILE,
   SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
+  applyXOnboardingProfile,
   buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
@@ -53,8 +55,31 @@ describe('profileOnboardingDraft', () => {
     expect(profile.linkedAccountId).toBe('acc-1');
     expect(profile.shareTradingActivity).toBe(false);
     expect(profile.xHandle).toBeNull();
+    expect(profile.connectedToX).toBe(false);
     expect(profile.rankingTag).toBeNull();
     expect(profile.shareUrl).toBe('https://metamask.io/wen-cat');
+  });
+
+  it('keeps the mocked X handle and avatar when those toggles stay on', () => {
+    const draft = {
+      ...applyXOnboardingProfile(createInitialOnboardingDraft()),
+      linkedAccountAddress: '0xabc',
+    };
+
+    expect(buildOnboardedSocialProfile(draft)).toEqual(
+      expect.objectContaining({
+        handle: 'degangirl',
+        displayName: 'Degan Giri',
+        imageUrl: MOCK_X_ONBOARDING_PROFILE.avatarUrl,
+        avatarPresetId: null,
+        xHandle: 'degangirl',
+        connectedToX: true,
+      }),
+    );
+    expect(
+      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
+        .avatar_url,
+    ).toBe(MOCK_X_ONBOARDING_PROFILE.avatarUrl);
   });
 
   it('maps a draft onto createProfile parameters', () => {
