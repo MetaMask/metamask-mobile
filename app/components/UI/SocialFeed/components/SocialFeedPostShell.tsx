@@ -2,7 +2,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonBase,
+  ButtonBaseSize,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -12,20 +16,17 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
+import EmojiAddIcon from '../../../../images/emoji-add.svg';
+import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useFeedPostReaction } from '../hooks/useFeedPostReaction';
-import { mockCopyCount } from '../mocks/socialV1Enrichment';
-import { markMocked } from '../mockMarker';
-import { useSocialFeedSurface } from '../SocialFeedSurface';
 import { visibleReactions } from '../reactions';
 import type { SocialV1FeedPost } from '../types';
-import { isCopyTradeable } from '../utils/copyTrade';
-import ReactionChip from './ReactionChip';
+import ReactionChip, { REACTION_PILL_TW_CLASS } from './ReactionChip';
 import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
@@ -34,17 +35,20 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
-  onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
+  onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
+  /** Opens the position details. The card's own buttons keep their press. */
+  onPositionPress?: (post: SocialV1FeedPost) => void;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
   onCopyTrade: onSpotCopyTrade,
   onAuthorPress,
+  onPositionPress,
 }) => {
   const tw = useTailwind();
-  const { showMockedFields } = useSocialFeedSurface();
+  const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const optionsTarget = useMemo(
@@ -63,19 +67,20 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
-  const { reactions, pickEmotion } = useFeedPostReaction(
+  const { reactions, userReaction, pickEmotion } = useFeedPostReaction(
     post.commentId,
     post.reactions,
     post.userReaction ?? null,
   );
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
+    post.commentId,
   );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
-    onSpotCopyTrade?.(post.item);
-  }, [onSpotCopyTrade, post.item]);
+    onSpotCopyTrade?.(post.item, post.commentId);
+  }, [onSpotCopyTrade, post.item, post.commentId]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
@@ -96,21 +101,28 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     setPickerVisible(false);
   }, []);
 
-  const handlePick = useCallback(
+  const toggleEmotion = useCallback(
     (emotion: string) => {
-      setPickerVisible(false);
       pickEmotion(emotion).catch(() => undefined);
     },
     [pickEmotion],
+  );
+
+  const handlePick = useCallback(
+    (emotion: string) => {
+      setPickerVisible(false);
+      toggleEmotion(emotion);
+    },
+    [toggleEmotion],
   );
 
   const handleIdentityPress = useCallback(() => {
     onAuthorPress?.(post);
   }, [onAuthorPress, post]);
 
-  // Only a position that is still open can be copied, so only those can have
-  // been. Zero copies say nothing worth the row space.
-  const copyCount = isCopyTradeable(post.item) ? mockCopyCount(post.id) : 0;
+  const handlePositionPress = useCallback(() => {
+    onPositionPress?.(post);
+  }, [onPositionPress, post]);
 
   if (isHidden) {
     return null;
@@ -151,7 +163,17 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         </Text>
       ) : null}
 
-      <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+      {onPositionPress ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handlePositionPress}
+          testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
+        >
+          <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+        </Pressable>
+      ) : (
+        <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+      )}
 
       {post.gifUri ? (
         <Box twClassName="rounded-2xl overflow-hidden">
@@ -166,58 +188,67 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
         gap={3}
       >
-        <View ref={reactionAnchorRef} collapsable={false}>
-          <Pressable
-            accessibilityRole="button"
-            testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
-            onPress={openPicker}
-          >
-            {chips.length === 0 ? (
-              <Animated.View
-                entering={FadeIn.duration(140)}
-                exiting={FadeOut.duration(100)}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="pl-2"
-                >
-                  <Icon name={IconName.HeartStraight} size={IconSize.Sm} />
-                </Box>
-              </Animated.View>
-            ) : (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-              >
-                {chips.map((reaction) => (
-                  <ReactionChip
-                    key={reaction.emotion}
-                    emotion={reaction.emotion}
-                    count={reaction.count}
-                    testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
-                  />
-                ))}
-              </Box>
-            )}
-          </Pressable>
-        </View>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          twClassName="flex-1 min-w-0 flex-wrap"
+        >
+          {chips.map((reaction) => (
+            <ReactionChip
+              key={reaction.emotion}
+              emotion={reaction.emotion}
+              count={reaction.count}
+              isSelected={reaction.emotion === userReaction}
+              onPress={() => toggleEmotion(reaction.emotion)}
+              testID={`${SocialFeedPostShellSelectorsIDs.CHIP}-${post.id}-${reaction.emotion}`}
+            />
+          ))}
+          <View ref={reactionAnchorRef} collapsable={false}>
+            <ButtonBase
+              size={ButtonBaseSize.Sm}
+              twClassName={`${REACTION_PILL_TW_CLASS} border-muted w-8 px-0`}
+              accessibilityLabel={strings(
+                'social_leaderboard.feed.add_reaction',
+              )}
+              onPress={openPicker}
+              testID={`${SocialFeedPostShellSelectorsIDs.REACTIONS}-${post.id}`}
+            >
+              <EmojiAddIcon
+                width={16}
+                height={16}
+                color={colors.icon.alternative}
+                name="emoji-add"
+              />
+            </ButtonBase>
+          </View>
+        </Box>
 
         {/* Inert on purpose: the count is context for the reactions next to it,
-            not a way into a list of who copied. */}
-        {showMockedFields && copyCount > 0 ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
+            not a way into a list of who copied. Absent on social-api builds
+            that predate it, where it would otherwise read as a false zero. */}
+        {post.copyCount !== undefined ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
             testID={`${SocialFeedPostShellSelectorsIDs.COPIES}-${post.id}`}
           >
-            {markMocked(
-              strings('social_leaderboard.feed.copies', { count: copyCount }),
-            )}
-          </Text>
+            <Icon
+              name={IconName.SwapHorizontal}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {post.copyCount}
+            </Text>
+          </Box>
         ) : null}
       </Box>
 

@@ -397,6 +397,7 @@ const MyProfileView: React.FC = () => {
                     <ProfileAvatar
                       imageUrl={displayProfile.imageUrl}
                       avatarPresetId={displayProfile.avatarPresetId}
+                      avatarBackgroundId={displayProfile.avatarBackgroundId}
                       size="xs"
                       testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR}
                     />
@@ -508,53 +509,60 @@ const MyProfileView: React.FC = () => {
               />
             </Box>
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              gap={2}
-              paddingHorizontal={4}
-              paddingBottom={8}
-            >
+            <Box gap={2} paddingHorizontal={4} paddingBottom={8}>
+              <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+                {isOwner ? (
+                  <>
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleEditProfile}
+                        testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.edit_profile')}
+                      </Button>
+                    </Box>
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleShareProfile}
+                        testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.share_profile')}
+                      </Button>
+                    </Box>
+                  </>
+                ) : (
+                  <Box twClassName="flex-1">
+                    <Button
+                      variant={
+                        isFollowing
+                          ? ButtonVariant.Secondary
+                          : ButtonVariant.Primary
+                      }
+                      isFullWidth
+                      onPress={handleFollowPress}
+                      testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                    >
+                      {isFollowing
+                        ? strings('social_leaderboard.following')
+                        : strings('social_leaderboard.follow')}
+                    </Button>
+                  </Box>
+                )}
+              </Box>
               {isOwner ? (
-                <>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleEditProfile}
-                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.edit_profile')}
-                    </Button>
-                  </Box>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.share_profile')}
-                    </Button>
-                  </Box>
-                </>
-              ) : (
-                <Box twClassName="flex-1">
-                  <Button
-                    variant={
-                      isFollowing
-                        ? ButtonVariant.Secondary
-                        : ButtonVariant.Primary
-                    }
-                    isFullWidth
-                    onPress={handleFollowPress}
-                    testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                  >
-                    {isFollowing
-                      ? strings('social_leaderboard.following')
-                      : strings('social_leaderboard.follow')}
-                  </Button>
-                </Box>
-              )}
+                <Button
+                  variant={ButtonVariant.Tertiary}
+                  isFullWidth
+                  onPress={handleResetProfile}
+                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+                >
+                  {strings('social_leaderboard.my_profile.debug_reset_profile')}
+                </Button>
+              ) : null}
             </Box>
 
             <Box
@@ -623,7 +631,6 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
-                onResetProfile={handleResetProfile}
               />
             ) : postsError && posts.length === 0 ? (
               <Box
@@ -716,6 +723,7 @@ const MyProfileView: React.FC = () => {
                 <ProfileAvatar
                   imageUrl={displayProfile.imageUrl}
                   avatarPresetId={displayProfile.avatarPresetId}
+                  avatarBackgroundId={displayProfile.avatarBackgroundId}
                   size="sm"
                   testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
                 />

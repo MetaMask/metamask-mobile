@@ -28,6 +28,7 @@ import {
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
+import { VBA_KYC_VENDOR } from '../constants';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -237,6 +238,22 @@ const provisionBrazilMusdAutoramp = async (
   return { ...snapshot, autorampStatus: 'ready' };
 };
 
+/**
+ * Re-submits capability authorization for a KYC session that already exists.
+ * First-time creation stays on the email screen, which also has the signed-in
+ * token `startSession` needs when no session exists.
+ */
+const resumePersistedKycSession = async (): Promise<void> => {
+  const kycController = Engine.context.KycController;
+  if (!kycController.readSessionStatus()) {
+    return;
+  }
+
+  await kycController.startSession({
+    vendor: VBA_KYC_VENDOR,
+  });
+};
+
 const resolveOpenRequest = (
   request: string | OpenVbaOnboardingRequest | undefined,
   defaultSource: string,
@@ -260,8 +277,9 @@ export type ResolvedVbaOnboarding =
   | { status: 'error' };
 
 /**
- * Hydrates VBA onboarding facts and picks the next destination. Does not
- * navigate. A missing wallet or a thrown hydrate returns `{ status: 'error' }`.
+ * Resumes a persisted KYC session, hydrates VBA onboarding facts, and picks
+ * the next destination. Does not navigate. A missing wallet, a failed session
+ * resume, or a thrown hydrate returns `{ status: 'error' }`.
  *
  * @param source - Caller/entry point for error telemetry.
  */
@@ -275,6 +293,8 @@ export const resolveVbaOnboarding = async (
     if (!walletAddress) {
       return { status: 'error' };
     }
+
+    await resumePersistedKycSession();
 
     const hydratedSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({

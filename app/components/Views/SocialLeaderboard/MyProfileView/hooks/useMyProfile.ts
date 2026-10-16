@@ -8,7 +8,10 @@ import {
   getLocalSocialProfileSnapshot,
   subscribeLocalSocialProfile,
 } from './localSocialProfileStore';
-import { profileControllerToMySocialProfile } from '../utils/profileControllerToMySocialProfile';
+import {
+  profileControllerToMySocialProfile,
+  withLocalAvatarPreset,
+} from '../utils/profileControllerToMySocialProfile';
 
 export type ProfileRankingTag = 'shrimp' | 'dolphin' | 'whale';
 
@@ -20,6 +23,8 @@ export interface MySocialProfile {
   imageUrl?: string | null;
   /** Local onboarding preset. Ignored once `imageUrl` is a remote avatar. */
   avatarPresetId?: string | null;
+  /** Backdrop color picked with the onboarding preset. */
+  avatarBackgroundId?: string | null;
   rankingTag?: ProfileRankingTag | null;
   xHandle?: string | null;
   followerCount?: number | null;
@@ -52,11 +57,10 @@ export interface UseMyProfileResult {
 }
 
 /**
- * Temporary owner-profile data seam.
+ * Owner profile seam.
  *
- * The profile lives in an in-memory store so debug reset and onboarding can
- * rewrite it without a backend. Replace the store with the authenticated
- * social profile query once the API exposes current-user identity.
+ * A controller profile wins when one exists. The in-memory store still holds
+ * the onboarding avatar preset, which the profile API does not store.
  */
 export const useMyProfile = (): UseMyProfileResult => {
   const controllerProfile = useSelector(selectProfileControllerProfile);
@@ -67,13 +71,13 @@ export const useMyProfile = (): UseMyProfileResult => {
     getLocalSocialProfileSnapshot,
   );
   const refresh = useCallback(async () => undefined, []);
+  const mappedControllerProfile = controllerProfile
+    ? profileControllerToMySocialProfile(controllerProfile, controllerXProfile)
+    : null;
 
   return {
-    profile: controllerProfile
-      ? profileControllerToMySocialProfile(
-          controllerProfile,
-          controllerXProfile,
-        )
+    profile: mappedControllerProfile
+      ? withLocalAvatarPreset(mappedControllerProfile, profile)
       : profile,
     isLoading: false,
     error: null,

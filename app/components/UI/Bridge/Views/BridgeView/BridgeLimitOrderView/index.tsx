@@ -266,7 +266,11 @@ const BridgeLimitOrderViewContent = () => {
     sourceToken,
     sourceAmount,
   });
+  const hasNonZeroSourceAmount =
+    Boolean(sourceAmount) && Number(sourceAmount) > 0;
+  const hasValidLimitPrice = Boolean(limitPrice) && Number(limitPrice) > 0;
   const isCreateOrderDisabled =
+    !hasValidLimitPrice ||
     isMissingPrice ||
     isHardwareWallet ||
     isBelowMinAmount ||
@@ -431,9 +435,16 @@ const BridgeLimitOrderViewContent = () => {
   const costToleranceLabel = `${
     costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
   }%`;
-  const triggerPrice = `${
-    isLimitFiatMode ? getCurrencySymbol(currentCurrency || 'usd') : ''
-  }${formatAmountWithLocaleSeparators(value)}`;
+  const formattedLimitPrice = formatAmountWithLocaleSeparators(value);
+  let triggerPrice = formattedLimitPrice;
+  if (isLimitFiatMode) {
+    triggerPrice = `${getCurrencySymbol(currentCurrency || 'usd')}${formattedLimitPrice}`;
+  } else if (counterToken?.symbol) {
+    triggerPrice = strings('bridge.limit.quote_unit', {
+      amount: formattedLimitPrice,
+      symbol: counterToken.symbol,
+    });
+  }
 
   const handleCreateOrderPress = useCallback(() => {
     if (!feeTokenValidation.isValid) {
@@ -557,6 +568,7 @@ const BridgeLimitOrderViewContent = () => {
               onDismissKeypad={dismissInputAndKeypad}
               orderSide={executionType}
               quoteTokenSymbol={quotedSymbol}
+              quoteToken={quotedToken}
               isLimitFiatMode={isLimitFiatMode}
               priceUnitSymbol={
                 isLimitFiatMode ? undefined : counterToken?.symbol
@@ -642,7 +654,7 @@ const BridgeLimitOrderViewContent = () => {
           {...keypadLayoutProps}
           {...keypadProps}
         >
-          {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
+          {hasNonZeroSourceAmount ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
               label={createOrderLabel}

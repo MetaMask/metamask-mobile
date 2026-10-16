@@ -49,6 +49,8 @@ describe('ManageProfileTextEditorView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile: jest.fn().mockResolvedValue(undefined),
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn().mockResolvedValue({
         username: 'giga-whale',
         available: true,
@@ -96,6 +98,8 @@ describe('ManageProfileTextEditorView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
@@ -133,6 +137,8 @@ describe('ManageProfileTextEditorView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
@@ -168,6 +174,8 @@ describe('ManageProfileTextEditorView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });

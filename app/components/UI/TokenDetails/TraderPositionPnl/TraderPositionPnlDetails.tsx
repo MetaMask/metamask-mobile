@@ -71,11 +71,9 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
   holdTime,
   onShare,
   testID = 'token-details-trader-position-pnl-expanded-details',
-}) => {
-  const isShareDisabled = !onShare;
-
-  return (
-    <Box testID={testID} twClassName="gap-3">
+}) => (
+  <Box testID={testID} twClassName="gap-3">
+    {onShare ? (
       <Button
         testID={`${testID}-share`}
         variant={ButtonVariant.Secondary}
@@ -84,41 +82,37 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
         accessibilityLabel={strings(
           'asset_overview.position_pnl.share_to_feed',
         )}
-        accessibilityState={{ disabled: isShareDisabled }}
-        disabled={isShareDisabled}
         onPress={onShare}
-        twClassName={`w-full rounded-full bg-muted ${
-          isShareDisabled ? 'opacity-50' : ''
-        }`}
+        twClassName="w-full rounded-full bg-muted"
       >
         {strings('asset_overview.position_pnl.share_to_feed')}
       </Button>
-      <Box twClassName="gap-1">
-        <DetailRow
-          testID={`${testID}-average-cost`}
-          label={strings('asset_overview.position_pnl.average_cost')}
-          value={averageCost}
-        />
-        <DetailRow
-          testID={`${testID}-realized-pnl`}
-          label={strings('asset_overview.position_pnl.realized_pnl')}
-          value={realizedPnl}
-          valueColor={getPnlColor(realizedPnl)}
-        />
-        <DetailRow
-          testID={`${testID}-unrealized-pnl`}
-          label={strings('asset_overview.position_pnl.unrealized_pnl')}
-          value={unrealizedPnl}
-          valueColor={getPnlColor(unrealizedPnl)}
-        />
-        <DetailRow
-          testID={`${testID}-hold-time`}
-          label={strings('asset_overview.position_pnl.hold_time')}
-          value={holdTime}
-        />
-      </Box>
+    ) : null}
+    <Box twClassName="gap-1">
+      <DetailRow
+        testID={`${testID}-average-cost`}
+        label={strings('asset_overview.position_pnl.average_cost')}
+        value={averageCost}
+      />
+      <DetailRow
+        testID={`${testID}-realized-pnl`}
+        label={strings('asset_overview.position_pnl.realized_pnl')}
+        value={realizedPnl}
+        valueColor={getPnlColor(realizedPnl)}
+      />
+      <DetailRow
+        testID={`${testID}-unrealized-pnl`}
+        label={strings('asset_overview.position_pnl.unrealized_pnl')}
+        value={unrealizedPnl}
+        valueColor={getPnlColor(unrealizedPnl)}
+      />
+      <DetailRow
+        testID={`${testID}-hold-time`}
+        label={strings('asset_overview.position_pnl.hold_time')}
+        value={holdTime}
+      />
     </Box>
-  );
-};
+  </Box>
+);
 
 export default TraderPositionPnlDetails;

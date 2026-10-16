@@ -190,7 +190,7 @@ describe('useSearchTokens', () => {
     });
 
     it('includes featureId in the request body when provided', async () => {
-      mockUseSwapsFeatureId.mockReturnValue(FeatureId.RECURRING_BUY);
+      mockUseSwapsFeatureId.mockReturnValue(FeatureId.RECURRING_ORDER);
       const mockResponse = createMockSearchResponse();
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         json: async () => mockResponse,
@@ -204,7 +204,7 @@ describe('useSearchTokens', () => {
 
       const [, requestInit] = (global.fetch as jest.Mock).mock.calls[0];
       expect(JSON.parse(requestInit.body)).toMatchObject({
-        featureId: FeatureId.RECURRING_BUY,
+        featureId: FeatureId.RECURRING_ORDER,
       });
     });
 

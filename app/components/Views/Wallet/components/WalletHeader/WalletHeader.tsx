@@ -22,7 +22,7 @@ import { strings } from '../../../../../../locales/i18n';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../../../UI/AddressCopy';
 import CardButton from '../../../../UI/Card/components/CardButton';
-import GlassCapsule from '../../../../../component-library/components-temp/GlassCapsule';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import {
   formatInterimAccountName,
   INTERIM_ACCOUNT_PICKER_CLASS,
@@ -179,18 +179,18 @@ const WalletHeader = ({
       <HeaderRoot
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
         endAccessory={
-          <GlassCapsule
+          <CapsuleGlass
             twClassName="px-2"
             nonGlassClassName="px-3"
             testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
           >
             {interimActions}
-          </GlassCapsule>
+          </CapsuleGlass>
         }
         twClassName="pl-3 pr-3"
       >
         <View style={accountPickerContainerStyle}>
-          <GlassCapsule
+          <CapsuleGlass
             twClassName="mr-4 max-w-full self-start"
             nonGlassClassName="px-1"
             testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
@@ -202,7 +202,7 @@ const WalletHeader = ({
               hitSlop={touchAreaSlop}
               style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
             />
-          </GlassCapsule>
+          </CapsuleGlass>
         </View>
       </HeaderRoot>
     );

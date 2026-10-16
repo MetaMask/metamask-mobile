@@ -139,7 +139,12 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsOutreachBanner from '../../components/PerpsOutreachBanner';
 import PerpsProducts from '../../components/PerpsProducts';
+import PerpsExploreSection from '../../components/PerpsExploreSection';
+import { buildExploreTabs } from '../../components/PerpsExploreSection/buildExploreTabs';
+import { usePerpsHomeExploreAbTest } from '../../hooks/usePerpsHomeExploreAbTest';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import PerpsSocialFeedSection from '../../components/PerpsSocialFeedSection';
+import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsRecentlyAddedSection, {
   RECENTLY_ADDED_SOURCE_SECTION,
 } from '../../components/PerpsRecentlyAddedSection';
@@ -175,6 +180,7 @@ const PerpsHomeView = () => {
     selectPerpsRecentlyAddedEnabledFlag,
   );
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  const { showExploreTable } = usePerpsHomeExploreAbTest();
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const [trackProSwitchExposure, setTrackProSwitchExposure] = useState(false);
   const [commitProSwitch, setCommitProSwitch] = useState(false);
@@ -233,6 +239,16 @@ const PerpsHomeView = () => {
   const hasNewProducts = useHasNewMarkets();
   const isProductsVisible =
     isProductsEnabled && (productCategories.length > 0 || hasNewProducts);
+  const exploreTabs = useMemo(
+    () =>
+      buildExploreTabs({
+        categories: productCategories,
+        isProductsEnabled,
+        isWatchlistEnabled,
+        hasNewMarkets: hasNewProducts,
+      }),
+    [hasNewProducts, isProductsEnabled, isWatchlistEnabled, productCategories],
+  );
   const topMoversFeed = usePerpsTopMovers({
     direction: 'desc',
     enabled: isTopMoversEnabled,
@@ -243,6 +259,7 @@ const PerpsHomeView = () => {
       isLoading: topMoversFeed.isLoading,
       data: topMoversFeed.data,
     });
+  const isSocialFeedVisible = usePerpsSocialEnabled();
   const whatsHappeningFeed = useWhatsHappening({
     telemetryContext: {
       source: WhatsHappeningSource.Perps,
@@ -364,6 +381,10 @@ const PerpsHomeView = () => {
   const {
     positions,
     orders,
+    ordersError,
+    retryOrders,
+    activityError,
+    retryActivity,
     watchlistMarkets,
     suggestedWatchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
@@ -371,11 +392,12 @@ const PerpsHomeView = () => {
     stocksMarkets, // Equity markets only
     forexMarkets,
     recentlyAddedMarkets,
-    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
   } = usePerpsHomeData({});
+  const isExploreVisible =
+    showExploreTable && (isLoading.markets || exploreTabs.length > 0);
 
   // Independently gates the section from the Terminal backend flag that
   // supplies `listedAt` data, so it can be hidden even when that data flows.
@@ -490,39 +512,50 @@ const PerpsHomeView = () => {
   // sees and stays consistent with per-section scroll impressions.
   const sectionsDisplayed = useMemo(() => {
     const sections: string[] = [PERPS_EVENT_VALUE.SECTION_NAME.BALANCE];
-    // Positions/orders render a skeleton while loading, then self-hide when empty.
+    // Positions render a skeleton while loading, then self-hide when empty.
+    // Orders do the same, and stay visible when the stream failed.
     if (isLoading.positions || positions.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
-    if (isLoading.orders || orders.length > 0)
+    if (ordersError || isLoading.orders || orders.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
-    if (isWatchlistVisible) {
-      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
+    if (isExploreVisible) {
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE);
+    } else if (!showExploreTable) {
+      if (isWatchlistVisible) {
+        sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
+      }
+      // Products self-hides when disabled, or when there are neither
+      // categories nor a "New" pill to show (see isProductsVisible above).
+      if (isProductsVisible)
+        sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     }
-    // Products self-hides when disabled, or when there are neither
-    // categories nor a "New" pill to show (see isProductsVisible above).
-    if (isProductsVisible)
-      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
     // Top Movers self-hides when its feed finishes empty; mirror that here so
     // PerpsHomeSectionList does not render an orphan divider.
     if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
+    if (isSocialFeedVisible) sections.push('social_feed');
     // Explore category lists render a skeleton while markets load, then self-hide
-    // when their own market array is empty.
-    if (isLoading.markets || perpsMarkets.length > 0)
+    // when their own market array is empty. Treatment replaces them with the
+    // single Explore section recorded above.
+    if (!showExploreTable && (isLoading.markets || perpsMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO);
-    if (isLoading.markets || commoditiesMarkets.length > 0)
+    if (
+      !showExploreTable &&
+      (isLoading.markets || commoditiesMarkets.length > 0)
+    )
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES);
-    if (isLoading.markets || stocksMarkets.length > 0)
+    if (!showExploreTable && (isLoading.markets || stocksMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
-    if (isLoading.markets || forexMarkets.length > 0)
+    if (!showExploreTable && (isLoading.markets || forexMarkets.length > 0))
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
     // Recently Added self-hides when there are no markets listed in the last
     // 30 days, or when the feature flag is off.
-    if (isRecentlyAddedVisible) sections.push('recently_added');
+    if (isRecentlyAddedVisible)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENTLY_ADDED);
     // Recent activity shows a skeleton while loading, then self-hides when empty.
-    if (isLoading.activity || recentActivity.length > 0)
+    if (activityError || isLoading.activity || recentActivity.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
     return sections;
   }, [
@@ -530,15 +563,20 @@ const PerpsHomeView = () => {
     positions,
     orders,
     isWhatsHappeningVisible,
+    showExploreTable,
+    isExploreVisible,
     isWatchlistVisible,
     isProductsVisible,
     isTopMoversVisible,
+    isSocialFeedVisible,
     isRecentlyAddedVisible,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
     forexMarkets,
     recentActivity,
+    activityError,
+    ordersError,
   ]);
 
   usePerpsEventTracking({
@@ -799,18 +837,39 @@ const PerpsHomeView = () => {
       },
       {
         key: 'orders',
-        visible: isLoading.orders || orders.length > 0,
+        visible: Boolean(ordersError) || isLoading.orders || orders.length > 0,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS),
         content: (
           <PerpsHomeSection
             title={strings('perps.home.orders')}
             isLoading={isLoading.orders}
-            isEmpty={orders.length === 0}
-            showWhenEmpty={false}
-            onActionPress={handleCancelAllPress}
+            isEmpty={orders.length === 0 && !ordersError}
+            showWhenEmpty={Boolean(ordersError)}
+            onActionPress={ordersError ? undefined : handleCancelAllPress}
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
             <View>
+              {ordersError && (
+                <Box
+                  twClassName="px-4 py-3 gap-2"
+                  testID={PerpsHomeViewSelectorsIDs.ORDERS_ERROR}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.ErrorDefault}
+                  >
+                    {strings('perps.home.orders_load_error')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    onPress={retryOrders}
+                    testID={PerpsHomeViewSelectorsIDs.ORDERS_RETRY}
+                  >
+                    {strings('perps.errors.connectionFailed.retry')}
+                  </Button>
+                </Box>
+              )}
               {orders.map((order, index) => (
                 <PerpsCard
                   key={order.orderId}
@@ -839,8 +898,18 @@ const PerpsHomeView = () => {
         ),
       },
       {
+        key: 'explore',
+        visible: isExploreVisible,
+        onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE),
+        content: (
+          <PerpsExploreSection
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        ),
+      },
+      {
         key: 'watchlist',
-        visible: isWatchlistVisible,
+        visible: !showExploreTable && isWatchlistVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST),
         content: (
           <PerpsWatchlistMarkets
@@ -863,7 +932,7 @@ const PerpsHomeView = () => {
       },
       {
         key: 'products',
-        visible: isProductsVisible,
+        visible: !showExploreTable && isProductsVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS),
         content: (
           <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
@@ -883,8 +952,15 @@ const PerpsHomeView = () => {
         ),
       },
       {
+        key: 'social-feed',
+        visible: isSocialFeedVisible,
+        onLayout: handleSectionLayout('social_feed'),
+        content: <PerpsSocialFeedSection />,
+      },
+      {
         key: 'crypto',
-        visible: isLoading.markets || perpsMarkets.length > 0,
+        visible:
+          !showExploreTable && (isLoading.markets || perpsMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
         ),
@@ -904,12 +980,15 @@ const PerpsHomeView = () => {
       },
       {
         key: 'commodities',
-        visible: isLoading.markets || commoditiesMarkets.length > 0,
+        visible:
+          !showExploreTable &&
+          (isLoading.markets || commoditiesMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_COMMODITIES_SECTION}
             title={strings('perps.home.commodities')}
             markets={commoditiesMarkets}
             marketType="commodity"
@@ -923,12 +1002,14 @@ const PerpsHomeView = () => {
       },
       {
         key: 'stocks',
-        visible: isLoading.markets || stocksMarkets.length > 0,
+        visible:
+          !showExploreTable && (isLoading.markets || stocksMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_STOCKS_SECTION}
             title={strings('perps.home.stocks')}
             markets={stocksMarkets}
             marketType="stock"
@@ -942,12 +1023,14 @@ const PerpsHomeView = () => {
       },
       {
         key: 'forex',
-        visible: isLoading.markets || forexMarkets.length > 0,
+        visible:
+          !showExploreTable && (isLoading.markets || forexMarkets.length > 0),
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX,
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_FOREX_SECTION}
             title={strings('perps.home.forex')}
             markets={forexMarkets}
             marketType="forex"
@@ -964,7 +1047,9 @@ const PerpsHomeView = () => {
         // === 0 -> null) plus the feature flag, so PerpsHomeSectionList does
         // not render an orphan divider for an empty/disabled rail.
         visible: isRecentlyAddedVisible,
-        onLayout: handleSectionLayout('recently_added'),
+        onLayout: handleSectionLayout(
+          PERPS_EVENT_VALUE.SECTION_NAME.RECENTLY_ADDED,
+        ),
         content: (
           <PerpsRecentlyAddedSection
             markets={recentlyAddedMarkets}
@@ -975,7 +1060,10 @@ const PerpsHomeView = () => {
       },
       {
         key: 'recent-activity',
-        visible: isLoading.activity || recentActivity.length > 0,
+        visible:
+          Boolean(activityError) ||
+          isLoading.activity ||
+          recentActivity.length > 0,
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
         ),
@@ -983,6 +1071,31 @@ const PerpsHomeView = () => {
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
+            errorContent={
+              activityError && (
+                <Box
+                  paddingHorizontal={4}
+                  paddingVertical={3}
+                  gap={2}
+                  testID={PerpsHomeViewSelectorsIDs.ACTIVITY_ERROR}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.ErrorDefault}
+                  >
+                    {strings('perps.home.activity_load_error')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Md}
+                    onPress={retryActivity}
+                    testID={PerpsHomeViewSelectorsIDs.ACTIVITY_RETRY}
+                  >
+                    {strings('perps.errors.connectionFailed.retry')}
+                  </Button>
+                </Box>
+              )
+            }
           />
         ),
       },
@@ -996,6 +1109,10 @@ const PerpsHomeView = () => {
       isLoading,
       positions,
       orders,
+      ordersError,
+      retryOrders,
+      retryActivity,
+      activityError,
       privacyMode,
       positionsSubtitle,
       positionsSubtitleColor,
@@ -1006,12 +1123,15 @@ const PerpsHomeView = () => {
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
       isWatchlistVisible,
+      showExploreTable,
+      isExploreVisible,
       watchlistMarkets,
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,
       transactionActiveAbTests,
       isProductsVisible,
       isTopMoversVisible,
+      isSocialFeedVisible,
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,
