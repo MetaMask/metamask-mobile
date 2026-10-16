@@ -648,6 +648,47 @@ describe('useTrendingRequest', () => {
       spyGetTrendingTokens.mockRestore();
     });
 
+    it('uses Tempo overrides: drops tokens under the market cap floor', async () => {
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+      const makeToken = (symbol: string, marketCap: number): TrendingAsset => ({
+        assetId: `eip155:4217/erc20:${symbol}`,
+        symbol,
+        name: symbol,
+        decimals: 6,
+        price: '1',
+        aggregatedUsdVolume: 1,
+        marketCap,
+      });
+      spyGetTrendingTokens.mockResolvedValue([
+        makeToken('PRIME', 208),
+        makeToken('PATHUSD', 36714298),
+        makeToken('OUSD', 824194558),
+      ] as never);
+
+      const { result } = renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: [NetworkToCaipChainId.TEMPO],
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: 0,
+          minVolume24hUsd: 1000,
+        }),
+      );
+      expect(result.current.results.map((t) => t.symbol)).toEqual([
+        'PATHUSD',
+        'OUSD',
+      ]);
+
+      spyGetTrendingTokens.mockRestore();
+    });
+
     it('uses multi-chain baseline when multiple chains provided', async () => {
       const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);

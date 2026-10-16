@@ -30,6 +30,8 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
   {
     minLiquidity: number;
     minVolume24h: number;
+    /** Applied client-side: the API market cap filter drops tokens without a market cap */
+    minMarketCap?: number;
   }
 > = {
   // Tier 1: High-volume mature networks
@@ -90,6 +92,13 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
   [NetworkToCaipChainId.ROBINHOOD]: {
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
+  },
+
+  // Stablecoin chain with tiny volumes: the defaults return an empty list
+  [NetworkToCaipChainId.TEMPO]: {
+    minLiquidity: 0,
+    minVolume24h: 1000,
+    minMarketCap: 10000, // Client-side: drops PRIME (~$200 mcap, ~$300k volume)
   },
 
   'tron:728126428': {
@@ -198,6 +207,11 @@ export const useTrendingRequest = (
       getMinVolume24hForChains(chainIds),
     [providedMinVolume24hUsd, chainIds],
   );
+
+  const minMarketCapFloor =
+    chainIds.length === 1
+      ? TRENDING_NETWORK_THRESHOLDS[chainIds[0]]?.minMarketCap
+      : undefined;
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
@@ -312,10 +326,14 @@ export const useTrendingRequest = (
     };
   }, [isLoading, results.length, error, fetchTrendingTokens]);
 
-  const filteredResults = useMemo(
-    () => (filterLowQuality ? filterLowQualityTokens(results) : results),
-    [filterLowQuality, results],
-  );
+  const filteredResults = useMemo(() => {
+    const aboveMarketCapFloor = minMarketCapFloor
+      ? results.filter((token) => (token.marketCap ?? 0) >= minMarketCapFloor)
+      : results;
+    return filterLowQuality
+      ? filterLowQualityTokens(aboveMarketCapFloor)
+      : aboveMarketCapFloor;
+  }, [filterLowQuality, results, minMarketCapFloor]);
 
   return {
     results: filteredResults,
