@@ -13,7 +13,6 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
-  Card,
   HeaderBase,
   Icon,
   IconColor,
@@ -31,6 +30,9 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
+import MembershipBanner from './components/MembershipBanner';
+import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
+import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccess,
@@ -39,25 +41,7 @@ import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptio
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
-interface MembershipBannerProps {
-  testID: string;
-}
-
 const formatPercent = (value: number): string => `${value}%`;
-
-const MembershipBanner = ({ testID }: MembershipBannerProps) => (
-  <Card
-    twClassName="w-full bg-background-section rounded-xl p-4 border-0"
-    testID={testID}
-  >
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {strings('pro_hub.title')}
-    </Text>
-    <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
-      {strings('pro_hub.membership_label')}
-    </Text>
-  </Card>
-);
 
 interface StatRowProps {
   iconName: IconName;
@@ -124,23 +108,26 @@ const StatRow = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { model: membershipBanner, subscription } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
+  const showHubContent =
+    proAccess !== MoneyAccountPlusAccess.Disabled &&
+    (proAccess === MoneyAccountPlusAccess.Subscriber || Boolean(subscription));
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // The hub is subscriber-only. Wait while subscriptions are unresolved so an
-  // empty controller slice does not bounce a paid user before the first fetch.
+  // A displayed plan stays on screen, including a cancelled last subscription.
+  // Unknown access waits for the first fetch. Disabled and eligible users with
+  // no plan leave.
   useEffect(() => {
-    if (
-      proAccess !== MoneyAccountPlusAccess.Subscriber &&
-      proAccess !== MoneyAccountPlusAccess.Unknown
-    ) {
-      navigation.goBack();
+    if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
+      return;
     }
-  }, [proAccess, navigation]);
+    navigation.goBack();
+  }, [navigation, proAccess, showHubContent]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
@@ -149,6 +136,26 @@ const ProHub = () => {
   const handleGetCard = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
+
+  const handleMembershipAlertAction = useCallback(
+    (action: MembershipAlertAction) => {
+      switch (action) {
+        case MembershipAlertAction.AddFunds:
+          navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+          });
+          return;
+        case MembershipAlertAction.Renew:
+          navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT);
+          return;
+        default: {
+          const unexpectedAction: never = action;
+          return unexpectedAction;
+        }
+      }
+    },
+    [navigation],
+  );
 
   return (
     <SafeAreaView
@@ -179,13 +186,17 @@ const ProHub = () => {
         {strings('pro_hub.title')}
       </HeaderBase>
 
-      {proAccess === MoneyAccountPlusAccess.Subscriber && (
+      {showHubContent && (
         <ScrollView
           contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
           showsVerticalScrollIndicator={false}
         >
           <Box twClassName="w-full mb-4 gap-y-4">
-            <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
+            <MembershipBanner
+              testID={ProHubTestIds.MEMBERSHIP_BANNER}
+              model={membershipBanner}
+              onAction={handleMembershipAlertAction}
+            />
 
             <Box
               twClassName="gap-y-4"
