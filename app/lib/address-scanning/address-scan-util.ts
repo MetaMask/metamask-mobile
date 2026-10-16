@@ -211,7 +211,8 @@ export function isDappConnectionRequest(req: BasicJsonRpcRequest): boolean {
 }
 
 /**
- * Check if request can open a chain permission approval
+ * Check if request may open a chain permission approval. Switching to a chain
+ * the origin already has permission for completes without a prompt.
  */
 export function isChainPermissionRequest(req: BasicJsonRpcRequest): boolean {
   return ['wallet_addEthereumChain', 'wallet_switchEthereumChain'].includes(
