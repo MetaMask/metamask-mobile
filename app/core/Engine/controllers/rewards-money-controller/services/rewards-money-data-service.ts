@@ -308,6 +308,18 @@ function claimRefusalReason(bodyText: string): string {
 }
 
 /**
+ * A claim body the caller has to parse. A malformed payload becomes a
+ * refusal, so a bad 428 or a bad voucher never surfaces as a raw parse error.
+ */
+function parseClaimJson<T>(bodyText: string, status: number): T {
+  try {
+    return JSON.parse(bodyText) as T;
+  } catch {
+    throw new RewardsMoneyClaimRefusalError(status, 'UNKNOWN');
+  }
+}
+
+/**
  * Strips trailing slashes without a regex. `/\/+$/` backtracks super-linearly
  * on a long run of slashes; a scan from the end is linear.
  */
@@ -877,16 +889,42 @@ export class RewardsMoneyDataService {
     route: ClaimRouteSlug,
     body: InitiateClaimBody,
   ): Promise<InitiateClaimResult> {
-    const response = await this.#makeRequest(`/wr/earnings/claim/${route}`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
+    const send = () =>
+      this.#makeRequest(`/wr/earnings/claim/${route}`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+
+    let response = await send();
+
+    // The server sheds a claim open before any write. One retry cannot
+    // double-open. 409 and 428 stay with the caller, and a claim 429 is the
+    // button's own cooldown.
+    if (response.status === 503) {
+      const busyBody = (await readBodyText(response)) ?? '';
+      const waitSeconds = retryAfterSeconds(
+        response.headers?.get('retry-after') ?? null,
+      );
+      const withinCap =
+        waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
+      if (isServerBusyBody(busyBody) && withinCap) {
+        await delay(busyRetryDelayMs(waitSeconds));
+        response = await send();
+      } else {
+        throw new RewardsMoneyClaimRefusalError(
+          response.status,
+          claimRefusalReason(busyBody),
+          waitSeconds,
+        );
+      }
+    }
+
     const bodyText = await response.text();
 
     if (response.status === 428) {
       return {
         kind: 'proof_required',
-        body: JSON.parse(bodyText) as ClaimProofRequiredDto,
+        body: parseClaimJson<ClaimProofRequiredDto>(bodyText, response.status),
       };
     }
 
@@ -900,7 +938,7 @@ export class RewardsMoneyDataService {
 
     return {
       kind: 'authorized',
-      body: JSON.parse(bodyText) as ClaimInitiateDto,
+      body: parseClaimJson<ClaimInitiateDto>(bodyText, response.status),
     };
   }
 

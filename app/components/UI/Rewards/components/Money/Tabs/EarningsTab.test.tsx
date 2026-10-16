@@ -384,6 +384,7 @@ describe('EarningsTab', () => {
           claimed: '0',
         },
         labels: {
+          breakdown: 'Breakdown',
           recordedEarningsLabel: 'Recorded earnings',
           availableToClaim: 'Available to claim',
           held: 'Held',
@@ -494,6 +495,53 @@ describe('EarningsTab', () => {
             lifetime_total: '58500000',
             claimable: '0',
             held: '12000000',
+            blocked: '0',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('leaves the paused sheet closed when the refresh returns no summary', async () => {
+    fetchEarningsSummary.mockResolvedValue(undefined);
+    renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '12000000',
+        held: '0',
+        blocked: '0',
+      },
+    });
+
+    mockClaimEarningsHandlers.onClaimsPaused?.();
+    await waitFor(() => {
+      expect(fetchEarningsSummary).toHaveBeenCalledWith({ forceFresh: true });
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the paused sheet with the on-screen summary when the refresh fails', async () => {
+    fetchEarningsSummary.mockRejectedValue(new Error('network'));
+    renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        claimable: '12000000',
+        held: '0',
+        blocked: '0',
+      },
+    });
+
+    mockClaimEarningsHandlers.onClaimsPaused?.();
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        expect.objectContaining({
+          totals: expect.objectContaining({
+            lifetime_total: '58500000',
+            claimable: '12000000',
+            held: '0',
             blocked: '0',
           }),
         }),

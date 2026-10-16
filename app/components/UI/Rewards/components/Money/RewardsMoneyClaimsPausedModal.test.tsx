@@ -84,6 +84,7 @@ const TOTALS = {
 };
 
 const LABELS = {
+  breakdown: 'Breakdown',
   recordedEarningsLabel: 'Recorded earnings',
   availableToClaim: 'Available to claim',
   held: 'Held',
@@ -115,6 +116,12 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     expect(getByTestId(TEST_IDS.TITLE)).toHaveTextContent('Claims paused');
     expect(getByTestId(TEST_IDS.DESCRIPTION)).toHaveTextContent(
       'You cannot claim rewards right now.',
+    );
+    const divider = getByTestId(TEST_IDS.DIVIDER);
+    expect(getByTestId(TEST_IDS.DESCRIPTION)).not.toContainElement(divider);
+    expect(divider).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.BREAKDOWN_HEADER)).toHaveTextContent(
+      'Breakdown',
     );
     expect(getByText('Recorded earnings')).toBeOnTheScreen();
     expect(getByText('$132.00')).toBeOnTheScreen();

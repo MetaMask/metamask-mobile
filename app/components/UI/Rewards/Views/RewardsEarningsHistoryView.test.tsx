@@ -270,6 +270,7 @@ describe('RewardsEarningsHistoryView', () => {
 
     const { getByTestId } = renderWithProvider(<RewardsEarningsHistoryView />, {
       state: {
+        ...STATE,
         rewardsMoney: {
           ...STATE.rewardsMoney,
           earningsSummary: {

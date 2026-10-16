@@ -106,6 +106,7 @@ function claimsPausedLabels(
   localizedText: ReferralLocalizedText,
 ): ClaimsPausedLabels {
   return {
+    breakdown: localizedText.breakdown,
     recordedEarningsLabel: localizedText.recordedEarningsLabel,
     availableToClaim: localizedText.availableToClaim,
     held: localizedText.held,
@@ -539,17 +540,26 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     persona,
     summary: earningsSummaryEntry?.data ?? null,
     onOpened: () => {
-      inFlight.refresh().catch(() => undefined);
+      inFlight.refresh({ forceFresh: true }).catch(() => undefined);
     },
     onSubmitted: async () => {
-      await fetchEarningsSummary({ forceFresh: true });
+      const refreshed = await fetchEarningsSummary({ forceFresh: true });
+      // No summary means this refresh did not finish. Claim stays disabled
+      // until a later summary replaces the one it was pressed against.
+      if (!refreshed) {
+        throw new Error('Earnings summary refresh did not finish');
+      }
     },
     onClaimsPaused: () => {
       // The sheet copies these totals into route params, so it has to open
       // with the summary this refresh returns. The selector still holds the
-      // pre-refusal figures until the next render.
+      // pre-refusal figures until the next render. A refresh that returns
+      // nothing has not finished, so the sheet stays closed.
       void fetchEarningsSummary({ forceFresh: true })
         .then((summary) => {
+          if (!summary) {
+            return;
+          }
           openClaimsPaused(summary);
         })
         .catch(() => {

@@ -1262,6 +1262,40 @@ describe('RewardsMoneyDataService', () => {
         text: async () => JSON.stringify(body),
       }) as Response;
 
+    it('returns an authorized claim and voucher for a 200', async () => {
+      const body = {
+        claim: { id: 'claim-1' },
+        voucher: {
+          claim_id: 'claim-1',
+          from: '0xfrom',
+          to: '0xmoney',
+          value: '1000000',
+          valid_after: 0,
+          valid_before: 60,
+          nonce: '0x11',
+          signature: '0x22',
+        },
+        excluded: [],
+        status: 'OPENED',
+      };
+      mockFetch.mockResolvedValue(textResponse(200, body));
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toEqual({ kind: 'authorized', body });
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toContain('/wr/earnings/claim/referral-trade-fee-cashback');
+      expect(init).toEqual(
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ money_account_address: '0xmoney' }),
+        }),
+      );
+    });
+
     it('returns a 428 challenge instead of throwing', async () => {
       const challenge = {
         reason: 'PROOF_REQUIRED',
@@ -1311,6 +1345,81 @@ describe('RewardsMoneyDataService', () => {
       ).rejects.toMatchObject({ reason: 'UNDER_REVIEW', status: 422 });
     });
 
+    it('retries a 503 SERVER_BUSY once', async () => {
+      jest.useFakeTimers();
+      try {
+        const voucher = { claim_id: 'claim-1' };
+        mockFetch
+          .mockResolvedValueOnce(
+            textResponse(
+              503,
+              { statusCode: 503, reason: 'SERVER_BUSY' },
+              { 'retry-after': '2' },
+            ),
+          )
+          .mockResolvedValueOnce(textResponse(200, voucher));
+
+        const pending = service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual({
+          kind: 'authorized',
+          body: voucher,
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 503 whose body is not SERVER_BUSY', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(503, { statusCode: 503, reason: 'JWKS_UNAVAILABLE' }),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({ status: 503, reason: 'JWKS_UNAVAILABLE' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not retry a 409', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(409, { reason: 'CLAIM_IN_PROGRESS' }),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({ status: 409, reason: 'CLAIM_IN_PROGRESS' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses a 428 whose body is not JSON', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 428,
+        headers: { get: () => null },
+        text: async () => 'not-json',
+      });
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyClaimRefusalError',
+        status: 428,
+        reason: 'UNKNOWN',
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
     it('keeps Retry-After on a rate-limited refusal', async () => {
       mockFetch.mockResolvedValue(
         textResponse(
@@ -1329,6 +1438,7 @@ describe('RewardsMoneyDataService', () => {
         reason: 'RATE_LIMITED',
         retryAfterSeconds: 240,
       });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 });
