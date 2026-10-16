@@ -93,7 +93,7 @@ const registerEchoingMockProfileService = (
     deleteProfile: async () => {
       profile = undefined;
     },
-    disconnectX: async (profileId) => {
+    disconnectX: (profileId) => {
       if (profile?.profile_id === profileId) {
         profile = {
           ...profile,
@@ -101,6 +101,7 @@ const registerEchoingMockProfileService = (
           updated_at: nowIso(),
         };
       }
+      return Promise.resolve();
     },
   });
 };
