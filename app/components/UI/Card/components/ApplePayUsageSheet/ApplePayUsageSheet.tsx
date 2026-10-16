@@ -5,10 +5,14 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
+  BoxBackgroundColor,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
   Text,
+  TextButton,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -62,17 +66,25 @@ const ApplePayUsageSheet = () => {
           {strings('card.apple_pay_usage.title')}
         </Text>
       </BottomSheetHeader>
-      <Box twClassName="items-center px-4 pt-7 pb-4">
-        <Image
-          source={hand}
-          resizeMode="contain"
-          accessible={false}
-          testID={ApplePayUsageSheetSelectors.HAND}
-          style={{
-            width: HAND_WIDTH,
-            height: HAND_WIDTH / HAND_ASPECT_RATIO,
-          }}
-        />
+      <Box twClassName="items-center px-4 pb-4">
+        <Box
+          backgroundColor={BoxBackgroundColor.BackgroundSection}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.End}
+          twClassName="mt-2 h-[209px] w-full overflow-hidden rounded-[40px]"
+          testID={ApplePayUsageSheetSelectors.GRAPHIC}
+        >
+          <Image
+            source={hand}
+            resizeMode="contain"
+            accessible={false}
+            testID={ApplePayUsageSheetSelectors.HAND}
+            style={{
+              width: HAND_WIDTH,
+              height: HAND_WIDTH / HAND_ASPECT_RATIO,
+            }}
+          />
+        </Box>
         <Text
           variant={TextVariant.BodyMd}
           twClassName="mt-4 text-center text-text-alternative"
@@ -81,7 +93,7 @@ const ApplePayUsageSheet = () => {
         </Text>
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="mt-4 text-center text-text-alternative"
+          twClassName="mt-3 text-center text-text-alternative"
         >
           {strings('card.apple_pay_usage.marks')}
         </Text>
@@ -101,7 +113,15 @@ const ApplePayUsageSheet = () => {
             }}
           />
         </Box>
-        <Box twClassName="mt-6 w-full">
+        <TextButton
+          variant={TextVariant.BodySm}
+          twClassName="mt-6"
+          onPress={handleLearnMore}
+          testID={ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON}
+        >
+          {strings('card.apple_pay_usage.learn_more')}
+        </TextButton>
+        <Box twClassName="mt-4 w-full">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -109,17 +129,7 @@ const ApplePayUsageSheet = () => {
             onPress={handleClose}
             testID={ApplePayUsageSheetSelectors.CONTINUE_BUTTON}
           >
-            {strings('card.apple_pay_usage.continue')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            twClassName="mt-1"
-            onPress={handleLearnMore}
-            testID={ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON}
-          >
-            {strings('card.apple_pay_usage.learn_more')}
+            {strings('card.apple_pay_usage.got_it')}
           </Button>
         </Box>
       </Box>
