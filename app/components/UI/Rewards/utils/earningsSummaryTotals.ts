@@ -27,15 +27,48 @@ function familyLifetime(
 }
 
 /**
- * A positive void marks the whole reward voided. There is no partial void, so
- * the row shows the original amount rather than a remainder.
+ * Base units still owed on a ledger row. `musd_amount` keeps voided money
+ * inside it; `voided_musd_amount` is the part that will never be paid. Family
+ * `lifetime` already leaves voided money out, so it is shown as-is.
+ *
+ * Missing `voided` subtracts nothing. A void larger than the amount floors at
+ * zero, so a row cannot render a negative credit.
  */
-export function isVoidedEarning(voided: string | null | undefined): boolean {
-  if (voided == null || voided === '') {
+export function creditedBaseUnits(
+  amount: string | null | undefined,
+  voided?: string | null,
+): string | null {
+  if (amount == null || amount === '') {
+    return null;
+  }
+
+  const total = new BigNumber(amount);
+  if (!total.isFinite()) {
+    return null;
+  }
+
+  const removed = new BigNumber(voided ?? 0);
+  const net = total.minus(removed.isFinite() ? removed : 0);
+  return (net.isNegative() ? new BigNumber(0) : net).toFixed(0);
+}
+
+/**
+ * A ledger row is voided when every base unit of `musd_amount` is voided.
+ * A day row adds up several earnings, and a void of some of them leaves the
+ * rest payable, so a smaller `voided_musd_amount` is not a voided row.
+ */
+export function isVoidedEarning(
+  amount: string | null | undefined,
+  voided: string | null | undefined,
+): boolean {
+  if (amount == null || amount === '' || voided == null || voided === '') {
     return false;
   }
-  const amount = new BigNumber(voided);
-  return amount.isFinite() && amount.gt(0);
+  const total = new BigNumber(amount);
+  const removed = new BigNumber(voided);
+  return (
+    total.isFinite() && removed.isFinite() && removed.gt(0) && removed.eq(total)
+  );
 }
 
 /** Lifetime the profile earned on its own trades, e.g. its cashback. */

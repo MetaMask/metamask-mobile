@@ -1,5 +1,6 @@
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
+  creditedBaseUnits,
   earnedByOthersLifetime,
   isVoidedEarning,
   selfEarnedLifetime,
@@ -81,14 +82,22 @@ describe('earningsSummaryTotals', () => {
     );
   });
 
-  it('treats any positive void as cancelling the whole reward', () => {
-    expect(isVoidedEarning('1000000')).toBe(true);
-    expect(isVoidedEarning('2500000')).toBe(true);
-    expect(isVoidedEarning('0')).toBe(false);
-    expect(isVoidedEarning(null)).toBe(false);
-    expect(isVoidedEarning(undefined)).toBe(false);
-    expect(isVoidedEarning('')).toBe(false);
-    expect(isVoidedEarning('nope')).toBe(false);
+  it('nets a partial void and floors a void larger than the amount at zero', () => {
+    expect(creditedBaseUnits('10000000', '2000000')).toBe('8000000');
+    expect(creditedBaseUnits('1000000', '2500000')).toBe('0');
+    expect(creditedBaseUnits('1000000', '0')).toBe('1000000');
+    expect(creditedBaseUnits(null, '1')).toBeNull();
+  });
+
+  it('marks a row voided only when the void covers the whole amount', () => {
+    expect(isVoidedEarning('10000000', '10000000')).toBe(true);
+    expect(isVoidedEarning('10000000', '2000000')).toBe(false);
+    expect(isVoidedEarning('2500000', '0')).toBe(false);
+    expect(isVoidedEarning(null, '1000000')).toBe(false);
+    expect(isVoidedEarning('2500000', null)).toBe(false);
+    expect(isVoidedEarning('2500000', undefined)).toBe(false);
+    expect(isVoidedEarning('2500000', '')).toBe(false);
+    expect(isVoidedEarning('nope', 'nope')).toBe(false);
   });
 
   it('ignores held money when summing blocked families under review', () => {
