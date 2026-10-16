@@ -392,6 +392,23 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 const mockEnableAllPopularNetworks = jest.fn();
 let mockPopularNetworks: string[] = [];
 const mockIsNetworkEnabled = jest.fn(() => true);
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = 'WIFI';
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+  useNetworkTierState: () => ({
+    tier: mockNetworkTier,
+    isResolved: mockNetworkTier !== null,
+  }),
+}));
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -462,6 +479,8 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'WIFI';
     mockHomepageEarnSectionVisible = false;
   });
 
@@ -501,6 +520,28 @@ describe('Homepage', () => {
 
     expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: false,
+    });
+  });
+
+  it('defers optional Homepage mounting on constrained devices', () => {
+    mockHardwareTier = 'LOW';
+    mockNetworkTier = 'WIFI';
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenNthCalledWith(1, {
+      isEnabled: false,
+    });
+  });
+
+  it('keeps optional Homepage mounting deferred while network capability is unknown', () => {
+    mockHardwareTier = 'LOW';
+    mockNetworkTier = null;
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockPerpsConnectionProvider).toHaveBeenNthCalledWith(1, {
       isEnabled: false,
     });
   });
@@ -836,6 +877,10 @@ describe('Homepage', () => {
     const sectionIndexOf = (name: string) =>
       getUseHomeViewedEventCalls().find((c) => c[0]?.sectionName === name)?.[0]
         ?.sectionIndex;
+    const latestSectionIndexOf = (name: string) =>
+      getUseHomeViewedEventCalls()
+        .filter((c) => c[0]?.sectionName === name)
+        .at(-1)?.[0]?.sectionIndex;
 
     // `clearAllMocks` leaves `mockReturnValue` in place, so restore the default
     // rather than leaking eligibility into any later block.
@@ -861,6 +906,24 @@ describe('Homepage', () => {
 
       expect(sectionIndexOf('perps')).toBe(0);
       expect(sectionIndexOf('tokens')).toBe(1);
+    });
+
+    it('applies the priority experiment when NetInfo resolves before optional mount', () => {
+      mockNetworkTier = null;
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      const rendered = renderWithProvider(<Homepage />, {
+        state: stateWithPreferences,
+      });
+
+      expect(sectionIndexOf('perps')).toBeUndefined();
+
+      mockNetworkTier = 'WIFI';
+      rendered.rerender(<Homepage />);
+
+      expect(latestSectionIndexOf('perps')).toBe(0);
+      expect(latestSectionIndexOf('tokens')).toBe(1);
     });
 
     it('keeps Tokens above Perps for the treatment variant when the user is not an active trader', () => {
@@ -956,6 +1019,22 @@ describe('Homepage', () => {
 
       expect(sectionIndexOf('tokens')).toBe(0);
       expect(sectionIndexOf('perps')).toBeUndefined();
+    });
+  });
+
+  it('waits for primary content after recovering from an offline network', () => {
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'NONE';
+
+    const rendered = renderWithProvider(<Homepage />, {
+      state: stateWithPreferences,
+    });
+
+    mockNetworkTier = 'WIFI';
+    rendered.rerender(<Homepage />);
+
+    expect(mockPerpsConnectionProvider).not.toHaveBeenCalledWith({
+      isEnabled: true,
     });
   });
 });
