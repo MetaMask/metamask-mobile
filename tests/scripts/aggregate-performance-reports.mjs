@@ -387,7 +387,6 @@ function processTestReport(testReport) {
     steps: testReport.steps || [],
     totalTime: testReport.total,
     videoURL: testReport.videoURL || null,
-    sessionShareUrl: testReport.sessionShareUrl || null,
     sessionId: testReport.sessionId || null,
     device: testReport.device || null,
     // Include team information
@@ -587,7 +586,6 @@ function createSummary(groupedResults) {
               team: test.team,
               sessionId: test.sessionId || null,
               videoURL: test.videoURL || null,
-              sessionShareUrl: test.sessionShareUrl || null,
               failureReason: test.failureReason,
               failureMessage: test.failureMessage ?? null,
               qualityGates: test.qualityGates || null,
@@ -604,7 +602,6 @@ function createSummary(groupedResults) {
           testExecutions[uniqueKey].testInfo.failureMessage = test.failureMessage ?? null;
           if (test.sessionId) testExecutions[uniqueKey].testInfo.sessionId = test.sessionId;
           if (test.videoURL) testExecutions[uniqueKey].testInfo.videoURL = test.videoURL;
-          if (test.sessionShareUrl) testExecutions[uniqueKey].testInfo.sessionShareUrl = test.sessionShareUrl;
           // Update quality gates info if available
           if (test.qualityGates) {
             testExecutions[uniqueKey].testInfo.qualityGates = test.qualityGates;
@@ -682,7 +679,6 @@ function createSummary(groupedResults) {
           scenario,
           sessionId: testInfo.sessionId ?? null,
           recordingLink: testInfo.videoURL ?? null,
-          sessionShareUrl: testInfo.sessionShareUrl ?? null,
           failureReason,
           failureMessage:
             failureReason === 'quality_gates_exceeded'

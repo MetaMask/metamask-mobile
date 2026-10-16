@@ -2,7 +2,6 @@ import { BaseSessionDataEnricher } from '../SessionDataEnricher';
 import {
   TestMuAIAPI,
   TestMuAIAPIError,
-  extractTestIdFromRecordingUrl,
 } from '../../../framework/services/providers/testmu/TestMuAIAPI';
 import { parseHarToEntries } from '../parseHar';
 import type { SessionData, ProfilingData, ProfilingSummary } from '../../types';
@@ -102,8 +101,6 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
       );
     }
 
-    await this.enrichShareLink(session);
-
     try {
       this.logger.info(`Fetching TestMu AI app metrics for ${testTitle}...`);
       const rawMetrics = await this.api.getAppMetrics(sessionId);
@@ -145,28 +142,6 @@ export class TestMuAIEnricher extends BaseSessionDataEnricher {
     const runtimeEnv = process.env;
     if (runtimeEnv.TESTMU_NETWORK_LOGS === 'true') {
       await this.enrichNetworkLogs(session);
-    }
-  }
-
-  private async enrichShareLink(session: SessionData): Promise<void> {
-    const testId = session.videoURL
-      ? extractTestIdFromRecordingUrl(session.videoURL)
-      : null;
-    if (!testId) {
-      return;
-    }
-
-    try {
-      const shareUrl = await this.api.createShareLink(testId);
-      if (shareUrl) {
-        session.sessionShareUrl = shareUrl;
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const body = error instanceof TestMuAIAPIError ? error.body : null;
-      this.logger.warn(
-        `Failed to create TestMu AI share link for ${session.testTitle}: ${message}${body ? ` — ${body.slice(0, 300)}` : ''}`,
-      );
     }
   }
 

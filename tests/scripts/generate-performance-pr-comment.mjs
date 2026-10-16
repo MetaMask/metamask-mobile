@@ -123,22 +123,18 @@ async function main() {
   // embeds in the recording URL; the WebDriver session id does not work there.
   const TESTMU_TEST_ID_IN_RECORDING = /\/([A-Z]{2,}-[A-Z]{2,}-\d+-[A-Za-z0-9]+)\/video\//;
 
-  /** Recording link plus, for TestMu recordings, a link to the test itself. */
-  function formatRecordingLinks({ recordingLink, sessionShareUrl }) {
-    const links = [];
-    if (recordingLink) {
-      links.push(`[📹 Watch](${recordingLink})`);
+  /**
+   * TestMu recordings link to the test page, which needs a TestMu login, so the
+   * video is not exposed publicly. Other providers keep their recording link.
+   */
+  function formatRecordingLinks({ recordingLink }) {
+    if (!recordingLink) {
+      return '—';
     }
-    // Prefer the public share link; the dashboard link needs a TestMu login.
-    const testId = recordingLink
-      ? TESTMU_TEST_ID_IN_RECORDING.exec(recordingLink)?.[1]
-      : null;
-    const testMuLink =
-      sessionShareUrl ?? (testId ? `${TESTMU_TEST_URL}${testId}` : null);
-    if (testMuLink) {
-      links.push(`[TestMu](${testMuLink})`);
-    }
-    return links.length > 0 ? links.join(' · ') : '—';
+    const testId = TESTMU_TEST_ID_IN_RECORDING.exec(recordingLink)?.[1];
+    return testId
+      ? `[📹 Watch on TestMu](${TESTMU_TEST_URL}${testId})`
+      : `[📹 Watch](${recordingLink})`;
   }
 
   /** Explains why a passed test needed a retry, e.g. a session creation failure. */
@@ -258,8 +254,6 @@ async function main() {
               : '—',
             team: test.team?.teamId ?? 'Unknown Team',
             recordingLink: test.videoURL ?? failedTest?.recordingLink,
-            sessionShareUrl:
-              test.sessionShareUrl ?? failedTest?.sessionShareUrl ?? null,
             retryInfo: test.retryInfo ?? null,
           };
         }),
@@ -419,7 +413,6 @@ async function main() {
           );
         const recording = formatRecordingLinks({
           recordingLink: t.recordingLink,
-          sessionShareUrl: t.sessionShareUrl,
         });
         const key = `${t.platform}|${getDeviceKey(t.device)}|${t.testName}`;
         const profilingSection = profilingByKey.get(key);
@@ -446,7 +439,6 @@ async function main() {
     for (const test of passedTestRuns) {
       const recording = formatRecordingLinks({
         recordingLink: test.recordingLink,
-        sessionShareUrl: test.sessionShareUrl,
       });
 
       md += `| ${escapeMarkdownTable(test.testName)}${escapeMarkdownTable(

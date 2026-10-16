@@ -7,12 +7,7 @@ jest.mock('../../../logger.ts', () => ({
   })),
 }));
 
-import {
-  TestMuAIAPI,
-  TestMuAIAPIError,
-  extractTestIdFromRecordingUrl,
-  parseShareLinkResponse,
-} from './TestMuAIAPI';
+import { TestMuAIAPI, TestMuAIAPIError } from './TestMuAIAPI';
 
 const env = process.env;
 const fetchMock = jest.fn();
@@ -55,42 +50,6 @@ afterEach(() => {
 
 afterAll(() => {
   global.fetch = originalFetch;
-});
-
-describe('extractTestIdFromRecordingUrl', () => {
-  it('reads the test id from a TestMu recording URL', () => {
-    expect(
-      extractTestIdFromRecordingUrl(
-        'https://prod-mobile-artefacts.lambdatest.com/30d/orgId-3245013/2026/10/13/RMAA-AND-3245013-1791894232540457522DYM/video/video.mp4?verify=abc',
-      ),
-    ).toBe('RMAA-AND-3245013-1791894232540457522DYM');
-  });
-
-  it('returns null for other URLs', () => {
-    expect(
-      extractTestIdFromRecordingUrl('https://video.test/a.mp4'),
-    ).toBeNull();
-  });
-});
-
-describe('parseShareLinkResponse', () => {
-  const SHARE = 'https://appautomation.lambdatest.com/share/US_04OKP9PCU4L620';
-
-  it('finds a full share URL anywhere in the response', () => {
-    expect(parseShareLinkResponse({ data: { link: SHARE } })).toBe(SHARE);
-    expect(parseShareLinkResponse({ data: [{ url: SHARE }] })).toBe(SHARE);
-  });
-
-  it('builds the URL from a bare US_ token', () => {
-    expect(
-      parseShareLinkResponse({ data: { token: 'US_04OKP9PCU4L620' } }),
-    ).toBe(SHARE);
-  });
-
-  it('returns null when there is no link', () => {
-    expect(parseShareLinkResponse({ status: 'ok' })).toBeNull();
-    expect(parseShareLinkResponse(undefined)).toBeNull();
-  });
 });
 
 describe('session log retries', () => {
@@ -213,52 +172,4 @@ describe('updateSession', () => {
       status: 404,
     });
   });
-});
-
-describe('createShareLink', () => {
-  const SHARE_URL = 'https://appautomation.lambdatest.com/share/US_ABC123';
-
-  it('posts the test id and returns the share URL from the response', async () => {
-    fetchMock.mockResolvedValue(response(200, { data: { url: SHARE_URL } }));
-
-    const result = await new TestMuAIAPI().createShareLink('RMAA-AND-1-ABC');
-
-    expect(result).toBe(SHARE_URL);
-    expect(requestBody()).toEqual({
-      entityIds: ['RMAA-AND-1-ABC'],
-      entityType: 'App Automation Test',
-      expiresAt: 30,
-    });
-  });
-
-  it('throws a TestMuAIAPIError when the response is not ok', async () => {
-    fetchMock.mockResolvedValue(response(403, { message: 'forbidden' }));
-
-    const result = new TestMuAIAPI().createShareLink('RMAA-AND-1-ABC');
-
-    await expect(result).rejects.toMatchObject({
-      name: 'TestMuAIAPIError',
-      status: 403,
-    });
-  });
-
-  it('throws a TestMuAIAPIError when the body has no share link', async () => {
-    fetchMock.mockResolvedValue(response(200, { status: 'ok' }));
-
-    const result = new TestMuAIAPI().createShareLink('RMAA-AND-1-ABC');
-
-    await expect(result).rejects.toBeInstanceOf(TestMuAIAPIError);
-  });
-
-  it.each(['LT_USERNAME', 'LT_ACCESS_KEY'])(
-    'returns null without calling fetch when %s is missing',
-    async (missingKey) => {
-      Reflect.deleteProperty(env, missingKey);
-
-      const result = await new TestMuAIAPI().createShareLink('RMAA-AND-1-ABC');
-
-      expect(result).toBeNull();
-      expect(fetchMock).not.toHaveBeenCalled();
-    },
-  );
 });

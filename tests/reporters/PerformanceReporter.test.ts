@@ -639,7 +639,6 @@ describe('PerformanceReporter', () => {
 
     describe('TestMu runs', () => {
       const TESTMU_PROJECT = 'testmu-android';
-      const SHARE_URL = 'https://appautomation.lambdatest.com/share/US_ABC123';
 
       const recordTestMuTest = () => {
         const result = makeResult({
@@ -706,28 +705,6 @@ describe('PerformanceReporter', () => {
         await reporter.onEnd();
 
         expect(writtenPaths().some((p) => p.includes('-testmu'))).toBe(false);
-      });
-
-      it('copies the session share URL onto the metric passed to the JSON generator', async () => {
-        (TestMuAIEnricher as unknown as jest.Mock).mockImplementationOnce(
-          () => ({
-            enrichSession: jest.fn(
-              async (session: { sessionShareUrl?: string }) => {
-                session.sessionShareUrl = SHARE_URL;
-              },
-            ),
-            canHandle: jest.fn(() => true),
-            getProviderName: jest.fn(() => 'testmu'),
-          }),
-        );
-        recordTestMuTest();
-
-        await reporter.onEnd();
-
-        const generate = (JsonReportGenerator as unknown as jest.Mock).mock
-          .results[0].value.generate;
-        const [reportData] = generate.mock.calls[0];
-        expect(reportData.metrics[0].sessionShareUrl).toBe(SHARE_URL);
       });
     });
 

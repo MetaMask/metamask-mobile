@@ -283,7 +283,7 @@ test('flags a passed scenario that needed a retry after a session failure', () =
 const TESTMU_VIDEO = (testId) =>
   `https://prod-mobile-artefacts.lambdatest.com/30d/orgId-3245013/2026/10/13/${testId}/video/video.mp4?verify=abc`;
 
-test('adds a TestMu test link, built from the recording URL, next to the recording', () => {
+test('links TestMu recordings to the private TestMu test page only', () => {
   const [failedTest] = Object.values(
     SUMMARY.failedTestsStats.failedTestsByTeam,
   )[0].tests;
@@ -333,15 +333,17 @@ test('adds a TestMu test link, built from the recording URL, next to the recordi
 
   assert.match(
     md,
-    /\[📹 Watch\]\([^)]*RMAA-AND-3245013-1791894232540457522DYM[^)]*\) · \[TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791894232540457522DYM\)/,
+    /\[📹 Watch on TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791894232540457522DYM\)/,
   );
   assert.match(
     md,
-    /\[TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791917903591921078WRR\)/,
+    /\[📹 Watch on TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791917903591921078WRR\)/,
   );
+  assert.doesNotMatch(md, /prod-mobile-artefacts\.lambdatest\.com/);
+  assert.doesNotMatch(md, /lambdatest\.com\/share\//);
 });
 
-test('does not add a TestMu link when the recording is not a TestMu one', () => {
+test('keeps the recording link when the recording is not a TestMu one', () => {
   const md = generateComment({
     performanceResults: {
       Android: {
@@ -360,37 +362,7 @@ test('does not add a TestMu link when the recording is not a TestMu one', () => 
   });
 
   assert.match(md, /\[📹 Watch\]\(https:\/\/video\.test\/bs\.mp4\)/);
-  assert.doesNotMatch(md, /\[TestMu\]/);
-});
-
-test('prefers the public TestMu share link over the dashboard link', () => {
-  const md = generateComment({
-    summary: {
-      ...SUMMARY,
-      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
-    },
-    performanceResults: {
-      Android: {
-        'Google Pixel 8 Pro+14.0': [
-          {
-            testName: 'Asset View',
-            sessionId: 'session-passed',
-            videoURL: TESTMU_VIDEO('RMAA-AND-3245013-1791894232540457522DYM'),
-            sessionShareUrl: 'https://appautomation.lambdatest.com/share/US_ABC',
-            totalTime: 2.5,
-            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
-            team: { teamId: '@assets-dev-team' },
-          },
-        ],
-      },
-    },
-  });
-
-  assert.match(
-    md,
-    /\[TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/share\/US_ABC\)/,
-  );
-  assert.doesNotMatch(md, /test\?testID=/);
+  assert.doesNotMatch(md, /Watch on TestMu/);
 });
 
 test('shows app profiling and API requests in the single PR comment', () => {
