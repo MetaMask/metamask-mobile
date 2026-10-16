@@ -52,7 +52,7 @@ const Flow = () => (
   </Root.Navigator>
 );
 
-const ramps = Engine.context.RampsController as {
+const ramps = Engine.context.RampsController as unknown as {
   registerMoneyAccountWallet?: jest.Mock;
   createAutoramp?: jest.Mock;
 };
