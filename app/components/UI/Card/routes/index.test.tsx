@@ -39,6 +39,7 @@ jest.mock('@react-navigation/native-stack', () => {
         options?: {
           headerShown?: boolean;
           animation?: string;
+          gestureEnabled?: boolean;
         };
         component?: React.ComponentType;
       }) => (
@@ -47,6 +48,9 @@ jest.mock('@react-navigation/native-stack', () => {
           {options?.headerShown === false && <Text>no-header</Text>}
           {options?.animation ? (
             <Text>{`${name}-animation:${options.animation}`}</Text>
+          ) : null}
+          {options?.gestureEnabled === false ? (
+            <Text>{`${name}-gesture:disabled`}</Text>
           ) : null}
           {(name === 'CardHome' || name === 'CardModals') && Component ? (
             <Component />
@@ -345,6 +349,14 @@ describe('CardRoutes', () => {
 
       expect(
         getByText('CardApplePaySplash-animation:slide_from_bottom'),
+      ).toBeOnTheScreen();
+    });
+
+    it('disables swipe back on the Apple Pay confirmation', () => {
+      const { getByText } = renderWithProviders(<CardRoutes />);
+
+      expect(
+        getByText('CardApplePayConfirmation-gesture:disabled'),
       ).toBeOnTheScreen();
     });
   });

@@ -103,6 +103,7 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.APPLE_PAY_CONFIRMATION}
         component={ApplePayConfirmation}
+        options={{ gestureEnabled: false }}
       />
       <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
       <ScreensStack.Screen

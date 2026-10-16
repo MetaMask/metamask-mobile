@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,12 +29,26 @@ const ApplePayConfirmation = () => {
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
 
-  const handleDone = useCallback(() => {
+  const returnToCardHome = useCallback(() => {
     navigation.reset({
       index: 0,
       routes: [{ name: Routes.CARD.HOME }],
     });
   }, [navigation]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      const actionType = event.data.action.type;
+      if (actionType !== 'GO_BACK' && actionType !== 'POP') {
+        return;
+      }
+
+      event.preventDefault();
+      returnToCardHome();
+    });
+
+    return unsubscribe;
+  }, [navigation, returnToCardHome]);
 
   return (
     <Box twClassName="flex-1 bg-background-default">
@@ -86,7 +100,7 @@ const ApplePayConfirmation = () => {
             variant={ButtonVariant.Primary}
             size={ButtonBaseSize.Lg}
             isFullWidth
-            onPress={handleDone}
+            onPress={returnToCardHome}
             testID="apple-pay-confirmation-done"
           >
             {strings('card.apple_pay_confirmation.done')}
