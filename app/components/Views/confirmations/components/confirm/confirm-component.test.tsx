@@ -259,6 +259,62 @@ describe('Confirm', () => {
     expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
   });
 
+  describe('first-frame deferral', () => {
+    let frames: FrameRequestCallback[];
+
+    beforeEach(() => {
+      frames = [];
+      jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback);
+          return frames.length;
+        });
+      jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    function renderMoneyDepositConfirm() {
+      const moneyDepositConfirmation = {
+        chainId: '0x1',
+        id: 'money-deposit-confirmation',
+        networkClientId: '1',
+        origin: 'metamask.github.io',
+        status: 'unapproved',
+        time: 1733143817088,
+        txParams: {
+          from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        },
+        type: TransactionType.moneyAccountDeposit,
+      } as never;
+
+      return renderWithProvider(<Confirm />, {
+        state: getAppStateForConfirmation(moneyDepositConfirmation),
+      });
+    }
+
+    it('defers useConfirmationAlerts until after the first two frames for money deposits', () => {
+      renderMoneyDepositConfirm();
+
+      expect(useConfirmationAlerts).not.toHaveBeenCalled();
+
+      act(() => frames[0](16));
+      expect(useConfirmationAlerts).not.toHaveBeenCalled();
+
+      act(() => frames[1](32));
+      expect(useConfirmationAlerts).toHaveBeenCalled();
+    });
+
+    it('calls useConfirmationAlerts immediately for non-deposit confirmations', () => {
+      renderWithProvider(<Confirm />, { state: typedSignV1ConfirmationState });
+
+      expect(useConfirmationAlerts).toHaveBeenCalled();
+    });
+  });
+
   describe('forced bottom sheet', () => {
     beforeEach(() => {
       jest.mocked(useSafeAreaFrame).mockReturnValue({
