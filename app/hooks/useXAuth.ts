@@ -23,14 +23,24 @@ export interface UseXAuth {
   refresh: () => Promise<void>;
 }
 
+/** Converts an unknown thrown value to a message string. */
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+};
+
 /** Passes XAuthError through as-is and wraps anything else as a network failure. */
-const toXAuthError = (error: unknown): XAuthError =>
-  error instanceof XAuthError
-    ? error
-    : new XAuthError(
-        XAuthErrorType.NetworkFailure,
-        error instanceof Error ? error.message : String(error),
-      );
+const toXAuthError = (error: unknown): XAuthError => {
+  if (error instanceof XAuthError) {
+    return error;
+  }
+  return new XAuthError(
+    XAuthErrorType.NetworkFailure,
+    getErrorMessage(error),
+  );
+};
 
 /**
  * Exposes X (Twitter) connection state and the connect/disconnect/refresh
@@ -47,8 +57,8 @@ export const useXAuth = (): UseXAuth => {
     setError(undefined);
     try {
       await connectX();
-    } catch (caught) {
-      setError(toXAuthError(caught));
+    } catch (error_) {
+      setError(toXAuthError(error_));
     } finally {
       setIsConnecting(false);
     }
@@ -59,8 +69,8 @@ export const useXAuth = (): UseXAuth => {
     setError(undefined);
     try {
       await disconnectXAccount();
-    } catch (caught) {
-      setError(toXAuthError(caught));
+    } catch (error_) {
+      setError(toXAuthError(error_));
     } finally {
       setIsConnecting(false);
     }
@@ -71,8 +81,8 @@ export const useXAuth = (): UseXAuth => {
     setError(undefined);
     try {
       await fetchAndUpdateXAccount();
-    } catch (caught) {
-      setError(toXAuthError(caught));
+    } catch (error_) {
+      setError(toXAuthError(error_));
     } finally {
       setIsConnecting(false);
     }
