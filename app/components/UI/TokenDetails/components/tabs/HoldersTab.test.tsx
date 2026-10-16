@@ -2,45 +2,45 @@ import { render, screen } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import React from 'react';
 import { View } from 'react-native';
-import LeaderboardShellTabPage from '../../../../Views/SocialLeaderboard/shell/LeaderboardShellTabPage';
+import { SocialLeaderboard } from '../../../SocialLeaderboard';
 import TokenDetailsHoldersTab from './HoldersTab';
 
-jest.mock(
-  '../../../../Views/SocialLeaderboard/shell/LeaderboardShellTabPage',
-  () => jest.fn(() => null),
-);
+jest.mock('../../../SocialLeaderboard', () => ({
+  SocialLeaderboard: jest.fn(() => null),
+}));
 
-const mockLeaderboardPage = jest.mocked(LeaderboardShellTabPage);
+const mockLeaderboard = jest.mocked(SocialLeaderboard);
 
 const assetId =
   'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933' as CaipAssetType;
 
+const unscopedLeaderboard = {
+  source: { kind: 'all' },
+  location: 'token_details',
+  showViewerRow: true,
+};
+
 describe('TokenDetailsHoldersTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLeaderboardPage.mockImplementation(() => (
-      <View testID="social-leaderboard-page" />
+    mockLeaderboard.mockImplementation(() => (
+      <View testID="social-leaderboard" />
     ));
   });
 
-  it('shows the same leaderboard page as Social', () => {
+  it('shows the Social leaderboard', () => {
     render(<TokenDetailsHoldersTab assetId={assetId} />);
 
-    expect(screen.getByTestId('social-leaderboard-page')).toBeOnTheScreen();
-    expect(mockLeaderboardPage.mock.calls[0][0]).toEqual({
-      containerTestID: 'token-details-v1-holders-leaderboard',
-    });
+    expect(screen.getByTestId('social-leaderboard')).toBeOnTheScreen();
+    expect(mockLeaderboard.mock.calls[0][0]).toEqual(unscopedLeaderboard);
   });
 
-  it('keeps the page unscoped for another asset', () => {
+  it('keeps the ranking unscoped for another asset', () => {
     const otherAssetId =
       'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType;
 
     render(<TokenDetailsHoldersTab assetId={otherAssetId} />);
 
-    expect(mockLeaderboardPage.mock.calls[0][0]).toEqual({
-      containerTestID: 'token-details-v1-holders-leaderboard',
-    });
-    expect(mockLeaderboardPage.mock.calls[0][0]).not.toHaveProperty('source');
+    expect(mockLeaderboard.mock.calls[0][0]).toEqual(unscopedLeaderboard);
   });
 });

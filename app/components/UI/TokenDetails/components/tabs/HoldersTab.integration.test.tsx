@@ -5,13 +5,12 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
-import { TopTradersViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/TopTradersView/TopTradersView.testIds';
 import TokenDetailsHoldersTab from './HoldersTab';
 
 /**
- * Renders the real Social leaderboard page, unlike `HoldersTab.test.tsx`
- * which mocks that page to assert the props contract. The route cannot rank
- * one asset, so this tab shows the same unscoped page as Social.
+ * Renders the real `SocialLeaderboard`, unlike `HoldersTab.test.tsx` which
+ * mocks it to assert the props contract. The route cannot rank one asset, so
+ * this tab asks for the unscoped ranking.
  */
 
 let mockIsEnabled = true;
@@ -65,9 +64,6 @@ describe('TokenDetailsHoldersTab integration', () => {
 
     expect(
       screen.getByTestId('token-details-v1-holders-leaderboard'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),

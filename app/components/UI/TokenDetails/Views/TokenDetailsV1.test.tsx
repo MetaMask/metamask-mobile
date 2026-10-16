@@ -28,7 +28,7 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
-import LeaderboardShellTabPage from '../../../Views/SocialLeaderboard/shell/LeaderboardShellTabPage';
+import { SocialLeaderboard } from '../../SocialLeaderboard';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
@@ -47,10 +47,9 @@ jest.mock('react-redux', () => ({
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
-jest.mock(
-  '../../../Views/SocialLeaderboard/shell/LeaderboardShellTabPage',
-  () => jest.fn(() => null),
-);
+jest.mock('../../SocialLeaderboard', () => ({
+  SocialLeaderboard: jest.fn(() => null),
+}));
 
 jest.mock('../../SocialFeed', () => {
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
@@ -64,18 +63,32 @@ jest.mock('../../SocialFeed', () => {
   }));
   return {
     useSocialFeed: useSocialFeedMock,
-    SocialFeed: ({
+    SocialFeed: () => null,
+    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    SocialV1FeedPostList: () => null,
+    SocialFeedPostShell: () => null,
+    SocialFeedSkeleton: () => null,
+    SocialFeedEmpty: () => null,
+    SocialFeedError: () => null,
+  };
+});
+
+jest.mock('../components/tabs/TokenDetailsFeed', () => {
+  const { Pressable: FeedPressable } = jest.requireActual('react-native');
+  const { useSocialFeed: useFeed } = jest.requireMock('../../SocialFeed');
+  const { mockOpenSpotFeedItem } = jest.requireActual(
+    '../../SocialFeed/mocks/socialV1Feed.mock',
+  );
+  return {
+    TokenDetailsFeed: ({
       source,
       onCopyTrade,
     }: {
       source: { kind: 'token'; assetId: string };
       onCopyTrade?: (item: unknown, commentId?: string) => void;
     }) => {
-      useSocialFeedMock(source);
-      const { Pressable: FeedPressable } = jest.requireActual('react-native');
-      const { mockOpenSpotFeedItem } = jest.requireActual(
-        '../../SocialFeed/mocks/socialV1Feed.mock',
-      );
+      useFeed(source);
       return (
         <FeedPressable
           testID="mock-feed-copy-trade"
@@ -100,13 +113,6 @@ jest.mock('../../SocialFeed', () => {
         />
       );
     },
-    SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
-      children ?? null,
-    SocialV1FeedPostList: () => null,
-    SocialFeedPostShell: () => null,
-    SocialFeedSkeleton: () => null,
-    SocialFeedEmpty: () => null,
-    SocialFeedError: () => null,
   };
 });
 
@@ -1065,8 +1071,10 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId('token-details-v1-tab-holders'));
 
-    expect(jest.mocked(LeaderboardShellTabPage).mock.calls[0][0]).toEqual({
-      containerTestID: 'token-details-v1-holders-leaderboard',
+    expect(jest.mocked(SocialLeaderboard).mock.calls[0][0]).toEqual({
+      source: { kind: 'all' },
+      location: 'token_details',
+      showViewerRow: true,
     });
   });
 
