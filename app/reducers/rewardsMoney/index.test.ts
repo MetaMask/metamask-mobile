@@ -1,5 +1,6 @@
 import { Action } from '@reduxjs/toolkit';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -9,6 +10,8 @@ import rewardsMoneyReducer, {
   setCashbackLedger,
   setCommissions,
   setEarningsHistory,
+  setClaimWaitingUntil,
+  setInFlightClaims,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
@@ -88,6 +91,8 @@ describe('rewardsMoneyReducer', () => {
       commissions: {},
       cashbackLedger: {},
       earningsHistory: {},
+      inFlightClaims: {},
+      claimWaitingUntil: {},
     });
   });
 
@@ -99,6 +104,8 @@ describe('rewardsMoneyReducer', () => {
       commissions: {},
       cashbackLedger: {},
       earningsHistory: {},
+      inFlightClaims: {},
+      claimWaitingUntil: {},
     });
   });
 
@@ -337,6 +344,17 @@ describe('rewardsMoneyReducer', () => {
             },
           ],
         },
+        inFlightClaims: {
+          [PROFILE_A]: [
+            {
+              id: 'claim-open',
+              status: 'AUTHORIZED',
+            },
+          ] as ClaimDto[],
+        },
+        claimWaitingUntil: {
+          [PROFILE_A]: 1_800_000_000_000,
+        },
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -368,6 +386,12 @@ describe('rewardsMoneyReducer', () => {
       expect(state.earningsHistory[PROFILE_A]).toEqual(
         persisted.earningsHistory[PROFILE_A],
       );
+      expect(state.inFlightClaims[PROFILE_A]).toEqual(
+        persisted.inFlightClaims[PROFILE_A],
+      );
+      expect(state.claimWaitingUntil[PROFILE_A]).toBe(
+        persisted.claimWaitingUntil[PROFILE_A],
+      );
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -389,6 +413,8 @@ describe('rewardsMoneyReducer', () => {
         commissions: {},
         cashbackLedger: {},
         earningsHistory: {},
+        inFlightClaims: {},
+        claimWaitingUntil: {},
       });
     });
   });
@@ -416,6 +442,8 @@ describe('rewardsMoneyReducer', () => {
         commissions: {},
         cashbackLedger: {},
         earningsHistory: {},
+        inFlightClaims: {},
+        claimWaitingUntil: {},
       });
     });
   });
@@ -526,6 +554,41 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.earningsHistory[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches open claims by profile', () => {
+      const claims = [
+        {
+          id: 'claim-open',
+          status: 'AUTHORIZED' as const,
+        },
+      ] as ClaimDto[];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setInFlightClaims({ profileId: PROFILE_A, claims }),
+      );
+
+      expect(state.inFlightClaims[PROFILE_A]).toEqual(claims);
+    });
+
+    it('keeps a claim wait by profile and clears it', () => {
+      const waiting = rewardsMoneyReducer(
+        initialState,
+        setClaimWaitingUntil({
+          profileId: PROFILE_A,
+          until: 1_800_000_000_000,
+        }),
+      );
+
+      expect(waiting.claimWaitingUntil[PROFILE_A]).toBe(1_800_000_000_000);
+
+      const cleared = rewardsMoneyReducer(
+        waiting,
+        setClaimWaitingUntil({ profileId: PROFILE_A, until: null }),
+      );
+
+      expect(cleared.claimWaitingUntil[PROFILE_A]).toBeUndefined();
     });
   });
 });

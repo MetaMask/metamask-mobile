@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction, type Action } from '@reduxjs/toolkit';
 import type {
+  ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
   LedgerEarningEntryDto,
@@ -33,6 +34,16 @@ export interface RewardsMoneyState {
    * keyed by Hydra profile id.
    */
   earningsHistory: Record<string, LedgerEntryDto[]>;
+  /**
+   * First page of `GET /earnings/claim/me`, the open claims the ledger does
+   * not carry, keyed by Hydra profile id.
+   */
+  inFlightClaims: Record<string, ClaimDto[]>;
+  /**
+   * Epoch ms until Claim is enabled again after a refusal's `Retry-After`,
+   * keyed by Hydra profile id. Survives leaving the Earnings tab.
+   */
+  claimWaitingUntil: Record<string, number>;
 }
 
 export const initialState: RewardsMoneyState = {
@@ -42,6 +53,8 @@ export const initialState: RewardsMoneyState = {
   commissions: {},
   cashbackLedger: {},
   earningsHistory: {},
+  inFlightClaims: {},
+  claimWaitingUntil: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -207,6 +220,28 @@ const rewardsMoneySlice = createSlice({
     ) => {
       state.earningsHistory[action.payload.profileId] = action.payload.items;
     },
+    setInFlightClaims: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        claims: ClaimDto[];
+      }>,
+    ) => {
+      state.inFlightClaims[action.payload.profileId] = action.payload.claims;
+    },
+    setClaimWaitingUntil: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        until: number | null;
+      }>,
+    ) => {
+      if (action.payload.until === null) {
+        delete state.claimWaitingUntil[action.payload.profileId];
+        return;
+      }
+      state.claimWaitingUntil[action.payload.profileId] = action.payload.until;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -215,12 +250,19 @@ const rewardsMoneySlice = createSlice({
       (state, action: RehydrateAction): RewardsMoneyState => {
         const persisted = action.payload?.rewardsMoney ?? state;
         return {
+          ...initialState,
           referralMe: settleEntries(persisted.referralMe),
           earningsSummary: settleEntries(persisted.earningsSummary),
           referralFunnel: settleEntries(persisted.referralFunnel),
-          commissions: persisted.commissions ?? {},
-          cashbackLedger: persisted.cashbackLedger ?? {},
-          earningsHistory: persisted.earningsHistory ?? {},
+          commissions: persisted.commissions ?? initialState.commissions,
+          cashbackLedger:
+            persisted.cashbackLedger ?? initialState.cashbackLedger,
+          earningsHistory:
+            persisted.earningsHistory ?? initialState.earningsHistory,
+          inFlightClaims:
+            persisted.inFlightClaims ?? initialState.inFlightClaims,
+          claimWaitingUntil:
+            persisted.claimWaitingUntil ?? initialState.claimWaitingUntil,
         };
       },
     );
@@ -240,6 +282,8 @@ export const {
   setCommissions,
   setCashbackLedger,
   setEarningsHistory,
+  setInFlightClaims,
+  setClaimWaitingUntil,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

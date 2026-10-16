@@ -31,6 +31,7 @@ import {
   type MoneyDashboardPersona,
 } from '../../../../../../reducers/rewardsMoney/selectors';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   LedgerEntryDto,
   ReferralLocalizedText,
@@ -42,13 +43,28 @@ import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPagin
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
+import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
+import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
+import {
+  canClaimEarnings,
+  isPendingClaimRow,
+  mergeInFlightClaims,
+  type EarningsHistoryListItem,
+} from '../../../utils/claimEarnings';
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
   earnedByOthersLifetime,
+  underReviewBlockedBaseUnits,
   selfEarnedLifetime,
 } from '../../../utils/earningsSummaryTotals';
+import { SHOW_TRADING_COMMISSIONS } from '../constants';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
+import type {
+  ClaimsPausedLabels,
+  ClaimsPausedTotals,
+} from '../RewardsMoneyClaimsPausedModal';
 import { EarningsHistoryRow } from '../EarningsHistoryRows';
+import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
 /** Rows shown under History before "see all". Matches the Performance preview. */
@@ -71,6 +87,35 @@ export const EARNINGS_TAB_TEST_IDS = {
 /** mUSD base units as a two-decimal amount, or a dash when there is none. */
 const musdAmount = (baseUnits: string | null | undefined): string =>
   formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '—';
+
+/** Root summary amounts for the Claims paused sheet. */
+function claimsPausedTotals(summary: EarningsSummaryDto): ClaimsPausedTotals {
+  return {
+    lifetime_total: summary.lifetime_total,
+    claimable: summary.claimable,
+    held: summary.held,
+    blocked: summary.blocked,
+    voided: summary.voided,
+    pending: summary.pending,
+    claimed: summary.claimed,
+  };
+}
+
+/** Row copy, using the localized_text keys as they are. */
+function claimsPausedLabels(
+  localizedText: ReferralLocalizedText,
+): ClaimsPausedLabels {
+  return {
+    breakdown: localizedText.breakdown,
+    recordedEarningsLabel: localizedText.recordedEarningsLabel,
+    availableToClaim: localizedText.availableToClaim,
+    held: localizedText.held,
+    blocked: localizedText.blocked,
+    voided: localizedText.voided,
+    pending: localizedText.pending,
+    claimed: localizedText.claimed,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Derived state. Each source (summary, history) reduces to the same
@@ -104,7 +149,7 @@ function deriveSummarySection(
 }
 
 interface HistorySectionState {
-  items: LedgerEntryDto[];
+  items: EarningsHistoryListItem[];
   loading: boolean;
   error: boolean;
   show: boolean;
@@ -113,8 +158,12 @@ interface HistorySectionState {
 
 function deriveHistorySection(
   list: UseCursorPaginatedListResult<LedgerEntryDto>,
+  claims: ClaimDto[],
 ): HistorySectionState {
-  const items = (list.items ?? []).slice(0, EARNINGS_HISTORY_PREVIEW_COUNT);
+  const items = (mergeInFlightClaims(list.items, claims) ?? []).slice(
+    0,
+    EARNINGS_HISTORY_PREVIEW_COUNT,
+  );
   const loading = list.isLoading && !list.items;
   const failed = Boolean(list.error);
   // Cached rows stay without a banner. The banner is the empty failure.
@@ -339,9 +388,18 @@ const HistorySection: React.FC<{
   state: HistorySectionState;
   /** A section above this one supplies the divider and header spacing. */
   followsSection: boolean;
+  /** Under-review base units from the summary, or null when none are held. */
+  pausedBaseUnits: string | null;
   onEmptyAction: () => void;
   onOpenList: () => void;
-}> = ({ localizedText, state, followsSection, onEmptyAction, onOpenList }) => {
+}> = ({
+  localizedText,
+  state,
+  followsSection,
+  pausedBaseUnits,
+  onEmptyAction,
+  onOpenList,
+}) => {
   const { items, loading, listEmpty } = state;
 
   let body: React.ReactElement;
@@ -383,7 +441,11 @@ const HistorySection: React.FC<{
       <Box twClassName="gap-4" testID={EARNINGS_TAB_TEST_IDS.HISTORY}>
         {items.map((item) => (
           <EarningsHistoryRow
-            key={`${item.type}-${item.id}`}
+            key={
+              isPendingClaimRow(item)
+                ? `pending-${item.id}`
+                : `${item.type}-${item.id}`
+            }
             item={item}
             localizedText={localizedText}
           />
@@ -402,7 +464,17 @@ const HistorySection: React.FC<{
         twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
         testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
       />
-      <Box twClassName="px-4 pb-8">{body}</Box>
+      <Box twClassName="px-4 pb-8">
+        {pausedBaseUnits ? (
+          <Box twClassName="mb-4">
+            <RewardsPausedBanner
+              baseUnits={pausedBaseUnits}
+              localizedText={localizedText}
+            />
+          </Box>
+        ) : null}
+        {body}
+      </Box>
     </>
   );
 };
@@ -438,18 +510,70 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const openClaimsPaused = useCallback(
+    (
+      summaryData:
+        | EarningsSummaryDto
+        | undefined = earningsSummaryEntry?.data ?? undefined,
+    ) => {
+      if (!localizedText) {
+        return;
+      }
+      navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
+        title: localizedText.claimsPausedTitle,
+        description: localizedText.claimsPausedDescription,
+        totals: summaryData ? claimsPausedTotals(summaryData) : undefined,
+        labels: claimsPausedLabels(localizedText),
+      });
+    },
+    [earningsSummaryEntry?.data, localizedText, navigation],
+  );
   const retrySummary = useCallback(() => {
-    void fetchEarningsSummary({ forceFresh: true });
+    void Promise.resolve(fetchEarningsSummary({ forceFresh: true })).catch(
+      () => undefined,
+    );
   }, [fetchEarningsSummary]);
   const last7 = useLast7DaysEarnings(profileId);
   const historyList = useEarningsHistory(profileId);
+  const inFlight = useInFlightClaims(profileId);
+  const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
+    persona,
+    summary: earningsSummaryEntry?.data ?? null,
+    onOpened: () => {
+      inFlight.refresh({ forceFresh: true }).catch(() => undefined);
+    },
+    onSubmitted: async () => {
+      const refreshed = await fetchEarningsSummary({ forceFresh: true });
+      // No summary means this refresh did not finish. Claim stays disabled
+      // until a later summary replaces the one it was pressed against.
+      if (!refreshed) {
+        throw new Error('Earnings summary refresh did not finish');
+      }
+    },
+    onClaimsPaused: () => {
+      // The sheet copies these totals into route params, so it has to open
+      // with the summary this refresh returns. The selector still holds the
+      // pre-refusal figures until the next render. A refresh that returns
+      // nothing has not finished, so the sheet stays closed.
+      void fetchEarningsSummary({ forceFresh: true })
+        .then((summary) => {
+          if (!summary) {
+            return;
+          }
+          openClaimsPaused(summary);
+        })
+        .catch(() => {
+          openClaimsPaused();
+        });
+    },
+  });
 
   if (!localizedText) {
     return null;
   }
 
   const summary = deriveSummarySection(earningsSummaryEntry);
-  const history = deriveHistorySection(historyList);
+  const history = deriveHistorySection(historyList, inFlight.claims);
   const last7Loading = last7.isLoading && !last7.data;
   const last7Amount = last7.data ? musdAmount(last7.data.lifetime_total) : null;
   const errorSource = deriveErrorSource(
@@ -457,9 +581,10 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     last7.error && !last7.data,
     history.error,
   );
-  // Disable the breakdown for this pilot until the section is ready to show.
-  const showBreakdown = false; // summary.show && rows.length > 0
   const rows = breakdownRows(persona, summary.data, localizedText);
+  const showBreakdown =
+    summary.show && rows.length > 0 && SHOW_TRADING_COMMISSIONS;
+  const claimEnabled = canClaimEarnings(summary.data, persona);
 
   return (
     <Box testID={EARNINGS_TAB_TEST_IDS.CONTAINER}>
@@ -481,12 +606,32 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
             <ClaimableRewardsCard
               localizedText={localizedText}
               claimable={summary.data?.claimable}
-              claimed={summary.data?.claimed}
+              claimed={
+                persona === 'referee' ? summary.data?.claimed : undefined
+              }
+              held={persona === 'referee' ? summary.data?.held : undefined}
+              blocked={
+                persona === 'referee' ? summary.data?.blocked : undefined
+              }
               claimableAmount={musdAmount(summary.data?.claimable)}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
+              canClaim={claimEnabled}
+              isClaiming={isClaiming || isClaimWaiting}
+              onClaim={
+                summary.data
+                  ? () => {
+                      const summaryData = summary.data;
+                      if (!summaryData) {
+                        return;
+                      }
+                      claim(summaryData).catch(() => undefined);
+                    }
+                  : undefined
+              }
+              onPaused={() => openClaimsPaused()}
             />
           ) : null}
         </Box>
@@ -505,6 +650,11 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           localizedText={localizedText}
           state={history}
           followsSection={summary.show || showBreakdown}
+          pausedBaseUnits={
+            summary.loading || history.loading
+              ? null
+              : underReviewBlockedBaseUnits(summary.data)
+          }
           onEmptyAction={openTradeActions}
           onOpenList={openHistory}
         />

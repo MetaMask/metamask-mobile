@@ -978,9 +978,11 @@
     },
     "rewardsMoney": {
       "cashbackLedger": {},
+      "claimWaitingUntil": {},
       "commissions": {},
       "earningsHistory": {},
       "earningsSummary": {},
+      "inFlightClaims": {},
       "referralFunnel": {},
       "referralMe": {}
     },
