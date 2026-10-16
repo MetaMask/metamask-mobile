@@ -38,8 +38,6 @@ import {
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
-import Tag from '../../../../component-library/components/Tags/Tag';
-import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { formatTokenBalance, getTokenImageSource } from '../utils';
 import {
   Icon,
@@ -317,10 +315,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   const fiatBalance = shouldShowBalance ? fiatValue : undefined;
   const tokenBalance = shouldShowBalance ? cryptoBalance : undefined;
 
-  const label = token.accountType
-    ? ACCOUNT_TYPE_LABELS[token.accountType]
-    : undefined;
-
   const securityTag = getSecurityTag(token.securityData?.type);
   const tokenAvatar = (
     <AvatarToken
@@ -397,7 +391,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             accessible={false}
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
-            gap={4}
           >
             <Box
               accessible={false}
@@ -442,7 +435,6 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                     </TagBase>
                   )}
                 </Box>
-                {label && <Tag label={label} />}
                 {showNoFeeBadge && (
                   <TagBase
                     shape={TagShape.Rectangle}

@@ -95,6 +95,7 @@ export interface BridgeState {
   isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
+  isNativeGasIncludedSupported: boolean;
   /**
    * Tracks whether the user has manually selected a destination token.
    * When true, changing the source token to a different network won't auto-update the dest token.
@@ -169,6 +170,7 @@ export const initialState: BridgeState = {
   isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
+  isNativeGasIncludedSupported: false,
   isDestTokenManuallySet: false,
   abTestContext: undefined,
   tokenSelectorNetworkFilter: undefined,
@@ -367,6 +369,12 @@ const slice = createSlice({
     },
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
+    },
+    setIsNativeGasIncludedSupported: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isNativeGasIncludedSupported = action.payload;
     },
     setAbTestContext: (
       state,
@@ -899,6 +907,9 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
 
+export const selectIsNativeGasIncludedSupported = (state: RootState) =>
+  state.bridge.isNativeGasIncludedSupported;
+
 const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
 const EMPTY_HISTORICAL_PRICES = {};
 
@@ -1299,6 +1310,7 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setIsNativeGasIncludedSupported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
   setOrdersNetworkFilter,

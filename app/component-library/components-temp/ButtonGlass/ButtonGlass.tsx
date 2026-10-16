@@ -6,7 +6,7 @@ import {
   type ButtonBaseProps,
 } from '@metamask/design-system-react-native';
 
-import GlassSurface from '../GlassSurface';
+import BoxGlass from '../BoxGlass';
 import { useTheme } from '../../../util/theme';
 
 export type ButtonGlassVariant =
@@ -49,7 +49,7 @@ const ButtonGlass = ({
   const isPrimary = variant === ButtonVariant.Primary;
 
   return (
-    <GlassSurface
+    <BoxGlass
       radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
       hasSheen={variant === ButtonVariant.Secondary}
@@ -63,7 +63,7 @@ const ButtonGlass = ({
         // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
         isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
       />
-    </GlassSurface>
+    </BoxGlass>
   );
 };
 

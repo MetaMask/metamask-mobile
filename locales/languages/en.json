@@ -28,7 +28,7 @@
   },
   "arc_usage_notice": {
     "title": "Notice",
-    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with the Arc team."
   },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
@@ -1165,13 +1165,10 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "title": "What's your email?",
-      "description": "We'll use this to send account updates.",
-      "input_placeholder": "Email address",
-      "button": "Continue",
-      "error_title": "Identity verification",
-      "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Add funds right from your bank and try again."
+      "verify_description": "placeholder for verify description",
+      "enroll_description": "placeholder for enroll description",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening email verification. Please try again."
     },
     "sumsub_kyc": {
       "more_info_title": "We need a little more info",
@@ -1348,26 +1345,18 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "No data",
-      "copies": {
-        "one": "{{count}} copy",
-        "other": "{{count}} copies"
-      },
+      "add_reaction": "Add reaction",
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
-        "auto_close": "Auto-close",
-        "auto_close_pair": "TP {{takeProfit}} / SL {{stopLoss}}",
         "mock_data_footnote": "* Mock data",
-        "entry_price": "Entry price",
-        "exit_price": "Exit price",
         "entry": "Entry",
         "exit": "Exit",
         "cost": "Cost",
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
-        "bought": "Bought",
-        "sold": "Sold"
+        "closed_ago": "Closed {{age}}"
       }
     },
     "composer": {
@@ -1624,9 +1613,12 @@
       "username_available": "Username available · metamask.io/{{handle}}",
       "username_invalid": "Use letters, numbers, and hyphens.",
       "shuffle_username": "Suggest a username",
-      "pick_look": "Pick your look",
-      "camera": "Camera",
-      "photos": "Photos",
+      "customize_avatar": "Customize your avatar",
+      "avatar_background_peach": "Peach background",
+      "avatar_background_lilac": "Lilac background",
+      "avatar_background_sky": "Sky background",
+      "avatar_background_purple": "Purple background",
+      "avatar_background_lime": "Lime background",
       "link_account": "Link an account",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
       "share_trading_activity": "Share trading activity",
@@ -2552,6 +2544,8 @@
       "order_type_accessibility_label": "Order type: {{orderType}}",
       "toggle_amount_display": "Toggle between fiat and token amount",
       "total_inc_pnl": "Total (inc. P&L)",
+      "total_receive": "Total receive",
+      "included_pnl": "Included P&L",
       "margin": "Margin",
       "includes_pnl": "includes P&L",
       "pnl": "P&L",
@@ -3138,12 +3132,17 @@
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
+      "explore": "Explore",
+      "see_more": "See more",
       "see_all_perps": "See all perps",
       "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
       "losers": "Losers",
-      "recently_added": "Recently added"
+      "recently_added": "Recently added",
+      "social_feed": "Social feed",
+      "trending": "Trending",
+      "top_traders": "Top traders"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -5743,8 +5742,10 @@
     "once_label": "Once",
     "moves_up": "When price moves up",
     "moves_down": "When price moves down",
+    "period_5m": "5min",
     "period_1h": "1hr",
     "period_24h": "24hr",
+    "period_5m_short": "5m",
     "period_1h_short": "1h",
     "period_24h_short": "24h",
     "moves_up_summary": "Moves up {{percent}}%",
@@ -10027,6 +10028,7 @@
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
+      "trigger_condition_at": "@",
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
@@ -11536,7 +11538,7 @@
       "try_again": "Try again",
       "cancel": "Cancel",
       "verification_pending_title": "Verification pending",
-      "verification_pending_description": "Verification is pending on {{devices}}. Open the card in Apple Wallet and contact the card issuer using the details on the back of the card.",
+      "verification_pending_description": "Open the card in Apple Wallet to verify it on {{devices}}.",
       "open_in_apple_wallet": "Open in Apple Wallet",
       "device_iphone": "iPhone",
       "device_apple_watch": "Apple Watch",

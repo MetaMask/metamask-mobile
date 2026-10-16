@@ -42,11 +42,13 @@ const getStories = () => {
   return {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx": require("../app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx"),
+    "./app/component-library/components-temp/AvatarSocial/AvatarSocial.stories.tsx": require("../app/component-library/components-temp/AvatarSocial/AvatarSocial.stories.tsx"),
     "./app/component-library/components-temp/ButtonFilter/ButtonFilter.stories.tsx": require("../app/component-library/components-temp/ButtonFilter/ButtonFilter.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonSemantic/ButtonSemantic.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
+    "./app/component-library/components-temp/Foxicon/Foxicon.stories.tsx": require("../app/component-library/components-temp/Foxicon/Foxicon.stories.tsx"),
     "./app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx": require("../app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx"),
     "./app/component-library/components-temp/HeaderRoot/HeaderRoot.stories.tsx": require("../app/component-library/components-temp/HeaderRoot/HeaderRoot.stories.tsx"),
     "./app/component-library/components-temp/HeaderSearch/HeaderSearch.stories.tsx": require("../app/component-library/components-temp/HeaderSearch/HeaderSearch.stories.tsx"),

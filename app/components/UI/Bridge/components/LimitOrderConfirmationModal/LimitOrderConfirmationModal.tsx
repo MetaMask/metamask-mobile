@@ -124,7 +124,7 @@ export const LimitOrderConfirmationModal = ({
           />
         </Box>
       )}
-      <Box paddingBottom={2}>
+      <>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
@@ -137,7 +137,11 @@ export const LimitOrderConfirmationModal = ({
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow label={strings('bridge.limit.trigger_condition')}>
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
-            <TokenAmountValue amount={triggerPrice} token={triggerToken} />
+            <TokenAmountValue
+              amount={triggerPrice}
+              prefix={strings('bridge.limit.trigger_condition_at')}
+              token={triggerToken}
+            />
             {triggerComparison ? (
               <Text
                 variant={TextVariant.BodySm}
@@ -217,8 +221,9 @@ export const LimitOrderConfirmationModal = ({
             </DetailRow>
           </>
         )}
-      </Box>
+      </>
       <BottomSheetFooter
+        twClassName="mt-4"
         primaryButtonProps={{
           children: primaryButton.label,
           onPress: primaryButton.onPress,
@@ -231,7 +236,7 @@ export const LimitOrderConfirmationModal = ({
         alignItems={BoxAlignItems.Center}
         paddingHorizontal={4}
         paddingBottom={4}
-        twClassName="pt-1"
+        twClassName="pt-3"
       >
         <Pressable
           onPress={handleAccountUpgradeFeeInfoPress}
