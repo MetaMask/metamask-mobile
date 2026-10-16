@@ -9112,6 +9112,34 @@
         }
       }
     },
+    "vba_home_card": {
+      "get_started": {
+        "title": "Add money from your bank",
+        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "cta": "Get started"
+      },
+      "account_is_ready": {
+        "title": "You’re all set",
+        "description": "Your virtual account details are ready.",
+        "cta": "View Pix details"
+      },
+      "kyc_pending": {
+        "title": "Verifying your identity",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
+        "cta": "Verifying"
+      },
+      "finish_verification": {
+        "title": "We need more info",
+        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "cta": "Continue"
+      },
+      "kyc_decision": {
+        "title": "We can’t verify your identity",
+        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "cta": "Learn more",
+        "dismiss": "Dismiss"
+      }
+    },
     "first_time_deposit": {
       "title": "First deposit, done",
       "content": "It’s in your Money account —\n and already earning.",
