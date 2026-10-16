@@ -1,16 +1,19 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   accountsApiItem,
   cardProviderItem,
+  neobankItem,
   onchainItem,
   type AccountsApiActivity,
   type MoneyActivityItem,
+  type NeobankBankTransferActivity,
 } from '../types/moneyActivity';
 import { MoneyActivityFilter } from '../constants/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import { useNeobankAutorampActivity } from './useNeobankAutorampActivity';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
@@ -20,6 +23,11 @@ import {
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  filterNeobankActivityForMerge,
+  isNeobankCompletedStatus,
+  findSettlingBankTransfer,
+} from '../utils/neobankActivity';
 
 /** The list shown for each activity filter tab. */
 export type MoneyActivityBuckets = Record<
@@ -100,18 +108,24 @@ function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
 
 /**
  * Merge local on-chain Money transactions with Accounts-API activity (card
- * spends and cashback) into a single source-tagged, time-descending list.
+ * spends and cashback) and NeoBank VBA deposits into a single source-tagged,
+ * time-descending list.
  */
 export function mergeMoneyActivity(
   onchainTransactions: TransactionMeta[],
   apiActivity: AccountsApiActivity[],
   declinedCardTxs: CardTransaction[] = [],
+  neobankActivity: NeobankBankTransferActivity[] = [],
 ): MoneyActivityItem[] {
   const apiHashes = new Set(apiActivity.map((a) => a.hash.toLowerCase()));
   const onchain = onchainTransactions
     // we ignore any on chain data that exists in the accounts API response.
     .filter((tx) => !(tx.hash && apiHashes.has(tx.hash.toLowerCase())))
     .map(onchainItem);
+  const neobank = filterNeobankActivityForMerge(
+    neobankActivity,
+    apiActivity,
+  ).map(neobankItem);
   // Time-descending, with `id` as a stable tiebreak so rows sharing a timestamp
   // (e.g. a spend and its cashback in the same second) keep a deterministic
   // order across renders/refetches and across the two merged sources.
@@ -119,6 +133,7 @@ export function mergeMoneyActivity(
     ...onchain,
     ...apiActivity.map(accountsApiItem),
     ...declinedCardTxs.map(cardProviderItem),
+    ...neobank,
   ].sort((a, b) => b.time - a.time || a.id.localeCompare(b.id));
 }
 
@@ -131,21 +146,40 @@ export function buildMoneyActivityBuckets(
   apiActivity: AccountsApiActivity[],
   watermark: number = Number.NEGATIVE_INFINITY,
   declinedCardTxs: CardTransaction[] = [],
+  neobankActivity: NeobankBankTransferActivity[] = [],
 ): MoneyActivityBuckets {
   return {
     [MoneyActivityFilter.All]: safeItems(
-      mergeMoneyActivity(onchain.all, apiActivity, declinedCardTxs),
+      mergeMoneyActivity(
+        onchain.all,
+        apiActivity,
+        declinedCardTxs,
+        neobankActivity,
+      ),
       watermark,
     ),
-    // Deposits and Sends are on-chain only. API rows are still merged in so
-    // their hashes dedupe any on-chain twin, then dropped from the rendered
-    // rows. Declined card txs are omitted here so they only surface in All /
-    // Purchases.
-    [MoneyActivityFilter.Deposits]: onchainOnly(
-      safeItems(mergeMoneyActivity(onchain.deposits, apiActivity), watermark),
+    // Deposits: on-chain deposits plus VBA bank-transfer credits from the
+    // Accounts API and NeoBank. Other API kinds are merged only to dedupe
+    // hashes, then dropped. Declined card txs stay on All / Purchases.
+    [MoneyActivityFilter.Deposits]: safeItems(
+      mergeMoneyActivity(
+        onchain.deposits,
+        apiActivity,
+        [],
+        neobankActivity,
+      ).filter(
+        (item) =>
+          item.kind === 'onchain' ||
+          item.kind === 'neobank' ||
+          (item.kind === 'accountsApi' && item.tx.kind === 'bank_transfer'),
+      ),
+      watermark,
     ),
     [MoneyActivityFilter.Transfers]: onchainOnly(
-      safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
+      safeItems(
+        mergeMoneyActivity(onchain.transfers, apiActivity, [], neobankActivity),
+        watermark,
+      ),
     ),
     // Purchases is API-only (+ declined card rows); the watermark gate still
     // applies for same-timestamp siblings on the next page.
@@ -174,8 +208,45 @@ export function useMoneyActivityItems({
     isLoadingMore,
     pageCount,
     error,
-    refetch,
+    refetch: refetchApiActivity,
   } = useMoneyAccountApiActivity();
+  const { activity: neobankActivity, refetch: refetchNeobankActivity } =
+    useNeobankAutorampActivity(moneyAddress);
+
+  // MoonPay can report Completed before Accounts API indexes the allowlisted
+  // mUSD credit. Keep refetching until those Completed NeoBank rows settle so
+  // Deposit-to-Money-Account can flip green and replace the off-chain row.
+  const awaitingOnChainSettlement = useMemo(
+    () =>
+      neobankActivity.some(
+        (tx) =>
+          isNeobankCompletedStatus(tx.status) &&
+          findSettlingBankTransfer(tx, activity) === undefined,
+      ),
+    [neobankActivity, activity],
+  );
+  const settlementPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (!awaitingOnChainSettlement) {
+      if (settlementPollRef.current) {
+        clearInterval(settlementPollRef.current);
+        settlementPollRef.current = null;
+      }
+      return;
+    }
+
+    void refetchApiActivity();
+    settlementPollRef.current = setInterval(() => {
+      void refetchApiActivity();
+    }, 10_000);
+
+    return () => {
+      if (settlementPollRef.current) {
+        clearInterval(settlementPollRef.current);
+        settlementPollRef.current = null;
+      }
+    };
+  }, [awaitingOnChainSettlement, refetchApiActivity]);
 
   const isCardTxHistoryEnabled = useSelector(
     selectCardTransactionHistoryEnabled,
@@ -240,6 +311,7 @@ export function useMoneyActivityItems({
         activity,
         watermark,
         declinedForFeed,
+        neobankActivity,
       ),
     [
       allTransactions,
@@ -248,8 +320,14 @@ export function useMoneyActivityItems({
       activity,
       watermark,
       declinedForFeed,
+      neobankActivity,
     ],
   );
+
+  const refetch = useCallback(() => {
+    refetchApiActivity();
+    refetchNeobankActivity();
+  }, [refetchApiActivity, refetchNeobankActivity]);
 
   // Minimum-viable upfront fetch: pull more pages until the target bucket
   // holds `fill.count` safe rows, the activity is exhausted, or the page

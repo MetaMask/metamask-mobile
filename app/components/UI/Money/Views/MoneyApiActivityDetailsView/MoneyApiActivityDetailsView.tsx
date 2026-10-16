@@ -33,11 +33,26 @@ import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
+import {
+  ProgressList,
+  ProgressListItem,
+} from '../../../../Views/confirmations/components/progress-list';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
+import { IconName as ComponentIconName } from '../../../../../component-library/components/Icons/Icon';
 import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
-import type { AccountsApiActivity } from '../../types/moneyActivity';
+import type {
+  AccountsApiActivity,
+  NeobankBankTransferActivity,
+} from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
+import {
+  findSettlingBankTransfer,
+  isNeobankCompletedStatus,
+  isNeobankFailedStatus,
+  neobankActivityDisplayInfo,
+} from '../../utils/neobankActivity';
+import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import MoneyIcon from '../../../../../images/money.png';
 import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLabel';
@@ -67,6 +82,7 @@ const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.api_activity_details.you_spent',
   cashback: 'money.api_activity_details.you_earned',
   refund: 'money.api_activity_details.you_were_refunded',
+  bank_transfer: 'money.api_activity_details.you_deposited',
 };
 
 type ActivityDetailsRoute = RouteProp<
@@ -75,6 +91,7 @@ type ActivityDetailsRoute = RouteProp<
       activity?: AccountsApiActivity;
       enrichment?: CardTransaction;
       cardTransaction?: CardTransaction;
+      neobankActivity?: NeobankBankTransferActivity;
     };
   },
   'params'
@@ -86,15 +103,20 @@ export function MoneyApiActivityDetailsView() {
   const activity = params?.activity;
   const enrichment = params?.enrichment;
   const cardTransaction = params?.cardTransaction;
+  const neobankActivity = params?.neobankActivity;
 
   useEffect(() => {
-    if (!activity && !cardTransaction) {
+    if (!activity && !cardTransaction && !neobankActivity) {
       navigation.goBack();
     }
-  }, [activity, cardTransaction, navigation]);
+  }, [activity, cardTransaction, neobankActivity, navigation]);
 
   if (cardTransaction) {
     return <MoneyDeclinedCardDetailsContent transaction={cardTransaction} />;
+  }
+
+  if (neobankActivity) {
+    return <NeobankBankTransferDetailsContent activity={neobankActivity} />;
   }
 
   if (!activity) {
@@ -124,6 +146,78 @@ function formatActivityDate(timestamp: number): string {
     hour12: true,
   }).format(date);
   return `${month} ${date.getDate()}, ${date.getFullYear()} at ${timeString}`;
+}
+
+/** Step subtitle: `10:35 AM • Jun 9, 2026` (matches TransactionDetailsSummary). */
+function formatStepSubtitle(timestamp: number): string {
+  const date = new Date(timestamp);
+  const timeString = getIntlDateTimeFormatter(I18n.locale, {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }).format(date);
+  const month = getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+  }).format(date);
+  return `${timeString} • ${month} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
+type BankTransferStepSeverity = 'success' | 'warning' | 'error';
+
+/**
+ * VBA / allowlisted bank-transfer deposit timeline.
+ *
+ * - MoonPay pay-in still open → both steps pending
+ * - MoonPay Completed, mUSD not on-chain yet → Bank transfer success,
+ *   Deposit to Money Account pending
+ * - On-chain settlement (Accounts API) → both success
+ */
+function BankTransferActivitySteps({
+  timestamp,
+  onOpenExplorer,
+  bankTransferSeverity = 'success',
+  moneyDepositSeverity = 'success',
+}: {
+  timestamp: number;
+  onOpenExplorer?: () => void;
+  bankTransferSeverity?: BankTransferStepSeverity;
+  moneyDepositSeverity?: BankTransferStepSeverity;
+}) {
+  const subtitle = formatStepSubtitle(timestamp);
+  const completedCount = [bankTransferSeverity, moneyDepositSeverity].filter(
+    (severity) => severity === 'success',
+  ).length;
+  const moneyDepositSettled = moneyDepositSeverity === 'success';
+
+  return (
+    <Box twClassName="gap-3" testID="money-bank-transfer-steps">
+      <Text color={TextColor.TextAlternative}>
+        {strings('transaction_details.label.steps_completed', {
+          count: completedCount,
+        })}
+      </Text>
+      <ProgressList showConnectors={false} variant="dot">
+        <ProgressListItem
+          title={strings('money.transaction.bank_transfer')}
+          subtitle={subtitle}
+          severity={bankTransferSeverity}
+        />
+        <ProgressListItem
+          title={strings('transaction_details.title.money_account_deposit')}
+          subtitle={subtitle}
+          severity={moneyDepositSeverity}
+          buttonIcon={
+            onOpenExplorer && moneyDepositSettled
+              ? ComponentIconName.Export
+              : undefined
+          }
+          onButtonPress={
+            onOpenExplorer && moneyDepositSettled ? onOpenExplorer : undefined
+          }
+        />
+      </ProgressList>
+    </Box>
+  );
 }
 
 function merchantLocationLabel(
@@ -385,6 +479,14 @@ function MoneyApiActivityDetailsContent({
             <Text>{formattedDate}</Text>
           </TransactionDetailsRow>
 
+          {activity.kind === 'bank_transfer' ? (
+            <TransactionDetailsRow
+              label={strings('money.api_activity_details.paid_with')}
+            >
+              <Text>{strings('money.transaction.bank_transfer')}</Text>
+            </TransactionDetailsRow>
+          ) : null}
+
           {networkName ? (
             <TransactionDetailsRow
               label={strings('transaction_details.label.network')}
@@ -410,6 +512,16 @@ function MoneyApiActivityDetailsContent({
             />
           </TransactionDetailsRow>
 
+          {activity.kind === 'bank_transfer' ? (
+            <>
+              <TransactionDetailDivider />
+              <BankTransferActivitySteps
+                timestamp={activity.time}
+                onOpenExplorer={handleViewOnExplorer}
+              />
+            </>
+          ) : null}
+
           {handleViewOnExplorer ? (
             <Button
               variant={ButtonVariant.Secondary}
@@ -422,6 +534,130 @@ function MoneyApiActivityDetailsContent({
               {strings('transaction_details.view_on_block_explorer')}
             </Button>
           ) : null}
+        </Box>
+      </ScrollView>
+    </Box>
+  );
+}
+
+function NeobankBankTransferDetailsContent({
+  activity,
+}: {
+  activity: NeobankBankTransferActivity;
+}) {
+  const tw = useTailwind();
+  const handleBack = useGoBack();
+  const {
+    activity: apiActivity,
+    refetch: refetchApiActivity,
+  } = useMoneyAccountApiActivity();
+
+  const settlement = useMemo(
+    () => findSettlingBankTransfer(activity, apiActivity),
+    [activity, apiActivity],
+  );
+
+  const display = useMemo(
+    () => neobankActivityDisplayInfo(activity),
+    [activity],
+  );
+  const formattedDate = useMemo(
+    () => formatActivityDate(activity.time),
+    [activity.time],
+  );
+
+  const failed = isNeobankFailedStatus(activity.status);
+  const payinCompleted = isNeobankCompletedStatus(activity.status);
+
+  // MoonPay Completed but Accounts API has not indexed the allowlisted credit
+  // yet — keep refetching so Deposit to Money Account can flip without leaving
+  // and re-entering the screen.
+  useEffect(() => {
+    if (failed || !payinCompleted || settlement) {
+      return;
+    }
+    void refetchApiActivity();
+    const id = setInterval(() => {
+      void refetchApiActivity();
+    }, 10_000);
+    return () => clearInterval(id);
+  }, [failed, payinCompleted, settlement, refetchApiActivity]);
+
+  // Once mUSD is indexed, show the settled Accounts API bank_transfer detail
+  // (amount, Completed, both Steps green) instead of the in-flight NeoBank UI.
+  if (settlement) {
+    return <MoneyApiActivityDetailsContent activity={settlement} />;
+  }
+
+  // NeoBank rows never represent on-chain settlement — Money Account deposit
+  // stays pending until Accounts API takes over after mUSD lands.
+  const bankTransferSeverity: BankTransferStepSeverity = failed
+    ? 'error'
+    : payinCompleted
+      ? 'success'
+      : 'warning';
+  const moneyDepositSeverity: BankTransferStepSeverity = failed
+    ? 'error'
+    : 'warning';
+
+  // Overall status stays Pending until mUSD is on-chain (this view is replaced
+  // by the Accounts API bank_transfer detail once that lands).
+  const statusLabel = failed
+    ? strings('money.transaction.failed')
+    : strings('money.api_activity_details.pending');
+  const statusColor = failed
+    ? TextColor.ErrorDefault
+    : TextColor.WarningDefault;
+
+  return (
+    <Box twClassName="flex-1 bg-background-default">
+      <HeaderStandard
+        title={display.label}
+        onBack={handleBack}
+        backButtonProps={{ testID: 'card-transaction-details-back-button' }}
+        includesTopInset
+      />
+      <ScrollView>
+        <Box twClassName="gap-3 px-4">
+          <Box twClassName="gap-1">
+            {/* No "You deposited" / amount until mUSD is on-chain — this
+                NeoBank detail is only for in-flight VBA deposits. */}
+            <Text color={TextColor.TextAlternative}>
+              {strings('money.transaction.depositing')}
+            </Text>
+            <Box twClassName="flex-row items-center gap-3">
+              <Image
+                source={MoneyIcon}
+                style={tw.style('w-8 h-8 rounded-full')}
+                testID="money-account-hero-icon"
+              />
+            </Box>
+          </Box>
+
+          <TransactionDetailDivider />
+
+          <TransactionDetailsRow label={strings('transactions.status')}>
+            <Text color={statusColor}>{statusLabel}</Text>
+          </TransactionDetailsRow>
+
+          <TransactionDetailsRow
+            label={strings('money.api_activity_details.date')}
+          >
+            <Text>{formattedDate}</Text>
+          </TransactionDetailsRow>
+
+          <TransactionDetailsRow
+            label={strings('money.api_activity_details.paid_with')}
+          >
+            <Text>{strings('money.transaction.bank_transfer')}</Text>
+          </TransactionDetailsRow>
+
+          <TransactionDetailDivider />
+          <BankTransferActivitySteps
+            timestamp={activity.time}
+            bankTransferSeverity={bankTransferSeverity}
+            moneyDepositSeverity={moneyDepositSeverity}
+          />
         </Box>
       </ScrollView>
     </Box>

@@ -110,6 +110,13 @@ jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
 }));
 
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: jest.fn(() => ({
+    activity: [],
+    refetch: jest.fn(),
+  })),
+}));
+
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));

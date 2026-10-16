@@ -13,13 +13,17 @@ const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.transaction.purchase',
   cashback: 'money.transaction.musd_back',
   refund: 'money.transaction.refund',
+  bank_transfer: 'money.transaction.deposited',
 };
 
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
   enrichment?: CardTransaction,
 ): MoneyTransactionDisplayInfo {
-  const isIncoming = activity.kind === 'cashback' || activity.kind === 'refund';
+  const isIncoming =
+    activity.kind === 'cashback' ||
+    activity.kind === 'refund' ||
+    activity.kind === 'bank_transfer';
   const sign = isIncoming ? '+' : '-';
 
   const rawValue = new BigNumber(activity.amount).dividedBy(
@@ -50,12 +54,15 @@ export function accountsApiActivityDisplayInfo(
     : strings('money.api_activity_details.amount_unavailable');
 
   const base: MoneyTransactionDisplayInfo = {
-    description: strings('money.transaction.card'),
+    description:
+      activity.kind === 'bank_transfer'
+        ? strings('money.transaction.bank_transfer')
+        : strings('money.transaction.card'),
     label: strings(KIND_LABEL_KEY[activity.kind]),
     primaryAmount,
     fiatAmount,
     isIncoming,
-    icon: IconName.Card,
+    icon: activity.kind === 'bank_transfer' ? IconName.Add : IconName.Card,
     status: 'confirmed',
   };
 
