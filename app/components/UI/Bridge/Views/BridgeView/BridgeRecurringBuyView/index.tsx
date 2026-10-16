@@ -46,7 +46,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import {
   type RecurringOrder,
-  RecurringOrderStatus,
+  RecurringOrderState,
 } from '../../../api/recurringOrders.types';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
@@ -54,10 +54,11 @@ import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { createRecurringOrdersTab } from './RecurringOrderRow';
 
-const OPEN_ORDER_STATUSES = [RecurringOrderStatus.Open];
-const HISTORY_ORDER_STATUSES = [
-  RecurringOrderStatus.Completed,
-  RecurringOrderStatus.Cancelled,
+const OPEN_ORDER_STATES = [RecurringOrderState.Open];
+const HISTORY_ORDER_STATES = [
+  RecurringOrderState.Completed,
+  RecurringOrderState.Cancelled,
+  RecurringOrderState.Expired,
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
 
@@ -98,13 +99,13 @@ const BridgeRecurringBuyViewContent = () => {
   const { activeQuote, isLoading } = useBridgeQuoteDataContext();
   const openOrdersQuery = useRecurringOrders({
     walletAddress,
-    status: OPEN_ORDER_STATUSES,
+    orderStates: OPEN_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: recurringOrdersTab === OrdersTabKey.OpenOrders,
   });
   const historyQuery = useRecurringOrders({
     walletAddress,
-    status: HISTORY_ORDER_STATUSES,
+    orderStates: HISTORY_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: recurringOrdersTab === OrdersTabKey.History,
   });

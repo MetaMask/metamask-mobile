@@ -16,6 +16,7 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { createRecurringOrder } from '../../api/recurringOrders';
 import {
   convertPriceRangeToUsd,
   USD_PRICE_RANGE_CURRENCY,
@@ -24,7 +25,6 @@ import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
 import {
   showRecurringAutoUpgradeError,
   showRecurringOrderCreatedToast,
-  submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
 
 export const RecurringConfirmOrderSheetScreen = () => {
@@ -67,7 +67,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
 
     try {
       await autoUpgradeEIP7702Account();
-      await submitRecurringOrder();
+      await createRecurringOrder();
       showRecurringOrderCreatedToast();
       dispatch(resetBridgeTokenInputs());
       Engine.context.BridgeController?.resetState?.();

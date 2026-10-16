@@ -750,7 +750,7 @@ describe('AssetOverviewContent', () => {
       fireEvent.press(
         getByTestId(
           RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-            MOCK_RECURRING_OPEN_ORDER.orderId,
+            MOCK_RECURRING_OPEN_ORDER.id,
           ),
         ),
       );
