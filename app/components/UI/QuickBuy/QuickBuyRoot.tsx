@@ -86,6 +86,7 @@ interface QuickBuyRootInnerProps {
   initialTradeMode?: QuickBuyRootProps['initialTradeMode'];
   analyticsContext: QuickBuyAnalyticsContext;
   postSwapShare?: boolean;
+  copyTradeOrigin: QuickBuyRootProps['copyTradeOrigin'];
   children?: React.ReactNode;
 }
 
@@ -96,6 +97,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   initialTradeMode,
   analyticsContext,
   postSwapShare,
+  copyTradeOrigin,
   children,
 }) => {
   const tw = useTailwind();
@@ -197,6 +199,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           initialTradeMode={openingTradeMode}
           analyticsContext={analyticsContext}
           postSwapShare={postSwapShare}
+          copyTradeOrigin={copyTradeOrigin}
           activeScreen={activeScreen}
           setActiveScreen={navigateToScreen}
         >
@@ -237,6 +240,7 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
   initialTradeMode,
   analyticsContext,
   postSwapShare,
+  copyTradeOrigin,
   children,
 }) => {
   useEffect(() => {
@@ -270,6 +274,7 @@ const QuickBuyRoot: React.FC<QuickBuyRootProps> = ({
           initialTradeMode={initialTradeMode}
           analyticsContext={analyticsContext}
           postSwapShare={postSwapShare}
+          copyTradeOrigin={copyTradeOrigin}
         >
           {children}
         </QuickBuyRootInner>

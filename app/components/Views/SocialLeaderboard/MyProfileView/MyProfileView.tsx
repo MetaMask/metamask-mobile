@@ -397,6 +397,7 @@ const MyProfileView: React.FC = () => {
                     <ProfileAvatar
                       imageUrl={displayProfile.imageUrl}
                       avatarPresetId={displayProfile.avatarPresetId}
+                      avatarBackgroundId={displayProfile.avatarBackgroundId}
                       size="xs"
                       testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR}
                     />
@@ -722,6 +723,7 @@ const MyProfileView: React.FC = () => {
                 <ProfileAvatar
                   imageUrl={displayProfile.imageUrl}
                   avatarPresetId={displayProfile.avatarPresetId}
+                  avatarBackgroundId={displayProfile.avatarBackgroundId}
                   size="sm"
                   testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
                 />

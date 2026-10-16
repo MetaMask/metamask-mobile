@@ -110,6 +110,7 @@ export const AddressList = () => {
           chainId={item.scope}
           networkName={item.networkName}
           address={item.account.address}
+          accountType={item.account.type}
           copyParams={{
             callback: async () => {
               await copyAddressToClipboard();

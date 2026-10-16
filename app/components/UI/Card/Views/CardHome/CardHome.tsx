@@ -84,6 +84,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
+import type { WalletPassDevice } from '../../pushProvisioning/types';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
@@ -236,8 +237,18 @@ const CardHome = () => {
     platformWallet === 'apple_wallet'
       ? capabilities?.pushProvisioning?.applePay === true
       : capabilities?.pushProvisioning?.googlePay === true;
-  const { initiateProvisioning, isProvisioning, walletEntry } =
-    useCardWalletProvisioning(data, platformWalletSupported);
+  const {
+    initiateProvisioning,
+    isProvisioning,
+    walletEntry,
+    pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
+  } = useCardWalletProvisioning(data, platformWalletSupported);
+  const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
+  const handleOpenInWallet = useCallback(() => {
+    openInWallet().catch(() => undefined);
+  }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -736,6 +747,21 @@ const CardHome = () => {
           </Box>
         )}
 
+        {!isLoading &&
+          pendingDevicesLabel.length > 0 &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="mx-4 mt-2"
+              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
+            >
+              <CardMessageBox
+                messageType={CardMessageBoxType.WalletVerificationPending}
+                values={{ devices: pendingDevicesLabel }}
+                onConfirm={canOpenInWallet ? handleOpenInWallet : undefined}
+              />
+            </Box>
+          )}
+
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
@@ -980,5 +1006,28 @@ const CardHome = () => {
     </Box>
   );
 };
+
+function formatPendingDevices(devices: WalletPassDevice[] | undefined): string {
+  if (!devices?.length) {
+    return '';
+  }
+
+  const names = devices.map((walletDevice) =>
+    strings(
+      walletDevice === 'phone'
+        ? 'card.push_provisioning.device_iphone'
+        : 'card.push_provisioning.device_apple_watch',
+    ),
+  );
+
+  if (names.length < 2) {
+    return names[0];
+  }
+
+  return strings('card.push_provisioning.device_list_and', {
+    first: names[0],
+    second: names[1],
+  });
+}
 
 export default CardHome;

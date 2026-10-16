@@ -1,5 +1,6 @@
 import { constants } from 'ethers';
 import {
+  convertApiTokenToBridgeToken,
   getNativeSourceToken,
   getDefaultDestToken,
   getDefaultTokenPairForChains,
@@ -120,6 +121,22 @@ describe('tokenUtils', () => {
         image: '',
         decimals: 18,
         chainId: '0x1',
+      });
+    });
+  });
+
+  describe('convertApiTokenToBridgeToken', () => {
+    it('converts an EVM slip44 asset to the zero address', () => {
+      const result = convertApiTokenToBridgeToken({
+        assetId: 'eip155:5042/slip44:5042',
+        name: 'USDC',
+        symbol: 'USDC',
+        decimals: 18,
+      });
+
+      expect(result).toMatchObject({
+        address: constants.AddressZero,
+        chainId: '0x13b2',
       });
     });
   });
