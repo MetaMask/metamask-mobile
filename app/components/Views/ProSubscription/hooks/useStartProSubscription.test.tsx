@@ -18,7 +18,10 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
-import { useStartProSubscription } from './useStartProSubscription';
+import {
+  buildConfirmMembershipRequestData,
+  useStartProSubscription,
+} from './useStartProSubscription';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -76,17 +79,29 @@ const MEMBERSHIP_DATE_FORMAT: Intl.DateTimeFormatOptions = {
 const formatExpectedMembershipDate = (date: Date): string =>
   date.toLocaleDateString(I18n.locale, MEMBERSHIP_DATE_FORMAT);
 
-const addYears = (date: Date, years: number): Date => {
-  const next = new Date(date);
-  next.setFullYear(next.getFullYear() + years);
-  return next;
+const addCalendarMonths = (date: Date, months: number): Date => {
+  const monthIndex = date.getMonth() + months;
+  const year = date.getFullYear() + Math.floor(monthIndex / 12);
+  const month = monthIndex % 12;
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(date.getDate(), lastDayOfMonth);
+
+  return new Date(
+    year,
+    month,
+    day,
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+    date.getMilliseconds(),
+  );
 };
 
-const addMonths = (date: Date, months: number): Date => {
-  const next = new Date(date);
-  next.setMonth(next.getMonth() + months);
-  return next;
-};
+const addYears = (date: Date, years: number): Date =>
+  addCalendarMonths(date, years * 12);
+
+const addMonths = (date: Date, months: number): Date =>
+  addCalendarMonths(date, months);
 
 const addDays = (date: Date, days: number): Date => {
   const next = new Date(date);
@@ -544,5 +559,61 @@ describe('useStartProSubscription', () => {
       strings('pro_subscription.insufficient_balance'),
     );
     expect(result.current.errorMessage).not.toMatch(/missing/i);
+  });
+});
+
+describe('buildConfirmMembershipRequestData', () => {
+  it.each([
+    ['January 31, 2026', new Date(2026, 0, 31, 12), new Date(2026, 1, 28, 12)],
+    ['January 30, 2026', new Date(2026, 0, 30, 12), new Date(2026, 1, 28, 12)],
+    ['January 29, 2026', new Date(2026, 0, 29, 12), new Date(2026, 1, 28, 12)],
+    ['January 31, 2024', new Date(2024, 0, 31, 12), new Date(2024, 1, 29, 12)],
+    ['March 31, 2026', new Date(2026, 2, 31, 12), new Date(2026, 3, 30, 12)],
+    [
+      'December 31, 2026',
+      new Date(2026, 11, 31, 12),
+      new Date(2027, 0, 31, 12),
+    ],
+  ])(
+    'clamps the monthly renew date to the last day of the next month for %s',
+    (_label, checkoutDate, expectedRenewDate) => {
+      const requestData = buildConfirmMembershipRequestData(
+        MONTHLY_PLAN,
+        false,
+        checkoutDate,
+      );
+
+      expect(requestData.renewDate).toBe(
+        formatExpectedMembershipDate(expectedRenewDate),
+      );
+    },
+  );
+
+  it('clamps an annual renew date to February 28 when checkout is February 29', () => {
+    const checkoutDate = new Date(2024, 1, 29, 12);
+
+    const requestData = buildConfirmMembershipRequestData(
+      PLAN,
+      false,
+      checkoutDate,
+    );
+
+    expect(requestData.renewDate).toBe(
+      formatExpectedMembershipDate(new Date(2025, 1, 28, 12)),
+    );
+  });
+
+  it('keeps the checkout day when the next month contains it', () => {
+    const checkoutDate = new Date(2026, 0, 15, 12);
+
+    const requestData = buildConfirmMembershipRequestData(
+      MONTHLY_PLAN,
+      false,
+      checkoutDate,
+    );
+
+    expect(requestData.renewDate).toBe(
+      formatExpectedMembershipDate(new Date(2026, 1, 15, 12)),
+    );
   });
 });

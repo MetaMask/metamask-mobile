@@ -108,6 +108,32 @@ function formatMembershipDate(date: Date): string {
 }
 
 /**
+ * Adds calendar months on the local calendar and clamps the day to the last
+ * day of the target month. January 31 plus one month is February 28 or 29.
+ *
+ * @param date - Starting date.
+ * @param months - Number of calendar months to add.
+ * @returns A new date in the target month, keeping the original time of day.
+ */
+function addCalendarMonths(date: Date, months: number): Date {
+  const monthIndex = date.getMonth() + months;
+  const year = date.getFullYear() + Math.floor(monthIndex / 12);
+  const month = monthIndex % 12;
+  const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+  const day = Math.min(date.getDate(), lastDayOfMonth);
+
+  return new Date(
+    year,
+    month,
+    day,
+    date.getHours(),
+    date.getMinutes(),
+    date.getSeconds(),
+    date.getMilliseconds(),
+  );
+}
+
+/**
  * Builds the `requestData` payload for a `confirm_membership` approval.
  *
  * Annual plans show an equivalent monthly amount (`amount / 12`, rounded to
@@ -144,12 +170,7 @@ export function buildConfirmMembershipRequestData(
     };
   }
 
-  const renewDate = new Date(now);
-  if (isAnnual) {
-    renewDate.setFullYear(renewDate.getFullYear() + 1);
-  } else {
-    renewDate.setMonth(renewDate.getMonth() + 1);
-  }
+  const renewDate = addCalendarMonths(now, isAnnual ? 12 : 1);
 
   return {
     monthlyAmount,
