@@ -159,9 +159,7 @@ describe('XAuthService (app-relay flow)', () => {
       (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'cancel',
       });
-      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
-        LEFTOVER_REDIRECT,
-      );
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(LEFTOVER_REDIRECT);
 
       const error = await connectX().catch((caught) => caught);
       expect(error).toBeInstanceOf(XAuthError);
@@ -176,9 +174,7 @@ describe('XAuthService (app-relay flow)', () => {
       (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'locked',
       });
-      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
-        LEFTOVER_REDIRECT,
-      );
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(LEFTOVER_REDIRECT);
 
       await expect(connectX()).rejects.toMatchObject({
         type: XAuthErrorType.NetworkFailure,
