@@ -220,6 +220,13 @@ export function isChainPermissionRequest(req: BasicJsonRpcRequest): boolean {
 }
 
 /**
+ * Check if request is wallet_watchAsset
+ */
+export function isWatchAsset(req: BasicJsonRpcRequest): boolean {
+  return req.method === 'wallet_watchAsset';
+}
+
+/**
  * Classify the user flow that triggered an origin scan, so the scan request
  * can be attributed via the request-source header.
  *
@@ -232,7 +239,8 @@ export function getOriginScanFlow(req: BasicJsonRpcRequest): RequestSourceFlow {
     isEthSignTypedData(req) ||
     isPersonalSign(req) ||
     isWalletSendCalls(req) ||
-    isChainPermissionRequest(req)
+    isChainPermissionRequest(req) ||
+    isWatchAsset(req)
   ) {
     return RequestSourceFlow.Confirmations;
   }

@@ -189,6 +189,7 @@ describe('createTrustSignalsMiddleware', () => {
     ['wallet_sendCalls', RequestSourceFlow.Confirmations],
     ['wallet_addEthereumChain', RequestSourceFlow.Confirmations],
     ['wallet_switchEthereumChain', RequestSourceFlow.Confirmations],
+    ['wallet_watchAsset', RequestSourceFlow.Confirmations],
     ['personal_sign', RequestSourceFlow.Confirmations],
   ])(
     'scans origin URL for %s with the %s flow',
