@@ -858,6 +858,53 @@ describe('usePerpsCloseAllCalculations', () => {
 
       expect(result.current.feeSource).toBeUndefined();
     });
+
+    it('attributes to rewards when rewards drives most of the averaged discount', async () => {
+      const result = await renderWithFees(
+        createMockFeeResult({
+          feeSource: 'subscription',
+          metamaskFeeDiscountBips: 10000,
+          feeAmount: 1,
+        }),
+        createMockFeeResult({
+          feeSource: 'rewards',
+          metamaskFeeDiscountBips: 2000,
+          feeAmount: 100,
+        }),
+      );
+
+      expect(result.current.feeSource).toBe('rewards');
+    });
+
+    it('attributes to subscription when contributions tie', async () => {
+      const result = await renderWithFees(
+        createMockFeeResult({
+          feeSource: 'subscription',
+          metamaskFeeDiscountBips: 10000,
+          feeAmount: 10,
+        }),
+        createMockFeeResult({
+          feeSource: 'rewards',
+          metamaskFeeDiscountBips: 5000,
+          feeAmount: 20,
+        }),
+      );
+
+      expect(result.current.feeSource).toBe('subscription');
+    });
+
+    it('ignores a discounted position with no fee weight', async () => {
+      const result = await renderWithFees(
+        createMockFeeResult({
+          feeSource: 'subscription',
+          metamaskFeeDiscountBips: 10000,
+          feeAmount: 0,
+        }),
+        rewardsFees,
+      );
+
+      expect(result.current.feeSource).toBe('rewards');
+    });
   });
 
   describe('Points Estimation', () => {

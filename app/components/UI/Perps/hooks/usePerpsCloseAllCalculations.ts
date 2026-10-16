@@ -367,23 +367,37 @@ export function usePerpsCloseAllCalculations({
       };
     }
 
-    // Attribute the summary discount only to sources that actually reduced a
-    // position's fee; `default` and a 0% `rewards` win carry no discount.
-    const discountingSources = new Set<PerpsFeeSource>();
+    // Attribute the summary discount to the source that drives most of
+    // avgFeeDiscountPercentage. Uses the same weight and guards as the
+    // fee-weighted average below so the badge and the percentage always
+    // describe the same positions; `default` and 0-bip wins contribute nothing.
+    let subscriptionContribution = 0;
+    let rewardsContribution = 0;
     perPositionResults.forEach(({ fees }) => {
+      const weight = fees.feeAmount ?? 0;
+      const discountBips = fees.metamaskFeeDiscountBips ?? 0;
       if (
-        fees.feeSource !== undefined &&
-        fees.feeSource !== 'default' &&
-        (fees.metamaskFeeDiscountBips ?? 0) > 0
+        weight <= 0 ||
+        discountBips <= 0 ||
+        fees.metamaskFeeRate === undefined ||
+        fees.protocolFeeRate === undefined
       ) {
-        discountingSources.add(fees.feeSource);
+        return;
+      }
+      if (fees.feeSource === 'subscription') {
+        subscriptionContribution += discountBips * weight;
+      } else if (fees.feeSource === 'rewards') {
+        rewardsContribution += discountBips * weight;
       }
     });
-    // Membership wins over VIP, matching MembershipVipBadge.
+    // Ties go to membership, matching MembershipVipBadge's priority.
     let feeSource: PerpsFeeSource | undefined;
-    if (discountingSources.has('subscription')) {
+    if (
+      subscriptionContribution > 0 &&
+      subscriptionContribution >= rewardsContribution
+    ) {
       feeSource = 'subscription';
-    } else if (discountingSources.has('rewards')) {
+    } else if (rewardsContribution > 0) {
       feeSource = 'rewards';
     }
 
