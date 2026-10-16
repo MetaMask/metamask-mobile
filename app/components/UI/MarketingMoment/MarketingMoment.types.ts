@@ -33,6 +33,8 @@ export interface MarketingMomentProps {
   title?: ReactNode;
   /**
    * Props spread onto the hero `Text` when `title` is a string.
+   * `twClassName` is appended to the title layout classes, including
+   * `leading-[1.1]` and `tracking-[-1.2px]`.
    */
   titleProps?: Partial<TextProps>;
   /**
