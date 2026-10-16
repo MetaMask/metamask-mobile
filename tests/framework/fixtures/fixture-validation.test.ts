@@ -377,6 +377,7 @@ describe('fixture-validation', () => {
       expect((fixture.state as Record<string, unknown>).rewardsMoney).toEqual({
         cashbackLedger: {},
         commissions: {},
+        earningsHistory: {},
         earningsSummary: {},
         referralFunnel: {},
         referralMe: {},

@@ -118,6 +118,7 @@ const renderTab = ({
           referralFunnel: {},
           commissions: {},
           cashbackLedger: {},
+          earningsHistory: {},
         },
       },
     },

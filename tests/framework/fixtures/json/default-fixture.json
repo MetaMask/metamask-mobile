@@ -979,6 +979,7 @@
     "rewardsMoney": {
       "cashbackLedger": {},
       "commissions": {},
+      "earningsHistory": {},
       "earningsSummary": {},
       "referralFunnel": {},
       "referralMe": {}
