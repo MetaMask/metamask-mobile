@@ -230,6 +230,13 @@ export function isWatchAsset(req: BasicJsonRpcRequest): boolean {
  * Classify the user flow that triggered an origin scan, so the scan request
  * can be attributed via the request-source header.
  *
+ * The header reports the flow that caused a network scan, not every flow that
+ * checked the URL. The controller caches scans by URL and emits no request or
+ * header on a cache hit, so the first flow to scan a URL within the cache TTL
+ * is the only one attributed. For in-app browser dapps that is usually the
+ * browser navigation scan. WalletConnect and SDK requests carry a channel ID
+ * as their origin, which is not scannable, so they never reach this path.
+ *
  * @param req - The JSON-RPC request
  * @returns The request-source flow for the origin scan
  */
