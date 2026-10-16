@@ -347,6 +347,67 @@ describe('PerpsBalanceOrderView', () => {
     await waitFor(() => expect(submit).toBeDisabled());
   });
 
+  it('blocks a Lighter limit order with both TP and SL on a providerless market', async () => {
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      streamOverrides: {
+        ...options.streamOverrides,
+        marketData: [{ ...market, providerId: undefined }],
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        orderType: 'limit',
+        price: '2600',
+      },
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
+    });
+
+    fireEvent.changeText(
+      await screen.findByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+      '10',
+    );
+    const submit = screen.getByTestId(
+      PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => expect(submit).toBeEnabled());
+
+    fireEvent.press(screen.getByTestId(PerpsProOrderFormSelectorsIDs.TPSL));
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      ),
+      '2800',
+    );
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      '2400',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).not.toBeOnTheScreen(),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.order.validation.lighter_limit_tpsl_unsupported'),
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(submit).toBeDisabled());
+  });
+
   it('rejects an explicit non-Lighter provider', async () => {
     renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
       ...options,
