@@ -55,6 +55,7 @@ describe('ConnectedAccountsModal account summary', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('waitForAccountsSummaryReady', () => {

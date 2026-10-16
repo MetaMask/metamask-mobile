@@ -174,11 +174,7 @@ class ConnectedAccountsModal {
     accountName: string,
     options: { timeout?: number } = {},
   ): Promise<void> {
-    await this.waitForAccountsSummaryReady();
-    await Assertions.expectTextDisplayed(accountName, {
-      timeout: options.timeout ?? 30_000,
-      description: `"${accountName}" in connected accounts summary`,
-    });
+    await this.expectConnectedAccountsDisplayed([accountName], options);
   }
 
   /**
