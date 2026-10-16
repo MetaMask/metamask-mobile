@@ -63,6 +63,7 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+          - 'FIME Apple Pay Cert'
       distribute_external:
         description: 'Whether to distribute to external testers (default: true)'
         required: false
@@ -88,15 +89,19 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   generate-build-version:
+    permissions:
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS (${{ inputs.environment }})
     needs: [generate-build-version]
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
       # dev maps to main-dev-testflight rather than main-dev: same app config, but signed
@@ -112,6 +117,9 @@ jobs:
 
   upload-ios-testflight:
     needs: [build]
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for the TestFlight upload in upload-to-testflight.yml
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}

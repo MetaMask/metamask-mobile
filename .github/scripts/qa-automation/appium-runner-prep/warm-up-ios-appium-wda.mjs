@@ -8,7 +8,12 @@
  */
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { ensureIosSimulatorBooted } from './ios-simulator-lib.mjs';
+import {
+  bootIosSimulatorByUdid,
+  ensureIosSimulatorBooted,
+  shutdownIosSimulator,
+} from './ios-simulator-lib.mjs';
+import { getDerivedDataPath } from './wda-derived-data-path.mjs';
 
 const APPIUM_PORT = Number(process.env.APPIUM_PORT ?? 4723);
 const APPIUM_HOST = process.env.APPIUM_HOST ?? '127.0.0.1';
@@ -109,7 +114,7 @@ export function buildWarmUpCapabilities({
     'appium:usePreinstalledWDA': true,
     'appium:updatedWDABundleId': wdaBundleIdBase,
     'appium:useNewWDA': false,
-    'appium:derivedDataPath': `${process.env.HOME}/appium-wda`,
+    'appium:derivedDataPath': getDerivedDataPath(),
     'appium:wdaLaunchTimeout': 120_000,
     'appium:wdaConnectionTimeout': 30_000,
     'appium:simulatorStartupTimeout': 180_000,
@@ -120,6 +125,61 @@ export function buildWarmUpCapabilities({
       ? {}
       : { 'appium:mjpegServerPort': mjpegServerPort }),
   };
+}
+
+/**
+ * Reboot one simulator and reinstall the cached WebDriverAgent before a warm-up retry.
+ * The first attempt often fails because the preinstalled runner never came up; repeating
+ * the same session against that simulator does not recover it.
+ *
+ * @param {{
+ *   udid: string;
+ *   shutdown?: (udid: string) => Promise<void>;
+ *   boot?: (udid: string) => Promise<unknown>;
+ *   install?: (options: { udid: string; wdaApp: string }) => Promise<unknown>;
+ *   findArtifacts?: (derivedDataPath: string) => { wdaApp?: string };
+ * }} options
+ */
+export async function recoverFailedWdaWarmUp({
+  udid,
+  shutdown = shutdownIosSimulator,
+  boot = bootIosSimulatorByUdid,
+  install,
+  findArtifacts,
+}) {
+  console.warn(
+    `WDA warm-up failed for simulator ${udid} — rebooting and reinstalling WebDriverAgent`,
+  );
+
+  try {
+    await shutdown(udid);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `Simulator shutdown before WDA reinstall failed: ${message}`,
+    );
+  }
+
+  await boot(udid);
+
+  let locate = findArtifacts;
+  let reinstall = install;
+  if (!locate || !reinstall) {
+    const wdaLib = await import('./wda-lib.mjs');
+    locate = locate ?? wdaLib.findWdaArtifacts;
+    reinstall = reinstall ?? wdaLib.installWdaOnSimulator;
+  }
+
+  const derivedDataPath = getDerivedDataPath();
+  const { wdaApp } = locate(derivedDataPath);
+  if (!wdaApp) {
+    console.warn(
+      `WDA artifacts missing under ${derivedDataPath}; retrying warm-up without reinstall`,
+    );
+    return;
+  }
+
+  await reinstall({ udid, wdaApp });
 }
 
 /**
@@ -187,12 +247,24 @@ async function createWarmUpSession(options) {
  *   simulatorName: string;
  *   wdaLocalPort?: number;
  *   mjpegServerPort?: number;
+ *   createSession?: typeof createWarmUpSession;
+ *   recoverSimulator?: typeof recoverFailedWdaWarmUp;
+ *   ensureBooted?: typeof ensureIosSimulatorBooted;
+ *   startServer?: typeof startAppiumServer;
+ *   pause?: (ms: number) => Promise<void>;
  * }} options
  * @returns {Promise<boolean>} true when warm-up succeeded
  */
 export async function warmUpIosAppiumWda(options) {
-  const { udid } = options;
-  await startAppiumServer();
+  const {
+    udid,
+    createSession = createWarmUpSession,
+    recoverSimulator = recoverFailedWdaWarmUp,
+    ensureBooted = ensureIosSimulatorBooted,
+    startServer = startAppiumServer,
+    pause = sleep,
+  } = options;
+  await startServer();
 
   let lastError;
 
@@ -201,17 +273,26 @@ export async function warmUpIosAppiumWda(options) {
       console.log(
         `WDA warm-up attempt ${attempt}/${WARMUP_MAX_ATTEMPTS} (simulator ${udid})…`,
       );
-      await ensureIosSimulatorBooted(udid);
-      await createWarmUpSession(options);
+      await ensureBooted(udid);
+      await createSession(options);
       console.log('WDA warm-up complete — Appium left running for Playwright.');
-      await sleep(2000);
+      await pause(2000);
       return true;
     } catch (error) {
       lastError = error;
       const message = error instanceof Error ? error.message : String(error);
       console.warn(`WDA warm-up attempt ${attempt} failed: ${message}`);
       if (attempt < WARMUP_MAX_ATTEMPTS) {
-        await sleep(WARMUP_RETRY_DELAY_MS);
+        try {
+          await recoverSimulator({ udid });
+        } catch (recoverError) {
+          const recoverMessage =
+            recoverError instanceof Error
+              ? recoverError.message
+              : String(recoverError);
+          console.warn(`WDA warm-up recovery failed: ${recoverMessage}`);
+        }
+        await pause(WARMUP_RETRY_DELAY_MS);
       }
     }
   }

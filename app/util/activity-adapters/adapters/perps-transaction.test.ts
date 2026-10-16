@@ -138,6 +138,19 @@ const tokenOf = (item: ReturnType<typeof mapPerpsTransaction>) =>
 
 describe('mapPerpsTransaction', () => {
   describe('trades', () => {
+    it('preserves an unknown trade amount and direction', () => {
+      const transaction = fillTx('Closed long', FillType.Standard);
+      if (!transaction.fill) throw new Error('Expected trade fixture');
+      delete transaction.fill.pnl;
+      delete transaction.fill.amountNumber;
+      delete transaction.fill.isPositive;
+      transaction.fill.amount = '—';
+
+      const result = mapPerpsTransaction({ transaction, chainId: ARBITRUM });
+
+      expect(result?.data).not.toHaveProperty('token');
+    });
+
     it('maps Opened long → perpsOpenLong with fee-cost direction and position leg', () => {
       const transaction = fillTx(
         'Opened long',

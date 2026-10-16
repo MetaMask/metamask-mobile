@@ -147,6 +147,9 @@ jobs:
       # makes mm-connect invent emulator serials and fail closed on missing adb.
       ANDROID_DEVICE_POOL_SIZE: ${{ inputs.platform == 'android' && inputs.android-device-pool-size || '' }}
       IOS_DEVICE_POOL_SIZE: ${{ inputs.platform == 'ios' && inputs.ios-device-pool-size || '' }}
+      # Inside the workspace so actions/cache does not archive ~/appium-wda as
+      # ../../../../appium-wda (gtar cannot create that path on restore).
+      WDA_DERIVED_DATA_PATH: ${{ github.workspace }}/.cache/appium-wda
 
     steps:
       - name: Checkout (Namespace)
@@ -325,8 +328,10 @@ jobs:
       - name: Determine Android artifact paths
         if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         id: android-artifacts
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
         run: |
-          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+          if [[ "${BUILD_TYPE}" == "flask" ]]; then
             {
               echo "apk-target-path=android/app/build/outputs/apk/flask/release"
               echo "apk-file-name=app-flask-release.apk"
@@ -385,7 +390,10 @@ jobs:
             steps.download-ios-app-namespace.outcome != 'success'
           }}
         shell: bash
-        run: rm -rf "artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+        run: rm -rf "artifacts/${BUILD_TYPE}-${METAMASK_ENVIRONMENT}-MetaMask.app"
       - name: Download iOS build artifacts (GitHub — build may be on Cirrus)
         if: >-
           ${{
@@ -455,17 +463,17 @@ jobs:
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         uses: actions/cache@v6
         with:
-          path: ~/appium-wda
-          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          path: ${{ env.WDA_DERIVED_DATA_PATH }}
+          key: wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
           restore-keys: |
-            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+            wda-derived-data-v2-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
 
       - name: Check if WDA is prebuilt
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: wda-prebuilt
         run: |
-          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
-          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          WDA_APP=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find "$WDA_DERIVED_DATA_PATH/Build/Products" -name '*.xctestrun' 2>/dev/null | head -1 || true)
           if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
             echo "WDA prebuilt artifacts found"
@@ -522,6 +530,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
         run: |
           set -euo pipefail
           echo "Android device pool size=${ANDROID_DEVICE_POOL_SIZE} workers=${E2E_WORKERS}"
@@ -529,11 +538,14 @@ jobs:
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project android-smoke \
-            --grep "${{ inputs.test_suite_tag }}" \
+            --grep "${TEST_SUITE_TAG}" \
             --pass-with-no-tests
 
       - name: Record Android device pool impact
         if: ${{ inputs.platform == 'android' && always() && steps.run-tests-android.outcome != 'skipped' }}
+        env:
+          TEST_SUITE_NAME: ${{ inputs.test-suite-name }}
+          ANDROID_EMULATOR_BOOT_MODE: ${{ inputs.android-emulator-boot-mode }}
         run: |
           set -euo pipefail
           report='tests/test-reports/playwright-json/playwright-report.json'
@@ -543,9 +555,9 @@ jobs:
           fi
           {
             echo "### Android device pool"
-            echo "- suite: \`${{ inputs.test-suite-name }}\`"
+            echo "- suite: \`${TEST_SUITE_NAME}\`"
             echo "- pool size / workers: ${{ inputs.android-device-pool-size }}"
-            echo "- boot mode: \`${{ inputs.android-emulator-boot-mode }}\`"
+            echo "- boot mode: \`${ANDROID_EMULATOR_BOOT_MODE}\`"
             echo "- Playwright outcome: ${{ steps.run-tests-android.outcome }}"
             echo "- Playwright duration_ms: ${duration_ms}"
             echo
@@ -582,6 +594,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
+          TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
         run: |
           set -euo pipefail
           echo "iOS device pool size=${IOS_DEVICE_POOL_SIZE} workers=${E2E_WORKERS}"
@@ -589,11 +602,13 @@ jobs:
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project ios-smoke \
-            --grep "${{ inputs.test_suite_tag }}" \
+            --grep "${TEST_SUITE_TAG}" \
             --pass-with-no-tests
 
       - name: Record iOS device pool impact
         if: ${{ inputs.platform == 'ios' && always() && steps.run-tests-ios.outcome != 'skipped' }}
+        env:
+          TEST_SUITE_NAME: ${{ inputs.test-suite-name }}
         run: |
           set -euo pipefail
           report='tests/test-reports/playwright-json/playwright-report.json'
@@ -603,7 +618,7 @@ jobs:
           fi
           {
             echo "### iOS device pool"
-            echo "- suite: \`${{ inputs.test-suite-name }}\`"
+            echo "- suite: \`${TEST_SUITE_NAME}\`"
             echo "- pool size / workers: ${{ inputs.ios-device-pool-size }}"
             echo "- Playwright outcome: ${{ steps.run-tests-ios.outcome }}"
             echo "- Playwright duration_ms: ${duration_ms}"

@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -11,6 +12,8 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -25,6 +28,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { typography } from '@metamask/design-tokens';
 import { InputSectionProps, InputSectionRef } from './types';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
@@ -32,17 +36,29 @@ import {
   LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
 import { strings } from '../../../../../../../locales/i18n';
+import { getTokenImageSource } from '../../../utils';
 import { getCurrencySymbol } from '../../../utils/currencyUtils';
 import { getSwapsLimitOrderDefaultPriceComparisonDirection } from '../../../utils/limitOrders/getSwapsLimitOrderPriceComparisonDirection';
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
 import { useAutoSizingFont } from '../../../hooks/useAutoSizingFont';
 import { LimitOrderPriceAdjustInputSectionSelectorsIDs } from './testIds';
 
+/**
+ * Space between the price field's box and its digits, as a ratio of the font
+ * size, for a 1.25 line height in Inter on iOS: the extra leading sits above
+ * the digits and the descender space below them.
+ */
+const AMOUNT_TOP_INSET_RATIO = 0.3;
+// Leaves 12px of clear space under the price digits. The 8px row margin is
+// partly cancelled by this pull; the rest of the line box stays below the glyphs.
+const AMOUNT_BOTTOM_INSET_RATIO = 0.094;
+
 export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
   (
     {
       executionType,
       quotedSymbol,
+      quotedToken,
       isLimitFiatMode,
       unitSymbol,
       onQuoteUnitPress,
@@ -79,6 +95,24 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           symbol: quotedSymbol,
         })
       : strings('bridge.limit.quote_unit_fallback', { amount: 1 });
+    const quoteUnitTokenSymbol = quotedToken?.symbol ?? quotedSymbol;
+    const quoteUnitImageSource = useMemo(
+      () =>
+        quoteUnitTokenSymbol
+          ? getTokenImageSource(
+              quoteUnitTokenSymbol,
+              quotedToken?.image,
+              quotedToken?.address,
+              quotedToken?.chainId,
+            )
+          : undefined,
+      [
+        quoteUnitTokenSymbol,
+        quotedToken?.address,
+        quotedToken?.chainId,
+        quotedToken?.image,
+      ],
+    );
     const inputPrefix = isLimitFiatMode
       ? getCurrencySymbol(currentCurrency || 'usd')
       : undefined;
@@ -118,10 +152,17 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${inputDisplayValue || '0'}`,
     });
+    // A focused iOS TextInput clips glyphs whose line box is only `fontSize`
+    // tall, so the field keeps the full line height. Negative margins cancel
+    // the empty space around the digits so the row gaps are measured from the
+    // glyphs.
+    const amountLineHeight = Math.round(fontSize * 1.25);
     const amountTextStyle = tw.style({
       fontSize,
-      lineHeight: fontSize * 1.25,
-      height: fontSize * 1.25,
+      lineHeight: amountLineHeight,
+      height: amountLineHeight,
+      marginTop: -Math.round(fontSize * AMOUNT_TOP_INSET_RATIO),
+      marginBottom: -Math.round(fontSize * AMOUNT_BOTTOM_INSET_RATIO),
       paddingVertical: 0,
       includeFontPadding: false,
       textAlignVertical: 'center',
@@ -143,11 +184,12 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     }));
 
     return (
-      <Box testID={testID} gap={1}>
+      <Box testID={testID}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
+          marginBottom={3}
           twClassName="flex-wrap"
         >
           <Text
@@ -165,9 +207,22 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             }}
             disabled={!onQuoteUnitPress}
             style={tw.style(
-              'flex-row items-center gap-0.5 rounded-md bg-muted px-2 py-0.5',
+              'flex-row items-center gap-0.5 rounded-2xl bg-muted px-2 py-0.5',
             )}
           >
+            {quoteUnitTokenSymbol ? (
+              <AvatarToken
+                key={`${quotedToken?.chainId ?? ''}:${quotedToken?.address ?? quoteUnitTokenSymbol}`}
+                name={quoteUnitTokenSymbol}
+                src={quoteUnitImageSource}
+                size={AvatarTokenSize.Xs}
+                twClassName="mr-0.5 h-3 w-3"
+                testID={
+                  LimitOrderPriceAdjustInputSectionSelectorsIDs.QUOTE_UNIT_AVATAR
+                }
+                accessible={false}
+              />
+            ) : null}
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -189,7 +244,11 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             {comparisonLabel}
           </Text>
         </Box>
-        <Box twClassName="w-full min-w-0" onLayout={onContainerLayout}>
+        <Box
+          twClassName="w-full min-w-0"
+          marginBottom={shouldShowSecondaryRow ? 2 : 3}
+          onLayout={onContainerLayout}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -229,6 +288,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={1}
+            marginBottom={3}
             twClassName="self-start"
           >
             {secondaryValue || onAmountTypeTogglePress ? (
@@ -241,7 +301,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                   onAmountTypeTogglePress?.();
                 }}
                 disabled={!onAmountTypeTogglePress}
-                style={tw.style('flex-row items-center self-start px-1 py-1')}
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                style={tw.style('flex-row items-center self-start')}
               >
                 {secondaryValue ? (
                   <Text
@@ -250,6 +311,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     }
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
+                    style={{ lineHeight: typography.sBodyMD.fontSize }}
                   >
                     ≈ {secondaryValue}
                   </Text>
@@ -271,6 +333,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 variant={TextVariant.BodySm}
                 color={marketComparisonColor}
                 fontWeight={FontWeight.Medium}
+                style={{ lineHeight: typography.sBodySM.fontSize }}
               >
                 {marketComparison.label}
               </Text>

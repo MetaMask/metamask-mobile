@@ -2,6 +2,10 @@ import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
 import { createStateFixture } from '../stateFixture';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../app/components/Views/SocialLeaderboard/SocialV1View/abTestConfig';
 
 /**
  * Default PerpsController state for component view tests.
@@ -31,6 +35,8 @@ const defaultConfirmationTransactionId = 'perps-cv-confirmation-tx';
 
 interface InitialStatePerpsOptions {
   mode?: 'lite' | 'pro';
+  crossMarginEnabled?: boolean;
+  socialEnabled?: boolean;
 }
 
 /**
@@ -62,6 +68,26 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
         enabled: true,
         minimumVersion: '0.0.0',
       },
+      ...(options.crossMarginEnabled !== undefined && {
+        perpsProModeEnabled: { enabled: true, minimumVersion: '0.0.0' },
+        perpsCrossMarginEnabled: {
+          enabled: options.crossMarginEnabled,
+          minimumVersion: '0.0.0',
+        },
+        perpsTerminalBackendEnabled: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      }),
+      ...(options.socialEnabled !== undefined && {
+        perpsSocialEnabled: {
+          enabled: options.socialEnabled,
+          minimumVersion: '0.0.0',
+        },
+        [SOCIAL_V1_AB_KEY]: options.socialEnabled
+          ? SocialV1Variant.Treatment
+          : SocialV1Variant.Control,
+      }),
     } as Record<string, unknown>)
     .withOverrides({
       engine: {
@@ -194,4 +220,6 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
 /**
  * Returns the Perps state fixture configured for the Pro interface.
  */
-export const initialStatePerpsPro = () => initialStatePerps({ mode: 'pro' });
+export const initialStatePerpsPro = (
+  options: Omit<InitialStatePerpsOptions, 'mode'> = {},
+) => initialStatePerps({ ...options, mode: 'pro' });

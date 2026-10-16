@@ -106,7 +106,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
       expect(
-        within(getByTestId(TRIGGER_CONDITION)).getByText('$2200.5'),
+        within(getByTestId(TRIGGER_CONDITION)).getByText('$2,200.50'),
       ).toBeOnTheScreen();
     },
   );
@@ -123,8 +123,8 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
     const triggerRow = getByTestId(TRIGGER_CONDITION);
-    expect(within(triggerRow).getByText('$2160')).toBeOnTheScreen();
-    expect(within(triggerRow).queryByText('€2000')).not.toBeOnTheScreen();
+    expect(within(triggerRow).getByText('$2,160.00')).toBeOnTheScreen();
+    expect(within(triggerRow).queryByText('€2,000.00')).not.toBeOnTheScreen();
   });
 
   // The orders response carries no market price, so the sheet cannot say how
