@@ -8,6 +8,7 @@ import {
   parseTypedDataMessage,
   extractSpenderFromApprovalData,
   extractSpenderFromPermitMessage,
+  getOriginScanFlow,
   hasValidTransactionParams,
   hasValidTypedDataParams,
   isEthSendTransaction,
@@ -157,7 +158,8 @@ export function createTrustSignalsMiddleware({
       }
 
       if (req.origin) {
-        scanUrl(phishingController, req.origin);
+        // eslint-disable-next-line no-void
+        void scanUrl(phishingController, req.origin, getOriginScanFlow(req));
       }
 
       const chainId = getChainIdForRequest(req, networkController);
