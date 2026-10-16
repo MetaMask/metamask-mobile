@@ -167,3 +167,29 @@ jobs:
       source_fingerprint: ${{ inputs.source_fingerprint }}
       collect_hermes_cpuprofiles: true
     secrets: inherit
+
+  # Starts the Hermes CPU-profile analysis of this run as its own run, so an
+  # analysis failure never fails the performance suite. Runs after a failed
+  # suite too, so a manual run can report that there is nothing to analyze.
+  dispatch-app-profiling-analysis:
+    name: Dispatch App Profiling analysis
+    needs: [scheduled-e2e, manual]
+    if: ${{ !cancelled() && (needs.scheduled-e2e.result != 'skipped' || needs.manual.result != 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      actions: write # dispatch analyze-app-profiling.yml
+    steps:
+      - name: Dispatch Analyze App Profiling
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERFORMANCE_EVENT: ${{ github.event_name }}
+          PERFORMANCE_CONCLUSION: ${{ (needs.scheduled-e2e.result == 'success' || needs.manual.result == 'success') && 'success' || 'failure' }}
+        run: |
+          gh workflow run analyze-app-profiling.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME" \
+            -f run_id="$GITHUB_RUN_ID" \
+            -f performance_event="$PERFORMANCE_EVENT" \
+            -f performance_conclusion="$PERFORMANCE_CONCLUSION"
