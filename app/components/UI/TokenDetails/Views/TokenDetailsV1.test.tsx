@@ -498,7 +498,10 @@ describe('TokenDetailsV1', () => {
     expect(getByTestId('mock-overview')).toBeTruthy();
     expect(getByText('overview:true')).toBeTruthy();
     expect(getByText('security:false')).toBeTruthy();
+    // Social is off in this render, so both social tabs are filtered out —
+    // not just Feed.
     expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+    expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
   });
 
   it('wires the Overview panel with the token, asset id and currency', () => {
@@ -864,6 +867,54 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId('token-details-v1-tab-feed')).toBeTruthy();
     expect(getByTestId('token-details-v1-tab-holders')).toBeTruthy();
+  });
+
+  it('lands on the Feed tab even when the feed has no posts', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { getByText } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    // Keeping the tab is not the same as landing on it: an empty feed must
+    // still be the tab the reader opens on.
+    expect(getByText('feed:true')).toBeTruthy();
+    expect(getByText('overview:false')).toBeTruthy();
+  });
+
+  it('drops both social tabs when the token has no CAIP-19 asset id', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    // No chain id, so `useTokenCaipAssetId` resolves null and neither social
+    // surface has a source to load.
+    const tokenWithoutAssetId = {
+      ...baseToken,
+      chainId: undefined,
+      caipAssetId: undefined,
+    } as unknown as TokenDetailsRouteParams;
+
+    const { queryByTestId, getByText } = render(
+      <TokenDetailsV1
+        token={tokenWithoutAssetId}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+    expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
+    expect(getByText('overview:true')).toBeTruthy();
   });
 
   it('loads the social feed on the Feed tab', () => {
