@@ -80,6 +80,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       useNetworkTierState();
     const [isPrimaryTokenContentReady, setIsPrimaryTokenContentReady] =
       useState(false);
+    const [hasObservedOfflineNetwork, setHasObservedOfflineNetwork] = useState(
+      networkTier === 'NONE',
+    );
     const sectionMountMode = getHomepageSectionMountMode({
       hardwareTier,
       networkTier,
@@ -88,19 +91,31 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       () => ({ hardwareTier, networkTier, networkTierResolved }),
       [hardwareTier, networkTier, networkTierResolved],
     );
+    const [hasMountedOptionalSections, setHasMountedOptionalSections] =
+      useState(sectionMountMode === 'immediate' && networkTierResolved);
+    useEffect(() => {
+      if (networkTier === 'NONE') {
+        setHasObservedOfflineNetwork(true);
+      }
+    }, [networkTier]);
     // Keep the primary token surface in the first commit on constrained
     // devices. This gates optional section mount work without delaying token
     // balance refresh or changing the Homepage Ready boundary.
+    const isWaitingForOfflineRecovery =
+      hasObservedOfflineNetwork &&
+      networkTier !== 'NONE' &&
+      !hasMountedOptionalSections;
+    const effectiveSectionMountMode = isWaitingForOfflineRecovery
+      ? 'when_network_available'
+      : sectionMountMode;
     const canMountOptionalSections =
-      (sectionMountMode === 'immediate' && networkTierResolved) ||
-      (sectionMountMode === 'after_primary_content' &&
+      (effectiveSectionMountMode === 'immediate' && networkTierResolved) ||
+      (effectiveSectionMountMode === 'after_primary_content' &&
         networkTierResolved &&
         isPrimaryTokenContentReady) ||
-      (sectionMountMode === 'when_network_available' &&
+      (effectiveSectionMountMode === 'when_network_available' &&
         networkTier !== 'NONE' &&
         isPrimaryTokenContentReady);
-    const [hasMountedOptionalSections, setHasMountedOptionalSections] =
-      useState(canMountOptionalSections);
     useEffect(() => {
       if (canMountOptionalSections) {
         setHasMountedOptionalSections(true);
@@ -139,20 +154,32 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
+    const perpsAboveTokensCandidate = shouldPlacePerpsAboveTokens({
+      optionalSectionsCanMount:
+        sectionMountMode === 'immediate' && networkTierResolved,
+      isPerpsEnabled,
+      perpsAboveTokensEligible:
+        perpsSectionPriorityVariant.perpsAboveTokensEligible,
+      isActivePerpsTrader,
+    });
     // Lock the Perps position to the first Homepage layout. Deferred Perps
     // must not be inserted above Tokens after the user has started viewing or
     // scrolling the primary surface.
-    const [canPreservePerpsAboveTokens] = useState(() =>
-      shouldPlacePerpsAboveTokens({
-        optionalSectionsCanMount: canMountOptionalSections,
-        isPerpsEnabled,
-        perpsAboveTokensEligible:
-          perpsSectionPriorityVariant.perpsAboveTokensEligible,
-        isActivePerpsTrader,
-      }),
-    );
+    const [perpsAboveTokensPlacement, setPerpsAboveTokensPlacement] = useState<
+      boolean | null
+    >(() => (canMountOptionalSections ? perpsAboveTokensCandidate : null));
+    useEffect(() => {
+      if (perpsAboveTokensPlacement === null && canMountOptionalSections) {
+        setPerpsAboveTokensPlacement(perpsAboveTokensCandidate);
+      }
+    }, [
+      canMountOptionalSections,
+      perpsAboveTokensCandidate,
+      perpsAboveTokensPlacement,
+    ]);
     const showPerpsAboveTokens =
-      canPreservePerpsAboveTokens && shouldRenderPerps;
+      (perpsAboveTokensPlacement ?? perpsAboveTokensCandidate) &&
+      shouldRenderPerps;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();

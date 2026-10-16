@@ -877,6 +877,10 @@ describe('Homepage', () => {
     const sectionIndexOf = (name: string) =>
       getUseHomeViewedEventCalls().find((c) => c[0]?.sectionName === name)?.[0]
         ?.sectionIndex;
+    const latestSectionIndexOf = (name: string) =>
+      getUseHomeViewedEventCalls()
+        .filter((c) => c[0]?.sectionName === name)
+        .at(-1)?.[0]?.sectionIndex;
 
     // `clearAllMocks` leaves `mockReturnValue` in place, so restore the default
     // rather than leaking eligibility into any later block.
@@ -902,6 +906,24 @@ describe('Homepage', () => {
 
       expect(sectionIndexOf('perps')).toBe(0);
       expect(sectionIndexOf('tokens')).toBe(1);
+    });
+
+    it('applies the priority experiment when NetInfo resolves before optional mount', () => {
+      mockNetworkTier = null;
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      const rendered = renderWithProvider(<Homepage />, {
+        state: stateWithPreferences,
+      });
+
+      expect(sectionIndexOf('perps')).toBeUndefined();
+
+      mockNetworkTier = 'WIFI';
+      rendered.rerender(<Homepage />);
+
+      expect(latestSectionIndexOf('perps')).toBe(0);
+      expect(latestSectionIndexOf('tokens')).toBe(1);
     });
 
     it('keeps Tokens above Perps for the treatment variant when the user is not an active trader', () => {
@@ -997,6 +1019,22 @@ describe('Homepage', () => {
 
       expect(sectionIndexOf('tokens')).toBe(0);
       expect(sectionIndexOf('perps')).toBeUndefined();
+    });
+  });
+
+  it('waits for primary content after recovering from an offline network', () => {
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'NONE';
+
+    const rendered = renderWithProvider(<Homepage />, {
+      state: stateWithPreferences,
+    });
+
+    mockNetworkTier = 'WIFI';
+    rendered.rerender(<Homepage />);
+
+    expect(mockPerpsConnectionProvider).not.toHaveBeenCalledWith({
+      isEnabled: true,
     });
   });
 });
