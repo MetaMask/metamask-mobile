@@ -13,6 +13,7 @@ import {
   getEnrollmentMaxSessionAgeMs,
   planEnroll,
   planVerifyOrEnroll,
+  toList,
 } from './planner';
 import type {
   MfaFlow,
@@ -26,7 +27,6 @@ import type {
   MfaPurpose,
   Plan,
   PlanContext,
-  VerifyOrEnrollRequest,
 } from './types';
 
 interface CurrentStep {
@@ -35,13 +35,6 @@ interface CurrentStep {
   flowId?: string;
   email?: string;
 }
-
-const toList = (verifyWith: VerifyOrEnrollRequest['verifyWith']) => {
-  if (verifyWith === undefined) {
-    return [];
-  }
-  return Array.isArray(verifyWith) ? verifyWith : [verifyWith];
-};
 
 export const createMfaFlow = ({
   request,
@@ -65,7 +58,6 @@ export const createMfaFlow = ({
   let recoveredStep: string | undefined;
   let current: CurrentStep | undefined;
   let lastOperation: (() => Promise<void>) | undefined;
-  let outcome: MfaFlowResult | undefined;
   let state: MfaFlowState = {
     step: { name: 'idle' },
     busy: false,
@@ -155,13 +147,9 @@ export const createMfaFlow = ({
     const wantsToken =
       request.kind === 'verifyOrEnroll' &&
       toList(request.verifyWith).length > 0;
-    outcome = wantsToken && token ? { credentials, token } : { credentials };
-    if (!presented) {
-      const value = outcome;
-      settle(() => resolveResult(value));
-      return;
-    }
-    show({ name: 'success' });
+    const value =
+      wantsToken && token ? { credentials, token } : { credentials };
+    settle(() => resolveResult(value));
   };
 
   const sendEmailCode = async () => {
@@ -292,7 +280,15 @@ export const createMfaFlow = ({
     }
     switch (step.kind) {
       case 'intro':
-        show({ name: 'intro', missing: step.missing }, { progress });
+        show(
+          {
+            name: 'intro',
+            methods: step.methods,
+            missing: step.missing,
+            email: getEmailAddress(),
+          },
+          { progress },
+        );
         return;
       case 'confirm':
       case 'verify': {
@@ -535,17 +531,14 @@ export const createMfaFlow = ({
   };
 
   /**
-   * Ends the flow from the success or failure screen; anywhere else only a
-   * cancel ends it.
+   * Ends the flow from the failure screen; anywhere else only a cancel ends
+   * it.
    *
    * @param step - The step on screen.
    * @param isCancel - Whether the host is closing the flow.
    */
   const closeFlow = (step: MfaFlowStep, isCancel: boolean) => {
-    if (step.name === 'success' && outcome) {
-      const value = outcome;
-      settle(() => resolveResult(value));
-    } else if (step.name === 'failure') {
+    if (step.name === 'failure') {
       rejectWith(step.code);
     } else if (isCancel) {
       rejectWith('flow_cancelled');

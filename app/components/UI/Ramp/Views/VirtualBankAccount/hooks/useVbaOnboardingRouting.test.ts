@@ -11,6 +11,7 @@ import {
 import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
+import { VBA_KYC_VENDOR } from '../constants';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -68,6 +69,9 @@ const mockGetState = jest.fn();
 const mockHasAcceptedVbaVendorTerms = jest.fn();
 const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
+const mockReadSessionStatus = jest.fn();
+const mockStartSession = jest.fn();
+const mockKycState: { email: string | null } = { email: null };
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -78,6 +82,11 @@ jest.mock('../../../../../../core/Engine', () => ({
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
     },
     KycController: {
+      get state() {
+        return mockKycState;
+      },
+      readSessionStatus: () => mockReadSessionStatus(),
+      startSession: (...args: unknown[]) => mockStartSession(...args),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
@@ -122,6 +131,9 @@ describe('useOpenVbaOnboarding', () => {
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockKycState.email = null;
+    mockReadSessionStatus.mockReturnValue(null);
+    mockStartSession.mockResolvedValue({ id: 'session-1' });
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreateAutoramp.mockResolvedValue({
       id: 'autoramp-1',
@@ -142,7 +154,20 @@ describe('useOpenVbaOnboarding', () => {
       refreshKyc: true,
       refreshAutoramps: true,
     });
+    expect(mockStartSession).not.toHaveBeenCalled();
     expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
+  });
+
+  it('opens the error screen when resuming a persisted session fails', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(new Error('resume failed'));
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
   it('opens at email when vendor terms are accepted locally', async () => {
@@ -169,7 +194,15 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
@@ -303,7 +336,14 @@ describe('useOpenVbaOnboarding', () => {
         source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('registers the wallet before creating the BRL autoramp', async () => {
@@ -322,7 +362,14 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(mockRegisterWallet).toHaveBeenCalledWith({ address: '0xabc' });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
-    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
   });
 
   it('opens a retryable status when wallet lookup is unavailable', async () => {
@@ -482,6 +529,48 @@ describe('useOpenVbaOnboarding', () => {
       name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
       params: { snapshot },
     });
+  });
+
+  it('pushes the completed account on the same stack as onboarding', () => {
+    const onboardingDispatch = jest.fn();
+    const parentDispatch = jest.fn();
+    const onboardingNavigation = {
+      navigate: jest.fn(),
+      dispatch: onboardingDispatch,
+      getState: () => ({
+        index: 0,
+        routeNames: [VbaOnboardingRoutes.KYC_PENDING],
+        routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+      }),
+      getParent: () => ({
+        navigate: jest.fn(),
+        dispatch: parentDispatch,
+        getState: () => ({
+          index: 1,
+          routeNames: [
+            'Home',
+            Routes.RAMP.VBA_ONBOARDING,
+            Routes.RAMP.VBA_DETAILS,
+          ],
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
+          ],
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(onboardingNavigation, 'complete');
+
+    expect(parentDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+        }),
+      }),
+    );
+    expect(onboardingDispatch).not.toHaveBeenCalled();
   });
 
   it('replaces the onboarding stack in place so the root screen stays mounted', () => {
@@ -746,6 +835,9 @@ describe('resolveVbaOnboarding', () => {
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockKycState.email = null;
+    mockReadSessionStatus.mockReturnValue(null);
+    mockStartSession.mockResolvedValue({ id: 'session-1' });
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
@@ -778,6 +870,55 @@ describe('resolveVbaOnboarding', () => {
         }),
       }),
     );
+  });
+
+  it('resumes a persisted KYC session before hydration', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    const calls: string[] = [];
+    mockStartSession.mockImplementation(async () => {
+      calls.push('start');
+      return { id: 'session-1' };
+    });
+    mockHydrate.mockImplementation(async () => {
+      calls.push('hydrate');
+      return { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+    });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+    expect(calls).toEqual(['start', 'hydrate']);
+  });
+
+  it('resumes a persisted KYC session when no email is stored', async () => {
+    mockKycState.email = null;
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+    expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('does not start a KYC session when none is persisted', async () => {
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockStartSession).not.toHaveBeenCalled();
+    expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('returns an error without hydrating when session resume fails', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(new Error('resume failed'));
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({ status: 'error' });
+    expect(mockHydrate).not.toHaveBeenCalled();
   });
 
   it('applies the dev KYC status override before choosing a destination', async () => {

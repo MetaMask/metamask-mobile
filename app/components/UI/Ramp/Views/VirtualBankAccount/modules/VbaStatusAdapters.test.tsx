@@ -1,10 +1,12 @@
 import React, { type ComponentType } from 'react';
 import { act, render } from '@testing-library/react-native';
-import VbaKycRejected from '../VbaKycRejected';
+import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
+import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -13,12 +15,16 @@ import {
 } from './VbaStatusAdapters';
 
 jest.mock('../VbaOnboardingStub');
-jest.mock('../VbaKycRejected');
+jest.mock('../../../../KYC/Views/Status/KycPending');
+jest.mock('../../../../KYC/Views/Status/KycRejected');
 jest.mock('../hooks/useVbaOnboardingRouting');
+jest.mock('../../../../KYC/hooks/useKycStatusRedirect');
 
 const mockVbaOnboardingStub = jest.mocked(VbaOnboardingStub);
+const mockVbaKycPending = jest.mocked(VbaKycPending);
 const mockVbaKycRejected = jest.mocked(VbaKycRejected);
 const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
+const mockUseVbaKycStatusRedirect = jest.mocked(useVbaKycStatusRedirect);
 const mockAdvance = jest.fn<Promise<void>, [unknown?]>();
 
 interface AdapterCase {
@@ -28,11 +34,6 @@ interface AdapterCase {
 }
 
 const adapterCases: AdapterCase[] = [
-  {
-    Adapter: VbaKycPendingAdapter,
-    source: 'kyc_pending-retry',
-    variant: 'kyc_pending',
-  },
   {
     Adapter: VbaAccountProvisioningErrorAdapter,
     source: 'account_provisioning_error-retry',
@@ -51,6 +52,7 @@ describe('VbaStatusAdapters', () => {
     mockAdvance.mockResolvedValue(undefined);
     mockUseOpenVbaOnboarding.mockReturnValue(mockAdvance);
     mockVbaOnboardingStub.mockImplementation(() => <></>);
+    mockVbaKycPending.mockImplementation(() => <></>);
     mockVbaKycRejected.mockImplementation(() => <></>);
   });
 
@@ -67,6 +69,15 @@ describe('VbaStatusAdapters', () => {
       expect(mockAdvance).toHaveBeenCalledTimes(1);
     },
   );
+
+  it('renders the KYC pending screen with the status watcher instead of a stub', () => {
+    render(<VbaKycPendingAdapter />);
+
+    expect(mockVbaKycPending).toHaveBeenCalledTimes(1);
+    expect(mockUseVbaKycStatusRedirect).toHaveBeenCalledTimes(1);
+    expect(mockVbaOnboardingStub).not.toHaveBeenCalled();
+    expect(mockUseOpenVbaOnboarding).not.toHaveBeenCalled();
+  });
 
   it('reopens identity verification from the KYC failure page', async () => {
     render(<VbaKycRejectedAdapter />);

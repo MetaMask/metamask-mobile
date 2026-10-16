@@ -6,8 +6,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.sort.sort_by': 'Sort by',
-      'perps.sort.volume': 'Volume',
-      'perps.sort.price_change': 'Price change',
+      'perps.sort.volume': 'Volume (24h)',
+      'perps.sort.price_change': 'Price change (24h)',
       'perps.sort.funding_rate': 'Funding rate',
       'perps.sort.open_interest': 'Open interest',
       'perps.sort.high_to_low': 'High to low',
@@ -75,6 +75,10 @@ describe('PerpsMarketSortFieldBottomSheet', () => {
       expect(
         screen.getByTestId('sort-field-sheet-option-fundingRate'),
       ).toBeOnTheScreen();
+      expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Price change (24h)')).toBeOnTheScreen();
+      expect(screen.getByText('Open interest')).toBeOnTheScreen();
+      expect(screen.getByText('Funding rate')).toBeOnTheScreen();
     });
 
     it('shows direction indicator on priceChange option when selected', () => {

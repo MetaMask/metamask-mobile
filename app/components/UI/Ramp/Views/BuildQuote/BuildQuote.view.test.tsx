@@ -1,6 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   renderV2BuildQuoteView,
   renderV2BuildQuoteWithRoutes,
@@ -11,6 +11,7 @@ import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../tests/component-view
 import Engine from '../../../../../core/Engine';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const ETH_ASSET_ID = 'eip155:1/slip44:60';
 const ETH_CHAIN_ID = 'eip155:1';
@@ -92,8 +93,36 @@ const MOONPAY_DEBIT_CARD_QUOTE = buildQuote(
   DEBIT_CARD_PAYMENT_METHOD.id,
   'quote-moonpay-card',
 );
+const NATIVE_DEBIT_CARD_QUOTE = {
+  ...DEBIT_CARD_QUOTE,
+  providerInfo: { type: 'native' as const },
+};
+const WIDGET_CHECKOUT_URL = 'https://widget.example.com/session';
 
-type ProviderRecord = typeof TRANSAK_PROVIDER;
+function providerWithBuyLimit(minAmount: number, maxAmount: number) {
+  return {
+    ...TRANSAK_PROVIDER,
+    limits: {
+      fiat: {
+        usd: {
+          [DEBIT_CARD_PAYMENT_METHOD.id]: {
+            minAmount,
+            maxAmount,
+            feeFixedRate: 0,
+            feeDynamicRate: 0,
+          },
+        },
+      },
+    },
+  };
+}
+
+type ProviderRecord = Omit<
+  typeof TRANSAK_PROVIDER,
+  'supportedCryptoCurrencies'
+> & {
+  supportedCryptoCurrencies: Record<string, boolean>;
+};
 
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
@@ -189,6 +218,8 @@ function setupV2Hooks(
   options: {
     providers?: ProviderRecord[];
     initialSelectedProvider?: ProviderRecord;
+    quotes?: { success: unknown[]; error: unknown[] };
+    quoteError?: Error;
   } = {},
 ) {
   const providers = options.providers ?? [TRANSAK_PROVIDER];
@@ -206,9 +237,13 @@ function setupV2Hooks(
     });
 
   const getQuotesMock = Engine.context.RampsController.getQuotes as jest.Mock;
-  getQuotesMock
-    .mockReset()
-    .mockImplementation((params?: { providers?: string[] }) => {
+  getQuotesMock.mockReset();
+  if (options.quoteError) {
+    getQuotesMock.mockRejectedValue(options.quoteError);
+  } else if (options.quotes) {
+    getQuotesMock.mockResolvedValue(options.quotes);
+  } else {
+    getQuotesMock.mockImplementation((params?: { providers?: string[] }) => {
       const providerId = params?.providers?.[0] ?? 'transak';
       if (providerId === 'moonpay') {
         return Promise.resolve({
@@ -221,9 +256,28 @@ function setupV2Hooks(
         error: [],
       });
     });
+  }
 
   const stateOverrides = buildV2RampsState({ providers, selectedProvider });
   return { getQuotesMock, stateOverrides };
+}
+
+function pressContinue(
+  getByTestId: (testId: string) => {
+    props: Record<string, unknown>;
+    parent?: unknown;
+  },
+) {
+  let node: { props: Record<string, unknown>; parent?: unknown } | undefined =
+    getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+  while (node && typeof node.props.onPress !== 'function') {
+    node = node.parent as typeof node | undefined;
+  }
+  const onPress = node?.props.onPress as (() => Promise<void>) | undefined;
+  if (!onPress) {
+    throw new Error('Continue button has no onPress handler');
+  }
+  return onPress();
 }
 
 describe('V2 unified-buy BuildQuote', () => {
@@ -280,7 +334,7 @@ describe('V2 unified-buy BuildQuote', () => {
     ).toBeOnTheScreen();
   });
 
-  it.skip('opens the V2 PaymentSelectionModal when tapping the payment pill', async () => {
+  it('opens the V2 PaymentSelectionModal when tapping the payment pill', async () => {
     const { stateOverrides } = setupV2Hooks();
 
     const { findByTestId, findByText } = renderV2BuildQuoteWithRoutes({
@@ -389,5 +443,212 @@ describe('V2 unified-buy BuildQuote', () => {
         .join('');
       expect(text).toContain('50');
     });
+  });
+
+  it('opens checkout with the widget url when Continue is pressed on a provider quote', async () => {
+    const { stateOverrides } = setupV2Hooks();
+    (Engine.context.RampsController.getBuyWidgetData as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({
+        url: WIDGET_CHECKOUT_URL,
+        orderId: 'order-1',
+      });
+
+    const { findByText, findByTestId, getByTestId } =
+      renderV2BuildQuoteWithRoutes({
+        initialParams: { assetId: ETH_ASSET_ID },
+        overrides: stateOverrides,
+        includeContinueRoutes: true,
+      });
+
+    expect(await findByText('Powered by Transak')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON).props
+          .accessibilityState?.disabled,
+      ).not.toBe(true);
+    });
+    await act(async () => {
+      await pressContinue(getByTestId);
+    });
+
+    expect(
+      String(
+        (await findByTestId(`route-${Routes.RAMP.CHECKOUT}`)).props.children,
+      ),
+    ).toContain(WIDGET_CHECKOUT_URL);
+  });
+
+  it('opens identity verification when Continue is pressed for a first-time Transak user', async () => {
+    const { stateOverrides } = setupV2Hooks({
+      quotes: { success: [NATIVE_DEBIT_CARD_QUOTE], error: [] },
+    });
+
+    const { findByText, findByTestId, getByTestId } =
+      renderV2BuildQuoteWithRoutes({
+        initialParams: { assetId: ETH_ASSET_ID },
+        overrides: stateOverrides,
+        includeContinueRoutes: true,
+      });
+
+    expect(await findByText('Powered by Transak')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON).props
+          .accessibilityState?.disabled,
+      ).not.toBe(true);
+    });
+    await act(async () => {
+      await pressContinue(getByTestId);
+    });
+
+    const identity = await findByTestId(`route-${Routes.RAMP.VERIFY_IDENTITY}`);
+    expect(String(identity.props.children)).toContain(ETH_ASSET_ID);
+    expect(String(identity.props.children)).toContain('"amount":"100"');
+  });
+
+  it('opens the email screen when Continue is pressed after the Transak policy is accepted', async () => {
+    const { stateOverrides } = setupV2Hooks({
+      quotes: { success: [NATIVE_DEBIT_CARD_QUOTE], error: [] },
+    });
+
+    const { findByText, findByTestId, getByTestId } =
+      renderV2BuildQuoteWithRoutes({
+        initialParams: { assetId: ETH_ASSET_ID },
+        overrides: {
+          ...stateOverrides,
+          fiatOrders: { hasAgreedTransakNativePolicy: true },
+        },
+        includeContinueRoutes: true,
+      });
+
+    expect(await findByText('Powered by Transak')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON).props
+          .accessibilityState?.disabled,
+      ).not.toBe(true);
+    });
+    await act(async () => {
+      await pressContinue(getByTestId);
+    });
+
+    expect(
+      String(
+        (await findByTestId(`route-${Routes.RAMP.ENTER_EMAIL}`)).props.children,
+      ),
+    ).toContain(ETH_ASSET_ID);
+  });
+
+  it('shows the minimum purchase error and does not request a quote when the amount is too low', async () => {
+    const limitedProvider = providerWithBuyLimit(200, 1000);
+    const { getQuotesMock, stateOverrides } = setupV2Hooks({
+      providers: [limitedProvider],
+      initialSelectedProvider: limitedProvider,
+    });
+
+    const { findByText, getByTestId } = renderV2BuildQuoteView({
+      initialParams: { assetId: ETH_ASSET_ID, amount: 100 },
+      overrides: stateOverrides,
+    });
+
+    expect(await findByText(/Minimum purchase is/)).toBeOnTheScreen();
+    expect(getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON)).toBeDisabled();
+    expect(getQuotesMock).not.toHaveBeenCalled();
+  });
+
+  it('shows an error banner when the quote request fails', async () => {
+    const { stateOverrides } = setupV2Hooks({
+      quoteError: new Error('Quote fetch failed'),
+    });
+
+    const { findByText } = renderV2BuildQuoteView({
+      initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
+    });
+
+    expect(await findByText('Quote fetch failed')).toBeOnTheScreen();
+  });
+
+  it('updates the payment method when Apple Pay is selected', async () => {
+    const { getQuotesMock, stateOverrides } = setupV2Hooks();
+
+    const result = renderV2BuildQuoteWithRoutes({
+      initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
+      includePaymentSelectionRoute: true,
+      wireRampsController: true,
+    });
+    const { findByText, getByTestId, queryByText } = result;
+
+    await findByText('Debit/Credit Card');
+    fireEvent.press(getByTestId(BUILD_QUOTE_TEST_IDS.PAYMENT_PILL));
+    fireEvent.press(await findByText('Apple Pay'));
+
+    await waitFor(() => {
+      expect(queryByText('Pay with')).not.toBeOnTheScreen();
+      expect(getQuotesMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethods: [APPLE_PAY_PAYMENT_METHOD.id],
+        }),
+      );
+    });
+    expect(result.getByText('Apple Pay')).toBeOnTheScreen();
+  });
+
+  it('switches to a provider that supports the selected token', async () => {
+    const transakWithoutEth = {
+      ...TRANSAK_PROVIDER,
+      supportedCryptoCurrencies: {
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001': true,
+      },
+    };
+    const { stateOverrides } = setupV2Hooks({
+      providers: [transakWithoutEth, MOONPAY_PROVIDER],
+      initialSelectedProvider: transakWithoutEth,
+    });
+
+    const { findByText, queryByTestId } = renderV2BuildQuoteWithRoutes({
+      initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
+      includeTokenNotAvailableRoute: true,
+      wireRampsController: true,
+    });
+
+    expect(await findByText('Powered by MoonPay')).toBeOnTheScreen();
+    expect(
+      queryByTestId(`route-${Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}`),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('opens the token not available sheet when no provider supports the token', async () => {
+    const transakWithoutEth = {
+      ...TRANSAK_PROVIDER,
+      supportedCryptoCurrencies: {},
+    };
+    const { stateOverrides } = setupV2Hooks({
+      providers: [transakWithoutEth],
+      initialSelectedProvider: transakWithoutEth,
+    });
+
+    const { getByTestId, queryByText } = renderV2BuildQuoteWithRoutes({
+      initialParams: { assetId: ETH_ASSET_ID },
+      overrides: stateOverrides,
+      includeTokenNotAvailableRoute: true,
+      wireRampsController: true,
+    });
+
+    await waitFor(
+      () => {
+        expect(
+          String(
+            getByTestId(`route-${Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}`).props
+              .children,
+          ),
+        ).toContain(ETH_ASSET_ID);
+      },
+      { timeout: 4000 },
+    );
+    expect(queryByText('Powered by Transak')).not.toBeOnTheScreen();
   });
 });

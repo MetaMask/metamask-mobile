@@ -42,7 +42,7 @@ export interface OpenLimitOrderDetailsModalProps {
    */
   triggerToken?: BridgeToken;
   /**
-   * Expiration label, e.g. "Sep 27".
+   * Expiration label, e.g. "Sep 27, 2026 at 12:00 PM".
    */
   expiry: string;
   /**

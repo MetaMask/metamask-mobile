@@ -31,6 +31,7 @@ import {
   getCaipChainIdFromAssetId,
   getNetworkBadgeSrc,
   formatMarketStats,
+  formatSearchStats,
   getPriceChangeFieldKey,
 } from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
@@ -61,6 +62,8 @@ const getPriceChangePrefix = (
   if (priceChange === 0) return '';
   return isPositive ? '+' : '-';
 };
+
+export type TrendingTokenRowSubtitle = 'marketStats' | 'search';
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
@@ -93,6 +96,11 @@ interface TrendingTokenRowItemProps {
   testIdInstanceKey?: string;
   /** Optional trailing action button rendered on the right of the row. */
   endAction?: QuickActionButton;
+  /**
+   * Subtitle layout. `marketStats` is market cap and volume.
+   * `search` is the token symbol and market cap.
+   */
+  subtitle?: TrendingTokenRowSubtitle;
 }
 
 /**
@@ -156,6 +164,7 @@ const TrendingTokenRowItem = ({
   onCardPress,
   testIdInstanceKey,
   endAction,
+  subtitle: subtitleVariant = 'marketStats',
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -174,6 +183,15 @@ const TrendingTokenRowItem = ({
     () => getResultTypeConfig(token.securityData?.resultType).badge,
     [token.securityData?.resultType],
   );
+
+  const subtitle =
+    subtitleVariant === 'search'
+      ? formatSearchStats(token.symbol, token.marketCap ?? 0, currentCurrency)
+      : formatMarketStats(
+          token.marketCap ?? 0,
+          token.aggregatedUsdVolume ?? 0,
+          currentCurrency,
+        );
 
   const priceChangeFieldKey = getPriceChangeFieldKey(selectedTimeOption);
   const pricePercentChangeString = token.priceChangePct?.[priceChangeFieldKey];
@@ -253,11 +271,7 @@ const TrendingTokenRowItem = ({
           ellipsizeMode="tail"
           style={styles.marketStats}
         >
-          {formatMarketStats(
-            token.marketCap ?? 0,
-            token.aggregatedUsdVolume ?? 0,
-            currentCurrency,
-          )}
+          {subtitle}
         </Text>
       </View>
       <View style={styles.rightContainer}>
