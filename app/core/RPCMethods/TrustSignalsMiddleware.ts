@@ -161,7 +161,8 @@ export function createTrustSignalsMiddleware({
       const isTypedDataSignature = isEthSignTypedData(req);
 
       if (req.origin) {
-        scanUrl(phishingController, req.origin, getOriginScanFlow(req));
+        // eslint-disable-next-line no-void
+        void scanUrl(phishingController, req.origin, getOriginScanFlow(req));
       }
 
       const chainId = getChainIdForRequest(req, networkController);
