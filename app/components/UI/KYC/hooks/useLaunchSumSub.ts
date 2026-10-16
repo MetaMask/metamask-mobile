@@ -62,6 +62,9 @@ async function recordSessionConsents(): Promise<void> {
  * keep consent recording and provider launch atomic. Splitting those operations
  * across screens yields a "Failed to get applicant" error.
  *
+ * A half-completed (abandoned) KYC session re-enters here too and relaunches
+ * the provider directly instead of stopping at an interstitial.
+ *
  * `launchProviderFlow` returns a durable provider-flow outcome. A submitted
  * run advances onboarding, an abandoned run remains retryable, and a failed
  * run surfaces an error.
@@ -70,10 +73,9 @@ export const useLaunchSumSub = (
   onSubmitted: (
     result: VbaIdentityVerificationCompletion,
   ) => void | Promise<void>,
-  initialNeedsMoreInfo = false,
 ): UseLaunchSumSubResult => {
-  const [isLaunching, setIsLaunching] = useState(!initialNeedsMoreInfo);
-  const [needsMoreInfo, setNeedsMoreInfo] = useState(initialNeedsMoreInfo);
+  const [isLaunching, setIsLaunching] = useState(true);
+  const [needsMoreInfo, setNeedsMoreInfo] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   // Guards against React 18 strict-mode double-invoke and re-renders launching
@@ -90,9 +92,6 @@ export const useLaunchSumSub = (
   }, []);
 
   useEffect(() => {
-    if (initialNeedsMoreInfo && attempt === 0) {
-      return undefined;
-    }
     if (inFlightRef.current) {
       return undefined;
     }
@@ -145,7 +144,7 @@ export const useLaunchSumSub = (
       cancelled = true;
       inFlightRef.current = false;
     };
-  }, [attempt, initialNeedsMoreInfo, onSubmitted]);
+  }, [attempt, onSubmitted]);
 
   return { isLaunching, needsMoreInfo, hasError, retry };
 };

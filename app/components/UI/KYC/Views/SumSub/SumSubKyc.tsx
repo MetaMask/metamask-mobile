@@ -43,25 +43,21 @@ export const VbaSumSubKycSelectorsIDs = {
  * (via {@link useLaunchSumSub}) and reports the KYC outcome. While
  * launching it shows a spinner (the SDK presents itself over this screen); if
  * the launch fails it surfaces a retryable error instead of bouncing back to
- * the previous screen. Provider terms are accepted earlier, on Verify Identity.
+ * the previous screen. A half-completed (abandoned) KYC session re-enters here
+ * and relaunches the provider directly. Provider terms are accepted earlier,
+ * on Verify Identity.
  */
 interface VbaSumSubKycProps {
   onSubmitted: (
     result: VbaIdentityVerificationCompletion,
   ) => void | Promise<void>;
-  initialNeedsMoreInfo?: boolean;
 }
 
-const VbaSumSubKyc = ({
-  onSubmitted,
-  initialNeedsMoreInfo = false,
-}: VbaSumSubKycProps) => {
+const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { isLaunching, needsMoreInfo, hasError, retry } = useLaunchSumSub(
-    onSubmitted,
-    initialNeedsMoreInfo,
-  );
+  const { isLaunching, needsMoreInfo, hasError, retry } =
+    useLaunchSumSub(onSubmitted);
 
   const handleBack = useCallback(() => {
     // The onboarding stack is reset to this screen plus the caller, and

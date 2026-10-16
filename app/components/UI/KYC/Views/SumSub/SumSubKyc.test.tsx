@@ -112,17 +112,18 @@ describe('VbaSumSubKyc', () => {
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
-  it('shows more information needed on resume without launching SumSub', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+  it('launches SumSub on mount without the more-info interstitial', async () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
     );
 
+    await waitFor(() => {
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+    });
     expect(
-      getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-    ).toBeOnTheScreen();
-    expect(getByText('Proof of address')).toBeOnTheScreen();
-    expect(getByText('Need help verifying?')).toBeOnTheScreen();
-    expect(mockKycController.launchProviderFlow).not.toHaveBeenCalled();
+      queryByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('shows a retryable error when the provider flow fails', async () => {
@@ -184,10 +185,18 @@ describe('VbaSumSubKyc', () => {
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
-  it('returns to the caller from a resumed need-info screen', () => {
+  it('returns to the caller from the need-info screen', async () => {
+    mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
+
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
     );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
+      ).toBeOnTheScreen();
+    });
 
     fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
 
@@ -196,13 +205,20 @@ describe('VbaSumSubKyc', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('returns to Money home when a resumed need-info screen has nothing to pop', () => {
+  it('returns to Money home when the need-info screen has nothing to pop', async () => {
     mockCanGoBack.mockReturnValue(false);
     mockParentCanGoBack.mockReturnValue(false);
+    mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
     const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} initialNeedsMoreInfo />,
+      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
     );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
+      ).toBeOnTheScreen();
+    });
 
     fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
 
