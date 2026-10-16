@@ -14,7 +14,7 @@ export interface SocialPostTradePreview {
 }
 
 /** Where a pre-attached position was shared from. Kept for later analytics. */
-export type SocialPostComposerEntryPoint = 'token_details';
+export type SocialPostComposerEntryPoint = 'token_details' | 'perps';
 
 interface SocialPostComposerTradeParams {
   tradeInFlight: {
@@ -26,12 +26,15 @@ interface SocialPostComposerTradeParams {
   preview: SocialPostTradePreview;
   position?: never;
   entryPoint?: never;
+  openFeedAfterPost?: never;
 }
 
 interface SocialPostComposerPositionParams {
   /** Fast path: position passed by the host screen. No fetch fires. */
   position: Position;
   entryPoint: SocialPostComposerEntryPoint;
+  /** On success, replace the composer with Social V1 instead of going back. */
+  openFeedAfterPost?: boolean;
   tradeInFlight?: never;
   preview?: never;
 }
