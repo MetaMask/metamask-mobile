@@ -1,6 +1,9 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { captureException } from '@sentry/react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import type { RootState } from '../../../../reducers';
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
   last7DaysUtcWindow,
@@ -17,7 +20,16 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 const PROFILE_A = 'profile-a';
+const PROFILE_B = 'profile-b';
 
 const mockSummary = {
   lifetime_total: '2000000',
@@ -64,8 +76,32 @@ describe('useLast7DaysEarnings', () => {
     typeof useFocusEffect
   >;
   const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
   const flushPromises = () => new Promise(process.nextTick);
   let focusEffect: (() => void) | undefined;
+
+  const stateWithCachedWindow = (
+    profileId: string,
+    payload: EarningsSummaryDto,
+  ): RootState => {
+    const { from, to } = last7DaysUtcWindow();
+    return {
+      engine: {
+        backgroundState: {
+          RewardsMoneyController: {
+            earningsSummary: {
+              [`${profileId}:all|window:${from}..${to}|claimable:0`]: {
+                payload,
+                lastFetched: Date.now(),
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,7 +109,28 @@ describe('useLast7DaysEarnings', () => {
     mockUseFocusEffect.mockImplementation((effect) => {
       focusEffect = effect;
     });
+    mockUseSelector.mockReturnValue(null);
     mockEngineCall.mockResolvedValue(mockSummary);
+  });
+
+  it('shows the cached window on mount before the focus fetch lands', () => {
+    const state = stateWithCachedWindow(PROFILE_A, mockSummary);
+    mockUseSelector.mockImplementation((selector) => selector(state));
+
+    const { result } = renderHook(() => useLast7DaysEarnings(PROFILE_A));
+
+    expect(result.current.data).toEqual(mockSummary);
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('ignores a cached window that belongs to another profile', () => {
+    const state = stateWithCachedWindow(PROFILE_B, mockSummary);
+    mockUseSelector.mockImplementation((selector) => selector(state));
+
+    const { result } = renderHook(() => useLast7DaysEarnings(PROFILE_A));
+
+    expect(result.current.data).toBeNull();
+    expect(result.current.isLoading).toBe(true);
   });
 
   it('fetches a windowed summary with claimability off and keeps it out of Redux', async () => {
@@ -110,6 +167,12 @@ describe('useLast7DaysEarnings', () => {
 
     expect(result.current.data).toEqual(mockSummary);
     expect(result.current.error).toBe(true);
+    expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+      tags: {
+        feature: 'rewards-money',
+        context: 'last7DaysEarnings.fetch_failed',
+      },
+    });
     expect(mockEngineCall).toHaveBeenLastCalledWith(
       'RewardsMoneyController:getEarningsSummary',
       expect.objectContaining({ forceFresh: true, includeClaimable: false }),
@@ -146,5 +209,86 @@ describe('useLast7DaysEarnings', () => {
     });
 
     expect(mockEngineCall).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops the previous profile total and ignores its late response', async () => {
+    let resolveProfileA: (value: typeof mockSummary) => void = () => undefined;
+    mockEngineCall.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveProfileA = resolve;
+      }),
+    );
+    const summaryB = { ...mockSummary, lifetime_total: '1000000' };
+    mockEngineCall.mockResolvedValueOnce(summaryB);
+
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => useLast7DaysEarnings(id),
+      { initialProps: { id: PROFILE_A } },
+    );
+    await act(async () => {
+      focusEffect?.();
+    });
+
+    rerender({ id: PROFILE_B });
+
+    expect(result.current.data).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      focusEffect?.();
+      await flushPromises();
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+    expect(result.current.data).toEqual(summaryB);
+
+    await act(async () => {
+      resolveProfileA(mockSummary);
+      await flushPromises();
+    });
+
+    expect(result.current.data).toEqual(summaryB);
+    expect(result.current.error).toBe(false);
+  });
+
+  it('drops the previous profile total when the next profile fetch fails', async () => {
+    let resolveProfileA: (value: typeof mockSummary) => void = () => undefined;
+    mockEngineCall.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveProfileA = resolve;
+      }),
+    );
+    mockEngineCall.mockRejectedValueOnce(new Error('profile b down'));
+
+    const { result, rerender } = renderHook(
+      ({ id }: { id: string }) => useLast7DaysEarnings(id),
+      { initialProps: { id: PROFILE_A } },
+    );
+    await act(async () => {
+      focusEffect?.();
+    });
+
+    rerender({ id: PROFILE_B });
+
+    expect(result.current.data).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+
+    await act(async () => {
+      focusEffect?.();
+      await flushPromises();
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(2);
+    expect(result.current.data).toBeNull();
+    expect(result.current.error).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      resolveProfileA(mockSummary);
+      await flushPromises();
+    });
+
+    expect(result.current.data).toBeNull();
+    expect(result.current.error).toBe(true);
   });
 });

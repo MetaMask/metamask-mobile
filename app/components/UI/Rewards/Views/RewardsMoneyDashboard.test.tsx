@@ -602,7 +602,10 @@ describe('RewardsMoneyDashboard', () => {
     expect(getByTestId('rewards-money-earnings-tab')).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeNull();
   });
 
   it('hides the earnings indicator when only claimed balance is positive', () => {
@@ -635,25 +638,22 @@ describe('RewardsMoneyDashboard', () => {
     );
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeNull();
   });
 
-  it('keeps inactive tab bodies mounted', () => {
+  it('mounts a tab only while it is selected', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY, {
-        includeHiddenElements: true,
-      }),
-    ).toBeTruthy();
-    expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY, {
-        includeHiddenElements: true,
-      }),
-    ).toBeTruthy();
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeNull();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(mockPerformanceTab).not.toHaveBeenCalled();
 
     fireEvent.press(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
@@ -662,14 +662,7 @@ describe('RewardsMoneyDashboard', () => {
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
     );
 
-    expect(
-      queryByTestId('rewards-money-performance-tab', {
-        includeHiddenElements: true,
-      }),
-    ).toBeTruthy();
-    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
-      expect.objectContaining({ active: false }),
-    );
+    expect(queryByTestId('rewards-money-performance-tab')).toBeNull();
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
