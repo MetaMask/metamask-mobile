@@ -3,7 +3,6 @@ import React from 'react';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   FontFamily,
-  FontWeight,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -25,11 +24,10 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
     <MaskedView
       maskElement={
         <Text
-          variant={TextVariant.DisplayLg}
+          variant={TextVariant.DisplayXl}
           fontFamily={FontFamily.Hero}
-          fontWeight={FontWeight.Regular}
           accessibilityRole="header"
-          twClassName="w-full text-center"
+          twClassName="w-full text-center leading-[1.1] tracking-[-1.2px]"
           testID={testID}
         >
           {title}
@@ -44,10 +42,9 @@ const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
       >
         {/* Sizes the gradient to the mask. Opacity 0 keeps it from covering the gold fill. */}
         <Text
-          variant={TextVariant.DisplayLg}
+          variant={TextVariant.DisplayXl}
           fontFamily={FontFamily.Hero}
-          fontWeight={FontWeight.Regular}
-          twClassName="w-full text-center opacity-0"
+          twClassName="w-full text-center leading-[1.1] tracking-[-1.2px] opacity-0"
           importantForAccessibility="no-hide-descendants"
           accessibilityElementsHidden
         >
