@@ -9,8 +9,8 @@ import {
   DummyQuotesWithApproval,
 } from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
 import {
-  type MetaMetricsSwapsEventSource,
-  QuoteResponse,
+  MetaMetricsSwapsEventSource,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -123,8 +123,8 @@ const mockSelectSelectedAccountWalletId = jest.mocked(
   selectSelectedAccountWalletId,
 );
 const SOCIAL_BRIDGE_LOCATIONS: MetaMetricsSwapsEventSource[] = [
-  'Follow Trading Token Screen',
-  'Follow Trading Feed Screen',
+  MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
+  MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
 ];
 
 const createQuoteResponse = (withIntent = false): BridgeQuoteResponse => {
@@ -884,7 +884,7 @@ describe('useSubmitBridgeTx', () => {
 
     await result.current.submitBridgeTx({
       quoteResponse: createQuoteResponse(),
-      location: 'Token View',
+      location: MetaMetricsSwapsEventSource.TokenView,
     });
 
     expect(mockRecordSocialTrade).not.toHaveBeenCalled();
@@ -899,7 +899,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: createQuoteResponse(),
-        location: 'Follow Trading Token Screen',
+        location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
       }),
     ).rejects.toThrow('submit failed');
 
@@ -915,7 +915,7 @@ describe('useSubmitBridgeTx', () => {
 
     await result.current.submitBridgeTx({
       quoteResponse: createQuoteResponse(),
-      location: 'Follow Trading Token Screen',
+      location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
     });
 
     expect(mockRecordSocialTrade).not.toHaveBeenCalled();
