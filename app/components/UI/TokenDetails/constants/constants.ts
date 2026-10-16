@@ -118,7 +118,7 @@ export type TokenDetailsVariant =
 
 /**
  * Tabs on the V1 (meme) Token Details view. Feed is the default (landing) tab;
- * Overview and Security follow, then Top holders. Index order matters — it
+ * Overview and Security follow, then Holders. Index order matters — it
  * aligns with the tab bar and the swipeable pager pages, so keep it in sync
  * with `strings('token_details_v1.tabs.*')`.
  */

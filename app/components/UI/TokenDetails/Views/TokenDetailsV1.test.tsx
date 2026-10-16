@@ -847,7 +847,7 @@ describe('TokenDetailsV1', () => {
     ).toBeTruthy();
   });
 
-  it('keeps the Feed and Top holders tabs when they have no rows', () => {
+  it('keeps the Feed and Holders tabs when they have no rows', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -900,7 +900,7 @@ describe('TokenDetailsV1', () => {
     });
   });
 
-  it('shows the token leaderboard on the Top holders tab', () => {
+  it('shows the token leaderboard on the Holders tab', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };

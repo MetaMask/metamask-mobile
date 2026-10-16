@@ -247,7 +247,7 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
-  /** Visible tabs. Defaults to Feed, Overview, Security, Top holders. */
+  /** Visible tabs. Defaults to Feed, Overview, Security, Holders. */
   tabs?: readonly TokenDetailsV1TabKey[];
 }
 

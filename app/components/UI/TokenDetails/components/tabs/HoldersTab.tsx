@@ -8,8 +8,11 @@ interface TokenDetailsHoldersTabProps {
 }
 
 /**
- * Ranked holders of the token on screen. Same list as the Social leaderboard,
- * scoped to this CAIP-19 asset.
+ * Traders ranked on the token on screen. Same list as the Social
+ * leaderboard, scoped to this CAIP-19 asset.
+ *
+ * Every state this can be in — loading, empty, no-data, error — belongs to
+ * `SocialLeaderboard`. This tab only chooses the source.
  */
 const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
   assetId,
