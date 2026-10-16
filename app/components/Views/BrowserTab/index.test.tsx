@@ -506,6 +506,7 @@ describe('BrowserTab', () => {
       );
       expect(getPhishingTestResultAsync).not.toHaveBeenCalledWith(
         'https://shared-host.example',
+        expect.anything(),
       );
       // Loading the flagged page is cancelled.
       expect(result).toBe(false);
