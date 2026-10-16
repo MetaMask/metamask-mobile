@@ -3,6 +3,7 @@ import { fireEvent, render, within } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -112,6 +113,17 @@ describe('LimitOrderConfirmationModal', () => {
     rerender(<LimitOrderConfirmationModal {...props} costTolerance="0.5%" />);
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays the trigger price after an @', () => {
+    const { getByTestId, getByText } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
+      strings('bridge.limit.trigger_condition_at'),
+    );
+    expect(getByText('$3,412.20')).toBeOnTheScreen();
   });
 
   it('displays the account upgrade fee as the estimated network fee', () => {

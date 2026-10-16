@@ -10025,6 +10025,7 @@
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
+      "trigger_condition_at": "@",
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
