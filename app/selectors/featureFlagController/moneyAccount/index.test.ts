@@ -459,10 +459,10 @@ describe('Money Account feature flag selectors', () => {
     it('returns remote config when present', () => {
       const remoteConfig = {
         chainId: '0x1',
-        boringVault: '0xvault',
-        tellerAddress: '0xteller',
-        accountantAddress: '0xaccountant',
-        lensAddress: '0xlens',
+        boringVault: `0x${'1'.repeat(40)}`,
+        tellerAddress: `0x${'2'.repeat(40)}`,
+        accountantAddress: `0x${'3'.repeat(40)}`,
+        lensAddress: `0x${'4'.repeat(40)}`,
       };
 
       const result = selectMoneyAccountVaultConfig.resultFunc({
@@ -502,15 +502,31 @@ describe('Money Account feature flag selectors', () => {
       expect(result).toBeUndefined();
     });
 
+    it('ignores a malformed remote config', () => {
+      delete process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED;
+
+      const result = selectMoneyAccountVaultConfig.resultFunc({
+        moneyAccountVaultConfig: {
+          chainId: '0x1',
+          boringVault: '0xvault',
+          tellerAddress: '0xteller',
+          accountantAddress: '0xaccountant',
+          lensAddress: '0xlens',
+        },
+      });
+
+      expect(result).toBeUndefined();
+    });
+
     it('prefers remote config over dev fallback', () => {
       process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED = 'true';
 
       const remoteConfig = {
         chainId: '0x89',
-        boringVault: '0xremoteVault',
-        tellerAddress: '0xremoteTeller',
-        accountantAddress: '0xremoteAccountant',
-        lensAddress: '0xremoteLens',
+        boringVault: `0x${'5'.repeat(40)}`,
+        tellerAddress: `0x${'6'.repeat(40)}`,
+        accountantAddress: `0x${'7'.repeat(40)}`,
+        lensAddress: `0x${'8'.repeat(40)}`,
       };
 
       const result = selectMoneyAccountVaultConfig.resultFunc({

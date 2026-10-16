@@ -7,8 +7,9 @@ import { renderComponentViewScreen } from '../../../../../../tests/component-vie
 import { createStateFixture } from '../../../../../../tests/component-view/stateFixture';
 import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { strings } from '../../../../../../locales/i18n';
-import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
 import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '@metamask/money-account-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockGetPaymentMethodsForContext = jest.mocked(
   Engine.context.RampsController.getPaymentMethodsForContext,
@@ -96,7 +97,7 @@ describe('CreateVirtualBankAccount view', () => {
       expect.objectContaining({
         region: 'br',
         // The query pipeline normalizes the CAIP asset id to lowercase.
-        assetId: getMoneyAccountDepositAssetId().toLowerCase(),
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD].toLowerCase(),
         autoSelectProvider: true,
         restrictToKnownOrNativeProviders: true,
         updateState: false,

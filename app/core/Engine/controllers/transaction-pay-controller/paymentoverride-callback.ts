@@ -15,7 +15,7 @@ import BigNumber from 'bignumber.js';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import { MUSD_DECIMALS } from '../../../../components/UI/Earn/constants/musd';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -55,12 +55,15 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
       .decimalPlaces(0, BigNumber.ROUND_DOWN)
       .toFixed(0),
   );
+  // No override to build before there is an amount to move, and the withdraw
+  // builder rejects zero rather than encode a zero-share redemption.
+  if (amount === 0n) return [];
 
   const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
     amount,
     chainId,
-    tellerAddress: vaultConfig.tellerAddress as Hex,
-    accountantAddress: vaultConfig.accountantAddress as Hex,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
     moneyAccountAddress,
     recipient,
     provider,
@@ -142,6 +145,9 @@ async function getMoneyAccountDepositPaymentOverrideData<
       .decimalPlaces(0, BigNumber.ROUND_DOWN)
       .toFixed(0),
   );
+  // No override to build before there is an amount to move, and the deposit
+  // builder rejects zero rather than encode a deposit that mints nothing.
+  if (amount === 0n) return { calls: [] };
 
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,

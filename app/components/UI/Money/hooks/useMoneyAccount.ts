@@ -9,13 +9,12 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { createMoneyAccountBatchId } from '../utils/createMoneyAccountBatchId';
 import {
-  buildMoneyAccountDepositBatch,
-  buildMoneyAccountWithdrawBatch,
+  buildMoneyAccountDepositPlaceholderBatch,
+  buildMoneyAccountWithdrawPlaceholderBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
@@ -116,32 +115,20 @@ export function useMoneyAccountDeposit() {
         }
         const moneyAccountAddress = primaryMoneyAccount.address;
 
-        const {
-          chainId,
-          boringVault,
-          tellerAddress,
-          accountantAddress,
-          lensAddress,
-        } = vaultConfig;
+        const { chainId, tellerAddress } = vaultConfig;
 
-        const chainIdHex = chainId as Hex;
-        const provider = getProviderByChainId(chainIdHex);
-        if (!provider) {
+        if (!getProviderByChainId(chainId)) {
           throw new Error(
             `${LOG_TAG} No provider available for chain ${chainId}`,
           );
         }
 
         return {
-          chainIdHex,
-          boringVault,
+          chainIdHex: chainId,
           tellerAddress,
-          accountantAddress,
-          lensAddress,
-          provider,
           moneyAccountAddress,
-          networkClientId: resolveNetworkClientId(chainIdHex),
-          isGasFeeSponsored: isMonadMainnetChainId(chainIdHex),
+          networkClientId: resolveNetworkClientId(chainId),
+          isGasFeeSponsored: isMonadMainnetChainId(chainId),
         };
       };
 
@@ -197,16 +184,11 @@ export function useMoneyAccountDeposit() {
         // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
         await waitForNextFrame();
 
-        const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-          amount: BigInt(0),
-          chainId: depositSetup.chainIdHex,
-          boringVault: depositSetup.boringVault,
-          tellerAddress: depositSetup.tellerAddress,
-          accountantAddress: depositSetup.accountantAddress,
-          lensAddress: depositSetup.lensAddress,
-          provider: depositSetup.provider,
-          initialiseWithoutData: true,
-        });
+        const { approveTx, depositTx } =
+          buildMoneyAccountDepositPlaceholderBatch({
+            chainId: depositSetup.chainIdHex,
+            tellerAddress: depositSetup.tellerAddress,
+          });
 
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
@@ -276,7 +258,6 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -288,20 +269,15 @@ export function useMoneyAccountWithdrawal() {
     if (!primaryMoneyAccount?.address) {
       throw new Error(`${LOG_TAG} Missing money account address`);
     }
-    if (!recipient) {
-      throw new Error(`${LOG_TAG} Missing recipient EVM address`);
-    }
 
-    const { chainId, tellerAddress, accountantAddress } = vaultConfig;
+    const { chainId, tellerAddress } = vaultConfig;
 
-    const chainIdHex = chainId as Hex;
-    const provider = getProviderByChainId(chainIdHex);
-    if (!provider) {
+    if (!getProviderByChainId(chainId)) {
       throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
     }
 
-    const networkClientId = resolveNetworkClientId(chainIdHex);
-    const isGasFeeSponsored = isMonadMainnetChainId(chainIdHex);
+    const networkClientId = resolveNetworkClientId(chainId);
+    const isGasFeeSponsored = isMonadMainnetChainId(chainId);
 
     // Show the confirmation skeleton while the withdrawal batch is created.
     navigateToConfirmation({
@@ -313,17 +289,13 @@ export function useMoneyAccountWithdrawal() {
       // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
       await waitForNextFrame();
 
-      // Placeholder amount — MM Pay re-encodes both calls via
-      // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-      const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(0),
-        chainId: chainIdHex,
-        tellerAddress: tellerAddress as Hex,
-        accountantAddress: accountantAddress as Hex,
-        moneyAccountAddress: primaryMoneyAccount.address as Hex,
-        recipient: recipient as Hex,
-        provider,
-      });
+      // MM Pay re-encodes both calls via `updateMoneyAccountWithdrawTokenAmount`
+      // once the user picks an amount.
+      const { withdrawTx, transferTx } =
+        buildMoneyAccountWithdrawPlaceholderBatch({
+          chainId,
+          tellerAddress,
+        });
 
       await addTransactionBatch({
         disableHook: true,
@@ -358,7 +330,6 @@ export function useMoneyAccountWithdrawal() {
     navigateToConfirmation,
     navigation,
     primaryMoneyAccount,
-    recipient,
     showToast,
     vaultConfig,
   ]);

@@ -5,7 +5,10 @@ import {
   validatedVersionGatedFeatureFlag,
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
-import type { Hex } from '@metamask/utils';
+import {
+  getMoneyAccountVaultConfig as parseVaultConfigFromFlags,
+  type MoneyAccountVaultConfig,
+} from '@metamask/money-account-utils';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -206,13 +209,7 @@ export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
   },
 );
 
-export interface MoneyAccountVaultConfig {
-  chainId: Hex;
-  boringVault: Hex;
-  tellerAddress: Hex;
-  accountantAddress: Hex;
-  lensAddress: Hex;
-}
+export type { MoneyAccountVaultConfig };
 
 export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
   chainId: '0x8f',
@@ -225,10 +222,7 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
 export const getMoneyAccountVaultConfig = (
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): MoneyAccountVaultConfig | undefined => {
-  const remoteConfig =
-    remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
-      | MoneyAccountVaultConfig
-      | undefined;
+  const remoteConfig = parseVaultConfigFromFlags(remoteFeatureFlags);
   if (remoteConfig) {
     return remoteConfig;
   }

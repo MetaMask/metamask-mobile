@@ -21,10 +21,10 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
 import {
-  buildMoneyAccountDepositBatch,
-  buildMoneyAccountWithdrawBatch,
+  buildMoneyAccountDepositPlaceholderBatch,
+  buildMoneyAccountWithdrawPlaceholderBatch,
   getMoneyAccountDepositAssetAddress,
-} from '../utils/moneyAccountTransactions';
+} from '@metamask/money-account-utils';
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
@@ -83,7 +83,12 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../utils/moneyAccountTransactions');
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositPlaceholderBatch: jest.fn(),
+  buildMoneyAccountWithdrawPlaceholderBatch: jest.fn(),
+  getMoneyAccountDepositAssetAddress: jest.fn(),
+}));
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
@@ -137,12 +142,12 @@ const mockAddTransactionBatch = addTransactionBatch as jest.MockedFunction<
   typeof addTransactionBatch
 >;
 const mockBuildDepositBatch =
-  buildMoneyAccountDepositBatch as jest.MockedFunction<
-    typeof buildMoneyAccountDepositBatch
+  buildMoneyAccountDepositPlaceholderBatch as jest.MockedFunction<
+    typeof buildMoneyAccountDepositPlaceholderBatch
   >;
 const mockBuildWithdrawBatch =
-  buildMoneyAccountWithdrawBatch as jest.MockedFunction<
-    typeof buildMoneyAccountWithdrawBatch
+  buildMoneyAccountWithdrawPlaceholderBatch as jest.MockedFunction<
+    typeof buildMoneyAccountWithdrawPlaceholderBatch
   >;
 const mockGetMoneyAccountDepositAssetAddress =
   getMoneyAccountDepositAssetAddress as jest.MockedFunction<
@@ -269,11 +274,10 @@ describe('useMoneyAccountDeposit', () => {
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
     mockGetMoneyAccountDepositAssetAddress.mockReturnValue('0xmusd' as Hex);
-    mockBuildDepositBatch.mockResolvedValue({
+    mockBuildDepositBatch.mockReturnValue({
       approveTx: {
         params: {
           to: '0xtoken' as Hex,
-          data: '0xapprove' as Hex,
           value: '0x0' as Hex,
         },
         type: 'tokenMethodApprove' as never,
@@ -281,7 +285,6 @@ describe('useMoneyAccountDeposit', () => {
       depositTx: {
         params: {
           to: '0xteller' as Hex,
-          data: '0xdeposit' as Hex,
           value: '0x0' as Hex,
         },
         type: 'moneyAccountDeposit' as never,
@@ -356,14 +359,10 @@ describe('useMoneyAccountDeposit', () => {
       await result.current.initiateDeposit();
     });
 
-    expect(mockBuildDepositBatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        amount: BigInt(0),
-        chainId: MOCK_VAULT_CONFIG.chainId,
-        boringVault: MOCK_VAULT_CONFIG.boringVault,
-        initialiseWithoutData: true,
-      }),
-    );
+    expect(mockBuildDepositBatch).toHaveBeenCalledWith({
+      chainId: MOCK_VAULT_CONFIG.chainId,
+      tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
+    });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       amount: undefined,
@@ -413,9 +412,10 @@ describe('useMoneyAccountDeposit', () => {
       replace: undefined,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
-    expect(mockBuildDepositBatch).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: BigInt(0) }),
-    );
+    expect(mockBuildDepositBatch).toHaveBeenCalledWith({
+      chainId: MOCK_VAULT_CONFIG.chainId,
+      tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
+    });
   });
 
   it('passes launchedFrom to navigateToConfirmation so it can pick the landing screen', async () => {
@@ -666,7 +666,9 @@ describe('useMoneyAccountDeposit', () => {
     async (failureStage) => {
       const error = new Error('deposit setup failed');
       if (failureStage === 'build') {
-        mockBuildDepositBatch.mockRejectedValueOnce(error);
+        mockBuildDepositBatch.mockImplementationOnce(() => {
+          throw error;
+        });
       } else {
         mockAddTransactionBatch.mockRejectedValueOnce(error);
       }
@@ -690,7 +692,9 @@ describe('useMoneyAccountDeposit', () => {
 
   it('does not dismiss another route when forced-sheet setup fails', async () => {
     const error = new Error('deposit setup failed');
-    mockBuildDepositBatch.mockRejectedValueOnce(error);
+    mockBuildDepositBatch.mockImplementationOnce(() => {
+      throw error;
+    });
     mockGetCurrentRoute.mockReturnValue({
       key: 'settings',
       name: Routes.SETTINGS_VIEW,
@@ -739,7 +743,9 @@ describe('useMoneyAccountDeposit', () => {
   it('backs out and shows a failure toast when deposit batch building fails', async () => {
     const buildError = new Error('deposit batch build failed');
     const onDepositSetupFailure = jest.fn();
-    mockBuildDepositBatch.mockRejectedValue(buildError);
+    mockBuildDepositBatch.mockImplementation(() => {
+      throw buildError;
+    });
 
     const { result } = renderHook(() => useMoneyAccountDeposit());
 
@@ -835,7 +841,9 @@ describe('useMoneyAccountDeposit', () => {
 
   it('backs out forced bottom sheet when deposit setup fails on the modal route', async () => {
     const buildError = new Error('deposit batch build failed');
-    mockBuildDepositBatch.mockRejectedValue(buildError);
+    mockBuildDepositBatch.mockImplementation(() => {
+      throw buildError;
+    });
     mockGetCurrentRoute.mockReturnValue({
       name: Routes.CONFIRMATION_REQUEST_MODAL,
     } as never);
@@ -938,19 +946,18 @@ describe('useMoneyAccountWithdrawal', () => {
     setupSelectors();
     mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
     mockFindNetworkClientIdByChainId.mockReturnValue('arbitrum-one');
-    mockBuildWithdrawBatch.mockResolvedValue({
+    // The placeholder batch is synchronous and carries no calldata.
+    mockBuildWithdrawBatch.mockReturnValue({
       withdrawTx: {
         params: {
           to: '0xteller' as Hex,
-          data: '0xwithdraw' as Hex,
           value: '0x0' as Hex,
         },
         type: 'moneyAccountWithdraw' as never,
       },
       transferTx: {
         params: {
-          to: '0xusdc' as Hex,
-          data: '0xtransfer' as Hex,
+          to: '0xmusd' as Hex,
           value: '0x0' as Hex,
         },
         type: 'tokenMethodTransfer' as never,
@@ -992,21 +999,6 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('throws when recipient EVM address is missing', async () => {
-    setupSelectors({ recipient: undefined });
-
-    const { result } = renderHook(() => useMoneyAccountWithdrawal());
-
-    await expect(
-      act(async () => {
-        await result.current.initiateWithdrawal();
-      }),
-    ).rejects.toThrow('Missing recipient EVM address');
-
-    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
-    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
-  });
-
   it('throws when provider is unavailable', async () => {
     mockGetProviderByChainId.mockReturnValue(undefined as never);
 
@@ -1028,19 +1020,12 @@ describe('useMoneyAccountWithdrawal', () => {
       await result.current.initiateWithdrawal();
     });
 
-    // Hook calls the builder with a placeholder amount of 0n; MM Pay rewrites
-    // the calldata via `updateMoneyAccountWithdrawTokenAmount` once the user
-    // picks an amount on the confirmation screen.
-    expect(mockBuildWithdrawBatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        amount: BigInt(0),
-        chainId: MOCK_VAULT_CONFIG.chainId,
-        tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
-        accountantAddress: MOCK_VAULT_CONFIG.accountantAddress,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT.address,
-        recipient: MOCK_RECIPIENT,
-      }),
-    );
+    // MM Pay writes the calldata via `updateMoneyAccountWithdrawTokenAmount`
+    // once the user picks an amount, so the hook only resolves the call targets.
+    expect(mockBuildWithdrawBatch).toHaveBeenCalledWith({
+      chainId: MOCK_VAULT_CONFIG.chainId,
+      tellerAddress: MOCK_VAULT_CONFIG.tellerAddress,
+    });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.AdvancedCustomAmount,
@@ -1131,7 +1116,9 @@ describe('useMoneyAccountWithdrawal', () => {
 
   it('backs out and shows a failure toast when withdrawal batch building fails', async () => {
     const buildError = new Error('withdrawal batch build failed');
-    mockBuildWithdrawBatch.mockRejectedValue(buildError);
+    mockBuildWithdrawBatch.mockImplementation(() => {
+      throw buildError;
+    });
 
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
