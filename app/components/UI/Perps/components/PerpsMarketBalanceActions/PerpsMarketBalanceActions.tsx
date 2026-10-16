@@ -37,6 +37,7 @@ import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
@@ -48,6 +49,7 @@ interface PerpsMarketBalanceActionsProps {
   hideBalanceSection?: boolean;
   onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
   children?: React.ReactNode;
+  isGlass?: boolean;
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -75,6 +77,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   hideBalanceSection = false,
   onTitleSectionLayout,
   children,
+  isGlass = false,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -255,7 +258,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
-            <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+            <PerpsEmptyBalance onAddFunds={handleAddFunds} isGlass={isGlass} />
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
@@ -263,7 +266,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">
-                  <Button
+                  <ButtonGlass
+                    isGlass={isGlass}
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     onPress={handleWithdraw}
@@ -273,10 +277,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     }
                   >
                     {strings('perps.withdraw')}
-                  </Button>
+                  </ButtonGlass>
                 </Box>
                 <Box twClassName="flex-1">
-                  <Button
+                  <ButtonGlass
+                    isGlass={isGlass}
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleAddFunds}
@@ -286,7 +291,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     }
                   >
                     {strings('perps.add_funds')}
-                  </Button>
+                  </ButtonGlass>
                 </Box>
               </Box>
             )
