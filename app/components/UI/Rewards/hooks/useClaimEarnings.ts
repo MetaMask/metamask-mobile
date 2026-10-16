@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { BtcAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -35,8 +36,10 @@ import {
   claimToastText,
   isClaimsPausedRefusal,
   evmAddressFromEarningAddress,
+  bitcoinAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
+  signBitcoinClaimMessage,
   submitClaimVoucher,
 } from '../utils/claimEarnings';
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
@@ -52,6 +55,23 @@ function isClaimConfirmationActive(): boolean {
     NavigationService.navigation.getCurrentRoute()?.name ===
     Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
   );
+}
+
+/** A mainnet `bc1q` or `bc1p` account this phone can BIP-322 sign. */
+function bitcoinAccountForEarningAddress(earningAddress: string) {
+  const bitcoin = bitcoinAddressFromEarningAddress(earningAddress);
+  if (!bitcoin) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(bitcoin);
+  if (!account || account.address.toLowerCase() !== bitcoin) {
+    return null;
+  }
+  const typeMatches =
+    (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
+    (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
+  return typeMatches ? { account, bitcoin } : null;
 }
 
 /**
@@ -196,6 +216,9 @@ export function useClaimEarnings(
               body,
             ),
           canSignEarningAddress: (earningAddress) => {
+            if (bitcoinAccountForEarningAddress(earningAddress)) {
+              return true;
+            }
             const from = evmAddressFromEarningAddress(earningAddress);
             if (!from || !getKeyringByAddress(from)) {
               return false;
@@ -203,6 +226,14 @@ export function useClaimEarnings(
             return !isHardwareAccount(from) && !isSnapAccount(from);
           },
           signMessage: async (message, earningAddress) => {
+            const bitcoin = bitcoinAccountForEarningAddress(earningAddress);
+            if (bitcoin) {
+              return signBitcoinClaimMessage(
+                bitcoin.account.id,
+                bitcoin.bitcoin,
+                message,
+              );
+            }
             const from = evmAddressFromEarningAddress(earningAddress);
             if (!from) {
               throw new Error('SIGN_FAILED');
@@ -269,6 +300,19 @@ export function useClaimEarnings(
         }
         if (outcomes.some((outcome) => outcome.opened)) {
           onOpened?.();
+        }
+        // A namespace this phone has no account for will fail the same way
+        // on the next press. Claim stays disabled until a later summary
+        // replaces this one.
+        if (
+          !paid &&
+          outcomes.some(
+            (outcome) => outcome.reason === 'UNSUPPORTED_EARNING_ADDRESS',
+          )
+        ) {
+          refreshHold = true;
+          refreshHoldRef.current = true;
+          claimedSummaryRef.current = summary;
         }
         const retryAfterSeconds = outcomes.reduce(
           (longest, outcome) =>
