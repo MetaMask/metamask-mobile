@@ -118,17 +118,39 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set Test Environment
+        env:
+          # Inputs and secrets reach the script as environment variables, never
+          # expanded into it, so a value such as a branch name cannot inject shell.
+          BUILD_TYPE: ${{ inputs.build_type }}
+          PLATFORM: ${{ inputs.platform }}
+          DEVICE_NAME: ${{ matrix.device.name }}
+          DEVICE_OS_VERSION: ${{ matrix.device.os_version }}
+          SENTRY_TARGET: ${{ inputs.sentry_target }}
+          SENTRY_TEST_DSN: ${{ secrets.MM_SENTRY_DSN_TEST }}
+          SENTRY_REAL_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          FEATURE_FLAGS_ENV: ${{ inputs.feature_flags_environment }}
+          CI_BUILD_VARIANT: ${{ inputs.build_variant }}
+          BRANCH_NAME: ${{ inputs.branch_name }}
+          TESTMU_APP_URL: ${{ inputs.testmu_app_url }}
+          APP_VERSION: ${{ inputs.app_version }}
+          TESTMU_BUILD_NAME_INPUT: ${{ inputs.testmu_build_name }}
+          HE_CONCURRENCY_INPUT: ${{ inputs.he_concurrency }}
+          HE_REGION_INPUT: ${{ inputs.he_region }}
+          COLLECT_HERMES_INPUT: ${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}
+          COLLECT_NETWORK_LOGS_INPUT: ${{ inputs.collect_network_logs == true && 'true' || 'false' }}
+          LT_USERNAME_SECRET: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY_SECRET: ${{ secrets.LT_ACCESS_KEY }}
+          MM_TEST_ACCOUNT_SRP_SECRET: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
+          TEST_SRP_1_SECRET: ${{ secrets.TEST_SRP_1 }}
+          TEST_SRP_2_SECRET: ${{ secrets.TEST_SRP_2 }}
+          TEST_SRP_3_SECRET: ${{ secrets.TEST_SRP_3 }}
+          TEST_SRP_4_SECRET: ${{ secrets.TEST_SRP_4 }}
+          E2E_PASSWORD_SECRET: ${{ secrets.E2E_PASSWORD }}
         run: |
-          echo "Setting TestMu HyperExecute ${{ inputs.build_type }} environment for device: ${{ matrix.device.name }}"
+          echo "Setting TestMu HyperExecute $BUILD_TYPE environment for device: $DEVICE_NAME"
 
-          SENTRY_TARGET="${{ inputs.sentry_target }}"
-          SENTRY_TEST_DSN="${{ secrets.MM_SENTRY_DSN_TEST }}"
-          SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e-testmu-he"
-          FEATURE_FLAGS_ENV="${{ inputs.feature_flags_environment }}"
-          CI_BUILD_VARIANT="${{ inputs.build_variant }}"
-          BRANCH_NAME="${{ inputs.branch_name }}"
           TESTMU_GEO_LOCATION="${TESTMU_GEO_LOCATION:-SE}"
 
           if [[ "$FEATURE_FLAGS_ENV" != "rc" && "$FEATURE_FLAGS_ENV" != "exp" && "$FEATURE_FLAGS_ENV" != "test" && "$FEATURE_FLAGS_ENV" != "dev" && "$FEATURE_FLAGS_ENV" != "prod" ]]; then
@@ -136,8 +158,8 @@ jobs:
             exit 1
           fi
 
-          if [ -z "${{ inputs.testmu_app_url }}" ]; then
-            echo "No ${{ inputs.platform }} TestMu AI app URL available"
+          if [ -z "$TESTMU_APP_URL" ]; then
+            echo "No $PLATFORM TestMu AI app URL available"
             exit 1
           fi
 
@@ -163,33 +185,33 @@ jobs:
             SENTRY_ENVIRONMENT="${SENTRY_ENVIRONMENT}-rc"
           fi
 
-          SENTRY_RELEASE="mm-mobile-perf-${CI_BUILD_VARIANT}-${{ github.sha }}"
+          SENTRY_RELEASE="mm-mobile-perf-${CI_BUILD_VARIANT}-${GITHUB_SHA}"
           if [[ "$CI_BUILD_VARIANT" == "rc" && -n "$RELEASE_VERSION" ]]; then
             SENTRY_RELEASE="mm-mobile-rc-${RELEASE_VERSION}"
           fi
 
           {
-            echo "BUILD_TYPE=${{ inputs.build_type }}"
-            echo "TESTMU_DEVICE=${{ matrix.device.name }}"
-            echo "TESTMU_OS_VERSION=${{ matrix.device.os_version }}"
-            echo "TESTMU_ANDROID_APP_URL=${{ inputs.testmu_app_url }}"
-            if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-              echo "TESTMU_ANDROID_CLEAN_APP_URL=${{ inputs.testmu_app_url }}"
-              echo "TESTMU_ANDROID_ONBOARDING_PERF_APP_URL=${{ inputs.testmu_app_url }}"
-              echo "TESTMU_ANDROID_SEEDLESS_PERF_APP_URL=${{ inputs.testmu_app_url }}"
+            echo "BUILD_TYPE=$BUILD_TYPE"
+            echo "TESTMU_DEVICE=$DEVICE_NAME"
+            echo "TESTMU_OS_VERSION=$DEVICE_OS_VERSION"
+            echo "TESTMU_ANDROID_APP_URL=$TESTMU_APP_URL"
+            if [ "$BUILD_TYPE" = "onboarding" ]; then
+              echo "TESTMU_ANDROID_CLEAN_APP_URL=$TESTMU_APP_URL"
+              echo "TESTMU_ANDROID_ONBOARDING_PERF_APP_URL=$TESTMU_APP_URL"
+              echo "TESTMU_ANDROID_SEEDLESS_PERF_APP_URL=$TESTMU_APP_URL"
             fi
-            echo "TEST_PLATFORM=${{ inputs.platform }}"
-            echo "QA_APP_VERSION=${{ inputs.app_version }}"
-            echo "TESTMU_BUILD_NAME=${{ inputs.testmu_build_name }}-HyperExecute"
+            echo "TEST_PLATFORM=$PLATFORM"
+            echo "QA_APP_VERSION=$APP_VERSION"
+            echo "TESTMU_BUILD_NAME=${TESTMU_BUILD_NAME_INPUT}-HyperExecute"
             echo "TESTMU_GEO_LOCATION=$TESTMU_GEO_LOCATION"
-            echo "LT_USERNAME=${{ secrets.LT_USERNAME }}"
-            echo "LT_ACCESS_KEY=${{ secrets.LT_ACCESS_KEY }}"
-            echo "MM_TEST_ACCOUNT_SRP=${{ secrets.MM_TEST_ACCOUNT_SRP }}"
-            echo "TEST_SRP_1=${{ secrets.TEST_SRP_1 }}"
-            echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
-            echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
-            echo "TEST_SRP_4=${{ secrets.TEST_SRP_4 }}"
-            echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
+            echo "LT_USERNAME=$LT_USERNAME_SECRET"
+            echo "LT_ACCESS_KEY=$LT_ACCESS_KEY_SECRET"
+            echo "MM_TEST_ACCOUNT_SRP=$MM_TEST_ACCOUNT_SRP_SECRET"
+            echo "TEST_SRP_1=$TEST_SRP_1_SECRET"
+            echo "TEST_SRP_2=$TEST_SRP_2_SECRET"
+            echo "TEST_SRP_3=$TEST_SRP_3_SECRET"
+            echo "TEST_SRP_4=$TEST_SRP_4_SECRET"
+            echo "E2E_PASSWORD=$E2E_PASSWORD_SECRET"
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=$SENTRY_RELEASE"
@@ -199,10 +221,10 @@ jobs:
             echo "E2E_PERFORMANCE_GITHUB_REF_NAME=$BRANCH_NAME"
             echo "E2E_PERFORMANCE_CLOUD_PROVIDER=testmu"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
-            echo "HE_CONCURRENCY=${{ inputs.he_concurrency }}"
-            echo "HE_REGION=${{ inputs.he_region }}"
-            echo "COLLECT_HERMES_CPUPROFILES=${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}"
-            echo "TESTMU_NETWORK_LOGS=${{ inputs.collect_network_logs == true && 'true' || 'false' }}"
+            echo "HE_CONCURRENCY=$HE_CONCURRENCY_INPUT"
+            echo "HE_REGION=$HE_REGION_INPUT"
+            echo "COLLECT_HERMES_CPUPROFILES=$COLLECT_HERMES_INPUT"
+            echo "TESTMU_NETWORK_LOGS=$COLLECT_NETWORK_LOGS_INPUT"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests via HyperExecute
@@ -210,8 +232,10 @@ jobs:
         continue-on-error: true
         env:
           GREP_TAGS: ${{ inputs.grep_tags }}
+          BUILD_TYPE_LABEL: ${{ inputs.build_type }}
+          DEVICE_NAME_LABEL: ${{ matrix.device.name }}
         run: |
-          echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
+          echo "=== [TestMu AI / HyperExecute] $BUILD_TYPE_LABEL on $DEVICE_NAME_LABEL ==="
           chmod +x ./.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh
           ./.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh
 
