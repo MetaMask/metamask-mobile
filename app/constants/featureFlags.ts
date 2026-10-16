@@ -32,8 +32,11 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
+  predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
+  moneyBrandRefresh = 'moneyBrandRefresh',
+  perpsBrandRefresh = 'perpsBrandRefresh',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

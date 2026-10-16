@@ -4583,6 +4583,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyBrandRefresh: {
+    name: 'moneyBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyAccountDepositQuotePipeline: {
     name: 'moneyAccountDepositQuotePipeline',
     type: FeatureFlagType.Remote,
@@ -4913,6 +4924,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsBrandRefresh: {
+    name: 'perpsBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsCompetitionBannerEnabled: {
     name: 'perpsCompetitionBannerEnabled',
     type: FeatureFlagType.Remote,
@@ -5193,6 +5215,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictBrandRefresh: {
+    name: 'predictBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 

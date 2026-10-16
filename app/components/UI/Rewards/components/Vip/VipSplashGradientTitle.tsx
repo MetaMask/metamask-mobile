@@ -1,71 +1,52 @@
 import MaskedView from '@react-native-masked-view/masked-view';
 import React from 'react';
-import { useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
 import {
-  VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES,
-  VIP_SPLASH_TITLE_FONT_SIZE,
-  VIP_SPLASH_TITLE_FONT_SIZE_SMALL,
-  VIP_SPLASH_TITLE_GRADIENT_COLORS,
-} from './Vip.constants';
-
-const titleColorStyle = { color: VIP_SPLASH_TITLE_GRADIENT_COLORS[0] };
-const titleFontStyle = {
-  fontFamily: 'MMPoly-Regular',
-  fontWeight: '400' as const,
-  includeFontPadding: false,
-  letterSpacing: 0,
-};
+  FontFamily,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { VIP_SPLASH_TITLE_GRADIENT_COLORS } from './Vip.constants';
 
 interface VipSplashGradientTitleProps {
+  title: string;
   testID: string;
 }
 
 const VipSplashGradientTitle: React.FC<VipSplashGradientTitleProps> = ({
+  title,
   testID,
 }) => {
   const tw = useTailwind();
-  const { height: screenHeight } = useWindowDimensions();
-  const title = strings('rewards.vip.splash_title');
-  const titleFontSize =
-    screenHeight < VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES
-      ? VIP_SPLASH_TITLE_FONT_SIZE_SMALL
-      : VIP_SPLASH_TITLE_FONT_SIZE;
-  const titleStyle = tw.style(
-    'text-center pt-[6px]',
-    titleFontStyle,
-    titleColorStyle,
-    {
-      fontSize: titleFontSize,
-      lineHeight: titleFontSize,
-    },
-  );
 
   return (
     <MaskedView
       maskElement={
         <Text
-          variant={TextVariant.DisplayMd}
-          style={titleStyle}
+          variant={TextVariant.DisplayXl}
+          fontFamily={FontFamily.Hero}
+          accessibilityRole="header"
+          twClassName="w-full text-center leading-[1.1] tracking-[-1.2px]"
           testID={testID}
         >
           {title}
         </Text>
       }
-      style={tw.style('self-stretch')}
+      style={tw.style('w-full')}
     >
       <LinearGradient
         colors={VIP_SPLASH_TITLE_GRADIENT_COLORS}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={tw.style('items-center')}
       >
+        {/* Sizes the gradient to the mask. Opacity 0 keeps it from covering the gold fill. */}
         <Text
-          variant={TextVariant.DisplayMd}
-          style={[titleStyle, tw.style('opacity-0')]}
+          variant={TextVariant.DisplayXl}
+          fontFamily={FontFamily.Hero}
+          twClassName="w-full text-center leading-[1.1] tracking-[-1.2px] opacity-0"
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
         >
           {title}
         </Text>

@@ -210,6 +210,9 @@ import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
+// Extra space under the account pill. The 40px capsule is already centered
+// in the 56px bar, which leaves 8px, so 16px here makes a 24px gap.
+const FLOATING_HEADER_BALANCE_TOP_GAP = 16;
 // The floating header's account capsule (h-10) sits centred in its min-h-14
 // root, so the balance cap height lands the reference gap below the capsule.
 const FLOATING_HEADER_BALANCE_INSET = Math.round(
@@ -832,7 +835,8 @@ const Wallet = ({
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isCompactHeader) {
+      // Drives the compact header and the floating header's backdrop.
+      if (isCompactHeader || isInterimHeader) {
         homepageScrollY.value = event.nativeEvent.contentOffset.y;
       }
       const now = Date.now();
@@ -841,7 +845,7 @@ const Wallet = ({
         scrollSubscribersRef.current.forEach((cb) => cb());
       }
     },
-    [homepageScrollY, isCompactHeader],
+    [homepageScrollY, isCompactHeader, isInterimHeader],
   );
 
   const touchAreaSlop = useMemo(
@@ -941,7 +945,12 @@ const Wallet = ({
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useHeaderGlassInset(isFloatingJsHeader);
+    useHeaderGlassInset(isFloatingJsHeader, safeAreaInsets.top);
+  const contentPaddingTop =
+    floatingHeaderInset +
+    (isFloatingJsHeader || isNativeHeader
+      ? FLOATING_HEADER_BALANCE_TOP_GAP
+      : 0);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -982,10 +991,10 @@ const Wallet = ({
         flexGrow: 0,
         overflow: 'visible' as const,
         paddingBottom: floatingTabBarInset,
-        paddingTop: floatingHeaderInset,
+        paddingTop: contentPaddingTop,
       },
     ],
-    [styles.wrapper, floatingTabBarInset, floatingHeaderInset],
+    [styles.wrapper, floatingTabBarInset, contentPaddingTop],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1315,8 +1324,10 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          // The native bar owns the top inset; content scrolls under it.
-          edges={isNativeHeader ? [] : { top: 'additive' }}
+          // The native bar or the floating header owns the top inset; content scrolls under it.
+          edges={
+            isNativeHeader || isFloatingJsHeader ? [] : { top: 'additive' }
+          }
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
@@ -1361,6 +1372,8 @@ const Wallet = ({
                   // Mounted before the content so assistive tech reads the header first.
                   <HeaderGlass
                     onLayout={handleFloatingHeaderLayout}
+                    topInset={safeAreaInsets.top}
+                    scrollDistance={homepageScrollY}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
                   >
                     {renderWalletHeader()}

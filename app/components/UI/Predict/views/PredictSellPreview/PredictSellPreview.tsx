@@ -3,6 +3,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   Text,
   TextColor,
@@ -392,7 +393,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Skeleton
                     width={160}
-                    height={50}
+                    height={53}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -409,8 +410,10 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               ) : (
                 <>
                   <Text
-                    fontWeight={FontWeight.Medium}
                     variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
+                    fontWeight={FontWeight.Regular}
+                    twClassName="text-[48px] leading-[52.8px]"
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
