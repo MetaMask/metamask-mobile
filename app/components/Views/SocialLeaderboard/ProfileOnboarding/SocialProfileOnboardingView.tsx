@@ -4,9 +4,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
@@ -67,12 +64,19 @@ import {
   generateUsernameWithNumber,
 } from './generateUsername';
 import LinkedAccountPicker from './LinkedAccountPicker';
+import UsernameShuffleDie from './UsernameShuffleDie';
 
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
 const AVATAR_GRID_WIDTH = 300;
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
+
+/**
+ * `superseded` means a newer check started before this one finished. That is
+ * not the same as the name being taken, and callers must not replace the draft.
+ */
+type UsernameCheckOutcome = 'available' | 'unavailable' | 'superseded';
 
 const LIVE_ACTIVITY = [
   {
@@ -353,12 +357,12 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   const checkHandle = useCallback(
-    async (username: string): Promise<boolean> => {
+    async (username: string): Promise<UsernameCheckOutcome> => {
       const requestId = ++usernameCheckId.current;
       try {
         const availability = await checkUsernameAvailability(username);
         if (requestId !== usernameCheckId.current) {
-          return false;
+          return 'superseded';
         }
         if (!availability.available || !availability.valid) {
           setUsernameClaimError(
@@ -366,18 +370,18 @@ const SocialProfileOnboardingView: React.FC = () => {
               'social_leaderboard.profile_onboarding.username_unavailable',
             ),
           );
-          return false;
+          return 'unavailable';
         }
         setUsernameClaimError(null);
-        return true;
+        return 'available';
       } catch {
         if (requestId !== usernameCheckId.current) {
-          return false;
+          return 'superseded';
         }
         setUsernameClaimError(
           strings('social_leaderboard.profile_onboarding.username_check_error'),
         );
-        return false;
+        return 'unavailable';
       }
     },
     [checkUsernameAvailability],
@@ -411,7 +415,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     const claimGeneratedUsername = async () => {
       let username = generateUsername();
       applyUsername(username);
-      if (await checkHandle(username)) {
+      // Only a completed "taken" result may replace the handle. A superseded
+      // check returns after the user has moved on, and must leave the draft.
+      if ((await checkHandle(username)) !== 'unavailable') {
         return;
       }
       username = generateUsernameWithNumber();
@@ -479,8 +485,8 @@ const SocialProfileOnboardingView: React.FC = () => {
     setUsernameClaimError(null);
     setIsSubmitting(true);
     try {
-      const isAvailable = await checkHandle(normalizeUsername(draft.username));
-      if (!isAvailable) {
+      const outcome = await checkHandle(normalizeUsername(draft.username));
+      if (outcome !== 'available') {
         return;
       }
       setStep('avatar');
@@ -639,9 +645,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                         </Text>
                       }
                       endAccessory={
-                        <ButtonIcon
-                          iconName={IconName.Refresh}
-                          size={ButtonIconSize.Sm}
+                        <UsernameShuffleDie
                           onPress={handleShuffleUsername}
                           accessibilityLabel={strings(
                             'social_leaderboard.profile_onboarding.shuffle_username',
@@ -670,29 +674,17 @@ const SocialProfileOnboardingView: React.FC = () => {
                       </Text>
                     ) : null}
                     {usernameStatus === 'available' && !usernameClaimError ? (
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        gap={1}
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.SuccessDefault}
                         testID={
                           SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
                         }
                       >
-                        <Icon
-                          name={IconName.Check}
-                          size={IconSize.Sm}
-                          color={IconColor.SuccessDefault}
-                        />
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.SuccessDefault}
-                        >
-                          {strings(
-                            'social_leaderboard.profile_onboarding.username_available',
-                            { handle: username },
-                          )}
-                        </Text>
-                      </Box>
+                        {strings(
+                          'social_leaderboard.profile_onboarding.username_available',
+                        )}
+                      </Text>
                     ) : null}
                     {usernameStatus === 'invalid' ? (
                       <Text
