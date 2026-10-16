@@ -594,7 +594,7 @@ jobs:
         run: |
           echo "Processing all test results..."
           echo "Running aggregation script..."
-          node tests/scripts/aggregate-performance-reports.mjs
+          node .github/scripts/qa-automation/performance-tests/aggregate-performance-reports.mjs
           echo "Aggregation completed"
 
       - name: Upload Final Combined Results
@@ -630,7 +630,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          node tests/scripts/generate-performance-pr-comment.mjs \
+          node .github/scripts/qa-automation/performance-tests/generate-performance-pr-comment.mjs \
             aggregated-reports/summary.json \
             performance-pr-comment.md
 
@@ -703,7 +703,7 @@ jobs:
         run: |
           {
             echo "summary<<EOF"
-            ./tests/scripts/generate-slack-summary.sh aggregated-reports/summary.json
+            ./.github/scripts/qa-automation/performance-tests/generate-slack-summary.sh aggregated-reports/summary.json
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 

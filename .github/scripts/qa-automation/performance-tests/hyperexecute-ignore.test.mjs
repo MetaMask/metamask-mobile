@@ -9,10 +9,12 @@ const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
   '..',
+  '..',
+  '..',
 );
 
 const ignoreLines = fs
-  .readFileSync(path.join(repoRoot, '.hyperexecuteignore'), 'utf8')
+  .readFileSync(path.join(repoRoot, 'tests', 'hyperexecute', '.hyperexecuteignore'), 'utf8')
   .split('\n')
   .map((line) => line.trim())
   .filter((line) => line && !line.startsWith('#'));

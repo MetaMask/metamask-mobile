@@ -17,7 +17,7 @@
 # the generated YAML as ${{.secrets.NAME}}. They are never embedded in the YAML.
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
 cd "$ROOT_DIR"
 
 BUILD_TYPE="${BUILD_TYPE:-}"
@@ -96,12 +96,12 @@ if [[ -z "$PRIMARY_APP_URL" ]]; then
   exit 1
 fi
 
-chmod +x ./tests/scripts/verify-testmu-app-url.sh
+chmod +x ./.github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh
 LT_USERNAME="$LT_USERNAME" LT_ACCESS_KEY="$LT_ACCESS_KEY" \
-  ./tests/scripts/verify-testmu-app-url.sh "$PRIMARY_APP_URL"
+  ./.github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh "$PRIMARY_APP_URL"
 
 DISCOVERY_LIST="${HE_WORKDIR}/discovered-${BUILD_TYPE}.txt"
-BUILD_TYPE="$BUILD_TYPE" bash ./tests/scripts/hyperexecute-discover-performance-tests.sh \
+BUILD_TYPE="$BUILD_TYPE" bash ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh \
   > "$DISCOVERY_LIST"
 DISCOVERY_COUNT="$(wc -l < "$DISCOVERY_LIST" | tr -d ' ')"
 if [[ "$DISCOVERY_COUNT" -lt 1 ]]; then
@@ -111,6 +111,9 @@ fi
 
 mkdir -p tests/hyperexecute
 cp -f "$DISCOVERY_LIST" "tests/hyperexecute/discovered-${BUILD_TYPE}.txt"
+# The CLI reads .hyperexecuteignore from the working directory, so copy the
+# version kept under tests/hyperexecute there before launching it.
+cp -f tests/hyperexecute/.hyperexecuteignore ./.hyperexecuteignore
 echo "Discovered ${DISCOVERY_COUNT} @Performance spec(s) for BUILD_TYPE=$BUILD_TYPE"
 
 # YAML 0.2. framework.name=appium so tasks open Appium sessions on
@@ -196,7 +199,7 @@ testDiscovery:
   mode: static
   command: cat tests/hyperexecute/discovered-${BUILD_TYPE}.txt
 
-testRunnerCommand: bash ./tests/scripts/hyperexecute-run-performance-test.sh \$test
+testRunnerCommand: bash ./.github/scripts/qa-automation/performance-tests/hyperexecute-run-performance-test.sh \$test
 
 jobLabel: ['MMQA', 'HyperExecute', 'TestMu', '$(yaml_escape "$BUILD_TYPE")']
 EOF
@@ -209,9 +212,9 @@ echo "Device: ${TESTMU_DEVICE:-<unset>} / ${TESTMU_OS_VERSION:-<unset>}"
 echo "Concurrency: $HE_CONCURRENCY"
 
 chmod +x \
-  ./tests/scripts/hyperexecute-discover-performance-tests.sh \
-  ./tests/scripts/hyperexecute-run-performance-test.sh \
-  ./tests/scripts/run-testmu-hyperexecute.sh
+  ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh \
+  ./.github/scripts/qa-automation/performance-tests/hyperexecute-run-performance-test.sh \
+  ./.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh
 
 HE_ARTIFACTS_DIR="${HE_WORKDIR}/downloaded-artifacts"
 HE_CLI_LOG="${HE_WORKDIR}/hyperexecute-cli.log"

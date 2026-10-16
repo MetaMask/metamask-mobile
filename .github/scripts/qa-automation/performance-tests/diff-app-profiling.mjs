@@ -4,7 +4,7 @@
  * Diff app profiling for a performance scenario against the last green baseline.
  *
  * Usage:
- *   node tests/scripts/diff-app-profiling.mjs \
+ *   node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs \
  *     --pr 33656 \
  *     --run 29931469755 \
  *     --test "Cold Start Login" \
@@ -12,10 +12,10 @@
  *     --device "Google Pixel 8 Pro+14.0"
  *
  * Or compare all failed tests from the current run:
- *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all
+ *   node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all
  *
  * From the performance workflow (local aggregated-reports already present):
- *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all \
+ *   node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all \
  *     --current-dir aggregated-reports --replace
  *
  * Environment:

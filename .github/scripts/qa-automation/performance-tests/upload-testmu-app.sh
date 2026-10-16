@@ -2,7 +2,7 @@
 # Upload an Android APK to TestMu AI real-device app storage, reusing an
 # existing app when the same sha256 custom id is already listed.
 #
-# Usage: LT_USERNAME=... LT_ACCESS_KEY=... ./tests/scripts/upload-testmu-app.sh <apk> <custom-id-prefix>
+# Usage: LT_USERNAME=... LT_ACCESS_KEY=... ./.github/scripts/qa-automation/performance-tests/upload-testmu-app.sh <apk> <custom-id-prefix>
 # Prints the lt:// app URL on stdout.
 set -euo pipefail
 

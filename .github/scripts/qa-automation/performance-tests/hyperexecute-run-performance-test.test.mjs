@@ -7,8 +7,10 @@ import test from 'node:test';
 
 const runnerPath = path.join(
   process.cwd(),
-  'tests',
+  '.github',
   'scripts',
+  'qa-automation',
+  'performance-tests',
   'hyperexecute-run-performance-test.sh',
 );
 

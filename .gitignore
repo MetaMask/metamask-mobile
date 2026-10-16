@@ -155,6 +155,7 @@ tests/reporters/reports/
 *.apk
 tmp/hyperexecute/
 tests/hyperexecute/discovered-*.txt
+/.hyperexecuteignore
 
 # anvil binaries
 .metamask/*

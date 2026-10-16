@@ -1074,7 +1074,7 @@ jobs:
             WITHOUT_SRP_VERSION="${FRESH_WITHOUT_SRP_VERSION}"
           fi
 
-          chmod +x tests/scripts/upload-testmu-app.sh tests/scripts/verify-testmu-app-url.sh
+          chmod +x .github/scripts/qa-automation/performance-tests/upload-testmu-app.sh .github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh
 
           upload_one() {
             local label="$1"
@@ -1092,8 +1092,8 @@ jobs:
             echo "Uploading $label APK to TestMu AI: $apk"
             local app_url
             # errexit is disabled inside functions called via `||`, so check each step explicitly.
-            app_url="$(./tests/scripts/upload-testmu-app.sh "$apk" "$custom_id")" || return 1
-            ./tests/scripts/verify-testmu-app-url.sh "$app_url" || return 1
+            app_url="$(./.github/scripts/qa-automation/performance-tests/upload-testmu-app.sh "$apk" "$custom_id")" || return 1
+            ./.github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh "$app_url" || return 1
             {
               echo "$url_key=$app_url"
               echo "$version_key=$version"

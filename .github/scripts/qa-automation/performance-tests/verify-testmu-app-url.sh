@@ -2,7 +2,7 @@
 # Verify a TestMu AI lt:// app URL is listed in app storage before HyperExecute starts.
 #
 # Usage:
-#   LT_USERNAME=... LT_ACCESS_KEY=... ./tests/scripts/verify-testmu-app-url.sh lt://APP...
+#   LT_USERNAME=... LT_ACCESS_KEY=... ./.github/scripts/qa-automation/performance-tests/verify-testmu-app-url.sh lt://APP...
 #
 # Optional env:
 #   TESTMU_APP_VERIFY_ATTEMPTS   default 18

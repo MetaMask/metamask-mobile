@@ -212,8 +212,8 @@ jobs:
           GREP_TAGS: ${{ inputs.grep_tags }}
         run: |
           echo "=== [TestMu AI / HyperExecute] ${{ inputs.build_type }} on ${{ matrix.device.name }} ==="
-          chmod +x ./tests/scripts/run-testmu-hyperexecute.sh
-          ./tests/scripts/run-testmu-hyperexecute.sh
+          chmod +x ./.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh
+          ./.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh
 
       - name: Resolve artifact name
         id: artifact-name

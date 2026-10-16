@@ -42,7 +42,7 @@ import {
 import {
   collectHermesCpuProfiles,
   findHermesCpuProfileFiles,
-} from '../../../../tests/scripts/aggregate-performance-reports.mjs';
+} from './aggregate-performance-reports.mjs';
 
 function profile(fileName, overrides = {}) {
   const parsed = parseProfileFileName(fileName);

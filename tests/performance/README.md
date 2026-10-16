@@ -688,7 +688,7 @@ For CI/CD pipelines, the aggregation script combines results from multiple test 
 ### Running Aggregation
 
 ```bash
-node tests/scripts/aggregate-performance-reports.mjs
+node .github/scripts/qa-automation/performance-tests/aggregate-performance-reports.mjs
 ```
 
 ### Generated Files
@@ -710,7 +710,7 @@ without a prior baseline are omitted from that block.
 
 Baselines come from the scheduled `main` runs of
 [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml)
-(`BASELINE_WORKFLOW` in `tests/scripts/diff-app-profiling.mjs`). The reusable
+(`BASELINE_WORKFLOW` in `.github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs`). The reusable
 `run-performance-e2e.yml` cannot be used as the baseline source: it is
 `workflow_call` only, so its invocations are jobs of the caller run and never
 appear in `gh run list --workflow run-performance-e2e.yml`.
@@ -733,7 +733,7 @@ This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
 
-Both paths share `tests/scripts/diff-app-profiling.mjs`, so a `--workflow`
+Both paths share `.github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs`, so a `--workflow`
 override on the manual command also changes where baselines are looked up.
 
 ### Weekly app profiling report (Cursor Automation)
@@ -742,7 +742,7 @@ For a weekly rollup of BrowserStack app-profiling averages across merged PRs
 that ran performance tests:
 
 ```bash
-node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+node .github/scripts/qa-automation/performance-tests/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
 ```
 
 Outputs:

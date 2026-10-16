@@ -8,11 +8,15 @@ const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
   '..',
+  '..',
+  '..',
 );
 const discoverPath = path.join(
   repoRoot,
-  'tests',
+  '.github',
   'scripts',
+  'qa-automation',
+  'performance-tests',
   'hyperexecute-discover-performance-tests.sh',
 );
 
