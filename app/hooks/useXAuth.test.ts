@@ -194,6 +194,46 @@ describe('useXAuth', () => {
   });
 
   describe('disconnect', () => {
+    it('sets isDisconnecting while disconnecting, then clears it on success and clears a prior error', async () => {
+      mockDisconnectXAccount.mockRejectedValueOnce(
+        new XAuthError(XAuthErrorType.BackendError, 'backend down'),
+      );
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.disconnect();
+      });
+
+      expect(result.current.error?.type).toBe(XAuthErrorType.BackendError);
+
+      let resolveDisconnect!: () => void;
+      mockDisconnectXAccount.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveDisconnect = () => resolve(undefined);
+          }),
+      );
+
+      let disconnectPromise!: Promise<void>;
+      act(() => {
+        disconnectPromise = result.current.disconnect();
+      });
+
+      expect(result.current.isDisconnecting).toBe(true);
+      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.error).toBeUndefined();
+
+      await act(async () => {
+        resolveDisconnect();
+        await disconnectPromise;
+      });
+
+      expect(result.current.isDisconnecting).toBe(false);
+      expect(result.current.error).toBeUndefined();
+      expect(mockDisconnectXAccount).toHaveBeenCalledTimes(2);
+    });
+
     it('delegates to disconnectXAccount and clears the disconnecting state', async () => {
       mockDisconnectXAccount.mockResolvedValue(undefined);
 
@@ -243,6 +283,46 @@ describe('useXAuth', () => {
   });
 
   describe('refresh', () => {
+    it('sets isRefreshing while refreshing, then clears it on success and clears a prior error', async () => {
+      mockFetchAndUpdateXAccount.mockRejectedValueOnce(
+        new XAuthError(XAuthErrorType.NetworkFailure, 'backend down'),
+      );
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
+
+      let resolveRefresh!: () => void;
+      mockFetchAndUpdateXAccount.mockImplementationOnce(
+        () =>
+          new Promise<XProfile>((resolve) => {
+            resolveRefresh = () => resolve(X_PROFILE);
+          }),
+      );
+
+      let refreshPromise!: Promise<void>;
+      act(() => {
+        refreshPromise = result.current.refresh();
+      });
+
+      expect(result.current.isRefreshing).toBe(true);
+      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isDisconnecting).toBe(false);
+      expect(result.current.error).toBeUndefined();
+
+      await act(async () => {
+        resolveRefresh();
+        await refreshPromise;
+      });
+
+      expect(result.current.isRefreshing).toBe(false);
+      expect(result.current.error).toBeUndefined();
+      expect(mockFetchAndUpdateXAccount).toHaveBeenCalledTimes(2);
+    });
+
     it('calls fetchAndUpdateXAccount without args', async () => {
       mockFetchAndUpdateXAccount.mockResolvedValue(X_PROFILE);
 

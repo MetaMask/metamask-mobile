@@ -167,6 +167,31 @@ describe('XAuthService (app-relay flow)', () => {
       expect(ProfileController.connectX).not.toHaveBeenCalled();
     }, 10000);
 
+    it('captures the redirect via getInitialURL when a fresh redirect replaces the leftover launch URL during the session', async () => {
+      // The app was launched via an old x-oauth-redirect, but by the time the
+      // fallback runs the initial URL is a different x-oauth-redirect issued
+      // for this session's state. The change means the fresh one belongs to
+      // this session and must be accepted even though the pre-session URL
+      // was already a redirect, not null.
+      const LEFTOVER_REDIRECT = REDIRECT_WITH(
+        'code=stale-code&state=stale-state',
+      );
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'cancel',
+      });
+      (Linking.getInitialURL as jest.Mock)
+        .mockResolvedValueOnce(LEFTOVER_REDIRECT)
+        .mockResolvedValueOnce(
+          REDIRECT_WITH(`code=fresh-code&state=${SESSION_STATE}`),
+        );
+
+      await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+      expect(ProfileController.connectX).toHaveBeenCalledWith({
+        code: 'fresh-code',
+        state: SESSION_STATE,
+      });
+    }, 10000);
+
     it('ignores a leftover launch URL carrying an old code instead of resubmitting it when the session fails', async () => {
       const LEFTOVER_REDIRECT = REDIRECT_WITH(
         'code=stale-code&state=stale-state',
