@@ -1186,6 +1186,11 @@
       "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
       "button": "Come back later"
     },
+    "identity_verified": {
+      "title": "Identity verified",
+      "description": "Your identity check is complete.",
+      "button": "Continue"
+    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
@@ -1217,7 +1222,9 @@
       "button": "Done",
       "waiting_for_pix": "PIX instructions appear here once the account is approved.",
       "loading": "Loading PIX details",
-      "load_error": "Couldn't refresh the deposit. We'll try again."
+      "load_error": "Couldn't refresh the deposit. We'll try again.",
+      "setup_error": "Couldn't create your account.",
+      "retry": "Try again"
     }
   },
   "social_leaderboard": {
