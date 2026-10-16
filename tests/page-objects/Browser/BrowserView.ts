@@ -511,37 +511,42 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
-    // Display text is also absent while the URL editor is focused — dismiss
-    // first (same readiness path as `expectUrlToContain`).
     //
-    // `goBackToSafety` hides the modal 500ms after tap, then an iframe rescan
-    // can mount a new Back to safety button. Waiting for that button to stay
-    // gone fails the iframe smoke (`still displayed after 15000ms`) even when
-    // the URL bar is briefly readable. Retry the URL read instead.
+    // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
+    // rescan can mount a new full-screen warning about a second later, which
+    // covers the URL bar again. A 3s editor-dismiss probe before the first read
+    // misses that gap (`Element not visible` for the whole retry). Poll the bar
+    // immediately, and only dismiss the URL editor when Cancel is already up.
     await AppiumContextHelpers.switchToNativeContext();
-    await this.dismissUrlEditorIfOpen();
     const assertionDescription =
       description ?? `URL input box text is not "${text}"`;
 
     await Utilities.executeWithRetry(
       async () => {
+        if (await Utilities.isElementVisible(this.cancelUrlInputButton, 250)) {
+          await Gestures.waitAndTap(this.cancelUrlInputButton, {
+            elemDescription: 'Cancel URL input (dismiss URL editor)',
+            timeout: 2_000,
+          });
+        }
+
         await Assertions.expectElementToBeVisible(this.urlBarDisplayText, {
           description:
             'URL bar display text is visible before not-equal assert',
-          timeout: 1_500,
+          timeout: 700,
         });
-        await Assertions.expectElementToNotHaveText(
-          this.urlBarDisplayText,
-          text,
-          {
-            description: assertionDescription,
-            timeout: 1_500,
-          },
-        );
+        const urlText = (
+          await Utilities.getElementText(this.urlBarDisplayText)
+        ).trim();
+        if (!urlText || urlText.includes(text)) {
+          throw new Error(
+            `URL bar still shows the blocked page (got "${urlText}")`,
+          );
+        }
       },
       {
-        timeout: 20_000,
-        interval: 400,
+        timeout: 12_000,
+        interval: 200,
         description: assertionDescription,
         elemDescription: 'browser URL bar',
       },
