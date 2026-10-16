@@ -126,6 +126,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../hooks/useEmailVerificationSend');
 const mockSignUpRegions = [
   {
+    key: 'NZ',
+    name: 'New Zealand',
+    emoji: '🇳🇿',
+    areaCode: '64',
+    canSignUp: true,
+  },
+  {
     key: 'US',
     name: 'United States',
     emoji: '🇺🇸',
@@ -447,10 +454,10 @@ describe('SignUp Component', () => {
     });
 
     it('tracks CARD_VIEWED with immersve provider for Immersve countries', async () => {
-      const { selectCardImmersveEnabled } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
+      const { selectCardImmersveCountries, selectCardImmersveEnabled } =
+        jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -800,11 +807,33 @@ describe('SignUp Component', () => {
       const countrySelect = getByTestId('signup-country-select');
       fireEvent.press(countrySelect);
 
-      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('RegionSelectorModal', {
+        params: {
+          regions: [
+            expect.objectContaining({ key: 'NZ', name: 'New Zealand' }),
+          ],
+          selectedRegionKey: 'NZ',
+        },
+      });
     });
 
-    it('prefills country when geoLocation matches a supported country', () => {
+    it('prefills New Zealand when geolocation is a different country', () => {
       const storeWithGeo = createTestStore({ geoLocation: 'CA' });
+
+      const { getByText, queryByText } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(queryByText('Canada')).toBeNull();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+    });
+
+    it('prefills New Zealand when geolocation is US', () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByText } = render(
         <Provider store={storeWithGeo}>
@@ -812,67 +841,34 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('Canada', { exact: false })).toBeOnTheScreen();
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
-    it('prefills country and sets US location when geoLocation is US', () => {
-      const storeWithGeo = createTestStore({ geoLocation: 'US' });
-
-      render(
-        <Provider store={storeWithGeo}>
-          <SignUp />
-        </Provider>,
-      );
-
-      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
-    });
-
-    it('does not set userCardLocation when geoLocation is UNKNOWN', () => {
+    it('prefills New Zealand when geolocation is UNKNOWN', () => {
       const storeWithUnknown = createTestStore({ geoLocation: 'UNKNOWN' });
 
-      render(
+      const { getByText } = render(
         <Provider store={storeWithUnknown}>
           <SignUp />
         </Provider>,
       );
 
-      expect(mockSetUserLocation).not.toHaveBeenCalled();
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
     });
 
-    it('does not set userCardLocation when geoLocation does not match any available region', () => {
+    it('prefills New Zealand when geolocation does not match any available region', () => {
       const storeWithUnsupported = createTestStore({ geoLocation: 'JP' });
 
-      render(
+      const { getByText } = render(
         <Provider store={storeWithUnsupported}>
           <SignUp />
         </Provider>,
       );
 
-      expect(mockSetUserLocation).not.toHaveBeenCalled();
-    });
-
-    it('pre-selects country when geoLocation matches a canSignUp: false country and enables waitlist mode', () => {
-      // GB exists in allRegions with canSignUp: false — now gets auto-selected and shows waitlist CTA
-      const storeWithGB = createTestStore({ geoLocation: 'GB' });
-
-      const { getByText, getByTestId, queryByTestId } = render(
-        <Provider store={storeWithGB}>
-          <SignUp />
-        </Provider>,
-      );
-
-      // GB is now pre-selected
-      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
-      // Button is enabled (country is selected) and shows waitlist label
-      expect(getByTestId('signup-continue-button')).toBeEnabled();
-      // Country not available info text shown
-      expect(
-        getByTestId('signup-country-not-available-text'),
-      ).toBeOnTheScreen();
-      // Password field hidden in waitlist mode
-      expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
-      // GB maps to 'international' location
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
@@ -885,15 +881,14 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('US');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
     });
 
     it('treats an Immersve country as supported (no waitlist) when onboarding is enabled', () => {
-      // cardImmersveCountries defaults to ['GB']; enable the gate.
-      const { selectCardImmersveEnabled } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
+      const { selectCardImmersveCountries, selectCardImmersveEnabled } =
+        jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -903,8 +898,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      // GB is pre-selected but treated as supported (Immersve), not waitlist
-      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
@@ -915,16 +909,25 @@ describe('SignUp Component', () => {
       ).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+
+      mockNavigate.mockClear();
+      fireEvent.press(getByTestId('signup-immersve-phone-area-code-select'));
+      expect(mockNavigate).toHaveBeenCalledWith('RegionSelectorModal', {
+        params: expect.objectContaining({
+          regions: mockSignUpRegions,
+          renderAreaCode: true,
+        }),
+      });
     });
 
     // Unit fallback: SignUp has no *.view.test.tsx; this file already renders
     // the screen with mocked hooks/selectors. Locks the shared description key.
     it('uses the provider-agnostic sign-up description for Immersve countries', () => {
-      const { selectCardImmersveEnabled } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
+      const { selectCardImmersveCountries, selectCardImmersveEnabled } =
+        jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -943,10 +946,10 @@ describe('SignUp Component', () => {
     });
 
     const enableImmersve = () => {
-      const { selectCardImmersveEnabled } = jest.requireMock(
-        '../../../../../selectors/featureFlagController/card',
-      );
+      const { selectCardImmersveCountries, selectCardImmersveEnabled } =
+        jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
     };
 
     const fillImmersveForm = (getByTestId: (id: string) => unknown) => {
@@ -972,7 +975,7 @@ describe('SignUp Component', () => {
 
       expect(getByTestId('signup-immersve-legal-clickwrap')).toBeOnTheScreen();
       expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
-      expect(mockUseImmersveSupportedRegions).toHaveBeenCalledWith('GB');
+      expect(mockUseImmersveSupportedRegions).toHaveBeenCalledWith('NZ');
     });
 
     it('hides Immersve legal clickwrap for non-Immersve countries', () => {
@@ -1104,7 +1107,7 @@ describe('SignUp Component', () => {
       });
 
       expect(mockImmersveSignIn).toHaveBeenCalledWith({
-        country: 'GB',
+        country: 'NZ',
         address: IMMERSVE_TEST_ADDRESS,
       });
       expect(mockGetFundingSources).toHaveBeenCalled();
@@ -1112,14 +1115,14 @@ describe('SignUp Component', () => {
       await waitFor(() =>
         expect(mockPatchContactDetails).toHaveBeenCalledWith({
           email: 'gb@example.com',
-          phone: '+447911123456',
+          phone: '+647911123456',
         }),
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
         expect.objectContaining({
           email: 'gb@example.com',
-          countryKey: 'GB',
+          countryKey: 'NZ',
           hasExistingCard: false,
           fundingAddress: expect.any(String),
         }),
@@ -1156,7 +1159,7 @@ describe('SignUp Component', () => {
         { type: 'active' },
         expect.objectContaining({
           email: 'gb@example.com',
-          countryKey: 'GB',
+          countryKey: 'NZ',
           hasExistingCard: false,
           fundingAddress: expect.any(String),
         }),
@@ -1229,8 +1232,8 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      // US was auto-selected on first render
-      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
+      // New Zealand was auto-selected on first render
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
       expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
 
       // Simulate background refetch: new function identity, same data
@@ -1250,7 +1253,7 @@ describe('SignUp Component', () => {
 
       // hasAutoSelectedCountry ref must have blocked the second run
       expect(secondGetRegionByCode).not.toHaveBeenCalled();
-      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
+      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
     });
   });
 
@@ -1339,7 +1342,7 @@ describe('SignUp Component', () => {
       });
     });
 
-    it('keeps continue button disabled when no country is selected', async () => {
+    it('enables continue when New Zealand is preselected and the other fields are valid', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -1353,11 +1356,10 @@ describe('SignUp Component', () => {
       await act(async () => {
         fireEvent.changeText(emailInput, 'test@example.com');
         fireEvent.changeText(passwordInput, 'Password123!');
-        // Don't select country
       });
 
       await waitFor(() => {
-        expect(continueButton).toBeDisabled();
+        expect(continueButton).toBeEnabled();
       });
     });
   });
@@ -1423,7 +1425,7 @@ describe('SignUp Component', () => {
         expect.objectContaining({
           email: 'test@example.com',
           password: 'Password123!',
-          countryKey: 'US',
+          countryKey: 'NZ',
         }),
       );
     });
@@ -2010,6 +2012,10 @@ describe('SignUp Component', () => {
     });
 
     it('does not call logout for non-migration Immersve continue', async () => {
+      const { selectCardImmersveCountries } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
       mockUseRoute.mockReturnValue({ params: undefined });
       mockImmersveSignIn.mockResolvedValue({ done: true });
       mockGetFundingSources.mockResolvedValue([{ id: 'fs-existing' }]);

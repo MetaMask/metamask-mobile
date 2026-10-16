@@ -67,12 +67,11 @@ import CountrySelectField from './CountrySelectField';
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   selectCardImmersveCountries,
   selectCardImmersveEnabled,
 } from '../../../../../selectors/featureFlagController/card';
-import { HUBSPOT_WAITLIST_URL } from '../../constants';
+import { CARD_AUTH_COUNTRY_CODE, HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
@@ -142,7 +141,6 @@ const SignUp = () => {
   const hasUserEditedEmail = useRef(false);
   const hasUserEditedPhoneNumber = useRef(false);
   const hasUserEditedPhoneRegion = useRef(false);
-  const geoLocation = useSelector(selectGeolocationLocation);
   const immersveCountries = useSelector(selectCardImmersveCountries);
   const immersveOnboardingEnabled = useSelector(selectCardImmersveEnabled);
   const {
@@ -168,6 +166,10 @@ const SignUp = () => {
     getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
   } = useRegions();
+  const countryRegions = useMemo(
+    () => allRegions.filter((region) => region.key === CARD_AUTH_COUNTRY_CODE),
+    [allRegions],
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const postAuthRedirect = useCardPostAuthRedirect();
 
@@ -232,11 +234,7 @@ const SignUp = () => {
       return;
     }
 
-    if (geoLocation === 'UNKNOWN') {
-      return;
-    }
-
-    const matchedRegion = getRegionByCode(geoLocation);
+    const matchedRegion = getRegionByCode(CARD_AUTH_COUNTRY_CODE);
 
     if (matchedRegion) {
       hasAutoSelectedCountry.current = true;
@@ -247,7 +245,7 @@ const SignUp = () => {
       );
       Engine.context.CardController.setSelectedCountry(matchedRegion.key);
     }
-  }, [allRegions.length, fromMigration, geoLocation, getRegionByCode]);
+  }, [allRegions.length, fromMigration, getRegionByCode]);
 
   useEffect(() => {
     if (!fromMigration) {
@@ -622,14 +620,14 @@ const SignUp = () => {
     navigateWithDetails(
       navigation,
       createRegionSelectorModalNavigationDetails({
-        regions: allRegions,
+        regions: countryRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
   }, [
     fromMigration,
     navigation,
-    allRegions,
+    countryRegions,
     selectedCountry?.key,
     resetEmailVerificationSend,
     isLoadingRegistrationSettings,

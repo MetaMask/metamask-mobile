@@ -52,8 +52,8 @@ import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelect
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import useRegions from '../../hooks/useRegions';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import { CARD_AUTH_COUNTRY_CODE } from '../../constants';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -157,7 +157,6 @@ const CardAuthentication = () => {
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
   const walletSignInLock = useRef(false);
-  const geoLocation = useSelector(selectGeolocationLocation);
   const isForgotPasswordEnabled = useSelector(
     selectCardForgotPasswordFeatureEnabled,
   );
@@ -166,6 +165,10 @@ const CardAuthentication = () => {
     getRegionByCode,
     isLoading: isLoadingRegions,
   } = useRegions();
+  const countryRegions = useMemo(
+    () => allRegions.filter((region) => region.key === CARD_AUTH_COUNTRY_CODE),
+    [allRegions],
+  );
   const { state: ukMigrationState } = useCardUkMigrationState();
 
   const countryKey = selectedCountry?.key ?? null;
@@ -284,10 +287,7 @@ const CardAuthentication = () => {
     if (!allRegions.length || hasAutoSelectedCountry.current) {
       return;
     }
-    if (geoLocation === 'UNKNOWN') {
-      return;
-    }
-    const matched = getRegionByCode(geoLocation);
+    const matched = getRegionByCode(CARD_AUTH_COUNTRY_CODE);
     if (matched) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matched);
@@ -295,7 +295,7 @@ const CardAuthentication = () => {
         mapCountryToLocation(matched.key),
       );
     }
-  }, [allRegions.length, geoLocation, getRegionByCode]);
+  }, [allRegions.length, getRegionByCode]);
 
   const resetTransientAuthState = useCallback(() => {
     setUkMode(null);
@@ -667,11 +667,11 @@ const CardAuthentication = () => {
     navigateWithDetails(
       navigation,
       createRegionSelectorModalNavigationDetails({
-        regions: allRegions,
+        regions: countryRegions,
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
-  }, [isLoadingRegions, navigation, allRegions, selectedCountry?.key]);
+  }, [isLoadingRegions, navigation, countryRegions, selectedCountry?.key]);
 
   const handleResendOtp = useCallback(() => {
     if (resendCooldown > 0 || otpLoading) return;

@@ -87,14 +87,23 @@ const GB_REGION = {
   flag: '🇬🇧',
 };
 
+const NZ_REGION = {
+  key: 'NZ',
+  name: 'New Zealand',
+  code: 'NZ',
+  currency: 'NZD',
+  flag: '🇳🇿',
+};
+
+const US_REGION = { key: 'US', name: 'United States', code: 'US' };
+
 jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: () => ({
-    allRegions: [GB_REGION, { key: 'US', name: 'United States', code: 'US' }],
+    allRegions: [NZ_REGION, GB_REGION, US_REGION],
     getRegionByCode: (code: string) =>
-      code === 'GB'
-        ? GB_REGION
-        : { key: 'US', name: 'United States', code: 'US' },
+      [NZ_REGION, GB_REGION, US_REGION].find((region) => region.key === code) ??
+      null,
     isLoading: false,
   }),
 }));
@@ -162,10 +171,12 @@ jest.mock('../../../../Views/AccountSelector', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   navigateWithDetails: jest.fn(),
-  createNavigationDetails: jest.fn((a: string, b: string) => () => [
-    { name: a },
-    { screen: b },
-  ]),
+  createNavigationDetails: jest.fn(
+    (stack: string, routeName: string) => (params?: unknown) => [
+      { name: stack, params },
+      { screen: routeName },
+    ],
+  ),
 }));
 
 const mockUseCardAuth = useCardAuth as jest.MockedFunction<typeof useCardAuth>;
@@ -1228,6 +1239,38 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
       ).toBeOnTheScreen();
+    });
+
+    it('offers only New Zealand and preselects it when geolocation is another country', () => {
+      mockGeoLocation = 'US';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(screen.getByText(/New Zealand/)).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+
+      expect(navigateWithDetails).toHaveBeenCalledWith(expect.anything(), [
+        expect.objectContaining({
+          params: expect.objectContaining({
+            regions: [NZ_REGION],
+            selectedRegionKey: 'NZ',
+          }),
+        }),
+        expect.anything(),
+      ]);
+    });
+
+    it('preselects New Zealand when geolocation is UNKNOWN', () => {
+      mockGeoLocation = 'UNKNOWN';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(screen.getByText(/New Zealand/)).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
     it('keeps a manually chosen country when geolocation arrives later', () => {
