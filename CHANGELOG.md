@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.17.0]
 
+### Uncategorized
+
+- Show Robinhood tokenized stocks in Explore when ASSETS4098ShowRobinhoodRwa is on (#37531)
+
 ### Added
 
 - Added token-specific Social feeds and position sharing from token details when Social is available (#37516)
@@ -40,6 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed bump @metamask/stellar-wallet-snap to ^1.2.0 (#37580)
+- Bumped stellar-wallet-snap from 1.1.0 to 1.1.1 (#37406)
 - Updated the Tempo network's native currency placeholder to USD (#37560)
 - Updated the Swaps orders network filter to appear only when orders span multiple networks and to list only networks with orders (#37323)
 - Split the membership cancellation survey into reason and stay-question steps and returned users to Pro Hub after cancellation (#37117)
@@ -76,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the Money home Card section spinning forever for Immersve sessions (#37487)
 - Fixed Close Position totals to show Total receive and Included P&L with its percentage (#37377)
 - Fixed lifetime earnings to remain hidden when data could not be fetched (#37579)
 - Fixed spacing around the divider beneath a limit order's sent amount (#37608)
