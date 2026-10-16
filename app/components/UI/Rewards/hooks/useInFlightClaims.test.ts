@@ -57,7 +57,7 @@ function claim(id: string): ClaimDto {
 function renderClaims(readProfileId: () => string | undefined) {
   const store = configureStore({});
   const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(Provider, { store }, children);
+    React.createElement(Provider, { store } as never, children);
   return renderHook(() => useInFlightClaims(readProfileId()), { wrapper });
 }
 
@@ -121,7 +121,7 @@ describe('useInFlightClaims', () => {
   it('shows a claim written by the other screen after this one focused', async () => {
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store } as never, children);
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
@@ -166,7 +166,7 @@ describe('useInFlightClaims', () => {
 
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store } as never, children);
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
@@ -210,7 +210,7 @@ describe('useInFlightClaims', () => {
 
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store } as never, children);
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
@@ -249,7 +249,7 @@ describe('useInFlightClaims', () => {
     );
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store } as never, children);
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
@@ -344,7 +344,7 @@ describe('useInFlightClaims', () => {
   it('publishes a cache page that was already in flight when a fresh refresh fails', async () => {
     const store = configureStore({});
     const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(Provider, { store }, children);
+      React.createElement(Provider, { store } as never, children);
     const history = renderHook(() => useInFlightClaims(PROFILE_A), {
       wrapper,
     });
