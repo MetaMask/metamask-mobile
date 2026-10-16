@@ -14,7 +14,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Slider,
   Text,
   TextColor,
   TextVariant,
@@ -26,6 +25,7 @@ import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { formatTokenBalance } from '../../utils';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
+import { BatchSellReviewSlider } from './BatchSellReviewSlider';
 import { getBatchSellSourceTokenAmount } from '../../hooks/useBatchSellQuoteRequest';
 
 interface BatchSellReviewTokenRowProps {
@@ -231,11 +231,10 @@ export function BatchSellReviewTokenRow({
           />
         </Box>
       </Box>
-      <Slider
+      <BatchSellReviewSlider
         value={displayPercent}
         onValueChange={handleSliderValueChange}
         onDragEnd={handleSliderDragEnd}
-        showRangeDots
         onGrip={handleSliderGrip}
         onMark={handleSliderMark}
         testID={`${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${tokenKey}`}
