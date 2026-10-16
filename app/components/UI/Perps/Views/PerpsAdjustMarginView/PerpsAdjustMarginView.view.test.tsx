@@ -233,6 +233,48 @@ describe('Add margin bottom sheet deposit entry', () => {
       });
     });
   });
+
+  it('shows the geo-block tooltip instead of depositing when the user is ineligible', async () => {
+    const depositWithConfirmation = jest.mocked(
+      Engine.context.PerpsController.depositWithConfirmation,
+    );
+
+    renderPerpsView(
+      AddMarginBottomSheet as unknown as React.ComponentType,
+      Routes.PERPS.ADJUST_MARGIN,
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: false },
+            },
+          },
+        },
+        initialParams: {
+          position,
+          mode: 'add',
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          positions: [position],
+          account: createFundedAccountForViews('0'),
+        },
+      },
+    );
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+      ),
+    ).toBeOnTheScreen();
+    expect(depositWithConfirmation).not.toHaveBeenCalled();
+  });
 });
 
 describe.each([

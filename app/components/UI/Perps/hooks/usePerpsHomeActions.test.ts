@@ -1,7 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import {
+  ConfirmationLaunchSource,
+  ConfirmationLoader,
+} from '../../../Views/confirmations/components/confirm/confirm-component';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { usePerpsHomeActions } from './usePerpsHomeActions';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -15,20 +18,25 @@ import {
 } from '@metamask/perps-controller';
 
 // Mock dependencies
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(() => ({
-    navigate: jest.fn(),
-    goBack: jest.fn(),
-    getState: jest.fn(() => ({
-      index: 1,
-      routes: [
-        { name: 'PerpsMarketListView' },
-        { name: 'RedesignedConfirmations' },
-      ],
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: jest.fn(() => ({
+      navigate: jest.fn(),
+      dispatch: jest.fn(),
+      goBack: jest.fn(),
+      getState: jest.fn(() => ({
+        index: 1,
+        routes: [
+          { name: 'PerpsMarketListView' },
+          { name: 'RedesignedConfirmations' },
+        ],
+      })),
+      addListener: jest.fn(() => jest.fn()),
     })),
-    addListener: jest.fn(() => jest.fn()),
-  })),
-}));
+  };
+});
 
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn().mockResolvedValue(undefined),
@@ -94,6 +102,7 @@ jest.mock('../../Compliance', () => ({
 describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
+    dispatch: jest.fn(),
     goBack: jest.fn(),
     getState: jest.fn(() => ({
       index: 1,
@@ -188,6 +197,38 @@ describe('usePerpsHomeActions', () => {
           loader: ConfirmationLoader.CustomAmount,
           stack: Routes.PERPS.ROOT,
         });
+
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('pushes confirmation on the current stack when opened in place', async () => {
+      jest.useFakeTimers();
+      try {
+        const { result } = renderHook(() =>
+          usePerpsHomeActions({ openConfirmationInPlace: true }),
+        );
+
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
+
+        expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+        expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+          StackActions.push(
+            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+            {
+              loader: ConfirmationLoader.CustomAmount,
+              launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+            },
+          ),
+        );
 
         await act(async () => {
           await jest.runAllTimersAsync();

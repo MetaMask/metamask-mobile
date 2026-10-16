@@ -34,7 +34,7 @@ import {
   PERPS_EVENT_VALUE,
   type Position,
 } from '@metamask/perps-controller';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -42,12 +42,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Modal, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
+import { useTheme } from '../../../../../util/theme';
 import {
   ImpactMoment,
   playImpact,
@@ -127,10 +128,14 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
 > = ({ position: routePosition, initialMode, enableHaptics = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const [isDepositCoverVisible, setIsDepositCoverVisible] = useState(false);
   const { handleAddFunds, isEligibilityModalVisible, closeEligibilityModal } =
     usePerpsHomeActions({
       buttonLocation: ADD_MARGIN_DEPOSIT_BUTTON_LOCATION,
+      openConfirmationInPlace: true,
+      onBeforeOpenConfirmation: () => setIsDepositCoverVisible(true),
     });
   const submittedEstimateRef = useRef<SubmittedEstimate | null>(null);
   const hasNavigatedBackRef = useRef(false);
@@ -154,6 +159,14 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   useEffect(() => {
     sheetRef.current?.onOpenBottomSheet();
   }, []);
+
+  // The cover stays up while the deposit confirmation is open, then comes off
+  // when this sheet is focused again.
+  useFocusEffect(
+    useCallback(() => {
+      setIsDepositCoverVisible(false);
+    }, []),
+  );
 
   const handleNavigationGoBack = useCallback(() => {
     if (hasNavigatedBackRef.current) {
@@ -802,6 +815,15 @@ const PerpsAdjustMarginBottomSheet: React.FC<
           />
         )}
       </BottomSheet>
+      {isDepositCoverVisible ? (
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: colors.background.default, zIndex: 2 },
+          ]}
+        />
+      ) : null}
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
