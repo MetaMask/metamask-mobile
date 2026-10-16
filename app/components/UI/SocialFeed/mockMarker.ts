@@ -9,7 +9,7 @@ export const MOCK_MARKER = '*';
  * marked labels so tests (and later, cleanup) can assert what is invented
  * without string-matching the rendered copy.
  */
-export type SocialV1MockedField = 'markPrice' | 'autoClose';
+export type SocialV1MockedField = 'markPrice';
 
 /**
  * Appends the mock marker to an already-formatted label. Applied at format

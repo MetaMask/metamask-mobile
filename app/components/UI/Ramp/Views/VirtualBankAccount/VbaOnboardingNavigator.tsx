@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import VbaEmailAdapter from './modules/VbaEmailAdapter';
-import VbaIdentityVerificationModule from './modules/VbaIdentityVerificationModule';
+import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
+import VbaIdentityVerificationModule from '../../../KYC/Views/SumSub/IdentityVerification';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,

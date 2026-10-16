@@ -23,7 +23,6 @@ import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
-import { PerpsInlineInfoScreen } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
@@ -99,7 +98,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
-  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
 
   const handleDisplayToggle = useCallback(
     () => setShowTokenAmount((current) => !current),
@@ -160,14 +158,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
   }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
-  const handleMarginTooltipPress = useCallback(() => {
-    setIsMarginInfoVisible(true);
-  }, []);
-
   const totalFeeRate =
     (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
   const feePercentage =
     totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+  const summaryPnlPercentage =
+    summaryMargin !== 0
+      ? (summaryPnl / Math.abs(summaryMargin)) * 100
+      : undefined;
 
   const displayedErrors = useMemo(
     () =>
@@ -184,21 +182,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     effectiveOrderType === 'limit' &&
     !hasLimitPriceValue &&
     !isEditingLimitPrice;
-
-  if (isMarginInfoVisible) {
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        goBack={navigation.goBack}
-        testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
-      >
-        <PerpsInlineInfoScreen
-          contentKey="margin"
-          onBack={() => setIsMarginInfoVisible(false)}
-        />
-      </BottomSheet>
-    );
-  }
 
   return (
     <BottomSheet
@@ -265,11 +248,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
-          margin={summaryMargin}
-          marginMode={livePosition.leverage?.type}
           pnl={summaryPnl}
+          pnlPercentage={summaryPnlPercentage}
           receiveAmount={receiveAmount}
-          onMarginTooltipPress={handleMarginTooltipPress}
         />
       )}
 

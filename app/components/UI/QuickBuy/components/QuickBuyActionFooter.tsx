@@ -28,6 +28,7 @@ import QuickBuyDisabledSection from './QuickBuyDisabledSection';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
+import RebateBanner from '../../Bridge/components/RebateBanner';
 
 const QuickBuyActionFooter: React.FC = () => {
   const tw = useTailwind();
@@ -50,6 +51,7 @@ const QuickBuyActionFooter: React.FC = () => {
     gasFeeDeductionLabel,
     hasNoPayWithFunds,
     setActiveScreen,
+    activeQuote,
   } = useQuickBuyContext();
 
   const dispatch = useDispatch();
@@ -196,6 +198,8 @@ const QuickBuyActionFooter: React.FC = () => {
           </TouchableOpacity>
         </Box>
       </QuickBuyDisabledSection>
+
+      <RebateBanner quote={activeQuote?.quote} twClassName="mb-3" />
 
       {showQuickAmounts ? (
         <QuickBuyQuickAmounts />

@@ -26,8 +26,8 @@ interface TraderPositionPnlSectionProps {
 /**
  * Renders the trader position header and its temporary expanded details sheet.
  *
- * The header reads this trader's open positions and keeps the row for this
- * token. A missing position shows the wallet value and hides PnL.
+ * The header reads this wallet's open position in this token. A missing
+ * position shows the wallet value and hides PnL.
  */
 const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,
@@ -52,8 +52,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
   // The composer and profile onboarding are registered on MainNavigator only
-  // under this gate. Without a position to attach the composer would open
-  // empty, so the button stays disabled until one loads.
+  // under this gate. Without a position to attach, Share to feed is omitted.
   const sharePosition = header.sharePosition;
   const canShareToFeed =
     isSocialLeaderboardEnabled &&

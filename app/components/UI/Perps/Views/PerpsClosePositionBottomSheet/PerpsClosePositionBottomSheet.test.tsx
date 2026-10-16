@@ -6,7 +6,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionBottomSheetSelectorsIDs,
-  PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
   defaultMinimumOrderAmountMock,
@@ -321,36 +320,31 @@ describe('PerpsClosePositionBottomSheet', () => {
       );
     });
 
-    it('renders margin and total rows without a separate fees row', () => {
+    it('renders receive and P&L rows without a margin or separate fees row', () => {
       const { getByTestId, getByText, queryByText } = renderSheet();
 
-      expect(
-        getByText(strings('perps.close_position.margin')),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG),
-      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+      expect(queryByText(strings('perps.close_position.margin'))).toBeNull();
       expect(queryByText(strings('perps.close_position.fees'))).toBeNull();
       expect(
-        getByText(strings('perps.close_position.total_inc_pnl')),
+        getByText(strings('perps.close_position.total_receive')),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE),
+        getByText(strings('perps.close_position.included_pnl')),
       ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE),
       ).toBeOnTheScreen();
     });
 
-    it('shows a gain in the net P&L delta alongside the total', () => {
+    it('shows a gain and its return percentage in the P&L row', () => {
       const { getByTestId } = renderSheet();
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('(+$150)');
+      ).toHaveTextContent('+$150 (+10.34%)');
     });
 
-    it('shows a loss in the net P&L delta alongside the total', () => {
+    it('shows a loss and its return percentage in the P&L row', () => {
       const losingPosition = {
         ...defaultPerpsPositionMock,
         unrealizedPnl: '-150.00',
@@ -365,7 +359,53 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL),
-      ).toHaveTextContent('(-$150)');
+      ).toHaveTextContent('-$150 (-10.34%)');
+    });
+
+    it('keeps the percentage sign aligned with the loss when a limit price wipes out the effective margin', () => {
+      mockKeypadValue = '1000';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$2,850 (-183.87%)');
+    });
+
+    it('omits the percentage when a limit price exhausts the effective margin exactly', () => {
+      const zeroMarginPosition = {
+        ...defaultPerpsPositionMock,
+        entryPrice: '2000.00',
+        size: '1',
+        marginUsed: '500.00',
+        unrealizedPnl: '0.00',
+      };
+      useRouteMock.mockReturnValue({
+        params: { position: zeroMarginPosition },
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [zeroMarginPosition],
+        isInitialLoading: false,
+      });
+      // Effective margin (marginUsed - unrealizedPnl + effectivePnL) lands on
+      // exactly 0 at this limit price, so the true percentage is undefined
+      // (division by zero) rather than actually 0.
+      mockKeypadValue = '1500';
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+      fireEvent.press(utils.getByTestId('mock-keypad'));
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      const pnlRow = utils.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+      );
+      expect(pnlRow).toHaveTextContent('-$500');
+      expect(pnlRow).not.toHaveTextContent('%');
     });
 
     it('renders the fiat/token display toggle', () => {
@@ -1040,34 +1080,6 @@ describe('PerpsClosePositionBottomSheet', () => {
           }),
         );
       });
-    });
-  });
-
-  describe('tooltips', () => {
-    it('opens the margin tooltip inside the current sheet', () => {
-      const { getByTestId, queryByTestId } = renderSheet();
-
-      fireEvent.press(
-        getByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_TOOLTIP_BUTTON,
-        ),
-      );
-
-      expect(
-        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
-      ).toBeOnTheScreen();
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(
-        queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
-      ).toBeNull();
-
-      fireEvent.press(
-        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
-      );
-
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.HEADER_TITLE),
-      ).toBeOnTheScreen();
     });
   });
 

@@ -458,23 +458,6 @@ describe('ProtectWalletMandatoryModal', () => {
     });
   });
 
-  it('does not show modal when on LockScreen route', async () => {
-    mockGetState.mockReturnValue({
-      routes: [{ name: 'LockScreen' }],
-    });
-
-    const store = createMockStore(false, false);
-
-    const { queryByTestId } = renderWithTheme(
-      <ProtectWalletMandatoryModal />,
-      store,
-    );
-
-    await waitFor(() => {
-      expect(queryByTestId('modal-container')).toBeNull();
-    });
-  });
-
   it('displays correct title text', async () => {
     const store = createMockStore(false, false);
 

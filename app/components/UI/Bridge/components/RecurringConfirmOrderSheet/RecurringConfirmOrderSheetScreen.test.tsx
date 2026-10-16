@@ -177,10 +177,6 @@ function renderScreen(
         ...state.engine,
         backgroundState: {
           ...state.engine?.backgroundState,
-          CurrencyRateController: {
-            ...state.engine?.backgroundState?.CurrencyRateController,
-            currentCurrency,
-          },
           AssetsController: {
             ...state.engine?.backgroundState?.AssetsController,
             selectedCurrency: currentCurrency,

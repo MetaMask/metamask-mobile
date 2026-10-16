@@ -241,20 +241,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
   },
 }));
 
-jest.mock('../../../../core/LockManagerService', () => ({
-  __esModule: true,
-  default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
-  },
-}));
-
-const mockLockManagerService = jest.requireMock(
-  '../../../../core/LockManagerService',
-).default;
-const mockStopListening = mockLockManagerService.stopListening as jest.Mock;
-const mockStartListening = mockLockManagerService.startListening as jest.Mock;
-
 const createMockStore = (isAuthenticated = false, isCardholder = false) =>
   configureStore({
     reducer: {
@@ -361,29 +347,6 @@ describe('CardRoutes', () => {
       expect(
         getByText('CardApplePaySplash-animation:slide_from_bottom'),
       ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Auto-lock Management', () => {
-    beforeEach(() => {
-      mockStopListening.mockClear();
-      mockStartListening.mockClear();
-    });
-
-    it('disables auto-lock when Card root mounts', () => {
-      renderWithProviders(<CardRoutes />);
-
-      expect(mockStopListening).toHaveBeenCalledTimes(1);
-    });
-
-    it('re-enables auto-lock when Card root unmounts', () => {
-      const { unmount } = renderWithProviders(<CardRoutes />);
-
-      expect(mockStartListening).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockStartListening).toHaveBeenCalledTimes(1);
     });
   });
 });
