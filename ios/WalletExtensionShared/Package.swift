@@ -14,7 +14,6 @@ let package = Package(
             path: ".",
             exclude: ["Tests", "lock-holder", "Package.swift"],
             sources: [
-                "BaanxLogin.swift",
                 "CardTokenKeychain.swift",
                 "Encryptor.swift",
                 "EncryptorPayload.swift",

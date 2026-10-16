@@ -61,8 +61,6 @@ enum AuthorizationPhase {
     case checking
     case verify
     case signInRequired
-    case baanxCredentials
-    case baanxCode
     case unavailable
     case error
     case verificationFailed
@@ -70,13 +68,7 @@ enum AuthorizationPhase {
 
 final class AuthorizationModel: ObservableObject {
     @Published var phase: AuthorizationPhase = .checking
-    @Published var email = ""
-    @Published var password = ""
-    @Published var code = ""
     @Published var statusMessage = ""
-    private var loginSession: BaanxLoginSession?
-    private var snapshot: ProvisioningSnapshot?
-    private var attempts = 0
 
     var biometricTitle: String {
         let context = LAContext()
@@ -98,85 +90,6 @@ final class AuthorizationModel: ObservableObject {
 
     func retry() {
         start()
-    }
-
-    func submitCredentials() {
-        guard attempts < 5 else {
-            clearSecrets()
-            phase = .error
-            return
-        }
-        attempts += 1
-        guard
-            let snapshot,
-            let clientKey = snapshot.baanxClientKey,
-            let base = URL(string: snapshot.apiBaseUrl),
-            ProviderHosts.isAllowed(base)
-        else {
-            clearSecrets()
-            phase = .error
-            return
-        }
-        let submittedEmail = email
-        let submittedPassword = password
-        let otp = phase == .baanxCode ? code : nil
-        clearSecrets()
-        phase = .checking
-        Task {
-            do {
-                var session: BaanxLoginSession
-                if let existing = loginSession, otp != nil {
-                    session = existing
-                } else {
-                    session = try await BaanxLoginClient.start(
-                        baseURL: base,
-                        clientKey: clientKey,
-                        http: ProviderHTTP(timeout: 15)
-                    )
-                }
-                let done = try await BaanxLoginClient.submit(
-                    session: &session,
-                    email: submittedEmail,
-                    password: submittedPassword,
-                    otpCode: otp,
-                    baseURL: base,
-                    clientKey: clientKey,
-                    http: ProviderHTTP(timeout: 15)
-                )
-                loginSession = session
-                if !done {
-                    if let userId = session.userId {
-                        try? await BaanxLoginClient.sendOTP(userId: userId, baseURL: base, clientKey: clientKey, http: ProviderHTTP(timeout: 15))
-                    }
-                    await MainActor.run { phase = .baanxCode }
-                    return
-                }
-                let tokens = try await BaanxLoginClient.exchange(session: session, baseURL: base, clientKey: clientKey, http: ProviderHTTP(timeout: 15))
-                guard let password = ContainingAppFoxCode.read() else {
-                    await MainActor.run { phase = .error }
-                    return
-                }
-                guard let directory = AppGroupLocator.containerURL() else {
-                    await MainActor.run { phase = .error }
-                    return
-                }
-                let refreshLock = AppGroupRefreshLock(directory: directory)
-                guard refreshLock.acquire(timeout: 4) else {
-                    await MainActor.run { phase = .error }
-                    return
-                }
-                defer { refreshLock.release() }
-                try CardTokenKeychain.save(providerId: "baanx", tokens: tokens, password: password)
-                await MainActor.run { finishAuthorized() }
-            } catch {
-                await MainActor.run { phase = .error }
-            }
-        }
-    }
-
-    func clearSecrets() {
-        password = ""
-        code = ""
     }
 
     private func authenticateAndRefresh() async {
@@ -212,22 +125,25 @@ final class AuthorizationModel: ObservableObject {
             await MainActor.run { phase = .unavailable }
             return
         }
-        self.snapshot = snapshot
         guard await FlagsClient.isEnabled(snapshot: snapshot) else {
             await MainActor.run { phase = .unavailable }
             return
         }
-        if await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) != nil {
+        switch await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) {
+        case .ready:
             await MainActor.run { finishAuthorized() }
-            return
-        }
-        await MainActor.run {
-            phase = snapshot.providerId == "baanx" ? .baanxCredentials : .signInRequired
+        case .expired:
+            SnapshotStore.clear(
+                directory: directory,
+                defaults: UserDefaults(suiteName: AppGroupLocator.identifier)
+            )
+            await MainActor.run { phase = .signInRequired }
+        case .unavailable:
+            await MainActor.run { phase = .signInRequired }
         }
     }
 
     private func finishAuthorized() {
-        clearSecrets()
         phase = .checking
         NotificationCenter.default.post(name: .walletExtensionAuthorized, object: nil)
     }
@@ -277,30 +193,8 @@ struct AuthorizationView: View {
                 .font(WalletFont.title)
                 .foregroundStyle(WalletColor.text)
             primaryButton(model.biometricTitle) { model.start() }
-        case .signInRequired:
-            Text("Open MetaMask and sign in to your MetaMask Card, then return to Wallet.")
-                .font(WalletFont.body)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(WalletColor.text)
-            primaryButton("Close") { cancel() }
-        case .baanxCredentials:
-            Text("Sign in to MetaMask Card")
-                .font(WalletFont.title)
-                .foregroundStyle(WalletColor.text)
-            field("Email", text: $model.email)
-            SecureField("Password", text: $model.password)
-                .textFieldStyle(.roundedBorder)
-            primaryButton("Continue") { model.submitCredentials() }
-            secondaryButton("Close") { cancel() }
-        case .baanxCode:
-            Text("Enter the code we sent you")
-                .font(WalletFont.title)
-                .foregroundStyle(WalletColor.text)
-            field("Code", text: $model.code)
-            primaryButton("Continue") { model.submitCredentials() }
-            secondaryButton("Close") { cancel() }
-        case .unavailable:
-            Text("There's no card available to add right now.")
+        case .signInRequired, .unavailable:
+            Text("Open the MetaMask app and sign in to your MetaMask Card, then return to Wallet.")
                 .font(WalletFont.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(WalletColor.text)
@@ -332,15 +226,7 @@ struct AuthorizationView: View {
     }
 
     private func cancel() {
-        model.clearSecrets()
         onFinish(.canceled)
-    }
-
-    private func field(_ title: String, text: Binding<String>) -> some View {
-        TextField(title, text: text)
-            .textFieldStyle(.roundedBorder)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
     }
 
     private func primaryButton(_ title: String, action: @escaping () -> Void) -> some View {

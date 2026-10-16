@@ -2,25 +2,22 @@ import Foundation
 import os
 import PassKit
 import UIKit
-import WatchConnectivity
 
 private let log = Logger(subsystem: "io.metamask.MetaMask", category: "WalletExtension")
 
 class MetaMaskWalletNonUIExtension: PKIssuerProvisioningExtensionHandler {
     override func status(completion: @escaping (PKIssuerProvisioningExtensionStatus) -> Void) {
         let status = PKIssuerProvisioningExtensionStatus()
-        let snapshot = readSnapshot()
-        let installed = InstalledPasses.load()
-        let phone = snapshot.map {
-            ProvisioningLogic.cardsAvailable(cards: $0.cards, installed: installed.phone)
-        } ?? []
-        let watch = snapshot.map {
-            ProvisioningLogic.cardsAvailable(cards: $0.cards, installed: installed.watch)
-        } ?? []
-        status.passEntriesAvailable = !phone.isEmpty
-        let watchPaired = WCSession.isSupported() && WCSession.default.isPaired
-        status.remotePassEntriesAvailable = watchPaired && !watch.isEmpty
         status.requiresAuthentication = true
+        status.passEntriesAvailable = false
+        status.remotePassEntriesAvailable = false
+        if let snapshot = readSnapshot(), sessionLooksUsable(snapshot) {
+            let installed = InstalledPasses.load()
+            let phone = ProvisioningLogic.cardsAvailable(cards: snapshot.cards, installed: installed.phone)
+            let watch = ProvisioningLogic.cardsAvailable(cards: snapshot.cards, installed: installed.watch)
+            status.passEntriesAvailable = !phone.isEmpty
+            status.remotePassEntriesAvailable = !watch.isEmpty
+        }
         completion(status)
     }
 
@@ -67,12 +64,22 @@ private func readSnapshot() -> ProvisioningSnapshot? {
     return SnapshotStore.read(directory: directory, defaults: UserDefaults(suiteName: AppGroupLocator.identifier))
 }
 
+private func clearSnapshot() {
+    guard let directory = provisioningDirectory() else { return }
+    SnapshotStore.clear(directory: directory, defaults: UserDefaults(suiteName: AppGroupLocator.identifier))
+}
+
+private func sessionLooksUsable(_ snapshot: ProvisioningSnapshot) -> Bool {
+    guard let password = ContainingAppFoxCode.read() else { return false }
+    let tokens = try? KeychainCardTokenStore().load(providerId: snapshot.providerId, password: password)
+    return ProvisioningLogic.sessionLooksUsable(snapshot: snapshot, tokens: tokens)
+}
+
 enum InstalledPasses {
     static func load() -> (phone: [InstalledPass], watch: [InstalledPass]) {
         let library = PKPassLibrary()
-        let phone = library.passes(of: .secureElement).compactMap { pass in
-            (pass as? PKSecureElementPass).map(installed)
-        }
+        let securePasses = library.passes(of: .secureElement).compactMap { $0 as? PKSecureElementPass }
+        let phone = ProvisioningLogic.excludingRemotePasses(securePasses, isRemote: \.isRemotePass).map(installed)
         let watch = library.remoteSecureElementPasses.map(installed)
         return (phone, watch)
     }
@@ -114,13 +121,26 @@ enum WalletExtensionPasses {
             defaults: UserDefaults(suiteName: AppGroupLocator.identifier)
         ) else { return [] }
         guard await FlagsClient.isEnabled(snapshot: snapshot) else { return [] }
-        if let tokens = await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline),
-           let base = URL(string: snapshot.apiBaseUrl) {
-            let live = try? await liveCards(snapshot: snapshot, tokens: tokens, base: base)
-            if let live, !live.isEmpty {
-                snapshot.cards = live
-                try? SnapshotStore.write(snapshot, directory: directory)
+        switch await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) {
+        case let .ready(tokens):
+            guard let base = URL(string: snapshot.apiBaseUrl) else { return [] }
+            let live: [SnapshotCard]
+            do {
+                live = try await liveCards(snapshot: snapshot, tokens: tokens, base: base)
+            } catch {
+                return []
             }
+            if live.isEmpty {
+                clearSnapshot()
+                return []
+            }
+            snapshot.cards = live
+            try? SnapshotStore.write(snapshot, directory: directory)
+        case .expired:
+            clearSnapshot()
+            return []
+        case .unavailable:
+            return []
         }
         let installed = InstalledPasses.load()
         let cards = ProvisioningLogic.cardsAvailable(
@@ -130,6 +150,15 @@ enum WalletExtensionPasses {
         guard let art = CardArt.load() else { return [] }
         return cards.compactMap { card in
             guard let configuration = configuration(for: card) else { return nil }
+            // This check is the iPhone secure element. Watch availability comes
+            // from the remote pass list, so a card already on iPhone can still
+            // be offered for Apple Watch.
+            if !remote,
+               let identifier = configuration.primaryAccountIdentifier,
+               !identifier.isEmpty,
+               !PKPassLibrary().canAddSecureElementPass(primaryAccountIdentifier: identifier) {
+                return nil
+            }
             return PKIssuerProvisioningExtensionPaymentPassEntry(
                 identifier: card.entryId,
                 title: card.title,
@@ -158,7 +187,15 @@ enum WalletExtensionPasses {
             log.error("Provisioning card not found")
             return nil
         }
-        guard let tokens = await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) else {
+        let tokens: CardTokenSet
+        switch await SessionRefresh.usableTokens(snapshot: snapshot, deadline: deadline) {
+        case let .ready(ready):
+            tokens = ready
+        case .expired:
+            clearSnapshot()
+            log.error("Provisioning session expired")
+            return nil
+        case .unavailable:
             log.error("Provisioning session unavailable")
             return nil
         }
@@ -221,11 +258,13 @@ enum WalletExtensionPasses {
     ) async throws -> [SnapshotCard] {
         let http = ProviderHTTP()
         if snapshot.providerId == "baanx" {
-            guard let clientKey = snapshot.baanxClientKey else { return snapshot.cards }
+            guard let clientKey = snapshot.baanxClientKey else {
+                throw ProviderClientError.invalidResponse
+            }
             if let card = try await BaanxClient.card(tokens: tokens, baseURL: base, clientKey: clientKey, http: http) {
                 return [card]
             }
-            return snapshot.cards
+            return []
         }
         return try await ImmersveClient.cards(tokens: tokens, baseURL: base, http: http)
     }

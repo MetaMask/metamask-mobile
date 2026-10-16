@@ -1,3 +1,4 @@
+import { CardStatus } from './provider-types';
 import {
   BAANX_APPLE_PAY_FLAG_KEY,
   decideCardWalletExtensionSnapshot,
@@ -8,6 +9,8 @@ const baseInput = (): SnapshotInput => ({
   providerId: 'baanx',
   providerUserId: 'user-1',
   location: 'us',
+  isAuthenticated: true,
+  cardStatus: CardStatus.ACTIVE,
   applePayEnabled: true,
   applePayCapability: true,
   cardHomeData: {
@@ -63,11 +66,64 @@ describe('decideCardWalletExtensionSnapshot', () => {
     ).toEqual({ action: 'clear' });
   });
 
-  it('keeps the last snapshot when card home data is gone', () => {
+  it('clears when the user is logged out', () => {
+    expect(
+      decideCardWalletExtensionSnapshot({
+        ...baseInput(),
+        isAuthenticated: false,
+      }),
+    ).toEqual({ action: 'clear' });
+  });
+
+  it('clears on account switch when card home data is gone', () => {
     expect(
       decideCardWalletExtensionSnapshot({
         ...baseInput(),
         cardHomeData: null,
+      }),
+    ).toEqual({ action: 'clear' });
+  });
+
+  it('clears when the session has expired', () => {
+    expect(
+      decideCardWalletExtensionSnapshot({
+        ...baseInput(),
+        isAuthenticated: false,
+        cardHomeData: null,
+        cardStatus: null,
+      }),
+    ).toEqual({ action: 'clear' });
+  });
+
+  it('clears a frozen card even when provisioning still says eligible', () => {
+    const input = baseInput();
+    const cardHomeData = input.cardHomeData ?? {};
+    expect(
+      decideCardWalletExtensionSnapshot({
+        ...input,
+        cardStatus: CardStatus.FROZEN,
+        cardHomeData: {
+          ...cardHomeData,
+          card: { id: 'card-1', lastFour: '4242', status: CardStatus.FROZEN },
+        },
+      }),
+    ).toEqual({ action: 'clear' });
+  });
+
+  it('clears a blocked card', () => {
+    expect(
+      decideCardWalletExtensionSnapshot({
+        ...baseInput(),
+        cardStatus: CardStatus.BLOCKED,
+      }),
+    ).toEqual({ action: 'clear' });
+  });
+
+  it('keeps the last snapshot when the provider user id is not loaded yet', () => {
+    expect(
+      decideCardWalletExtensionSnapshot({
+        ...baseInput(),
+        providerUserId: null,
       }),
     ).toEqual({ action: 'keep' });
   });

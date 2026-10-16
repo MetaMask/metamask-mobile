@@ -79,7 +79,7 @@ final class SessionRefreshTests: XCTestCase {
             return (200, try JSONSerialization.data(withJSONObject: body))
         }
 
-        let tokens = await SessionRefresh.usableTokens(
+        let outcome = await SessionRefresh.usableTokens(
             snapshot: snapshot,
             store: store,
             http: mockHTTP(),
@@ -87,8 +87,12 @@ final class SessionRefreshTests: XCTestCase {
             lockDirectory: FileManager.default.temporaryDirectory
         )
 
-        XCTAssertEqual(tokens?.accessToken, "renewed")
-        XCTAssertEqual(tokens?.refreshToken, "rotated")
+        guard case let .ready(tokens) = outcome else {
+            XCTFail("expected a refreshed session")
+            return
+        }
+        XCTAssertEqual(tokens.accessToken, "renewed")
+        XCTAssertEqual(tokens.refreshToken, "rotated")
         let stored = try store.load(providerId: "baanx", password: password)
         XCTAssertEqual(stored?.accessToken, "renewed")
         XCTAssertEqual(SnapshotStore.read(directory: directory)?.cards.first?.lastFour, "4242")
@@ -103,7 +107,7 @@ final class SessionRefreshTests: XCTestCase {
             return (401, Data("no".utf8))
         }
 
-        let tokens = await SessionRefresh.usableTokens(
+        let outcome = await SessionRefresh.usableTokens(
             snapshot: sampleSnapshot(),
             store: store,
             http: mockHTTP(),
@@ -111,7 +115,11 @@ final class SessionRefreshTests: XCTestCase {
             lockDirectory: FileManager.default.temporaryDirectory
         )
 
-        XCTAssertEqual(tokens?.accessToken, "from-app")
+        guard case let .ready(tokens) = outcome else {
+            XCTFail("expected the tokens written by the other process")
+            return
+        }
+        XCTAssertEqual(tokens.accessToken, "from-app")
         XCTAssertFalse(requested)
         XCTAssertTrue(store.saved.isEmpty)
     }
@@ -125,7 +133,7 @@ final class SessionRefreshTests: XCTestCase {
         let store = SequencedTokenStore([staleTokens()])
         MockURLProtocol.handler = { _ in (401, Data()) }
 
-        let tokens = await SessionRefresh.usableTokens(
+        let outcome = await SessionRefresh.usableTokens(
             snapshot: snapshot,
             store: store,
             http: mockHTTP(),
@@ -133,8 +141,107 @@ final class SessionRefreshTests: XCTestCase {
             lockDirectory: FileManager.default.temporaryDirectory
         )
 
-        XCTAssertNil(tokens)
+        guard case .expired = outcome else {
+            XCTFail("expected a rejected refresh to expire the session")
+            return
+        }
         XCTAssertNotNil(SnapshotStore.read(directory: directory))
+    }
+
+    func testNetworkFailureKeepsTheSessionUnavailable() async throws {
+        let store = SequencedTokenStore([staleTokens()])
+        MockURLProtocol.handler = { _ in throw URLError(.notConnectedToInternet) }
+
+        let outcome = await SessionRefresh.usableTokens(
+            snapshot: sampleSnapshot(),
+            store: store,
+            http: mockHTTP(),
+            password: password,
+            lockDirectory: FileManager.default.temporaryDirectory
+        )
+
+        guard case .unavailable = outcome else {
+            XCTFail("expected a network failure to stay unavailable")
+            return
+        }
+    }
+
+    func testExpiredRefreshTokenSkipsTheNetwork() async throws {
+        var requested = false
+        MockURLProtocol.handler = { _ in
+            requested = true
+            return (200, Data())
+        }
+        let store = SequencedTokenStore([staleTokens(refreshTokenExpiresAt: 1)])
+
+        let outcome = await SessionRefresh.usableTokens(
+            snapshot: sampleSnapshot(),
+            store: store,
+            http: mockHTTP(),
+            password: password,
+            lockDirectory: FileManager.default.temporaryDirectory
+        )
+
+        guard case .expired = outcome else {
+            XCTFail("expected an expired refresh token")
+            return
+        }
+        XCTAssertFalse(requested)
+    }
+
+    func testImmersveCardsDropBlockedAndCancelled() async throws {
+        MockURLProtocol.handler = { _ in
+            let body: [String: Any] = [
+                "items": [
+                    ["id": "active", "status": "active", "panLast4": "1111", "isBlocked": false],
+                    ["id": "frozen", "status": "active", "panLast4": "2222", "isBlocked": true],
+                    ["id": "cancelled", "status": "cancelled", "panLast4": "3333", "isBlocked": false],
+                ],
+            ]
+            return (200, try JSONSerialization.data(withJSONObject: body))
+        }
+        let cards = try await ImmersveClient.cards(
+            tokens: freshTokens(accessToken: "live", cardholderAccountId: "acct-1"),
+            baseURL: URL(string: "https://api.immersve.com")!,
+            http: mockHTTP()
+        )
+        XCTAssertEqual(cards.map(\.cardId), ["active"])
+    }
+
+    func testSessionLooksUsableRejectsAMissingExpiredOrMismatchedSession() {
+        let snapshot = sampleSnapshot()
+        XCTAssertFalse(ProvisioningLogic.sessionLooksUsable(snapshot: snapshot, tokens: nil))
+        XCTAssertFalse(
+            ProvisioningLogic.sessionLooksUsable(
+                snapshot: snapshot,
+                tokens: freshTokens(accessToken: "live", providerUserId: "other")
+            )
+        )
+        XCTAssertFalse(
+            ProvisioningLogic.sessionLooksUsable(
+                snapshot: snapshot,
+                tokens: staleTokens(refreshTokenExpiresAt: 1)
+            )
+        )
+        XCTAssertTrue(
+            ProvisioningLogic.sessionLooksUsable(
+                snapshot: snapshot,
+                tokens: freshTokens(accessToken: "live")
+            )
+        )
+    }
+
+    func testExcludingRemotePassesKeepsLocalPassesOnly() {
+        let local = ProvisioningLogic.excludingRemotePasses(["phone", "watch", "phone-2"]) { $0 == "watch" }
+        XCTAssertEqual(local, ["phone", "phone-2"])
+    }
+
+    func testSeriesIdMatchHidesTheCardWhenTheLastFourDiffer() {
+        let card = card(entryId: "series-1", cardId: "card-1", lastFour: "9999", identifier: "series-1")
+        let installed = [
+            InstalledPass(primaryAccountIdentifier: "series-1", primaryAccountNumberSuffix: "0000"),
+        ]
+        XCTAssertTrue(ProvisioningLogic.cardsAvailable(cards: [card], installed: installed).isEmpty)
     }
 
     func testFlagTurnedOffSinceLastAppRun() async throws {
@@ -224,23 +331,29 @@ final class SessionRefreshTests: XCTestCase {
         return ProviderHTTP(session: URLSession(configuration: configuration), timeout: 2)
     }
 
-    private func staleTokens() -> CardTokenSet {
+    private func staleTokens(refreshTokenExpiresAt: Double? = nil) -> CardTokenSet {
         CardTokenSet(
             accessToken: "old",
             refreshToken: "refresh",
             accessTokenExpiresAt: 1,
+            refreshTokenExpiresAt: refreshTokenExpiresAt,
             location: "us",
             providerUserId: "user-1"
         )
     }
 
-    private func freshTokens(accessToken: String) -> CardTokenSet {
+    private func freshTokens(
+        accessToken: String,
+        providerUserId: String = "user-1",
+        cardholderAccountId: String? = nil
+    ) -> CardTokenSet {
         CardTokenSet(
             accessToken: accessToken,
             refreshToken: "refresh",
             accessTokenExpiresAt: Date().timeIntervalSince1970 * 1000 + 60 * 60 * 1000,
             location: "us",
-            providerUserId: "user-1"
+            providerUserId: providerUserId,
+            cardholderAccountId: cardholderAccountId
         )
     }
 

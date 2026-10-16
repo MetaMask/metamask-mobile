@@ -33,6 +33,26 @@ enum ProvisioningLogic {
         return tokens.sessionIdentity == expected
     }
 
+    /// Local check for `status()`, which has to return within 100 ms and cannot
+    /// refresh tokens. A missing refresh expiry is not treated as expired.
+    static func sessionLooksUsable(
+        snapshot: ProvisioningSnapshot,
+        tokens: CardTokenSet?,
+        now: Date = Date()
+    ) -> Bool {
+        guard let tokens, sessionMatches(snapshot: snapshot, tokens: tokens) else {
+            return false
+        }
+        guard let expiry = tokens.refreshTokenExpiresAt else {
+            return true
+        }
+        return expiry > now.timeIntervalSince1970 * 1000
+    }
+
+    static func excludingRemotePasses<T>(_ passes: [T], isRemote: (T) -> Bool) -> [T] {
+        passes.filter { !isRemote($0) }
+    }
+
     /// The pass PassKit installs does not carry Immersve's series id. When every
     /// installed pass with this suffix shares one identifier, send that instead.
     static func provisioningIdentifier(

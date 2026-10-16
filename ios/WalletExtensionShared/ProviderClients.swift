@@ -218,7 +218,10 @@ enum ImmersveClient {
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         let items = json?["items"] as? [[String: Any]] ?? []
         return items.compactMap { item in
-            guard (item["status"] as? String) != "cancelled", let cardId = item["id"] as? String else {
+            guard (item["status"] as? String) != "cancelled", item["isBlocked"] as? Bool != true else {
+                return nil
+            }
+            guard let cardId = item["id"] as? String else {
                 return nil
             }
             let lastFour = (item["panLast4"] as? String) ?? ""

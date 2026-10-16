@@ -3,18 +3,6 @@ import ImageIO
 import XCTest
 
 final class MitigationsTests: XCTestCase {
-    override func tearDown() {
-        PKCERandom.bytes = { count in
-            var buffer = [UInt8](repeating: 0, count: count)
-            let status = SecRandomCopyBytes(kSecRandomDefault, count, &buffer)
-            guard status == errSecSuccess else {
-                throw ProviderClientError.invalidResponse
-            }
-            return buffer
-        }
-        super.tearDown()
-    }
-
     func testHostAllowlistRejectsForeignHttpAndLookalikeHosts() {
         XCTAssertTrue(ProviderHosts.isAllowed(URL(string: "https://api.baanx.com")!))
         XCTAssertTrue(ProviderHosts.isAllowed(URL(string: "https://test.immersve.com/api")!))
@@ -120,38 +108,6 @@ final class MitigationsTests: XCTestCase {
         XCTAssertFalse(CardTokenKeychain.allowsWrite(existingCiphertext: payload, password: "other"))
         XCTAssertTrue(CardTokenKeychain.allowsWrite(existingCiphertext: payload, password: "fixture-fox-code"))
         XCTAssertTrue(CardTokenKeychain.allowsWrite(existingCiphertext: nil, password: "other"))
-    }
-
-    func testPKCEVerifierIsBase64URLAndRandomFailureThrows() throws {
-        let verifier = try BaanxLoginClient.randomURLSafe(count: 32)
-        let state = try BaanxLoginClient.randomURLSafe(count: 16)
-        XCTAssertEqual(verifier.count, 43)
-        XCTAssertEqual(state.count, 22)
-        let alphabet = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
-        XCTAssertNil(verifier.rangeOfCharacter(from: alphabet.inverted))
-        XCTAssertNil(state.rangeOfCharacter(from: alphabet.inverted))
-
-        PKCERandom.bytes = { _ in throw ProviderClientError.invalidResponse }
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.protocolClasses = [MockURLProtocol.self]
-        MockURLProtocol.handler = { _ in (500, Data()) }
-        defer { MockURLProtocol.handler = nil }
-        let http = ProviderHTTP(session: URLSession(configuration: configuration), timeout: 1)
-        // start() throws before any request when random bytes fail
-        let exp = expectation(description: "start throws")
-        Task {
-            do {
-                _ = try await BaanxLoginClient.start(
-                    baseURL: URL(string: "https://api.baanx.com")!,
-                    clientKey: "key",
-                    http: http
-                )
-                XCTFail("start returned")
-            } catch {
-                exp.fulfill()
-            }
-        }
-        wait(for: [exp], timeout: 2)
     }
 
     func testUnknownPassIdentifierIsRejected() {

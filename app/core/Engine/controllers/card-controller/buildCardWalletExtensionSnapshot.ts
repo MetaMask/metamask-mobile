@@ -1,3 +1,5 @@
+import { CardStatus } from './provider-types';
+
 export interface CardWalletExtensionSnapshotCard {
   entryId: string;
   cardId: string;
@@ -36,6 +38,8 @@ export interface SnapshotInput {
   providerId: string | null;
   providerUserId: string | null;
   location: string | null;
+  isAuthenticated: boolean;
+  cardStatus: CardStatus | null;
   applePayEnabled: boolean;
   applePayCapability: boolean;
   cardHomeData: Record<string, unknown> | null;
@@ -54,8 +58,12 @@ const BAANX_PROVIDER_ID = 'baanx';
 export function decideCardWalletExtensionSnapshot(
   input: SnapshotInput,
 ): SnapshotDecision {
-  if (!input.cardHomeData) {
-    return { action: 'keep' };
+  if (!input.isAuthenticated || !input.cardHomeData) {
+    return { action: 'clear' };
+  }
+
+  if (input.cardStatus !== CardStatus.ACTIVE) {
+    return { action: 'clear' };
   }
 
   const provisioning = input.cardHomeData.walletProvisioning as
@@ -82,6 +90,12 @@ export function decideCardWalletExtensionSnapshot(
 
   if (!eligible || !input.providerId || !card?.id) {
     return { action: 'clear' };
+  }
+
+  // providerUserId is not persisted. Writing null would make the extension
+  // accept any keychain session, so keep the last snapshot until login sets it.
+  if (!input.providerUserId) {
+    return { action: 'keep' };
   }
 
   const lastFour = provisioning?.lastFour || card.lastFour || '';

@@ -1,3 +1,4 @@
+import type { Json } from '@metamask/utils';
 import { ClientType } from '@metamask/remote-feature-flag-controller';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import { getBaseSemVerVersion } from '../../../../util/version';
@@ -9,7 +10,7 @@ import { resolveBaanxConfig } from './services/baanx-config';
 import { resolveImmersveConfig } from './services/immersve-config';
 import type { CardController } from './CardController';
 import type { CardControllerMessenger } from './types';
-import { CardProviderIds } from './provider-types';
+import { CardProviderIds, CardStatus } from './provider-types';
 import {
   BAANX_APPLE_PAY_FLAG_KEY,
   IMMERSVE_APPLE_PAY_FLAG_KEY,
@@ -21,6 +22,24 @@ import {
 } from './cardWalletExtensionLock';
 
 const FLAGS_URL = 'https://client-config.api.cx.metamask.io/v1/flags';
+
+function cardStatusFromHome(
+  cardHomeData: Record<string, Json> | null,
+): CardStatus | null {
+  const card = cardHomeData?.card;
+  if (typeof card !== 'object' || card === null || Array.isArray(card)) {
+    return null;
+  }
+  const status = card.status;
+  if (
+    status === CardStatus.ACTIVE ||
+    status === CardStatus.FROZEN ||
+    status === CardStatus.BLOCKED
+  ) {
+    return status;
+  }
+  return null;
+}
 
 function flagsUrl(): string {
   return (
@@ -48,6 +67,7 @@ export async function publishCardWalletExtensionSnapshot(
   const stored = providerId ? state.providerData[providerId] : undefined;
   const location =
     (stored as { location?: string } | undefined)?.location ?? null;
+  const cardStatus = cardStatusFromHome(state.cardHomeData);
   const baanx = resolveBaanxConfig();
   const immersve = resolveImmersveConfig();
   const apiBaseUrl =
@@ -56,6 +76,8 @@ export async function publishCardWalletExtensionSnapshot(
     providerId,
     providerUserId: state.providerUserId,
     location,
+    isAuthenticated: state.isAuthenticated,
+    cardStatus,
     applePayEnabled,
     applePayCapability:
       provider?.capabilities.pushProvisioning.applePay ?? false,
