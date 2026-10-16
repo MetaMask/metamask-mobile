@@ -30816,7 +30816,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eth-ens-namehash@npm:2.0.8, eth-ens-namehash@npm:^2.0.8":
+"eth-ens-namehash@npm:^2.0.8":
   version: 2.0.8
   resolution: "eth-ens-namehash@npm:2.0.8"
   dependencies:
@@ -38341,8 +38341,6 @@ __metadata:
     "@metamask/eth-simple-keyring": "npm:13.0.0"
     "@metamask/eth-snap-keyring": "npm:^24.1.1"
     "@metamask/etherscan-link": "npm:^2.0.0"
-    "@metamask/ethjs-contract": "npm:^0.4.1"
-    "@metamask/ethjs-query": "npm:^0.7.1"
     "@metamask/ethjs-unit": "npm:^0.3.0"
     "@metamask/foundryup": "npm:1.0.0"
     "@metamask/gas-fee-controller": "npm:^27.0.0"
@@ -38596,7 +38594,6 @@ __metadata:
     eslint-plugin-react-compiler: "npm:^19.1.0-rc.2"
     eslint-plugin-react-native: "npm:^4.0.0"
     eslint-plugin-tailwindcss: "npm:^3.18.2"
-    eth-ens-namehash: "npm:2.0.8"
     eth-url-parser: "npm:1.0.4"
     ethereumjs-abi: "npm:^0.6.8"
     ethereumjs-util: "npm:^7.0.10"
@@ -38646,7 +38643,6 @@ __metadata:
     lottie-react-native: "npm:~7.3.8"
     luxon: "npm:^3.5.0"
     mockttp: "npm:^3.15.2"
-    multihashes: "npm:0.4.14"
     nock: "npm:^14.0.11"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
@@ -40148,16 +40144,6 @@ __metadata:
   version: 9.9.0
   resolution: "multiformats@npm:9.9.0"
   checksum: 10/ad55c7d480d22f4258a68fd88aa2aab744fe0cb1e68d732fc886f67d858b37e3aa6c2cec12b2960ead7730d43be690931485238569952d8a3d7f90fdc726c652
-  languageName: node
-  linkType: hard
-
-"multihashes@npm:0.4.14":
-  version: 0.4.14
-  resolution: "multihashes@npm:0.4.14"
-  dependencies:
-    bs58: "npm:^4.0.1"
-    varint: "npm:^5.0.0"
-  checksum: 10/1a130f37704d4486eef3e38c7663df47c88b6d1277842275ddbcf164babd2e7b78a3e5600d7bf408bbf33a1d69e222ee8057da1eec7dfb48eaa13d54fd677426
   languageName: node
   linkType: hard
 
