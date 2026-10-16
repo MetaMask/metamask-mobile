@@ -2912,8 +2912,14 @@
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "tabs": {
         "overview": "Overview",
-        "feed": "Feed"
+        "feed": "Feed",
+        "top_traders": "Top traders"
       },
+      "top_traders_timeframe": {
+        "7d": "This week",
+        "30d": "This month"
+      },
+      "top_traders_empty": "No traders for this market yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",

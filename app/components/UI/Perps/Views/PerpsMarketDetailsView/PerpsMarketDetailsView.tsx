@@ -1770,6 +1770,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onAutoClosePress={handleAutoClosePress}
             onMarginPress={handleMarginPress}
             onSharePress={handleSharePress}
+            variant={isPerpsSocialEnabled ? 'tabs' : 'default'}
           />
         ) : null,
       },
@@ -1811,6 +1812,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       handleAutoClosePress,
       handleMarginPress,
       handleSharePress,
+      isPerpsSocialEnabled,
       displayOrders,
       handleOrderSelect,
       styles.positionsOrdersContainer,
@@ -1918,6 +1920,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       </View>
     );
   }
+
+  const marketInsightsCard = perpsInsightsReport ? (
+    <MarketInsightsEntryCard
+      report={perpsInsightsReport}
+      timeAgo={perpsInsightsTimeAgo}
+      onPress={handleMarketInsightsPress}
+      onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+      traceId={perpsInsightsEntryTraceId}
+      source="perps"
+      testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+    />
+  ) : (
+    <MarketInsightsEntryCardSkeleton />
+  );
 
   const shouldShowNewPositionActions =
     hasLongShortButtons && !existingPosition && !isAtOICap;
@@ -2174,22 +2190,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             </Box>
           )}
 
-          {shouldShowPerpsMarketInsightsSection ? (
-            <Box twClassName="mb-4">
-              {perpsInsightsReport ? (
-                <MarketInsightsEntryCard
-                  report={perpsInsightsReport}
-                  timeAgo={perpsInsightsTimeAgo}
-                  onPress={handleMarketInsightsPress}
-                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                  traceId={perpsInsightsEntryTraceId}
-                  source="perps"
-                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-                />
-              ) : (
-                <MarketInsightsEntryCardSkeleton />
-              )}
-            </Box>
+          {shouldShowPerpsMarketInsightsSection && !isPerpsSocialEnabled ? (
+            <Box twClassName="mb-4">{marketInsightsCard}</Box>
           ) : null}
 
           {isPerpsSocialEnabled ? (
@@ -2199,7 +2201,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 symbol={market.symbol}
                 overview={
                   <PerpsHomeSectionList
-                    sections={overviewSections}
+                    sections={[
+                      {
+                        key: 'market-insights',
+                        visible: shouldShowPerpsMarketInsightsSection,
+                        content: (
+                          <Box twClassName="pt-3 pb-6">
+                            {marketInsightsCard}
+                          </Box>
+                        ),
+                      },
+                      ...overviewSections,
+                    ]}
                     hideLeadingDivider
                   />
                 }
