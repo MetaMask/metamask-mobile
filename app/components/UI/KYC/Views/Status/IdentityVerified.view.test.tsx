@@ -48,10 +48,7 @@ const Flow = () => (
       name={Routes.RAMP.VBA_DETAILS}
       component={Probe(Routes.RAMP.VBA_DETAILS)}
     />
-    <Root.Screen
-      name={Routes.HOME_TABS}
-      component={Probe(Routes.MONEY.HOME)}
-    />
+    <Root.Screen name={Routes.HOME_TABS} component={Probe(Routes.MONEY.HOME)} />
   </Root.Navigator>
 );
 

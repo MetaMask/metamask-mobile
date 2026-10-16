@@ -340,10 +340,10 @@ describeForPlatforms('VbaKycPending', () => {
     engineContext.RampsController.hydrateVbaOnboarding = jest
       .fn()
       .mockResolvedValue(hydratedSnapshot('approved', 'not_ready'));
-    const { findByTestId, queryByTestId } = renderKycScreen(
-      <RampNavigator />,
-      { finalStatus: 'approved', kycStatus: 'approved' },
-    );
+    const { findByTestId, queryByTestId } = renderKycScreen(<RampNavigator />, {
+      finalStatus: 'approved',
+      kycStatus: 'approved',
+    });
 
     expect(
       await findByTestId(
