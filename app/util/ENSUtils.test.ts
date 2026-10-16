@@ -146,7 +146,8 @@ describe('doENSReverseLookup', () => {
     mockGetEnsName.mockResolvedValue(null);
 
     expect(await doENSReverseLookup(mockAddress, '0x1')).toBeUndefined();
-    expect(ENSCache.cache[`1${mockAddress}`].timestamp).toBeDefined();
+    expect(ENSCache.cache[`1${mockAddress}`]).toBeDefined();
+    expect(ENSCache.cache[`1${mockAddress}`].name).toBeUndefined();
     expect(getCachedENSName(mockAddress, '0x1')).toBeUndefined();
   });
 
