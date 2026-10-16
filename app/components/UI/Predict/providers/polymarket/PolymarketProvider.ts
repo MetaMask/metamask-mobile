@@ -97,6 +97,7 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
+  V1_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -137,6 +138,7 @@ import {
   mergeChildEventsIntoParent,
   parsePolymarketActivity,
   parsePolymarketEvents,
+  parseMarketOutcomeTokenIds,
   parsePolymarketPositions,
   previewOrder,
   previewMaxBuyOrder,
@@ -304,6 +306,15 @@ export class PolymarketProvider implements PredictProvider {
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
+  /**
+   * The Gamma market version of every outcome token this session has seen —
+   * populated whenever markets are parsed and by Gamma lookups for tokens
+   * no fetch has covered yet (sells). A market's version never changes, so
+   * entries are set-if-absent and never invalidated. The 'v1' default for
+   * markets whose Gamma payload omits the field is applied at population
+   * time, so a hit is always a resolved version.
+   */
+  #marketVersionsByOutcomeTokenId: Map<string, Promise<string>> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
   #optimisticPositionUpdatesByAddress = new Map<
@@ -439,6 +450,8 @@ export class PolymarketProvider implements PredictProvider {
 
     const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
+    this.#cacheMarketVersionsFromEvents(events);
+
     let markets = parsePolymarketEvents(events, {
       category,
       sortMarketsBy: 'price',
@@ -572,14 +585,12 @@ export class PolymarketProvider implements PredictProvider {
     fakOrdersEnabled,
     signer,
     feePolicy,
-    outcomeVersion,
   }: {
     preview: OrderPreview;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     signer: Signer;
     feePolicy?: PredictFeePolicy;
-    outcomeVersion?: string;
   }): OrderPreview {
     const orderType = this.#shouldUseFakOrderType({
       permit2Enabled: feeCollection.permit2Enabled,
@@ -594,7 +605,6 @@ export class PolymarketProvider implements PredictProvider {
       feeRateBps: getPreviewFeeRateBpsForProtocol(),
       orderType,
       ...(feePolicy ? { feePolicy } : {}),
-      ...(outcomeVersion !== undefined && { outcomeVersion }),
     };
 
     return this.isRateLimited(signer.address)
@@ -905,51 +915,101 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   /**
-   * Resolves the Gamma market version for an order whose preview does not
-   * carry one — a sell: the position holds no protocol, so the version is
-   * read from Gamma at order time. Reads the raw event markets because list
-   * parsing still filters v2 markets out. A failed read resolves to
-   * undefined — the CTF path, same as an unknown version.
+   * Caches the market version of every outcome token in the given raw Gamma
+   * events — the one version-resolution function, reused on both paths that
+   * learn about markets: regular market fetches (before parsing) and the
+   * Gamma lookup that backs {@link #ensureOutcomeVersion}. Set-if-absent: a
+   * market's version never changes, and a payload in hand can be an older
+   * snapshot than an already-cached read. Markets whose payload omits the
+   * field are v1 — the default is applied here, at population time. Returns
+   * the versions it saw, so a lookup in progress can read them without
+   * awaiting its own cache entry.
    */
-  async #resolveMarketVersion({
-    marketId,
-    outcomeId,
-  }: {
-    marketId: string;
-    outcomeId: string;
-  }): Promise<string | undefined> {
-    try {
-      const event = await getMarketDetailsFromGammaApi({ marketId });
-      return event.markets?.find((market) => market.conditionId === outcomeId)
-        ?.version;
-    } catch (error) {
-      DevLogger.log('PolymarketProvider: Failed to resolve market version', {
-        error: error instanceof Error ? error.message : 'Unknown error',
-        marketId,
-        outcomeId,
-      });
-      return undefined;
+  #cacheMarketVersionsFromEvents(
+    events: PolymarketApiEvent[],
+  ): Map<string, string> {
+    const versions = new Map<string, string>();
+    for (const event of events) {
+      for (const market of event.markets ?? []) {
+        const version = market.version ?? V1_MARKET_VERSION;
+        for (const outcomeTokenId of parseMarketOutcomeTokenIds(market)) {
+          versions.set(outcomeTokenId, version);
+          if (!this.#marketVersionsByOutcomeTokenId.has(outcomeTokenId)) {
+            this.#marketVersionsByOutcomeTokenId.set(
+              outcomeTokenId,
+              Promise.resolve(version),
+            );
+          }
+        }
+      }
     }
+    return versions;
   }
 
   /**
-   * Chooses the trade protocol for an order from the Gamma market version:
-   * a buy threads the version from the loaded market, everything else
-   * (sells, unthreaded flows) resolves it from Gamma by market id.
+   * Resolves the Gamma market version of an outcome token, used before an
+   * order preview is built so routing reads only from the cache. Market
+   * fetches usually cover this — a sell holds a position whose market the
+   * session may never have parsed, so a cache miss reads Gamma by market
+   * id (once per market; failures stay uncached and retry).
+   */
+  async #ensureOutcomeVersion({
+    marketId,
+    outcomeTokenId,
+  }: {
+    marketId: string;
+    outcomeTokenId: string;
+  }): Promise<string> {
+    const cached = this.#marketVersionsByOutcomeTokenId.get(outcomeTokenId);
+    if (cached) {
+      return cached;
+    }
+
+    const version = getMarketDetailsFromGammaApi({ marketId })
+      .then(
+        (event) =>
+          // A token the fetched event does not describe is unknown — the CTF
+          // path, same as a market whose payload omits the version.
+          this.#cacheMarketVersionsFromEvents([event]).get(outcomeTokenId) ??
+          V1_MARKET_VERSION,
+      )
+      .catch((error) => {
+        DevLogger.log('PolymarketProvider: Failed to resolve market version', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          marketId,
+          outcomeTokenId,
+        });
+        // Don't pin a failed lookup for the session — retry on the next
+        // preview.
+        this.#marketVersionsByOutcomeTokenId.delete(outcomeTokenId);
+        throw error;
+      });
+    this.#marketVersionsByOutcomeTokenId.set(outcomeTokenId, version);
+    return version;
+  }
+
+  /**
+   * Chooses the trade protocol for an order from the cached Gamma market
+   * version of its outcome token — no resolution happens at order time.
+   * Every preview ensures its version was resolved when it was built (see
+   * previewOrder), so a cache miss here is a programming error.
    */
   async #resolveTradeProtocol({
     preview,
   }: {
     preview: OrderPreview;
   }): Promise<PolymarketTradeProtocol> {
-    const outcomeVersion =
-      preview.outcomeVersion ??
-      (await this.#resolveMarketVersion({
-        marketId: preview.marketId,
-        outcomeId: preview.outcomeId,
-      }));
-
-    return getPolymarketProtocolForMarketVersion(outcomeVersion);
+    const cached = this.#marketVersionsByOutcomeTokenId.get(
+      preview.outcomeTokenId,
+    );
+    if (!cached) {
+      // Unreachable after previewOrder — a loud failure beats silently
+      // routing an unknown version down the CTF path.
+      throw new Error(
+        `No market version cached for outcome token ${preview.outcomeTokenId}`,
+      );
+    }
+    return getPolymarketProtocolForMarketVersion(await cached);
   }
 
   /**
@@ -1207,6 +1267,8 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
+
+      this.#cacheMarketVersionsFromEvents([mergedEvent]);
 
       const [parsedMarket] = parsePolymarketEvents([mergedEvent], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
@@ -1484,6 +1546,8 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
+      this.#cacheMarketVersionsFromEvents(events);
+
       return parsePolymarketEvents(events, {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
@@ -1521,6 +1585,8 @@ export class PolymarketProvider implements PredictProvider {
       await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      this.#cacheMarketVersionsFromEvents(events);
 
       const parsedMarkets = parsePolymarketEvents(events, {
         category: 'trending',
@@ -2564,6 +2630,14 @@ export class PolymarketProvider implements PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview> {
+    // Fail fast on an unresolvable market version — before the CLOB round
+    // trip — so routing always reads a warm cache. Market fetches usually
+    // covered this; a sell's market may need one Gamma read (cached).
+    await this.#ensureOutcomeVersion({
+      marketId: params.marketId,
+      outcomeTokenId: params.outcomeTokenId,
+    });
+
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewOrder({
       ...params,
@@ -2576,7 +2650,6 @@ export class PolymarketProvider implements PredictProvider {
       fakOrdersEnabled,
       signer: params.signer,
       feePolicy: params.feePolicy,
-      outcomeVersion: params.outcomeVersion,
     });
   }
 

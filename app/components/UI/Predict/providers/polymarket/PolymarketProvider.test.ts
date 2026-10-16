@@ -1709,7 +1709,31 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  // Raw Gamma event fixtures for the version cache: a v1 market carries no
+  // version field and exposes CTF token ids; a v2 market carries version
+  // 'v2' and exposes PositionManager token ids.
+  const v1MarketEvent = {
+    id: 'market-1',
+    markets: [{ clobTokenIds: '["123","456"]' }],
+  };
+  const v2MarketEvent = {
+    id: 'market-1',
+    markets: [{ version: 'v2', positionIds: ['123', '456'] }],
+  };
+
+  // Builds a preview the way production does: the version cache is warm
+  // from market fetches — here the Gamma event fixture stands in for them —
+  // so placeOrder later routes from the cache without fetching.
+  const previewWithWarmVersionCache = async (
+    provider: PolymarketProvider,
+    event: { id: string; markets: unknown[] },
+  ) => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(event as never);
+    return provider.previewOrder({ ...basePreview, size: 10, signer });
+  };
+
   it('previews orders through canonical CLOB v2 with zero fee-rate bps', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v1MarketEvent as never);
     const provider = createProvider();
 
     const preview = await provider.previewOrder({
@@ -1724,29 +1748,28 @@ describe('PolymarketProvider', () => {
     );
   });
 
-  it('carries the threaded market version on the preview', async () => {
+  it('resolves a sell market version from Gamma when building the preview', async () => {
     const provider = createProvider();
 
-    const preview = await provider.previewOrder({
-      ...basePreview,
-      size: 10,
-      outcomeVersion: 'v2',
-      signer,
-    });
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
 
-    expect(preview.outcomeVersion).toBe('v2');
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+      marketId: 'market-1',
+    });
   });
 
-  it('omits the market version from the preview when none is threaded', async () => {
+  it('fails the sell preview when the Gamma version lookup fails', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
     const provider = createProvider();
 
-    const preview = await provider.previewOrder({
-      ...basePreview,
-      size: 10,
-      signer,
-    });
-
-    expect('outcomeVersion' in preview).toBe(false);
+    await expect(
+      provider.previewOrder({
+        ...basePreview,
+        size: 10,
+        side: Side.SELL,
+        signer,
+      }),
+    ).rejects.toThrow('Gamma down');
   });
 
   it('previews the maximum fully fillable buy through the provider', async () => {
@@ -1777,7 +1800,12 @@ describe('PolymarketProvider', () => {
   it('submits orders through the protocol CLOB v2 relayer path', async () => {
     const provider = createProvider();
 
-    const result = await provider.placeOrder({ signer, preview: basePreview });
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
 
     expect(result.success).toBe(true);
     expect(mockCreateApiKey).toHaveBeenCalledWith({ address: signer.address });
@@ -1854,16 +1882,15 @@ describe('PolymarketProvider', () => {
 
   it('routes v2 market buys through the positions protocol path', async () => {
     const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
-    const result = await provider.placeOrder({
-      signer,
-      preview: { ...basePreview, outcomeVersion: 'v2' },
-    });
+    const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
-    // The one call is the optimistic position update's market fetch — the
-    // version resolver resolved the threaded outcomeVersion without fetching.
-    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
+    // The two calls are the preview's version lookup (a cache miss on the
+    // first preview) and the optimistic position update's market fetch —
+    // the order route itself reads the cache and never fetches.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
     expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
     expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
       expect.objectContaining({ safeAddress: legacySafeAddress }),
@@ -1879,54 +1906,41 @@ describe('PolymarketProvider', () => {
     );
   });
 
-  it('routes v1 market buys through the CTF path without resolving the version from Gamma', async () => {
+  it('routes v1 market buys through the CTF path without fetching Gamma at order time', async () => {
     const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
-    const result = await provider.placeOrder({
-      signer,
-      preview: { ...basePreview, outcomeVersion: 'v1' },
-    });
+    const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
-    // The one call is the optimistic position update's market fetch — the
-    // version resolver resolved the threaded outcomeVersion without fetching.
-    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(1);
+    // The two calls are the preview's version lookup (a cache miss on the
+    // first preview) and the optimistic position update's market fetch —
+    // a third call would mean the route fetched, which it never does.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
       expect.objectContaining({ safeAddress: legacySafeAddress }),
     );
     expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
-  it('resolves the market version from Gamma for sells and routes v2 positions', async () => {
-    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
-      id: 'market-1',
-      markets: [{ conditionId: basePreview.outcomeId, version: 'v2' }],
-    } as never);
+  it('routes sells through the positions path when the event market is v2', async () => {
     const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
-    const result = await provider.placeOrder({
-      signer,
-      preview: { ...basePreview, side: Side.SELL },
-    });
+    const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
-    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
-      marketId: 'market-1',
-    });
     expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
     expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
       expect.objectContaining({ safeAddress: legacySafeAddress }),
     );
   });
 
-  it('falls back to the CTF path when the sell market version cannot be resolved', async () => {
-    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+  it('routes sells through the CTF path when the event market is v1', async () => {
     const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
-    const result = await provider.placeOrder({
-      signer,
-      preview: { ...basePreview, side: Side.SELL },
-    });
+    const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
@@ -1935,20 +1949,101 @@ describe('PolymarketProvider', () => {
     expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
-  it('routes sells through the positions path when the matching event market is v2 among v1 siblings', async () => {
-    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
-      id: 'market-1',
-      markets: [
-        { conditionId: '0xsibling-condition', version: 'v1' },
-        { conditionId: basePreview.outcomeId, version: 'v2' },
-      ],
-    } as never);
+  it('resolves the sell market version from Gamma once per market', async () => {
     const provider = createProvider();
 
-    const result = await provider.placeOrder({
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const callsAfterFirstPreview =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
       signer,
-      preview: { ...basePreview, side: Side.SELL },
     });
+
+    // The second preview hits the version cache — no second fetch.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterFirstPreview,
+    );
+  });
+
+  it('retries the version resolution when the Gamma lookup fails', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+    const provider = createProvider();
+
+    await expect(
+      provider.previewOrder({ ...basePreview, size: 10, signer }),
+    ).rejects.toThrow('Gamma down');
+    const callsAfterFirstPreview =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await expect(
+      provider.previewOrder({ ...basePreview, size: 10, signer }),
+    ).rejects.toThrow('Gamma down');
+
+    // A failed lookup is not pinned for the session — the next preview
+    // fetches again.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBeGreaterThan(
+      callsAfterFirstPreview,
+    );
+  });
+
+  it('answers a sell preview from the cache warmed by a buy on the same market', async () => {
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const callsAfterBuy = mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The buy preview warmed the cache, so the sell resolves its version
+    // without fetching Gamma at all.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterBuy,
+    );
+  });
+
+  it('populates the version cache when markets are parsed', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v2MarketEvent as never);
+    mockParsePolymarketEvents.mockReturnValue([{ id: 'market-1' }] as never);
+    const provider = createProvider();
+
+    await provider.getMarketDetails({ marketId: 'market-1' });
+    const callsAfterDetailsFetch =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The market detail fetch already cached the token's version — the
+    // sell preview resolves it without fetching.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterDetailsFetch,
+    );
+  });
+
+  it('routes sells through the positions path when the matching event market is v2 among v1 siblings', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { clobTokenIds: '["777","778"]' },
+        { version: 'v2', positionIds: ['123', '456'] },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
     expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
@@ -1958,19 +2053,16 @@ describe('PolymarketProvider', () => {
   });
 
   it('routes sells through the CTF path when the matching event market is v1 among v2 siblings', async () => {
-    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
       id: 'market-1',
       markets: [
-        { conditionId: '0xsibling-condition', version: 'v2' },
-        { conditionId: basePreview.outcomeId, version: 'v1' },
+        { version: 'v2', positionIds: ['777', '778'] },
+        { clobTokenIds: '["123","456"]' },
       ],
-    } as never);
-    const provider = createProvider();
-
-    const result = await provider.placeOrder({
-      signer,
-      preview: { ...basePreview, side: Side.SELL },
     });
+
+    const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
@@ -1980,22 +2072,34 @@ describe('PolymarketProvider', () => {
   });
 
   it('falls back to the CTF path when no event market matches the sell outcome', async () => {
-    mockGetMarketDetailsFromGammaApi.mockResolvedValue({
-      id: 'market-1',
-      markets: [{ conditionId: '0xsibling-condition', version: 'v2' }],
-    } as never);
     const provider = createProvider();
-
-    const result = await provider.placeOrder({
-      signer,
-      preview: { ...basePreview, side: Side.SELL },
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [{ version: 'v2', positionIds: ['777', '778'] }],
     });
 
+    const result = await provider.placeOrder({ signer, preview });
+
+    // A token the fetched event does not describe is unknown — the CTF
+    // path, same as a market whose payload omits the version.
     expect(result.success).toBe(true);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
       expect.objectContaining({ safeAddress: legacySafeAddress }),
     );
     expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('fails an order when no market version is cached for its outcome token', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({ signer, preview: basePreview });
+
+    // Unreachable after previewOrder — a cold cache at order time is a
+    // programming error, and a loud failure beats silently routing an
+    // unknown version down the CTF path.
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('No market version cached');
+    expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
   });
 
   it('authorizes v2 fees on pUSD through the positions path', async () => {
@@ -2020,11 +2124,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
     await provider.placeOrder({
       signer,
       preview: {
         ...basePreview,
-        outcomeVersion: 'v2',
         fees: {
           metamaskFee: 0.05,
           providerFee: 0.05,
@@ -2066,9 +2171,13 @@ describe('PolymarketProvider', () => {
       sweepTransaction,
     );
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, outcomeVersion: 'v2' },
+      preview: basePreview,
     });
 
     expect(result.success).toBe(true);
@@ -2092,9 +2201,13 @@ describe('PolymarketProvider', () => {
       new Error('allowance build failed'),
     );
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, outcomeVersion: 'v2' },
+      preview: basePreview,
     });
 
     expect(result.success).toBe(false);
@@ -2116,6 +2229,8 @@ describe('PolymarketProvider', () => {
         executors: ['0x4444444444444444444444444444444444444444'],
       },
     });
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
@@ -2193,7 +2308,11 @@ describe('PolymarketProvider', () => {
       transactions: [repairTransaction],
     });
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
       preview: basePreview,
     });
@@ -2244,9 +2363,13 @@ describe('PolymarketProvider', () => {
       transactions: [repairTransaction],
     });
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, outcomeVersion: 'v2', side: Side.SELL },
+      preview: { ...basePreview, side: Side.SELL },
     });
 
     expect(result.success).toBe(true);
@@ -2267,9 +2390,13 @@ describe('PolymarketProvider', () => {
   it('keeps the collateral sync for deposit-wallet v2 buys', async () => {
     mockIsSmartContractAddress.mockResolvedValue(false);
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, outcomeVersion: 'v2' },
+      preview: basePreview,
     });
 
     expect(result.success).toBe(true);
@@ -2299,9 +2426,13 @@ describe('PolymarketProvider', () => {
       transactions: [],
     });
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, outcomeVersion: 'v2', side: Side.SELL },
+      preview: { ...basePreview, side: Side.SELL },
     });
 
     expect(result.success).toBe(true);
@@ -2345,7 +2476,11 @@ describe('PolymarketProvider', () => {
       sweepTransaction,
     );
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
       preview: basePreview,
     });
@@ -2392,6 +2527,8 @@ describe('PolymarketProvider', () => {
         executors: ['0x2222222222222222222222222222222222222222'],
       },
     });
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     await provider.placeOrder({
       signer,

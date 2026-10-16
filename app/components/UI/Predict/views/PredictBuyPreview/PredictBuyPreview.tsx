@@ -195,7 +195,6 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
-    outcomeVersion: outcome.version,
   });
 
   const { maxBetAmount, isLoading: isMaxBetAmountLoading } =

@@ -48,7 +48,6 @@ export function usePredictOrderPreview(
     size,
     autoRefreshTimeout,
     positionId,
-    outcomeVersion,
   } = params;
 
   // Debounce param changes by 100ms to avoid rapid recalculations
@@ -59,7 +58,6 @@ export function usePredictOrderPreview(
     side,
     size,
     positionId,
-    outcomeVersion,
   });
 
   useEffect(() => {
@@ -71,19 +69,10 @@ export function usePredictOrderPreview(
         side,
         size,
         positionId,
-        outcomeVersion,
       });
     }, 100);
     return () => clearTimeout(timer);
-  }, [
-    marketId,
-    outcomeId,
-    outcomeTokenId,
-    side,
-    size,
-    positionId,
-    outcomeVersion,
-  ]);
+  }, [marketId, outcomeId, outcomeTokenId, side, size, positionId]);
 
   const hasValidSize = !!debouncedParams.size && debouncedParams.size > 0;
 

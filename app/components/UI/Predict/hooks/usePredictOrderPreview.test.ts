@@ -607,43 +607,6 @@ describe('usePredictOrderPreview', () => {
         expect.objectContaining({ marketId: 'market-2' }),
       );
     });
-
-    it('recalculates the preview when only the outcome version changes', async () => {
-      const { Wrapper } = createWrapper();
-      const { result, rerender } = renderHook(
-        (props: PreviewOrderParams) => usePredictOrderPreview(props),
-        {
-          wrapper: Wrapper,
-          initialProps: { ...defaultParams, outcomeVersion: 'v1' },
-        },
-      );
-
-      await act(async () => {
-        jest.advanceTimersByTime(100);
-      });
-
-      await waitFor(() => {
-        expect(result.current.preview).toEqual(mockPreview);
-      });
-
-      expect(mockPreviewOrder).toHaveBeenCalledTimes(1);
-      expect(mockPreviewOrder).toHaveBeenLastCalledWith(
-        expect.objectContaining({ outcomeVersion: 'v1' }),
-      );
-
-      rerender({ ...defaultParams, outcomeVersion: 'v2' });
-
-      await act(async () => {
-        jest.advanceTimersByTime(100);
-      });
-
-      await waitFor(() => {
-        expect(mockPreviewOrder).toHaveBeenCalledTimes(2);
-      });
-      expect(mockPreviewOrder).toHaveBeenLastCalledWith(
-        expect.objectContaining({ outcomeVersion: 'v2' }),
-      );
-    });
   });
 
   describe('refetchPreview', () => {

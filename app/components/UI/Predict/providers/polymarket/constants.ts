@@ -18,6 +18,13 @@ export const POLYMARKET_PROVIDER_ID = 'polymarket';
  */
 export const V2_MARKET_VERSION = 'v2';
 
+/**
+ * Gamma market version for Protocol V1 (CTF) markets, threaded explicitly
+ * from a loaded market that carries no Gamma version field so the order
+ * path never re-resolves it. Every non-"v2" value stays on the CTF path.
+ */
+export const V1_MARKET_VERSION = 'v1';
+
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
 export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';

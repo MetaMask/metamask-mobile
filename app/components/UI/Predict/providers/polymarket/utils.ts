@@ -1052,7 +1052,9 @@ function isV2Market(market?: PolymarketApiMarket): boolean {
  * market without `positionIds` yields no ids rather than falling back to
  * `clobTokenIds`, so CTF ids can never leak into the Protocol V2 path.
  */
-function parseMarketOutcomeTokenIds(market: PolymarketApiMarket): string[] {
+export function parseMarketOutcomeTokenIds(
+  market: PolymarketApiMarket,
+): string[] {
   if (isV2Market(market)) {
     // The v2 wire returns `positionIds` as a native JSON array; the
     // JSON-encoded string form is accepted for compatibility.
