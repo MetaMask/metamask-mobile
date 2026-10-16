@@ -50,6 +50,7 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import { LiveTradesViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveTradesView/LiveTradesView.testIds';
 import {
   getPerpsMarketDetailsTabSelector,
   PerpsHomeViewSelectorsIDs,
@@ -1410,6 +1411,26 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
       ).not.toBeOnTheScreen();
+    });
+
+    it('shows the Social Live trades component on Live trades and keeps the page scrollable', async () => {
+      setupLeaderboardApiMock({ tokenFeedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          getPerpsMarketDetailsTabSelector('live_trades'),
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(LiveTradesViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(statsSectionTestId)).not.toBeOnTheScreen();
     });
 
     it('shows the empty message on Top traders when there are no traders', async () => {

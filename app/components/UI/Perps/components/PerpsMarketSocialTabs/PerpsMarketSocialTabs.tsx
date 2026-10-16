@@ -22,10 +22,11 @@ import {
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
 } from '../../Perps.testIds';
+import LiveTradesView from '../../../../Views/SocialLeaderboard/LiveTradesView';
 import PerpsSocialTrending from '../PerpsSocialFeedSection/PerpsSocialTrending';
 import PerpsSocialTopTraders from '../PerpsSocialFeedSection/PerpsSocialTopTraders';
 
-const TABS = ['overview', 'feed', 'top_traders'] as const;
+const TABS = ['overview', 'feed', 'live_trades', 'top_traders'] as const;
 const FEED_POST_COUNT = 5;
 const TOP_TRADERS_LIMIT = 10;
 const TOP_TRADERS_TIMEFRAMES = ['7d', '30d'] as const;
@@ -106,6 +107,13 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
             source={SOURCE}
             onSeeMorePress={handleOpenSocial}
           />
+        </Box>
+      ) : null}
+      {activeTab === 'live_trades' ? (
+        <Box
+          testID={PerpsMarketDetailsViewSelectorsIDs.LIVE_TRADES_TAB_CONTENT}
+        >
+          <LiveTradesView />
         </Box>
       ) : null}
       {activeTab === 'top_traders' ? (

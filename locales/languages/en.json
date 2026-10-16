@@ -2923,6 +2923,7 @@
       "tabs": {
         "overview": "Overview",
         "feed": "Feed",
+        "live_trades": "Live trades",
         "top_traders": "Top traders"
       },
       "top_traders_timeframe": {
