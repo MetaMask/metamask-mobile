@@ -930,6 +930,7 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
         params: expect.objectContaining({
+          triggerPrice: expect.not.stringContaining(mockSourceToken.symbol),
           // Handed over as entered: the confirmation sheet converts it to USD
           // with the rate live when the order is created.
           triggerInput: {
@@ -949,9 +950,11 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
       ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
       isLimitFiatMode: false,
       limitPrice: '0.04',
       priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      value: '0.04',
     }));
 
     const { getByTestId } = renderLimitOrderView();
@@ -962,6 +965,7 @@ describe('BridgeLimitOrderView', () => {
       Routes.BRIDGE.MODALS.ROOT,
       expect.objectContaining({
         params: expect.objectContaining({
+          triggerPrice: '0.04 USDC',
           triggerInput: expect.objectContaining({
             isLimitFiatMode: false,
             limitPrice: '0.04',

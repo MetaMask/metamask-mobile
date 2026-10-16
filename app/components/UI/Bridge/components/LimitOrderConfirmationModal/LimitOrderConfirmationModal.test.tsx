@@ -322,7 +322,7 @@ describe('LimitOrderConfirmationModal', () => {
     ).toHaveTextContent(strings('bridge.limit.includes_metamask_fee'));
   });
 
-  it('opens the account upgrade fee info sheet when the fee disclaimer is pressed', () => {
+  it('opens the MetaMask fee info sheet when the fee disclaimer is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
@@ -333,7 +333,7 @@ describe('LimitOrderConfirmationModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_METAMASK_FEE_INFO_MODAL,
     });
   });
 });
