@@ -24,13 +24,15 @@ import {
   BoxJustifyContent,
   Button,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonGlass from '../../../component-library/components-temp/ButtonGlass';
+import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
+import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { strings } from '../../../../locales/i18n';
 import {
   suppressWalletHomeOnboardingSteps,
@@ -127,6 +129,9 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
+  const isGlass = useIsGlassSurfaceEnabled(
+    selectHomeBrandRefreshSurfacesEnabled,
+  );
   const isFocused = useIsFocused();
   const { riveFile: checklistRiveFile } = useRiveFile(
     onboardChecklistV07Animation,
@@ -824,11 +829,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             gap={3}
             twClassName="w-full"
           >
-            <Button
-              variant={ButtonVariant.Secondary}
+            <ButtonGlass
+              isGlass={isGlass}
               size={ButtonSize.Lg}
               onPress={goNextOrComplete}
               twClassName="min-w-0 flex-1"
+              containerStyle={tw.style('min-w-0 flex-1')}
               isDisabled={
                 isStepTransitioning ||
                 isAwaitingBalance ||
@@ -837,7 +843,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
             >
               {strings('wallet.home_onboarding_steps.skip')}
-            </Button>
+            </ButtonGlass>
             <Button
               size={ButtonSize.Lg}
               onPress={handlePrimaryPress}

@@ -4,6 +4,7 @@ import { createMockInternalAccount } from '../../../../util/test/accountsControl
 import {
   assetChainScope,
   resolveOpenPositionWallet,
+  tokenAddressFromAsset,
 } from './openPositionWallet';
 
 const USDC_MAINNET =
@@ -24,6 +25,20 @@ const solanaAccount = createMockInternalAccount(
   undefined,
   SolAccountType.DataAccount,
 );
+
+describe('tokenAddressFromAsset', () => {
+  it('reads the contract or mint out of a CAIP-19 asset id', () => {
+    expect(tokenAddressFromAsset(USDC_MAINNET)).toBe(
+      '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    );
+    expect(tokenAddressFromAsset(SOL_TOKEN)).toBe('Es9vMFrzaCER');
+  });
+
+  it('returns undefined without an asset id', () => {
+    expect(tokenAddressFromAsset(null)).toBeUndefined();
+    expect(tokenAddressFromAsset(undefined)).toBeUndefined();
+  });
+});
 
 describe('assetChainScope', () => {
   it('reads the CAIP-2 chain out of a CAIP-19 asset id', () => {

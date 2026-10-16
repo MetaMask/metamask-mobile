@@ -16,7 +16,7 @@ import {
   BridgeTokenSelector,
   BridgeTokenSelectorContent,
 } from './BridgeTokenSelector';
-import { TokenSelectorType, type PopularToken } from '../../types';
+import { TokenSelectorType } from '../../types';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 import {
@@ -28,12 +28,6 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
-import {
-  ARC_HEX_CHAIN_ID,
-  ARC_USDC_ERC20_ADDRESS,
-} from '../../../../../enablement/assets/arc';
-import { ZERO_ADDRESS } from '../../../../../constants/address';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -182,11 +176,6 @@ jest.mock('../../../../../selectors/networkController', () => ({
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'usd'),
-}));
-
-const mockSelectAsset = jest.fn();
-jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectAsset: (...args: unknown[]) => mockSelectAsset(...args),
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/rwa', () => ({
@@ -775,7 +764,6 @@ const resetMocks = () => {
     resetSearch: mockResetSearch,
   };
   mockBalancesByAssetIdState = { tokensWithBalance: [], balancesByAssetId: {} };
-  mockSelectAsset.mockReturnValue(undefined);
   mockSelectedToken = null;
   mockFormatAddressToAssetId.mockReturnValue('eip155:1/erc20:0x1234');
   mockIsNonEvmChainId.mockReturnValue(false);
@@ -1770,66 +1758,6 @@ describe('BridgeTokenSelector', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('opens Arc USDC token details with the native asset from the token list', async () => {
-      const arcNativeAsset = {
-        address: ZERO_ADDRESS,
-        chainId: ARC_HEX_CHAIN_ID,
-        symbol: 'USDC',
-        name: 'USDC',
-        ticker: 'USDC',
-        decimals: 6,
-        balance: '12.34',
-        balanceFiat: '$12.34',
-        isNative: true,
-      };
-      mockSelectAsset.mockImplementation((_state, params) =>
-        params.address === ZERO_ADDRESS ? arcNativeAsset : undefined,
-      );
-      mockPopularTokensState = {
-        popularTokens: [
-          {
-            ...createMockPopularToken({
-              assetId: `eip155:5042/erc20:${ARC_USDC_ERC20_ADDRESS}`,
-              symbol: 'USDC',
-              name: 'USDC',
-              decimals: 6,
-            }),
-            address: ARC_USDC_ERC20_ADDRESS,
-            chainId: ARC_HEX_CHAIN_ID,
-          } as PopularToken & { address: string; chainId: string },
-        ],
-        isLoading: false,
-      };
-
-      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
-      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
-
-      await act(async () => {
-        fireEvent.press(getByTestId('button-icon-info'));
-      });
-
-      expect(mockSelectAsset).toHaveBeenCalledWith(expect.any(Object), {
-        address: ZERO_ADDRESS,
-        chainId: ARC_HEX_CHAIN_ID,
-        isStaked: false,
-      });
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'PUSH',
-          payload: expect.objectContaining({
-            name: 'Asset',
-            params: expect.objectContaining({
-              ...arcNativeAsset,
-              address: ZERO_ADDRESS,
-              assetId: ARC_NATIVE_ASSET_ID,
-              caipAssetId: ARC_NATIVE_ASSET_ID,
-              source: TokenDetailsSource.Swap,
-            }),
-          }),
-        }),
-      );
-    });
-
     it('tracks the info button press with the feature id of the flow that opened the picker', async () => {
       mockUseSwapsFeatureId.mockReturnValue(FeatureId.LIMIT_ORDER);
       mockRouteParams = { type: 'source' };
@@ -2050,12 +1978,27 @@ describe('BridgeTokenSelector', () => {
       expect(getByTestId('token-USDC')).toBeTruthy();
     });
 
-    it('filters Arc native duplicate from watchlist tokens', async () => {
+    it('keeps Arc native USDC and filters its ERC20 duplicate from watchlist tokens', async () => {
       mockIsWatchlistEnabled = true;
+      mockBridgeFeatureFlags.chainRanking = [
+        ...(mockBridgeFeatureFlags.chainRanking ?? []),
+        { chainId: 'eip155:5042', name: 'Arc' },
+      ];
       mockUseTokenWatchlistQuery.mockReturnValue({
         data: [
           {
-            assetId: ARC_NATIVE_ASSET_ID,
+            assetId: 'eip155:5042/slip44:5042',
+            name: 'USDC',
+            symbol: 'USDC',
+            decimals: 18,
+            balance: '1',
+            balanceFiat: 1,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+          {
+            assetId:
+              'eip155:5042/erc20:0x3600000000000000000000000000000000000000',
             name: 'USDC',
             symbol: 'USDC',
             decimals: 6,
@@ -2078,14 +2021,14 @@ describe('BridgeTokenSelector', () => {
         isLoading: false,
       });
 
-      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+      const { getAllByTestId, getByTestId } = renderWithReduxProvider(
         <BridgeTokenSelector />,
       );
 
       fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
 
       await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
-      expect(queryByTestId('token-USDC')).toBeNull();
+      expect(getAllByTestId('token-USDC')).toHaveLength(1);
     });
 
     it('keeps full watchlist list for queries below minimum length', async () => {

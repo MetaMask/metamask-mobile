@@ -92,15 +92,6 @@ function renderRecurringPriceRangeView({
     overrides: {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: currentCurrency.toUpperCase(),
-            currencyRates: {
-              ETH: {
-                conversionRate: ethFiatRate,
-                usdConversionRate: ETH_USD_RATE,
-              },
-            },
-          },
           AssetsController: {
             selectedCurrency: currentCurrency,
             assetsInfo: {
@@ -484,6 +475,30 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
       ),
     ).not.toHaveStyle({ color: errorColor });
+  });
+
+  it('adds spacing below visible banners only', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    const bannersWrapper = renderResult.getByTestId(
+      BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER,
+    );
+
+    fireEvent(bannersWrapper, 'layout', {
+      nativeEvent: { layout: { height: 20, width: 0, x: 0, y: 0 } },
+    });
+    expect(bannersWrapper).toHaveStyle({ marginBottom: 8 });
+
+    fireEvent(bannersWrapper, 'layout', {
+      nativeEvent: { layout: { height: 20, width: 0, x: 0, y: 0 } },
+    });
+    expect(bannersWrapper).toHaveStyle({ marginBottom: 8 });
+
+    fireEvent(bannersWrapper, 'layout', {
+      nativeEvent: { layout: { height: 0, width: 0, x: 0, y: 0 } },
+    });
+    expect(bannersWrapper).not.toHaveStyle({ marginBottom: 8 });
   });
 
   it('appends keypad digits to the every value', async () => {

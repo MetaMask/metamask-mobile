@@ -32,6 +32,45 @@ describe('buildPerpsOrderParams', () => {
     trackingData,
   };
 
+  it.each([false, true])(
+    'omits unsupported fields from venue-sized Scale with reduce-only %s',
+    (reduceOnly) => {
+      const params = buildPerpsOrderParams({
+        ...base,
+        orderType: 'scale',
+        providerId: 'lighter',
+        reduceOnly,
+        isFullClose: reduceOnly,
+      });
+
+      expect(params).toEqual({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.001',
+        orderType: 'scale',
+        providerId: 'lighter',
+        currentPrice: 90000,
+        leverage: 5,
+        usdAmount: '100',
+        reduceOnly,
+        trackingData,
+      });
+    },
+  );
+
+  it('retains Hyperliquid Scale calculation and full-close fields', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'scale',
+      providerId: 'hyperliquid',
+      reduceOnly: true,
+      isFullClose: true,
+    });
+
+    expect(params.priceAtCalculation).toBe(90000);
+    expect(params.isFullClose).toBe(true);
+  });
+
   it('builds a market order without a price and with the user max slippage', () => {
     // Arrange / Act
     const params = buildPerpsOrderParams({ ...base, orderType: 'market' });

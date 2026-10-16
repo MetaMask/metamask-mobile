@@ -23,9 +23,6 @@ inputs:
     required: false
     # Pin to ai-analyzer main (mode-driven comments/labels + hard-rule plugins).
     default: 'c592f54e7920f8834938226165d25a5351b8e78b'
-  analyzer-token:
-    description: 'Token with read access to MetaMask/ai-analyzer'
-    required: true
   litellm-api-key:
     description: 'LiteLLM API key for the shared analyzer'
     required: true
@@ -37,6 +34,9 @@ inputs:
     description: 'Optional Langfuse secret key'
     required: false
     default: ''
+  token-exchange-url:
+    description: 'Token exchange service URL. Composite actions cannot read vars, so the caller passes vars.TOKEN_EXCHANGE_URL.'
+    required: true
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
@@ -45,7 +45,7 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance test tags to run. Empty string '''' = run all (conservative fallback). Literal ''[]'' = skip (AI found no relevant changes). ''["@Tag",...]'' = run specific tags.'
+    description: 'Performance tags from Smart E2E Selection. ["ALL"] runs every performance test. ["@Tag",...] runs those tags. [] , a blank value, or a selection error runs none.'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
   ai_performance_test_reasoning:
     description: 'Reasoning for the performance test selection'
@@ -91,6 +91,16 @@ runs:
         git fetch --unshallow 2>/dev/null || true
         git fetch origin "${BASE_REF}" 2>/dev/null || true
 
+    - name: Get AI Analyzer token
+      id: get-ai-analyzer-token
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      uses: MetaMask/github-tools/.github/actions/get-token@v1
+      with:
+        token-exchange-url: ${{ inputs.token-exchange-url }}
+        target-repository: MetaMask/ai-analyzer
+        permissions: |
+          contents: read
+
     - name: Checkout AI Analyzer
       if: steps.check-skip-label.outputs.SKIP != 'true'
       uses: actions/checkout@v6
@@ -98,7 +108,7 @@ runs:
         repository: MetaMask/ai-analyzer
         ref: ${{ inputs.analyzer-ref }}
         path: .ai-analyzer-action
-        token: ${{ inputs.analyzer-token }}
+        token: ${{ steps.get-ai-analyzer-token.outputs.token }}
 
     - name: Setup Node.js
       if: steps.check-skip-label.outputs.SKIP != 'true'
@@ -215,7 +225,12 @@ runs:
             echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
           fi
           printf 'ai_confidence=%s\n' "${MAPPED_CONFIDENCE:-0}" >> "$GITHUB_OUTPUT"
-          printf 'ai_performance_test_tags=%s\n' "$MAPPED_PERF_TAGS" >> "$GITHUB_OUTPUT"
+          # Blank, a failed mapping step, and a selection error all mean run none.
+          if [[ -n "$MAPPED_PERF_TAGS" ]]; then
+            printf 'ai_performance_test_tags=%s\n' "$MAPPED_PERF_TAGS" >> "$GITHUB_OUTPUT"
+          else
+            echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
+          fi
           {
             echo 'ai_performance_test_reasoning<<GHEOF'
             echo "$MAPPED_PERF_REASONING"

@@ -31,7 +31,6 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
     isQuoteLoading,
     destToken,
     currentCurrency,
-    onClose,
     setActiveScreen,
   } = useQuickBuyContext();
   const bestQuote = sortedQuotes[0];
@@ -88,7 +87,6 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
       <QuickBuySubScreenHeader
         title={strings('social_leaderboard.quick_buy.select_quote_title')}
         onBack={() => setActiveScreen('quoteDetails')}
-        onClose={onClose}
       />
       {isEmpty ? (
         <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>

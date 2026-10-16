@@ -1,10 +1,11 @@
 import {
+  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
+  buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
-  nextUsernameSuggestion,
   normalizeUsername,
 } from './profileOnboardingDraft';
 
@@ -24,11 +25,6 @@ describe('profileOnboardingDraft', () => {
     expect(getUsernameStatus('wen-cat')).toBe('available');
   });
 
-  it('cycles username suggestions', () => {
-    expect(nextUsernameSuggestion('wen-cat')).toBe('moon-fox');
-    expect(nextUsernameSuggestion('not-in-list')).toBe('wen-cat');
-  });
-
   it('blocks continue until the handle and display name are filled', () => {
     const draft = createInitialOnboardingDraft();
 
@@ -41,7 +37,8 @@ describe('profileOnboardingDraft', () => {
   it('writes onboarding choices onto a local profile', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
-      avatarPresetId: 'fox-emoji',
+      avatarPresetId: 'zombie',
+      avatarBackgroundId: 'lime',
       linkedAccountId: 'acc-1',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
@@ -51,11 +48,32 @@ describe('profileOnboardingDraft', () => {
 
     expect(profile.handle).toBe('wen-cat');
     expect(profile.displayName).toBe('Wen Cat');
-    expect(profile.avatarPresetId).toBe('fox-emoji');
+    expect(profile.avatarPresetId).toBe('zombie');
+    expect(profile.avatarBackgroundId).toBe('lime');
     expect(profile.linkedAccountId).toBe('acc-1');
     expect(profile.shareTradingActivity).toBe(false);
     expect(profile.xHandle).toBeNull();
     expect(profile.rankingTag).toBeNull();
     expect(profile.shareUrl).toBe('https://metamask.io/wen-cat');
+  });
+
+  it('maps a draft onto createProfile parameters', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountAddress: '0xabc',
+      shareTradingActivity: false,
+    };
+
+    expect(
+      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID),
+    ).toEqual({
+      profile_id: 'social-v1-profile',
+      username: 'wen-cat',
+      display_name: 'Wen Cat',
+      bio: null,
+      linked_addresses: ['eip155:1:0xabc'],
+      avatar_url: 'foxicon://visor/purple',
+      trading_privacy: 'private',
+    });
   });
 });

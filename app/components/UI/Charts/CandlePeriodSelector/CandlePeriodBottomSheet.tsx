@@ -142,6 +142,15 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
             size={FilterButtonSize.Md}
             onPress={() => handlePeriodSelect(period.value)}
             isFullWidth
+            // Default button padding clips `15m` and `30m` to `15` and `30`
+            // in a five-column row. Tighten the padding and scale the label
+            // so the unit stays visible.
+            twClassName="px-1"
+            textProps={{
+              adjustsFontSizeToFit: true,
+              minimumFontScale: 0.7,
+              numberOfLines: 1,
+            }}
             testID={
               testID
                 ? getCandlePeriodBottomSheetSelectors.periodButton(
