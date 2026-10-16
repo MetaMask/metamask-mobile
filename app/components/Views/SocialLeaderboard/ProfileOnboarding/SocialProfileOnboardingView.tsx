@@ -44,6 +44,7 @@ import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSaf
 import {
   SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
+  startManualOnboarding,
   buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
@@ -483,6 +484,13 @@ const SocialProfileOnboardingView: React.FC = () => {
     setStep('x-identity');
   }, [playSelection]);
 
+  const handleCreateManually = useCallback(() => {
+    playSelection().catch(() => undefined);
+    setUsernameClaimError(null);
+    setDraft((current) => startManualOnboarding(current));
+    setStep('username');
+  }, [playSelection]);
+
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
       playSelection().catch(() => undefined);
@@ -641,10 +649,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Button
                   variant={ButtonVariant.Tertiary}
                   isFullWidth
-                  onPress={() => {
-                    playSelection().catch(() => undefined);
-                    setStep('username');
-                  }}
+                  onPress={handleCreateManually}
                   testID={
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON
                   }

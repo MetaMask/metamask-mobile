@@ -526,6 +526,75 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('starts a fresh manual flow after leaving the X path', async () => {
+    renderSocialProfileOnboarding([
+      { name: Routes.SOCIAL.V1 },
+      { name: Routes.SOCIAL.MY_PROFILE },
+    ]);
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+    ).toHaveProp('value', 'wen-cat');
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
+      ),
+    ).toBeOnTheScreen();
+
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(getLocalSocialProfileSnapshot().profile).toEqual(
+      expect.objectContaining({
+        handle: 'wen-cat',
+        connectedToX: false,
+        xHandle: null,
+        imageUrl: null,
+      }),
+    );
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        username: 'wen-cat',
+        avatar_url: 'foxicon://visor/purple',
+      }),
+    );
+  });
+
   it('uses the manual username and avatar pickers when X reuse is off', async () => {
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
 

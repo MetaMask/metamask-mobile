@@ -111,6 +111,25 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
 export const profileUrlForHandle = (handle: string): string =>
   `https://metamask.io/${normalizeUsername(handle)}`;
 
+/**
+ * Manual onboarding after Connect X must not keep the X path. A fresh manual
+ * draft keeps the account already chosen for this session.
+ */
+export const startManualOnboarding = (
+  draft: ProfileOnboardingDraft,
+): ProfileOnboardingDraft => {
+  if (draft.path === 'manual') {
+    return draft;
+  }
+
+  const initial = createInitialOnboardingDraft();
+  return {
+    ...initial,
+    linkedAccountId: draft.linkedAccountId,
+    linkedAccountAddress: draft.linkedAccountAddress,
+  };
+};
+
 export const applyXOnboardingProfile = (
   draft: ProfileOnboardingDraft,
 ): ProfileOnboardingDraft => ({

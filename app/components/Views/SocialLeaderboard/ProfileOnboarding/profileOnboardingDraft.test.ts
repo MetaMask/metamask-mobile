@@ -2,6 +2,7 @@ import {
   MOCK_X_ONBOARDING_PROFILE,
   SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
+  startManualOnboarding,
   buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
@@ -80,6 +81,34 @@ describe('profileOnboardingDraft', () => {
       buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
         .avatar_url,
     ).toBe(MOCK_X_ONBOARDING_PROFILE.avatarUrl);
+  });
+
+  it('clears the X path when manual onboarding starts', () => {
+    const draft = {
+      ...applyXOnboardingProfile(createInitialOnboardingDraft()),
+      linkedAccountId: 'acc-1',
+      linkedAccountAddress: '0xabc',
+    };
+
+    const manual = startManualOnboarding(draft);
+
+    expect(manual.path).toBe('manual');
+    expect(manual.useXAvatar).toBe(false);
+    expect(manual.xUsername).toBeNull();
+    expect(manual.username).toBe('wen-cat');
+    expect(manual.linkedAccountId).toBe('acc-1');
+    expect(buildOnboardedSocialProfile(manual).connectedToX).toBe(false);
+    expect(buildOnboardedSocialProfile(manual).xHandle).toBeNull();
+  });
+
+  it('keeps an in-progress manual draft', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      username: 'moon-fox',
+      displayName: 'Moon Fox',
+    };
+
+    expect(startManualOnboarding(draft)).toBe(draft);
   });
 
   it('maps a draft onto createProfile parameters', () => {
