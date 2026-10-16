@@ -19,6 +19,12 @@ jest.mock('../../../../../locales/i18n', () => ({
 // pagination and error surface, and none of them touch the composer store.
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed');
 
+// The real hook needs a QueryClient via useSessionProfileId. This suite covers
+// pagination and the refetch spinner, not profile hydration.
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => ({ profile: null }),
+}));
+
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],

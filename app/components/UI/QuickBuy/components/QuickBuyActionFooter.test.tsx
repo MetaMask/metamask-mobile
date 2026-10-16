@@ -21,6 +21,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../../Bridge/components/RebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('./QuickBuyQuickAmounts', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
