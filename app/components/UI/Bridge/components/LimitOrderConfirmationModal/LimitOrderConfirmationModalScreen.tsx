@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { formatChainIdToDec } from '@metamask/bridge-controller';
 import { parseCaipAssetType } from '@metamask/utils';
@@ -8,6 +8,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
 import {
+  resetBridgeTokenInputs,
   selectLimitOrderCostTolerance,
   selectLimitOrderMarketComparison,
 } from '../../../../../core/redux/slices/bridge';
@@ -56,6 +57,7 @@ const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
 
 export const LimitOrderConfirmationModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const params = useParams<LimitOrderConfirmationModalParams>();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
@@ -239,6 +241,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     }
 
     // The order is placed, so the sheet has nothing left to confirm.
+    dispatch(resetBridgeTokenInputs());
     navigation.goBack();
     toast({
       severity: ToastSeverity.Success,
@@ -250,6 +253,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     autoUpgradeEIP7702Account,
     createLimitOrder,
     delegationFee,
+    dispatch,
     fetchLimitOrdersDelegations,
     feeTokenValidation.isValid,
     navigation,

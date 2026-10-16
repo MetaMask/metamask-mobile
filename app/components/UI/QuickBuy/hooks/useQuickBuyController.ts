@@ -93,6 +93,11 @@ import { selectSourceWalletAddress } from '../../../../selectors/bridge';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import {
+  buildCopyTradeIntentOptions,
+  postCopyTradeIntent,
+  type CopyTradeOrigin,
+} from '../../../../util/social/copyTradeIntent';
 import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
@@ -278,6 +283,7 @@ export function useQuickBuyController(
   analyticsContext: QuickBuyAnalyticsContext,
   initialTradeMode: QuickBuyTradeMode = 'buy',
   postSwapShare = false,
+  copyTradeOrigin?: CopyTradeOrigin,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -1707,6 +1713,22 @@ export function useQuickBuyController(
       // notification once submitTx resolves.
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
+      if (copyTradeOrigin) {
+        postCopyTradeIntent(
+          () =>
+            sourceToken
+              ? buildCopyTradeIntentOptions(
+                  copyTradeOrigin,
+                  `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
+                  {
+                    product: 'swaps',
+                    quoteId: activeQuote.quote.requestId,
+                  },
+                )
+              : undefined,
+          { surface: 'quick_buy', source: 'useQuickBuyController' },
+        );
+      }
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
         activeQuote,
@@ -1834,6 +1856,7 @@ export function useQuickBuyController(
     markTradeSubmitted,
     submitStartedAtRef,
     postSwapShare,
+    copyTradeOrigin,
     sourceTokenAmount,
     estimatedReceiveAmount,
     target,
