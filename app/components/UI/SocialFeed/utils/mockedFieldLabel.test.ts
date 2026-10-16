@@ -15,7 +15,7 @@ describe('mockedFieldLabel', () => {
 
   it('stays empty when there was no label to begin with', () => {
     expect(
-      mockedFieldLabel(undefined, 'autoClose', undefined, true),
+      mockedFieldLabel(undefined, 'markPrice', undefined, true),
     ).toBeUndefined();
   });
 });

@@ -9,7 +9,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BigNumber } from 'bignumber.js';
-import { KeyringAccountType } from '@metamask/keyring-api';
 
 import I18n from '../../../../../../../locales/i18n';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
@@ -18,11 +17,9 @@ import BadgeWrapper from '../../../../../../component-library/components/Badges/
 import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
 import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { getAssetTestId } from '../../../../../UI/AssetElement/AssetElement.testIds';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
-import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
 
 export type TokenTagRenderer = (token: AssetType) => ReactNode;
@@ -39,9 +36,6 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
   const handlePress = useCallback(() => {
     onPress(asset);
   }, [asset, onPress]);
-
-  const typeLabel =
-    ACCOUNT_TYPE_LABELS[asset.accountType as KeyringAccountType];
 
   return (
     <Pressable
@@ -107,7 +101,6 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
               (found, render) => found ?? render(asset),
               null,
             )}
-            <AccountTypeLabel label={typeLabel} />
           </Box>
           <Text
             variant={TextVariant.BodySm}
