@@ -76,7 +76,6 @@ import {
   useMyProfileAddress,
   useMyProfilePosts,
 } from './hooks';
-import { resetLocalSocialProfile } from './hooks/localSocialProfileStore';
 import TraderStatsSheet from '../TraderProfileView/components/TraderStatsSheet';
 import { TraderStatsSheetSelectorsIDs } from '../TraderProfileView/components/TraderStatsSheet.testIds';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
@@ -260,11 +259,6 @@ const MyProfileView: React.FC = () => {
   const handleShareFirstTrade = useCallback(() => {
     openComposer();
   }, [openComposer]);
-
-  const handleResetProfile = useCallback(() => {
-    resetLocalSocialProfile();
-    navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-  }, [navigation]);
 
   const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -553,16 +547,6 @@ const MyProfileView: React.FC = () => {
                   </Box>
                 )}
               </Box>
-              {isOwner ? (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  isFullWidth
-                  onPress={handleResetProfile}
-                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
-                >
-                  {strings('social_leaderboard.my_profile.debug_reset_profile')}
-                </Button>
-              ) : null}
             </Box>
 
             <Box
@@ -631,6 +615,9 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                avatarBackgroundId={displayProfile.avatarBackgroundId}
               />
             ) : postsError && posts.length === 0 ? (
               <Box
