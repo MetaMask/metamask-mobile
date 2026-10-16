@@ -5,7 +5,6 @@ import { View } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
-import { mockCopyCount } from '../mocks/socialV1Enrichment';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
@@ -16,12 +15,6 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
-
-// Nothing reports copies yet, so the shell hashes a stand-in off the post id.
-// Drive it from the test instead of hunting for ids that hash to a given count.
-jest.mock('../mocks/socialV1Enrichment', () => ({
-  mockCopyCount: jest.fn(),
-}));
 
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
@@ -121,8 +114,8 @@ const renderShell = (
   post: SocialV1FeedPost,
   options?: {
     onAuthorPress?: (post: SocialV1FeedPost) => void;
+    onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
-    onCopyTrade?: (item: SocialV1FeedPost['item']) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
   },
@@ -167,11 +160,8 @@ const itemWithoutStats = (id: string, comment: string) => {
   };
 };
 
-const mockedCopyCount = jest.mocked(mockCopyCount);
-
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
-    mockedCopyCount.mockReturnValue(3);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
     });
@@ -309,70 +299,113 @@ describe('SocialFeedPostShell', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows an empty heart and no zero when the Call has no reactions', () => {
+  it('shows the add-reaction button and no zero when the Call has no reactions', () => {
     renderShell(basePost({ reactions: [] }));
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
-    ).toBeNull();
+    ).toHaveProp('accessibilityLabel', 'Add reaction');
     expect(screen.queryByText('0')).toBeNull();
   });
 
-  it('shows an empty heart when the post has no Call id', () => {
+  it('shows the add-reaction button when the post has no Call id', () => {
     renderShell(basePost({ commentId: undefined, reactions: [] }));
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps the add-reaction button next to existing chips', () => {
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
     expect(
-      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.TOTAL}-post-1`),
-    ).toBeNull();
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toBeOnTheScreen();
+  });
+
+  describe('reaction chips', () => {
+    const chipTestId = `${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`;
+
+    it('marks the chip the reader reacted with as selected', () => {
+      renderShell(basePost({ userReaction: '🔥' }));
+
+      expect(screen.getByTestId(chipTestId)).toHaveProp('accessibilityState', {
+        selected: true,
+      });
+    });
+
+    it('leaves chips the reader did not pick unselected', () => {
+      renderShell(basePost({ userReaction: null }));
+
+      expect(screen.getByTestId(chipTestId)).toHaveProp('accessibilityState', {
+        selected: false,
+      });
+    });
+
+    it('adds the reader to a chip when it is pressed', async () => {
+      renderShell(basePost({ commentId: undefined }));
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥13');
+      });
+      expect(screen.getByTestId(chipTestId)).toHaveProp('accessibilityState', {
+        selected: true,
+      });
+    });
+
+    it('removes the reader from their own chip when it is pressed', async () => {
+      renderShell(
+        basePost({
+          commentId: undefined,
+          reactions: [{ emotion: '🔥', count: 2 }],
+          userReaction: '🔥',
+        }),
+      );
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
+      });
+    });
   });
 
   describe('copies count', () => {
     const copiesTestId = `${SocialFeedPostShellSelectorsIDs.COPIES}-post-1`;
 
-    it('reads out how many readers copied the trade', () => {
+    it('shows how many readers copied the trade', () => {
+      renderShell(basePost({ copyCount: 3 }));
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('3');
+    });
+
+    it('shows a reported zero', () => {
+      renderShell(basePost({ copyCount: 0 }));
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('0');
+    });
+
+    it('shows the count on a closed position', () => {
+      renderShell(basePost({ item: mockClosedPerpsFeedItem(), copyCount: 7 }));
+
+      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('7');
+    });
+
+    it('omits the count when the API did not send one', () => {
       renderShell(basePost());
-
-      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('3 copies*');
-    });
-
-    it('hides the invented copy count when the surface has not opted in', () => {
-      renderShell(basePost(), { showMockedFields: null });
-
-      expect(screen.queryByTestId(copiesTestId)).toBeNull();
-    });
-
-    it('says copy in the singular for a single copy', () => {
-      mockedCopyCount.mockReturnValue(1);
-
-      renderShell(basePost());
-
-      expect(screen.getByTestId(copiesTestId)).toHaveTextContent('1 copy*');
-    });
-
-    it('omits the count when nobody has copied the trade', () => {
-      mockedCopyCount.mockReturnValue(0);
-
-      renderShell(basePost());
-
-      expect(screen.queryByTestId(copiesTestId)).toBeNull();
-    });
-
-    // A closed position can no longer be mirrored, so a copies count on one
-    // would be claiming something the reader cannot act on.
-    it('omits the count on a closed position', () => {
-      renderShell(basePost({ item: mockClosedPerpsFeedItem() }));
 
       expect(screen.queryByTestId(copiesTestId)).toBeNull();
     });
 
     it('does not open the reaction picker when the count is pressed', () => {
-      renderShell(basePost());
+      renderShell(basePost({ copyCount: 3 }));
 
       fireEvent.press(screen.getByTestId(copiesTestId));
 
@@ -550,8 +583,27 @@ describe('SocialFeedPostShell', () => {
             source: 'trader_feed',
             useBottomSheet: true,
             stayOnCurrentScreen: true,
+            copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
           },
         });
+      });
+    });
+
+    it('opens the perps order without a copy-trade origin for a post with no comment id', async () => {
+      renderShell(basePost({ commentId: undefined }));
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.not.objectContaining({
+              copyTradeOrigin: expect.anything(),
+            }),
+          }),
+        );
       });
     });
 
@@ -564,7 +616,7 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
       );
 
-      expect(onCopyTrade).toHaveBeenCalledWith(item);
+      expect(onCopyTrade).toHaveBeenCalledWith(item, 'comment-1');
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
