@@ -173,6 +173,20 @@ describe('useXAuth', () => {
       expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
       expect(result.current.error?.message).toBe('boom');
     });
+
+    it('stringifies non-Error rejection values into the wrapped error message', async () => {
+      mockConnectX.mockRejectedValue('literal failure');
+
+      const { result } = renderHook(() => useXAuth());
+
+      await act(async () => {
+        await result.current.connect();
+      });
+
+      expect(result.current.error).toBeInstanceOf(XAuthError);
+      expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
+      expect(result.current.error?.message).toBe('literal failure');
+    });
   });
 
   describe('disconnect', () => {

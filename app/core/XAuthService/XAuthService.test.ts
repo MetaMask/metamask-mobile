@@ -115,6 +115,8 @@ describe('XAuthService (app-relay flow)', () => {
       const promise = connectX();
       await flushPromises();
 
+      // A Linking event that is not the x-oauth-redirect URI must be ignored.
+      getHandler()?.({ url: 'https://unrelated.example.com/other' });
       getHandler()?.({
         url: REDIRECT_WITH(`code=linking-code&state=${SESSION_STATE}`),
       });
@@ -151,6 +153,34 @@ describe('XAuthService (app-relay flow)', () => {
       const error = await connectX().catch((caught) => caught);
       expect(error).toBeInstanceOf(XAuthError);
       expect(error.type).toBe(XAuthErrorType.UserCancelled);
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('throws a network failure error when the auth session ends with an unexpected result type', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'locked',
+      });
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.NetworkFailure,
+        message: 'X authorization did not succeed: locked',
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('falls through to the cancel handling when the redirect listener subscription fails to register', async () => {
+      (Linking.addEventListener as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('emitter unavailable');
+      });
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'cancel',
+      });
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.UserCancelled,
+      });
       expect(ProfileController.connectX).not.toHaveBeenCalled();
     }, 10000);
 
@@ -192,6 +222,18 @@ describe('XAuthService (app-relay flow)', () => {
       expect(ProfileController.connectX).not.toHaveBeenCalled();
     });
 
+    it('throws a missing code error when the redirect carries neither code nor state params', async () => {
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH('unrelated=param'),
+      });
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.MissingCode,
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    });
+
     it('throws a backend error when the backend fails to issue the authorization URL', async () => {
       jest
         .mocked(ProfileService.getXAuthUrl)
@@ -201,6 +243,15 @@ describe('XAuthService (app-relay flow)', () => {
         type: XAuthErrorType.BackendError,
       });
       expect(openAuthSessionAsync).not.toHaveBeenCalled();
+    });
+
+    it('throws a backend error whose message stringifies a non-Error backend rejection', async () => {
+      jest.mocked(ProfileService.getXAuthUrl).mockRejectedValue('503 down');
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.BackendError,
+        message: 'Failed to start X connect flow: 503 down',
+      });
     });
 
     it('throws a backend error when the backend rejects the connect call', async () => {
