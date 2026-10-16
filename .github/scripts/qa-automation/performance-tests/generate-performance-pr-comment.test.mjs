@@ -339,8 +339,8 @@ test('links TestMu recordings to the private TestMu test page only', () => {
     md,
     /\[📹 Watch on TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791917903591921078WRR\)/,
   );
-  assert.doesNotMatch(md, /prod-mobile-artefacts\.lambdatest\.com/);
-  assert.doesNotMatch(md, /lambdatest\.com\/share\//);
+  assert.ok(!md.includes('prod-mobile-artefacts.lambdatest.com'));
+  assert.ok(!md.includes('lambdatest.com/share/'));
 });
 
 test('keeps the recording link when the recording is not a TestMu one', () => {
