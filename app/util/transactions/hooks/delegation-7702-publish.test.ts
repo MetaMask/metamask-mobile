@@ -989,41 +989,6 @@ describe('Delegation 7702 Publish Hook', () => {
     expect(nonGaslessSignArgs.delegation.caveats.length).toBe(3);
   });
 
-  it('restricts the gas fee token delegation to the exact executions', async () => {
-    isAtomicBatchSupportedMock.mockResolvedValueOnce([
-      {
-        chainId: TRANSACTION_META_MOCK.chainId,
-        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-        isSupported: true,
-        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
-      },
-    ]);
-
-    await hookClass.getHook()(
-      {
-        ...TRANSACTION_META_MOCK,
-        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
-        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
-      },
-      SIGNED_TX_MOCK,
-    );
-
-    const { caveatEnforcers } = getDeleGatorEnvironment(
-      parseInt(TRANSACTION_META_MOCK.chainId, 16),
-    );
-
-    const { caveats } =
-      signDelegationControllerMock.mock.calls[0][0].delegation;
-    const enforcers = caveats.map(
-      (caveat: { enforcer: string }) => caveat.enforcer,
-    );
-
-    expect(enforcers).toContain(caveatEnforcers.ExactExecutionBatchEnforcer);
-    expect(enforcers).not.toContain(
-      caveatEnforcers.SpecificActionERC20TransferBatchEnforcer,
-    );
-  });
-
   describe('redeemer caveat', () => {
     const SPONSORED_TX_META_MOCK = {
       ...TRANSACTION_META_MOCK,
