@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { appendRpcItemToFormState } from '../NetworkDetailsView.utils';
+import type { NetworkDetailsViewParams } from '../NetworkDetailsView.types';
 import { useNetworkForm } from './useNetworkForm';
 
 jest.mock('react-redux', () => ({
@@ -421,6 +422,81 @@ describe('useNetworkForm', () => {
           'Custom',
         ),
       );
+
+      expect(cb).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('one-time initialization', () => {
+    it('keeps in-progress edits when the network configurations change', () => {
+      const { result, rerender } = renderHook(
+        (props: NetworkDetailsViewParams) => useNetworkForm(props),
+        { initialProps: { network: 'mainnet' } },
+      );
+
+      expect(result.current.form.nickname).toBe('Ethereum Mainnet');
+
+      act(() => result.current.onNicknameChange('My Renamed Network'));
+
+      // A later store update (e.g. another network gets added) must not
+      // re-seed the form and discard what the user typed.
+      mockUseSelector.mockReturnValue({
+        ...mockNetworkConfigurations,
+        '0x89': {
+          chainId: '0x89',
+          name: 'Polygon',
+          nativeCurrency: 'MATIC',
+          rpcEndpoints: [
+            { url: 'https://polygon-rpc.com', type: RpcEndpointType.Custom },
+          ],
+          defaultRpcEndpointIndex: 0,
+          blockExplorerUrls: [],
+          defaultBlockExplorerUrlIndex: 0,
+        },
+      });
+      rerender({ network: 'mainnet' });
+
+      expect(result.current.form.nickname).toBe('My Renamed Network');
+    });
+
+    it('enables the action for a prefilled add-mode form', () => {
+      const { result } = renderHook(() =>
+        useNetworkForm({
+          prefill: {
+            rpcUrl: 'https://rpc.custom.com',
+            chainId: '137',
+            nickname: 'Polygon',
+            ticker: 'MATIC',
+            blockExplorerUrl: 'https://polygonscan.com',
+          },
+        }),
+      );
+
+      expect(result.current.enableAction).toBe(true);
+    });
+
+    it('leaves the action disabled for an empty add-mode form', () => {
+      const { result } = renderHook(() => useNetworkForm(undefined));
+
+      expect(result.current.enableAction).toBe(false);
+    });
+
+    it('does not re-request validation when the chain ID is edited later', () => {
+      const cb = jest.fn();
+      const { result } = renderHook(() =>
+        useNetworkForm({
+          prefill: {
+            rpcUrl: 'https://rpc.custom.com',
+            chainId: '137',
+            nickname: 'Polygon',
+            ticker: 'MATIC',
+            blockExplorerUrl: 'https://polygonscan.com',
+          },
+        }),
+      );
+
+      act(() => result.current.setValidationCallback(cb));
+      act(() => result.current.onChainIDChange('138'));
 
       expect(cb).not.toHaveBeenCalled();
     });
