@@ -1,13 +1,13 @@
 import React, { useCallback, useRef } from 'react';
 import { Modal, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 import {
   BottomSheet,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ModalSafeAreaProvider from '../../../component-library/components-temp/ModalSafeAreaProvider';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ConfirmMembershipContent } from './components/ConfirmMembershipContent';
@@ -37,7 +37,7 @@ const ConfirmMembershipApproval = () => {
       {}) as Partial<ConfirmMembershipRequestData>;
 
   const sheet = (
-    <SafeAreaProvider>
+    <ModalSafeAreaProvider>
       <GestureHandlerRootView style={tw.style('flex-1')}>
         <BottomSheet
           ref={sheetRef}
@@ -62,7 +62,7 @@ const ConfirmMembershipApproval = () => {
           />
         </BottomSheet>
       </GestureHandlerRootView>
-    </SafeAreaProvider>
+    </ModalSafeAreaProvider>
   );
 
   // RootRPCMethodsUI lives inside the Main screen, so any screen pushed above
