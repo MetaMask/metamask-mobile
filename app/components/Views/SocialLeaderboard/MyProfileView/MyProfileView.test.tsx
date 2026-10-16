@@ -1,5 +1,6 @@
 import React from 'react';
 import { Linking, Share } from 'react-native';
+import { brandColor } from '@metamask/design-tokens';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type {
   Position,
@@ -226,7 +227,8 @@ const profile: UseMyProfileResult['profile'] = {
   handle: 'giga-whale.metamask',
   bio: 'Trading in the open. Copy my moves or fade them — either way we learn.',
   imageUrl: null,
-  avatarPresetId: 'fox-emoji',
+  avatarPresetId: 'zombie',
+  avatarBackgroundId: 'lime',
   rankingTag: 'whale',
   xHandle: 'giga-whale',
   followerCount: 4,
@@ -320,7 +322,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR),
-    ).toHaveTextContent('🦊');
+    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
   });
 
   it('keeps the top inset on the animated header', () => {
