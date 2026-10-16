@@ -34,6 +34,7 @@ export enum FeatureFlagNames {
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
+  perpsBrandRefresh = 'perpsBrandRefresh',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
