@@ -55,6 +55,33 @@ describe('parseCreateLimitOrderResponse', () => {
     expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
   });
 
+  it('accepts fields it has not seen before at every level', () => {
+    const response = {
+      newResponseField: true,
+      order: {
+        ...MINIMAL_RESPONSE.order,
+        newOrderField: 'new',
+        src: { ...MINIMAL_RESPONSE.order.src, newLegField: 'new' },
+        trigger: { ...MINIMAL_RESPONSE.order.trigger, newTriggerField: 'new' },
+        timingData: {
+          ...MINIMAL_RESPONSE.order.timingData,
+          updatedAt: '2026-09-03T12:00:00.000Z',
+        },
+      },
+      transactions: [
+        {
+          status: 'executed',
+          src: { asset: ASSET, amount: '1' },
+          dest: { asset: ASSET, amount: '1' },
+          timingData: { createdAt: '2026-09-03T11:02:13.000Z' },
+          newTransactionField: 'new',
+        },
+      ],
+    };
+
+    expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
   it('rejects a transaction hash that is not hex', () => {
     expect(() =>
       parseCreateLimitOrderResponse({
