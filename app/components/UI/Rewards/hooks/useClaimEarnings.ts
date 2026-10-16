@@ -12,6 +12,7 @@ import { setClaimWaitingUntil } from '../../../../reducers/rewardsMoney';
 import {
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
+  type MoneyDashboardPersona,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -26,7 +27,6 @@ import type {
   ClaimVoucherDto,
   EarningsSummaryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/selectors';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import useRewardsToast from './useRewardsToast';
 import {
