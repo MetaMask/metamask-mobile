@@ -157,49 +157,60 @@ export class WalletHomeSections {
   ): Promise<void> {
     // Probe first. A displayed header can still sit under the tab bar, so a
     // missed tap nudges it clear instead of waiting out a 30s tap timeout.
-    // `scrollAndTapSection`'s `timeout` is not a clock: 20s becomes 10
-    // scrollIntoView attempts, which is slower than the old 8-attempt burn.
-    // Four attempts is the actual wrong-direction cap.
+    // Homepage Perps can mount after tokens/predictions paint (#37474 residual:
+    // "Element not visible after 5000ms" while the section is still absent).
+    // Retry via the shared helper — same pattern as scrollAndTapPredictionsPosition
+    // — so a late mount gets another probe + down→up pass without a fixed sleep.
     const clippedHeaderNudge = options.overshootSwipe ?? {
       direction: 'up' as const,
       percentage: 0.2,
     };
-    if (
-      await WalletHomeScroll.tapIfAlreadyVisible(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        {
-          tapTimeout: 5_000,
-          overshootSwipe: clippedHeaderNudge,
-        },
-      )
-    ) {
-      return;
-    }
-
     const fallbackDirection = direction === 'down' ? 'up' : 'down';
 
-    await WalletHomeScroll.tryScrollDirections(
-      (scrollDirection) =>
-        WalletHomeScroll.scrollAndTapSection(
-          this.perpsSectionHeader,
-          'Perpetuals section',
-          scrollDirection,
-          {
-            overshootSwipe: options.overshootSwipe ?? {
-              direction:
-                scrollDirection === 'down'
-                  ? ('up' as const)
-                  : ('down' as const),
-              percentage: 0.15,
+    await Utilities.executeWithRetry(
+      async () => {
+        if (
+          await WalletHomeScroll.tapIfAlreadyVisible(
+            this.perpsSectionHeader,
+            'Perpetuals section',
+            {
+              tapTimeout: 5_000,
+              overshootSwipe: clippedHeaderNudge,
             },
-            // A miss runs every attempt. Four is half the old default, so a
-            // wrong direction returns in about half the previous ~30s.
-            // A hit still stops as soon as the header is in view.
-            maxAttempts: 4,
-          },
-        ),
-      [direction, fallbackDirection],
+          )
+        ) {
+          return;
+        }
+
+        await WalletHomeScroll.tryScrollDirections(
+          (scrollDirection) =>
+            WalletHomeScroll.scrollAndTapSection(
+              this.perpsSectionHeader,
+              'Perpetuals section',
+              scrollDirection,
+              {
+                overshootSwipe: options.overshootSwipe ?? {
+                  direction:
+                    scrollDirection === 'down'
+                      ? ('up' as const)
+                      : ('down' as const),
+                  percentage: 0.15,
+                },
+                // Six attempts per direction: late-mounting sections need a
+                // few more swipes than the post-#37474 four-attempt cap, while
+                // still failing a wrong direction faster than the old ~30s burn.
+                maxAttempts: 6,
+              },
+            ),
+          [direction, fallbackDirection],
+        );
+      },
+      {
+        timeout: 45_000,
+        interval: 1_000,
+        description: 'Scroll and tap Perpetuals section',
+        elemDescription: 'Perpetuals section',
+      },
     );
   }
 
