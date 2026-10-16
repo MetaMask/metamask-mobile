@@ -26,6 +26,8 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -61,6 +63,9 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { useTokenDetailsGlassFooter } from '../hooks/useTokenDetailsGlassFooter';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
@@ -351,11 +356,27 @@ const TokenDetails: React.FC<{
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The glass header floats over the list and fades its backdrop in on scroll.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      headerScrollY.set(y);
+      onScrollOffset(y);
+    },
+    [headerScrollY, onScrollOffset],
+  );
+
   const handleMultichainScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      handleListScrollOffset(event.nativeEvent.contentOffset.y);
     },
-    [onScrollOffset],
+    [handleListScrollOffset],
   );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
@@ -605,6 +626,12 @@ const TokenDetails: React.FC<{
 
   const renderHeader = () => (
     <>
+      {headerInset > 0 && (
+        <View
+          style={{ height: headerInset }}
+          testID={TokenDetailsTestIds.HEADER_SPACER}
+        />
+      )}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -682,6 +709,9 @@ const TokenDetails: React.FC<{
         }
         onCopyAddress={handleCopyAddress}
         description={headerDescription}
+        isGlass={isGlassHeader}
+        onLayout={handleHeaderLayout}
+        scrollY={headerScrollY}
       />
 
       {txIsNonEvmAsset ? (
@@ -701,7 +731,7 @@ const TokenDetails: React.FC<{
       ) : (
         <Transactions
           header={renderHeader()}
-          onScrollThroughContent={onScrollOffset}
+          onScrollThroughContent={handleListScrollOffset}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}
