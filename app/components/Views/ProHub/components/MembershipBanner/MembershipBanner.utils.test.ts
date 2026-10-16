@@ -133,6 +133,21 @@ describe('getMembershipBannerModel', () => {
     });
   });
 
+  it('uses canceledAt when a cancelled plan has no period end', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.canceled,
+      currentPeriodEnd: undefined,
+      canceledAt: '2026-09-20T12:00:00.000Z',
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.alert?.descriptionKey).toBe(
+      'pro_hub.membership_alert.cancelled.description',
+    );
+    expect(model.alert?.descriptionValues).toEqual({ date: '09/20/2026' });
+  });
+
   it('repeats the cancelled title when the plan has no date', () => {
     const subscription = createSubscription({
       status: SUBSCRIPTION_STATUSES.canceled,
@@ -164,6 +179,36 @@ describe('getMembershipBannerModel', () => {
       'pro_hub.membership_alert.renewal_failed.title',
     );
     expect(model.alert?.action).toBe(MembershipAlertAction.AddFunds);
+  });
+
+  it('uses endDate when an awaiting-funds plan has no period end', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.awaitingFunds,
+      currentPeriodEnd: undefined,
+      endDate: '2026-11-01T12:00:00.000Z',
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.alert?.titleKey).toBe(
+      'pro_hub.membership_alert.low_balance.title',
+    );
+    expect(model.alert?.descriptionValues).toEqual({ date: '11/01/2026' });
+  });
+
+  it('uses the description as the title when an awaiting-funds plan has no date', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.awaitingFunds,
+      currentPeriodEnd: undefined,
+      endDate: undefined,
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.alert?.titleKey).toBe(
+      'pro_hub.membership_alert.low_balance.description',
+    );
+    expect(model.alert?.descriptionValues).toBeUndefined();
   });
 
   it('shows the add-funds alert while a plan is waiting for funds', () => {

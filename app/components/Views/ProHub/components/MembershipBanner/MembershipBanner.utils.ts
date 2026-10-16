@@ -33,6 +33,7 @@ export interface MembershipAlert {
   severity: BannerAlertSeverity;
   titleKey: string;
   descriptionKey: string;
+  /** Shared by the title and description. Either string may use `{{date}}`. */
   descriptionValues?: Record<string, string>;
   actionKey: string;
   action: MembershipAlertAction;

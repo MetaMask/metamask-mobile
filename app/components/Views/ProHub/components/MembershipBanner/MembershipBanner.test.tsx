@@ -121,6 +121,23 @@ describe('MembershipBanner', () => {
     });
   });
 
+  it('renders the awaiting-funds title with the due date', () => {
+    const { getByTestId } = renderBanner(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.awaitingFunds }),
+    );
+
+    expect(
+      getByTestId(
+        ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Active),
+      ),
+    ).toHaveTextContent(
+      strings('pro_hub.membership_alert.low_balance.title', {
+        date: '10/12/2026',
+      }),
+      { exact: false },
+    );
+  });
+
   it('renders Cancelled with the renew-before date', () => {
     const { getByTestId } = renderBanner(
       createSubscription({ status: SUBSCRIPTION_STATUSES.canceled }),

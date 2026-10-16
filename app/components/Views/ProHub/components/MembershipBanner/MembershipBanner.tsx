@@ -67,7 +67,10 @@ const MembershipBanner = ({
         <BannerAlert
           severity={membershipAlert.severity}
           startAccessory={null}
-          title={strings(membershipAlert.titleKey)}
+          title={strings(
+            membershipAlert.titleKey,
+            membershipAlert.descriptionValues ?? {},
+          )}
           description={strings(
             membershipAlert.descriptionKey,
             membershipAlert.descriptionValues ?? {},

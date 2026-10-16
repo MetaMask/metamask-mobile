@@ -118,8 +118,9 @@ const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
 const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel();
 
-// Earnings are still mock data, and the membership card is covered by the
-// banner model unit tests. This screen test mocks that hook.
+// Earnings are still mock data. Access and benefits still depend on the
+// subscriptions query, so this screen test mocks those hooks. The banner
+// model and the displayed-subscription selector have their own unit tests.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -190,6 +191,24 @@ describe('ProHub', () => {
 
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+    });
+
+    it('leaves when Pro is disabled even if a plan is still displayed', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('does not render subscriber content without access', () => {
@@ -342,6 +361,33 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
       });
+    });
+
+    it('opens the subscription flow when the renew action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+          alert: {
+            severity: 'warning' as const,
+            titleKey: 'pro_hub.membership_alert.cancelled.title',
+            descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+            actionKey: 'pro_hub.membership_alert.cancelled.action',
+            action: 'renew' as const,
+          },
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Cancelled),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT);
     });
 
     it('renders the physical card banner with title and description', () => {
