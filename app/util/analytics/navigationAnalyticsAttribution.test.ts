@@ -1,3 +1,5 @@
+import { ACTIVITY_SCREEN_EVENTS } from '../../core/Analytics/events/activity/events';
+import { CONFIRMATION_EVENTS } from '../../core/Analytics/events/confirmations/events';
 import { EVENT_NAME } from '../../core/Analytics/MetaMetrics.events';
 import {
   createNavigationAnalyticsContext,
@@ -347,6 +349,62 @@ describe('navigation analytics attribution', () => {
     const result = enrichWithNavigationAttribution(event, route);
 
     expect(result.properties).toEqual({ previous_screen: 'WalletView' });
+  });
+
+  it.each([
+    EVENT_NAME.RAMPS_SCREEN_VIEWED,
+    EVENT_NAME.MONEY_HUB_SCREEN_VIEWED,
+    EVENT_NAME.CARD_HOME_VIEWED,
+    EVENT_NAME.EARN_MODULE_SURFACE_VIEWED,
+    EVENT_NAME.PREDICT_HOME_VIEWED,
+    EVENT_NAME.LOGIN_SCREEN_VIEWED,
+    EVENT_NAME.WALLET_CREATION_ERROR_SCREEN_VIEWED,
+    EVENT_NAME.VAULT_CORRUPTION_RESTORE_WALLET_SCREEN_VIEWED,
+    EVENT_NAME.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
+    EVENT_NAME.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
+    EVENT_NAME.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
+    EVENT_NAME.SOCIAL_TRADER_PROFILE_SCREEN_VIEWED,
+    EVENT_NAME.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED,
+    EVENT_NAME.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+    ACTIVITY_SCREEN_EVENTS.VIEWED.category,
+    CONFIRMATION_EVENTS.SCREEN_VIEWED.category,
+  ])('sets previous_screen to WalletView for %s', (eventName) => {
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    const event = createEvent(eventName);
+
+    const result = enrichWithNavigationAttribution(
+      event,
+      asRoute('TokensFullView', 'tokens'),
+    );
+
+    expect(event.properties.previous_screen).toBeUndefined();
+    expect(result).not.toBe(event);
+    expect(result.properties.previous_screen).toBe('WalletView');
+  });
+
+  it('leaves previous_screen unset when the same focused route is recorded twice', () => {
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+    const event = createEvent(EVENT_NAME.HOME_VIEWED);
+    const route = asRoute('WalletView', 'wallet');
+
+    const result = enrichWithNavigationAttribution(event, route);
+
+    expect(result).toBe(event);
+    expect(result.properties.previous_screen).toBeUndefined();
+  });
+
+  it('sets previous_screen to WalletView when the same route name is recorded with a new key', () => {
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet-1' });
+    recordFocusedRoute({ name: 'WalletView', key: 'wallet-2' });
+    const event = createEvent(EVENT_NAME.HOME_VIEWED);
+
+    const result = enrichWithNavigationAttribution(
+      event,
+      asRoute('WalletView', 'wallet-2'),
+    );
+
+    expect(result.properties.previous_screen).toBe('WalletView');
   });
 
   it('leaves previous_screen unset on events outside the screen-view allowlist', () => {

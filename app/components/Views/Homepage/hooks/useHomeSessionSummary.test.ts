@@ -185,6 +185,65 @@ describe('useHomeSessionSummary', () => {
       getCurrentRoute.mockRestore();
     });
 
+    it('keeps Login as previous_screen when the route changes before blur', () => {
+      resetNavigationAnalyticsAttributionForTests();
+      recordFocusedRoute({ name: 'Login', key: 'login' });
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'wallet',
+          name: 'WalletView',
+        });
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      recordFocusedRoute({ name: 'Activity', key: 'activity' });
+      getCurrentRoute.mockReturnValue({
+        key: 'activity',
+        name: 'Activity',
+      });
+
+      try {
+        act(() => {
+          simulateBlur();
+        });
+
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ previous_screen: 'Login' }),
+        );
+      } finally {
+        getCurrentRoute.mockRestore();
+      }
+    });
+
+    it('omits previous_screen when no previous route is recorded', () => {
+      resetNavigationAnalyticsAttributionForTests();
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'wallet',
+          name: 'WalletView',
+        });
+      const { simulateBlur } = setupFocusBlur();
+
+      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
+
+      try {
+        act(() => {
+          simulateBlur();
+        });
+
+        expect(mockAddProperties).toHaveBeenCalled();
+        const calls = mockAddProperties.mock
+          .calls as unknown as AddPropertiesCall[];
+        expect(calls[0][0]).not.toHaveProperty('previous_screen');
+      } finally {
+        getCurrentRoute.mockRestore();
+      }
+    });
+
     it('fires with interaction_type: session_summary', () => {
       const { simulateBlur } = setupFocusBlur();
 
