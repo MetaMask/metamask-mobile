@@ -416,6 +416,7 @@ describe('fixture-validation', () => {
         commissions: {},
         earningsHistory: {},
         earningsSummary: {},
+        inFlightClaims: {},
         referralFunnel: {},
         referralMe: {},
       });

@@ -1406,7 +1406,7 @@ describe('RewardsMoneyDataService', () => {
         status: 428,
         headers: { get: () => null },
         text: async () => 'not-json',
-      });
+      } as Response);
 
       await expect(
         service.initiateClaim('referral-trade-fee-cashback', {
