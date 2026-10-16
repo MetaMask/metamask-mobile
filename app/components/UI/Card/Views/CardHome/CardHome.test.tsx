@@ -2561,7 +2561,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('opens the add sheet when the card is still missing from a device', () => {
+    it('opens the usage sheet when the card is still missing from a device', () => {
       mockWalletState({ canAddToWallet: true, isCardInWallet: true });
 
       render();
@@ -2571,7 +2571,7 @@ describe('CardHome Component', () => {
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.APPLE_PAY_ADD,
+        screen: Routes.CARD.MODALS.APPLE_PAY_USAGE,
       });
     });
 

@@ -262,9 +262,6 @@ const CardHome = () => {
   const handleOpenInWallet = useCallback(() => {
     openInWallet().catch(() => undefined);
   }, [openInWallet]);
-  const handleHowToUseApplePay = useCallback(() => {
-    actions.howToUseApplePayAction(isCardInWallet && !canAddToWallet);
-  }, [actions, canAddToWallet, isCardInWallet]);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -974,7 +971,7 @@ const CardHome = () => {
               actions.digitalWalletInstructionsAction
             }
             showHowToUseApplePay={isCardInWallet}
-            onHowToUseApplePay={handleHowToUseApplePay}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
