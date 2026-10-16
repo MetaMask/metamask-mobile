@@ -139,7 +139,7 @@ function commitLink(repoUrl: string, sha: string | null): string {
   if (!sha) {
     return '_commit unknown_';
   }
-  return `<${repoUrl}/commit/${sha}|${shortSha(sha)}>`;
+  return `<${repoUrl}/tree/${sha}|${shortSha(sha)}>`;
 }
 
 function versionLine(entry: BuildEntry): string {

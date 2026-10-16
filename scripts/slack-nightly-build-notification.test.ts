@@ -134,8 +134,8 @@ describe('buildNightlySlackMessage', () => {
 
     const payload = buildNightlySlackMessage(metadata, links, { repoUrl: 'https://github.com/MetaMask/metamask-mobile' });
 
-    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/commit/1111111aaaaaaa');
-    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/commit/2222222bbbbbbb');
+    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/tree/1111111aaaaaaa');
+    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/tree/2222222bbbbbbb');
   });
 
   it('shows a build-failed warning instead of version/build number for a failed build', () => {
