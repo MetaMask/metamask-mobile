@@ -15,6 +15,7 @@ import { BridgeSessionProvider } from '../../Bridge/providers/BridgeSessionProvi
 import { SwapQuotesProvider } from '../../Bridge/providers/SwapQuotesProvider';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -151,6 +152,7 @@ jest.mock('../../../Views/confirmations/hooks/gas/useGasFeeEstimates', () => ({
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
+    controllerMessenger: { call: jest.fn() },
     context: {
       BridgeController: { resetState: jest.fn() },
       BridgeStatusController: { submitTx: jest.fn() },
@@ -310,6 +312,7 @@ runQuickBuyControllerCases({
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
     postSwapShare?: boolean,
+    copyTradeOrigin?: CopyTradeOrigin,
   ) => {
     const utils = renderHook(
       () =>
@@ -319,6 +322,7 @@ runQuickBuyControllerCases({
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
           postSwapShare,
+          copyTradeOrigin,
         ),
       { initialProps },
     );
@@ -389,6 +393,7 @@ runQuickBuyControllerCases({
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
     postSwapShare?: boolean,
+    copyTradeOrigin?: CopyTradeOrigin,
   ) => {
     const utils = renderHook(
       () =>
@@ -398,6 +403,7 @@ runQuickBuyControllerCases({
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
           postSwapShare,
+          copyTradeOrigin,
         ),
       {
         initialProps,

@@ -159,7 +159,6 @@ describe('useOpenVbaOnboarding', () => {
   });
 
   it('opens the error screen when resuming a persisted session fails', async () => {
-    mockKycState.email = 'user@example.com';
     mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
     mockStartSession.mockRejectedValue(new Error('resume failed'));
 
@@ -874,7 +873,6 @@ describe('resolveVbaOnboarding', () => {
   });
 
   it('resumes a persisted KYC session before hydration', async () => {
-    mockKycState.email = 'user@example.com';
     mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
     const calls: string[] = [];
     mockStartSession.mockImplementation(async () => {
@@ -890,9 +888,20 @@ describe('resolveVbaOnboarding', () => {
 
     expect(mockStartSession).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
-      email: 'user@example.com',
     });
     expect(calls).toEqual(['start', 'hydrate']);
+  });
+
+  it('resumes a persisted KYC session when no email is stored', async () => {
+    mockKycState.email = null;
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockStartSession).toHaveBeenCalledWith({
+      vendor: VBA_KYC_VENDOR,
+    });
+    expect(mockHydrate).toHaveBeenCalled();
   });
 
   it('does not start a KYC session when none is persisted', async () => {
@@ -903,7 +912,6 @@ describe('resolveVbaOnboarding', () => {
   });
 
   it('returns an error without hydrating when session resume fails', async () => {
-    mockKycState.email = 'user@example.com';
     mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
     mockStartSession.mockRejectedValue(new Error('resume failed'));
 
