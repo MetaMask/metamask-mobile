@@ -122,7 +122,7 @@ export function buildConfirmMembershipRequestData(
   plan: SelectedPlusPlan,
   isTrial: boolean,
   now: Date = new Date(),
-): ConfirmMembershipRequestData {
+): ConfirmMembershipRequestData & Record<string, Json> {
   const isAnnual = plan.interval === RECURRING_INTERVALS.year;
   const totalAmount = new BigNumber(plan.amount).decimalPlaces(2).toFixed(2);
   const monthlyAmount = isAnnual
