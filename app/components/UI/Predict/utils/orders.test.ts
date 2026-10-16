@@ -237,6 +237,47 @@ describe('orders utils', () => {
       });
     });
 
+    it('keeps the deposit fee in the original BUY total for a membership preview', () => {
+      const result = buildPredictFeeBreakdowns({
+        preview: {
+          ...preview,
+          feePolicy: {
+            discountType: DiscountType.SUBSCRIPTION,
+            builderCode: 'predict-pro-builder',
+          },
+          originalFees: {
+            ...(preview.fees ?? {}),
+            metamaskFee: 0.2,
+            providerFee: 0.222,
+            marketFee: 0.003,
+            totalFee: 0.422,
+            totalFeePercentage: 4.22,
+            collector: '0x0',
+          },
+        },
+        side: Side.BUY,
+        order: 10,
+        metamaskFee: 0,
+        depositFee: 0.5,
+        total: 10.73,
+      });
+
+      expect(result.feeBreakdown).toEqual({
+        order: 10,
+        metamaskFee: 0,
+        exchangeFee: 0.23,
+        depositFee: 0.5,
+        total: 10.73,
+      });
+      expect(result.originalFeeBreakdown).toEqual({
+        order: 10,
+        metamaskFee: 0.2,
+        exchangeFee: 0.23,
+        depositFee: 0.5,
+        total: 10.93,
+      });
+    });
+
     it('builds only the effective breakdown when a membership preview has no standard fees', () => {
       expect(
         buildPredictFeeBreakdowns({
