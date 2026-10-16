@@ -103,4 +103,30 @@ describe('ApplePayUsageSheet', () => {
 
     expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
   });
+
+  it('opens the learn-more URL from the card feature flag', () => {
+    const { getByTestId } = renderWithProvider(<ApplePayUsageSheet />, {
+      state: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardFeature: {
+                  constants: {
+                    applePayLearnMoreUrl: 'https://example.com/apple-pay',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    fireEvent.press(getByTestId(ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON));
+
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://example.com/apple-pay',
+    );
+  });
 });

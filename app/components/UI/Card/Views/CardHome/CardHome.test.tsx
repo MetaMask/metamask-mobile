@@ -104,6 +104,7 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
 import {
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
   selectCardIntercomSupportEnabled,
 } from '../../../../../selectors/featureFlagController/card';
@@ -957,6 +958,8 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    if (selector === selectApplePayLearnMoreUrl)
+      return 'https://metamask.io/card';
     if (selector === selectCardIntercomSupportEnabled)
       return config.isCardIntercomSupportEnabled;
     if (selector === selectCardProviderUserId) return config.providerUserId;

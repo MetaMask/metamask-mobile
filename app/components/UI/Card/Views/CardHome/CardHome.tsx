@@ -67,6 +67,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -98,8 +99,6 @@ import {
 } from '../../constants';
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
-
-const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
@@ -256,9 +255,10 @@ const CardHome = () => {
     canAddToWallet,
     isPushProvisioningLoading,
   });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
   const handleLearnMoreAboutApplePay = useCallback(() => {
-    Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
-  }, []);
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
   const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
   const handleOpenInWallet = useCallback(() => {
     openInWallet().catch(() => undefined);

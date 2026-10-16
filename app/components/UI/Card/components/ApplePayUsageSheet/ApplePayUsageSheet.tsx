@@ -13,7 +13,9 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { selectApplePayLearnMoreUrl } from '../../../../../selectors/featureFlagController/card';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
@@ -22,7 +24,6 @@ import marksLight from '../../Views/ApplePayConfirmation/assets/marks-light.png'
 import marksDark from '../../Views/ApplePayConfirmation/assets/marks-dark.png';
 import { ApplePayUsageSheetSelectors } from './ApplePayUsageSheet.testIds';
 
-const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
 const MARKS_WIDTH = 141;
 const MARKS_ASPECT_RATIO = 465 / 129;
 
@@ -31,6 +32,7 @@ const ApplePayUsageSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -41,8 +43,8 @@ const ApplePayUsageSheet = () => {
   }, []);
 
   const handleLearnMore = useCallback(() => {
-    Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
-  }, []);
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
 
   return (
     <BottomSheet
