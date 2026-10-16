@@ -5815,7 +5815,8 @@
       "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
       "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
       "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
-      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer",
+      "resource_unavailable": "Unavailable"
     },
     "disabled_button": {
       "buy": "Buying not supported for this account",
