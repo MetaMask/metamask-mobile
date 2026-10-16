@@ -28,6 +28,8 @@ export interface MySocialProfile {
   avatarBackgroundId?: string | null;
   rankingTag?: ProfileRankingTag | null;
   xHandle?: string | null;
+  /** True when X is linked, even if the X account failed to load. */
+  connectedToX?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
   shareUrl: string;

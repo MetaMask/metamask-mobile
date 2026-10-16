@@ -54,6 +54,7 @@ const profile: UseMyProfileResult['profile'] = {
   imageUrl: null,
   rankingTag: 'whale',
   xHandle: 'giga-whale',
+  connectedToX: true,
   followerCount: 0,
   followingCount: 0,
   shareUrl: 'https://metamask.io/social/giga-whale',
@@ -194,6 +195,31 @@ describe('ManageProfileView', () => {
 
     expect(disconnectX).toHaveBeenCalledWith('current-user');
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('disconnects X when the account is linked but the handle failed to load', async () => {
+    const disconnectX = jest.fn().mockResolvedValue(undefined);
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...profile, xHandle: null, connectedToX: true },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseProfileController.mockReturnValue(controllerResult({ disconnectX }));
+
+    renderWithProvider(<ManageProfileView />, { state });
+
+    expect(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+    ).toHaveTextContent(/X/);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+      );
+    });
+
+    expect(disconnectX).toHaveBeenCalledWith('current-user');
   });
 
   it('shows a save error when disconnecting X fails', async () => {

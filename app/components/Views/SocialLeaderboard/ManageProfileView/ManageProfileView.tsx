@@ -79,7 +79,7 @@ const ManageProfileView: React.FC = () => {
   }, [isControllerBacked, navigation]);
 
   const handleDisconnectX = useCallback(async (): Promise<void> => {
-    if (!isControllerBacked || !profile?.profileId || !profile.xHandle) {
+    if (!isControllerBacked || !profile?.profileId || !profile.connectedToX) {
       return;
     }
 
@@ -93,12 +93,22 @@ const ManageProfileView: React.FC = () => {
     } finally {
       setIsDisconnectingX(false);
     }
-  }, [disconnectX, isControllerBacked, profile?.profileId, profile?.xHandle]);
+  }, [
+    disconnectX,
+    isControllerBacked,
+    profile?.connectedToX,
+    profile?.profileId,
+  ]);
 
   const displayName = profile?.displayName ?? '';
   const handle = profile?.handle ? `@${profile.handle}` : '';
   const bio = profile?.bio ?? '';
-  const socials = profile?.xHandle ? `X @${profile.xHandle}` : '';
+  let socials = '';
+  if (profile?.xHandle) {
+    socials = `X @${profile.xHandle}`;
+  } else if (profile?.connectedToX) {
+    socials = 'X';
+  }
   const tradingActivityValue = strings(
     profile?.shareTradingActivity
       ? 'social_leaderboard.manage_profile.trading_activity_on'
@@ -106,7 +116,7 @@ const ManageProfileView: React.FC = () => {
   );
   const editorsDisabled = !isControllerBacked;
   const socialsDisabled =
-    !isControllerBacked || !profile?.xHandle || isDisconnectingX;
+    !isControllerBacked || !profile?.connectedToX || isDisconnectingX;
 
   return (
     <ManageProfileScreenChrome
