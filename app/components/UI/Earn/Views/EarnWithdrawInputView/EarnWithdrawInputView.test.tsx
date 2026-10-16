@@ -595,7 +595,9 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('25%'));
 
-      expect(screen.getByText('1.44783')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: '1.44783 ETH' }),
+      ).toBeOnTheScreen();
     });
 
     it('handles Max button press and sets full balance', async () => {
@@ -605,7 +607,9 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: '5.79133 ETH' }),
+      ).toBeOnTheScreen();
     });
 
     it('tracks quick amount button press for staking flows', async () => {

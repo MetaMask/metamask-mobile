@@ -1107,11 +1107,11 @@ describe('EarnInputView', () => {
 
   describe('quick amount buttons', () => {
     it('handles 25% quick amount button press correctly', () => {
-      const { getByText } = renderComponent();
+      const { getByText, getByRole } = renderComponent();
 
       fireEvent.press(getByText('25%'));
 
-      expect(getByText('0.375')).toBeOnTheScreen();
+      expect(getByRole('button', { name: '0.375 ETH' })).toBeOnTheScreen();
     });
   });
 
