@@ -159,31 +159,29 @@ export class WalletHomeSections {
     // missed tap nudges it clear instead of waiting out a 30s tap timeout.
     // Homepage Perps can mount after tokens/predictions paint (#37474 residual:
     // "Element not visible after 5000ms" while the section is still absent).
-    // Retry probe + bounded down→up scrolls until the deadline — do not stop
-    // after a single miss when the header may still be mounting.
+    // Retry via the shared helper — same pattern as scrollAndTapPredictionsPosition
+    // — so a late mount gets another probe + down→up pass without a fixed sleep.
     const clippedHeaderNudge = options.overshootSwipe ?? {
       direction: 'up' as const,
       percentage: 0.2,
     };
     const fallbackDirection = direction === 'down' ? 'up' : 'down';
-    const deadline = Date.now() + 45_000;
-    let lastError: unknown;
 
-    while (Date.now() < deadline) {
-      if (
-        await WalletHomeScroll.tapIfAlreadyVisible(
-          this.perpsSectionHeader,
-          'Perpetuals section',
-          {
-            tapTimeout: 5_000,
-            overshootSwipe: clippedHeaderNudge,
-          },
-        )
-      ) {
-        return;
-      }
+    await Utilities.executeWithRetry(
+      async () => {
+        if (
+          await WalletHomeScroll.tapIfAlreadyVisible(
+            this.perpsSectionHeader,
+            'Perpetuals section',
+            {
+              tapTimeout: 5_000,
+              overshootSwipe: clippedHeaderNudge,
+            },
+          )
+        ) {
+          return;
+        }
 
-      try {
         await WalletHomeScroll.tryScrollDirections(
           (scrollDirection) =>
             WalletHomeScroll.scrollAndTapSection(
@@ -206,18 +204,14 @@ export class WalletHomeSections {
             ),
           [direction, fallbackDirection],
         );
-        return;
-      } catch (error) {
-        lastError = error;
-        // Short pause so async homepage section paint can catch up before the
-        // next probe/scroll pass.
-        await new Promise((resolve) => setTimeout(resolve, 1_500));
-      }
-    }
-
-    throw lastError instanceof Error
-      ? lastError
-      : new Error('Failed to scroll and tap Perpetuals section within 45000ms');
+      },
+      {
+        timeout: 45_000,
+        interval: 1_000,
+        description: 'Scroll and tap Perpetuals section',
+        elemDescription: 'Perpetuals section',
+      },
+    );
   }
 
   async scrollAndTapPredictionsSection(
