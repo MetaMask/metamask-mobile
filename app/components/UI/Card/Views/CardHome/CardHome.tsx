@@ -15,6 +15,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextButton,
   HeaderStandard,
   Icon,
   IconColor,
@@ -897,15 +898,14 @@ const CardHome = () => {
               />
             )}
             {Platform.OS === 'ios' && !isCardInWallet && (
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonSize.Sm}
-                isFullWidth
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
                 onPress={handleLearnMoreAboutApplePay}
                 testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
               >
                 {strings('card.apple_pay_usage.learn_more')}
-              </Button>
+              </TextButton>
             )}
           </Box>
         )}
