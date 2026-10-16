@@ -55,7 +55,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.createElement(
         Pressable,
         { testID, onPress, style, accessibilityRole: 'button' },
-        ReactActual.createElement(RNText, { style: textProps?.style }, children),
+        ReactActual.createElement(
+          RNText,
+          { style: textProps?.style },
+          children,
+        ),
       ),
   };
 });

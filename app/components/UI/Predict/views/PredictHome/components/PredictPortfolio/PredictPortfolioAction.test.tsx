@@ -8,21 +8,18 @@ import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../../../component-libr
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
 // The glass tests need the OS to draw glass, which Jest can't.
-jest.mock(
-  '../../../../../../../component-library/hooks/useLiquidGlass',
-  () => {
-    const actual = jest.requireActual(
-      '../../../../../../../component-library/hooks/useLiquidGlass',
-    );
-    return {
-      ...actual,
-      useLiquidGlass: () => ({
-        ...actual.useLiquidGlass(),
-        isGlassEnabled: true,
-      }),
-    };
-  },
-);
+jest.mock('../../../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 
 describe('PredictPortfolioAction', () => {
   const defaultProps = {
