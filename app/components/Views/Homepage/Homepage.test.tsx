@@ -797,6 +797,28 @@ describe('Homepage', () => {
       expect(callBySectionName('predict')?.sectionIndex).toBe(3);
     });
 
+    it('keeps Top Traders below Tokens for ineligible Social V1 treatment users', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+    });
+
     it('keeps Perps before Tokens below Top Traders when Perps priority also applies', () => {
       mockUseSocialTopTradersEligible.mockReturnValue(true);
       const perpsHooksMock = jest.mocked(
