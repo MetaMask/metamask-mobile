@@ -104,6 +104,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',
+  '@metamask/network-controller',
   '@metamask/network-enablement-controller',
   '@metamask/notification-services-controller',
   '@metamask/phishing-controller',
