@@ -339,8 +339,13 @@ test('links TestMu recordings to the private TestMu test page only', () => {
     md,
     /\[📹 Watch on TestMu\]\(https:\/\/appautomation\.lambdatest\.com\/test\?testID=RMAA-AND-3245013-1791917903591921078WRR\)/,
   );
-  assert.ok(!md.includes('prod-mobile-artefacts.lambdatest.com'));
-  assert.ok(!md.includes('lambdatest.com/share/'));
+  for (const testId of [
+    'RMAA-AND-3245013-1791894232540457522DYM',
+    'RMAA-AND-3245013-1791917903591921078WRR',
+  ]) {
+    assert.ok(!md.includes(TESTMU_VIDEO(testId)));
+  }
+  assert.ok(!md.includes('/share/'));
 });
 
 test('keeps the recording link when the recording is not a TestMu one', () => {
