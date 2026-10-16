@@ -44,6 +44,8 @@ jest.mock('../../../../../../core/Engine', () => ({
         fetchSessionStatusOnce: jest.fn(),
         refreshSessionStatus: jest.fn(),
         startSessionStatusPolling: jest.fn(),
+        clearState: jest.fn(),
+        state: { sessionStatus: null as KycSessionStatus | null },
       },
       RampsController: {
         hydrateVbaOnboarding: jest.fn(),
@@ -84,12 +86,10 @@ const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
 const mockHydrateVbaOnboarding = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,
 );
-const mockRefreshAutoramps = jest.mocked(
-  Engine.context.RampsController.refreshAutoramps,
-);
 const mockFetchSessionStatusOnce = jest.mocked(
   Engine.context.KycController.fetchSessionStatusOnce,
 );
+const mockClearState = jest.mocked(Engine.context.KycController.clearState);
 const mockRefreshSessionStatus = jest.mocked(
   Engine.context.KycController.refreshSessionStatus,
 );
@@ -618,13 +618,18 @@ describe('useVbaHomeCardRefresh', () => {
   } = {}) => {
     mockUseVbaEligibility.mockReturnValue(makeEligibility({ isEligible }));
     mockSelectSelectedVbaWalletAddress.mockReturnValue(walletAddress);
-    mockSelectKycSessionStatus.mockReturnValue(sessionStatus);
+    // The refresh hook reads the session from Engine state at focus time.
+    Engine.context.KycController.state.sessionStatus = sessionStatus;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     storedFocusCallback = undefined;
     isFocused = false;
+    Engine.context.KycController.state.sessionStatus = null;
+    mockClearState.mockImplementation(() => {
+      Engine.context.KycController.state.sessionStatus = null;
+    });
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
     );
@@ -640,7 +645,7 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseNetworkTier.mockReturnValue(null);
     Engine.context.RampsController.state.autoramps = [];
     mockFetchSessionStatusOnce.mockResolvedValue(makeSession());
-    mockRefreshAutoramps.mockResolvedValue([]);
+    Engine.context.KycController.state.sessionStatus = null;
   });
 
   it('does not fetch during initial render before focus', () => {
@@ -685,7 +690,6 @@ describe('useVbaHomeCardRefresh', () => {
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
   });
 
   it('makes no VBA request while the geo lookup is still loading', () => {
@@ -721,7 +725,6 @@ describe('useVbaHomeCardRefresh', () => {
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
   });
 
   it.each(['approved', 'rejected', 'retry'])(
@@ -735,7 +738,6 @@ describe('useVbaHomeCardRefresh', () => {
       focusCallback();
 
       expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
-      expect(mockRefreshAutoramps).not.toHaveBeenCalled();
     },
   );
 
@@ -747,7 +749,6 @@ describe('useVbaHomeCardRefresh', () => {
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
-    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
   });
 
   it('fetches on the next focus after the network recovers, not mid-focus', () => {
@@ -799,135 +800,24 @@ describe('useVbaHomeCardRefresh', () => {
   it('stays one GET when the fetched status writes mid-focus', async () => {
     const stored = makeSession({ finalStatus: 'new' });
     const fetched = makeSession({ finalStatus: 'pending' });
-    mockFetchSessionStatusOnce.mockResolvedValue(fetched);
+    mockFetchSessionStatusOnce.mockImplementation(async () => {
+      // The real controller writes the resolved session onto its state.
+      Engine.context.KycController.state.sessionStatus = fetched;
+      return fetched;
+    });
     setupRefreshSelectors({ sessionStatus: stored });
     const { rerender } = renderHook(() => useVbaHomeCardRefresh());
 
     await act(async () => {
       focusCallback();
-      // fetchSessionStatusOnce writes the resolved session onto controller
-      // state mid-focus. The session-final-status gate reads it at call time
-      // through a ref: that write must not rebuild the callback and refire
-      // the GET while Money home stays focused.
-      mockSelectKycSessionStatus.mockReturnValue(fetched);
+      // The write lands while Money home stays focused. The gate reads the
+      // session from Engine state at call time — not from a dependency — so
+      // the write must not rebuild the callback and refire the GET.
       rerender();
     });
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
-  });
-
-  it('fetches when the user becomes eligible mid-focus', () => {
-    setupRefreshSelectors({ isEligible: false, sessionStatus: makeSession() });
-    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
-
-    mockUseVbaEligibility.mockReturnValue(makeEligibility());
-    rerender();
-    focusCallback();
-
-    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not refresh the autoramp list when the fetched status is not approved', async () => {
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'pending' }),
-    );
-    setupRefreshSelectors({ sessionStatus: makeSession() });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    await act(async () => {
-      focusCallback();
-    });
-
-    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
-  });
-
-  it('refreshes the autoramp list once when the fetch returns approved and the wallet has no usable autoramp', async () => {
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'approved' }),
-    );
-    Engine.context.RampsController.state.autoramps = [];
-    setupRefreshSelectors({ sessionStatus: makeSession() });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    await act(async () => {
-      focusCallback();
-    });
-
-    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
-    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-  });
-
-  it('catches up the autoramp list for a relay-approved session the vendor has not finalized', async () => {
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'pending', kycStatus: 'approved' }),
-    );
-    Engine.context.RampsController.state.autoramps = [];
-    setupRefreshSelectors({ sessionStatus: makeSession() });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    await act(async () => {
-      focusCallback();
-    });
-
-    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
-    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-  });
-
-  it('does not refresh the autoramp list when the wallet already has a usable autoramp', async () => {
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'approved' }),
-    );
-    Engine.context.RampsController.state.autoramps = [makeAutoramp()];
-    setupRefreshSelectors({ sessionStatus: makeSession() });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    await act(async () => {
-      focusCallback();
-    });
-
-    expect(mockRefreshAutoramps).not.toHaveBeenCalled();
-  });
-
-  it('does not treat a Rejected autoramp as usable when deciding the list refresh', async () => {
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'approved' }),
-    );
-    Engine.context.RampsController.state.autoramps = [
-      makeAutoramp({
-        status: AutorampStatus.Rejected,
-        lastSeenStatus: AutorampStatus.Rejected,
-      }),
-    ];
-    setupRefreshSelectors({ sessionStatus: makeSession() });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    await act(async () => {
-      focusCallback();
-    });
-
-    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not treat a Cancelled autoramp as usable when deciding the list refresh', async () => {
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'approved' }),
-    );
-    Engine.context.RampsController.state.autoramps = [
-      makeAutoramp({
-        status: AutorampStatus.Cancelled,
-        lastSeenStatus: AutorampStatus.Cancelled,
-      }),
-    ];
-    setupRefreshSelectors({ sessionStatus: makeSession() });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    await act(async () => {
-      focusCallback();
-    });
-
-    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
-    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
   it('starts no polling loop after the one-shot fetch', () => {
@@ -974,16 +864,14 @@ describe('useVbaHomeCardRefresh', () => {
     errorSpy.mockRestore();
   });
 
-  it('logs and swallows a failed autoramp catch-up', async () => {
+  it('clears stale KYC state instead of logging when the session GET 404s', async () => {
     const errorSpy = jest
       .spyOn(Logger, 'error')
       .mockImplementation(() => undefined);
-    const failure = new Error('autoramp list refresh failed');
-    mockFetchSessionStatusOnce.mockResolvedValue(
-      makeSession({ finalStatus: 'approved' }),
-    );
-    Engine.context.RampsController.state.autoramps = [];
-    mockRefreshAutoramps.mockRejectedValue(failure);
+    const notFound = Object.assign(new Error('session not found'), {
+      httpStatus: 404,
+    });
+    mockFetchSessionStatusOnce.mockRejectedValue(notFound);
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());
@@ -991,19 +879,12 @@ describe('useVbaHomeCardRefresh', () => {
       focusCallback();
     });
 
-    expect(errorSpy).toHaveBeenCalledWith(
-      failure,
-      expect.objectContaining({
-        tags: expect.objectContaining({ feature: 'money-home' }),
-        context: expect.objectContaining({
-          name: 'useVbaHomeCardRefresh',
-          data: { walletAddress: WALLET },
-        }),
-      }),
-    );
-    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-    expect(mockStartSessionStatusPolling).not.toHaveBeenCalled();
-    expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
+    expect(mockClearState).toHaveBeenCalledTimes(1);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    // The cleared state is gone: a refocus must not send another GET.
+    focusCallback();
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
     errorSpy.mockRestore();
   });
 });

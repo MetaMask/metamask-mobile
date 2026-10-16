@@ -387,26 +387,14 @@ export const shouldRefreshKycSessionOnFocus = (
   !TERMINAL_SESSION_STATUSES.has(sessionFinalStatus);
 
 /**
- * One-shot KYC session refresh for Money home. Wire it on the hosting screen
- * (MoneyHomeView) so it runs on `useFocusEffect` for an eligible user with a
- * selected Money wallet and a persisted session whose `finalStatus` is not
- * terminal: it calls `KycController.fetchSessionStatusOnce(sessionId)` — a
- * single GET, never `refreshSessionStatus`, never the 15s poll, and never
- * `hydrateVbaOnboarding`, whose disclaimers, consent, and vendor-customer
- * lookups the card does not need. When that fetch reports approval — the
- * vendor `finalStatus` or the relay `kycStatus`, the same notion
- * `getVbaHomeCard`'s approved check uses — and this wallet has no usable
- * autoramp, one autoramp-list refresh (`RampsController.refreshAutoramps`)
- * catches up on statuses missed while no process was polling. It never signs
- * and never creates an autoramp. With no wallet, an ineligible user, a
- * known-offline network, or a terminal status, it does nothing. The gate
- * reads the session final status and the network tier at call time through
- * refs, so neither the fetch's own state write (a `new` session resolving to
- * `pending`) nor a tier resolution re-arms the refresh mid-focus — a focus
- * still issues at most one session-status GET — and no request is made
- * during initial render. Eligibility stays a dependency: a geo lookup that
- * resolves mid-focus runs the new callback at once, so the card never waits
- * a full focus cycle to catch up.
+ * One-shot KYC session refresh: wire on the Money home screen's
+ * `useFocusEffect` to make exactly one `fetchSessionStatusOnce` GET per focus
+ * (never the 15s poll, never `hydrateVbaOnboarding`) for an eligible user
+ * with a selected Money wallet and a persisted, non-terminal KYC session. A
+ * 404 clears the stale KYC state — the session is gone server-side or
+ * belongs to another profile — instead of logging on every focus. The gate
+ * reads the session from Engine state and the tier through a ref, so no
+ * state write rebuilds the callback and re-fires the GET mid-focus.
  */
 export const useVbaHomeCardRefresh = (): void => {
   const { isEligible } = useVbaEligibility();
@@ -414,54 +402,42 @@ export const useVbaHomeCardRefresh = (): void => {
   // known-offline network; `null` (unknown) takes the product default.
   const networkTier = useNetworkTier();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const sessionStatus = useSelector(selectKycSessionStatus);
-  const sessionId = sessionStatus?.id;
-  const sessionFinalStatus = sessionStatus?.finalStatus;
   const networkTierRef = useRef(networkTier);
   networkTierRef.current = networkTier;
-  const sessionFinalStatusRef = useRef(sessionFinalStatus);
-  sessionFinalStatusRef.current = sessionFinalStatus;
 
   useFocusEffect(
     useCallback(() => {
       if (!isEligible || !walletAddress || networkTierRef.current === 'NONE') {
         return undefined;
       }
+      const sessionStatus = Engine.context.KycController.state.sessionStatus;
       if (
-        !sessionId ||
-        !shouldRefreshKycSessionOnFocus(sessionFinalStatusRef.current ?? null)
+        !sessionStatus ||
+        !shouldRefreshKycSessionOnFocus(sessionStatus.finalStatus)
       ) {
         return undefined;
       }
 
-      Engine.context.KycController.fetchSessionStatusOnce(sessionId)
-        .then((status) => {
-          // Relay approval counts: `getVbaHomeCard`'s approved check treats
-          // `kycStatus === 'approved'` as approved while the vendor
-          // `finalStatus` is still pending, so the catch-up must use the
-          // same notion or a relay-approved wallet never catches up.
-          if (
-            status.finalStatus !== 'approved' &&
-            status.kycStatus !== 'approved'
-          ) {
-            return undefined;
-          }
-          const { autoramps } = Engine.context.RampsController.state;
-          if (hasUsableAutorampForWallet(walletAddress, autoramps)) {
-            return undefined;
-          }
-          return Engine.context.RampsController.refreshAutoramps();
-        })
-        .catch((error) => {
-          Logger.error(error as Error, {
-            tags: { feature: 'money-home' },
-            context: {
-              name: 'useVbaHomeCardRefresh',
-              data: { walletAddress },
-            },
-          });
+      Engine.context.KycController.fetchSessionStatusOnce(
+        sessionStatus.id,
+      ).catch((error) => {
+        if ((error as { httpStatus?: number })?.httpStatus === 404) {
+          // Mirrors `hydrateVbaOnboarding`'s own 404 handling: a session
+          // the server no longer has (cleared backend-side, or persisted
+          // by another profile) must be dropped, not logged — it would
+          // otherwise 404 on every focus while the card stays stuck.
+          Engine.context.KycController.clearState();
+          return;
+        }
+        Logger.error(error as Error, {
+          tags: { feature: 'money-home' },
+          context: {
+            name: 'useVbaHomeCardRefresh',
+            data: { walletAddress },
+          },
         });
+      });
       return undefined;
-    }, [isEligible, walletAddress, sessionId]),
+    }, [isEligible, walletAddress]),
   );
 };
