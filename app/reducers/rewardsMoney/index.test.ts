@@ -347,7 +347,7 @@ describe('rewardsMoneyReducer', () => {
               id: 'claim-open',
               status: 'AUTHORIZED',
             },
-          ],
+          ] as ClaimDto[],
         },
       };
 

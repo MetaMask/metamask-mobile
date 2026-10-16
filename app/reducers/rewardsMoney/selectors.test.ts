@@ -1,5 +1,6 @@
 import type { RootState } from '..';
 import type {
+  ClaimDto,
   EarningsSummaryDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
@@ -237,7 +238,7 @@ describe('rewardsMoney selectors', () => {
 
   describe('selectInFlightClaims', () => {
     it('returns the open claims stored for the profile', () => {
-      const claims = [{ id: 'claim-open' }];
+      const claims = [{ id: 'claim-open' }] as ClaimDto[];
       const state = {
         ...initialRootState,
         rewardsMoney: {

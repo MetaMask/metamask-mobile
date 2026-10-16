@@ -9,12 +9,15 @@ import { selectInFlightClaims } from '../../../../reducers/rewardsMoney/selector
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 
 /**
- * How many post-claim refreshes are still running for a profile, and how many
- * have stored a page. A cache read must not replace a page one of those
- * refreshes stored, or store its own page while one is still running.
+ * Per profile: how many post-claim refreshes have started, the number of the
+ * newest one that stored a page, and how many are still running. A refresh
+ * stores only if no later one has. A cache read stores only when none is still
+ * running and none has stored a page since this read started. A refresh that
+ * fails stores nothing, so a cache read that was already waiting can publish.
  */
+const forceFreshStartedByProfile = new Map<string, number>();
+const forceFreshStoredByProfile = new Map<string, number>();
 const forceFreshInFlightByProfile = new Map<string, number>();
-const completedForceFreshByProfile = new Map<string, number>();
 
 const EMPTY_IN_FLIGHT_CLAIMS: ClaimDto[] = [];
 
@@ -42,8 +45,11 @@ export function useInFlightClaims(profileId: string | undefined): {
         return;
       }
       const forceFresh = options?.forceFresh === true;
-      const seenCompleted = completedForceFreshByProfile.get(profileId) ?? 0;
+      const storedAtStart = forceFreshStoredByProfile.get(profileId) ?? 0;
+      let started = forceFreshStartedByProfile.get(profileId) ?? 0;
       if (forceFresh) {
+        started += 1;
+        forceFreshStartedByProfile.set(profileId, started);
         forceFreshInFlightByProfile.set(
           profileId,
           (forceFreshInFlightByProfile.get(profileId) ?? 0) + 1,
@@ -56,10 +62,13 @@ export function useInFlightClaims(profileId: string | undefined): {
         );
         const nextClaims = page?.results ?? [];
         if (forceFresh) {
-          completedForceFreshByProfile.set(profileId, seenCompleted + 1);
+          if (started <= (forceFreshStoredByProfile.get(profileId) ?? 0)) {
+            return;
+          }
+          forceFreshStoredByProfile.set(profileId, started);
         } else if (
           (forceFreshInFlightByProfile.get(profileId) ?? 0) > 0 ||
-          (completedForceFreshByProfile.get(profileId) ?? 0) !== seenCompleted
+          (forceFreshStoredByProfile.get(profileId) ?? 0) > storedAtStart
         ) {
           return;
         }
