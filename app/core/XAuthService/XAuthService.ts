@@ -1,6 +1,9 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
 import { Linking } from 'react-native';
-import type { XProfile, XAuthUrlResponse } from '@metamask/profile-controller';
+import type {
+  ConnectXSession,
+  XProfile,
+} from '@metamask/profile-controller';
 import Engine from '../Engine';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
@@ -158,11 +161,14 @@ async function openAuthorizationSession(
 export async function connectX(): Promise<XProfile> {
   requireProfileId();
 
-  const { ProfileService, ProfileController } = Engine.context;
+  const { ProfileController } = Engine.context;
 
-  let session: XAuthUrlResponse;
+  let session: ConnectXSession;
   try {
-    session = await ProfileService.getXAuthUrl();
+    // Go through ProfileController, not ProfileService: with the mock profile
+    // service the controller delegates to messenger handlers that work for
+    // both mock and real services, while the service instance is only a stub.
+    session = await ProfileController.getXAuthorizationUrl();
   } catch (error) {
     throw new XAuthError(
       XAuthErrorType.BackendError,
@@ -171,7 +177,7 @@ export async function connectX(): Promise<XProfile> {
     );
   }
 
-  const redirectUrl = await openAuthorizationSession(session.url);
+  const redirectUrl = await openAuthorizationSession(session.authorizationUrl);
 
   const params = parseRedirectParams(redirectUrl);
 
@@ -219,13 +225,29 @@ export async function connectX(): Promise<XProfile> {
  */
 export async function fetchAndUpdateXAccount(): Promise<XProfile> {
   requireProfileId();
-  const xProfile =
-    await Engine.context.ProfileController.fetchAndUpdateXAccount();
-  return xProfile;
+  try {
+    const xProfile =
+      await Engine.context.ProfileController.fetchAndUpdateXAccount();
+    return xProfile;
+  } catch (error) {
+    throw new XAuthError(
+      XAuthErrorType.BackendError,
+      `Failed to fetch and update the X account: ${getErrorMessage(error)}`,
+      { cause: error },
+    );
+  }
 }
 
 /** Disconnects the X account linked to the current profile. */
 export async function disconnectXAccount(): Promise<void> {
   const profileId = requireProfileId();
-  await Engine.context.ProfileController.disconnectX(profileId);
+  try {
+    await Engine.context.ProfileController.disconnectX(profileId);
+  } catch (error) {
+    throw new XAuthError(
+      XAuthErrorType.BackendError,
+      `Failed to disconnect the X account: ${getErrorMessage(error)}`,
+      { cause: error },
+    );
+  }
 }

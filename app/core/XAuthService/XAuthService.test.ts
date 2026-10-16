@@ -26,10 +26,12 @@ jest.mock('../Engine', () => ({
   __esModule: true,
   default: {
     context: {
-      ProfileService: {
-        getXAuthUrl: jest.fn(),
-      },
+      // Mirrors the mock profile service wiring in profile-service-init.ts:
+      // the service instance is a stub and all operations go through
+      // ProfileController, whose methods delegate to messenger handlers.
+      ProfileService: {},
       ProfileController: {
+        getXAuthorizationUrl: jest.fn(),
         connectX: jest.fn(),
         fetchAndUpdateXAccount: jest.fn(),
         disconnectX: jest.fn(),
@@ -39,7 +41,7 @@ jest.mock('../Engine', () => ({
   },
 }));
 
-const { ProfileService, ProfileController } = Engine.context;
+const { ProfileController } = Engine.context;
 
 const AUTHORIZATION_URL = 'https://backend.example.com/x/authorize?state=xyz';
 const SESSION_STATE = 'session-state-1';
@@ -72,8 +74,8 @@ describe('XAuthService (app-relay flow)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     ProfileController.state.profile.profileId = 'profile-1';
-    jest.mocked(ProfileService.getXAuthUrl).mockResolvedValue({
-      url: AUTHORIZATION_URL,
+    jest.mocked(ProfileController.getXAuthorizationUrl).mockResolvedValue({
+      authorizationUrl: AUTHORIZATION_URL,
       state: SESSION_STATE,
     });
     jest.mocked(ProfileController.connectX).mockResolvedValue(X_PROFILE);
@@ -88,8 +90,8 @@ describe('XAuthService (app-relay flow)', () => {
 
       const result = await connectX();
 
-      expect(ProfileService.getXAuthUrl).toHaveBeenCalledTimes(1);
-      expect(ProfileService.getXAuthUrl).toHaveBeenCalledWith();
+      expect(ProfileController.getXAuthorizationUrl).toHaveBeenCalledTimes(1);
+      expect(ProfileController.getXAuthorizationUrl).toHaveBeenCalledWith();
       expect(openAuthSessionAsync).toHaveBeenCalledWith(
         AUTHORIZATION_URL,
         X_REDIRECT_URI,
@@ -300,7 +302,7 @@ describe('XAuthService (app-relay flow)', () => {
 
     it('throws a backend error when the backend fails to issue the authorization URL', async () => {
       jest
-        .mocked(ProfileService.getXAuthUrl)
+        .mocked(ProfileController.getXAuthorizationUrl)
         .mockRejectedValue(new Error('503 Service Unavailable'));
 
       await expect(connectX()).rejects.toMatchObject({
@@ -310,7 +312,9 @@ describe('XAuthService (app-relay flow)', () => {
     });
 
     it('throws a backend error whose message stringifies a non-Error backend rejection', async () => {
-      jest.mocked(ProfileService.getXAuthUrl).mockRejectedValue('503 down');
+      jest
+        .mocked(ProfileController.getXAuthorizationUrl)
+        .mockRejectedValue('503 down');
 
       await expect(connectX()).rejects.toMatchObject({
         type: XAuthErrorType.BackendError,
@@ -348,7 +352,7 @@ describe('XAuthService (app-relay flow)', () => {
       await expect(connectX()).rejects.toMatchObject({
         type: XAuthErrorType.NotSignedIn,
       });
-      expect(ProfileService.getXAuthUrl).not.toHaveBeenCalled();
+      expect(ProfileController.getXAuthorizationUrl).not.toHaveBeenCalled();
       expect(openAuthSessionAsync).not.toHaveBeenCalled();
     });
   });
@@ -370,6 +374,28 @@ describe('XAuthService (app-relay flow)', () => {
       });
       expect(ProfileController.fetchAndUpdateXAccount).not.toHaveBeenCalled();
     });
+
+    it('throws a backend error when the controller fails to fetch and update the X account', async () => {
+      jest
+        .mocked(ProfileController.fetchAndUpdateXAccount)
+        .mockRejectedValue(new Error('503 Service Unavailable'));
+
+      await expect(fetchAndUpdateXAccount()).rejects.toMatchObject({
+        type: XAuthErrorType.BackendError,
+        message: 'Failed to fetch and update the X account: 503 Service Unavailable',
+      });
+    });
+
+    it('preserves the controller failure as the cause of the backend error', async () => {
+      const cause = new Error('503 Service Unavailable');
+      jest
+        .mocked(ProfileController.fetchAndUpdateXAccount)
+        .mockRejectedValue(cause);
+
+      const error = await fetchAndUpdateXAccount().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.cause).toBe(cause);
+    });
   });
 
   describe('disconnectXAccount', () => {
@@ -386,6 +412,26 @@ describe('XAuthService (app-relay flow)', () => {
         type: XAuthErrorType.NotSignedIn,
       });
       expect(ProfileController.disconnectX).not.toHaveBeenCalled();
+    });
+
+    it('throws a backend error when the controller fails to disconnect the X account', async () => {
+      jest
+        .mocked(ProfileController.disconnectX)
+        .mockRejectedValue(new Error('500 Internal Server Error'));
+
+      await expect(disconnectXAccount()).rejects.toMatchObject({
+        type: XAuthErrorType.BackendError,
+        message: 'Failed to disconnect the X account: 500 Internal Server Error',
+      });
+    });
+
+    it('preserves the controller failure as the cause of the backend error', async () => {
+      const cause = new Error('500 Internal Server Error');
+      jest.mocked(ProfileController.disconnectX).mockRejectedValue(cause);
+
+      const error = await disconnectXAccount().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.cause).toBe(cause);
     });
   });
 });
