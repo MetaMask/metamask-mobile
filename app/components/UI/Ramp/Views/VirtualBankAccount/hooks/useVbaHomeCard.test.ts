@@ -594,7 +594,18 @@ describe('useVbaHomeCard', () => {
 });
 
 describe('useVbaHomeCardRefresh', () => {
-  let focusCallback: () => undefined | (() => void);
+  // The hook's `useCallback` result captured by the `useFocusEffect` mock.
+  // Tests assert its identity to lock dependency lists.
+  let storedFocusCallback: (() => undefined | (() => void)) | undefined;
+  let isFocused = false;
+  // Invoking `focusCallback` is the focus event. While focused, the mock
+  // re-runs a replacement callback the moment its identity changes — React
+  // Navigation's semantics, which are what make dependency-list regressions
+  // (a mid-focus rerun firing a second GET) visible to these tests.
+  const focusCallback = (): undefined | (() => void) => {
+    isFocused = true;
+    return storedFocusCallback?.();
+  };
 
   const setupRefreshSelectors = ({
     isEligible = true,
@@ -612,11 +623,18 @@ describe('useVbaHomeCardRefresh', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    storedFocusCallback = undefined;
+    isFocused = false;
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
     );
     mockUseFocusEffect.mockImplementation((callback) => {
-      focusCallback = callback as typeof focusCallback;
+      const next = callback as () => undefined | (() => void);
+      const changed = storedFocusCallback !== next;
+      storedFocusCallback = next;
+      if (changed && isFocused) {
+        next();
+      }
     });
     // Unknown network takes the product default — never read as offline.
     mockUseNetworkTier.mockReturnValue(null);
@@ -736,7 +754,7 @@ describe('useVbaHomeCardRefresh', () => {
     mockUseNetworkTier.mockReturnValue('NONE');
     setupRefreshSelectors({ sessionStatus: makeSession() });
     const { rerender } = renderHook(() => useVbaHomeCardRefresh());
-    const focusCallbackBefore = focusCallback;
+    const storedCallbackBefore = storedFocusCallback;
     focusCallback();
 
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
@@ -750,10 +768,50 @@ describe('useVbaHomeCardRefresh', () => {
     // React Navigation's rerun-on-callback-change semantics cannot refire the
     // GET mid-focus. If networkTier re-enters the dependency list, the new
     // callback identity fails this assertion.
-    expect(focusCallback).toBe(focusCallbackBefore);
+    expect(storedFocusCallback).toBe(storedCallbackBefore);
     expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
 
     focusCallback();
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+  });
+
+  it('fetches on the rerender when the user becomes eligible while already focused', () => {
+    setupRefreshSelectors({ isEligible: false, sessionStatus: makeSession() });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+
+    // Eligibility is a dependency on purpose: the geo lookup resolving
+    // mid-focus builds a new callback, React Navigation runs it at once, and
+    // the card catches up without waiting for the next focus. Reading
+    // `isEligible` through a ref (like the tier) would keep the identity
+    // stable, skip this run, and leave the card stale on the cold open.
+    mockUseVbaEligibility.mockReturnValue(makeEligibility());
+    rerender();
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+  });
+
+  it('stays one GET when the fetched status writes mid-focus', async () => {
+    const stored = makeSession({ finalStatus: 'new' });
+    const fetched = makeSession({ finalStatus: 'pending' });
+    mockFetchSessionStatusOnce.mockResolvedValue(fetched);
+    setupRefreshSelectors({ sessionStatus: stored });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+
+    await act(async () => {
+      focusCallback();
+      // fetchSessionStatusOnce writes the resolved session onto controller
+      // state mid-focus. The session-final-status gate reads it at call time
+      // through a ref: that write must not rebuild the callback and refire
+      // the GET while Money home stays focused.
+      mockSelectKycSessionStatus.mockReturnValue(fetched);
+      rerender();
+    });
 
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
     expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
@@ -787,6 +845,22 @@ describe('useVbaHomeCardRefresh', () => {
   it('refreshes the autoramp list once when the fetch returns approved and the wallet has no usable autoramp', async () => {
     mockFetchSessionStatusOnce.mockResolvedValue(
       makeSession({ finalStatus: 'approved' }),
+    );
+    Engine.context.RampsController.state.autoramps = [];
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockRefreshAutoramps).toHaveBeenCalledTimes(1);
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('catches up the autoramp list for a relay-approved session the vendor has not finalized', async () => {
+    mockFetchSessionStatusOnce.mockResolvedValue(
+      makeSession({ finalStatus: 'pending', kycStatus: 'approved' }),
     );
     Engine.context.RampsController.state.autoramps = [];
     setupRefreshSelectors({ sessionStatus: makeSession() });

@@ -393,17 +393,20 @@ export const shouldRefreshKycSessionOnFocus = (
  * terminal: it calls `KycController.fetchSessionStatusOnce(sessionId)` — a
  * single GET, never `refreshSessionStatus`, never the 15s poll, and never
  * `hydrateVbaOnboarding`, whose disclaimers, consent, and vendor-customer
- * lookups the card does not need. When that fetch returns `approved` and this
- * wallet has no usable autoramp, one autoramp-list refresh
- * (`RampsController.refreshAutoramps`) catches up on statuses missed while no
- * process was polling. It never signs and never creates an autoramp. With no
- * wallet, an ineligible user, a known-offline network, or a terminal status,
- * it does nothing. The gate reads only primitive state, so unrelated
- * KycController state writes never re-arm the refresh mid-focus, and no
- * request is made during initial render. The network tier gates at call
- * time through a ref — tier changes (a startup `null` → `WIFI` resolution,
- * a wifi/cellular handoff) never re-arm the refresh, so a focus still
- * issues at most one session-status GET.
+ * lookups the card does not need. When that fetch reports approval — the
+ * vendor `finalStatus` or the relay `kycStatus`, the same notion
+ * `getVbaHomeCard`'s approved check uses — and this wallet has no usable
+ * autoramp, one autoramp-list refresh (`RampsController.refreshAutoramps`)
+ * catches up on statuses missed while no process was polling. It never signs
+ * and never creates an autoramp. With no wallet, an ineligible user, a
+ * known-offline network, or a terminal status, it does nothing. The gate
+ * reads the session final status and the network tier at call time through
+ * refs, so neither the fetch's own state write (a `new` session resolving to
+ * `pending`) nor a tier resolution re-arms the refresh mid-focus — a focus
+ * still issues at most one session-status GET — and no request is made
+ * during initial render. Eligibility stays a dependency: a geo lookup that
+ * resolves mid-focus runs the new callback at once, so the card never waits
+ * a full focus cycle to catch up.
  */
 export const useVbaHomeCardRefresh = (): void => {
   const { isEligible } = useVbaEligibility();
@@ -416,6 +419,8 @@ export const useVbaHomeCardRefresh = (): void => {
   const sessionFinalStatus = sessionStatus?.finalStatus;
   const networkTierRef = useRef(networkTier);
   networkTierRef.current = networkTier;
+  const sessionFinalStatusRef = useRef(sessionFinalStatus);
+  sessionFinalStatusRef.current = sessionFinalStatus;
 
   useFocusEffect(
     useCallback(() => {
@@ -424,14 +429,21 @@ export const useVbaHomeCardRefresh = (): void => {
       }
       if (
         !sessionId ||
-        !shouldRefreshKycSessionOnFocus(sessionFinalStatus ?? null)
+        !shouldRefreshKycSessionOnFocus(sessionFinalStatusRef.current ?? null)
       ) {
         return undefined;
       }
 
       Engine.context.KycController.fetchSessionStatusOnce(sessionId)
         .then((status) => {
-          if (status.finalStatus !== 'approved') {
+          // Relay approval counts: `getVbaHomeCard`'s approved check treats
+          // `kycStatus === 'approved'` as approved while the vendor
+          // `finalStatus` is still pending, so the catch-up must use the
+          // same notion or a relay-approved wallet never catches up.
+          if (
+            status.finalStatus !== 'approved' &&
+            status.kycStatus !== 'approved'
+          ) {
             return undefined;
           }
           const { autoramps } = Engine.context.RampsController.state;
@@ -450,6 +462,6 @@ export const useVbaHomeCardRefresh = (): void => {
           });
         });
       return undefined;
-    }, [isEligible, walletAddress, sessionId, sessionFinalStatus]),
+    }, [isEligible, walletAddress, sessionId]),
   );
 };
