@@ -2,7 +2,9 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import type { HardwareTier } from '../../../../util/deviceCapability';
 import { playSelection } from '../../../../util/haptics';
-import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
+import AvatarBackgroundCarousel, {
+  hapticBackgroundIndex,
+} from './AvatarBackgroundCarousel';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
 jest.mock('../../../../util/haptics');
@@ -35,6 +37,18 @@ const renderCarousel = (selectedBackgroundId = 'purple') => {
   return { onSelect };
 };
 
+describe('hapticBackgroundIndex', () => {
+  it('counts the next color once a third of the slot is crossed', () => {
+    expect(hapticBackgroundIndex(2.34, 2)).toBe(2);
+    expect(hapticBackgroundIndex(2.35, 2)).toBe(3);
+  });
+
+  it('counts the previous color once a third of the slot is crossed backward', () => {
+    expect(hapticBackgroundIndex(2.66, 3)).toBe(3);
+    expect(hapticBackgroundIndex(2.64, 3)).toBe(2);
+  });
+});
+
 describe('AvatarBackgroundCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -56,16 +70,15 @@ describe('AvatarBackgroundCarousel', () => {
     ).toBeSelected();
   });
 
-  it('selects a tapped color and plays a selection haptic', () => {
+  it('selects a tapped color', () => {
     const { onSelect } = renderCarousel();
 
     fireEvent.press(screen.getByTestId(optionTestId(3)));
 
     expect(onSelect).toHaveBeenCalledWith('lime');
-    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
-  it('skips the haptic when the tapped color is already settled', () => {
+  it('selects the centered color when it is tapped again', () => {
     const { onSelect } = renderCarousel();
 
     fireEvent.press(screen.getByTestId(optionTestId(2)));

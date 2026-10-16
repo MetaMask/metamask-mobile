@@ -111,10 +111,10 @@ appiumTest.describe(
             await AccountListBottomSheet.tapAccountByNameV2('Account 2');
             await AccountListBottomSheet.tapConnectAccountsButton();
 
-            await ConnectedAccountsModal.expectConnectedAccountDisplayed(
+            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
               'Account 1',
-            );
-            await Assertions.expectTextDisplayed('Account 2');
+              'Account 2',
+            ]);
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
             await AccountListBottomSheet.addAccountAndExpectVisibleV2(
@@ -124,11 +124,11 @@ appiumTest.describe(
             await AccountListBottomSheet.tapAccountByNameV2('Account 3');
             await AccountListBottomSheet.tapConnectAccountsButton();
 
-            await ConnectedAccountsModal.expectConnectedAccountDisplayed(
+            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
               'Account 1',
-            );
-            await Assertions.expectTextDisplayed('Account 2');
-            await Assertions.expectTextDisplayed('Account 3');
+              'Account 2',
+              'Account 3',
+            ]);
 
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();

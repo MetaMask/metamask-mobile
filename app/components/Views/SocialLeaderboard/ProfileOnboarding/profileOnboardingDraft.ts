@@ -1,8 +1,14 @@
+import type { CreateProfileParams } from '@metamask/profile-controller';
+import type { CaipAccountId } from '@metamask/utils';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
   DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
+
+/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
+export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
 
 export type ProfileOnboardingStep =
   | 'intro'
@@ -26,7 +32,7 @@ export type UsernameStatus = 'empty' | 'invalid' | 'available';
 
 const USERNAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MIN_USERNAME_LENGTH = 3;
-const MAX_USERNAME_LENGTH = 20;
+export const MAX_USERNAME_LENGTH = 20;
 
 export const USERNAME_SUGGESTIONS = [
   'wen-cat',
@@ -60,16 +66,6 @@ export const displayNameFromUsername = (value: string): string =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 
-export const nextUsernameSuggestion = (current: string): string => {
-  const normalized = normalizeUsername(current);
-  const index = USERNAME_SUGGESTIONS.indexOf(
-    normalized as (typeof USERNAME_SUGGESTIONS)[number],
-  );
-  const nextIndex =
-    index === -1 ? 0 : (index + 1) % USERNAME_SUGGESTIONS.length;
-  return USERNAME_SUGGESTIONS[nextIndex];
-};
-
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = USERNAME_SUGGESTIONS[0];
   return {
@@ -86,6 +82,30 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
 
 export const profileUrlForHandle = (handle: string): string =>
   `https://metamask.io/${normalizeUsername(handle)}`;
+
+export const buildCreateProfileParams = (
+  draft: ProfileOnboardingDraft,
+  profileId: string,
+): CreateProfileParams => {
+  if (!draft.linkedAccountAddress) {
+    throw new Error('Profile onboarding requires a linked account');
+  }
+
+  return {
+    profile_id: profileId,
+    username: normalizeUsername(draft.username),
+    display_name: draft.displayName.trim(),
+    bio: null,
+    linked_addresses: [
+      `eip155:1:${draft.linkedAccountAddress}` as CaipAccountId,
+    ],
+    avatar_url: toFoxiconAvatarUrl(
+      draft.avatarPresetId,
+      draft.avatarBackgroundId,
+    ),
+    trading_privacy: draft.shareTradingActivity ? 'public' : 'private',
+  };
+};
 
 export const buildOnboardedSocialProfile = (
   draft: ProfileOnboardingDraft,

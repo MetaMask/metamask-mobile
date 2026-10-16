@@ -25,6 +25,7 @@ import {
 } from '../../../../../../selectors/kycController';
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 import {
   getVbaHomeCard,
   shouldRefreshKycSessionOnFocus,
@@ -48,6 +49,10 @@ jest.mock('../../../../../../selectors/rampsController');
 jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
 jest.mock('../vbaVendorTermsStorage');
+jest.mock('../vbaDevOverrides', () => ({
+  ...jest.requireActual('../vbaDevOverrides'),
+  getVbaKycStatusOverride: jest.fn(),
+}));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
@@ -63,6 +68,7 @@ const mockSelectKycProviderFlowStatus = jest.mocked(
   selectKycProviderFlowStatus,
 );
 const mockHasAcceptedVbaVendorTerms = jest.mocked(hasAcceptedVbaVendorTerms);
+const mockGetVbaKycStatusOverride = jest.mocked(getVbaKycStatusOverride);
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
 >;
@@ -149,16 +155,18 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'none' });
   });
 
-  it('renders no card when a usable autoramp exists for the wallet (decision rule 2)', () => {
+  it('renders no card when a usable autoramp exists without an approved session', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       autoramps: [makeAutoramp({ status: AutorampStatus.Created })],
     });
 
+    // The autoramp is evidence, so not get_started either; without an approved
+    // session no card fits.
     expect(card).toEqual({ type: 'none' });
   });
 
-  it('renders no card for an approved session while the autoramp is usable (rule 2 beats rule 4)', () => {
+  it('renders account_is_ready for an approved session with a usable autoramp (decision rule 3)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -168,7 +176,17 @@ describe('getVbaHomeCard', () => {
       autoramps: [makeAutoramp()],
     });
 
-    expect(card).toEqual({ type: 'none' });
+    expect(card).toEqual({ type: 'account_is_ready' });
+  });
+
+  it('renders kyc_pending for a pending session even with a usable autoramp', () => {
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession(),
+      autoramps: [makeAutoramp()],
+    });
+
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
 
   it('ignores autoramps belonging to a different wallet', () => {
@@ -232,7 +250,7 @@ describe('getVbaHomeCard', () => {
     expect(active).toEqual({ type: 'none' });
   });
 
-  it('renders account_is_ready when finalStatus is approved and no usable autoramp exists (decision rule 4)', () => {
+  it('renders kyc_pending for an approved session while no usable autoramp exists (decision rule 3 mirrors the funnel)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -241,8 +259,26 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'account_is_ready' });
+    expect(card).toEqual({ type: 'kyc_pending' });
   });
+
+  it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
+    'renders kyc_pending for an approved session whose only autoramp is %s (decision rule 3)',
+    (status) => {
+      const card = getVbaHomeCard({
+        ...baseInputs,
+        sessionStatus: makeSession({
+          finalStatus: 'approved',
+          kycStatus: 'approved',
+        }),
+        autoramps: [makeAutoramp({ status })],
+      });
+
+      // A dead autoramp route is not usable, so the account details are not
+      // ready yet and the card must not claim "You're all set".
+      expect(card).toEqual({ type: 'kyc_pending' });
+    },
+  );
 
   it('renders account_is_ready when only kycStatus is approved (relay approval counts)', () => {
     const card = getVbaHomeCard({
@@ -251,6 +287,7 @@ describe('getVbaHomeCard', () => {
         finalStatus: 'pending',
         kycStatus: 'approved',
       }),
+      autoramps: [makeAutoramp()],
     });
 
     expect(card).toEqual({ type: 'account_is_ready' });
@@ -281,7 +318,7 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'kyc_decision' });
   });
 
-  it('renders kyc_pending when finalStatus is pending (decision rule 6)', () => {
+  it('renders kyc_pending when the relay kycStatus is pending (decision rule 5)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession(),
@@ -338,6 +375,24 @@ describe('getVbaHomeCard', () => {
     expect(card).toEqual({ type: 'finish_verification' });
   });
 
+  it('renders finish_verification for an abandoned flow despite a pending finalStatus', () => {
+    // Device-observed state (TRAM-4079): after backing out of SumSub, the
+    // relay keeps `finalStatus: 'pending'` while `kycStatus` is still 'new'
+    // and the provider flow is 'abandoned'. Nothing is being reviewed, so the
+    // card must ask the user to finish verification, not spin.
+    const card = getVbaHomeCard({
+      ...baseInputs,
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+      }),
+      providerFlowStatus: 'abandoned',
+      hasAcceptedVendorTerms: true,
+    });
+
+    expect(card).toEqual({ type: 'finish_verification' });
+  });
+
   it('ranks a submitted flow (rule 6) above finish_verification (rule 7)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
@@ -354,7 +409,7 @@ describe('getVbaHomeCard', () => {
 
   it('renders no card when no rule matches', () => {
     // A dead autoramp cursor with no session, terms, or registration: rules
-    // 3-7 all fail. Reinstall discovery is a follow-up.
+    // 2-6 all fail. Reinstall discovery is a follow-up.
     const card = getVbaHomeCard({
       ...baseInputs,
       autoramps: [makeAutoramp({ status: AutorampStatus.Rejected })],
@@ -413,6 +468,7 @@ describe('useVbaHomeCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetVbaKycStatusOverride.mockReset();
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
     );
@@ -435,6 +491,20 @@ describe('useVbaHomeCard', () => {
     const { result } = renderHook(() => useVbaHomeCard());
 
     expect(result.current).toEqual({ type: 'kyc_pending' });
+  });
+
+  it('honors the dev KYC status override for the card decision', () => {
+    mockGetVbaKycStatusOverride.mockReturnValue('rejected');
+    setupSelectors({
+      sessionStatus: makeSession({
+        finalStatus: 'pending',
+        kycStatus: 'new',
+      }),
+    });
+
+    const { result } = renderHook(() => useVbaHomeCard());
+
+    expect(result.current).toEqual({ type: 'kyc_decision' });
   });
 
   it('treats local vendor terms as not accepted while loading, then flips once accepted', async () => {

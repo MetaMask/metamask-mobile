@@ -1,15 +1,9 @@
 import React from 'react';
-import { Image, Text } from 'react-native';
-import { act, render, screen, waitFor } from '@testing-library/react-native';
-import {
-  RiveErrorType,
-  RiveImages,
-  type RiveError,
-  type RiveImage,
-} from '@rive-app/react-native';
+import { Text } from 'react-native';
+import { act, render, screen } from '@testing-library/react-native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import {
   __getRivePropertySetter,
-  __mockRiveImagePropertySet,
   __resetRiveMocks,
 } from '../../../../__mocks__/rive-app-react-native';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
@@ -68,6 +62,7 @@ const renderReady = (avatarPresetId = 'visor') =>
       displayName="Wen Cat"
       handle="wen-cat"
       avatarPresetId={avatarPresetId}
+      avatarBackgroundId="lime"
       fallback={fallback}
     />,
   );
@@ -109,74 +104,17 @@ describe('ProfileReadyAnimation', () => {
     expect(lastBound(PROFILE_READY_RIVE_PATHS.IS_VERIFIED)).toBe(false);
   });
 
-  it.each([
-    ['a dev server URL', 'http://localhost:8081/superhero.png', 'URL'],
-    ['an Android release resource', 'app_images_superhero', 'Resource'],
-  ])(
-    'binds an image avatar preset resolved to %s',
-    async (_label, uri, loader) => {
-      jest
-        .spyOn(Image, 'resolveAssetSource')
-        .mockReturnValue({ uri, width: 1, height: 1, scale: 1 });
+  it('draws the chosen avatar over the card', () => {
+    renderReady('zombie');
 
-      renderReady('visor');
-
-      await waitFor(() =>
-        expect(__mockRiveImagePropertySet).toHaveBeenCalledWith({
-          byteSize: 1,
-        }),
-      );
-      expect(
-        loader === 'URL'
-          ? RiveImages.loadFromURLAsync
-          : RiveImages.loadFromResourceAsync,
-      ).toHaveBeenCalledWith(uri);
-    },
-  );
-
-  it('stays on the animation without an avatar when the image fails to load', async () => {
-    jest.spyOn(Image, 'resolveAssetSource').mockReturnValue({
-      uri: 'http://x/a.png',
-      width: 1,
-      height: 1,
-      scale: 1,
-    });
-    jest
-      .mocked(RiveImages.loadFromURLAsync)
-      .mockRejectedValueOnce(new Error('404'));
-
-    renderReady('visor');
-    await act(async () => undefined);
-
-    expect(RiveImages.loadFromURLAsync).toHaveBeenCalled();
-    expect(__mockRiveImagePropertySet).not.toHaveBeenCalled();
     expect(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_ANIMATION),
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_AVATAR),
     ).toBeOnTheScreen();
-  });
-
-  it('ignores an avatar that resolves after unmount', async () => {
-    jest.spyOn(Image, 'resolveAssetSource').mockReturnValue({
-      uri: 'http://x/a.png',
-      width: 1,
-      height: 1,
-      scale: 1,
-    });
-    let resolveImage: (image: RiveImage) => void = () => undefined;
-    jest.mocked(RiveImages.loadFromURLAsync).mockImplementationOnce(
-      () =>
-        new Promise<RiveImage>((resolve) => {
-          resolveImage = resolve;
-        }),
-    );
-
-    const { unmount } = renderReady('visor');
-    unmount();
-    await act(async () => {
-      resolveImage({ byteSize: 1 } as RiveImage);
-    });
-
-    expect(__mockRiveImagePropertySet).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.READY_AVATAR}-art`,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('supplies the bundled Inter font for the referenced font asset', () => {
@@ -199,12 +137,12 @@ describe('ProfileReadyAnimation', () => {
     );
   });
 
-  it('keeps the embedded avatar for unknown presets', async () => {
+  it('still draws an avatar when the preset is unknown', () => {
     renderReady('retired-preset');
 
-    await act(async () => undefined);
-
-    expect(__mockRiveImagePropertySet).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_AVATAR),
+    ).toBeOnTheScreen();
   });
 
   it('renders the fallback when animations are disabled', () => {

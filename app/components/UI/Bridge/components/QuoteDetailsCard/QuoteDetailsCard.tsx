@@ -429,7 +429,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   {formattedQuoteData.slippage}
                 </Text>
                 <Icon
-                  name={IconName.Edit}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={IconColor.IconAlternative}
                 />

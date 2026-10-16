@@ -1,4 +1,6 @@
 import type {
+  ConnectXSession,
+  CreateProfileParams,
   Profile,
   UpdateProfileParams,
   UsernameAvailabilityResponse,
@@ -16,9 +18,11 @@ export interface UseProfileControllerResult {
   profile: Profile | undefined;
   linkedAddresses: string[];
   updateProfile: (input: UpdateProfileParams) => Promise<void>;
+  createProfile: (input: CreateProfileParams) => Promise<Profile>;
   checkUsernameAvailability: (
     username: string,
   ) => Promise<UsernameAvailabilityResponse>;
+  getXAuthorizationUrl: () => Promise<ConnectXSession>;
 }
 
 export const useProfileController = (): UseProfileControllerResult => {
@@ -32,6 +36,12 @@ export const useProfileController = (): UseProfileControllerResult => {
     [],
   );
 
+  const createProfile = useCallback(
+    async (input: CreateProfileParams): Promise<Profile> =>
+      await Engine.context.ProfileController.createProfile(input),
+    [],
+  );
+
   const checkUsernameAvailability = useCallback(
     async (username: string): Promise<UsernameAvailabilityResponse> =>
       await Engine.context.ProfileController.checkUsernameAvailability(
@@ -40,11 +50,19 @@ export const useProfileController = (): UseProfileControllerResult => {
     [],
   );
 
+  const getXAuthorizationUrl = useCallback(
+    async (): Promise<ConnectXSession> =>
+      await Engine.context.ProfileController.getXAuthorizationUrl(),
+    [],
+  );
+
   return {
     isControllerBacked: Boolean(profile),
     profile,
     linkedAddresses: state?.profile.linkedAddresses ?? [],
     updateProfile,
+    createProfile,
     checkUsernameAvailability,
+    getXAuthorizationUrl,
   };
 };
