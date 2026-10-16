@@ -292,21 +292,25 @@ interface ImmersveMfaOptionPayload {
   maskedDestination?: string;
 }
 
-interface ImmersveSelectMfaResponse {
-  nextStep: 'select-mfa-method';
+interface ImmersveMfaStepPayload {
+  type?: string;
   mfaOptions?: ImmersveMfaOptionPayload[];
-}
-
-interface ImmersveSubmitMfaCodeResponse {
-  nextStep: 'submit-mfa-code';
   mfaOption?: ImmersveMfaOptionPayload;
   expiresAt?: string;
 }
 
+/**
+ * Immersve returns the step as an object (`nextStep.type`); the flat shape
+ * (`nextStep` as a string, fields at the root) is still accepted.
+ */
+interface ImmersveMfaStepResponse extends Omit<ImmersveMfaStepPayload, 'type'> {
+  loginRequestId?: string;
+  nextStep: string | ImmersveMfaStepPayload;
+}
+
 type ImmersveLoginCompleteResponse =
   | ImmersveLoginTokensResponse
-  | ImmersveSelectMfaResponse
-  | ImmersveSubmitMfaCodeResponse;
+  | ImmersveMfaStepResponse;
 
 function isCardMfaMethod(value: string | undefined): value is CardMfaMethod {
   return value === 'phone' || value === 'email';
@@ -331,16 +335,15 @@ function parseExpiresAt(value: string | undefined): number | null {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
-function isSelectMfaStep(
+function readMfaStep(
   response: ImmersveLoginCompleteResponse,
-): response is ImmersveSelectMfaResponse {
-  return 'nextStep' in response && response.nextStep === 'select-mfa-method';
-}
-
-function isSubmitMfaCodeStep(
-  response: ImmersveLoginCompleteResponse,
-): response is ImmersveSubmitMfaCodeResponse {
-  return 'nextStep' in response && response.nextStep === 'submit-mfa-code';
+): ImmersveMfaStepPayload | null {
+  if (!('nextStep' in response) || !response.nextStep) return null;
+  const { nextStep, ...rest } = response;
+  if (typeof nextStep === 'string') {
+    return { ...rest, type: nextStep };
+  }
+  return nextStep;
 }
 
 function isLoginTokens(
@@ -404,8 +407,10 @@ function mapLoginCompleteResponse(
   response: ImmersveLoginCompleteResponse,
   session: CardAuthSession,
 ): CardAuthResult {
-  if (isSelectMfaStep(response)) {
-    const options = (response.mfaOptions ?? [])
+  const step = readMfaStep(response);
+
+  if (step?.type === 'select-mfa-method') {
+    const options = (step.mfaOptions ?? [])
       .map(toCardMfaOption)
       .filter((option): option is CardMfaOption => option !== null);
     if (options.length === 0) {
@@ -419,8 +424,8 @@ function mapLoginCompleteResponse(
     return { done: false, nextStep: { type: 'mfa_select', options } };
   }
 
-  if (isSubmitMfaCodeStep(response)) {
-    const option = toCardMfaOption(response.mfaOption);
+  if (step?.type === 'submit-mfa-code') {
+    const option = toCardMfaOption(step.mfaOption);
     if (!option) {
       throw new CardProviderError(
         CardProviderErrorCode.AuthRestartRequired,
@@ -435,7 +440,7 @@ function mapLoginCompleteResponse(
         type: 'mfa_code',
         method: option.method,
         maskedDestination: option.maskedDestination,
-        expiresAt: parseExpiresAt(response.expiresAt),
+        expiresAt: parseExpiresAt(step.expiresAt),
       },
     };
   }

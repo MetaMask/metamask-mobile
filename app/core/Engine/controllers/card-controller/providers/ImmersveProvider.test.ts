@@ -506,11 +506,42 @@ describe('ImmersveProvider', () => {
     it('returns a method-selection step from the signature call', async () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({
+        loginRequestId: 'login-req-1',
+        nextStep: {
+          type: 'select-mfa-method',
+          expiresAt: '2024-06-01T12:05:00.000Z',
+          mfaOptions: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+            { method: 'sms', maskedDestination: 'ignored' },
+          ],
+        },
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'siwe',
+        signature: '0xsig',
+      });
+
+      expect(result).toStrictEqual({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [
+            { method: 'phone', maskedDestination: '+64 *****1234' },
+            { method: 'email', maskedDestination: 'j***@example.com' },
+          ],
+        },
+      });
+    });
+
+    it('accepts a flat method-selection step', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockResolvedValue({
         nextStep: 'select-mfa-method',
         mfaOptions: [
           { method: 'phone', maskedDestination: '+64 *****1234' },
           { method: 'email', maskedDestination: 'j***@example.com' },
-          { method: 'sms', maskedDestination: 'ignored' },
         ],
       });
 
@@ -534,8 +565,7 @@ describe('ImmersveProvider', () => {
     it('throws AuthRestartRequired when no verified contact is returned', async () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({
-        nextStep: 'select-mfa-method',
-        mfaOptions: [],
+        nextStep: { type: 'select-mfa-method', mfaOptions: [] },
       });
 
       await expect(
@@ -553,9 +583,15 @@ describe('ImmersveProvider', () => {
     it('posts the chosen method and returns the code step', async () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({
-        nextStep: 'submit-mfa-code',
-        mfaOption: { method: 'email', maskedDestination: 'j***@example.com' },
-        expiresAt: '2024-06-01T12:05:00.000Z',
+        loginRequestId: 'login-req-1',
+        nextStep: {
+          type: 'submit-mfa-code',
+          mfaOption: {
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+          },
+          expiresAt: '2024-06-01T12:05:00.000Z',
+        },
       });
 
       const result = await provider.submitCredentials(session, {

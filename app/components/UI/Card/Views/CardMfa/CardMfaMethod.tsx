@@ -257,11 +257,7 @@ const CardMfaMethod = () => {
             }}
             testID={`card-mfa-option-${option.method}`}
           >
-            <Box
-              twClassName={`flex-row items-center gap-3 rounded-xl border px-4 py-3 ${
-                isSelected ? 'border-primary-default' : 'border-border-muted'
-              }`}
-            >
+            <Box twClassName="flex-row items-center gap-3 rounded-xl border border-border-muted px-4 py-3">
               <Icon
                 name={option.method === 'phone' ? IconName.Call : IconName.Mail}
                 size={IconSize.Md}
