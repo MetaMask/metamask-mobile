@@ -33,6 +33,8 @@ import {
   selectBridgeRecurringBuyFeatureFlags,
 } from '../../../../selectors/bridge/featureFlags';
 import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -1842,6 +1844,66 @@ describe('TokenDetails', () => {
 
       expect(mockTokenDetailsInlineHeader).toHaveBeenLastCalledWith(
         expect.objectContaining({ description: undefined }),
+      );
+    });
+  });
+
+  describe('glass header', () => {
+    const lastProps = (mock: jest.Mock) => mock.mock.calls.at(-1)?.[0];
+    const callProp = (mock: jest.Mock, name: string, ...args: unknown[]) => {
+      const handler = lastProps(mock)?.[name];
+      if (typeof handler !== 'function') {
+        throw new Error(`Expected a ${name} handler`);
+      }
+      act(() => {
+        handler(...args);
+      });
+    };
+    const withBrandRefresh = () => {
+      const base = mockUseSelector.getMockImplementation();
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectTokenDetailsBrandRefreshEnabled
+          ? true
+          : base?.(selector),
+      );
+    };
+
+    it('keeps the plain header in place by default', () => {
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
+    });
+
+    it('floats the glass header and starts the content below it', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({ isGlass: true }),
+      );
+
+      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
+        height: 120,
+      });
+    });
+
+    it('fades the header backdrop with the list scroll', () => {
+      withBrandRefresh();
+      render(<TokenDetails />);
+
+      callProp(mockTransactions, 'onScrollThroughContent', 64);
+
+      expect(lastProps(mockTokenDetailsInlineHeader)).toEqual(
+        expect.objectContaining({
+          scrollY: expect.objectContaining({ value: 64 }),
+        }),
       );
     });
   });
