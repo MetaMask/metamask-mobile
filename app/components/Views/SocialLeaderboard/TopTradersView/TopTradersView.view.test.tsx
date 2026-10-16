@@ -48,11 +48,6 @@ import {
   getTimeframeFilterOptionTestId,
   getTypeFilterOptionTestId,
 } from '../components/Filters';
-import {
-  getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
-  saveLocalSocialProfile,
-} from '../MyProfileView/hooks/localSocialProfileStore';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 
 // ---------------------------------------------------------------------------
@@ -82,6 +77,34 @@ const triggerPullToRefresh = async () => {
     await list.props.refreshControl.props.onRefresh();
   });
 };
+
+const renderTopTradersViewAsViewer = (viewer: {
+  profileId: string;
+  username: string;
+  address: string;
+}) =>
+  renderTopTradersViewWithProps({ useV1Filters: true }, [], {
+    overrides: {
+      engine: {
+        backgroundState: {
+          ProfileController: {
+            profile: {
+              profileId: viewer.profileId,
+              username: viewer.username,
+              displayName: viewer.username,
+              bio: '',
+              linkedAddresses: [`eip155:1:${viewer.address}`],
+              avatarUrl: '',
+              tradingPrivacy: 'public',
+              connectedToX: false,
+              createdAt: '',
+              updatedAt: '',
+            },
+          },
+        },
+      },
+    },
+  });
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -451,27 +474,12 @@ describeForPlatforms('TopTradersView', () => {
   describe('Social V1 chrome', () => {
     const [alpha, beta, gamma] = mockLeaderboardTraders;
 
-    beforeEach(() => {
-      restoreDefaultLocalSocialProfile();
-    });
-
-    afterEach(() => {
-      restoreDefaultLocalSocialProfile();
-    });
-
     it('pins the viewer above the list and drops their duplicate row when their profile is on the leaderboard', async () => {
-      const localProfile = getLocalSocialProfileSnapshot().profile;
-      if (!localProfile) {
-        throw new Error('Expected a default local social profile');
-      }
-      saveLocalSocialProfile({
-        ...localProfile,
+      renderTopTradersViewAsViewer({
         profileId: beta.profileId,
-        handle: beta.name,
-        displayName: beta.name,
-        linkedAccountAddress: beta.addresses[0],
+        username: beta.name,
+        address: beta.addresses[0],
       });
-      renderTopTradersViewWithProps({ useV1Filters: true });
 
       // The viewer card renders synthetically while the page loads, so wait
       // for the ranked list before asserting the matched row.
@@ -526,18 +534,11 @@ describeForPlatforms('TopTradersView', () => {
     });
 
     it('shows the viewer as an unranked card when their profile is not on the leaderboard', async () => {
-      const localProfile = getLocalSocialProfileSnapshot().profile;
-      if (!localProfile) {
-        throw new Error('Expected a default local social profile');
-      }
-      saveLocalSocialProfile({
-        ...localProfile,
+      renderTopTradersViewAsViewer({
         profileId: 'viewer-off-board',
-        handle: 'viewer.eth',
-        displayName: 'viewer.eth',
-        linkedAccountAddress: '0x00000000000000000000000000000000000000ff',
+        username: 'viewer.eth',
+        address: '0x00000000000000000000000000000000000000ff',
       });
-      renderTopTradersViewWithProps({ useV1Filters: true });
 
       expect(await screen.findByText(alpha.name)).toBeOnTheScreen();
       const viewerCard = screen.getByTestId(

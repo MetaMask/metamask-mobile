@@ -248,6 +248,20 @@ jest.mock('../../app/core/Engine', () => {
           authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
           state: 'mock-oauth-state',
         }),
+        fetchAndUpdateProfile: jest.fn().mockResolvedValue({
+          profileId: '',
+          username: '',
+          displayName: '',
+          bio: '',
+          linkedAddresses: [],
+          avatarUrl: '',
+          tradingPrivacy: 'public',
+          connectedToX: false,
+          createdAt: '',
+          updatedAt: '',
+        }),
+        fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
+        disconnectX: jest.fn().mockResolvedValue(undefined),
       },
       GeolocationController: {
         state: {

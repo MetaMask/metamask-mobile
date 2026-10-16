@@ -196,6 +196,25 @@ describe('ManageProfileView', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('shows a save error when disconnecting X fails', async () => {
+    const disconnectX = jest.fn().mockRejectedValue(new Error('network'));
+    mockUseProfileController.mockReturnValue(controllerResult({ disconnectX }));
+
+    renderWithProvider(<ManageProfileView />, { state });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+      );
+    });
+
+    expect(disconnectX).toHaveBeenCalledWith('current-user');
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
+    ).toBeOnTheScreen();
+  });
+
   it('navigates to trading activity', () => {
     renderWithProvider(<ManageProfileView />, { state });
 

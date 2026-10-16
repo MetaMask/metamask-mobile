@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { Profile, XProfile } from '@metamask/profile-controller';
+import { strings } from '../../../../../../locales/i18n';
 import { useMyProfile } from './useMyProfile';
 
 const mockFetchAndUpdateProfile = jest.fn();
@@ -84,10 +85,89 @@ describe('useMyProfile', () => {
 
     await waitFor(() => {
       expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(1);
+      expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.profile).toBeNull();
     expect(result.current.error).toBeNull();
+  });
+
+  it('surfaces a load error when hydration fails for a reason other than a missing profile', async () => {
+    mockFetchAndUpdateProfile.mockRejectedValue(
+      new Error('GET_PROFILE_FAILED: 500'),
+    );
+    mockControllerState.profile = undefined;
+
+    const { result } = renderHook(() => useMyProfile());
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        strings('social_leaderboard.my_profile.load_profile_error'),
+      );
+    });
+
+    expect(result.current.profile).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('stays loading until the first hydration settles', async () => {
+    mockControllerState.profile = undefined;
+    let resolveFetch: (profile: Profile) => void = () => undefined;
+    mockFetchAndUpdateProfile.mockImplementation(
+      () =>
+        new Promise<Profile>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useMyProfile());
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.profile).toBeNull();
+
+    mockControllerState.profile = controllerProfile;
+    await act(async () => {
+      resolveFetch(controllerProfile);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.profile?.handle).toBe('alice');
+  });
+
+  it('refreshes the linked X account without failing the profile', async () => {
+    const connectedProfile = { ...controllerProfile, connectedToX: true };
+    const xProfile = { username: 'alice_x' } as XProfile;
+    mockControllerState.profile = connectedProfile;
+    mockFetchAndUpdateProfile.mockResolvedValue(connectedProfile);
+    mockFetchAndUpdateXAccount.mockResolvedValue(xProfile);
+    mockUseSelector.mockReturnValue(xProfile);
+
+    const { result } = renderHook(() => useMyProfile());
+
+    await waitFor(() => {
+      expect(mockFetchAndUpdateXAccount).toHaveBeenCalledTimes(1);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.profile?.handle).toBe('alice');
+    expect(result.current.profile?.xHandle).toBe('alice_x');
+  });
+
+  it('keeps the profile when the X account refresh fails', async () => {
+    const connectedProfile = { ...controllerProfile, connectedToX: true };
+    mockControllerState.profile = connectedProfile;
+    mockFetchAndUpdateProfile.mockResolvedValue(connectedProfile);
+    mockFetchAndUpdateXAccount.mockRejectedValue(new Error('x unavailable'));
+
+    const { result } = renderHook(() => useMyProfile());
+
+    await waitFor(() => {
+      expect(mockFetchAndUpdateXAccount).toHaveBeenCalledTimes(1);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.profile?.handle).toBe('alice');
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('refreshes the profile through fetchAndUpdateProfile', async () => {

@@ -80,7 +80,11 @@ export const useMyProfile = (): UseMyProfileResult => {
     getLocalSocialProfileSnapshot,
   );
   const [isHydrating, setIsHydrating] = useState(false);
+  const [settledSessionProfileId, setSettledSessionProfileId] = useState<
+    string | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
+  const trimmedSessionProfileId = sessionProfileId?.trim() ?? '';
 
   const refresh = useCallback(async () => {
     const profileId = sessionProfileId?.trim();
@@ -105,6 +109,7 @@ export const useMyProfile = (): UseMyProfileResult => {
         setError(strings('social_leaderboard.my_profile.load_profile_error'));
       }
     } finally {
+      setSettledSessionProfileId(profileId);
       setIsHydrating(false);
     }
   }, [fetchAndUpdateProfile, fetchAndUpdateXAccount, sessionProfileId]);
@@ -125,7 +130,11 @@ export const useMyProfile = (): UseMyProfileResult => {
     profile: mappedControllerProfile
       ? withLocalAvatarPreset(mappedControllerProfile, profile)
       : null,
-    isLoading: isSessionLoading || isHydrating,
+    isLoading:
+      isSessionLoading ||
+      isHydrating ||
+      (Boolean(trimmedSessionProfileId) &&
+        settledSessionProfileId !== trimmedSessionProfileId),
     error,
     refresh,
   };
