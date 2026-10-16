@@ -6,6 +6,7 @@ import {
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
 import type { SafeTransaction } from '../safe/types';
+import { PERMIT2_ADDRESS } from '../safe/constants';
 import {
   buildSignedSafeExecutionIfNeeded,
   compileAllowanceMaintenanceTransactions,
@@ -16,6 +17,7 @@ import { getPositionsAllowanceRequirements } from './positionsAllowanceRequireme
 import {
   getActiveV2AllowanceRequirements,
   getCanonicalV2AllowanceRequirements,
+  getLegacySweepAllowanceRequirements,
   type V2AllowanceRequirement,
 } from './v2AllowanceRequirements';
 
@@ -109,11 +111,14 @@ export async function buildTradeAllowancesTx({
 
 /**
  * The positions-protocol counterpart of `planTradePreflight`, selected by
- * the Gamma market version. There is no canonical variant — the legacy
- * USDC.e sweep requirement does not exist on the Protocol V2 path. The
- * USDC.e balance read and the wrap stay anchored to the CTF definition
- * because wrapping is a wallet-migration concern, not a protocol one: a
- * legacy Safe trading a v2 market still needs its USDC.e wrapped into pUSD.
+ * the Gamma market version. The USDC.e balance read and the wrap stay
+ * anchored to the CTF definition because wrapping is a wallet-migration
+ * concern, not a protocol one: a legacy Safe trading a v2 market still
+ * needs its USDC.e wrapped into pUSD — and that wrap pulls through the
+ * onramp, so the CTF planner's legacy-sweep requirement is included
+ * whenever there is a balance to wrap. The Permit2 fee requirement mirrors
+ * the CTF planner's active requirements; deposit wallets use a different
+ * fee flow and plan through `planPositionsDepositWalletPreflight` instead.
  */
 export async function planPositionsTradePreflight({
   safeAddress,
@@ -128,11 +133,23 @@ export async function planPositionsTradePreflight({
       address: safeAddress,
       tokenAddress: POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken,
     }));
+  const requirements: V2AllowanceRequirement[] = [
+    ...getPositionsAllowanceRequirements(POLYMARKET_POSITIONS_PROTOCOL),
+    // Permit2 fee collection pulls pUSD through Permit2, so the allowance is
+    // maintained here the same way the CTF planner maintains it.
+    {
+      type: 'erc20-allowance',
+      tokenAddress:
+        POLYMARKET_POSITIONS_PROTOCOL.collateral.feeAuthorizationToken,
+      spender: PERMIT2_ADDRESS,
+    },
+    ...(safeUsdceBalance > 0n
+      ? getLegacySweepAllowanceRequirements(POLYMARKET_V2_PROTOCOL)
+      : []),
+  ];
   const missingRequirements = await inspectMissingRequirements({
     address: safeAddress,
-    requirements: getPositionsAllowanceRequirements(
-      POLYMARKET_POSITIONS_PROTOCOL,
-    ),
+    requirements,
   });
 
   return {
