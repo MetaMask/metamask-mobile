@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
@@ -6,6 +6,7 @@ import type {
   AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
   NotificationPreferences as NotificationPreferencesType,
 } from '@metamask/authenticated-user-storage';
+import type { NotificationPreferencesUpdate } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../../../core/Engine';
 import { updateNotificationPreferences } from '../../../../../actions/notification/helpers';
 import Logger from '../../../../../util/Logger';
@@ -71,6 +72,24 @@ export interface UseNotificationStoragePreferencesResult {
 
 const QUERY_KEY: [typeof GET_ACTION] = [GET_ACTION];
 
+/**
+ * Returns the fields of a section that changed, so an update never sends back
+ * fields it didn't change. Arrays and objects count as changed when replaced.
+ *
+ * @param current - The section before the change.
+ * @param next - The section after the change.
+ * @returns The changed fields.
+ */
+const getChangedFields = <Section extends object>(
+  current: Section | undefined,
+  next: Section,
+): Partial<Section> =>
+  Object.fromEntries(
+    Object.entries(next).filter(
+      ([key, value]) => current?.[key as keyof Section] !== value,
+    ),
+  ) as Partial<Section>;
+
 export const useNotificationStoragePreferences =
   (): UseNotificationStoragePreferencesResult => {
     const { data, isLoading, error, refetch } =
@@ -84,40 +103,65 @@ export const useNotificationStoragePreferences =
     const queryClient = useQueryClient();
     const [pendingWrites, setPendingWrites] = useState(0);
     const pendingWritesRef = useRef(0);
-    const writeChainRef = useRef<Promise<void>>(Promise.resolve());
-    const generationRef = useRef(0);
-    const lastConfirmedPreferencesRef =
-      useRef<NotificationPreferencesQueryData>(undefined);
+    const writeSequenceRef = useRef(0);
+    // What NotificationServicesController saved last, and whether any update
+    // failed, since the last time no update was pending.
+    const lastSavedPreferencesRef = useRef<NotificationPreferences | null>(
+      null,
+    );
+    const lastSavedSequenceRef = useRef(0);
+    const hadFailedWriteRef = useRef(false);
     const getCachedPreferences = useCallback(
       () =>
         queryClient.getQueryData(QUERY_KEY) as NotificationPreferencesQueryData,
       [queryClient],
     );
 
-    useEffect(() => {
-      if (pendingWritesRef.current === 0 && data) {
-        lastConfirmedPreferencesRef.current = data;
-      }
-    }, [data]);
-
     const beginWrite = useCallback(() => {
       pendingWritesRef.current += 1;
       setPendingWrites(pendingWritesRef.current);
     }, []);
 
+    // Once the last pending update settles, show what was saved. Doing it
+    // earlier would hide changes still queued. If any update failed, re-read
+    // instead: NotificationServicesController either saves an update or
+    // leaves the preferences unchanged.
     const finishWrite = useCallback(() => {
       pendingWritesRef.current = Math.max(0, pendingWritesRef.current - 1);
       setPendingWrites(pendingWritesRef.current);
-    }, []);
+      if (pendingWritesRef.current > 0) {
+        return;
+      }
+      if (hadFailedWriteRef.current) {
+        queryClient
+          .invalidateQueries({ queryKey: QUERY_KEY })
+          .catch((refetchError: unknown) =>
+            Logger.error(
+              refetchError as Error,
+              'Failed to refresh notification preferences',
+            ),
+          );
+      } else if (lastSavedPreferencesRef.current) {
+        queryClient.setQueryData<NotificationPreferencesQueryData>(
+          QUERY_KEY,
+          lastSavedPreferencesRef.current,
+        );
+      }
+      hadFailedWriteRef.current = false;
+      lastSavedPreferencesRef.current = null;
+    }, [queryClient]);
 
     const updatePreferencesSection = useCallback(
       async <PreferenceType extends NotificationPreferenceSection>(
         type: PreferenceType,
         sectionUpdate: NotificationPreferenceSectionUpdate<PreferenceType>,
       ) => {
-        const latestCachedPreferences = getCachedPreferences() ?? data;
+        const currentPreferences = (getCachedPreferences() ?? data) as
+          | NotificationPreferences
+          | null
+          | undefined;
 
-        if (!latestCachedPreferences) {
+        if (!currentPreferences) {
           Logger.error(
             new Error(
               `No notification preferences found when updating ${type} section, enable notifications first`,
@@ -126,49 +170,52 @@ export const useNotificationStoragePreferences =
           return;
         }
 
-        const currentPreferences =
-          latestCachedPreferences as NotificationPreferences;
         const currentSectionPreferences = currentPreferences[type];
         const nextSectionPreferences =
           typeof sectionUpdate === 'function'
             ? sectionUpdate(currentSectionPreferences)
             : sectionUpdate;
+        const changedFields = getChangedFields(
+          currentSectionPreferences,
+          nextSectionPreferences,
+        );
 
-        if (nextSectionPreferences === currentSectionPreferences) {
+        if (Object.keys(changedFields).length === 0) {
           return;
         }
 
-        const previousSnapshot = getCachedPreferences() ?? currentPreferences;
-        const nextPreferences: NotificationPreferences = {
-          ...currentPreferences,
-          [type]: nextSectionPreferences,
-        };
-
-        if (pendingWritesRef.current === 0) {
-          lastConfirmedPreferencesRef.current = previousSnapshot;
-        }
-
-        generationRef.current += 1;
-        const writeGeneration = generationRef.current;
+        // Show the change straight away; NotificationServicesController
+        // queues updates and merges each one over the stored preferences. The
+        // cache update must not wait, so a quick second toggle reads it.
+        writeSequenceRef.current += 1;
+        const sequence = writeSequenceRef.current;
         beginWrite();
-
-        const cancelQueriesPromise = queryClient.cancelQueries({
-          queryKey: QUERY_KEY,
-        });
+        queryClient
+          .cancelQueries({ queryKey: QUERY_KEY })
+          .catch((cancelError: unknown) =>
+            Logger.error(cancelError as Error, 'Failed to cancel query'),
+          );
         queryClient.setQueryData<NotificationPreferencesQueryData>(
           QUERY_KEY,
-          nextPreferences,
+          (current) =>
+            current
+              ? {
+                  ...current,
+                  [type]: { ...current[type], ...changedFields },
+                }
+              : current,
         );
 
-        const persistWrite = writeChainRef.current.then(async () => {
-          await cancelQueriesPromise;
-          await updateNotificationPreferences(nextPreferences);
-        });
-        writeChainRef.current = persistWrite.catch(() => undefined);
-
         try {
-          await persistWrite;
-          lastConfirmedPreferencesRef.current = nextPreferences;
+          const saved = await updateNotificationPreferences({
+            [type]: changedFields,
+          } as NotificationPreferencesUpdate);
+          // Keep the result of the latest update, whatever order they settle
+          // in.
+          if (sequence > lastSavedSequenceRef.current) {
+            lastSavedSequenceRef.current = sequence;
+            lastSavedPreferencesRef.current = saved as NotificationPreferences;
+          }
           // Best-effort: nudge the Social API to refresh its cached copy so
           // the change is honoured immediately rather than after its cache
           // TTL. Gated behind the aiSocialAusCacheRefreshEnabled flag so it
@@ -186,20 +233,15 @@ export const useNotificationStoragePreferences =
                 );
               });
           }
-          finishWrite();
         } catch (err) {
           Logger.error(
             err as Error,
             'Failed to persist notification preferences',
           );
-          if (generationRef.current === writeGeneration) {
-            queryClient.setQueryData<NotificationPreferencesQueryData>(
-              QUERY_KEY,
-              lastConfirmedPreferencesRef.current ?? previousSnapshot,
-            );
-          }
-          finishWrite();
+          hadFailedWriteRef.current = true;
           throw err;
+        } finally {
+          finishWrite();
         }
       },
       [

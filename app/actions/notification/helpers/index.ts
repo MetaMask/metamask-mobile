@@ -2,6 +2,7 @@ import EventEmitter2 from 'eventemitter2';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import type {
   MarkAsReadNotificationsParam,
+  NotificationPreferencesUpdate,
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
@@ -87,29 +88,21 @@ const hasMarketingConsent = () =>
   Engine.context.AnalyticsController.state.optedInToMarketing === true;
 
 /**
- * Saves notification preferences through NotificationServicesController,
- * which rejects the whole write when a marketing ("Updates and rewards")
- * channel is on without marketing consent. Marketing channels are turned off
- * here when consent is off, so a stale copy of the preferences can't get the
- * other sections' changes rejected with it.
+ * Saves a change to notification preferences through
+ * NotificationServicesController, which merges it over the stored
+ * preferences and rejects turning a marketing ("Updates and rewards")
+ * channel on without marketing consent. Fields left out keep their stored
+ * value.
  *
- * @param preferences - The full notification preferences to save.
+ * @param update - The sections and fields to change.
+ * @returns The saved preferences.
  */
 export const updateNotificationPreferences = async (
-  preferences: NotificationPreferences,
-) => {
-  await Engine.context.NotificationServicesController.updateNotificationPreferences(
-    hasMarketingConsent()
-      ? preferences
-      : {
-          ...preferences,
-          marketing: {
-            inAppNotificationsEnabled: false,
-            pushNotificationsEnabled: false,
-          },
-        },
+  update: NotificationPreferencesUpdate,
+): Promise<NotificationPreferences> =>
+  Engine.context.NotificationServicesController.updateNotificationPreferences(
+    update,
   );
-};
 
 /**
  * Turns the marketing ("Updates and rewards") notification channels on or
@@ -134,7 +127,6 @@ export const setMarketingNotificationPreferencesEnabled = async (
   }
 
   await updateNotificationPreferences({
-    ...preferences,
     marketing: {
       inAppNotificationsEnabled: isEnabled,
       pushNotificationsEnabled: isEnabled,
