@@ -580,6 +580,34 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBe(true);
   });
 
+  it('renders the keypad confirm button when the limit price keypad is focused with a non-zero source amount', () => {
+    mockIsAmountFocused = false;
+    mockIsCustomPercentFocused = false;
+    mockSourceAmount = '2';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toBeOnTheScreen();
+  });
+
+  it('disables the keypad confirm button when the limit price is zero', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
   it('disables the keypad confirm button without a loading state when a traded asset has no price data', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
@@ -676,6 +704,22 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         ctaDisabled: true,
         ctaLabel: strings('bridge.limit.min_order_amount', { amount: '1' }),
+      }),
+    );
+  });
+
+  it('disables the footer confirm button when the limit price is zero', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    renderLimitOrderView();
+
+    expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ctaDisabled: true,
       }),
     );
   });
