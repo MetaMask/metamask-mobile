@@ -13,24 +13,40 @@ import type { TokenAmountValueProps } from './types';
 
 export const TokenAmountValue = ({
   amount,
+  prefix,
   token,
   withNetworkBadge,
   error,
   showTokenSymbol,
+  fontWeight,
 }: TokenAmountValueProps) => {
   const amountColor = error ? TextColor.ErrorDefault : TextColor.TextDefault;
   const avatar = token ? (
     <TokenAvatar token={token} withNetworkBadge={withNetworkBadge} />
   ) : null;
   const amountText = (
-    <Text
-      variant={TextVariant.BodyMd}
-      color={amountColor}
-      twClassName="text-right"
-      testID={TokenAmountValueSelectorsIDs.AMOUNT}
-    >
-      {amount}
-    </Text>
+    <>
+      {prefix ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={fontWeight}
+          color={amountColor}
+          twClassName="-top-[1.5px]"
+          testID={TokenAmountValueSelectorsIDs.PREFIX}
+        >
+          {prefix}
+        </Text>
+      ) : null}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={fontWeight}
+        color={amountColor}
+        twClassName="text-right"
+        testID={TokenAmountValueSelectorsIDs.AMOUNT}
+      >
+        {amount}
+      </Text>
+    </>
   );
 
   return (
@@ -48,6 +64,7 @@ export const TokenAmountValue = ({
           {token ? (
             <Text
               variant={TextVariant.BodyMd}
+              fontWeight={fontWeight}
               color={amountColor}
               testID={TokenAmountValueSelectorsIDs.SYMBOL}
             >

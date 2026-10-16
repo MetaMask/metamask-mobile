@@ -92,15 +92,6 @@ function renderRecurringPriceRangeView({
     overrides: {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: currentCurrency.toUpperCase(),
-            currencyRates: {
-              ETH: {
-                conversionRate: ethFiatRate,
-                usdConversionRate: ETH_USD_RATE,
-              },
-            },
-          },
           AssetsController: {
             selectedCurrency: currentCurrency,
             assetsInfo: {

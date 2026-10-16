@@ -158,11 +158,18 @@ export interface LeaderboardApiMockOptions {
    * Default: 0 (every fetch succeeds).
    */
   leaderboardFailuresBeforeSuccess?: number;
+  /**
+   * Number of `SocialService:fetchFeed` calls that reject with
+   * `FEED_FETCH_ERROR_MESSAGE` before `feedItems` is served.
+   * Default: 0 (every fetch succeeds).
+   */
+  feedFailuresBeforeSuccess?: number;
 }
 
 const PERP_CHAIN = 'hyperliquid';
 
 export const LEADERBOARD_FETCH_ERROR_MESSAGE = 'Leaderboard unavailable';
+export const FEED_FETCH_ERROR_MESSAGE = 'Feed unavailable';
 
 /**
  * Spies on Engine.controllerMessenger.call to intercept Social Leaderboard
@@ -181,10 +188,12 @@ export function setupLeaderboardApiMock(
     notificationPrefs = {},
     feedItems = [],
     leaderboardFailuresBeforeSuccess = 0,
+    feedFailuresBeforeSuccess = 0,
   } = options;
 
   const prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
   let remainingLeaderboardFailures = leaderboardFailuresBeforeSuccess;
+  let remainingFeedFailures = feedFailuresBeforeSuccess;
 
   const originalCall = Engine.controllerMessenger.call.bind(
     Engine.controllerMessenger,
@@ -201,12 +210,21 @@ export function setupLeaderboardApiMock(
         ...unknown[],
       ];
 
-      if (
-        action === 'SocialService:fetchFeed' ||
-        action === 'SocialService:fetchTokenFeed'
-      ) {
+      if (action === 'SocialService:fetchFeed') {
+        if (remainingFeedFailures > 0) {
+          remainingFeedFailures -= 1;
+          return Promise.reject(
+            new Error(FEED_FETCH_ERROR_MESSAGE),
+          ) as ReturnType<typeof Engine.controllerMessenger.call>;
+        }
         return Promise.resolve({
-          items: action === 'SocialService:fetchFeed' ? feedItems : [],
+          items: feedItems,
+        }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
+
+      if (action === 'SocialService:fetchTokenFeed') {
+        return Promise.resolve({
+          items: [],
         }) as ReturnType<typeof Engine.controllerMessenger.call>;
       }
 

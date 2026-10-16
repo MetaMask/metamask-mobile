@@ -385,7 +385,7 @@ const NftDetails = () => {
                         onPress={() => viewLastSalePriceSource()}
                       >
                         <Icon
-                          name={IconName.Export}
+                          name={IconName.ArrowSquareOut}
                           size={IconSize.Xs}
                           style={styles.iconExport}
                         />
@@ -419,7 +419,7 @@ const NftDetails = () => {
                         onPress={() => viewHighestFloorPriceSource()}
                       >
                         <Icon
-                          name={IconName.Export}
+                          name={IconName.ArrowSquareOut}
                           size={IconSize.Xs}
                           style={styles.iconExport}
                         />
@@ -625,7 +625,7 @@ const NftDetails = () => {
                           }}
                         >
                           <Icon
-                            name={IconName.Export}
+                            name={IconName.ArrowSquareOut}
                             size={IconSize.Xs}
                             style={styles.iconExport}
                           />

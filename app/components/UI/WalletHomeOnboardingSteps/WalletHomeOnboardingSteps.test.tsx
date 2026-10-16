@@ -19,7 +19,7 @@ import { walletHomeOnboardingProgressRatioForStep } from './walletHomeOnboarding
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
 import { animateWalletHomeOnboardingProgressRatio } from './walletHomeOnboardingProgressAnimation';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
 
 let mockIsGlass = false;
 jest.mock('../../hooks/useIsGlassSurfaceEnabled', () => ({

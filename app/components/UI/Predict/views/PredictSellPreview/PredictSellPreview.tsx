@@ -410,7 +410,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Text
                     fontWeight={FontWeight.Medium}
-                    variant={TextVariant.AmountDisplayLg}
+                    variant={TextVariant.DisplayLg}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>

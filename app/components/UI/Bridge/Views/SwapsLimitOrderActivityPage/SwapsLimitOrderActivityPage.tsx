@@ -200,6 +200,10 @@ function SwapsLimitOrderActivityPage() {
           showsVerticalScrollIndicator={false}
         >
           <ActivityDetailsTemplateFrame
+            heroDividerMarginVertical={2}
+            heroDividerTestID={
+              SwapsLimitOrderActivityPageSelectorsIDs.AMOUNT_DIVIDER
+            }
             hero={
               <ActivityDetailsDualAmountHeader
                 sentToken={sentToken}
@@ -259,7 +263,9 @@ function SwapsLimitOrderActivityPage() {
                     value={
                       <TokenAmountValue
                         amount={triggerPrice}
+                        prefix={strings('bridge.limit.trigger_condition_at')}
                         token={triggerToken}
+                        fontWeight={FontWeight.Medium}
                       />
                     }
                     testID={

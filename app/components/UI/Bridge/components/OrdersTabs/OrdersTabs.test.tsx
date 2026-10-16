@@ -330,6 +330,49 @@ describe('OrdersTabs', () => {
     expect(queryByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeNull();
   });
 
+  it('renders the open orders tab title without a count when there are no open orders', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: chainOrdersTab([]),
+      history: chainOrdersTab([]),
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders$|^Open ordersOpen orders$/);
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).not.toHaveTextContent('(');
+  });
+
+  it('renders the number of open orders in the tab title', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: chainOrdersTab([ETH_ORDER, ETH_ORDER_2]),
+      history: chainOrdersTab([]),
+    });
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders \(2\)/);
+  });
+
+  it('counts only open orders matching the selected network in the tab title', () => {
+    const { getByTestId } = renderOrdersTabs(
+      {
+        openOrders: chainOrdersTab([
+          ETH_ORDER,
+          OPTIMISM_ORDER,
+          { id: 'optimism-order-2', chainId: OPTIMISM_ORDER.chainId },
+        ]),
+        history: chainOrdersTab([]),
+      },
+      stateWithOrdersNetworkFilter(OPTIMISM_ORDER.chainId),
+    );
+
+    expect(
+      getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    ).toHaveTextContent(/^Open orders \(2\)/);
+  });
+
   it('hides open orders that are not on the selected network', () => {
     const { getByTestId, queryByTestId } = renderOrdersTabs(
       {
