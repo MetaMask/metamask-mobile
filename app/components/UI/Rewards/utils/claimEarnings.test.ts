@@ -28,8 +28,11 @@ import {
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
+  claimFailureReason,
+  claimOutcomeIsPartial,
   claimToastKey,
   claimToastText,
+  claimTypeForRoute,
   isClaimSubmittable,
   isPendingClaimRow,
   mergeInFlightClaims,
@@ -1276,6 +1279,69 @@ describe('mergeInFlightClaims', () => {
 
   it('returns null while the ledger page is still loading', () => {
     expect(mergeInFlightClaims(null, [claim({})])).toBeNull();
+  });
+});
+
+describe('claim metrics', () => {
+  it.each([
+    ['MECHANISM_NOT_CLAIMABLE', 'not_claimable'],
+    ['SUSPENDED', 'paused'],
+    ['UNDER_REVIEW', 'paused'],
+    ['TAX_DETERMINATION_REQUIRED', 'paused'],
+    ['EARNING_ADDRESS_UNSCREENABLE', 'paused'],
+    ['EARNING_ADDRESS_MISSING', 'paused'],
+    ['UNSUPPORTED_EARNING_ADDRESS', 'unsupported'],
+    ['ADDRESS_BLOCKED', 'address_blocked'],
+    ['BELOW_MINIMUM', 'below_minimum'],
+    ['CLAIM_TOO_LARGE', 'too_large'],
+    ['NO_ELIGIBLE_BALANCE', 'nothing_to_claim'],
+    ['AWAITING_RELEASE', 'wait'],
+    ['VELOCITY_LIMIT_EXCEEDED', 'wait'],
+    ['SIGNATURE_RESERVE', 'wait'],
+    ['RATE_LIMITED', 'wait'],
+    ['CLAIM_COOLDOWN', 'wait'],
+    ['SIGNER_UNAVAILABLE', 'retry'],
+    ['SERVER_BUSY', 'retry'],
+    ['PROOF_INVALID', 'retry'],
+    ['JWKS_UNAVAILABLE', 'retry'],
+    ['SIGN_FAILED', 'retry'],
+    ['BATCH_NOT_SUBMITTED', 'retry'],
+    ['VOUCHER_EXPIRED', 'retry'],
+    ['CONFIRMATION_FAILED', 'retry'],
+    ['CONFIRMATION_TIMEOUT', 'retry'],
+    ['ADDRESS_SCREENING_UNAVAILABLE', 'retry'],
+    ['PAIRING_PENDING', 'retry'],
+    ['PROOF_UNAVAILABLE', 'retry'],
+    ['VOIDED', 'other'],
+    ['UNKNOWN', 'other'],
+  ])('maps %s to %s', (reason, failureReason) => {
+    expect(claimFailureReason(reason)).toBe(failureReason);
+  });
+
+  it('names the claim route', () => {
+    expect(claimTypeForRoute('referral-trade-fee-cashback')).toBe('cashback');
+    expect(claimTypeForRoute('referral-rev-share')).toBe('rev_share');
+  });
+
+  it('marks only a signing-budget deferral as partial', () => {
+    const paid = {
+      route: 'referral-trade-fee-cashback' as const,
+      submitted: true,
+      opened: true,
+    };
+    expect(
+      claimOutcomeIsPartial({
+        ...paid,
+        excludedReasons: ['VELOCITY_LIMIT_DEFERRED'],
+      }),
+    ).toBe(true);
+    expect(
+      claimOutcomeIsPartial({
+        ...paid,
+        excludedReasons: ['UNDER_REVIEW'],
+      }),
+    ).toBe(false);
+    expect(claimOutcomeIsPartial(paid)).toBe(false);
   });
 });
 
