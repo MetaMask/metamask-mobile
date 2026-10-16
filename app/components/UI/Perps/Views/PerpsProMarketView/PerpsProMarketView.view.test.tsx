@@ -3180,14 +3180,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       streamOverrides: {
         account: createFundedAccountForViews('1000'),
         marketData: [
-          createEthMarketForViews({
-            providerId: 'hyperliquid',
-            szDecimals: 2,
-          }),
-          createBtcMarketForViews({
-            providerId: 'hyperliquid',
-            szDecimals: 5,
-          }),
+          createEthMarketForViews({ providerId: 'hyperliquid' }),
+          createBtcMarketForViews({ providerId: 'hyperliquid' }),
         ],
         prices: {
           ETH: {

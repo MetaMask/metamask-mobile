@@ -1987,6 +1987,28 @@ describe('usePerpsProOrderForm', () => {
       expect(chaseSubmitted).not.toHaveBeenCalled();
     });
 
+    it('reports usd on place order when coin is saved but the price is not ready', async () => {
+      mockPerpsSizeDenomination = 'asset';
+      mockLivePrice = '0';
+      mockLiveMarkPrice = '0';
+      const { result } = renderProForm();
+
+      expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+        }),
+      );
+    });
+
     it('reports coin on place order after the size denomination is switched', async () => {
       const { result } = renderProForm();
 

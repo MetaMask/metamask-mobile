@@ -251,6 +251,37 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.effectiveUsdAmount).toBe('40');
   });
 
+  it('projects a blurred pre-price USD edit into coin once the price arrives', () => {
+    setStoredSizeDenomination('asset');
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({ usdAmount: '100', effectivePrice: 0 }),
+      },
+    );
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+      result.current.sizeInput.onChange('40');
+    });
+    rerender(createParams({ usdAmount: '40', effectivePrice: 0 }));
+    act(() => {
+      result.current.sizeInput.onBlur();
+    });
+
+    expect(result.current.sizeInput.value).toBe('40');
+    expect(result.current.sizeInput.denomination.unit).toBe('usd');
+
+    rerender(createParams({ usdAmount: '40', effectivePrice: 25 }));
+
+    expect(result.current.sizeInput.value).toBe('1.6');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.effectiveUsdAmount).toBe('40');
+  });
+
   it('keeps a focused USD edit in USD after its echo and the price arrive separately', () => {
     setStoredSizeDenomination('asset');
     const { result, rerender } = renderHook(
