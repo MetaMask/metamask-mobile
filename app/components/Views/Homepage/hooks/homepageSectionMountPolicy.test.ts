@@ -1,4 +1,7 @@
-import { getHomepageSectionMountMode } from './homepageSectionMountPolicy';
+import {
+  getHomepageSectionMountMode,
+  shouldPlacePerpsAboveTokens,
+} from './homepageSectionMountPolicy';
 
 describe('getHomepageSectionMountMode', () => {
   it.each([
@@ -31,6 +34,48 @@ describe('getHomepageSectionMountMode', () => {
           networkTier,
         }),
       ).toBe(expectedMode);
+    },
+  );
+});
+
+describe('shouldPlacePerpsAboveTokens', () => {
+  it('keeps deferred Perps below Tokens even when the experiment is eligible', () => {
+    expect(
+      shouldPlacePerpsAboveTokens({
+        optionalSectionsCanMount: false,
+        isPerpsEnabled: true,
+        perpsAboveTokensEligible: true,
+        isActivePerpsTrader: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('preserves the above-Tokens placement for immediately mounted eligible Perps', () => {
+    expect(
+      shouldPlacePerpsAboveTokens({
+        optionalSectionsCanMount: true,
+        isPerpsEnabled: true,
+        perpsAboveTokensEligible: true,
+        isActivePerpsTrader: true,
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['Perps disabled', false, true, true],
+    ['experiment ineligible', true, false, true],
+    ['inactive trader', true, true, false],
+  ])(
+    '%s keeps Perps below Tokens',
+    (_label, isPerpsEnabled, eligible, active) => {
+      expect(
+        shouldPlacePerpsAboveTokens({
+          optionalSectionsCanMount: true,
+          isPerpsEnabled,
+          perpsAboveTokensEligible: eligible,
+          isActivePerpsTrader: active,
+        }),
+      ).toBe(false);
     },
   );
 });

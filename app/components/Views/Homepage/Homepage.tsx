@@ -30,7 +30,10 @@ import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagCo
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
-import { getHomepageSectionMountMode } from './hooks/homepageSectionMountPolicy';
+import {
+  getHomepageSectionMountMode,
+  shouldPlacePerpsAboveTokens,
+} from './hooks/homepageSectionMountPolicy';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useABTest } from '../../../hooks';
 import { useNetworkTierState } from '../../../hooks/useNetworkTier';
@@ -136,10 +139,20 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
+    // Lock the Perps position to the first Homepage layout. Deferred Perps
+    // must not be inserted above Tokens after the user has started viewing or
+    // scrolling the primary surface.
+    const [canPreservePerpsAboveTokens] = useState(() =>
+      shouldPlacePerpsAboveTokens({
+        optionalSectionsCanMount: canMountOptionalSections,
+        isPerpsEnabled,
+        perpsAboveTokensEligible:
+          perpsSectionPriorityVariant.perpsAboveTokensEligible,
+        isActivePerpsTrader,
+      }),
+    );
     const showPerpsAboveTokens =
-      shouldRenderPerps &&
-      perpsSectionPriorityVariant.perpsAboveTokensEligible &&
-      isActivePerpsTrader;
+      canPreservePerpsAboveTokens && shouldRenderPerps;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();

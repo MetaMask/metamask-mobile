@@ -6,6 +6,22 @@ export type HomepageSectionMountMode =
   | 'after_primary_content'
   | 'when_network_available';
 
+export const shouldPlacePerpsAboveTokens = ({
+  optionalSectionsCanMount,
+  isPerpsEnabled,
+  perpsAboveTokensEligible,
+  isActivePerpsTrader,
+}: {
+  optionalSectionsCanMount: boolean;
+  isPerpsEnabled: boolean;
+  perpsAboveTokensEligible: boolean;
+  isActivePerpsTrader: boolean;
+}): boolean =>
+  optionalSectionsCanMount &&
+  isPerpsEnabled &&
+  perpsAboveTokensEligible &&
+  isActivePerpsTrader;
+
 /**
  * Selects when non-primary Homepage sections may mount.
  *
