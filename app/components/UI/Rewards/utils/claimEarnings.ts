@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
-import { BtcScope, type AccountId } from '@metamask/keyring-api';
+import { BtcScope } from '@metamask/keyring-api';
 import {
   TransactionType,
   type TransactionMeta,
@@ -268,12 +268,12 @@ export async function signBitcoinClaimMessage(
   address: string,
   message: string,
 ): Promise<string> {
-  const id = accountId as AccountId;
   let result: Json;
   try {
     result = (await Engine.context.KeyringController.withKeyringV2(
       {
-        filter: (keyring) => isSnapKeyring(keyring) && keyring.hasAccount(id),
+        filter: (keyring) =>
+          isSnapKeyring(keyring) && keyring.hasAccount(accountId),
       },
       async ({ keyring }) => {
         if (!isSnapKeyring(keyring)) {
@@ -283,7 +283,7 @@ export async function signBitcoinClaimMessage(
           id: uuidv4(),
           origin: 'metamask',
           scope: BtcScope.Mainnet,
-          account: id,
+          account: accountId,
           request: {
             method: 'signMessage',
             params: { account: { address }, message },
