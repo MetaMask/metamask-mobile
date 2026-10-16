@@ -1,4 +1,5 @@
 import { Interface } from '@ethersproject/abi';
+import { toHex } from '@metamask/controller-utils';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import {
   Authorization,
@@ -28,9 +29,9 @@ import {
   getDeleGatorEnvironment,
 } from '../../../core/Delegation';
 import { exactExecution } from '../../../core/Delegation/caveatBuilder/exactExecutionBuilder';
+import { exactExecutionBatch } from '../../../core/Delegation/caveatBuilder/exactExecutionBatchBuilder';
 import { limitedCalls } from '../../../core/Delegation/caveatBuilder/limitedCallsBuilder';
 import { redeemer } from '../../../core/Delegation/caveatBuilder/redeemerBuilder';
-import { specificActionERC20TransferBatch } from '../../../core/Delegation/caveatBuilder/specificActionERC20TransferBatchBuilder';
 import {
   Delegation,
   encodeRedeemDelegations,
@@ -403,18 +404,24 @@ export class Delegation7702PublishHook {
     const normalizedData = this.#normalizeCallData(data);
 
     if (includeTransfer && gasFeeToken !== undefined) {
-      const { tokenAddress, recipient, amount } = gasFeeToken;
-
       // contract deployments can't be delegated
       if (to !== undefined) {
+        // Restrict the delegation to exactly the executions that are relayed
+        // (user call + gas fee token transfer). specificActionERC20TransferBatch
+        // costs far more gas to redeem than the fee quoted by Sentinel covers.
+        const [executions] = this.#buildExecutions(
+          transactionMeta,
+          gasFeeToken,
+          true,
+        );
+
         caveatBuilder.addCaveat(
-          specificActionERC20TransferBatch,
-          tokenAddress,
-          recipient,
-          amount,
-          to,
-          (value as Hex) ?? '0x0',
-          normalizedData,
+          exactExecutionBatch,
+          executions.map(({ callData, target, value: executionValue }) => ({
+            data: callData,
+            to: target,
+            value: toHex(executionValue),
+          })),
         );
       }
     } else if (to !== undefined) {
