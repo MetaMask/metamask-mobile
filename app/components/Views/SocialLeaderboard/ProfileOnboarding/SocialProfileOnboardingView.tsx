@@ -21,7 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Linking,
@@ -53,7 +53,6 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
-  nextUsernameSuggestion,
   normalizeUsername,
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
@@ -63,11 +62,17 @@ import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
 import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
+import {
+  generateUsername,
+  generateUsernameWithNumber,
+} from './generateUsername';
 import LinkedAccountPicker from './LinkedAccountPicker';
 
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
 const AVATAR_GRID_WIDTH = 300;
+/** Wait until typing pauses before asking if a handle is free. */
+const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
 const LIVE_ACTIVITY = [
   {
@@ -287,6 +292,17 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
+  const usernameCheckId = useRef(0);
+  const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearUsernameCheckTimer = useCallback(() => {
+    if (usernameCheckTimer.current) {
+      clearTimeout(usernameCheckTimer.current);
+      usernameCheckTimer.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearUsernameCheckTimer, [clearUsernameCheckTimer]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -325,8 +341,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     });
   }, []);
 
-  const handleUsernameChange = useCallback((value: string) => {
-    const username = value.replace(/^@+/, '');
+  const applyUsername = useCallback((username: string) => {
     setUsernameClaimError(null);
     setDraft((current) => ({
       ...current,
@@ -337,19 +352,74 @@ const SocialProfileOnboardingView: React.FC = () => {
     }));
   }, []);
 
+  const checkHandle = useCallback(
+    async (username: string): Promise<boolean> => {
+      const requestId = ++usernameCheckId.current;
+      try {
+        const availability = await checkUsernameAvailability(username);
+        if (requestId !== usernameCheckId.current) {
+          return false;
+        }
+        if (!availability.available || !availability.valid) {
+          setUsernameClaimError(
+            strings(
+              'social_leaderboard.profile_onboarding.username_unavailable',
+            ),
+          );
+          return false;
+        }
+        setUsernameClaimError(null);
+        return true;
+      } catch {
+        if (requestId !== usernameCheckId.current) {
+          return false;
+        }
+        setUsernameClaimError(
+          strings('social_leaderboard.profile_onboarding.username_check_error'),
+        );
+        return false;
+      }
+    },
+    [checkUsernameAvailability],
+  );
+
+  const scheduleUsernameCheck = useCallback(
+    (username: string) => {
+      clearUsernameCheckTimer();
+      if (getUsernameStatus(username) !== 'available') {
+        usernameCheckId.current += 1;
+        return;
+      }
+      usernameCheckTimer.current = setTimeout(() => {
+        checkHandle(username).catch(() => undefined);
+      }, USERNAME_CHECK_DEBOUNCE_MS);
+    },
+    [checkHandle, clearUsernameCheckTimer],
+  );
+
+  const handleUsernameChange = useCallback(
+    (value: string) => {
+      const username = value.replace(/^@+/, '');
+      applyUsername(username);
+      scheduleUsernameCheck(normalizeUsername(username));
+    },
+    [applyUsername, scheduleUsernameCheck],
+  );
+
   const handleShuffleUsername = useCallback(() => {
-    setUsernameClaimError(null);
-    setDraft((current) => {
-      const username = nextUsernameSuggestion(current.username);
-      return {
-        ...current,
-        username,
-        displayName: current.displayNameEdited
-          ? current.displayName
-          : displayNameFromUsername(username),
-      };
-    });
-  }, []);
+    clearUsernameCheckTimer();
+    const claimGeneratedUsername = async () => {
+      let username = generateUsername();
+      applyUsername(username);
+      if (await checkHandle(username)) {
+        return;
+      }
+      username = generateUsernameWithNumber();
+      applyUsername(username);
+      await checkHandle(username);
+    };
+    claimGeneratedUsername().catch(() => undefined);
+  }, [applyUsername, checkHandle, clearUsernameCheckTimer]);
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
@@ -405,27 +475,25 @@ const SocialProfileOnboardingView: React.FC = () => {
       return;
     }
 
+    clearUsernameCheckTimer();
     setUsernameClaimError(null);
     setIsSubmitting(true);
     try {
-      const availability = await checkUsernameAvailability(
-        normalizeUsername(draft.username),
-      );
-      if (!availability.available || !availability.valid) {
-        setUsernameClaimError(
-          strings('social_leaderboard.profile_onboarding.username_unavailable'),
-        );
+      const isAvailable = await checkHandle(normalizeUsername(draft.username));
+      if (!isAvailable) {
         return;
       }
       setStep('avatar');
-    } catch {
-      setUsernameClaimError(
-        strings('social_leaderboard.profile_onboarding.username_check_error'),
-      );
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkUsernameAvailability, draft.username, playSelection, step]);
+  }, [
+    checkHandle,
+    clearUsernameCheckTimer,
+    draft.username,
+    playSelection,
+    step,
+  ]);
 
   const handleFinish = useCallback(async () => {
     setFinishError(null);

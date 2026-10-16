@@ -6,7 +6,6 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
-  nextUsernameSuggestion,
   normalizeUsername,
 } from './profileOnboardingDraft';
 
@@ -24,11 +23,6 @@ describe('profileOnboardingDraft', () => {
     expect(getUsernameStatus('bad_name')).toBe('invalid');
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen-cat')).toBe('available');
-  });
-
-  it('cycles username suggestions', () => {
-    expect(nextUsernameSuggestion('wen-cat')).toBe('moon-fox');
-    expect(nextUsernameSuggestion('not-in-list')).toBe('wen-cat');
   });
 
   it('blocks continue until the handle and display name are filled', () => {

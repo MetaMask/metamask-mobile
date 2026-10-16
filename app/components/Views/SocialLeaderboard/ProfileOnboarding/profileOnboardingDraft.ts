@@ -32,7 +32,7 @@ export type UsernameStatus = 'empty' | 'invalid' | 'available';
 
 const USERNAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MIN_USERNAME_LENGTH = 3;
-const MAX_USERNAME_LENGTH = 20;
+export const MAX_USERNAME_LENGTH = 20;
 
 export const USERNAME_SUGGESTIONS = [
   'wen-cat',
@@ -65,16 +65,6 @@ export const displayNameFromUsername = (value: string): string =>
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
-
-export const nextUsernameSuggestion = (current: string): string => {
-  const normalized = normalizeUsername(current);
-  const index = USERNAME_SUGGESTIONS.indexOf(
-    normalized as (typeof USERNAME_SUGGESTIONS)[number],
-  );
-  const nextIndex =
-    index === -1 ? 0 : (index + 1) % USERNAME_SUGGESTIONS.length;
-  return USERNAME_SUGGESTIONS[nextIndex];
-};
 
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = USERNAME_SUGGESTIONS[0];
