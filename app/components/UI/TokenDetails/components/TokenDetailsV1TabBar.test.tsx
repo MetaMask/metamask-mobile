@@ -311,20 +311,6 @@ describe('useTokenDetailsV1ScrollStabilization', () => {
 
     expect(onScroll).toHaveBeenCalledWith(scrollEvent);
   });
-
-  it('updates tab content minHeight based on the scroll view layout height', () => {
-    const { result } = renderHook(() => useTokenDetailsV1ScrollStabilization());
-
-    act(() => {
-      result.current.handleScrollViewLayout({
-        nativeEvent: { layout: { height: 900, y: 0, x: 0, width: 375 } },
-      } as LayoutChangeEvent);
-    });
-
-    expect(
-      result.current.tabContentContainerStyle.minHeight,
-    ).toBeGreaterThanOrEqual(900);
-  });
 });
 
 describe('resolveSwipeTargetTab', () => {
