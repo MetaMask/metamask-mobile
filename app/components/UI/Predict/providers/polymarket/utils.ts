@@ -2265,6 +2265,17 @@ const calculateFeesForCollection = ({
   };
 };
 
+/**
+ * Calculates the fees charged for an order. A subscription policy waives only
+ * the MetaMask fee in `fees` and keeps the unwaived rates in `originalFees`.
+ * The market-fee waiver is resolved once and applied to both results.
+ *
+ * @param feeCollection - Feature-flagged fee configuration.
+ * @param feePolicy - Current per-order Predict fee policy.
+ * @param marketId - Market used to resolve a waived market fee.
+ * @param userBetAmount - Stake or proceeds the service fees apply to.
+ * @returns Effective fees, plus the standard fees when a subscription policy applies.
+ */
 export async function calculateFees({
   feeCollection,
   feePolicy,
@@ -2275,65 +2286,38 @@ export async function calculateFees({
   feePolicy?: PredictFeePolicy;
   marketId: string;
   userBetAmount: number;
-}): Promise<PredictFees> {
+}): Promise<{
+  fees: PredictFees;
+  /** Standard fees before the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
+}> {
   const effectiveFeeCollection = getEffectiveFeeCollection({
     feeCollection,
     feePolicy,
   });
-
   const marketFeeWaived = await isMarketFeeWaived({
     marketId,
     feeCollection: effectiveFeeCollection,
   });
-
-  return calculateFeesForCollection({
+  const fees = calculateFeesForCollection({
     feeCollection: effectiveFeeCollection,
     marketFeeWaived,
     userBetAmount,
   });
-}
 
-interface CalculatedPredictFees {
-  fees: PredictFees;
-  originalFees?: PredictFees;
-}
-
-/**
- * Calculates effective and standard fees for a subscription policy.
- */
-export const calculateFeesForSubscription = async ({
-  feeCollection,
-  feePolicy,
-  marketId,
-  userBetAmount,
-}: {
-  feeCollection?: PredictFeeCollection;
-  feePolicy: PredictFeePolicy;
-  marketId: string;
-  userBetAmount: number;
-}): Promise<CalculatedPredictFees> => {
-  const effectiveFeeCollection = getEffectiveFeeCollection({
-    feeCollection,
-    feePolicy,
-  });
-  const marketFeeWaived = await isMarketFeeWaived({
-    marketId,
-    feeCollection: effectiveFeeCollection,
-  });
+  if (feePolicy?.discountType !== DiscountType.SUBSCRIPTION) {
+    return { fees };
+  }
 
   return {
-    fees: calculateFeesForCollection({
-      feeCollection: effectiveFeeCollection,
-      marketFeeWaived,
-      userBetAmount,
-    }),
+    fees,
     originalFees: calculateFeesForCollection({
       feeCollection,
       marketFeeWaived,
       userBetAmount,
     }),
   };
-};
+}
 
 export const getAllowanceCalls = (params: { address: string }) => {
   const { address } = params;
@@ -2861,44 +2845,33 @@ export const previewOrder = async (
     marketInfo,
   });
 
-  if (feePolicy?.discountType === DiscountType.SUBSCRIPTION) {
-    const { fees: serviceFees, originalFees: originalServiceFees } =
-      await calculateFeesForSubscription({
-        feeCollection,
-        feePolicy,
-        marketId,
-        userBetAmount: takerAmount,
-      });
-    return {
-      ...preview,
-      fees: {
-        ...serviceFees,
-        marketFee,
-      },
-      ...(originalServiceFees
-        ? {
-            originalFees: {
-              ...originalServiceFees,
-              marketFee,
-            },
-          }
-        : {}),
-    };
-  }
+  const { fees: serviceFees, originalFees: originalServiceFees } =
+    await calculateFees({
+      feeCollection,
+      feePolicy,
+      marketId,
+      userBetAmount: takerAmount,
+    });
 
-  const calculatedFees = await calculateFees({
-    feeCollection,
-    marketId,
-    userBetAmount: takerAmount,
-  });
-
-  return {
+  const orderPreview: OrderPreview = {
     ...preview,
     fees: {
-      ...calculatedFees,
+      ...serviceFees,
       marketFee,
     },
   };
+
+  if (
+    feePolicy?.discountType === DiscountType.SUBSCRIPTION &&
+    originalServiceFees
+  ) {
+    orderPreview.originalFees = {
+      ...originalServiceFees,
+      marketFee,
+    };
+  }
+
+  return orderPreview;
 };
 
 interface BuyPreviewContext {
@@ -2941,23 +2914,12 @@ async function getBuyPreviewContext({
     return null;
   }
 
-  let calculatedFees: CalculatedPredictFees;
-  if (feePolicy?.discountType === DiscountType.SUBSCRIPTION) {
-    calculatedFees = await calculateFeesForSubscription({
-      feeCollection,
-      feePolicy,
-      marketId,
-      userBetAmount: 1,
-    });
-  } else {
-    calculatedFees = {
-      fees: await calculateFees({
-        feeCollection,
-        marketId,
-        userBetAmount: 1,
-      }),
-    };
-  }
+  const calculatedFees = await calculateFees({
+    feeCollection,
+    feePolicy,
+    marketId,
+    userBetAmount: 1,
+  });
 
   const { fees: effectiveFeesPerDollar, originalFees: originalFeesPerDollar } =
     calculatedFees;

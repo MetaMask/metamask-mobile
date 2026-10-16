@@ -65,7 +65,7 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import { calculateFeesForSubscription } from '../providers/polymarket/utils';
+import { calculateFees } from '../providers/polymarket/utils';
 import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
   COLLATERAL_TOKEN_DECIMALS,
@@ -765,7 +765,7 @@ export class PredictController extends BaseController<
       userBetAmount = preview.maxAmountSpent;
     }
 
-    const subscriptionFees = await calculateFeesForSubscription({
+    const subscriptionFees = await calculateFees({
       feeCollection,
       feePolicy,
       marketId: preview.marketId,

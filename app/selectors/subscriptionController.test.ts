@@ -17,14 +17,12 @@ import type { RootState } from '../reducers';
 import {
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
-  selectHasPredictFreeTxEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectIsMoneyAccountPlusTrialing,
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
   selectMoneyAccountPlusPricing,
   selectMoneyAccountPlusSubscription,
-  selectPredictBenefitUsage,
   selectSubscriptionBenefits,
   selectSubscriptionByProduct,
   selectSubscriptionControllerState,
@@ -730,29 +728,6 @@ describe('subscriptionController selectors', () => {
       it('returns undefined when the controller is absent', () => {
         expect(selectSubscriptionBenefits(createState())).toBeUndefined();
       });
-
-      it('selects the Predict benefit usage', () => {
-        expect(
-          selectPredictBenefitUsage(
-            createState({
-              subscriptions: [],
-              trialedProducts: [],
-              benefits,
-            }),
-          ),
-        ).toEqual(benefits.predict);
-      });
-
-      it('returns undefined when Predict benefits are unavailable', () => {
-        expect(
-          selectPredictBenefitUsage(
-            createState({
-              subscriptions: [],
-              trialedProducts: [],
-            }),
-          ),
-        ).toBeUndefined();
-      });
     });
 
     describe('selectIsMoneyAccountPlusTrialing', () => {
@@ -904,28 +879,6 @@ describe('subscriptionController selectors', () => {
         expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
           false,
         );
-      });
-    });
-
-    describe('selectHasPredictFreeTxEntitlement', () => {
-      it('returns true when the Predict entitlement is granted', () => {
-        expect(
-          selectHasPredictFreeTxEntitlement(
-            createPlusState({ predictFreeTx: true }),
-          ),
-        ).toBe(true);
-      });
-
-      it('returns false when another Plus entitlement is granted', () => {
-        expect(
-          selectHasPredictFreeTxEntitlement(
-            createPlusState({ swapFeeWaiver: true }),
-          ),
-        ).toBe(false);
-      });
-
-      it('fails closed when the controller is absent', () => {
-        expect(selectHasPredictFreeTxEntitlement(createState())).toBe(false);
       });
     });
   });

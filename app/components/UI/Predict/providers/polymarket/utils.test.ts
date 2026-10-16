@@ -3202,13 +3202,24 @@ describe('polymarket utils', () => {
         userBetAmount: 10,
       }),
     ).resolves.toEqual({
-      metamaskFee: 0,
-      providerFee: 0.3,
-      totalFee: 0.3,
-      totalFeePercentage: 3,
-      collector: '0x1111111111111111111111111111111111111111',
-      executors: [],
-      permit2Enabled: false,
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0.3,
+        totalFee: 0.3,
+        totalFeePercentage: 3,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      originalFees: {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
     });
   });
 
@@ -3233,13 +3244,15 @@ describe('polymarket utils', () => {
     });
 
     expect(result).toEqual({
-      metamaskFee: 0.2,
-      providerFee: 0.3,
-      totalFee: 0.5,
-      totalFeePercentage: 5,
-      collector: '0x1111111111111111111111111111111111111111',
-      executors: [],
-      permit2Enabled: false,
+      fees: {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
     });
   });
 
