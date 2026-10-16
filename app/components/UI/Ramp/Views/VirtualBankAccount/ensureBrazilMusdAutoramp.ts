@@ -14,20 +14,12 @@ const setupByWallet = new Map<
   Promise<BrazilMusdAutorampSetupOutcome>
 >();
 
-/**
- * Clears the in-flight setup guard. Tests use this between cases.
- */
+/** Clears the in-flight setup guard between tests. */
 export const resetBrazilMusdAutorampSetupGuard = (): void => {
   setupByWallet.clear();
 };
 
-/**
- * An autoramp that is not Rejected or Cancelled can still receive a deposit.
- *
- * @param autoramps - Autoramps currently stored on the controller.
- * @param walletAddress - Money Account wallet.
- * @returns The first usable autoramp for that wallet.
- */
+/** First autoramp for this wallet that is not Rejected or Cancelled. */
 export const findUsableAutoramp = <T extends AutorampCursor>(
   autoramps: readonly T[],
   walletAddress: string,
@@ -64,8 +56,7 @@ const runSetup = async (
     return 'ready';
   }
 
-  // The customer is not Active yet, or another read is still settling.
-  // Stay here and let the next poll check again.
+  // Customer not Active yet, or another read is still settling.
   if (
     snapshot.autorampStatus === 'not_ready' ||
     snapshot.autorampStatus === 'in_progress'
@@ -100,13 +91,8 @@ const runSetup = async (
 };
 
 /**
- * Registers the Money Account wallet when hydrate says it is missing, then
- * creates the BRL autoramp. Overlapping calls for the same wallet share one
- * run, so a remount cannot post a second autoramp while the first is in flight.
- * A usable autoramp short-circuits both calls.
- *
- * @param walletAddress - Money Account wallet that receives mUSD.
- * @returns Whether a usable autoramp is ready, the customer is still waiting, or setup failed.
+ * Registers the wallet when needed, then creates the BRL autoramp. Overlapping
+ * calls for the same wallet share one run.
  */
 export const ensureBrazilMusdAutoramp = (
   walletAddress: string,
@@ -120,9 +106,7 @@ export const ensureBrazilMusdAutoramp = (
     .catch((error: unknown) => {
       Logger.error(error as Error, {
         tags: { feature: 'vba-onboarding' },
-        context: {
-          name: 'ensureBrazilMusdAutoramp',
-        },
+        context: { name: 'ensureBrazilMusdAutoramp' },
       });
       return 'failed' as const;
     })

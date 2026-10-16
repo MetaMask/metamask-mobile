@@ -29,11 +29,7 @@ export const VbaIdentityVerifiedSelectorsIDs = {
   CONTINUE_BUTTON: 'vba-identity-verified-continue-button',
 } as const;
 
-/**
- * Shown as soon as KYC is approved and no usable autoramp exists yet.
- * Continue opens the account screen. It does not sign or create the account.
- * Back leaves onboarding for Money home.
- */
+/** KYC approved, no usable autoramp yet. Continue opens details; Back → Money home. */
 const VbaIdentityVerified = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();

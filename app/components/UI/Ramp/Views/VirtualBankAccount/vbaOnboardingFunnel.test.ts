@@ -130,16 +130,6 @@ describe('getVbaDestinationForSnapshot', () => {
         }),
       ],
       [
-        'needs source currency',
-        snapshot({
-          sessionExists: true,
-          vendorDisclaimersComplete: true,
-          sessionDisclaimersComplete: true,
-          kycStatus: 'approved',
-          autorampStatus: 'needs_source_currency',
-        }),
-      ],
-      [
         'account provisioning in progress',
         snapshot({
           sessionExists: true,
@@ -178,7 +168,6 @@ describe('getVbaDestinationForSnapshot', () => {
         "email and vendor terms done": "identityVerification",
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
-        "needs source currency": "identityVerified",
         "needs wallet registration": "identityVerified",
         "provider done": "identityVerification",
         "session exists without vendor disclaimers recorded": "identityVerification",

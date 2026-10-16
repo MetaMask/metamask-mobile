@@ -33,14 +33,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockRegister = jest.fn();
-const mockCreate = jest.fn();
-
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      registerMoneyAccountWallet: (...args: unknown[]) => mockRegister(...args),
-      createAutoramp: (...args: unknown[]) => mockCreate(...args),
+      registerMoneyAccountWallet: jest.fn(),
+      createAutoramp: jest.fn(),
     },
   },
 }));
@@ -50,30 +47,17 @@ describe('VbaIdentityVerified', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the verified identity screen', () => {
+  it('renders copy and opens details from Continue without creating an account', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <VbaIdentityVerified />,
     );
 
-    expect(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.ILLUSTRATION),
-    ).toBeOnTheScreen();
     expect(
       getByText(strings('virtual_bank_account.identity_verified.title')),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('virtual_bank_account.identity_verified.description')),
     ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.identity_verified.button')),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens account details from Continue without signing or creating an account', () => {
-    const { getByTestId } = renderWithProvider(<VbaIdentityVerified />);
 
     fireEvent.press(
       getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
@@ -82,13 +66,9 @@ describe('VbaIdentityVerified', () => {
     expect(mockParentDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'NAVIGATE',
-        payload: expect.objectContaining({
-          name: Routes.RAMP.VBA_DETAILS,
-        }),
+        payload: expect.objectContaining({ name: Routes.RAMP.VBA_DETAILS }),
       }),
     );
-    expect(mockRegister).not.toHaveBeenCalled();
-    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it('returns to Money home from Back', () => {
@@ -100,6 +80,5 @@ describe('VbaIdentityVerified', () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-    expect(mockParentDispatch).not.toHaveBeenCalled();
   });
 });

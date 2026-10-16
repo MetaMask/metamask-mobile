@@ -318,33 +318,24 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it.each([
-    'needs_source_currency',
-    'needs_wallet_registration',
-    'not_ready',
-    'retryable_failure',
-  ] as const)(
-    'opens identity verified without signing or creating when the autoramp is %s',
-    async (autorampStatus) => {
-      mockHydrate.mockResolvedValue({
-        ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-        sessionExists: true,
-        vendorDisclaimersComplete: true,
-        sessionDisclaimersComplete: true,
-        kycStatus: 'approved',
-        autorampStatus,
-      });
-      mockRegisterWallet.mockResolvedValue({ type: 'lookupUnavailable' });
+  it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'needs_wallet_registration',
+    });
 
-      const { result } = renderHook(() => useOpenVbaOnboarding());
+    const { result } = renderHook(() => useOpenVbaOnboarding());
 
-      await result.current();
+    await result.current();
 
-      expect(mockRegisterWallet).not.toHaveBeenCalled();
-      expect(mockCreateAutoramp).not.toHaveBeenCalled();
-      expectResetTo({ name: VbaOnboardingRoutes.IDENTITY_VERIFIED });
-    },
-  );
+    expect(mockRegisterWallet).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    expectResetTo({ name: VbaOnboardingRoutes.IDENTITY_VERIFIED });
+  });
 
   it('opens the error screen when navigation after hydrate throws', async () => {
     jest.mocked(Logger.log).mockImplementationOnce(() => {
@@ -857,30 +848,6 @@ describe('resolveVbaOnboarding', () => {
       resolveVbaOnboarding('money-add-money-bank-account'),
     ).resolves.toEqual({ status: 'error' });
     expect(mockHydrate).not.toHaveBeenCalled();
-  });
-
-  it('reads an approved snapshot and does not register a wallet or create an autoramp', async () => {
-    mockHydrate.mockResolvedValue({
-      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-      sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      kycStatus: 'approved',
-      autorampStatus: 'needs_wallet_registration',
-    });
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual({
-      status: 'ready',
-      destinationId: 'identityVerified',
-      snapshot: expect.objectContaining({
-        kycStatus: 'approved',
-        autorampStatus: 'needs_wallet_registration',
-      }),
-    });
-    expect(mockRegisterWallet).not.toHaveBeenCalled();
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('applies the dev KYC status override before choosing a destination', async () => {

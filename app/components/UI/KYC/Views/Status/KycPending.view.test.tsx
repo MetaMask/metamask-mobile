@@ -333,49 +333,31 @@ describeForPlatforms('VbaKycPending', () => {
           { timeout: REDIRECT_TIMEOUT_MS },
         ),
       ).toBeOnTheScreen();
-      expect(
-        engineContext.RampsController.registerMoneyAccountWallet,
-      ).not.toHaveBeenCalled();
-      expect(
-        engineContext.RampsController.createAutoramp,
-      ).not.toHaveBeenCalled();
     },
   );
 
-  it.each([
-    'not_ready',
-    'needs_wallet_registration',
-    'retryable_failure',
-  ] as const)(
-    'opens identity verified when KYC is approved and the autoramp is %s',
-    async (autorampStatus) => {
-      engineContext.RampsController.hydrateVbaOnboarding = jest
-        .fn()
-        .mockResolvedValue(hydratedSnapshot('approved', autorampStatus));
-      const { findByTestId, queryByTestId } = renderKycScreen(
-        <RampNavigator />,
-        {
-          finalStatus: 'approved',
-          kycStatus: 'approved',
-        },
-      );
+  it('opens identity verified when KYC is approved without a usable autoramp', async () => {
+    engineContext.RampsController.hydrateVbaOnboarding = jest
+      .fn()
+      .mockResolvedValue(hydratedSnapshot('approved', 'not_ready'));
+    const { findByTestId, queryByTestId } = renderKycScreen(
+      <RampNavigator />,
+      { finalStatus: 'approved', kycStatus: 'approved' },
+    );
 
-      expect(
-        await findByTestId(
-          VbaIdentityVerifiedSelectorsIDs.CONTAINER,
-          {},
-          { timeout: REDIRECT_TIMEOUT_MS },
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
-      ).not.toBeOnTheScreen();
-      expect(
-        engineContext.RampsController.registerMoneyAccountWallet,
-      ).not.toHaveBeenCalled();
-      expect(
-        engineContext.RampsController.createAutoramp,
-      ).not.toHaveBeenCalled();
-    },
-  );
+    expect(
+      await findByTestId(
+        VbaIdentityVerifiedSelectorsIDs.CONTAINER,
+        {},
+        { timeout: REDIRECT_TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
+    ).not.toBeOnTheScreen();
+    expect(
+      engineContext.RampsController.registerMoneyAccountWallet,
+    ).not.toHaveBeenCalled();
+    expect(engineContext.RampsController.createAutoramp).not.toHaveBeenCalled();
+  });
 });

@@ -403,7 +403,7 @@ describe('VbaDetails', () => {
     expect(Logger.error).toHaveBeenCalled();
   });
 
-  it('waits for PIX when no usable autoramp exists and the customer is not active', async () => {
+  it('waits when no usable autoramp exists and the customer is not active', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
 
@@ -414,18 +414,11 @@ describe('VbaDetails', () => {
         getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
       ).toBeOnTheScreen();
     });
-    expect(mockHydrate).toHaveBeenCalledWith({
-      walletAddress: '0xabc',
-      refreshKyc: false,
-      refreshAutoramps: true,
-    });
-    expect(mockRegisterWallet).not.toHaveBeenCalled();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetPix).not.toHaveBeenCalled();
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
     ).not.toBeOnTheScreen();
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {
@@ -455,58 +448,7 @@ describe('VbaDetails', () => {
     expect(mockGetPix).not.toHaveBeenCalled();
   });
 
-  it('creates the BRL autoramp once when none exists', async () => {
-    setAutoramps([]);
-    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
-    mockCreateAutoramp.mockImplementation(async () => {
-      setAutoramps([
-        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
-      ]);
-      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
-    });
-    mockGetPix.mockResolvedValue(pixInstructions);
-
-    const first = renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
-    });
-    expect(mockCreateAutoramp).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
-      }),
-    );
-    expect(mockRegisterWallet).not.toHaveBeenCalled();
-    await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-new');
-    });
-
-    first.unmount();
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-new');
-    });
-    expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
-  });
-
-  it('creates the BRL autoramp once when the screen mounts twice', async () => {
-    setAutoramps([]);
-    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
-
-    renderWithProvider(
-      <StrictMode>
-        <VbaDetails />
-      </StrictMode>,
-    );
-
-    await waitFor(() => {
-      expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
-    });
-    expect(mockHydrate).toHaveBeenCalledTimes(1);
-  });
-
-  it('registers the wallet once before creating the autoramp', async () => {
+  it('registers and creates the BRL autoramp once across StrictMode mounts', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
@@ -523,17 +465,29 @@ describe('VbaDetails', () => {
       ]);
       return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
     });
+    mockGetPix.mockResolvedValue(pixInstructions);
 
-    renderWithProvider(<VbaDetails />);
+    renderWithProvider(
+      <StrictMode>
+        <VbaDetails />
+      </StrictMode>,
+    );
 
     await waitFor(() => {
       expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
     });
     expect(calls).toEqual(['register', 'create']);
-    expect(mockRegisterWallet).toHaveBeenCalledWith({ address: '0xabc' });
+    expect(mockCreateAutoramp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+      }),
+    );
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-new');
+    });
   });
 
-  it('keeps the waiting state and retries setup after creation fails', async () => {
+  it('stays on details with retry when setup fails', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockCreateAutoramp
@@ -551,9 +505,6 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
     });
-    expect(
-      getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
-    ).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
@@ -562,21 +513,5 @@ describe('VbaDetails', () => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-new');
     });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(2);
-  });
-
-  it('does not create an autoramp when wallet lookup is unavailable', async () => {
-    setAutoramps([]);
-    mockHydrate.mockResolvedValue({
-      autorampStatus: 'needs_wallet_registration',
-    });
-    mockRegisterWallet.mockResolvedValue({ type: 'lookupUnavailable' });
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
-    });
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

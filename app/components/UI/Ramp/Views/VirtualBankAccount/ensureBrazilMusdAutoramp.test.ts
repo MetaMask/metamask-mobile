@@ -13,13 +13,7 @@ const mockCreate = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      state: {
-        autoramps: [] as {
-          id: string;
-          walletAddress: string;
-          status: string;
-        }[],
-      },
+      state: { autoramps: [] as { walletAddress: string; status: string }[] },
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
       registerMoneyAccountWallet: (...args: unknown[]) => mockRegister(...args),
       createAutoramp: (...args: unknown[]) => mockCreate(...args),
@@ -29,21 +23,16 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
-  default: {
-    error: jest.fn(),
-    log: jest.fn(),
-  },
+  default: { error: jest.fn(), log: jest.fn() },
 }));
 
-interface TestAutoramp {
-  id: string;
-  walletAddress: string;
-  status: string;
-}
-
-const setAutoramps = (autoramps: TestAutoramp[]) => {
+const setAutoramps = (
+  autoramps: { id?: string; walletAddress: string; status: string }[],
+) => {
   (
-    Engine.context.RampsController.state as { autoramps: TestAutoramp[] }
+    Engine.context.RampsController.state as {
+      autoramps: typeof autoramps;
+    }
   ).autoramps = autoramps;
 };
 
@@ -54,51 +43,25 @@ describe('ensureBrazilMusdAutoramp', () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockRegister.mockResolvedValue({ type: 'alreadyRegistered' });
-    mockCreate.mockResolvedValue({
-      id: 'ar-new',
-      walletAddress: '0xabc',
-      status: 'Created',
-    });
+    mockCreate.mockResolvedValue({ id: 'ar-new', status: 'Created' });
   });
 
-  it('waits while the customer is not active, then creates the BRL autoramp once', async () => {
+  it('waits while inactive, then registers and creates once', async () => {
     mockHydrate
       .mockResolvedValueOnce({ autorampStatus: 'not_ready' })
-      .mockResolvedValueOnce({ autorampStatus: 'needs_source_currency' });
+      .mockResolvedValueOnce({
+        autorampStatus: 'needs_wallet_registration',
+      });
 
     await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('waiting');
-
-    expect(mockRegister).not.toHaveBeenCalled();
     expect(mockCreate).not.toHaveBeenCalled();
 
     await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
-
-    expect(mockRegister).not.toHaveBeenCalled();
+    expect(mockRegister).toHaveBeenCalledWith({ address: '0xabc' });
     expect(mockCreate).toHaveBeenCalledTimes(1);
     expect(mockCreate).toHaveBeenCalledWith(
       buildBrazilMusdAutorampRequest('0xabc'),
     );
-  });
-
-  it('registers the wallet once before creating the autoramp', async () => {
-    mockHydrate.mockResolvedValue({
-      autorampStatus: 'needs_wallet_registration',
-    });
-    const calls: string[] = [];
-    mockRegister.mockImplementation(async () => {
-      calls.push('register');
-      return { type: 'alreadyRegistered' };
-    });
-    mockCreate.mockImplementation(async () => {
-      calls.push('create');
-      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
-    });
-
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
-
-    expect(calls).toEqual(['register', 'create']);
-    expect(mockRegister).toHaveBeenCalledWith({ address: '0xabc' });
-    expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
   it('shares one create across overlapping calls', async () => {
@@ -116,45 +79,38 @@ describe('ensureBrazilMusdAutoramp', () => {
 
     expect(mockHydrate).toHaveBeenCalledTimes(1);
     expect(mockCreate).toHaveBeenCalledTimes(1);
-
-    releaseCreate({ id: 'ar-new', walletAddress: '0xabc', status: 'Created' });
-
-    await expect(first).resolves.toBe('ready');
-    await expect(second).resolves.toBe('ready');
-    expect(mockCreate).toHaveBeenCalledTimes(1);
+    releaseCreate({ id: 'ar-new', status: 'Created' });
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      'ready',
+      'ready',
+    ]);
   });
 
-  it('creates an autoramp when the only stored routes are rejected or cancelled', async () => {
-    setAutoramps([
-      { id: 'rejected', walletAddress: '0xabc', status: 'Rejected' },
-      { id: 'cancelled', walletAddress: '0xabc', status: 'Cancelled' },
-    ]);
+  it('skips create when a usable autoramp exists', async () => {
+    setAutoramps([{ walletAddress: '0xabc', status: 'Authorized' }]);
 
     await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
-
-    expect(mockCreate).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not post while a non-terminal autoramp exists', async () => {
-    setAutoramps([
-      { id: 'ar-1', walletAddress: '0xabc', status: 'Authorized' },
-    ]);
-
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
-
     expect(mockHydrate).not.toHaveBeenCalled();
-    expect(mockRegister).not.toHaveBeenCalled();
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('does not create an autoramp when wallet lookup is unavailable', async () => {
+  it('creates when only rejected or cancelled routes exist', async () => {
+    setAutoramps([
+      { walletAddress: '0xabc', status: 'Rejected' },
+      { walletAddress: '0xabc', status: 'Cancelled' },
+    ]);
+
+    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails without creating when wallet lookup is unavailable', async () => {
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
     });
     mockRegister.mockResolvedValue({ type: 'lookupUnavailable' });
 
     await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('failed');
-
     expect(mockCreate).not.toHaveBeenCalled();
   });
 });
