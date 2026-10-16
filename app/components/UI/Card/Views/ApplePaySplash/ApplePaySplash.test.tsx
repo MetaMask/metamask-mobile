@@ -1,7 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { AppThemeKey } from '../../../../../util/theme/models';
-import { mockTheme } from '../../../../../util/theme';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApplePaySplash from './ApplePaySplash';
 
@@ -19,28 +17,28 @@ describe('ApplePaySplash', () => {
     mockGoBack.mockClear();
   });
 
-  it('shows the light design and continues to Card Home', () => {
-    const { getByText, getByTestId } = renderWithProvider(<ApplePaySplash />);
+  it('shows the splash copy and continues to Card Home', () => {
+    const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      <ApplePaySplash />,
+    );
 
+    expect(getByText('MetaMask with Apple Pay')).toBeOnTheScreen();
     expect(
-      getByText('Your iPhone is now your MetaMask card.'),
+      getByText(
+        'Apple Pay is an easy, secure, and private way to pay with your iPhone and Apple Watch.',
+      ),
     ).toBeOnTheScreen();
-    expect(getByTestId('apple-pay-splash-lockup-light')).toBeOnTheScreen();
+    expect(
+      getByText('There are no additional app downloads, sign ups, or fees.'),
+    ).toBeOnTheScreen();
+    expect(getByText('Get set up in seconds.')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-splash-hero')).toBeOnTheScreen();
+    expect(queryByTestId('apple-pay-splash-lockup-light')).toBeNull();
     expect(getByText('Continue')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('apple-pay-splash-continue'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('uses the dark lockup', () => {
-    const { getByTestId } = renderWithProvider(<ApplePaySplash />, {
-      theme: { ...mockTheme, themeAppearance: AppThemeKey.dark },
-    });
-
-    expect(getByTestId('apple-pay-splash-lockup-dark')).toBeOnTheScreen();
-    expect(getByTestId('apple-pay-splash-hero')).toBeOnTheScreen();
   });
 
   it('returns to Card Home when closed', () => {
