@@ -16,6 +16,8 @@ import {
   TIME_PERIOD_MS,
 } from './tokenOverviewChart.constants';
 import { usePriceChartContext } from './Price.context';
+import { useIsGlassSurfaceEnabled } from '../../../hooks/useIsGlassSurfaceEnabled';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 
 export const PRICE_CHART_INDICATOR_BAR_SPACER_TEST_ID =
   'price-chart-indicator-bar-spacer';
@@ -64,6 +66,10 @@ const IntervalBarRow = () => {
  * switching modes.
  */
 const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
+  // The price chart only renders on token details, so it reads that screen's flag.
+  const isGlass = useIsGlassSurfaceEnabled(
+    selectTokenDetailsBrandRefreshEnabled,
+  );
   const {
     activeIndicators,
     chartType,
@@ -140,6 +146,7 @@ const BottomChrome = ({ uniformSpacing = false }: PriceChartSectionProps) => {
           onMAPress={handleMAPress}
           activeIndicators={activeIndicators}
           onIndicatorToggle={handleIndicatorToggle}
+          isGlass={isGlass}
         />
       </Box>
     );
