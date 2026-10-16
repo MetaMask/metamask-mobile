@@ -685,6 +685,9 @@ describe('AppLockService', () => {
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.LOGIN }],
       });
+      expect(mockClearRequests).toHaveBeenCalledWith(
+        providerErrors.userRejectedRequest(),
+      );
       expect(mockHidePrivacyCover).not.toHaveBeenCalled();
 
       // The wallet is still locked when the user comes back.
