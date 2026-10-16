@@ -6,7 +6,12 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import type { ClaimDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { captureException } from '@sentry/react-native';
 import { useInFlightClaims } from './useInFlightClaims';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -72,7 +77,7 @@ describe('useInFlightClaims', () => {
 
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:getClaimHistory',
-      { forceFresh: true },
+      { forceFresh: false },
     );
     expect(result.current.claims).toEqual([claim('claim-open')]);
   });
@@ -127,5 +132,24 @@ describe('useInFlightClaims', () => {
     });
 
     expect(result.current.claims).toEqual([claim('claim-open')]);
+    expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+      tags: {
+        feature: 'rewards-money',
+        context: 'inFlightClaims.fetch_failed',
+      },
+    });
+  });
+
+  it('reads past the cache when a claim just opened', async () => {
+    const { result } = renderHook(() => useInFlightClaims(PROFILE_A));
+
+    await act(async () => {
+      await result.current.refresh({ forceFresh: true });
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledWith(
+      'RewardsMoneyController:getClaimHistory',
+      { forceFresh: true },
+    );
   });
 });

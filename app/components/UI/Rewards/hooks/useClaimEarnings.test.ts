@@ -5,6 +5,7 @@
  */
 import { act, renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
@@ -15,6 +16,7 @@ import {
   type MoneyAccountVaultConfig,
 } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
+import { isMonadMainnetChainId } from '../../../../util/networks';
 import { RewardsMoneyClaimRefusalError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimVoucherDto,
@@ -235,6 +237,7 @@ describe('useClaimEarnings', () => {
     (getGasFeesSponsoredNetworkEnabled as unknown as jest.Mock).mockReturnValue(
       () => true,
     );
+    jest.mocked(isMonadMainnetChainId).mockReturnValue(true);
     (useNavigation as jest.Mock).mockReturnValue({ goBack: mockGoBack });
     (useConfirmNavigation as jest.Mock).mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
@@ -328,6 +331,22 @@ describe('useClaimEarnings', () => {
     });
 
     expect(mockEngineCall).not.toHaveBeenCalled();
+    expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureToast,
+    );
+  });
+
+  it('does not open a claim when the vault chain is not Monad', async () => {
+    jest.mocked(isMonadMainnetChainId).mockReturnValue(false);
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
     expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureToast,
@@ -624,6 +643,46 @@ describe('useClaimEarnings', () => {
     );
     expect(onSubmitted).not.toHaveBeenCalled();
   });
+
+  it.each([KeyringTypes.ledger, KeyringTypes.snap])(
+    'shows the retry toast when the earning address is on a %s keyring',
+    async (keyringType) => {
+      const keyring = Engine.context.KeyringController.state.keyrings[0];
+      const originalType = keyring.type;
+      keyring.type = keyringType;
+      mockEngineCall.mockResolvedValue({
+        kind: 'proof_required',
+        body: {
+          reason: 'PROOF_REQUIRED',
+          claim_intent_id: 'intent-1',
+          expires_at: '2026-09-29T00:00:00.000Z',
+          challenges: [
+            {
+              earning_address: EARNING_ADDRESS,
+              amount_musd_base_units: ONE_DOLLAR,
+              message: 'sign me',
+            },
+          ],
+        },
+      });
+      try {
+        const { result } = renderClaim();
+
+        await act(async () => {
+          await result.current.claim(summary(ONE_DOLLAR));
+        });
+
+        expect(mockSignPersonalMessage).not.toHaveBeenCalled();
+        expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+        expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
+        expect(mockErrorToast).toHaveBeenCalledWith(
+          localizedText.claimFailureRetryToast,
+        );
+      } finally {
+        keyring.type = originalType;
+      }
+    },
+  );
 
   it('goes back and shows the retry toast when the batch is rejected', async () => {
     mockSubmitClaimVoucher.mockRejectedValue(new Error('User rejected'));

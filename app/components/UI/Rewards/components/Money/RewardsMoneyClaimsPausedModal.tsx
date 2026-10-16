@@ -6,9 +6,11 @@ import {
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
-  BoxFlexDirection,
-  BoxJustifyContent,
   ButtonSize,
+  FontWeight,
+  KeyValueRow,
+  KeyValueRowVariant,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -20,6 +22,8 @@ export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-money-claims-paused-modal',
   TITLE: 'rewards-money-claims-paused-modal-title',
   DESCRIPTION: 'rewards-money-claims-paused-modal-description',
+  DIVIDER: 'rewards-money-claims-paused-modal-divider',
+  BREAKDOWN_HEADER: 'rewards-money-claims-paused-modal-breakdown-header',
   TOTALS: 'rewards-money-claims-paused-modal-totals',
   CLOSE: 'rewards-money-claims-paused-modal-close',
   GOT_IT: 'rewards-money-claims-paused-modal-got-it',
@@ -45,6 +49,7 @@ export interface ClaimsPausedTotals {
  * `voided`, `pending`, and `claimed`.
  */
 export interface ClaimsPausedLabels {
+  breakdown: string;
   recordedEarningsLabel: string;
   availableToClaim: string;
   held: string;
@@ -97,24 +102,17 @@ const ClaimsPausedTotalsRows: React.FC<{
   totals: ClaimsPausedTotals;
   labels: ClaimsPausedLabels;
 }> = ({ totals, labels }) => (
-  <Box
-    twClassName="mt-4 gap-2"
-    testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TOTALS}
-  >
+  <>
     {TOTAL_ROWS.map((row) => (
-      <Box
+      <KeyValueRow
         key={row.key}
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Between}
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={row.label(labels)}
+        value={musdAmount(totals[row.key])}
         testID={`${REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TOTALS}-${row.key}`}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {row.label(labels)}
-        </Text>
-        <Text variant={TextVariant.BodyMd}>{musdAmount(totals[row.key])}</Text>
-      </Box>
+      />
     ))}
-  </Box>
+  </>
 );
 
 interface RewardsMoneyClaimsPausedModalProps {
@@ -147,25 +145,39 @@ const RewardsMoneyClaimsPausedModal: React.FC<
         closeButtonProps={{
           testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CLOSE,
         }}
-        // Header default is px-2 around a 32px button and a 24px icon, which
-        // leaves the glyph 4px outside the px-4 body. px-3 lines it up.
-        twClassName="px-3"
         testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TITLE}
       >
         {title}
       </BottomSheetHeader>
-      <Box twClassName="px-4">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
-        >
+      <Box
+        twClassName="px-4"
+        testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
+      >
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {description}
         </Text>
-        {totals && labels ? (
-          <ClaimsPausedTotalsRows totals={totals} labels={labels} />
-        ) : null}
       </Box>
+      {totals && labels ? (
+        <>
+          <SectionDivider
+            marginVertical={4}
+            testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DIVIDER}
+          />
+          <Box twClassName="px-4 mb-2">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              testID={
+                REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.BREAKDOWN_HEADER
+              }
+            >
+              {labels.breakdown}
+            </Text>
+          </Box>
+          <ClaimsPausedTotalsRows totals={totals} labels={labels} />
+        </>
+      ) : null}
       <BottomSheetFooter
         primaryButtonProps={{
           children: strings('rewards.upcoming_rewards.cta_label'),
@@ -173,7 +185,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
           size: ButtonSize.Lg,
           testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.GOT_IT,
         }}
-        twClassName="px-4 pt-6"
+        twClassName="px-4 pt-4"
       />
     </BottomSheet>
   );

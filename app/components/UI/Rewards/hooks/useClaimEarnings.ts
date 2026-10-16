@@ -34,6 +34,7 @@ import {
   runEarningsClaim,
   submitClaimVoucher,
 } from '../utils/claimEarnings';
+import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 
 function waitForNextFrame(): Promise<void> {
   return new Promise((resolve) => {
@@ -262,7 +263,13 @@ export function useClaimEarnings(
           claimWaitingUntilRef.current = until;
           setClaimWaitingUntil(until);
         }
-      } catch {
+      } catch (error) {
+        reportRewardsMoneyReadFailure(
+          error,
+          'claimEarnings.failed',
+          true,
+          'rewards-money',
+        );
         fail('claimFailureToast');
       } finally {
         if (!refreshHold) {

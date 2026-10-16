@@ -79,7 +79,13 @@ export const useEarningsSummary = (
       followUp?: boolean;
     }) => Promise<EarningsSummaryDto | undefined>
   >(() => Promise.resolve(undefined));
-  const isLoadingRef = useRef(false);
+  // The promise for this instance's current read. A later caller that does
+  // not need a newer summary shares it. A forceFresh caller does not: the
+  // read already running may be the pre-claim cache, and returning nothing
+  // would look like that refresh had finished.
+  const inFlightRef = useRef<{
+    promise: Promise<EarningsSummaryDto | undefined>;
+  } | null>(null);
 
   const fetchEarningsSummary = useCallback(
     async ({
@@ -91,55 +97,66 @@ export const useEarningsSummary = (
       if (!profileId) {
         return undefined;
       }
-      // This instance skips a second call while its own request is in flight,
-      // and that call has no summary to return. Another instance has its own
-      // ref, so it can still start a duplicate.
-      if (isLoadingRef.current) {
-        return undefined;
-      }
-      isLoadingRef.current = true;
-      const flight = joinEarningsSummaryFlight(profileId);
-
-      cancelBusyRefetch();
-      // Leave a previous error set while this request is in flight. The
-      // Earnings banner reads that flag, and clearing it here unmounts the
-      // banner for the whole retry. A success clears it with the new summary.
-      dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
-
-      try {
-        const summary: EarningsSummaryDto =
-          await Engine.controllerMessenger.call(
-            'RewardsMoneyController:getEarningsSummary',
-            { forceFresh },
-          );
-        flight.stored = true;
-        dispatch(setEarningsSummary({ profileId, data: summary }));
-        return summary;
-      } catch (error) {
-        // A faster duplicate already stored this profile's summary. Applying
-        // this rejection would mark that stored read as failed.
-        if (!flight.stored) {
-          reportRewardsMoneyReadFailure(
-            error,
-            'earningsSummary.fetch_failed',
-            followUp,
-            'rewards-money',
-          );
-          dispatch(setEarningsSummaryError({ profileId, error: true }));
-          if (!followUp) {
-            armBusyRefetch(error, () => {
-              // The slice already holds the error, and this retry has no caller.
-              void fetchRef
-                .current({ forceFresh: true, followUp: true })
-                .catch(() => undefined);
-            });
-          }
+      const current = inFlightRef.current;
+      if (current) {
+        if (!forceFresh) {
+          return current.promise;
         }
-        throw error;
+        await current.promise.catch(() => undefined);
+        return fetchRef.current({ forceFresh: true, followUp });
+      }
+
+      const promise = (async (): Promise<EarningsSummaryDto | undefined> => {
+        const flight = joinEarningsSummaryFlight(profileId);
+
+        cancelBusyRefetch();
+        // Leave a previous error set while this request is in flight. The
+        // Earnings banner reads that flag, and clearing it here unmounts the
+        // banner for the whole retry. A success clears it with the new summary.
+        dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
+
+        try {
+          const summary: EarningsSummaryDto =
+            await Engine.controllerMessenger.call(
+              'RewardsMoneyController:getEarningsSummary',
+              { forceFresh },
+            );
+          flight.stored = true;
+          dispatch(setEarningsSummary({ profileId, data: summary }));
+          return summary;
+        } catch (error) {
+          // A faster duplicate already stored this profile's summary. Applying
+          // this rejection would mark that stored read as failed.
+          if (!flight.stored) {
+            reportRewardsMoneyReadFailure(
+              error,
+              'earningsSummary.fetch_failed',
+              followUp,
+              'rewards-money',
+            );
+            dispatch(setEarningsSummaryError({ profileId, error: true }));
+            if (!followUp) {
+              armBusyRefetch(error, () => {
+                // The slice already holds the error, and this retry has no caller.
+                void fetchRef
+                  .current({ forceFresh: true, followUp: true })
+                  .catch(() => undefined);
+              });
+            }
+          }
+          throw error;
+        } finally {
+          leaveEarningsSummaryFlight(profileId);
+          dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
+        }
+      })();
+      inFlightRef.current = { promise };
+      try {
+        return await promise;
       } finally {
-        leaveEarningsSummaryFlight(profileId);
-        isLoadingRef.current = false;
-        dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
+        if (inFlightRef.current?.promise === promise) {
+          inFlightRef.current = null;
+        }
       }
     },
     [armBusyRefetch, cancelBusyRefetch, dispatch, profileId],

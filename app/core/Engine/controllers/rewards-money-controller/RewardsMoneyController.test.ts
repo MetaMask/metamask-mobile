@@ -443,6 +443,17 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('does not call data service when flag is off for initiateClaim', async () => {
+      await expect(
+        controller.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toThrow('Rewards Money is disabled');
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
     it('does not call data service when flag is off for registerReferee', async () => {
       await expect(controller.registerReferee({ code: 'ABC' })).rejects.toThrow(
         'Rewards Money is disabled',
@@ -866,6 +877,38 @@ describe('RewardsMoneyController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsMoneyDataService:validateReferralCode',
         'ABC',
+      );
+    });
+  });
+
+  describe('initiateClaim', () => {
+    it('forwards the route and body when enabled', async () => {
+      const authorized = {
+        kind: 'authorized' as const,
+        body: {
+          claim: { id: 'claim-1' },
+          voucher: null,
+          excluded: [],
+          status: 'OPENED' as const,
+        },
+      };
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return authorized;
+        }
+        return undefined;
+      });
+
+      await expect(
+        controller.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toBe(authorized);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:initiateClaim',
+        'referral-rev-share',
+        { money_account_address: '0xmoney' },
       );
     });
   });
