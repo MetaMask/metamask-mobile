@@ -9,33 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.17.0]
 
-### Uncategorized
-
-- Simplified the Close Position totals to show Total receive and Included P&L (with percentage) instead of a combined margin and total row (#37377)
-- Hid lifetime earnings section when fetching data fails (#37579)
-- Increased the space around the divider under a limit order's sent amount (#37608)
-- Connected the token details Feed tab and position sharing to Social (#37516)
-- Matched the text weight of the trigger price and transaction id on limit order details (#37611)
-- Sets tempo nativeCurrency to USD (#37560)
-- Block Perps market orders that cannot fill within visible liquidity and the slippage limit, with recovery guidance; Blocked Perps market orders that cannot fill within visible liquidity and the slippage limit, with recovery guidance (#37408)
-- Show Robinhood tokenized stocks in Explore when ASSETS4098ShowRobinhoodRwa is on (#37531)
-- Show Robinhood tokenized stocks in Explore when ASSETS4098ShowRobinhoodRwa is on (#37453)
-- Show basic functionality is off screen for Explore Search when BFT toggle is off (#37497)
-- Tightened the spacing between the recurring swap containers (#37465)
-- Tightened the space above the limit price card to 8px (#37462)
-- Increased keyring vault PBKDF2 iterations to 600,000 (#37433)
-- Hid the swaps orders network filter unless you have open orders on more than one network, and limited the network picker to networks that have orders (#37323)
-- Split the cancel membership survey into a reason step and a stay question, and returned users to Pro Hub after cancellation (#37117)
-- Grouped swaps limit orders by day under date headers (#37318)
-- Showed a loading screen while bank account setup status loads (#37342)
-- Enforced minimum limit order amounts, standardized fiat formatting on limit order screens, and added a way to create a new order from failed, expired, or canceled order details (#37200)
-- Show Arc USDC balance and details from native asset in swap asset picker (#37137)
-- Upsert get_fees_error to Transaction events (#37104)
-- Prevented Limit Orders from being submitted when neither selected asset can pay Sentinel fees (#37299)
-- Hid the Money balance row in regions where Money is unavailable (#36988)
-
 ### Added
 
+- Added a connection from the token details Feed tab and position sharing to Social (#37516)
 - Added email OTP to VBA onboarding flow (#37541)
 - Added a Perps home Explore table for the treatment group of an A/B test (#37454)
 - Bumped Tron, Solana and Bitcoin snaps (#37503)
@@ -86,6 +62,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated Close Position totals to show Total receive and Included P&L (with percentage) instead of a combined margin and total row (#37377)
+- Updated the space around the divider under a limit order's sent amount (#37608)
+- Updated the trigger price and transaction ID on limit order details to the same text weight (#37611)
+- Updated the spacing between the recurring swap containers (#37465)
+- Updated the space above the limit price card to 8px (#37462)
+- Updated the swaps orders network filter so it stays hidden unless you have open orders on more than one network, and limited the network picker to networks that have orders (#37323)
+- Updated swaps limit orders so they are grouped by day under date headers (#37318)
+- Updated cancel membership so the survey is split into a reason step and a stay question, and returned users to Pro Hub after cancellation (#37117)
+- Updated transaction events to include get_fees_error (#37104)
 - Updated the swap price range presets to fully rounded buttons (#37511)
 - Updated Batch Sell network pills to fully rounded corners and increased token balance contrast (#37509)
 - Updated spacing around the limit order confirm button (#37605)
@@ -135,6 +120,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the lifetime earnings section so it stays hidden when fetching data fails (#37579)
+- Fixed Tempo so its native currency is USD (#37560)
+- Fixed Perps market orders so an order that cannot fill within visible liquidity and the slippage limit is blocked, with recovery guidance (#37408)
+- Fixed Explore Search so the basic functionality off screen shows when that toggle is off (#37497)
+- Fixed bank account setup so a loading screen shows while status loads (#37342)
+- Fixed limit order screens to enforce minimum amounts, use consistent fiat formatting, and offer a way to create a new order from failed, expired, or canceled order details (#37200)
+- Fixed limit orders so they cannot be submitted when neither selected asset can pay Sentinel fees (#37299)
+- Fixed the homepage so the Money balance row stays hidden in regions where Money is unavailable (#36988)
 - Fixed Card sign-up country prefill for US and Canada locations (#37522)
 - Fixed the Perps outreach banner colors, the outreach sheet being covered by trade buttons on Android, and clipped chart interval labels (#37637)
 - Fixed the limit order form remaining populated after an order was created (#37594)
