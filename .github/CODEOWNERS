@@ -410,8 +410,10 @@ tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
 tests/flows/                                                    @MetaMask/qa
 tests/framework/                                                @MetaMask/qa
+tests/hyperexecute/                                             @MetaMask/qa
 tests/module-mocking/                                           @MetaMask/qa
 tests/page-objects/                                             @MetaMask/qa
+tests/reporters/providers/testmu/                               @MetaMask/qa
 tests/resources/                                                @MetaMask/qa
 tests/scripts/                                                  @MetaMask/qa
 tests/seeder/                                                   @MetaMask/qa
@@ -436,6 +438,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/qa-stats.yml                                  @MetaMask/qa
 .github/workflows/flaky-test-report.yml                         @MetaMask/qa
 .github/workflows/performance-test-runner.yml                   @MetaMask/qa
+.github/workflows/performance-test-runner-testmu.yml             @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
 .github/workflows/run-performance-e2e-manual.yml                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa

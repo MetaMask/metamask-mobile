@@ -24,6 +24,7 @@ import {
   selectKycSessionStatus,
 } from '../../../../../../selectors/kycController';
 import { useVbaEligibility, type VbaEligibility } from './useVbaEligibility';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 import {
@@ -39,8 +40,17 @@ jest.mock('../../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
+      KycController: {
+        fetchSessionStatusOnce: jest.fn(),
+        refreshSessionStatus: jest.fn(),
+        startSessionStatusPolling: jest.fn(),
+        clearState: jest.fn(),
+        state: { sessionStatus: null as KycSessionStatus | null },
+      },
       RampsController: {
         hydrateVbaOnboarding: jest.fn(),
+        refreshAutoramps: jest.fn(),
+        state: { autoramps: [] as AutorampAccount[] },
       },
     },
   },
@@ -48,6 +58,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../../../../selectors/rampsController');
 jest.mock('../../../../../../selectors/kycController');
 jest.mock('./useVbaEligibility');
+jest.mock('../../../../../../hooks/useNetworkTier');
 jest.mock('../vbaVendorTermsStorage');
 jest.mock('../vbaDevOverrides', () => ({
   ...jest.requireActual('../vbaDevOverrides'),
@@ -75,6 +86,17 @@ const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
 const mockHydrateVbaOnboarding = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,
 );
+const mockFetchSessionStatusOnce = jest.mocked(
+  Engine.context.KycController.fetchSessionStatusOnce,
+);
+const mockClearState = jest.mocked(Engine.context.KycController.clearState);
+const mockRefreshSessionStatus = jest.mocked(
+  Engine.context.KycController.refreshSessionStatus,
+);
+const mockStartSessionStatusPolling = jest.mocked(
+  Engine.context.KycController.startSessionStatusPolling,
+);
+const mockUseNetworkTier = jest.mocked(useNetworkTier);
 
 const WALLET = '0xMoneyAccountWallet';
 const OTHER_WALLET = '0xOtherWallet';
@@ -572,75 +594,118 @@ describe('useVbaHomeCard', () => {
 });
 
 describe('useVbaHomeCardRefresh', () => {
-  let focusCallback: () => undefined | (() => void);
+  // The hook's `useCallback` result captured by the `useFocusEffect` mock.
+  // Tests assert its identity to lock dependency lists.
+  let storedFocusCallback: (() => undefined | (() => void)) | undefined;
+  let isFocused = false;
+  // Invoking `focusCallback` is the focus event. While focused, the mock
+  // re-runs a replacement callback the moment its identity changes — React
+  // Navigation's semantics, which are what make dependency-list regressions
+  // (a mid-focus rerun firing a second GET) visible to these tests.
+  const focusCallback = (): undefined | (() => void) => {
+    isFocused = true;
+    return storedFocusCallback?.();
+  };
 
   const setupRefreshSelectors = ({
+    isEligible = true,
     walletAddress = WALLET,
     sessionStatus = null,
   }: {
+    isEligible?: boolean;
     walletAddress?: string | null;
     sessionStatus?: KycSessionStatus | null;
   } = {}) => {
+    mockUseVbaEligibility.mockReturnValue(makeEligibility({ isEligible }));
     mockSelectSelectedVbaWalletAddress.mockReturnValue(walletAddress);
-    mockSelectKycSessionStatus.mockReturnValue(sessionStatus);
+    // The refresh hook reads the session from Engine state at focus time.
+    Engine.context.KycController.state.sessionStatus = sessionStatus;
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    storedFocusCallback = undefined;
+    isFocused = false;
+    Engine.context.KycController.state.sessionStatus = null;
+    mockClearState.mockImplementation(() => {
+      Engine.context.KycController.state.sessionStatus = null;
+    });
     mockUseSelector.mockImplementation((selector) =>
       selector(undefined as never),
     );
     mockUseFocusEffect.mockImplementation((callback) => {
-      focusCallback = callback as typeof focusCallback;
+      const next = callback as () => undefined | (() => void);
+      const changed = storedFocusCallback !== next;
+      storedFocusCallback = next;
+      if (changed && isFocused) {
+        next();
+      }
     });
-    mockHydrateVbaOnboarding.mockResolvedValue({} as VbaOnboardingSnapshot);
+    // Unknown network takes the product default — never read as offline.
+    mockUseNetworkTier.mockReturnValue(null);
+    Engine.context.RampsController.state.autoramps = [];
+    mockFetchSessionStatusOnce.mockResolvedValue(makeSession());
+    Engine.context.KycController.state.sessionStatus = null;
   });
 
-  it('does not hydrate during initial render before focus', () => {
+  it('does not fetch during initial render before focus', () => {
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());
 
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('starts a one-shot KYC refresh on focus for a non-terminal session', () => {
+  it('fetches the stored session status once with its session id on focus', () => {
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());
     focusCallback();
 
-    expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(1);
-    expect(mockHydrateVbaOnboarding).toHaveBeenCalledWith({
-      walletAddress: WALLET,
-      refreshKyc: true,
-    });
-  });
-
-  it('does not hydrate when there is no session', () => {
-    setupRefreshSelectors({ sessionStatus: null });
-
-    renderHook(() => useVbaHomeCardRefresh());
-    focusCallback();
-
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it.each(['approved', 'rejected', 'retry'])(
-    'does not hydrate for a terminal session (%s)',
-    (finalStatus) => {
-      setupRefreshSelectors({
-        sessionStatus: makeSession({ finalStatus }),
-      });
+  it('fetches once per focus: the next focus may fetch again', async () => {
+    setupRefreshSelectors({ sessionStatus: makeSession() });
 
-      renderHook(() => useVbaHomeCardRefresh());
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
       focusCallback();
+    });
+    await act(async () => {
+      focusCallback();
+    });
 
-      expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
-    },
-  );
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(2);
+  });
 
-  it('does not hydrate without a selected wallet', () => {
+  it('makes no VBA request when the eligibility gate fails (flag or region)', () => {
+    setupRefreshSelectors({ isEligible: false, sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('makes no VBA request while the geo lookup is still loading', () => {
+    mockUseVbaEligibility.mockReturnValue(
+      makeEligibility({ isEligible: false, isLoading: true }),
+    );
+    mockSelectSelectedVbaWalletAddress.mockReturnValue(WALLET);
+    mockSelectKycSessionStatus.mockReturnValue(makeSession());
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+  });
+
+  it('makes no VBA request without a selected wallet', () => {
     setupRefreshSelectors({
       sessionStatus: makeSession(),
       walletAddress: null,
@@ -649,10 +714,113 @@ describe('useVbaHomeCardRefresh', () => {
     renderHook(() => useVbaHomeCardRefresh());
     focusCallback();
 
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+  });
+
+  it('makes no VBA request without a persisted session', () => {
+    setupRefreshSelectors({ sessionStatus: null });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
     expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('starts no polling loop after the one-shot refresh', () => {
+  it.each(['approved', 'rejected', 'retry'])(
+    'makes no session GET for a terminal stored status (%s)',
+    (finalStatus) => {
+      setupRefreshSelectors({
+        sessionStatus: makeSession({ finalStatus }),
+      });
+
+      renderHook(() => useVbaHomeCardRefresh());
+      focusCallback();
+
+      expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+    },
+  );
+
+  it('makes no VBA request when the network is known to be offline', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+  });
+
+  it('fetches on the next focus after the network recovers, not mid-focus', () => {
+    mockUseNetworkTier.mockReturnValue('NONE');
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+    const storedCallbackBefore = storedFocusCallback;
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+
+    // A tier change alone must not re-arm the refresh: the gate reads the
+    // latest tier at call time, and the GET waits for the next focus.
+    mockUseNetworkTier.mockReturnValue(null);
+    rerender();
+
+    // The tier is not a dependency: the focus callback identity is stable, so
+    // React Navigation's rerun-on-callback-change semantics cannot refire the
+    // GET mid-focus. If networkTier re-enters the dependency list, the new
+    // callback identity fails this assertion.
+    expect(storedFocusCallback).toBe(storedCallbackBefore);
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+  });
+
+  it('fetches on the rerender when the user becomes eligible while already focused', () => {
+    setupRefreshSelectors({ isEligible: false, sessionStatus: makeSession() });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+    focusCallback();
+
+    expect(mockFetchSessionStatusOnce).not.toHaveBeenCalled();
+
+    // Eligibility is a dependency on purpose: the geo lookup resolving
+    // mid-focus builds a new callback, React Navigation runs it at once, and
+    // the card catches up without waiting for the next focus. Reading
+    // `isEligible` through a ref (like the tier) would keep the identity
+    // stable, skip this run, and leave the card stale on the cold open.
+    mockUseVbaEligibility.mockReturnValue(makeEligibility());
+    rerender();
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+  });
+
+  it('stays one GET when the fetched status writes mid-focus', async () => {
+    const stored = makeSession({ finalStatus: 'new' });
+    const fetched = makeSession({ finalStatus: 'pending' });
+    mockFetchSessionStatusOnce.mockImplementation(async () => {
+      // The real controller writes the resolved session onto its state.
+      Engine.context.KycController.state.sessionStatus = fetched;
+      return fetched;
+    });
+    setupRefreshSelectors({ sessionStatus: stored });
+    const { rerender } = renderHook(() => useVbaHomeCardRefresh());
+
+    await act(async () => {
+      focusCallback();
+      // The write lands while Money home stays focused. The gate reads the
+      // session from Engine state at call time — not from a dependency — so
+      // the write must not rebuild the callback and refire the GET.
+      rerender();
+    });
+
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledWith('session-1');
+  });
+
+  it('starts no polling loop after the one-shot fetch', () => {
     jest.useFakeTimers();
     try {
       setupRefreshSelectors({ sessionStatus: makeSession() });
@@ -662,18 +830,20 @@ describe('useVbaHomeCardRefresh', () => {
       // Outlive the KYC 15s poll cadence.
       jest.advanceTimersByTime(45_000);
 
-      expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
+      expect(mockStartSessionStatusPolling).not.toHaveBeenCalled();
+      expect(mockRefreshSessionStatus).not.toHaveBeenCalled();
     } finally {
       jest.useRealTimers();
     }
   });
 
-  it('logs and swallows a failed refresh', async () => {
+  it('logs and swallows a failed session fetch', async () => {
     const errorSpy = jest
       .spyOn(Logger, 'error')
       .mockImplementation(() => undefined);
-    const failure = new Error('hydrate failed');
-    mockHydrateVbaOnboarding.mockRejectedValue(failure);
+    const failure = new Error('session status fetch failed');
+    mockFetchSessionStatusOnce.mockRejectedValue(failure);
     setupRefreshSelectors({ sessionStatus: makeSession() });
 
     renderHook(() => useVbaHomeCardRefresh());
@@ -684,9 +854,37 @@ describe('useVbaHomeCardRefresh', () => {
     expect(errorSpy).toHaveBeenCalledWith(
       failure,
       expect.objectContaining({
-        context: expect.objectContaining({ name: 'useVbaHomeCardRefresh' }),
+        tags: expect.objectContaining({ feature: 'money-home' }),
+        context: expect.objectContaining({
+          name: 'useVbaHomeCardRefresh',
+          data: { walletAddress: WALLET },
+        }),
       }),
     );
+    errorSpy.mockRestore();
+  });
+
+  it('clears stale KYC state instead of logging when the session GET 404s', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    const notFound = Object.assign(new Error('session not found'), {
+      httpStatus: 404,
+    });
+    mockFetchSessionStatusOnce.mockRejectedValue(notFound);
+    setupRefreshSelectors({ sessionStatus: makeSession() });
+
+    renderHook(() => useVbaHomeCardRefresh());
+    await act(async () => {
+      focusCallback();
+    });
+
+    expect(mockClearState).toHaveBeenCalledTimes(1);
+    expect(errorSpy).not.toHaveBeenCalled();
+
+    // The cleared state is gone: a refocus must not send another GET.
+    focusCallback();
+    expect(mockFetchSessionStatusOnce).toHaveBeenCalledTimes(1);
     errorSpy.mockRestore();
   });
 });

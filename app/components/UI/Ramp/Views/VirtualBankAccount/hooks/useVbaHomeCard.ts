@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import {
   AutorampStatus,
   type AutorampAccount,
@@ -371,9 +372,9 @@ export const useVbaHomeCard = (): VbaHomeCard => {
 /**
  * Whether focusing Money home should trigger the one-shot KYC session
  * refresh: a KYC session must exist and its `finalStatus` must be
- * non-terminal, matching `hydrateVbaOnboarding`'s own `refreshKyc` gate
- * (one session-status GET for a non-terminal persisted session). With no
- * session, or a terminal one, there is nothing to refresh.
+ * non-terminal — the same terminal-status gate the KYC 15s poll uses to
+ * decide whether to keep ticking. With no session, or a terminal one, there
+ * is nothing to refresh.
  *
  * @param sessionFinalStatus - `KycSessionStatus.finalStatus` when a session
  * is persisted, else `null`.
@@ -386,32 +387,48 @@ export const shouldRefreshKycSessionOnFocus = (
   !TERMINAL_SESSION_STATUSES.has(sessionFinalStatus);
 
 /**
- * One-shot KYC session refresh for Money home. Wire it on the hosting screen
- * (MoneyHomeView) so it runs on `useFocusEffect`: when a KYC session exists
- * and is non-terminal, it calls
- * `RampsController.hydrateVbaOnboarding({ walletAddress, refreshKyc: true })`
- * — a single GET, never `refreshSessionStatus` and never the 15s poll. With
- * no session or a terminal status it does nothing. The gate reads only
- * primitive state (`walletAddress`, `finalStatus`), so unrelated
- * KycController state writes never re-arm the refresh mid-focus, and
- * `hydrateVbaOnboarding` is never called during initial render.
+ * One-shot KYC session refresh: wire on the Money home screen's
+ * `useFocusEffect` to make exactly one `fetchSessionStatusOnce` GET per focus
+ * (never the 15s poll, never `hydrateVbaOnboarding`) for an eligible user
+ * with a selected Money wallet and a persisted, non-terminal KYC session. A
+ * 404 clears the stale KYC state — the session is gone server-side or
+ * belongs to another profile — instead of logging on every focus. The gate
+ * reads the session from Engine state and the tier through a ref, so no
+ * state write rebuilds the callback and re-fires the GET mid-focus.
  */
 export const useVbaHomeCardRefresh = (): void => {
+  const { isEligible } = useVbaEligibility();
+  // Device-capability matrix: every hardware tier skips network work on a
+  // known-offline network; `null` (unknown) takes the product default.
+  const networkTier = useNetworkTier();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const sessionFinalStatus = useSelector(selectKycSessionStatus)?.finalStatus;
+  const networkTierRef = useRef(networkTier);
+  networkTierRef.current = networkTier;
 
   useFocusEffect(
     useCallback(() => {
+      if (!isEligible || !walletAddress || networkTierRef.current === 'NONE') {
+        return undefined;
+      }
+      const sessionStatus = Engine.context.KycController.state.sessionStatus;
       if (
-        !walletAddress ||
-        !shouldRefreshKycSessionOnFocus(sessionFinalStatus ?? null)
+        !sessionStatus ||
+        !shouldRefreshKycSessionOnFocus(sessionStatus.finalStatus)
       ) {
         return undefined;
       }
-      Engine.context.RampsController.hydrateVbaOnboarding({
-        walletAddress,
-        refreshKyc: true,
-      }).catch((error) => {
+
+      Engine.context.KycController.fetchSessionStatusOnce(
+        sessionStatus.id,
+      ).catch((error) => {
+        if ((error as { httpStatus?: number })?.httpStatus === 404) {
+          // Mirrors `hydrateVbaOnboarding`'s own 404 handling: a session
+          // the server no longer has (cleared backend-side, or persisted
+          // by another profile) must be dropped, not logged — it would
+          // otherwise 404 on every focus while the card stays stuck.
+          Engine.context.KycController.clearState();
+          return;
+        }
         Logger.error(error as Error, {
           tags: { feature: 'money-home' },
           context: {
@@ -421,6 +438,6 @@ export const useVbaHomeCardRefresh = (): void => {
         });
       });
       return undefined;
-    }, [walletAddress, sessionFinalStatus]),
+    }, [isEligible, walletAddress]),
   );
 };

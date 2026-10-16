@@ -21,7 +21,10 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
-import { restoreDefaultLocalSocialProfile } from './hooks/localSocialProfileStore';
+import {
+  getLocalSocialProfileSnapshot,
+  restoreDefaultLocalSocialProfile,
+} from './hooks/localSocialProfileStore';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -490,6 +493,20 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets the local profile and opens onboarding from the header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    );
+
+    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'debug: reset profile');
   });
 
   it('opens the post composer from the owner profile header', () => {
