@@ -52,7 +52,7 @@ const registerEchoingMockProfileService = (
       if (profile?.profile_id === profileId) {
         return profile;
       }
-      return { ...MOCK_PROFILE_API_RESPONSE, profile_id: profileId };
+      throw new Error('GET_PROFILE_FAILED: 404');
     },
     createProfile: async (params) => {
       profile = profileFromCreateParams(params);
@@ -92,6 +92,15 @@ const registerEchoingMockProfileService = (
     },
     deleteProfile: async () => {
       profile = undefined;
+    },
+    disconnectX: async (profileId) => {
+      if (profile?.profile_id === profileId) {
+        profile = {
+          ...profile,
+          connected_to_x: false,
+          updated_at: nowIso(),
+        };
+      }
     },
   });
 };

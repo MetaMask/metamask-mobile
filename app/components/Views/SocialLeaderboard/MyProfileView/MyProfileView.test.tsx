@@ -21,10 +21,7 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
-} from './hooks/localSocialProfileStore';
+import { restoreDefaultLocalSocialProfile } from './hooks/localSocialProfileStore';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -597,9 +594,6 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    ).toBeOnTheScreen();
   });
 
   it('renders the Posts empty state and trade CTA', () => {
@@ -624,17 +618,6 @@ describe('MyProfileView', () => {
     );
 
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
-  });
-
-  it('resets the local profile and opens onboarding from the debug button', () => {
-    renderWithProvider(<MyProfileView />);
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    );
-
-    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 
   it('opens onboarding when the owner has no profile', () => {
@@ -845,11 +828,6 @@ describe('MyProfileView', () => {
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(
-        MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON,
-      ),
     ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),

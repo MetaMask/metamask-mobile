@@ -70,5 +70,6 @@ export const profileControllerToMySocialProfile = (
     timesCopied: null,
     linkedAccountAddress: getLinkedEvmAddress(profile.linkedAddresses),
     shareTradingActivity: profile.tradingPrivacy === 'public',
+    joinedAt: profile.createdAt || null,
   };
 };

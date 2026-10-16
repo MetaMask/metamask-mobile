@@ -63,6 +63,38 @@ describe('profileServiceInit', () => {
       'wen-cat',
     );
     expect(availability.available).toBe(true);
+
+    const fetched = await request.controllerMessenger.call(
+      'ProfileService:getProfile',
+      'profile-1',
+    );
+    expect(fetched.username).toBe('wen-cat');
+
+    const updated = await request.controllerMessenger.call(
+      'ProfileService:updateProfile',
+      'profile-1',
+      { display_name: 'Wen Cat 2' },
+    );
+    expect(updated.display_name).toBe('Wen Cat 2');
+
+    await request.controllerMessenger.call(
+      'ProfileService:disconnectX',
+      'profile-1',
+    );
+    const afterDisconnect = await request.controllerMessenger.call(
+      'ProfileService:getProfile',
+      'profile-1',
+    );
+    expect(afterDisconnect.connected_to_x).toBe(false);
+  });
+
+  it('rejects getProfile when no profile has been created', async () => {
+    const request = getInitRequestMock();
+    profileServiceInit(request);
+
+    await expect(
+      request.controllerMessenger.call('ProfileService:getProfile', 'missing'),
+    ).rejects.toThrow('404');
   });
 
   it('instantiates ProfileService when the mock is turned off', () => {

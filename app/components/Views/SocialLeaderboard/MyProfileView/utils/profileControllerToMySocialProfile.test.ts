@@ -41,6 +41,7 @@ describe('profileControllerToMySocialProfile', () => {
       xHandle: 'alice',
       linkedAccountAddress: '0x123',
       shareTradingActivity: false,
+      joinedAt: '2026-01-01T00:00:00Z',
     });
   });
 
