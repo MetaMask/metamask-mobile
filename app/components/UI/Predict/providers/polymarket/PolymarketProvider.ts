@@ -931,15 +931,30 @@ export class PolymarketProvider implements PredictProvider {
     const versions = new Map<string, string>();
     for (const event of events) {
       for (const market of event.markets ?? []) {
-        const version = market.version ?? V1_MARKET_VERSION;
-        for (const outcomeTokenId of parseMarketOutcomeTokenIds(market)) {
-          versions.set(outcomeTokenId, version);
-          if (!this.#marketVersionsByOutcomeTokenId.has(outcomeTokenId)) {
-            this.#marketVersionsByOutcomeTokenId.set(
-              outcomeTokenId,
-              Promise.resolve(version),
-            );
+        try {
+          const version = market.version ?? V1_MARKET_VERSION;
+          for (const outcomeTokenId of parseMarketOutcomeTokenIds(market)) {
+            versions.set(outcomeTokenId, version);
+            if (!this.#marketVersionsByOutcomeTokenId.has(outcomeTokenId)) {
+              this.#marketVersionsByOutcomeTokenId.set(
+                outcomeTokenId,
+                Promise.resolve(version),
+              );
+            }
           }
+        } catch (error) {
+          // Token-id payloads are untrusted wire data — a malformed value
+          // must skip this market, not fail the listing. Parsing skips the
+          // same markets, and order-time resolution retries through
+          // #ensureOutcomeVersion on a cache miss.
+          DevLogger.log(
+            'PolymarketProvider: Failed to cache market version from outcome token ids',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              eventId: event.id,
+              marketId: market.id,
+            },
+          );
         }
       }
     }

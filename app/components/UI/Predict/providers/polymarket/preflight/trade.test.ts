@@ -13,8 +13,10 @@ import { OperationType, type SafeTransaction } from '../safe/types';
 import {
   MATIC_CONTRACTS_V2,
   MATIC_POSITIONS_PROTOCOL_CONTRACTS,
+  COLLATERAL_ONRAMP_ADDRESS,
   USDC_E_ADDRESS,
 } from '../constants';
+import { PERMIT2_ADDRESS } from '../safe/constants';
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
 import {
   buildSignedSafeExecutionIfNeeded,
@@ -80,6 +82,16 @@ describe('planPositionsTradePreflight', () => {
           tokenAddress: MATIC_POSITIONS_PROTOCOL_CONTRACTS.positionManager,
           operator: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
         },
+        {
+          type: 'erc20-allowance',
+          tokenAddress: MATIC_CONTRACTS_V2.collateral,
+          spender: PERMIT2_ADDRESS,
+        },
+        {
+          type: 'erc20-allowance',
+          tokenAddress: USDC_E_ADDRESS,
+          spender: COLLATERAL_ONRAMP_ADDRESS,
+        },
       ],
     });
     expect(mockCompileAllowanceMaintenanceTransactions).toHaveBeenCalledWith({
@@ -92,6 +104,34 @@ describe('planPositionsTradePreflight', () => {
       missingRequirements: [...missingRequirements],
       safeUsdceBalance: 5n,
       transactions,
+    });
+  });
+
+  it('drops the legacy-sweep requirement when there is no USDC.e to wrap', async () => {
+    await planPositionsTradePreflight({
+      safeAddress,
+      safeUsdceBalance: 0n,
+    });
+
+    expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
+      address: safeAddress,
+      requirements: [
+        {
+          type: 'erc20-allowance',
+          tokenAddress: MATIC_CONTRACTS_V2.collateral,
+          spender: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
+        },
+        {
+          type: 'erc1155-operator',
+          tokenAddress: MATIC_POSITIONS_PROTOCOL_CONTRACTS.positionManager,
+          operator: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
+        },
+        {
+          type: 'erc20-allowance',
+          tokenAddress: MATIC_CONTRACTS_V2.collateral,
+          spender: PERMIT2_ADDRESS,
+        },
+      ],
     });
   });
 

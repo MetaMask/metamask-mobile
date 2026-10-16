@@ -8,8 +8,11 @@ import type { V2AllowanceRequirement } from './v2AllowanceRequirements';
  * Allowance requirements for the positions protocol (Polymarket Protocol
  * V2). Both buy and sell share one requirement list, mirroring the CTF
  * builders and reusing the same generic requirement shapes: the pUSD
- * allowance covers collateral and fees, and selling approves the
- * PositionManager as operator for ExchangeV3.
+ * allowance covers collateral, and selling approves the PositionManager as
+ * operator for ExchangeV3. The legacy-Safe trade planner layers the Permit2
+ * fee requirement and — when there is USDC.e to wrap — the CTF legacy-sweep
+ * requirement on top of this list; the deposit-wallet planner filters
+ * Permit2 out instead.
  */
 export function getPositionsAllowanceRequirements(
   protocol: BasePolymarketPositionsProtocolDefinition = POLYMARKET_POSITIONS_PROTOCOL,

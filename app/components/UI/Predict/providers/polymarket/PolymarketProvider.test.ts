@@ -2071,6 +2071,27 @@ describe('PolymarketProvider', () => {
     expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
+  it('skips markets with malformed token ids when warming the version cache', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { clobTokenIds: 'not-json' },
+        { version: 'v2', positionIds: '{"oops":true}' },
+        { clobTokenIds: '["123","456"]' },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    // The malformed markets are skipped, not fatal — the good market still
+    // caches its version and the sell routes through the CTF path.
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
   it('falls back to the CTF path when no event market matches the sell outcome', async () => {
     const provider = createProvider();
     const preview = await previewWithWarmVersionCache(provider, {
