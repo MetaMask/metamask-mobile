@@ -292,6 +292,15 @@ describe('RewardsMoneyController', () => {
       expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
     });
 
+    it('keeps default cache maps an older persisted state omits', () => {
+      const restored = new RewardsMoneyController({
+        messenger: mockMessenger,
+        state: { referralMe: {} },
+      });
+
+      expect(restored.state).toEqual(getRewardsMoneyControllerDefaultState());
+    });
+
     it('registers messenger method handlers', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
         controller,

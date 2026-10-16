@@ -8,8 +8,13 @@ import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
+  selectCashbackLedger,
+  selectCommissions,
+  selectEarningsHistory,
   selectEarningsSummaryEntry,
+  selectInFlightClaims,
   selectMoneyDashboardPersona,
+  selectReferralFunnelEntry,
   selectReferralMeEntry,
   selectReferralMeLocalizedText,
 } from './selectors';
@@ -227,6 +232,44 @@ describe('rewardsMoney selectors', () => {
       const state = buildState({}, { [PROFILE_A]: settledSummaryEntry });
 
       expect(selectEarningsSummaryEntry(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectInFlightClaims', () => {
+    it('returns the open claims stored for the profile', () => {
+      const claims = [{ id: 'claim-open' }];
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          inFlightClaims: { [PROFILE_A]: claims },
+        },
+      } as RootState;
+
+      expect(selectInFlightClaims(state, PROFILE_A)).toEqual(claims);
+    });
+
+    it('returns undefined when a restored slice is missing the map', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {},
+      } as RootState;
+
+      expect(selectReferralMeEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectEarningsSummaryEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectReferralFunnelEntry(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissions(state, PROFILE_A)).toBeUndefined();
+      expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
+      expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+    });
+
+    it('returns undefined when the profile or the page is missing', () => {
+      const state = buildState();
+
+      expect(selectInFlightClaims(state, undefined)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+      expect(selectInFlightClaims(state, PROFILE_B)).toBeUndefined();
     });
   });
 });
