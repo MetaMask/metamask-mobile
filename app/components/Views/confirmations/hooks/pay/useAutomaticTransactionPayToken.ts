@@ -4,6 +4,7 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import { useTransactionPaySource } from './useTransactionPaySource';
 import { isHardwareAccount } from '../../../../../util/address';
 import {
   CHAIN_IDS,
@@ -63,7 +64,8 @@ export function useAutomaticTransactionPayToken({
   preferredToken?: SetPayTokenRequest;
 } = {}) {
   const isUpdated = useRef<string | undefined>(undefined);
-  const { payToken, setPayToken } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
+  const { paySource, setPaySource } = useTransactionPaySource();
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -139,7 +141,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     hasFiatPaymentSelected,
     hasTokenBalance: tokens.length > 0,
-    payTokenSelected: Boolean(payToken),
+    payTokenSelected: Boolean(paySource),
   });
 
   const selectBestToken = useCallback(
@@ -183,7 +185,7 @@ export function useAutomaticTransactionPayToken({
   useEffect(() => {
     if (
       disable ||
-      payToken ||
+      paySource ||
       hasFiatPaymentSelected ||
       !transactionId ||
       isUpdated.current === transactionId
@@ -241,10 +243,7 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    setPayToken({
-      address: automaticToken.address,
-      chainId: automaticToken.chainId,
-    });
+    setPaySource(resolveAutomaticSource(automaticToken, tokens));
 
     isUpdated.current = transactionId;
 
@@ -259,10 +258,10 @@ export function useAutomaticTransactionPayToken({
     isMoneyAccountPayPending,
     isMoneyPaymentOverride,
     maxDelayMinutesForPaymentMethods,
-    payToken,
+    paySource,
     paymentMethods,
     requiredTokens,
-    setPayToken,
+    setPaySource,
     shouldSelectMoneyAccount,
     tokens,
     transactionId,
@@ -301,10 +300,7 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
+      setPaySource(resolveAutomaticSource(automaticToken, tokens));
       log('Re-selected pay token after account change', automaticToken);
     }
   }, [
@@ -315,7 +311,8 @@ export function useAutomaticTransactionPayToken({
     from,
     hasFiatPaymentSelected,
     postQuoteTransactionType,
-    setPayToken,
+    setPaySource,
+    tokens,
   ]);
 
   // Re-select the pay token when the user switches between global account and
@@ -336,10 +333,7 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
+      setPaySource(resolveAutomaticSource(automaticToken, tokens));
       log('Re-selected pay token after money account change', automaticToken);
     }
   }, [
@@ -347,11 +341,25 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    setPayToken,
+    setPaySource,
     isMoneyPaymentOverride,
+    tokens,
   ]);
 
   return automaticToken;
+}
+
+function resolveAutomaticSource(
+  token: SetPayTokenRequest,
+  tokens: AssetType[],
+): AssetType | SetPayTokenRequest {
+  return (
+    tokens.find(
+      (candidate) =>
+        candidate.address === token.address &&
+        candidate.chainId === token.chainId,
+    ) ?? token
+  );
 }
 
 function getBestToken({
@@ -380,7 +388,7 @@ function getBestToken({
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
-}): { address: Hex; chainId: Hex } | undefined {
+}): SetPayTokenRequest | undefined {
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,

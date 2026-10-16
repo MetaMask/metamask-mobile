@@ -40,6 +40,8 @@ export function getTransactionPayControllerMessenger(
       'SentinelApiService:simulateTransactions',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:confirmTransaction',
+      'TransactionController:failTransaction',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',

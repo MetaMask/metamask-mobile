@@ -11,6 +11,7 @@ import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { createSolanaPayCallbacks } from './solana-pay-callbacks';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -30,6 +31,7 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
+      solana: createSolanaPayCallbacks(),
       state: persistedState.TransactionPayController,
     });
 
