@@ -5,14 +5,13 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
+import { TopTradersViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/TopTradersView/TopTradersView.testIds';
 import TokenDetailsHoldersTab from './HoldersTab';
 
 /**
- * Renders the real `SocialLeaderboard`, unlike `HoldersTab.test.tsx` which
- * mocks it to assert the props contract. This pins the division of labour:
- * the tab hands over a token source and the leaderboard owns every state it
- * can be in, including no-data. Token sources resolve to `unavailable` until
- * social-api ranks traders per token, so today that is the state we land on.
+ * Renders the real Social leaderboard page, unlike `HoldersTab.test.tsx`
+ * which mocks that page to assert the props contract. The route cannot rank
+ * one asset, so this tab shows the same unscoped page as Social.
  */
 
 let mockIsEnabled = true;
@@ -31,6 +30,7 @@ jest.mock(
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: jest.fn() }),
+  useRoute: () => ({ params: {} }),
 }));
 
 const assetId =
@@ -48,28 +48,45 @@ const renderHoldersTab = () => {
   );
 };
 
+const leaderboardBody = () =>
+  screen.queryByTestId(SocialLeaderboardSelectorsIDs.SKELETON) ??
+  screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS) ??
+  screen.queryByTestId(SocialLeaderboardSelectorsIDs.EMPTY) ??
+  screen.queryByTestId(SocialLeaderboardSelectorsIDs.ERROR);
+
 describe('TokenDetailsHoldersTab integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled = true;
   });
 
-  it('lets the leaderboard render its own state for a token source', () => {
+  it('shows the unscoped Social leaderboard page', () => {
     renderHoldersTab();
 
     expect(
-      screen.getByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
+      screen.getByTestId('token-details-v1-holders-leaderboard'),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
+    ).toBeNull();
+    expect(leaderboardBody()).toBeOnTheScreen();
   });
 
-  it('renders nothing at all when the social flag is off', () => {
+  it('leaves the leaderboard body empty when the social flag is off', () => {
     mockIsEnabled = false;
 
     renderHoldersTab();
 
     expect(
+      screen.getByTestId('token-details-v1-holders-leaderboard'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+    expect(
       screen.queryByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
     ).toBeNull();
-    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+    expect(leaderboardBody()).toBeNull();
   });
 });

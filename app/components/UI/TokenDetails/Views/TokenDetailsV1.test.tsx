@@ -28,7 +28,7 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
-import { SocialLeaderboard } from '../../SocialLeaderboard';
+import LeaderboardShellTabPage from '../../../Views/SocialLeaderboard/shell/LeaderboardShellTabPage';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
@@ -47,9 +47,10 @@ jest.mock('react-redux', () => ({
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
-jest.mock('../../SocialLeaderboard', () => ({
-  SocialLeaderboard: jest.fn(() => null),
-}));
+jest.mock(
+  '../../../Views/SocialLeaderboard/shell/LeaderboardShellTabPage',
+  () => jest.fn(() => null),
+);
 
 jest.mock('../../SocialFeed', () => {
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
@@ -951,7 +952,7 @@ describe('TokenDetailsV1', () => {
     });
   });
 
-  it('shows the token leaderboard on the Holders tab', () => {
+  it('shows the Social leaderboard on the Holders tab', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -968,13 +969,8 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId('token-details-v1-tab-holders'));
 
-    expect(jest.mocked(SocialLeaderboard).mock.calls[0][0]).toEqual({
-      source: {
-        kind: 'token',
-        assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
-      },
-      location: 'token_details',
-      showViewerRow: true,
+    expect(jest.mocked(LeaderboardShellTabPage).mock.calls[0][0]).toEqual({
+      containerTestID: 'token-details-v1-holders-leaderboard',
     });
   });
 
