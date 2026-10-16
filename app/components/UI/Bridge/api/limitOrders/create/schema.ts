@@ -44,10 +44,10 @@ export type LimitOrderTrigger = Infer<typeof LimitOrderTriggerSchema>;
 
 /**
  * An asset as described by the Bridge API. Only the fields the client relies on
- * are required; the rest are optional so extra or omitted metadata doesn't
- * fail validation.
+ * are required; the rest are optional and unknown ones are allowed, so extra
+ * or omitted metadata (e.g. a new `coinLabel`) doesn't fail validation.
  */
-export const LimitOrderAssetSchema = object({
+export const LimitOrderAssetSchema = type({
   assetId: CaipAssetTypeStruct,
   symbol: string(),
   decimals: number(),

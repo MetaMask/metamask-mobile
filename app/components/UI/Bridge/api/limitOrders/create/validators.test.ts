@@ -41,6 +41,20 @@ describe('parseCreateLimitOrderResponse', () => {
     expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
   });
 
+  it('accepts asset metadata it has not seen before', () => {
+    const response = {
+      order: {
+        ...MINIMAL_RESPONSE.order,
+        dest: {
+          asset: { ...ASSET, coinLabel: 'badges:v1:stablecoin' },
+          amount: '1000000',
+        },
+      },
+    };
+
+    expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
   it('rejects a transaction hash that is not hex', () => {
     expect(() =>
       parseCreateLimitOrderResponse({

@@ -21,6 +21,7 @@ import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
 import { useSourceAmountInput } from '../useSourceAmountInput';
+import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
 import {
@@ -115,10 +116,14 @@ export const useLimitOrderSwapInputs = () => {
     [dispatch],
   );
 
+  // The API checks the order minimum at the live rate, so a fiat amount is
+  // converted at that same rate for the amount entered to be the one checked.
+  const sourceTokenFiatRate = useLiveTokenFiatRate(sourceToken);
   const sourceAmountInput = useSourceAmountInput({
     isFiatToggleEnabled,
     sourceAmount,
     sourceToken,
+    tokenFiatRate: sourceTokenFiatRate,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
