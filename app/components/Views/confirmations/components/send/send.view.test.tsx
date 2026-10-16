@@ -920,6 +920,10 @@ describeForPlatforms('Send', () => {
         const addTransactionSpy = TransactionController.addTransaction;
         const updateEditableParamsSpy =
           TransactionController.updateEditableParams;
+        const engineSingleton = Engine as unknown as {
+          state?: Record<string, unknown>;
+        };
+        const originalEngineState = engineSingleton.state;
         const unapprovedTransaction = buildMaxNativeSendTransaction(chain);
         let activeStore:
           | {
@@ -1030,7 +1034,9 @@ describeForPlatforms('Send', () => {
             getByTestId(RedesignedSendViewSelectorsIDs.SEND_AMOUNT),
           ).toHaveTextContent('0');
 
-          fireEvent.press(getByRole('button', { name: 'Max' }));
+          fireEvent.press(
+            getByTestId(RedesignedSendViewSelectorsIDs.PERCENTAGE_BUTTON_100),
+          );
 
           await waitFor(() => {
             expect(
@@ -1147,6 +1153,7 @@ describeForPlatforms('Send', () => {
           engineMock.default.acceptPendingApproval.mockReset();
           engineMock.default.acceptPendingApproval.mockResolvedValue(undefined);
           clearAccountsTransactionsApiMocks();
+          engineSingleton.state = originalEngineState;
         }
       });
     }
