@@ -23,6 +23,7 @@ import {
 } from '../../api/limitOrders/getLimitOrders/mock';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrderRow.testIds';
+import { TokenAmountValueSelectorsIDs } from '../../components/LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { formatLimitOrderDate } from '../../utils/limitOrders/formatLimitOrderDate';
 /* eslint-disable-next-line import-x/no-restricted-paths -- the page reuses the shared Activity Details footer */
 import { ActivityDetailsSelectorsIDs } from '../../../../Views/ActivityDetails/ActivityDetails.testIds';
@@ -30,6 +31,7 @@ import { SwapsLimitOrderActivityPageSelectorsIDs } from './SwapsLimitOrderActivi
 
 const {
   SCREEN,
+  AMOUNT_DIVIDER,
   BACK_BUTTON,
   STATUS_ROW,
   DATE_CREATED_ROW,
@@ -202,6 +204,11 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     expect(
       within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('2200 USDC'),
     ).toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+        TokenAmountValueSelectorsIDs.PREFIX,
+      ),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at'));
     expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Ethereum', {
       exact: false,
     });
@@ -416,6 +423,17 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
         await openActivityPage(order);
 
       expect(getByText(title)).toBeOnTheScreen();
+      // The details frame already separates sections by 8px, so this 8px
+      // margin leaves 16px above and below the divider.
+      expect(getByTestId(AMOUNT_DIVIDER)).toHaveStyle({
+        marginTop: 8,
+        marginBottom: 8,
+      });
+      expect(
+        within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
+          TokenAmountValueSelectorsIDs.AMOUNT,
+        ),
+      ).toHaveStyle({ fontFamily: 'Inter-Medium' });
       expect(
         within(getByTestId(STATUS_ROW)).getByText(status),
       ).toBeOnTheScreen();

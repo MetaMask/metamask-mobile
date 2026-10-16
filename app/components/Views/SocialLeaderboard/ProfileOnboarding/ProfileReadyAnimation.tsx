@@ -3,7 +3,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Alignment,
   Fit,
-  RiveImages,
   RiveView,
   useRiveBoolean,
   useRiveFile,
@@ -12,10 +11,9 @@ import {
   type RiveError,
 } from '@rive-app/react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image } from 'react-native';
 import ProfileReadyRive from '../../../../animations/social_v1_profile-ready.riv';
 import Logger from '../../../../util/Logger';
-import { getProfileAvatarPreset } from '../MyProfileView/avatarPresets';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import {
   PROFILE_ONBOARDING_RIVE_ASSETS,
   PROFILE_READY_RIVE_ARTBOARD,
@@ -25,30 +23,30 @@ import {
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useProfileOnboardingRiveEnabled } from './useProfileOnboardingRiveEnabled';
 
-/** Dev builds resolve bundled images to URLs; Android release to resource names. */
-const loadBundledRiveImage = (uri: string) =>
-  /^(https?|file):/.test(uri)
-    ? RiveImages.loadFromURLAsync(uri)
-    : RiveImages.loadFromResourceAsync(uri);
+/** Pulls the avatar off the name and handle, into the card's avatar well. */
+const READY_AVATAR_LIFT = 48;
 
 interface ProfileReadyAnimationProps {
   displayName: string;
   /** Without the leading `@`. */
   handle: string;
   avatarPresetId: string | null | undefined;
+  avatarBackgroundId: string | null | undefined;
   /** Static content shown when the animation is skipped or fails. */
   fallback: React.ReactNode;
 }
 
 /**
- * Profile card shown on the onboarding ready step. Binds the draft identity
- * into the Social V1 profile-ready Rive. Emoji avatar presets cannot be drawn
- * by Rive, so those keep the file's stand-in avatar.
+ * Profile card shown on the onboarding ready step. Binds the draft name and
+ * handle into the Social V1 profile-ready Rive. The chosen avatar is drawn on
+ * top of the card: the file's avatar image is a baked stand-in, and the
+ * onboarding artwork is a transparent PNG that does not survive that slot.
  */
 const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   displayName,
   handle,
   avatarPresetId,
+  avatarBackgroundId,
   fallback,
 }) => {
   const tw = useTailwind();
@@ -92,27 +90,6 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     setIsVerified(false);
   }, [instance, displayName, handle, setDisplayName, setHandle, setIsVerified]);
 
-  useEffect(() => {
-    const preset = getProfileAvatarPreset(avatarPresetId);
-    if (!instance || preset?.kind !== 'image') return undefined;
-    const uri = Image.resolveAssetSource(preset.source)?.uri;
-    if (!uri) return undefined;
-
-    let isCancelled = false;
-    loadBundledRiveImage(uri)
-      .then((image) => {
-        if (!isCancelled) {
-          instance.imageProperty(PROFILE_READY_RIVE_PATHS.AVATAR)?.set(image);
-        }
-      })
-      .catch((error: Error) => {
-        Logger.error(error, 'ProfileReadyAnimation: avatar load failed');
-      });
-    return () => {
-      isCancelled = true;
-    };
-  }, [avatarPresetId, instance]);
-
   const handleError = useCallback((riveError: RiveError) => {
     Logger.error(
       new Error(riveError.message),
@@ -141,6 +118,18 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
           testID={SocialProfileOnboardingSelectorsIDs.READY_ANIMATION}
         />
       ) : null}
+      <Box
+        pointerEvents="none"
+        twClassName="absolute inset-0 items-center justify-center"
+        style={{ transform: [{ translateY: -READY_AVATAR_LIFT }] }}
+      >
+        <ProfileAvatar
+          avatarPresetId={avatarPresetId}
+          avatarBackgroundId={avatarBackgroundId}
+          size="xl"
+          testID={SocialProfileOnboardingSelectorsIDs.READY_AVATAR}
+        />
+      </Box>
     </Box>
   );
 };

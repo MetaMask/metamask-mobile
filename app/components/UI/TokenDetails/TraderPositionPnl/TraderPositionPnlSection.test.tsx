@@ -6,6 +6,26 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import TraderPositionPnlSection from './TraderPositionPnlSection';
 import { useOpenPositionHeader } from './useOpenPositionHeader';
 
+const mockOpenComposer = jest.fn();
+const mockSocialLeaderboardEnabled = jest.fn(() => true);
+const mockUseSocialV1 = jest.fn(() => true);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockSocialLeaderboardEnabled(),
+}));
+
+jest.mock('../../../../hooks', () => ({
+  useABTest: () => ({ variant: { useSocialV1: mockUseSocialV1() } }),
+}));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+  }),
+);
+
 const footerProps: Record<string, unknown>[] = [];
 
 jest.mock(
@@ -43,7 +63,11 @@ const token = { address: '0xabc', chainId: '0x1' } as TokenDetailsRouteParams;
 /** The `traderPositionPnl` prop handed to the sticky footer on the last render. */
 const positionProp = () =>
   footerProps[footerProps.length - 1].traderPositionPnl as
-    | Record<string, unknown>
+    | {
+        positionValue?: string;
+        isLoading?: boolean;
+        expandedDetails?: Record<string, unknown> & { onShare?: () => void };
+      }
     | undefined;
 
 const renderSection = () =>
@@ -53,6 +77,8 @@ describe('TraderPositionPnlSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     footerProps.length = 0;
+    mockSocialLeaderboardEnabled.mockReturnValue(true);
+    mockUseSocialV1.mockReturnValue(true);
     mockUseStickyQuickBuy.mockReturnValue({
       onQuickBuyPress: jest.fn(),
       openQuickBuy: jest.fn(),
@@ -69,6 +95,7 @@ describe('TraderPositionPnlSection', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       positionValue: '$150.00',
       pnl: { amount: '+$50.00', percentage: '+50.00%', isProfit: true },
+      sharePosition: null,
       isLoading: false,
     });
 
@@ -84,29 +111,102 @@ describe('TraderPositionPnlSection', () => {
     expect(positionProp()).not.toHaveProperty('expandedDetails');
   });
 
-  it('passes expanded position details through to the footer', () => {
+  describe('expanded position details', () => {
     const expandedDetails = {
       averageCost: '$0.0005',
       realizedPnl: '+$50.25',
       unrealizedPnl: '+$1,200.00',
       holdTime: '—',
     };
-    mockUseOpenPositionHeader.mockReturnValue({
-      positionValue: '$2,000.00',
-      pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
-      expandedDetails,
-      isLoading: false,
+    const sharePosition = {
+      positionId: 'pos-1',
+      tokenSymbol: 'PEPE',
+      tokenName: 'Pepe',
+      tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+      chain: 'ethereum',
+      isOpen: true,
+      positionAmount: 100,
+      costBasis: 50,
+      currentValueUSD: 80,
+      realizedPnl: 0,
+      pnlValueUsd: 30,
+      pnlPercent: 60,
+      boughtUsd: 50,
+      soldUsd: 0,
+      perpPositionType: null,
+      perpLeverage: null,
+      positionAmountWithLeverage: null,
+      costBasisWithLeverage: null,
+      marginUsd: null,
+      trades: [{ timestamp: 1_700_000_000 }],
+      lastTradeAt: 1_700_000_100,
+    };
+
+    beforeEach(() => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        positionValue: '$2,000.00',
+        pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
+        expandedDetails,
+        sharePosition,
+        isLoading: false,
+      });
     });
 
-    renderSection();
+    it('opens the composer with the open position attached and the token-details entry point', () => {
+      renderSection();
 
-    expect(positionProp()).toEqual(
-      expect.objectContaining({ expandedDetails }),
-    );
+      positionProp()?.expandedDetails?.onShare?.();
+
+      expect(mockOpenComposer).toHaveBeenCalledWith({
+        position: expect.objectContaining({
+          positionId: 'pos-1',
+          tokenSymbol: 'PEPE',
+          isOpen: true,
+        }),
+        entryPoint: 'token_details',
+      });
+    });
+
+    it('hides Share to feed until a sharable position loads', () => {
+      mockUseOpenPositionHeader.mockReturnValue({
+        positionValue: '$2,000.00',
+        pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },
+        expandedDetails,
+        sharePosition: null,
+        isLoading: false,
+      });
+
+      renderSection();
+
+      expect(positionProp()?.expandedDetails).not.toHaveProperty('onShare');
+    });
+
+    it('hides Share to feed in the Social V1 control arm', () => {
+      mockUseSocialV1.mockReturnValue(false);
+
+      renderSection();
+
+      expect(positionProp()).toEqual(
+        expect.objectContaining({ expandedDetails }),
+      );
+    });
+
+    it('hides Share to feed when Social is off', () => {
+      mockSocialLeaderboardEnabled.mockReturnValue(false);
+
+      renderSection();
+
+      expect(positionProp()).toEqual(
+        expect.objectContaining({ expandedDetails }),
+      );
+    });
   });
 
   it('passes a loading header through before a value arrives', () => {
-    mockUseOpenPositionHeader.mockReturnValue({ isLoading: true });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: true,
+    });
 
     renderSection();
 
@@ -116,7 +216,10 @@ describe('TraderPositionPnlSection', () => {
   });
 
   it('hides the position row when there is no value and no load in flight', () => {
-    mockUseOpenPositionHeader.mockReturnValue({ isLoading: false });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: false,
+    });
 
     renderSection();
 
@@ -124,7 +227,10 @@ describe('TraderPositionPnlSection', () => {
   });
 
   it('marks the footer as having a balance only when the token balance is positive', () => {
-    mockUseOpenPositionHeader.mockReturnValue({ isLoading: false });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isLoading: false,
+    });
     mockUseTokenBalance.mockReturnValue({
       balance: '0',
       fiatBalance: '$0.00',

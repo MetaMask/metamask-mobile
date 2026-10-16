@@ -75,6 +75,7 @@ const ManageProfileView: React.FC = () => {
           <ProfileAvatar
             imageUrl={profile?.imageUrl}
             avatarPresetId={profile?.avatarPresetId}
+            avatarBackgroundId={profile?.avatarBackgroundId}
             size="lg"
             accessibilityLabel={strings(
               'social_leaderboard.manage_profile.avatar_accessibility_label',

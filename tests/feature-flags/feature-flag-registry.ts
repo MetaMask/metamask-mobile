@@ -4871,6 +4871,37 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsTAT3793AbtestPerpsHomeExplore: {
+    name: 'perpsTAT3793AbtestPerpsHomeExplore',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      versions: {
+        '8.17.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsFeedbackEnabled: {
     name: 'perpsFeedbackEnabled',
     type: FeatureFlagType.Remote,
@@ -5586,6 +5617,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {},
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsRebateBannerEnabled: {
+    name: 'swapsRebateBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -7972,6 +8014,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsPriceAlertsEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsPriceAlertsPercentChangeEnabled: {
+    name: 'perpsPriceAlertsPercentChangeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',

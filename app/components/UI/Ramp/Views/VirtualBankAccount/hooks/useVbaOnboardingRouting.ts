@@ -245,14 +245,12 @@ const provisionBrazilMusdAutoramp = async (
  */
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
-  const persistedEmail = kycController.state.email?.trim() ?? '';
-  if (!kycController.readSessionStatus() || persistedEmail.length === 0) {
+  if (!kycController.readSessionStatus()) {
     return;
   }
 
   await kycController.startSession({
     vendor: VBA_KYC_VENDOR,
-    email: persistedEmail,
   });
 };
 

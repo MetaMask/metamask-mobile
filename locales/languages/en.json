@@ -28,7 +28,7 @@
   },
   "arc_usage_notice": {
     "title": "Notice",
-    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with the Arc team."
   },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
@@ -1165,13 +1165,10 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "title": "What's your email?",
-      "description": "We'll use this to send account updates.",
-      "input_placeholder": "Email address",
-      "button": "Continue",
-      "error_title": "Identity verification",
-      "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Add funds right from your bank and try again."
+      "verify_description": "placeholder for verify description",
+      "enroll_description": "placeholder for enroll description",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening email verification. Please try again."
     },
     "sumsub_kyc": {
       "more_info_title": "We need a little more info",
@@ -1348,26 +1345,18 @@
         "win_rate": "{{winRate}} win rate"
       },
       "no_data": "No data",
-      "copies": {
-        "one": "{{count}} copy",
-        "other": "{{count}} copies"
-      },
+      "add_reaction": "Add reaction",
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
-        "auto_close": "Auto-close",
-        "auto_close_pair": "TP {{takeProfit}} / SL {{stopLoss}}",
         "mock_data_footnote": "* Mock data",
-        "entry_price": "Entry price",
-        "exit_price": "Exit price",
         "entry": "Entry",
         "exit": "Exit",
         "cost": "Cost",
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
-        "bought": "Bought",
-        "sold": "Sold"
+        "closed_ago": "Closed {{age}}"
       }
     },
     "composer": {
@@ -1621,17 +1610,30 @@
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Display name",
-      "username_available": "Username available · metamask.io/{{handle}}",
+      "username_available": "Username available",
       "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_check_error": "Couldn't check that username. Check your connection and try again.",
+      "connect_x_error": "Couldn't connect X. Check your connection and try again.",
+      "save_error": "Couldn't create your profile. Check your connection and try again.",
       "shuffle_username": "Suggest a username",
-      "pick_look": "Pick your look",
-      "camera": "Camera",
-      "photos": "Photos",
-      "link_account": "Link an account",
+      "customize_avatar": "Choose an avatar",
+      "avatar_background_peach": "Peach background",
+      "avatar_background_lilac": "Lilac background",
+      "avatar_background_sky": "Sky background",
+      "avatar_background_purple": "Purple background",
+      "avatar_background_lime": "Lime background",
+      "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
+      "select_account": "Select an account",
+      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
+      "link_account_benefit_private": "Your account address stays private.",
+      "link_account_benefit_follow": "Other traders can follow your profile.",
+      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
+      "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
-      "feed_awaits": "The feed awaits",
+      "feed_awaits": "Your profile is ready!",
       "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
       "hi": "Hi!",
       "lets_go": "Let's go",
@@ -2552,6 +2554,8 @@
       "order_type_accessibility_label": "Order type: {{orderType}}",
       "toggle_amount_display": "Toggle between fiat and token amount",
       "total_inc_pnl": "Total (inc. P&L)",
+      "total_receive": "Total receive",
+      "included_pnl": "Included P&L",
       "margin": "Margin",
       "includes_pnl": "includes P&L",
       "pnl": "P&L",
@@ -3138,12 +3142,17 @@
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
+      "explore": "Explore",
+      "see_more": "See more",
       "see_all_perps": "See all perps",
       "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
       "losers": "Losers",
-      "recently_added": "Recently added"
+      "recently_added": "Recently added",
+      "social_feed": "Social feed",
+      "trending": "Trending",
+      "top_traders": "Top traders"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -5743,8 +5752,10 @@
     "once_label": "Once",
     "moves_up": "When price moves up",
     "moves_down": "When price moves down",
+    "period_5m": "5min",
     "period_1h": "1hr",
     "period_24h": "24hr",
+    "period_5m_short": "5m",
     "period_1h_short": "1h",
     "period_24h_short": "24h",
     "moves_up_summary": "Moves up {{percent}}%",
@@ -9111,6 +9122,34 @@
         }
       }
     },
+    "vba_home_card": {
+      "get_started": {
+        "title": "Add money from your bank",
+        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "cta": "Get started"
+      },
+      "account_is_ready": {
+        "title": "You’re all set",
+        "description": "Your virtual account details are ready.",
+        "cta": "View Pix details"
+      },
+      "kyc_pending": {
+        "title": "Verifying your identity",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
+        "cta": "Verifying"
+      },
+      "finish_verification": {
+        "title": "We need more info",
+        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "cta": "Continue"
+      },
+      "kyc_decision": {
+        "title": "We can’t verify your identity",
+        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "cta": "Learn more",
+        "dismiss": "Dismiss"
+      }
+    },
     "first_time_deposit": {
       "title": "First deposit, done",
       "content": "It’s in your Money account —\n and already earning.",
@@ -10022,11 +10061,15 @@
       "includes_metamask_fee": "Includes MetaMask fee",
       "account_upgrade_fee_info_title": "Account upgrade fee",
       "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
+      "metamask_fee_info_title": "MetaMask fee",
+      "metamask_fee_info_body": "MetaMask's standard fee is {{feePercentage}}%. You may be eligible for fee discounts or rebates, so we calculate your final fee at order execution.",
+      "metamask_fee_info_learn_more": "Learn more",
       "create_order": "Create Order",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
+      "trigger_condition_at": "@",
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
@@ -10239,6 +10282,9 @@
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
+    "rebate_banner": "You’re getting {{percent}}% back on fees",
+    "rebate_tooltip_title": "Trading Rewards",
+    "rebate_tooltip_content": "Claim {{percent}}% of the eligible MetaMask fee on this trade in mUSD to your Money account. Network fees are not included. Check the Rewards tab to see your trading rewards and learn more.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "recipient": "Recipient",
@@ -11536,7 +11582,7 @@
       "try_again": "Try again",
       "cancel": "Cancel",
       "verification_pending_title": "Verification pending",
-      "verification_pending_description": "Verification is pending on {{devices}}. Open the card in Apple Wallet and contact the card issuer using the details on the back of the card.",
+      "verification_pending_description": "Open the card in Apple Wallet to verify it on {{devices}}.",
       "open_in_apple_wallet": "Open in Apple Wallet",
       "device_iphone": "iPhone",
       "device_apple_watch": "Apple Watch",

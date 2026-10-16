@@ -7,6 +7,7 @@ import type {
 } from './analytics';
 import { chainNameToId } from '../SocialFeed/utils/chainMapping';
 import { TokenDetailsSource } from '../TokenDetails/constants/constants';
+import type { CopyTradeOrigin } from '../../../util/social/copyTradeIntent';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {
@@ -76,6 +77,8 @@ export interface QuickBuyRootProps {
    * of Quick Buy's pending/complete/failed toasts.
    */
   postSwapShare?: boolean;
+  /** Social post being copied; a submitted swap records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   children?: ReactNode;
 }
 
