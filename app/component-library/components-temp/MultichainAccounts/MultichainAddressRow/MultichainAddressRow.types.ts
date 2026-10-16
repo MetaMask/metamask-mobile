@@ -67,6 +67,11 @@ export interface MultichainAddressRowProps {
    */
   address: string;
   /**
+   * Keyring account type, used to show a label such as "Native SegWit"
+   * beside the network name
+   */
+  accountType?: string;
+  /**
    * Copy operation parameters
    */
   copyParams?: CopyParams;
