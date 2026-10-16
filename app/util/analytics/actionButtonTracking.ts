@@ -37,18 +37,31 @@ export enum ActionPosition {
 }
 
 /**
+ * Token Details page analytics version.
+ *
+ * Mirrors `TdpVersion` from
+ * `app/components/UI/TokenDetails/analytics/getTdpAnalyticsBase.ts`. Defined
+ * locally as a string-literal union to avoid a `util` -> `components`
+ * dependency. `'v2'` is the legacy Token Details page, `'v3'` is the new
+ * (memecoin/V1) page.
+ */
+export type TdpVersion = 'v2' | 'v3';
+
+/**
  * Properties for action button tracking
  *
  * @property action_name - The action that was clicked from the home page or asset details page
  * @property action_position - The position of the button in the action button for remote config use and a/b testing (optional, omitted for navbar)
  * @property button_label - The label of the button - i18n string
  * @property location - The location of the button (home, asset details, navbar)
+ * @property tdp_version - Token Details page version. Only set by the Token Details below-chart Buy/Send/Receive buttons (`'v2'` legacy, `'v3'` V1). Omitted for all other callers (home, navbar, etc.).
  */
 export interface ActionButtonProperties extends JsonMap {
   action_name: ActionButtonType;
   action_position?: ActionPosition;
   button_label: string;
   location?: ActionLocation;
+  tdp_version?: TdpVersion;
 }
 
 /**

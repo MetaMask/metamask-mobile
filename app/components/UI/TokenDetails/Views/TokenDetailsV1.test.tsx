@@ -30,7 +30,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -77,14 +79,7 @@ jest.mock('../../SocialFeed', () => {
 });
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: () => ({
-      addProperties: () => ({ build: () => ({}) }),
-    }),
-  }),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 let mockCurrentPrice = 1;
 jest.mock('../hooks/useTokenPrice', () => ({
@@ -337,6 +332,12 @@ const securityDataWithLinks = {
 describe('TokenDetailsV1', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -766,6 +767,8 @@ describe('TokenDetailsV1', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CONTRACT_SECURITY, {
         token: baseToken,
+        tdpVersion: 'v3',
+        tokenCategory: 'memecoin',
       });
     });
   });
@@ -1039,8 +1042,101 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId('mock-share'));
 
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Token Details Shared' }),
+    );
     expect(getByTestId('share-token-bottom-sheet')).toBeTruthy();
+  });
+
+  describe('analytics', () => {
+    const trackedEvents = (name: string) =>
+      mockTrackEvent.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event?.name === name);
+
+    it('fires TOKEN_DETAILS_OPENED once with tdp_version v3 and token_category', () => {
+      const { rerender } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      const openedEvents = trackedEvents('Token Details Opened');
+      expect(openedEvents).toHaveLength(1);
+      expect(openedEvents[0].properties).toEqual(
+        expect.objectContaining({
+          tdp_version: 'v3',
+          token_category: 'memecoin',
+          chain_id: '0x1',
+          source: 'unknown',
+          token_symbol: 'PEPE',
+          token_address: baseToken.address,
+          token_name: 'Pepe',
+          has_balance: false,
+        }),
+      );
+
+      // A re-render for the same token must not re-fire the event.
+      rerender(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+      expect(trackedEvents('Token Details Opened')).toHaveLength(1);
+    });
+
+    it('fires TOKEN_DETAILS_TAB_VIEWED with the tapped tab name', () => {
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+      const tabEvents = trackedEvents('Token Details Tab Viewed');
+      expect(tabEvents).toHaveLength(1);
+      expect(tabEvents[0].properties).toEqual(
+        expect.objectContaining({
+          tab_name: 'security',
+          tdp_version: 'v3',
+          token_category: 'memecoin',
+          chain_id: '0x1',
+        }),
+      );
+    });
+
+    it('fires the security pill event with the displayed verdict and no tab event', () => {
+      // Benign security data, which `useSecurityFacts` maps to the `screened`
+      // verdict shown on the pill.
+      mockSecurityQueryResult.data = securityDataWithLinks;
+
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      fireEvent.press(getByTestId(SecurityPillSelectors.VERDICT));
+
+      const pillEvents = trackedEvents('Token Details Security Pill Clicked');
+      expect(pillEvents).toHaveLength(1);
+      expect(pillEvents[0].properties).toEqual(
+        expect.objectContaining({
+          verdict: 'screened',
+          tdp_version: 'v3',
+          token_category: 'memecoin',
+          chain_id: '0x1',
+        }),
+      );
+
+      // The pill jump to Security must not also emit a tab-viewed event.
+      expect(trackedEvents('Token Details Tab Viewed')).toHaveLength(0);
+    });
   });
 
   it('keeps the contract address until the page is scrolled', () => {
