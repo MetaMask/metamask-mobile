@@ -3,14 +3,14 @@
   "hooks": {
     "preToolUse": [
       {
-        "command": "node_modules/.bin/tooling-insight-cursor-pre-tool",
+        "command": "/bin/sh scripts/tooling/hook-cursor-pre-tool.sh",
         "timeout": 5
       }
     ],
     "beforeSubmitPrompt": [
       {
         "matcher": "UserPromptSubmit",
-        "command": "node_modules/.bin/tooling-insight-cursor-prompt",
+        "command": "/bin/sh scripts/tooling/hook-cursor-prompt.sh",
         "timeout": 2
       }
     ]
