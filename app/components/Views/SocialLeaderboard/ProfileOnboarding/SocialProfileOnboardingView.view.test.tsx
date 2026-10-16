@@ -24,12 +24,17 @@ import {
   getLocalSocialProfileSnapshot,
   restoreDefaultLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
+import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const goOnline = () =>
   netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+
+const usernameValue = (): string =>
+  screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT).props
+    .value as string;
 
 const continueFromUsername = async () => {
   fireEvent.press(
@@ -158,6 +163,8 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
+    const handle = usernameValue();
+    const displayName = displayNameFromUsername(handle);
     expect(
       screen.getByText('Username available', { exact: true }),
     ).toBeOnTheScreen();
@@ -209,7 +216,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
-    ).toHaveTextContent('@wen-cat');
+    ).toHaveTextContent(`@${handle}`);
 
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
@@ -220,8 +227,8 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       expect.objectContaining({
-        handle: 'wen-cat',
-        displayName: 'Wen Cat',
+        handle,
+        displayName,
         avatarPresetId: 'zombie',
         avatarBackgroundId: 'lime',
         shareTradingActivity: true,
@@ -230,12 +237,12 @@ describe('SocialProfileOnboardingView', () => {
     );
     expect(
       Engine.context.ProfileController.checkUsernameAvailability,
-    ).toHaveBeenCalledWith('wen-cat');
+    ).toHaveBeenCalledWith(handle);
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       {
         profile_id: 'social-v1-profile',
-        username: 'wen-cat',
-        display_name: 'Wen Cat',
+        username: handle,
+        display_name: displayName,
         bio: null,
         linked_addresses: [
           'eip155:1:0x0000000000000000000000000000000000000001',
@@ -550,9 +557,9 @@ describe('SocialProfileOnboardingView', () => {
       ),
     );
 
-    expect(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
-    ).toHaveProp('value', 'wen-cat');
+    const handle = usernameValue();
+    expect(handle).not.toBe('degangirl');
+    expect(handle).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
     expect(
       screen.getByTestId(
         `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
@@ -581,7 +588,7 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       expect.objectContaining({
-        handle: 'wen-cat',
+        handle,
         connectedToX: false,
         xHandle: null,
         imageUrl: null,
@@ -589,7 +596,7 @@ describe('SocialProfileOnboardingView', () => {
     );
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({
-        username: 'wen-cat',
+        username: handle,
         avatar_url: 'foxicon://visor/purple',
       }),
     );
@@ -835,16 +842,14 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
+    const initialHandle = usernameValue();
     fireEvent.press(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON,
       ),
     );
     await waitFor(() => {
-      expect(
-        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT)
-          .props.value,
-      ).not.toBe('wen-cat');
+      expect(usernameValue()).not.toBe(initialHandle);
     });
     const shuffledHandle = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
