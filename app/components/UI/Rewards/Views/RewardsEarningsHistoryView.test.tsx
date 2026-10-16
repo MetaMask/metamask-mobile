@@ -4,11 +4,11 @@ import type {
   LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
-import { useSessionProfileId } from '../hooks/useReferralMe';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows';
 import RewardsEarningsHistoryView, {
   REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS,
@@ -24,10 +24,20 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../Views/ErrorBoundary', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
+
 jest.mock('../hooks/useEarningsHistory');
-jest.mock('../hooks/useReferralMe');
 
 const PROFILE_ID = 'profile-a';
+const KEYRING_ID = 'entropy-source-1';
 const LOCALIZED_TEXT = {
   history: 'History',
   historyReferrals: 'Referral earning',
@@ -58,6 +68,28 @@ const earning: LedgerEntryDto = {
 };
 
 const STATE = {
+  engine: {
+    backgroundState: {
+      AuthenticationController: {
+        isSignedIn: true,
+        srpSessionData: {
+          [KEYRING_ID]: {
+            profile: { profileId: PROFILE_ID },
+          },
+        },
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.hd,
+            accounts: [],
+            metadata: { id: KEYRING_ID, name: '' },
+          },
+        ],
+      },
+    },
+  },
   rewardsMoney: {
     referralMe: {
       [PROFILE_ID]: {
@@ -74,10 +106,6 @@ describe('RewardsEarningsHistoryView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSessionProfileId as jest.Mock).mockReturnValue({
-      profileId: PROFILE_ID,
-      isResolved: true,
-    });
     (useEarningsHistory as jest.Mock).mockReturnValue({
       items: [earning],
       isLoading: false,
