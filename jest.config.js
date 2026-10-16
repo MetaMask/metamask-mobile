@@ -89,6 +89,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/core-backend',
   '@metamask/cryptography',
   '@metamask/eth-block-tracker',
+  '@metamask/eth-json-rpc-middleware',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
