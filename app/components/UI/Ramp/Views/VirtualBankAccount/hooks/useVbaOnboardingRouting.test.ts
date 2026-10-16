@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -10,12 +11,52 @@ import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
+const callerRoute = { key: 'home-1', name: 'Home' };
+const mainNavigatorState = () => ({
+  index: 0,
+  routeNames: ['Home', 'RampVbaOnboarding'],
+  routes: [callerRoute],
+});
 const navigation = {
   navigate: mockNavigate,
+  dispatch: mockDispatch,
+  getState: mainNavigatorState,
 } as unknown as AppNavigationProp;
 
+const expectResetTo = (screenRoute: { name: string; params?: unknown }) => {
+  expect(mockDispatch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 1,
+        routes: [
+          callerRoute,
+          {
+            name: Routes.RAMP.VBA_ONBOARDING,
+            state: {
+              index: 0,
+              routes: [screenRoute],
+            },
+          },
+        ],
+      }),
+    }),
+  );
+  expect(mockNavigate).not.toHaveBeenCalled();
+};
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    dispatch: mockDispatch,
+    getState: () => ({
+      index: 0,
+      routeNames: ['Home', 'RampVbaOnboarding'],
+      routes: [{ key: 'home-1', name: 'Home' }],
+    }),
+  }),
 }));
 
 const mockHydrate = jest.fn();
@@ -81,9 +122,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHydrate).toHaveBeenCalledWith({ walletAddress: '0xabc' });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.VENDOR_TERMS,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
   it('opens at email when vendor terms are accepted locally', async () => {
@@ -93,9 +132,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHasAcceptedVbaVendorTerms).toHaveBeenCalledWith('0xabc');
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.EMAIL,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.EMAIL });
   });
 
   it('navigates to the VBA details screen when the autoramp is ready', async () => {
@@ -112,9 +149,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.DETAILS,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.DETAILS });
   });
 
   it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
@@ -134,8 +169,8 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
       disclaimerIds: ['privacy', 'terms'],
     });
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
       params: {
         snapshot: {
           ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -158,8 +193,8 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
       params: {
         snapshot: {
           ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -186,9 +221,46 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.KYC_PENDING,
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
+  });
+
+  it('opens the KYC failure page when verification is rejected', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      kycStatus: 'rejected',
     });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
+  });
+
+  it('opens identity verification when retrying a still-rejected KYC session', async () => {
+    const rejectedSnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'rejected' as const,
+    };
+    mockHydrate.mockResolvedValue(rejectedSnapshot);
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current({ retryRejectedKyc: true });
+
+    const snapshot = {
+      ...rejectedSnapshot,
+      vendorTermsAcceptedLocally: true,
+    };
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+        snapshot,
+      }),
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('opens a retryable status when account provisioning fails', async () => {
@@ -205,9 +277,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR });
   });
 
   it('opens the error screen when hydrate throws', async () => {
@@ -217,9 +287,7 @@ describe('useOpenVbaOnboarding', () => {
 
     await result.current();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.ERROR,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
   it('opens the error screen when no wallet address is selected', async () => {
@@ -230,9 +298,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expect(mockHydrate).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.ERROR,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
   it('logs failures with the default source when none is supplied', async () => {
@@ -294,9 +360,7 @@ describe('useOpenVbaOnboarding', () => {
   it('navigates to a provided VBA destination', () => {
     navigateToVbaOnboardingDestination(navigation, 'vendorTerms');
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.VENDOR_TERMS,
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
   it('passes the hydrated snapshot only to the identity module', () => {
@@ -312,9 +376,258 @@ describe('useOpenVbaOnboarding', () => {
       snapshot,
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_ONBOARDING, {
-      screen: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+    expectResetTo({
+      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
       params: { snapshot },
     });
+  });
+
+  it('replaces the onboarding stack in place so the root screen stays mounted', () => {
+    const onboardingDispatch = jest.fn();
+    const parentDispatch = jest.fn();
+    const onboardingNavigate = jest.fn();
+    const onboardingNavigation = {
+      navigate: onboardingNavigate,
+      dispatch: onboardingDispatch,
+      getState: () => ({
+        index: 1,
+        routeNames: [
+          VbaOnboardingRoutes.VENDOR_TERMS,
+          VbaOnboardingRoutes.EMAIL,
+        ],
+        routes: [
+          { name: VbaOnboardingRoutes.VENDOR_TERMS },
+          { name: VbaOnboardingRoutes.EMAIL },
+        ],
+      }),
+      getParent: () => ({
+        navigate: jest.fn(),
+        dispatch: parentDispatch,
+        getState: () => ({
+          index: 1,
+          routeNames: ['Home', Routes.RAMP.VBA_ONBOARDING],
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
+          ],
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(onboardingNavigation, 'email');
+
+    expect(onboardingDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 0,
+          routes: [{ name: VbaOnboardingRoutes.EMAIL }],
+        }),
+      }),
+    );
+    expect(parentDispatch).not.toHaveBeenCalled();
+    expect(onboardingNavigate).not.toHaveBeenCalled();
+  });
+
+  it('resets the onboarding stack when called from the identity navigator', () => {
+    const onboardingDispatch = jest.fn();
+    const rootDispatch = jest.fn();
+    const identityNavigation = {
+      navigate: jest.fn(),
+      dispatch: jest.fn(),
+      getState: () => ({
+        index: 0,
+        routeNames: ['VbaIdentityVerificationProvider'],
+        routes: [{ name: 'VbaIdentityVerificationProvider' }],
+      }),
+      getParent: () => ({
+        navigate: jest.fn(),
+        dispatch: onboardingDispatch,
+        getState: () => ({
+          index: 0,
+          routeNames: [
+            VbaOnboardingRoutes.VENDOR_TERMS,
+            VbaOnboardingRoutes.IDENTITY_VERIFICATION,
+          ],
+          routes: [{ name: VbaOnboardingRoutes.IDENTITY_VERIFICATION }],
+        }),
+        getParent: () => ({
+          dispatch: rootDispatch,
+          getState: () => ({
+            index: 1,
+            routeNames: ['Home', Routes.RAMP.VBA_ONBOARDING],
+            routes: [
+              { key: 'home-1', name: 'Home' },
+              { key: 'vba-1', name: Routes.RAMP.VBA_ONBOARDING },
+            ],
+          }),
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(identityNavigation, 'kycPending');
+
+    expect(onboardingDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 0,
+          routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+        }),
+      }),
+    );
+    expect(rootDispatch).not.toHaveBeenCalled();
+  });
+
+  it('keeps only the active caller and destination on first entry', () => {
+    const dispatch = jest.fn();
+    const parentNavigate = jest.fn();
+    const childNavigate = jest.fn();
+    const sheetNavigation = {
+      navigate: childNavigate,
+      getState: () => ({
+        index: 0,
+        routeNames: ['MoneyAddMoneySheet'],
+        routes: [{ name: 'MoneyAddMoneySheet' }],
+      }),
+      getParent: () => ({
+        navigate: parentNavigate,
+        dispatch,
+        getState: () => ({
+          index: 1,
+          routeNames: ['Home', Routes.RAMP.VBA_ONBOARDING],
+          routes: [
+            { key: 'settings-1', name: 'Settings' },
+            { key: 'home-1', name: 'Home' },
+          ],
+        }),
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(sheetNavigation, 'kycPending');
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 1,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+    expect(parentNavigate).not.toHaveBeenCalled();
+    expect(childNavigate).not.toHaveBeenCalled();
+  });
+
+  it('resets a mounted onboarding route found on an ancestor navigator', () => {
+    const dispatch = jest.fn();
+    const parentNavigate = jest.fn();
+    const mountedOnboardingState = {
+      index: 1,
+      routes: [
+        { name: VbaOnboardingRoutes.VENDOR_TERMS },
+        { name: VbaOnboardingRoutes.EMAIL },
+      ],
+    };
+    const parentState = {
+      index: 2,
+      routeNames: ['Wallet', Routes.RAMP.VBA_ONBOARDING],
+      routes: [
+        { name: 'Settings' },
+        { name: 'Wallet' },
+        {
+          key: 'vba-1',
+          name: Routes.RAMP.VBA_ONBOARDING,
+          state: mountedOnboardingState,
+        },
+      ],
+    };
+    const childNavigate = jest.fn();
+    const ancestorNavigation = {
+      navigate: childNavigate,
+      getState: () => ({
+        index: 0,
+        routeNames: ['MoneyHome'],
+        routes: [{ name: 'MoneyHome' }],
+      }),
+      getParent: () => ({
+        navigate: parentNavigate,
+        dispatch,
+        getState: () => parentState,
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(ancestorNavigation, 'kycPending');
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 1,
+          routes: [
+            { name: 'Wallet' },
+            {
+              key: 'vba-1',
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+    expect(parentNavigate).not.toHaveBeenCalled();
+    expect(childNavigate).not.toHaveBeenCalled();
+  });
+
+  it('uses Money home when no caller route is available', () => {
+    const dispatch = jest.fn();
+    const navigationWithoutCaller = {
+      navigate: jest.fn(),
+      dispatch,
+      getState: () => ({
+        index: 0,
+        routeNames: [Routes.RAMP.VBA_ONBOARDING],
+        routes: [{ name: Routes.RAMP.VBA_ONBOARDING }],
+      }),
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(navigationWithoutCaller, 'kycPending');
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 1,
+          routes: [
+            {
+              name: Routes.HOME_TABS,
+              params: {
+                screen: Routes.MONEY.ROOT,
+                params: { screen: Routes.MONEY.HOME },
+              },
+            },
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
   });
 });

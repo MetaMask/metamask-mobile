@@ -330,7 +330,6 @@ that confirmation trace.
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `perps.api.rewards_fee_discount` | ms | Fee discount fetch (cached) |
 | `perps.api.rewards_points_estimation` | ms | Points calculation (cached) |
 | `perps.api.rewards_order_execution_fee_discount` | ms | Live discount during order |
 | `perps.api.data_lake_call` | ms | Order report submission |

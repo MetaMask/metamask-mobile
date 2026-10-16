@@ -33,6 +33,9 @@ import {
 
 type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
 
+/** How long a sheet entry waits for the Perps websocket before giving up. */
+const SHEET_CONNECTION_TIMEOUT_MS = 15_000;
+
 /**
  * PerpsOrderRedirect
  *
@@ -52,11 +55,14 @@ const PerpsOrderRedirect: React.FC = () => {
   const {
     direction,
     asset,
+    leverage,
     fromTokenDetails,
     transactionActiveAbTests,
     useBottomSheet: useBottomSheetParam,
     stayOnCurrentScreen,
+    source,
   } = route.params;
+  const orderSource = source ?? PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN;
 
   const { isConnected, isInitialized } = usePerpsConnection();
   const { depositWithOrder } = usePerpsTrading();
@@ -67,6 +73,29 @@ const PerpsOrderRedirect: React.FC = () => {
   const useBottomSheet = useBottomSheetParam ?? isBottomSheetExperiment;
 
   const hasStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (!useBottomSheetParam || isConnected) {
+      return;
+    }
+    const timeoutId = setTimeout(() => {
+      if (hasStartedRef.current) {
+        return;
+      }
+      showToast(
+        PerpsToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      );
+      navigation.goBack();
+    }, SHEET_CONNECTION_TIMEOUT_MS);
+    return () => clearTimeout(timeoutId);
+  }, [
+    isConnected,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+    useBottomSheetParam,
+  ]);
+
   useEffect(() => {
     // Wait for WebSocket to be ready
     if (!isConnected || !isInitialized) return;
@@ -78,8 +107,9 @@ const PerpsOrderRedirect: React.FC = () => {
       const balanceOrderParams = {
         direction,
         asset,
+        leverage,
         fromTokenDetails,
-        source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+        source: orderSource,
         transactionActiveAbTests,
         ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
       };
@@ -108,9 +138,7 @@ const PerpsOrderRedirect: React.FC = () => {
 
     const runDepositFlow = async (): Promise<void> => {
       if (useBottomSheet) {
-        startPerpsTradeSheetInteractiveTrace(
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-        );
+        startPerpsTradeSheetInteractiveTrace(orderSource);
       }
       try {
         await withPendingTransactionActiveAbTests(
@@ -127,8 +155,9 @@ const PerpsOrderRedirect: React.FC = () => {
             {
               direction,
               asset,
+              leverage,
               fromTokenDetails,
-              source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+              source: orderSource,
               ...(useBottomSheet
                 ? { useBottomSheet: true, forceBottomSheet: true }
                 : {}),
@@ -176,8 +205,10 @@ const PerpsOrderRedirect: React.FC = () => {
     isInitialized,
     direction,
     asset,
+    leverage,
     fromTokenDetails,
     stayOnCurrentScreen,
+    orderSource,
     transactionActiveAbTests,
     useBottomSheet,
     useBottomSheetParam,

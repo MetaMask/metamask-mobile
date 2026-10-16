@@ -21,6 +21,10 @@ jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   getPerpPositionDirection: (position: {
     perpPositionType?: 'long' | 'short' | null;
   }) => position.perpPositionType ?? null,
+  getSupportedXyzPerpMarketSymbol: (symbol: string) => ({
+    targetSymbol: symbol,
+    requiresXyzMarketCheck: false,
+  }),
 }));
 
 const openSpot: Position = {

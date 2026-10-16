@@ -24,6 +24,10 @@ import {
   type GetReferralFunnelDto,
   type GetReferralMeDto,
   type OwnReferralCodesDto,
+  type PerpsRebateTrade,
+  type RebateQuoteBody,
+  type RebateQuoteResponse,
+  type SwapsRebateBridgeQuote,
   type ReferralFunnelDto,
   type ReferralMeDto,
   type ReferrerOriginType,
@@ -149,6 +153,30 @@ export function profileCacheKey(profileId: string, scope?: string): string {
   return scope ? `${profileId}:${scope}` : profileId;
 }
 
+/**
+ * The money service's checks on a perps quote `trade`, copied so a trade it
+ * would refuse is never sent: a Hyperliquid perp name (`BTC`, `xyz:TSLA`),
+ * and a non-negative decimal USD amount. `side` is already narrowed to
+ * `BUY` | `SELL` by its type.
+ */
+const PERPS_REBATE_TRADE_COIN = /^(?:[a-z0-9]{1,16}:)?[A-Za-z0-9]{1,32}$/;
+const PERPS_REBATE_TRADE_NOTIONAL_USD = /^\d{1,15}(\.\d{1,18})?$/;
+
+/**
+ * Whether the money service would accept this perps quote `trade`. The
+ * server refuses the whole quote with a `400` otherwise, even though it drops
+ * the trade.
+ *
+ * @param trade - The trade a caller passed.
+ * @returns True when every field passes the server's checks.
+ */
+function isSendablePerpsRebateTrade(trade: PerpsRebateTrade): boolean {
+  return (
+    PERPS_REBATE_TRADE_COIN.test(trade.coin) &&
+    PERPS_REBATE_TRADE_NOTIONAL_USD.test(trade.notionalUsd)
+  );
+}
+
 const MESSENGER_EXPOSED_METHODS = [
   'getReferralMe',
   'getReferralFunnel',
@@ -159,6 +187,8 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClaimHistory',
   'getCommissions',
   'getClaimById',
+  'getSwapsRebateQuote',
+  'getPerpsRebateQuote',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -339,6 +369,66 @@ export class RewardsMoneyController extends BaseController<
       'RewardsMoneyDataService:validateReferralCode',
       code,
     );
+  }
+
+  /**
+   * Rebate a swaps confirmation screen should show. The bridge quote decides
+   * fee-token eligibility. Not cached: the rate has to disappear the moment
+   * an operator ends the window, and a different quote can name a different
+   * fee token.
+   *
+   * Pass the `quote` of the bridge `QuoteResponse`, not the response. Only
+   * its `feeData.metabridge` is sent.
+   *
+   * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+   * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+   * with a plain `Error`.
+   *
+   * @param quote - The bridge quote the confirmation screen holds.
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getSwapsRebateQuote(
+    quote: SwapsRebateBridgeQuote,
+  ): Promise<RebateQuoteResponse> {
+    return this.#getRebateQuote({
+      product: 'swaps',
+      quote: { feeData: { metabridge: quote.feeData.metabridge } },
+    });
+  }
+
+  /**
+   * Rebate a perps confirmation screen should show. `trade` is optional and
+   * the server drops it today; the answer does not depend on it. A trade the
+   * server would refuse (see {@link PerpsRebateTrade}) is left out rather
+   * than sent, so it cannot turn the quote into a `400`.
+   *
+   * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+   * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+   * with a plain `Error`.
+   *
+   * @param trade - What the user is about to trade, when known.
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getPerpsRebateQuote(trade?: PerpsRebateTrade): Promise<RebateQuoteResponse> {
+    if (trade === undefined || !isSendablePerpsRebateTrade(trade)) {
+      return this.#getRebateQuote({ product: 'perps' });
+    }
+    return this.#getRebateQuote({
+      product: 'perps',
+      trade: {
+        coin: trade.coin,
+        side: trade.side,
+        notionalUsd: trade.notionalUsd,
+      },
+    });
+  }
+
+  async #getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call('RewardsMoneyDataService:getRebateQuote', body);
   }
 
   async getEarningsSummary(

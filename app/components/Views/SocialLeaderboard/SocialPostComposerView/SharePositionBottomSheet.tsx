@@ -53,12 +53,14 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error,
+    openError,
+    closedError,
     refetch,
   } = useTraderPositions(address);
 
   const isLoading = tab === 'open' ? isLoadingOpen : isLoadingClosed;
   const positions = tab === 'open' ? openPositions : closedPositions;
+  const error = tab === 'open' ? openError : closedError;
   const bothEmpty =
     !isLoadingOpen &&
     !isLoadingClosed &&

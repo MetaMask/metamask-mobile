@@ -561,7 +561,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const szDecimals = marketData?.szDecimals ?? defaultSzDecimals ?? null;
   const maxLeverage = marketData?.maxLeverage ?? defaultMaxLeverage ?? null;
-  const isMarketDataUnavailable = szDecimals === null || maxLeverage === null;
+  // The first frame requests no asset (`isDataReady` is still false). Treat
+  // that as loading, not a failed market, so entries without route defaults
+  // (Social copy trade) do not flash the error.
+  const isMarketDataUnavailable =
+    isDataReady && (szDecimals === null || maxLeverage === null);
   const isLoadingMarketData = isMarketDataLoading && isMarketDataUnavailable;
 
   // Check if user has an existing position for this market
