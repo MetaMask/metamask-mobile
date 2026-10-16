@@ -9,7 +9,11 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
+import { setClaimWaitingUntil } from '../../../../reducers/rewardsMoney';
+import {
+  selectClaimWaitingUntil,
+  selectReferralMeLocalizedText,
+} from '../../../../reducers/rewardsMoney/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   selectMoneyAccountVaultConfig,
@@ -30,12 +34,17 @@ import useRewardsToast from './useRewardsToast';
 import { submitClaimVoucher } from '../utils/claimEarnings';
 import { useClaimEarnings } from './useClaimEarnings';
 
+const mockDispatch = jest.fn();
+let storedClaimWait: number | undefined;
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('../../../../reducers/rewardsMoney/selectors', () => ({
   selectReferralMeLocalizedText: jest.fn(),
+  selectClaimWaitingUntil: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
@@ -115,6 +124,8 @@ const localizedText = {
   claimFailureToast: 'Earnings could not be claimed',
   claimFailureRetryToast: 'Try again',
   claimFailureWaitToast: 'Try again shortly',
+  claimFailureWaitMinutesToast:
+    "You can't claim just yet. Try again in {minutes} minutes.",
   claimFailureMinimumToast: 'Earn at least $1',
   claimFailureAddressBlockedToast: 'Address blocked',
   claimFailureTooLargeToast:
@@ -219,7 +230,17 @@ describe('useClaimEarnings', () => {
   const onClaimsPaused = jest.fn();
 
   beforeEach(() => {
+    storedClaimWait = undefined;
     jest.clearAllMocks();
+    mockDispatch.mockImplementation((action: unknown) => {
+      if (setClaimWaitingUntil.match(action)) {
+        storedClaimWait =
+          action.payload.until === null ? undefined : action.payload.until;
+      }
+    });
+    jest
+      .mocked(selectClaimWaitingUntil)
+      .mockImplementation(() => storedClaimWait);
     onOpened.mockReset();
     onSubmitted.mockReset();
     onClaimsPaused.mockReset();
@@ -936,7 +957,7 @@ describe('useClaimEarnings', () => {
       });
 
       expect(mockErrorToast).toHaveBeenCalledWith(
-        localizedText.claimFailureWaitToast,
+        "You can't claim just yet. Try again in 1 minutes.",
       );
       expect(result.current.isClaimWaiting).toBe(true);
 
@@ -950,6 +971,56 @@ describe('useClaimEarnings', () => {
         jest.advanceTimersByTime(30_000);
       });
       expect(result.current.isClaimWaiting).toBe(false);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('shows the wait in minutes when a signature refusal carries Retry-After', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(409, 'SIGNATURE_RESERVE', 61),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockEngineCall).toHaveBeenCalledTimes(1);
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      "You can't claim just yet. Try again in 2 minutes.",
+    );
+    expect(result.current.isClaimWaiting).toBe(true);
+  });
+
+  it('keeps Claim disabled after the screen remounts until Retry-After elapses', async () => {
+    jest.useFakeTimers();
+    try {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyClaimRefusalError(409, 'VELOCITY_LIMIT_EXCEEDED', 90),
+      );
+      const first = renderClaim();
+
+      await act(async () => {
+        await first.result.current.claim(summary(ONE_DOLLAR));
+      });
+
+      expect(first.result.current.isClaimWaiting).toBe(true);
+      first.unmount();
+
+      const second = renderClaim();
+
+      expect(second.result.current.isClaimWaiting).toBe(true);
+      mockEngineCall.mockClear();
+      await act(async () => {
+        await second.result.current.claim(summary(ONE_DOLLAR));
+      });
+      expect(mockEngineCall).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(90_000);
+      });
+      expect(second.result.current.isClaimWaiting).toBe(false);
     } finally {
       jest.useRealTimers();
     }

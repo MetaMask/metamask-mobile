@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
-import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
+import { setClaimWaitingUntil } from '../../../../reducers/rewardsMoney';
+import {
+  selectClaimWaitingUntil,
+  selectReferralMeLocalizedText,
+} from '../../../../reducers/rewardsMoney/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -28,6 +32,7 @@ import {
   canClaimEarnings,
   claimRoutesForSummary,
   claimToastKey,
+  claimToastText,
   isClaimsPausedRefusal,
   evmAddressFromEarningAddress,
   isClaimSubmittable,
@@ -88,18 +93,26 @@ export function useClaimEarnings(
   const navigation = useNavigation<AppNavigationProp>();
   const { navigateToConfirmation } = useConfirmNavigation();
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const dispatch = useDispatch();
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
+  );
+  const persistedWaitUntil = useSelector((state: RootState) =>
+    selectClaimWaitingUntil(state, profileId),
   );
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
-  const [claimWaitingUntil, setClaimWaitingUntil] = useState<number | null>(
-    null,
+  const [claimWaitingUntil, setClaimWaitingUntilState] = useState<
+    number | null
+  >(() =>
+    persistedWaitUntil !== undefined && persistedWaitUntil > Date.now()
+      ? persistedWaitUntil
+      : null,
   );
   const isClaimingRef = useRef(false);
-  const claimWaitingUntilRef = useRef<number | null>(null);
+  const claimWaitingUntilRef = useRef<number | null>(claimWaitingUntil);
   /** The summary object Claim was pressed against, when its refresh failed. */
   const claimedSummaryRef = useRef<EarningsSummaryDto | null>(null);
   const refreshHoldRef = useRef(false);
@@ -123,15 +136,17 @@ export function useClaimEarnings(
     const delay = claimWaitingUntil - Date.now();
     if (delay <= 0) {
       claimWaitingUntilRef.current = null;
-      setClaimWaitingUntil(null);
+      setClaimWaitingUntilState(null);
+      dispatch(setClaimWaitingUntil({ profileId, until: null }));
       return undefined;
     }
     const timer = setTimeout(() => {
       claimWaitingUntilRef.current = null;
-      setClaimWaitingUntil(null);
+      setClaimWaitingUntilState(null);
+      dispatch(setClaimWaitingUntil({ profileId, until: null }));
     }, delay);
     return () => clearTimeout(timer);
-  }, [claimWaitingUntil]);
+  }, [claimWaitingUntil, dispatch, profileId]);
 
   const claim = useCallback(
     async (summary: EarningsSummaryDto) => {
@@ -235,7 +250,9 @@ export function useClaimEarnings(
         ) {
           showToast(RewardsToastOptions.success(localizedText[key]));
         } else {
-          showToast(RewardsToastOptions.error(localizedText[key]));
+          showToast(
+            RewardsToastOptions.error(claimToastText(localizedText, outcomes)),
+          );
         }
         // Refresh after a paid claim, including one that left money in
         // `excluded[]`. The success toast already won. A failed refresh leaves
@@ -261,7 +278,8 @@ export function useClaimEarnings(
         if (retryAfterSeconds > 0) {
           const until = Date.now() + retryAfterSeconds * 1000;
           claimWaitingUntilRef.current = until;
-          setClaimWaitingUntil(until);
+          setClaimWaitingUntilState(until);
+          dispatch(setClaimWaitingUntil({ profileId, until }));
         }
       } catch (error) {
         reportRewardsMoneyReadFailure(
@@ -291,6 +309,8 @@ export function useClaimEarnings(
       onClaimsPaused,
       showToast,
       RewardsToastOptions,
+      dispatch,
+      profileId,
     ],
   );
 

@@ -1420,6 +1420,31 @@ describe('RewardsMoneyDataService', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps Retry-After and SIGNATURE_RESERVE on a held-back partial claim', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(
+          409,
+          {
+            statusCode: 409,
+            message: 'VELOCITY_LIMIT_EXCEEDED',
+            error: 'Conflict',
+            reason: 'SIGNATURE_RESERVE',
+          },
+          { 'retry-after': '61' },
+        ),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({
+        status: 409,
+        reason: 'SIGNATURE_RESERVE',
+        retryAfterSeconds: 61,
+      });
+    });
+
     it('keeps Retry-After on a rate-limited refusal', async () => {
       mockFetch.mockResolvedValue(
         textResponse(

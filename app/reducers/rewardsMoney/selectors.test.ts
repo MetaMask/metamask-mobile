@@ -10,6 +10,7 @@ import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
   selectCashbackLedger,
+  selectClaimWaitingUntil,
   selectCommissions,
   selectEarningsHistory,
   selectEarningsSummaryEntry,
@@ -303,6 +304,7 @@ describe('rewardsMoney selectors', () => {
       expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
       expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
       expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
+      expect(selectClaimWaitingUntil(state, PROFILE_A)).toBeUndefined();
     });
 
     it('returns undefined when the profile or the page is missing', () => {
@@ -311,6 +313,22 @@ describe('rewardsMoney selectors', () => {
       expect(selectInFlightClaims(state, undefined)).toBeUndefined();
       expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();
       expect(selectInFlightClaims(state, PROFILE_B)).toBeUndefined();
+    });
+  });
+
+  describe('selectClaimWaitingUntil', () => {
+    it('returns the stored wait for the profile', () => {
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          claimWaitingUntil: { [PROFILE_A]: 1_800_000_000_000 },
+        },
+      };
+
+      expect(selectClaimWaitingUntil(state, PROFILE_A)).toBe(1_800_000_000_000);
+      expect(selectClaimWaitingUntil(state, PROFILE_B)).toBeUndefined();
+      expect(selectClaimWaitingUntil(state, undefined)).toBeUndefined();
     });
   });
 });

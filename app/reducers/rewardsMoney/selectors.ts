@@ -199,3 +199,14 @@ export function selectInFlightClaims(
   }
   return state.rewardsMoney.inFlightClaims?.[profileId];
 }
+
+/** Epoch ms until Claim is enabled again, after a refusal's `Retry-After`. */
+export function selectClaimWaitingUntil(
+  state: RootState,
+  profileId: string | undefined,
+): number | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimWaitingUntil?.[profileId];
+}

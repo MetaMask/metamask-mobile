@@ -113,6 +113,7 @@ export type ReferralLocalizedTextKey =
   | 'claimFailureToast'
   | 'claimFailureRetryToast'
   | 'claimFailureWaitToast'
+  | 'claimFailureWaitMinutesToast'
   | 'claimFailureMinimumToast'
   | 'claimFailureAddressBlockedToast'
   | 'claimFailureTooLargeToast'

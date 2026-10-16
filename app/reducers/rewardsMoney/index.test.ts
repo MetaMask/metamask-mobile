@@ -10,6 +10,7 @@ import rewardsMoneyReducer, {
   setCashbackLedger,
   setCommissions,
   setEarningsHistory,
+  setClaimWaitingUntil,
   setInFlightClaims,
   setEarningsSummary,
   setEarningsSummaryError,
@@ -92,6 +93,7 @@ describe('rewardsMoneyReducer', () => {
       cashbackLedger: {},
       earningsHistory: {},
       inFlightClaims: {},
+      claimWaitingUntil: {},
     });
   });
 
@@ -104,6 +106,7 @@ describe('rewardsMoneyReducer', () => {
       cashbackLedger: {},
       earningsHistory: {},
       inFlightClaims: {},
+      claimWaitingUntil: {},
     });
   });
 
@@ -350,6 +353,9 @@ describe('rewardsMoneyReducer', () => {
             },
           ] as ClaimDto[],
         },
+        claimWaitingUntil: {
+          [PROFILE_A]: 1_800_000_000_000,
+        },
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -384,6 +390,9 @@ describe('rewardsMoneyReducer', () => {
       expect(state.inFlightClaims[PROFILE_A]).toEqual(
         persisted.inFlightClaims[PROFILE_A],
       );
+      expect(state.claimWaitingUntil[PROFILE_A]).toBe(
+        persisted.claimWaitingUntil[PROFILE_A],
+      );
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -406,6 +415,7 @@ describe('rewardsMoneyReducer', () => {
         cashbackLedger: {},
         earningsHistory: {},
         inFlightClaims: {},
+        claimWaitingUntil: {},
       });
     });
   });
@@ -434,6 +444,7 @@ describe('rewardsMoneyReducer', () => {
         cashbackLedger: {},
         earningsHistory: {},
         inFlightClaims: {},
+        claimWaitingUntil: {},
       });
     });
   });
@@ -560,6 +571,25 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.inFlightClaims[PROFILE_A]).toEqual(claims);
+    });
+
+    it('keeps a claim wait by profile and clears it', () => {
+      const waiting = rewardsMoneyReducer(
+        initialState,
+        setClaimWaitingUntil({
+          profileId: PROFILE_A,
+          until: 1_800_000_000_000,
+        }),
+      );
+
+      expect(waiting.claimWaitingUntil[PROFILE_A]).toBe(1_800_000_000_000);
+
+      const cleared = rewardsMoneyReducer(
+        waiting,
+        setClaimWaitingUntil({ profileId: PROFILE_A, until: null }),
+      );
+
+      expect(cleared.claimWaitingUntil[PROFILE_A]).toBeUndefined();
     });
   });
 });

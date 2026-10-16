@@ -27,6 +27,7 @@ import {
   claimRoutesForSummary,
   evmAddressFromEarningAddress,
   claimToastKey,
+  claimToastText,
   isClaimSubmittable,
   isPendingClaimRow,
   mergeInFlightClaims,
@@ -685,6 +686,60 @@ describe('runEarningsClaim', () => {
     expect(claimToastKey(outcomes)).toBe('claimFailureWaitToast');
   });
 
+  it('names the wait in minutes when a signature refusal carries Retry-After', () => {
+    const template =
+      "You can't claim just yet. Try again in {minutes} minutes.";
+    const localizedText = {
+      claimFailureWaitToast: 'Try again later',
+      claimFailureWaitMinutesToast: template,
+    } as Parameters<typeof claimToastText>[0];
+
+    for (const [reason, seconds, minutes] of [
+      ['VELOCITY_LIMIT_EXCEEDED', 61, '2'],
+      ['SIGNATURE_RESERVE', 15, '1'],
+      ['VELOCITY_LIMIT_EXCEEDED', 135, '3'],
+    ] as const) {
+      const outcomes = [
+        {
+          route: 'referral-trade-fee-cashback' as const,
+          submitted: false,
+          opened: false,
+          reason,
+          retryAfterSeconds: seconds,
+        },
+      ];
+
+      expect(claimToastKey(outcomes)).toBe('claimFailureWaitMinutesToast');
+      expect(claimToastText(localizedText, outcomes)).toBe(
+        template.replace('{minutes}', minutes),
+      );
+    }
+  });
+
+  it('leaves a signature refusal for the user to retry', async () => {
+    const initiateClaim = jest
+      .fn()
+      .mockRejectedValue(
+        new RewardsMoneyClaimRefusalError(409, 'SIGNATURE_RESERVE', 15),
+      );
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      submitVoucher: jest.fn(),
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
+    expect(outcomes[0]).toMatchObject({
+      submitted: false,
+      reason: 'SIGNATURE_RESERVE',
+      retryAfterSeconds: 15,
+    });
+  });
+
   it('records a refusal without submitting', async () => {
     const outcomes = await runEarningsClaim({
       moneyAccountAddress: '0xmoney',
@@ -722,7 +777,17 @@ describe('runEarningsClaim', () => {
       reason: 'RATE_LIMITED',
       retryAfterSeconds: 240,
     });
-    expect(claimToastKey(outcomes)).toBe('claimFailureWaitToast');
+    expect(claimToastKey(outcomes)).toBe('claimFailureWaitMinutesToast');
+    expect(
+      claimToastText(
+        {
+          claimFailureWaitToast: 'Try again later',
+          claimFailureWaitMinutesToast:
+            "You can't claim just yet. Try again in {minutes} minutes.",
+        } as Parameters<typeof claimToastText>[0],
+        outcomes,
+      ),
+    ).toBe("You can't claim just yet. Try again in 4 minutes.");
   });
 
   it('leaves an opened claim pending when the batch is not sent', async () => {
