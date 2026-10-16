@@ -4693,8 +4693,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Not in the production client-config response yet. inProd stays false so
-  // the weekly registry sync does not treat this as removed from production.
   isMoneyMfaEnabled: {
     name: 'isMoneyMfaEnabled',
     type: FeatureFlagType.Remote,
@@ -6608,10 +6606,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   homeBrandRefreshSurfaces: {
     name: 'homeBrandRefreshSurfaces',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -8419,16 +8416,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeBrandRefreshSurfaces: {
-    name: 'homeBrandRefreshSurfaces',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homeTMCU1209AbtestHomepageBalanceBreakdown: {
     name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
     type: FeatureFlagType.Remote,
@@ -8446,14 +8433,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  ASSETS4098ShowRobinhoodRwa: {
-    name: 'ASSETS4098ShowRobinhoodRwa',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 };
