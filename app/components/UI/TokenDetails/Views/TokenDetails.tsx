@@ -23,8 +23,11 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type LayoutChangeEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -59,6 +62,10 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { useTokenDetailsGlassFooter } from '../hooks/useTokenDetailsGlassFooter';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
@@ -94,6 +101,8 @@ import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/brid
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
+
+const GLASS_FOOTER_LIST_SPACING = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -347,11 +356,27 @@ const TokenDetails: React.FC<{
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The glass header floats over the list and fades its backdrop in on scroll.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      headerScrollY.set(y);
+      onScrollOffset(y);
+    },
+    [headerScrollY, onScrollOffset],
+  );
+
   const handleMultichainScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      onScrollOffset(event.nativeEvent.contentOffset.y);
+      handleListScrollOffset(event.nativeEvent.contentOffset.y);
     },
-    [onScrollOffset],
+    [handleListScrollOffset],
   );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
@@ -532,6 +557,18 @@ const TokenDetails: React.FC<{
     });
   }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
 
+  // The glass footer floats over the list, so the list clears it at the bottom.
+  const { isRefreshed: isGlassFooter } = useTokenDetailsGlassFooter();
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback(
+    (event: LayoutChangeEvent) =>
+      setFooterHeight(event.nativeEvent.layout.height),
+    [],
+  );
+  const listBottomInset = isGlassFooter
+    ? footerHeight + GLASS_FOOTER_LIST_SPACING
+    : undefined;
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -589,6 +626,12 @@ const TokenDetails: React.FC<{
 
   const renderHeader = () => (
     <>
+      {headerInset > 0 && (
+        <View
+          style={{ height: headerInset }}
+          testID={TokenDetailsTestIds.HEADER_SPACER}
+        />
+      )}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -666,6 +709,9 @@ const TokenDetails: React.FC<{
         }
         onCopyAddress={handleCopyAddress}
         description={headerDescription}
+        isGlass={isGlassHeader}
+        onLayout={handleHeaderLayout}
+        scrollY={headerScrollY}
       />
 
       {txIsNonEvmAsset ? (
@@ -680,11 +726,12 @@ const TokenDetails: React.FC<{
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
           onScroll={handleMultichainScroll}
+          contentBottomInset={listBottomInset}
         />
       ) : (
         <Transactions
           header={renderHeader()}
-          onScrollThroughContent={onScrollOffset}
+          onScrollThroughContent={handleListScrollOffset}
           assetSymbol={token.symbol}
           navigation={navigation}
           transactions={transactions}
@@ -700,6 +747,7 @@ const TokenDetails: React.FC<{
           skipScrollOnClick
           hideEmptyState
           location={TransactionDetailLocation.AssetDetails}
+          contentBottomInset={listBottomInset}
         />
       )}
       <TokenDetailsStickyFooter
@@ -719,6 +767,8 @@ const TokenDetails: React.FC<{
         quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
         onOpenQuickBuy={openQuickBuy}
+        isOverlay={isGlassFooter}
+        onLayout={handleFooterLayout}
       />
 
       {shareUrl && (

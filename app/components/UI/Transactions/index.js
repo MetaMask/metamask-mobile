@@ -183,6 +183,7 @@ const Transactions = (props) => {
     tokenChainId,
     skipScrollOnClick,
     location,
+    contentBottomInset,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
     accountImportTime,
     groupEvmAccountAddress,
@@ -820,7 +821,12 @@ const Transactions = (props) => {
                       renderEmpty()
                     )
                   }
-                  contentContainerStyle={styles.listContentContainer}
+                  contentContainerStyle={[
+                    styles.listContentContainer,
+                    contentBottomInset !== undefined && {
+                      paddingBottom: contentBottomInset,
+                    },
+                  ]}
                   style={baseStyles.flexGrow}
                   showsVerticalScrollIndicator={false}
                   scrollIndicatorInsets={{ right: 1 }}
@@ -937,6 +943,10 @@ Transactions.propTypes = {
    * Location context for analytics tracking (home or asset_details)
    */
   location: PropTypes.string,
+  /**
+   * (optional) Bottom padding for the list, e.g. to clear a footer floating over it
+   */
+  contentBottomInset: PropTypes.number,
   hardwareWallet: PropTypes.shape({
     ensureDeviceReady: PropTypes.func,
     setPendingOperationAddress: PropTypes.func,
