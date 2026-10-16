@@ -32,6 +32,8 @@ interface ProfileReadyAnimationProps {
   handle: string;
   avatarPresetId: string | null | undefined;
   avatarBackgroundId: string | null | undefined;
+  imageUrl?: string | null;
+  isVerified?: boolean;
   /** Static content shown when the animation is skipped or fails. */
   fallback: React.ReactNode;
 }
@@ -47,6 +49,8 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   handle,
   avatarPresetId,
   avatarBackgroundId,
+  imageUrl,
+  isVerified = false,
   fallback,
 }) => {
   const tw = useTailwind();
@@ -87,8 +91,16 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     if (!instance) return;
     setDisplayName(displayName);
     setHandle(`@${handle}`);
-    setIsVerified(false);
-  }, [instance, displayName, handle, setDisplayName, setHandle, setIsVerified]);
+    setIsVerified(isVerified);
+  }, [
+    instance,
+    displayName,
+    handle,
+    isVerified,
+    setDisplayName,
+    setHandle,
+    setIsVerified,
+  ]);
 
   const handleError = useCallback((riveError: RiveError) => {
     Logger.error(
@@ -124,6 +136,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
         style={{ transform: [{ translateY: -READY_AVATAR_LIFT }] }}
       >
         <ProfileAvatar
+          imageUrl={imageUrl}
           avatarPresetId={avatarPresetId}
           avatarBackgroundId={avatarBackgroundId}
           size="xl"

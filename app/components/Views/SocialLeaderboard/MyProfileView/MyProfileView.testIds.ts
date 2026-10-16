@@ -9,6 +9,7 @@ export const MyProfileViewSelectorsIDs = {
   TITLE_SECTION_WRAPPER: 'my-profile-view-title-section-wrapper',
   BACK_BUTTON: 'my-profile-view-back-button',
   CREATE_POST_BUTTON: 'my-profile-view-create-post-button',
+  DEBUG_RESET_PROFILE_BUTTON: 'my-profile-view-debug-reset-profile-button',
   INSIGHTS_BUTTON: 'my-profile-view-insights-button',
   AVATAR: 'my-profile-view-avatar',
   DISPLAY_NAME: 'my-profile-view-display-name',
