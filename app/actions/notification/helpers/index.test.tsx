@@ -172,33 +172,21 @@ const createNotificationPreferences = (
 });
 
 describe('helpers - updateNotificationPreferences()', () => {
-  it('writes preferences unchanged when the user consented to marketing', async () => {
-    Engine.context.AnalyticsController.state.optedInToMarketing = true;
-    const preferences = createNotificationPreferences(true);
+  it('passes the update to notification services and returns the saved preferences', async () => {
+    const saved = createNotificationPreferences(false);
+    const update = { perps: { pushNotificationsEnabled: false } };
+    jest
+      .mocked(
+        Engine.context.NotificationServicesController
+          .updateNotificationPreferences,
+      )
+      .mockResolvedValue(saved);
 
-    await updateNotificationPreferences(preferences);
-
+    expect(await updateNotificationPreferences(update)).toBe(saved);
     expect(
       Engine.context.NotificationServicesController
         .updateNotificationPreferences,
-    ).toHaveBeenCalledWith(preferences);
-  });
-
-  it('turns marketing channels off and keeps other sections when the user has not consented to marketing', async () => {
-    const preferences = createNotificationPreferences(true);
-
-    await updateNotificationPreferences(preferences);
-
-    expect(
-      Engine.context.NotificationServicesController
-        .updateNotificationPreferences,
-    ).toHaveBeenCalledWith({
-      ...preferences,
-      marketing: {
-        inAppNotificationsEnabled: false,
-        pushNotificationsEnabled: false,
-      },
-    });
+    ).toHaveBeenCalledWith(update);
   });
 });
 
@@ -218,7 +206,6 @@ describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
       Engine.context.NotificationServicesController
         .updateNotificationPreferences,
     ).toHaveBeenCalledWith({
-      ...preferences,
       marketing: {
         inAppNotificationsEnabled: true,
         pushNotificationsEnabled: true,
@@ -250,7 +237,6 @@ describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
       Engine.context.NotificationServicesController
         .updateNotificationPreferences,
     ).toHaveBeenCalledWith({
-      ...preferences,
       marketing: {
         inAppNotificationsEnabled: false,
         pushNotificationsEnabled: false,
