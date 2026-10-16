@@ -45,12 +45,8 @@ describe('TitleStandardMarketing', () => {
       );
 
       const title = getByTestId(TEST_IDS.TITLE);
-      expect(title).toHaveStyle({
-        fontSize: tw`text-display-lg`.fontSize,
-      });
-      expect(title).toHaveStyle({
-        fontFamily: tw.style('font-hero-bold').fontFamily,
-      });
+      expect(title).toHaveStyle(tw`text-display-lg`);
+      expect(title).toHaveStyle(tw.style('font-hero-bold'));
     });
   });
 
@@ -68,12 +64,8 @@ describe('TitleStandardMarketing', () => {
       );
 
       const bottomLabel = getByTestId(TEST_IDS.BOTTOM_LABEL);
-      expect(bottomLabel).toHaveStyle({
-        fontSize: tw`text-body-md`.fontSize,
-      });
-      expect(bottomLabel).toHaveStyle({
-        fontFamily: tw.style('font-default-medium').fontFamily,
-      });
+      expect(bottomLabel).toHaveStyle(tw`text-body-md`);
+      expect(bottomLabel).toHaveStyle(tw.style('font-default-medium'));
       expect(bottomLabel).toHaveStyle(tw`text-alternative`);
     });
   });
