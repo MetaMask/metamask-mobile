@@ -239,6 +239,89 @@ const AvatarGlow: React.FC<{ scrollX: SharedValue<number> }> = ({
   </Box>
 );
 
+/** Crossfade when the selected avatar changes. Low-tier devices swap instantly. */
+const AVATAR_DISSOLVE_MS = 450;
+
+const DissolvingAvatarArt: React.FC<{
+  avatarPresetId: string;
+  sizePx: number;
+  animate: boolean;
+}> = ({ avatarPresetId, sizePx, animate }) => {
+  const incomingOpacity = useSharedValue(1);
+  const outgoingOpacity = useSharedValue(1);
+  const [renderedId, setRenderedId] = useState(avatarPresetId);
+  const [previousId, setPreviousId] = useState<string | null>(null);
+  const clearPrevious = useCallback(() => {
+    setPreviousId(null);
+  }, []);
+
+  // Apply the outgoing image and a hidden incoming image before paint, so the
+  // new avatar cannot flash at full opacity while the effect waits to start.
+  if (avatarPresetId !== renderedId) {
+    setRenderedId(avatarPresetId);
+    if (animate) {
+      setPreviousId(renderedId);
+      incomingOpacity.value = 0;
+      outgoingOpacity.value = 1;
+    } else {
+      setPreviousId(null);
+      incomingOpacity.value = 1;
+    }
+  }
+
+  useEffect(() => {
+    if (!previousId) {
+      return;
+    }
+    cancelAnimation(incomingOpacity);
+    cancelAnimation(outgoingOpacity);
+    incomingOpacity.value = withTiming(1, {
+      duration: AVATAR_DISSOLVE_MS,
+      easing: Easing.inOut(Easing.cubic),
+    });
+    outgoingOpacity.value = withTiming(
+      0,
+      { duration: AVATAR_DISSOLVE_MS, easing: Easing.inOut(Easing.cubic) },
+      (finished) => {
+        if (finished) {
+          scheduleOnRN(clearPrevious);
+        }
+      },
+    );
+  }, [clearPrevious, incomingOpacity, outgoingOpacity, previousId, renderedId]);
+
+  const incomingStyle = useAnimatedStyle(() => ({
+    opacity: incomingOpacity.value,
+  }));
+  const outgoingStyle = useAnimatedStyle(() => ({
+    opacity: outgoingOpacity.value,
+  }));
+
+  return (
+    <Box
+      twClassName="items-center justify-center"
+      style={{ width: sizePx, height: sizePx }}
+    >
+      {previousId ? (
+        <Box twClassName="absolute">
+          <Animated.View style={outgoingStyle}>
+            <ProfileAvatarArt
+              preset={getProfileAvatarPreset(previousId)}
+              sizePx={sizePx}
+            />
+          </Animated.View>
+        </Box>
+      ) : null}
+      <Animated.View style={incomingStyle}>
+        <ProfileAvatarArt
+          preset={getProfileAvatarPreset(renderedId)}
+          sizePx={sizePx}
+        />
+      </Animated.View>
+    </Box>
+  );
+};
+
 /** Ring of small round dots around the selection. */
 const DottedRing: React.FC = () => {
   const tw = useTailwind();
@@ -308,7 +391,6 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   const hapticsArmed = useSharedValue(isLowTier);
   const hasPlayedIntro = useRef(isLowTier);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const preset = getProfileAvatarPreset(avatarPresetId);
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     setWidth(event.nativeEvent.layout.width);
@@ -474,7 +556,11 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
           style={tw.style({ width: SOLID_RING_SIZE, height: SOLID_RING_SIZE })}
         />
         <DottedRing />
-        <ProfileAvatarArt preset={preset} sizePx={ART_SIZE} />
+        <DissolvingAvatarArt
+          avatarPresetId={avatarPresetId}
+          sizePx={ART_SIZE}
+          animate={!isLowTier}
+        />
       </Box>
     </Box>
   );
