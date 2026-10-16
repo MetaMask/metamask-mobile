@@ -9,6 +9,7 @@
  */
 
 import '../../../../../tests/component-view/mocks';
+import type { Profile } from '@metamask/profile-controller';
 import NetInfo from '@react-native-community/netinfo';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
@@ -87,11 +88,34 @@ const deferUsernameChecks = (): PendingUsernameCheck[] => {
   return pending;
 };
 
+const CREATED_PROFILE: Profile = {
+  profileId: 'mock-profile-id',
+  username: '',
+  displayName: '',
+  bio: '',
+  linkedAddresses: [],
+  avatarUrl: '',
+  tradingPrivacy: 'public',
+  connectedToX: false,
+  createdAt: '',
+  updatedAt: '',
+};
+
+/** Empty profile id so onboarding falls back when nobody is signed in. */
+const SIGNED_OUT_SESSION: Awaited<
+  ReturnType<typeof Engine.context.AuthenticationController.getSessionProfile>
+> = {
+  identifierId: 'signed-out',
+  profileId: '',
+  canonicalProfileId: '',
+  metaMetricsId: 'metrics',
+};
+
 const restoreProfileControllerMocks = () => {
   jest.mocked(Engine.context.ProfileController.createProfile).mockReset();
   jest
     .mocked(Engine.context.ProfileController.createProfile)
-    .mockResolvedValue({ profileId: 'mock-profile-id' });
+    .mockResolvedValue(CREATED_PROFILE);
   jest
     .mocked(Engine.context.ProfileController.checkUsernameAvailability)
     .mockReset();
@@ -109,7 +133,7 @@ const restoreProfileControllerMocks = () => {
     .mockReset();
   jest
     .mocked(Engine.context.AuthenticationController.getSessionProfile)
-    .mockResolvedValue(undefined);
+    .mockResolvedValue(SIGNED_OUT_SESSION);
 };
 
 describe('SocialProfileOnboardingView', () => {
@@ -398,7 +422,9 @@ describe('SocialProfileOnboardingView', () => {
     jest
       .mocked(Engine.context.AuthenticationController.getSessionProfile)
       .mockResolvedValue({
+        ...SIGNED_OUT_SESSION,
         profileId: 'signed-in-profile',
+        canonicalProfileId: 'signed-in-profile',
       });
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
 
