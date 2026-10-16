@@ -4,7 +4,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
@@ -15,9 +15,15 @@ import {
   type SocialSurfaceLocation,
 } from '../SocialFeedSurface';
 import type { SocialV1FeedPost } from '../types';
+import {
+  SocialEntryOptionsProvider,
+  useSocialEntryModeration,
+} from './SocialEntryOptionsBottomSheet';
 import SocialFeedEmpty from './SocialFeedEmpty';
 import SocialFeedError from './SocialFeedError';
-import SocialFeedPostShell from './SocialFeedPostShell';
+import SocialFeedPostShell, {
+  type SocialFeedPostShellProps,
+} from './SocialFeedPostShell';
 import SocialFeedSkeleton from './SocialFeedSkeleton';
 import SocialV1FeedPostList from './SocialV1FeedPostList';
 
@@ -46,6 +52,11 @@ export interface SocialFeedProps {
   location: SocialSurfaceLocation;
   /** Optional heading above the posts. */
   title?: string;
+  /**
+   * Spot copy trade. Without it the spot Copy trade button has no action;
+   * perps posts open the Perps order sheet on their own.
+   */
+  onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
 }
 
 /**
@@ -99,17 +110,20 @@ const LoadMoreSentinel: React.FC<{
   );
 };
 
-const renderPost = (post: SocialV1FeedPost) => (
-  <SocialFeedPostShell post={post} />
-);
-
-/**
- * Infinite social feed for one source. Renders inside the host's scroll:
- * skeleton, error, "No trades yet", then every loaded page. Invented values
- * stay hidden unless an outer surface has opted into them.
- */
-const SocialFeed: React.FC<SocialFeedProps> = ({ source, location, title }) => {
+const SocialFeedBody: React.FC<SocialFeedProps> = ({
+  source,
+  location,
+  title,
+  onCopyTrade,
+}) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
+  const { isEntryHidden } = useSocialEntryModeration();
+  const renderPost = useCallback(
+    (post: SocialV1FeedPost) => (
+      <SocialFeedPostShell post={post} onCopyTrade={onCopyTrade} />
+    ),
+    [onCopyTrade],
+  );
   const {
     posts,
     isLoading,
@@ -119,22 +133,36 @@ const SocialFeed: React.FC<SocialFeedProps> = ({ source, location, title }) => {
     error,
     refresh,
   } = useSocialFeed(enabled ? source : null);
+  // A hidden post must leave the list, not render empty: the list would keep
+  // its padding and the divider that follows it.
+  const visiblePosts = useMemo(
+    () =>
+      posts.filter(
+        (post) =>
+          !isEntryHidden({
+            postId: post.id,
+            authorId: post.item.author.id,
+            authorHandle: post.authorHandle,
+          }),
+      ),
+    [isEntryHidden, posts],
+  );
 
   if (!enabled) {
     return null;
   }
 
   const showSkeleton = isLoading && posts.length === 0;
-  const showEmpty = !isLoading && !error && posts.length === 0;
+  const showEmpty = !isLoading && !error && visiblePosts.length === 0;
 
   return (
     <SocialFeedSurfaceProvider location={location}>
       <Box twClassName="gap-4">
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
         {showSkeleton ? <SocialFeedSkeleton /> : null}
-        {posts.length > 0 ? (
+        {visiblePosts.length > 0 ? (
           <SocialV1FeedPostList
-            posts={posts}
+            posts={visiblePosts}
             dividerKeyPrefix={location}
             renderPost={renderPost}
           />
@@ -158,5 +186,19 @@ const SocialFeed: React.FC<SocialFeedProps> = ({ source, location, title }) => {
     </SocialFeedSurfaceProvider>
   );
 };
+
+/**
+ * Infinite social feed for one source. Renders inside the host's scroll:
+ * skeleton, error, "No trades yet", then every loaded page. Invented values
+ * stay hidden unless an outer surface has opted into them.
+ *
+ * Hosts the post options sheet so hide and block confirm with a toast. A host
+ * that already provides one keeps it, and the hidden posts it tracks.
+ */
+const SocialFeed: React.FC<SocialFeedProps> = (props) => (
+  <SocialEntryOptionsProvider>
+    <SocialFeedBody {...props} />
+  </SocialEntryOptionsProvider>
+);
 
 export default SocialFeed;

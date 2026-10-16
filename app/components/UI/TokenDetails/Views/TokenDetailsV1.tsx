@@ -46,7 +46,15 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../QuickBuy';
+import type { SocialV1FeedItem } from '../../SocialFeed/types';
+import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -363,6 +371,34 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
   const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
+
+  const [copyTrade, setCopyTrade] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+  } | null>(null);
+  const handleFeedCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+      setCopyTrade({
+        target: {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        copyTradeOrigin: commentId ? { commentId } : undefined,
+      });
+    },
+    [],
+  );
+  const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
   const visibleTabs = useMemo(
     () =>
       TOKEN_DETAILS_V1_TABS.filter(
@@ -464,7 +500,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         );
       }
       if (tab === 'feed' && socialEnabled && caip19AssetId) {
-        return <TokenDetailsFeedTab assetId={caip19AssetId} />;
+        return (
+          <TokenDetailsFeedTab
+            assetId={caip19AssetId}
+            onCopyTrade={handleFeedCopyTrade}
+          />
+        );
       }
       if (tab === 'holders' && socialEnabled && caip19AssetId) {
         return <TokenDetailsHoldersTab assetId={caip19AssetId} />;
@@ -485,6 +526,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleAttributionPress,
       handleOpenContractSecurity,
       socialEnabled,
+      handleFeedCopyTrade,
     ],
   );
 
@@ -680,6 +722,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             networkName={networkConfigurationByChainId?.name}
           />
         )}
+
+        <QuickBuy.Root
+          isVisible={copyTrade !== null}
+          target={copyTrade?.target ?? null}
+          onClose={closeCopyTrade}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+          copyTradeOrigin={copyTrade?.copyTradeOrigin}
+        />
       </View>
     </PriceChartProvider>
   );

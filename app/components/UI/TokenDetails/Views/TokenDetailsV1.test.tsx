@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, type LayoutChangeEvent } from 'react-native';
-import { fireEvent, render, within } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 
 import {
   TokenDetailsV1,
@@ -66,11 +66,39 @@ jest.mock('../../SocialFeed', () => {
     useSocialFeed: useSocialFeedMock,
     SocialFeed: ({
       source,
+      onCopyTrade,
     }: {
       source: { kind: 'token'; assetId: string };
+      onCopyTrade?: (item: unknown, commentId?: string) => void;
     }) => {
       useSocialFeedMock(source);
-      return null;
+      const { Pressable: FeedPressable } = jest.requireActual('react-native');
+      const { mockOpenSpotFeedItem } = jest.requireActual(
+        '../../SocialFeed/mocks/socialV1Feed.mock',
+      );
+      return (
+        <FeedPressable
+          testID="mock-feed-copy-trade"
+          onPress={() =>
+            onCopyTrade?.(
+              mockOpenSpotFeedItem({
+                asset: {
+                  symbol: 'PEPE',
+                  avatar: {
+                    positionId: 'pos-pepe',
+                    chain: 'ethereum',
+                    tokenAddress:
+                      ' 0x6982508145454ce325ddbe47a25d4ec3d2311933 ',
+                    tokenImageUrl: null,
+                    tokenSymbol: 'PEPE',
+                  },
+                },
+              }),
+              'comment-1',
+            )
+          }
+        />
+      );
     },
     SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
       children ?? null,
@@ -81,6 +109,17 @@ jest.mock('../../SocialFeed', () => {
     SocialFeedError: () => null,
   };
 });
+
+const mockQuickBuyRoot = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock('../../QuickBuy', () => ({
+  QuickBuy: {
+    Root: (props: Record<string, unknown>) => mockQuickBuyRoot(props),
+  },
+  TOP_TRADERS_QUICK_BUY_FEATURES: {},
+}));
+
+const lastQuickBuyProps = () =>
+  mockQuickBuyRoot.mock.calls[mockQuickBuyRoot.mock.calls.length - 1][0];
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -950,6 +989,63 @@ describe('TokenDetailsV1', () => {
       kind: 'token',
       assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
     });
+  });
+
+  it('opens Quick Buy for the token when a feed post is copy traded', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+    expect(lastQuickBuyProps().isVisible).toBe(false);
+
+    fireEvent.press(getByTestId('mock-feed-copy-trade'));
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        target: {
+          tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+          tokenSymbol: 'PEPE',
+          tokenName: 'PEPE',
+          chain: 'eip155:1',
+        },
+        copyTradeOrigin: { commentId: 'comment-1' },
+        initialTradeMode: 'buy',
+        analyticsContext: { source: 'trader_feed' },
+      }),
+    );
+  });
+
+  it('closes the copy-trade Quick Buy sheet', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+    fireEvent.press(getByTestId('mock-feed-copy-trade'));
+
+    act(() => {
+      (lastQuickBuyProps().onClose as () => void)();
+    });
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({ isVisible: false, target: null }),
+    );
   });
 
   it('shows the Social leaderboard on the Holders tab', () => {

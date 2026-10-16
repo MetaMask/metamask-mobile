@@ -24,13 +24,28 @@ jest.mock('../data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(),
 }));
 
+let mockHiddenPostIds = new Set<string>();
+const mockOptionsProvider = jest.fn();
+jest.mock('./SocialEntryOptionsBottomSheet', () => ({
+  SocialEntryOptionsProvider: ({ children }: { children: React.ReactNode }) => {
+    mockOptionsProvider();
+    return children;
+  },
+  useSocialEntryModeration: () => ({
+    isEntryHidden: ({ postId }: { postId: string }) =>
+      mockHiddenPostIds.has(postId),
+  }),
+}));
+
+const mockShellProps = jest.fn();
 jest.mock('./SocialFeedPostShell', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: SocialV1FeedPost }) => (
-      <View testID={`post-${post.id}`} />
-    ),
+    default: (props: { post: SocialV1FeedPost }) => {
+      mockShellProps(props);
+      return <View testID={`post-${props.post.id}`} />;
+    },
   };
 });
 
@@ -65,6 +80,7 @@ const post = (id: string): SocialV1FeedPost => ({
 describe('SocialFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHiddenPostIds = new Set();
     mockSelectEnabled.mockReturnValue(true);
     mockUseSocialFeed.mockReturnValue(feedState());
   });
@@ -101,6 +117,54 @@ describe('SocialFeed', () => {
     expect(screen.getByText('Trades')).toBeOnTheScreen();
     expect(screen.getByTestId('post-one')).toBeOnTheScreen();
     expect(screen.getByTestId('post-two')).toBeOnTheScreen();
+  });
+
+  it('passes the copy-trade handler to every post', () => {
+    const onCopyTrade = jest.fn();
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('one'), post('two')] }),
+    );
+
+    renderWithProvider(
+      <SocialFeed
+        source={source}
+        location="token_details"
+        onCopyTrade={onCopyTrade}
+      />,
+    );
+
+    expect(mockShellProps).toHaveBeenCalledTimes(2);
+    mockShellProps.mock.calls.forEach(([props]) => {
+      expect(props.onCopyTrade).toBe(onCopyTrade);
+    });
+  });
+
+  it('hosts the post options so hiding a post confirms with a toast', () => {
+    renderWithProvider(<SocialFeed source={source} location="token_details" />);
+
+    expect(mockOptionsProvider).toHaveBeenCalled();
+  });
+
+  it('drops a hidden post from the list instead of leaving a gap', () => {
+    mockHiddenPostIds = new Set(['one']);
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('one'), post('two')] }),
+    );
+
+    renderWithProvider(<SocialFeed source={source} location="token_details" />);
+
+    expect(screen.queryByTestId('post-one')).toBeNull();
+    expect(screen.getByTestId('post-two')).toBeOnTheScreen();
+    expect(mockShellProps).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the empty state once every post is hidden', () => {
+    mockHiddenPostIds = new Set(['one']);
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+    renderWithProvider(<SocialFeed source={source} location="token_details" />);
+
+    expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
   });
 
   it('shows the empty state when the feed has no posts', () => {

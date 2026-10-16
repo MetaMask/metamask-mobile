@@ -29,4 +29,12 @@ describe('TokenDetailsFeedTab', () => {
       location: 'token_details',
     });
   });
+
+  it('hands the copy-trade handler to the feed', () => {
+    const onCopyTrade = jest.fn();
+
+    render(<TokenDetailsFeedTab assetId={assetId} onCopyTrade={onCopyTrade} />);
+
+    expect(mockSocialFeed.mock.calls[0][0].onCopyTrade).toBe(onCopyTrade);
+  });
 });
