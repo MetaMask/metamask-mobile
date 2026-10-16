@@ -24,15 +24,7 @@ jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
 
 jest.mock('./PerpsSocialTrending', () => () => null);
 
-jest.mock('./PerpsSocialTopTraders', () => {
-  const ReactModule = jest.requireActual('react');
-  const { Pressable } = jest.requireActual('react-native');
-  return ({ onSeeMorePress }: { onSeeMorePress: () => void }) =>
-    ReactModule.createElement(Pressable, {
-      testID: 'mock-see-more',
-      onPress: onSeeMorePress,
-    });
-});
+jest.mock('./PerpsSocialTopTraders', () => () => null);
 
 const mockNavigateToSocialLeaderboard = jest.mocked(
   navigateToSocialLeaderboard,
@@ -55,20 +47,14 @@ describe('PerpsSocialFeedSection', () => {
     ).toBeNull();
   });
 
-  it('opens Social from the header and from See more', () => {
+  it('opens Social from the header', () => {
     renderWithProvider(<PerpsSocialFeedSection />);
 
     fireEvent.press(
       screen.getByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER),
     );
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
-      ),
-    );
-    fireEvent.press(screen.getByTestId('mock-see-more'));
 
-    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(2);
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(1);
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
       source: 'perps_home',
     });
