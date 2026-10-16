@@ -757,7 +757,7 @@ const CardAuthentication = () => {
     if (view.mode === 'wallet') {
       return view.origin === 'resume'
         ? strings('card.card_authentication.continue_button')
-        : strings('card.card_authentication.siwe_button');
+        : strings('card.card_authentication.login_button');
     }
     return strings('card.card_authentication.login_button');
   }, [view]);

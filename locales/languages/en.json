@@ -11451,7 +11451,6 @@
       "email_label": "Email",
       "password_label": "Password",
       "login_button": "Sign in",
-      "siwe_button": "Sign in with Ethereum",
       "continue_button": "Continue",
       "uk_login_button": "Sign in with this account",
       "signup_button": "Sign up",

@@ -26,11 +26,6 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
-import {
-  selectHasCardholderAccounts,
-  selectHasCardSignInLink,
-} from '../../../../../selectors/cardController';
-import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import {
   Button,
@@ -71,8 +66,6 @@ const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
-  const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
-  const hasSignInLink = useSelector(selectHasCardSignInLink);
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const dimensions = useWindowDimensions();
@@ -233,7 +226,8 @@ const CardWelcome = () => {
     goBack();
   }, [goBack]);
 
-  const shouldGoToSignIn = hasCardholderAccounts || hasSignInLink;
+  // TODO: revert after FIME certification so non-cardholders go to sign-up.
+  const shouldGoToSignIn = true;
 
   const handleButtonPress = useCallback(() => {
     trackEvent(

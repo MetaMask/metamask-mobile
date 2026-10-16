@@ -600,7 +600,7 @@ describe('CardWelcome', () => {
   });
 
   describe('Navigation Flow', () => {
-    it('navigates to onboarding root when verify account button pressed (Non-cardholder)', () => {
+    it('navigates to authentication when verify account button pressed (Non-cardholder)', () => {
       store = createTestStore({ cardholderAccounts: [] });
       const { getByTestId } = render(
         <Provider store={store}>
@@ -611,7 +611,7 @@ describe('CardWelcome', () => {
       fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CARD.ONBOARDING.ROOT,
+        Routes.CARD.AUTHENTICATION,
         undefined,
       );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -664,7 +664,7 @@ describe('CardWelcome', () => {
       );
     });
 
-    it('forwards postAuthRedirect to onboarding when opened from Money (non-cardholder)', () => {
+    it('forwards postAuthRedirect to authentication when opened from Money (non-cardholder)', () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
       store = createTestStore({ cardholderAccounts: [] });
       const { getByTestId } = render(
@@ -675,7 +675,7 @@ describe('CardWelcome', () => {
 
       fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
         postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
       });
     });
