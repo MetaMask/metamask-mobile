@@ -28,6 +28,7 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
+import { SocialLeaderboard } from '../../SocialLeaderboard';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
@@ -45,6 +46,10 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
+
+jest.mock('../../SocialLeaderboard', () => ({
+  SocialLeaderboard: jest.fn(() => null),
+}));
 
 jest.mock('../../SocialFeed', () => {
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
@@ -798,6 +803,12 @@ describe('TokenDetailsV1', () => {
   });
 
   it('switches tab panels and back to the Overview tab', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
     mockUseSocialFeed.mockReturnValue({
       posts: [{ id: 'post-1' } as SocialV1FeedPost],
       rows: [],
@@ -831,10 +842,12 @@ describe('TokenDetailsV1', () => {
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
     expect(getByText('feed:true')).toBeTruthy();
-    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(
+      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`),
+    ).toBeTruthy();
   });
 
-  it('hides the Feed tab when the token feed has no posts', () => {
+  it('keeps the Feed and Top holders tabs when they have no rows', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -842,19 +855,15 @@ describe('TokenDetailsV1', () => {
       selector === selectSocialLeaderboardEnabled ? true : undefined,
     );
 
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
 
-    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
-    expect(
-      queryByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
-        includeHiddenElements: true,
-      }),
-    ).toBeNull();
+    expect(getByTestId('token-details-v1-tab-feed')).toBeTruthy();
+    expect(getByTestId('token-details-v1-tab-holders')).toBeTruthy();
   });
 
   it('loads the social feed on the Feed tab', () => {
@@ -888,6 +897,33 @@ describe('TokenDetailsV1', () => {
     expect(mockUseSocialFeed).toHaveBeenCalledWith({
       kind: 'token',
       assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+    });
+  });
+
+  it('shows the token leaderboard on the Top holders tab', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId('token-details-v1-tab-holders'));
+
+    expect(jest.mocked(SocialLeaderboard).mock.calls[0][0]).toEqual({
+      source: {
+        kind: 'token',
+        assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+      },
+      location: 'token_details',
+      showViewerRow: true,
     });
   });
 
@@ -962,9 +998,11 @@ describe('TokenDetailsV1', () => {
     it('targets the next tab on a left swipe', () => {
       expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('holders');
     });
 
     it('targets the previous tab on a right swipe', () => {
+      expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('security');
       expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     });
@@ -979,7 +1017,7 @@ describe('TokenDetailsV1', () => {
       expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
       // No neighbouring tab in the swipe direction.
       expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
-      expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('holders', -120, 0)).toBeNull();
     });
   });
 

@@ -60,19 +60,25 @@ const renderTabBar = (
   );
 
 describe('TokenDetailsV1TabBar', () => {
-  it('renders the Feed, Overview and Security tabs in order', () => {
+  it('renders the Feed, Overview, Security and Top holders tabs in order', () => {
     const { getAllByText, getByTestId } = renderTabBar('overview');
 
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_BAR_TEST_ID)).toBeTruthy();
     expect(
-      getAllByText(/^(active|inactive):(overview|security|feed)$/).map(
+      getAllByText(/^(active|inactive):(overview|security|feed|holders)$/).map(
         (node) => node.props.children,
       ),
-    ).toStrictEqual(['inactive:feed', 'active:overview', 'inactive:security']);
+    ).toStrictEqual([
+      'inactive:feed',
+      'active:overview',
+      'inactive:security',
+      'inactive:holders',
+    ]);
     expect(TOKEN_DETAILS_V1_TABS).toStrictEqual([
       'feed',
       'overview',
       'security',
+      'holders',
     ]);
   });
 
@@ -331,8 +337,10 @@ describe('resolveSwipeTargetTab', () => {
   it('swipes to the neighbouring tab when translation exceeds threshold', () => {
     expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
     expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
+    expect(resolveSwipeTargetTab('security', -120, 0)).toBe('holders');
     expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
+    expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('security');
   });
 
   it('swipes to the neighbouring tab on a fast fling even with small travel', () => {
@@ -346,7 +354,7 @@ describe('resolveSwipeTargetTab', () => {
 
   it('refuses to swipe past the edges of the tab list', () => {
     expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
-    expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
+    expect(resolveSwipeTargetTab('holders', -120, 0)).toBeNull();
   });
 
   it('stops at Security when Feed is hidden', () => {

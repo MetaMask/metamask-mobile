@@ -6103,7 +6103,8 @@
     "tabs": {
       "overview": "Overview",
       "security": "Security",
-      "feed": "Feed"
+      "feed": "Feed",
+      "holders": "Top holders"
     },
     "performance": {
       "title": "Performance"

@@ -47,7 +47,6 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Price from '../../AssetOverview/Price/Price';
-import { useSocialFeed } from '../../SocialFeed';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -65,6 +64,7 @@ import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExpla
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
+import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
@@ -362,26 +362,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
-  const feedSource = useMemo(
-    () =>
-      socialEnabled && caip19AssetId
-        ? { kind: 'token' as const, assetId: caip19AssetId }
-        : null,
-    [caip19AssetId, socialEnabled],
-  );
-  const { posts: feedPosts } = useSocialFeed(feedSource);
-  const showFeedTab = feedPosts.length > 0;
+  const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
   const visibleTabs = useMemo(
     () =>
-      showFeedTab
-        ? TOKEN_DETAILS_V1_TABS
-        : TOKEN_DETAILS_V1_TABS.filter((tab) => tab !== 'feed'),
-    [showFeedTab],
+      TOKEN_DETAILS_V1_TABS.filter(
+        (tab) => (tab !== 'feed' && tab !== 'holders') || showSocialTabs,
+      ),
+    [showSocialTabs],
   );
-  // Feed is first in TOKEN_DETAILS_V1_TABS, so it is the landing tab once it
-  // is visible. Until the token feed has posts the tab is omitted and the
-  // reader lands on the next tab. A later post response still moves them
-  // there, unless they already chose a tab.
+  // Feed is first, so it is the landing tab while social tabs are shown.
+  // An empty feed or an empty holders list still keeps its tab. Both tabs
+  // are omitted only when social is off or the token has no CAIP-19 id.
   const landingTab = visibleTabs[0] ?? 'overview';
   const userPickedTabRef = useRef(false);
   const applyingLandingTabRef = useRef(false);
@@ -474,6 +465,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       }
       if (tab === 'feed' && socialEnabled && caip19AssetId) {
         return <TokenDetailsFeedTab assetId={caip19AssetId} />;
+      }
+      if (tab === 'holders' && socialEnabled && caip19AssetId) {
+        return <TokenDetailsHoldersTab assetId={caip19AssetId} />;
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
