@@ -797,13 +797,6 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
-  /**
-   * The Gamma market version of the outcome's market, attached when the
-   * preview is built so placeOrder can route the order to the right trade
-   * protocol without refetching. Absent on sell previews — the provider
-   * resolves the version from Gamma then.
-   */
-  outcomeVersion?: string;
   orderType?: PredictOrderType;
 }
 
@@ -871,13 +864,6 @@ export interface PreviewOrderParams {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
-  /**
-   * The Gamma market version of the traded outcome's market, carried onto
-   * the preview so placeOrder can route the order without refetching. Sell
-   * callers hold no market, so they omit it — the provider resolves the
-   * version from Gamma at order time.
-   */
-  outcomeVersion?: string;
 }
 
 export interface PreviewMaxBuyOrderParams {
