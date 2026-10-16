@@ -32,7 +32,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(RNText, { testID }, children),
-    TextVariant: { BodyMd: 'bodyMd', DisplayLg: 'displayLg' },
+    TextVariant: { BodyMd: 'bodyMd', DisplayXl: 'displayXl' },
     TextColor: { TextAlternative: 'text-alternative' },
     BoxFlexDirection: { Column: 'column' },
     BoxAlignItems: { Center: 'center' },

@@ -16,7 +16,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => ReactActual.createElement(Text, props, children),
     FontFamily: { Hero: 'hero' },
     FontWeight: { Regular: 'regular' },
-    TextVariant: { DisplayLg: 'displayLg' },
+    TextVariant: { DisplayXl: 'displayXl' },
   };
 });
 
@@ -62,6 +62,8 @@ describe('VipSplashGradientTitle', () => {
     const mask = getByTestId('vip-splash-title');
     expect(mask).toHaveTextContent('Welcome to Gold Fox Collective');
     expect(mask.props.accessibilityRole).toBe('header');
+    expect(mask.props.variant).toBe('displayXl');
+    expect(mask.props.twClassName).toContain('tracking-[-1.2px]');
 
     const sizingCopy = getAllByText('Welcome to Gold Fox Collective', {
       includeHiddenElements: true,
