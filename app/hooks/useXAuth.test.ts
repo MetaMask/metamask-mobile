@@ -34,6 +34,8 @@ jest.mock('../core/XAuthService', () => {
     connectX: jest.fn(),
     disconnectXAccount: jest.fn(),
     fetchAndUpdateXAccount: jest.fn(),
+    getErrorMessage: (error: unknown): string =>
+      error instanceof Error ? error.message : String(error),
     XAuthError: MockXAuthError,
     XAuthErrorType: {
       UserCancelled: 'USER_CANCELLED',
@@ -101,6 +103,8 @@ describe('useXAuth', () => {
     expect(result.current.isConnected).toBe(true);
     expect(result.current.xProfile).toStrictEqual(X_PROFILE);
     expect(result.current.isConnecting).toBe(false);
+    expect(result.current.isDisconnecting).toBe(false);
+    expect(result.current.isRefreshing).toBe(false);
     expect(result.current.error).toBeUndefined();
   });
 
@@ -190,7 +194,7 @@ describe('useXAuth', () => {
   });
 
   describe('disconnect', () => {
-    it('delegates to disconnectXAccount and clears the connecting state', async () => {
+    it('delegates to disconnectXAccount and clears the disconnecting state', async () => {
       mockDisconnectXAccount.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useXAuth());
@@ -201,11 +205,11 @@ describe('useXAuth', () => {
 
       expect(mockDisconnectXAccount).toHaveBeenCalledTimes(1);
       expect(mockDisconnectXAccount).toHaveBeenCalledWith();
-      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isDisconnecting).toBe(false);
       expect(result.current.error).toBeUndefined();
     });
 
-    it('records the XAuthError and clears isConnecting when disconnectXAccount rejects', async () => {
+    it('records the XAuthError and clears isDisconnecting when disconnectXAccount rejects', async () => {
       const failure = new XAuthError(
         XAuthErrorType.BackendError,
         'Failed to disconnect the X account',
@@ -219,7 +223,7 @@ describe('useXAuth', () => {
       });
 
       expect(result.current.error).toBe(failure);
-      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isDisconnecting).toBe(false);
     });
 
     it('wraps unknown disconnectXAccount errors in a network-failure XAuthError', async () => {
@@ -234,7 +238,7 @@ describe('useXAuth', () => {
       expect(result.current.error).toBeInstanceOf(XAuthError);
       expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
       expect(result.current.error?.message).toBe('boom');
-      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isDisconnecting).toBe(false);
     });
   });
 
@@ -250,11 +254,11 @@ describe('useXAuth', () => {
 
       expect(mockFetchAndUpdateXAccount).toHaveBeenCalledTimes(1);
       expect(mockFetchAndUpdateXAccount).toHaveBeenCalledWith();
-      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeUndefined();
     });
 
-    it('records the XAuthError and clears isConnecting when fetchAndUpdateXAccount rejects', async () => {
+    it('records the XAuthError and clears isRefreshing when fetchAndUpdateXAccount rejects', async () => {
       const failure = new XAuthError(
         XAuthErrorType.NetworkFailure,
         'Failed to fetch the X profile',
@@ -268,7 +272,7 @@ describe('useXAuth', () => {
       });
 
       expect(result.current.error).toBe(failure);
-      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isRefreshing).toBe(false);
     });
 
     it('wraps unknown fetchAndUpdateXAccount errors in a network-failure XAuthError', async () => {
@@ -283,7 +287,7 @@ describe('useXAuth', () => {
       expect(result.current.error).toBeInstanceOf(XAuthError);
       expect(result.current.error?.type).toBe(XAuthErrorType.NetworkFailure);
       expect(result.current.error?.message).toBe('boom');
-      expect(result.current.isConnecting).toBe(false);
+      expect(result.current.isRefreshing).toBe(false);
     });
   });
 });

@@ -10,7 +10,7 @@ import { X_REDIRECT_URI } from './XAuthConfig';
 const REDIRECT_LINKING_FALLBACK_TIMEOUT_MS = 1500;
 
 /** Extracts a human-readable message from an unknown thrown value. */
-function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
@@ -74,6 +74,8 @@ function parseRedirectParams(redirectUrl: string): XRedirectParams {
 async function openAuthorizationSession(
   authorizationUrl: string,
 ): Promise<string> {
+  const initialUrlBeforeSession = await Linking.getInitialURL();
+
   let removeRedirectListener: (() => void) | undefined;
   const redirectUrlPromise = new Promise<string>((resolve) => {
     const subscription = Linking.addEventListener('url', ({ url }) => {
@@ -119,7 +121,15 @@ async function openAuthorizationSession(
 
     const initialUrl = await Linking.getInitialURL();
 
-    if (initialUrl?.startsWith(X_REDIRECT_URI)) {
+    // Only accept an initial URL that is an x-oauth-redirect and changed
+    // during this session: one equal to the pre-session snapshot is a
+    // leftover launch URL predating the freshly issued `state`, which would
+    // fail the state check or replay a stale code — the caller must instead
+    // see the real session outcome.
+    if (
+      initialUrl?.startsWith(X_REDIRECT_URI) &&
+      initialUrl !== initialUrlBeforeSession
+    ) {
       return initialUrl;
     }
 

@@ -129,19 +129,62 @@ describe('XAuthService (app-relay flow)', () => {
       });
     });
 
-    it('captures the redirect via getInitialURL as a cold-start fallback', async () => {
+    it('captures the redirect via getInitialURL as a cold-start fallback when it changes during the session', async () => {
       (openAuthSessionAsync as jest.Mock).mockResolvedValue({
         type: 'cancel',
       });
-      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
-        REDIRECT_WITH(`code=cold-start-code&state=${SESSION_STATE}`),
-      );
+      // No launch URL before the session opens; the x-oauth-redirect only
+      // becomes the initial URL afterwards (e.g. new-intent delivery).
+      (Linking.getInitialURL as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(
+          REDIRECT_WITH(`code=cold-start-code&state=${SESSION_STATE}`),
+        );
 
       await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
       expect(ProfileController.connectX).toHaveBeenCalledWith({
         code: 'cold-start-code',
         state: SESSION_STATE,
       });
+    }, 10000);
+
+    it('ignores a leftover launch URL and reports cancel instead of reusing it after a cancelled session', async () => {
+      // The app was originally launched via an old x-oauth-redirect; it is
+      // still the initial URL when the fallback runs, so it predates the
+      // freshly issued state and must not be treated as this session's
+      // redirect.
+      const LEFTOVER_REDIRECT = REDIRECT_WITH(
+        'code=stale-code&state=stale-state',
+      );
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'cancel',
+      });
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
+        LEFTOVER_REDIRECT,
+      );
+
+      const error = await connectX().catch((caught) => caught);
+      expect(error).toBeInstanceOf(XAuthError);
+      expect(error.type).toBe(XAuthErrorType.UserCancelled);
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
+    }, 10000);
+
+    it('ignores a leftover launch URL carrying an old code instead of resubmitting it when the session fails', async () => {
+      const LEFTOVER_REDIRECT = REDIRECT_WITH(
+        'code=stale-code&state=stale-state',
+      );
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'locked',
+      });
+      (Linking.getInitialURL as jest.Mock).mockResolvedValue(
+        LEFTOVER_REDIRECT,
+      );
+
+      await expect(connectX()).rejects.toMatchObject({
+        type: XAuthErrorType.NetworkFailure,
+        message: 'X authorization did not succeed: locked',
+      });
+      expect(ProfileController.connectX).not.toHaveBeenCalled();
     }, 10000);
 
     it('throws a typed cancel error when the user cancels the authorization session', async () => {
