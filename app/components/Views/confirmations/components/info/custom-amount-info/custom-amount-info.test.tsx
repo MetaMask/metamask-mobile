@@ -339,7 +339,9 @@ describe('CustomAmountInfo', () => {
   const useTransactionCustomAmountMock = jest.mocked(
     useTransactionCustomAmount,
   );
-  const useTransactionPayPostQuoteMock = jest.mocked(useTransactionPayPostQuote);
+  const useTransactionPayPostQuoteMock = jest.mocked(
+    useTransactionPayPostQuote,
+  );
   const useEnsureTransakApiKeyMock = jest.mocked(useEnsureTransakApiKey);
   type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
   const createCustomAmountMock = (
