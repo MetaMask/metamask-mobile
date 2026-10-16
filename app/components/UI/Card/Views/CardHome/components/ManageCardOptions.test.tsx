@@ -301,11 +301,11 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows how to use Apple Wallet when the card is in the wallet', () => {
+  it('shows How to use Apple Pay first when the card is on every device', () => {
     const originalPlatform = Platform.OS;
     Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
     const onHowToUseApplePay = jest.fn();
-    const { getByTestId } = render(
+    const { getByTestId, toJSON } = render(
       <ManageCardOptions
         card={CARD}
         account={{ verificationStatus: 'VERIFIED' } as never}
@@ -342,8 +342,11 @@ describe('ManageCardOptions digital wallet instructions gating', () => {
       />,
     );
 
+    const rendered = JSON.stringify(toJSON());
+    expect(
+      rendered.indexOf(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+    ).toBeLessThan(rendered.indexOf(CardHomeSelectors.CHANGE_ASSET_BUTTON));
     fireEvent.press(getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM));
-
     expect(onHowToUseApplePay).toHaveBeenCalledTimes(1);
     Object.defineProperty(Platform, 'OS', {
       value: originalPlatform,

@@ -104,6 +104,7 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
 import {
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
   selectCardIntercomSupportEnabled,
 } from '../../../../../selectors/featureFlagController/card';
@@ -957,6 +958,8 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
+    if (selector === selectApplePayLearnMoreUrl)
+      return 'https://metamask.io/card';
     if (selector === selectCardIntercomSupportEnabled)
       return config.isCardIntercomSupportEnabled;
     if (selector === selectCardProviderUserId) return config.providerUserId;
@@ -2528,7 +2531,7 @@ describe('CardHome Component', () => {
     });
   });
 
-  describe('How to use Apple Wallet', () => {
+  describe('How to use Apple Pay', () => {
     const originalPlatform = Platform.OS;
 
     const mockWalletState = ({
@@ -2571,18 +2574,14 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('opens the add sheet when the card is still missing from a device', () => {
+    it('hides the row when the card is still missing from a device', () => {
       mockWalletState({ canAddToWallet: true, isCardInWallet: true });
 
       render();
-      mockNavigate.mockClear();
-      fireEvent.press(
-        screen.getByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
-      );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.APPLE_PAY_ADD,
-      });
+      expect(
+        screen.queryByTestId(CardHomeSelectors.APPLE_PAY_USAGE_ITEM),
+      ).toBeNull();
     });
 
     it('opens the usage sheet when the card is on every device', () => {

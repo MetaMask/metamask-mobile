@@ -25,6 +25,8 @@ describe('ManageProfileTradingActivityView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile: jest.fn().mockResolvedValue(undefined),
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
   });
@@ -72,6 +74,8 @@ describe('ManageProfileTradingActivityView', () => {
       },
       linkedAddresses: [],
       updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
 

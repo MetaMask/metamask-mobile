@@ -156,7 +156,6 @@ export type CardModalsNavigationParamList = {
   CardUkMigrationModal: undefined;
   CardDigitalWalletInstructionsModal: undefined;
   CardApplePayUsageSheet: undefined;
-  CardApplePayAddSheet: undefined;
   CardSignInHelpModal: undefined;
 };
 

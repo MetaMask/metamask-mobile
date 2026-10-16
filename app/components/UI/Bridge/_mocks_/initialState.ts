@@ -21,6 +21,7 @@ import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  validatedVersionGatedFeatureFlag: jest.fn(),
 }));
 
 export const ethChainId = '0x1' as Hex;

@@ -1066,6 +1066,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       constants: {
         accountsApiUrl: 'https://accounts.api.cx.metamask.io',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
+        applePayLearnMoreUrl: 'https://metamask.io/card',
       },
     },
     status: FeatureFlagStatus.Active,
@@ -5617,6 +5618,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {},
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsRebateBannerEnabled: {
+    name: 'swapsRebateBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

@@ -63,13 +63,16 @@ describe('ApplePayUsageSheet', () => {
     expect(getByText('Using Apple Pay')).toBeOnTheScreen();
     expect(
       getByText(
-        'Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while on other apps. Try it now.',
+        'Simply double-click the Side Button or Home Button at anytime to pay, even from Lock Screen or while using other apps. Try it now.',
       ),
     ).toBeOnTheScreen();
     expect(
       getByText('Use Apple Pay anywhere you see these marks below.'),
     ).toBeOnTheScreen();
+    expect(getByTestId(ApplePayUsageSheetSelectors.GRAPHIC)).toBeOnTheScreen();
     expect(getByTestId(ApplePayUsageSheetSelectors.HAND)).toBeOnTheScreen();
+    expect(getByText('Learn more about Apple Pay')).toBeOnTheScreen();
+    expect(getByText('Got it')).toBeOnTheScreen();
     expect(
       getByTestId(ApplePayUsageSheetSelectors.MARKS_LIGHT),
     ).toBeOnTheScreen();
@@ -99,5 +102,31 @@ describe('ApplePayUsageSheet', () => {
     fireEvent.press(getByTestId(ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON));
 
     expect(Linking.openURL).toHaveBeenCalledWith('https://metamask.io/card');
+  });
+
+  it('opens the learn-more URL from the card feature flag', () => {
+    const { getByTestId } = renderWithProvider(<ApplePayUsageSheet />, {
+      state: {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                cardFeature: {
+                  constants: {
+                    applePayLearnMoreUrl: 'https://example.com/apple-pay',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    fireEvent.press(getByTestId(ApplePayUsageSheetSelectors.LEARN_MORE_BUTTON));
+
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://example.com/apple-pay',
+    );
   });
 });

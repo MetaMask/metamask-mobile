@@ -1,6 +1,7 @@
 export const ApplePayUsageSheetSelectors = {
   CONTAINER: 'apple-pay-usage-sheet',
   CLOSE_BUTTON: 'apple-pay-usage-close',
+  GRAPHIC: 'apple-pay-usage-graphic',
   HAND: 'apple-pay-usage-hand',
   MARKS_LIGHT: 'apple-pay-usage-marks-light',
   MARKS_DARK: 'apple-pay-usage-marks-dark',

@@ -1074,7 +1074,6 @@ export type RootStackParamList = {
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
-  LockScreen: undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
@@ -1225,7 +1224,6 @@ export type RootStackParamList = {
   CardUnlinkMoneyAccountSheet: CardModalsNavigationParamList['CardUnlinkMoneyAccountSheet'];
   CardDigitalWalletInstructionsModal: CardModalsNavigationParamList['CardDigitalWalletInstructionsModal'];
   CardApplePayUsageSheet: CardModalsNavigationParamList['CardApplePayUsageSheet'];
-  CardApplePayAddSheet: CardModalsNavigationParamList['CardApplePayAddSheet'];
   CardRevokeAllowanceSheet: CardModalsNavigationParamList['CardRevokeAllowanceSheet'];
 
   // Send routes

@@ -15,6 +15,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextButton,
   HeaderStandard,
   Icon,
   IconColor,
@@ -66,6 +67,7 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
+  selectApplePayLearnMoreUrl,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -97,8 +99,6 @@ import {
 } from '../../constants';
 import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
-
-const APPLE_PAY_LEARN_MORE_URL = 'https://metamask.io/card';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
 import CardBalanceDisplay from './components/CardBalanceDisplay';
@@ -251,20 +251,18 @@ const CardHome = () => {
     openInWallet,
     walletEntry,
   } = useCardWalletProvisioning(data, { platformWalletSupported });
-  const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
-  const handleOpenInWallet = useCallback(() => {
-    openInWallet().catch(() => undefined);
-  }, [openInWallet]);
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,
   });
+  const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
   const handleLearnMoreAboutApplePay = useCallback(() => {
-    Linking.openURL(APPLE_PAY_LEARN_MORE_URL).catch(() => undefined);
-  }, []);
-  const handleHowToUseApplePay = useCallback(() => {
-    actions.howToUseApplePayAction(isCardInWallet && !canAddToWallet);
-  }, [actions, canAddToWallet, isCardInWallet]);
+    Linking.openURL(applePayLearnMoreUrl).catch(() => undefined);
+  }, [applePayLearnMoreUrl]);
+  const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
+  const handleOpenInWallet = useCallback(() => {
+    openInWallet().catch(() => undefined);
+  }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView, isEnableCardLoading } =
     useCardEnableCard(data);
@@ -901,15 +899,14 @@ const CardHome = () => {
               />
             )}
             {Platform.OS === 'ios' && !isCardInWallet && (
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonSize.Sm}
-                isFullWidth
+              <TextButton
+                variant={TextVariant.BodySm}
+                twClassName="mt-2"
                 onPress={handleLearnMoreAboutApplePay}
                 testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
               >
                 {strings('card.apple_pay_usage.learn_more')}
-              </Button>
+              </TextButton>
             )}
           </Box>
         )}
@@ -974,8 +971,8 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
-            showHowToUseApplePay={isCardInWallet}
-            onHowToUseApplePay={handleHowToUseApplePay}
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
+            onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
               actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)

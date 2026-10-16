@@ -150,6 +150,22 @@ const ManageCardOptions = ({
   return (
     <>
       <Box style={tw.style((hasSetupActions || hasAlertOnlyState) && 'hidden')}>
+        {isFullySetUp && showHowToUseApplePay && Platform.OS === 'ios' && (
+          <ManageCardListItem
+            title={strings('card.apple_pay_usage.row_title')}
+            startAccessory={
+              <Image
+                source={applePayMark}
+                resizeMode="contain"
+                accessible={false}
+                style={styles.applePayMark}
+              />
+            }
+            rightIcon={IconName.ArrowRight}
+            onPress={onHowToUseApplePay}
+            testID={CardHomeSelectors.APPLE_PAY_USAGE_ITEM}
+          />
+        )}
         {isEligibleForMetalCard && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
@@ -324,22 +340,6 @@ const ManageCardOptions = ({
             rightIcon={IconName.ArrowRight}
             onPress={onUnlinkMoneyAccount}
             testID={CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM}
-          />
-        )}
-        {isFullySetUp && showHowToUseApplePay && Platform.OS === 'ios' && (
-          <ManageCardListItem
-            title={strings('card.apple_pay_usage.row_title')}
-            startAccessory={
-              <Image
-                source={applePayMark}
-                resizeMode="contain"
-                accessible={false}
-                style={styles.applePayMark}
-              />
-            }
-            rightIcon={IconName.ArrowRight}
-            onPress={onHowToUseApplePay}
-            testID={CardHomeSelectors.APPLE_PAY_USAGE_ITEM}
           />
         )}
         {isFullySetUp && showRevokeAllowance && onRevokeAllowance && (

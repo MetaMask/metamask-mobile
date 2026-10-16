@@ -69,3 +69,35 @@ export const getProfileAvatarBackground = (
   PROFILE_AVATAR_BACKGROUNDS.find(
     (background) => background.id === backgroundId,
   );
+
+const FOXICON_AVATAR_SCHEME = 'foxicon://';
+
+/** `foxicon://{avatarVariant}/{backgroundColor}` stored in ProfileController `avatarUrl`. */
+export const toFoxiconAvatarUrl = (
+  avatarPresetId: string,
+  avatarBackgroundId: string,
+): string => `${FOXICON_AVATAR_SCHEME}${avatarPresetId}/${avatarBackgroundId}`;
+
+export const parseFoxiconAvatarUrl = (
+  avatarUrl: string | null | undefined,
+): { avatarPresetId: string; avatarBackgroundId: string } | null => {
+  if (!avatarUrl?.startsWith(FOXICON_AVATAR_SCHEME)) {
+    return null;
+  }
+
+  const [avatarPresetId, avatarBackgroundId, extra] = avatarUrl
+    .slice(FOXICON_AVATAR_SCHEME.length)
+    .split('/');
+
+  if (
+    !avatarPresetId ||
+    !avatarBackgroundId ||
+    extra !== undefined ||
+    !getProfileAvatarPreset(avatarPresetId) ||
+    !getProfileAvatarBackground(avatarBackgroundId)
+  ) {
+    return null;
+  }
+
+  return { avatarPresetId, avatarBackgroundId };
+};

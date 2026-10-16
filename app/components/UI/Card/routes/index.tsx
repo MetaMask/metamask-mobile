@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   createNativeStackNavigator,
   NativeStackNavigationOptions,
@@ -20,7 +20,6 @@ import {
   selectIsCardholder,
 } from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
-import LockManagerService from '../../../../core/LockManagerService';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
@@ -51,7 +50,6 @@ import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/C
 import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import DigitalWalletInstructionsSheet from '../components/DigitalWalletInstructionsSheet';
 import ApplePayUsageSheet from '../components/ApplePayUsageSheet';
-import ApplePayAddSheet from '../components/ApplePayAddSheet';
 import {
   clearNativeStackNavigatorOptions,
   fullScreenModalSlideFromBottomNativeOptions,
@@ -108,6 +106,7 @@ const MainRoutes = () => {
       <ScreensStack.Screen
         name={Routes.CARD.APPLE_PAY_CONFIRMATION}
         component={ApplePayConfirmation}
+        options={{ gestureEnabled: false }}
       />
       <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
       <ScreensStack.Screen
@@ -264,37 +263,24 @@ const CardModalsRoutes = () => (
       name={Routes.CARD.MODALS.APPLE_PAY_USAGE}
       component={ApplePayUsageSheet}
     />
-    <ModalsStack.Screen
-      name={Routes.CARD.MODALS.APPLE_PAY_ADD}
-      component={ApplePayAddSheet}
-    />
   </ModalsStack.Navigator>
 );
 
-const CardRoutes = () => {
-  useEffect(() => {
-    LockManagerService.stopListening();
-    return () => {
-      LockManagerService.startListening();
-    };
-  }, []);
-
-  return (
-    <RootStack.Navigator
-      initialRouteName={Routes.CARD.HOME}
-      screenOptions={{ headerShown: false }}
-    >
-      <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-      <RootStack.Screen
-        name={Routes.CARD.MODALS.ID}
-        component={CardModalsRoutes}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
-      />
-    </RootStack.Navigator>
-  );
-};
+const CardRoutes = () => (
+  <RootStack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
+    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+    <RootStack.Screen
+      name={Routes.CARD.MODALS.ID}
+      component={CardModalsRoutes}
+      options={{
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }}
+    />
+  </RootStack.Navigator>
+);
 
 export default withCardSDK(CardRoutes);

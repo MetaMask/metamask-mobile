@@ -64,9 +64,31 @@ const MIN_GLIDE_MS = 280;
 const MAX_GLIDE_MS = 520;
 const GLIDE_MS_PER_EXTRA_STEP = 120;
 
+/**
+ * Fraction of a slot to travel before the next color counts as passed.
+ * Earlier than the snap, so the haptic lands while the color is still moving.
+ */
+const HAPTIC_CROSS_FRACTION = 0.35;
+
 const clampIndex = (index: number) => {
   'worklet';
   return Math.min(Math.max(index, 0), LAST_INDEX);
+};
+
+/**
+ * Index whose haptic should already have played. Moving forward, the next
+ * color counts once `HAPTIC_CROSS_FRACTION` of the slot is crossed.
+ */
+export const hapticBackgroundIndex = (
+  position: number,
+  previousPosition: number,
+): number => {
+  'worklet';
+  const lead = 1 - HAPTIC_CROSS_FRACTION;
+  if (position >= previousPosition) {
+    return clampIndex(Math.floor(position + lead));
+  }
+  return clampIndex(Math.ceil(position - lead));
 };
 
 /** Signed horizontal offset from the center for a slot distance. */
@@ -217,6 +239,89 @@ const AvatarGlow: React.FC<{ scrollX: SharedValue<number> }> = ({
   </Box>
 );
 
+/** Crossfade when the selected avatar changes. Low-tier devices swap instantly. */
+const AVATAR_DISSOLVE_MS = 450;
+
+const DissolvingAvatarArt: React.FC<{
+  avatarPresetId: string;
+  sizePx: number;
+  animate: boolean;
+}> = ({ avatarPresetId, sizePx, animate }) => {
+  const incomingOpacity = useSharedValue(1);
+  const outgoingOpacity = useSharedValue(1);
+  const [renderedId, setRenderedId] = useState(avatarPresetId);
+  const [previousId, setPreviousId] = useState<string | null>(null);
+  const clearPrevious = useCallback(() => {
+    setPreviousId(null);
+  }, []);
+
+  // Apply the outgoing image and a hidden incoming image before paint, so the
+  // new avatar cannot flash at full opacity while the effect waits to start.
+  if (avatarPresetId !== renderedId) {
+    setRenderedId(avatarPresetId);
+    if (animate) {
+      setPreviousId(renderedId);
+      incomingOpacity.value = 0;
+      outgoingOpacity.value = 1;
+    } else {
+      setPreviousId(null);
+      incomingOpacity.value = 1;
+    }
+  }
+
+  useEffect(() => {
+    if (!previousId) {
+      return;
+    }
+    cancelAnimation(incomingOpacity);
+    cancelAnimation(outgoingOpacity);
+    incomingOpacity.value = withTiming(1, {
+      duration: AVATAR_DISSOLVE_MS,
+      easing: Easing.inOut(Easing.cubic),
+    });
+    outgoingOpacity.value = withTiming(
+      0,
+      { duration: AVATAR_DISSOLVE_MS, easing: Easing.inOut(Easing.cubic) },
+      (finished) => {
+        if (finished) {
+          scheduleOnRN(clearPrevious);
+        }
+      },
+    );
+  }, [clearPrevious, incomingOpacity, outgoingOpacity, previousId, renderedId]);
+
+  const incomingStyle = useAnimatedStyle(() => ({
+    opacity: incomingOpacity.value,
+  }));
+  const outgoingStyle = useAnimatedStyle(() => ({
+    opacity: outgoingOpacity.value,
+  }));
+
+  return (
+    <Box
+      twClassName="items-center justify-center"
+      style={{ width: sizePx, height: sizePx }}
+    >
+      {previousId ? (
+        <Box twClassName="absolute">
+          <Animated.View style={outgoingStyle}>
+            <ProfileAvatarArt
+              preset={getProfileAvatarPreset(previousId)}
+              sizePx={sizePx}
+            />
+          </Animated.View>
+        </Box>
+      ) : null}
+      <Animated.View style={incomingStyle}>
+        <ProfileAvatarArt
+          preset={getProfileAvatarPreset(renderedId)}
+          sizePx={sizePx}
+        />
+      </Animated.View>
+    </Box>
+  );
+};
+
 /** Ring of small round dots around the selection. */
 const DottedRing: React.FC = () => {
   const tw = useTailwind();
@@ -280,11 +385,12 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   const scrollX = useSharedValue(startIndex * SLOT_WIDTH);
   const glideX = useSharedValue(startIndex * SLOT_WIDTH);
   const isGliding = useSharedValue(false);
-  /** Last color a snap came to rest on; a haptic plays when it changes. */
-  const settledIndex = useSharedValue(targetIndex);
+  /** Last color that already played a pass haptic. */
+  const lastHapticIndex = useSharedValue(targetIndex);
+  /** Stays off during the entrance glide so that slide is silent. */
+  const hapticsArmed = useSharedValue(isLowTier);
   const hasPlayedIntro = useRef(isLowTier);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const preset = getProfileAvatarPreset(avatarPresetId);
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     setWidth(event.nativeEvent.layout.width);
@@ -302,9 +408,15 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   }, [playSelection]);
 
   const glideTo = useCallback(
-    (index: number, duration: number) => {
+    (index: number, duration: number, armHaptics: boolean) => {
       scheduleOnUI(() => {
         'worklet';
+        if (armHaptics) {
+          hapticsArmed.value = true;
+          lastHapticIndex.value = clampIndex(
+            Math.round(scrollX.value / SLOT_WIDTH),
+          );
+        }
         cancelAnimation(glideX);
         glideX.value = scrollX.value;
         isGliding.value = true;
@@ -314,12 +426,16 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
           (finished) => {
             if (finished) {
               isGliding.value = false;
+              hapticsArmed.value = true;
+              lastHapticIndex.value = clampIndex(
+                Math.round(scrollX.value / SLOT_WIDTH),
+              );
             }
           },
         );
       });
     },
-    [glideX, isGliding, scrollX],
+    [glideX, hapticsArmed, isGliding, lastHapticIndex, scrollX],
   );
 
   useAnimatedReaction(
@@ -336,20 +452,17 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
       return;
     }
     hasPlayedIntro.current = true;
-    glideTo(targetIndex, INTRO_GLIDE_MS);
+    glideTo(targetIndex, INTRO_GLIDE_MS, false);
   }, [glideTo, targetIndex, width]);
 
   const handleSwatchPress = useCallback(
     (index: number) => {
-      const steps = Math.abs(index - settledIndex.value);
-      if (steps > 0) {
-        settledIndex.value = index;
-        playSnapHaptic();
-      }
+      const from = clampIndex(Math.round(scrollX.value / SLOT_WIDTH));
+      const steps = Math.abs(index - from);
       selectIndex(index);
-      glideTo(index, glideDuration(steps));
+      glideTo(index, glideDuration(steps), true);
     },
-    [glideTo, playSnapHaptic, selectIndex, settledIndex],
+    [glideTo, scrollX, selectIndex],
   );
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -359,15 +472,32 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
     onBeginDrag: () => {
       cancelAnimation(glideX);
       isGliding.value = false;
-    },
-    onMomentumEnd: (event) => {
-      const index = clampIndex(Math.round(event.contentOffset.x / SLOT_WIDTH));
-      if (index !== settledIndex.value) {
-        settledIndex.value = index;
-        scheduleOnRN(playSnapHaptic);
-      }
+      hapticsArmed.value = true;
+      lastHapticIndex.value = clampIndex(
+        Math.round(scrollX.value / SLOT_WIDTH),
+      );
     },
   });
+
+  useAnimatedReaction(
+    () => scrollX.value / SLOT_WIDTH,
+    (position, previousPosition) => {
+      if (!hapticsArmed.value || previousPosition === null) {
+        return;
+      }
+      const index = hapticBackgroundIndex(position, previousPosition);
+      if (index === lastHapticIndex.value) {
+        return;
+      }
+      const step = index > lastHapticIndex.value ? 1 : -1;
+      let cursor = lastHapticIndex.value;
+      while (cursor !== index) {
+        cursor += step;
+        scheduleOnRN(playSnapHaptic);
+      }
+      lastHapticIndex.value = index;
+    },
+  );
 
   useAnimatedReaction(
     () => clampIndex(Math.round(scrollX.value / SLOT_WIDTH)),
@@ -426,7 +556,11 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
           style={tw.style({ width: SOLID_RING_SIZE, height: SOLID_RING_SIZE })}
         />
         <DottedRing />
-        <ProfileAvatarArt preset={preset} sizePx={ART_SIZE} />
+        <DissolvingAvatarArt
+          avatarPresetId={avatarPresetId}
+          sizePx={ART_SIZE}
+          animate={!isLowTier}
+        />
       </Box>
     </Box>
   );
