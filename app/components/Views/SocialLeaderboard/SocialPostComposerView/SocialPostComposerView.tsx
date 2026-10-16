@@ -136,22 +136,25 @@ const SocialPostComposerView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
-  const tradeInFlightParams = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.tradeInFlight;
-  const tradeInFlightPreview = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.preview;
+  const routeParams = route.params as SocialPostComposerViewParams | undefined;
+  const tradeInFlightParams = routeParams?.tradeInFlight;
+  const tradeInFlightPreview = routeParams?.preview;
+  const routedPosition = routeParams?.position;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
+  const linkedAccountAddress = profile?.linkedAccountAddress?.trim() ?? '';
   const inputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<{
     position: Position;
     isClosed: boolean;
-  } | null>(null);
+  } | null>(
+    routedPosition
+      ? { position: routedPosition, isClosed: routedPosition.isOpen === false }
+      : null,
+  );
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
@@ -236,6 +239,15 @@ const SocialPostComposerView: React.FC = () => {
     setGifUri(nextGifUri);
     setIsGifSheetOpen(false);
   }, []);
+
+  useEffect(() => {
+    // Swap-share opens this screen with `tradeInFlight` and never goes
+    // through `useOpenSocialPostComposer`. Do not bounce that path — posting
+    // does not need the position picker or a linked onboarding address.
+    if (!linkedAccountAddress && !tradeInFlightParams) {
+      navigation.goBack();
+    }
+  }, [linkedAccountAddress, navigation, tradeInFlightParams]);
 
   // Focusing mid-transition drops the keyboard on the native stack push, so
   // wait until the screen has settled before raising it.
@@ -407,6 +419,7 @@ const SocialPostComposerView: React.FC = () => {
               <ProfileAvatar
                 imageUrl={profile?.imageUrl}
                 avatarPresetId={profile?.avatarPresetId}
+                avatarBackgroundId={profile?.avatarBackgroundId}
                 size="sm"
               />
               <TextInput
@@ -519,6 +532,7 @@ const SocialPostComposerView: React.FC = () => {
 
         {isShareSheetOpen ? (
           <SharePositionBottomSheet
+            address={linkedAccountAddress}
             onSelect={handleSelectPosition}
             onClose={() => setIsShareSheetOpen(false)}
           />

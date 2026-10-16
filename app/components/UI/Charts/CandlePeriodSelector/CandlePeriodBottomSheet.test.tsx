@@ -20,6 +20,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react-native';
+import { FilterButton } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import CandlePeriodBottomSheet from './CandlePeriodBottomSheet';
@@ -122,6 +123,23 @@ describe('CandlePeriodBottomSheet', () => {
 
       mockPeriods.forEach((period) => {
         expect(screen.getByText(period.label)).toBeOnTheScreen();
+      });
+    });
+
+    it('keeps the unit visible on narrow period chips', () => {
+      render(
+        <TestWrapper>
+          <CandlePeriodBottomSheet {...defaultProps} />
+        </TestWrapper>,
+      );
+
+      screen.UNSAFE_getAllByType(FilterButton).forEach((periodButton) => {
+        expect(periodButton.props.twClassName).toBe('px-1');
+        expect(periodButton.props.textProps).toEqual({
+          adjustsFontSizeToFit: true,
+          minimumFontScale: 0.7,
+          numberOfLines: 1,
+        });
       });
     });
 

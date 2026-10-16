@@ -12,7 +12,7 @@ const onboardedProfile: MySocialProfile = {
   handle: 'wen-cat',
   bio: null,
   imageUrl: null,
-  avatarPresetId: 'fox-emoji',
+  avatarPresetId: 'zombie',
   rankingTag: null,
   xHandle: null,
   followerCount: 0,

@@ -503,6 +503,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  ASSETS4098ShowRobinhoodRwa: {
+    name: 'ASSETS4098ShowRobinhoodRwa',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   networkAssetsSnapsMigrationSolana: {
     name: 'networkAssetsSnapsMigrationSolana',
     type: FeatureFlagType.Remote,
@@ -4862,6 +4870,37 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsTAT3793AbtestPerpsHomeExplore: {
+    name: 'perpsTAT3793AbtestPerpsHomeExplore',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      versions: {
+        '8.17.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsFeedbackEnabled: {
     name: 'perpsFeedbackEnabled',
     type: FeatureFlagType.Remote,
@@ -4935,6 +4974,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '8.11.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsSocialEnabled: {
+    name: 'perpsSocialEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6555,6 +6605,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  homeBrandRefreshSurfaces: {
+    name: 'homeBrandRefreshSurfaces',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   homeInterimHeaderNavBar: {
     name: 'homeInterimHeaderNavBar',
     type: FeatureFlagType.Remote,
@@ -7908,6 +7969,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsPriceAlertsEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsPriceAlertsPercentChangeEnabled: {
+    name: 'perpsPriceAlertsPercentChangeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',

@@ -83,7 +83,7 @@ export function TransactionSummaryLine({
       subtitle={dateString}
       severity={severity}
       tooltip={tooltip}
-      buttonIcon={explorerTxUrl ? IconName.Export : undefined}
+      buttonIcon={explorerTxUrl ? IconName.ArrowSquareOut : undefined}
       onButtonPress={explorerTxUrl ? handleExplorerClick : undefined}
     />
   );

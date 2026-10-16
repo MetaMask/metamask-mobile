@@ -10,6 +10,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -33,6 +34,9 @@ import usePerpAlertSaveFlow from '../../perpApi';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { selectPerpsPriceAlertsPercentChangeEnabledFlag } from '../../../../Perps/selectors/featureFlags';
 
 /**
  * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
@@ -82,6 +86,14 @@ const CreatePriceAlertView: React.FC = () => {
     szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
+  const isPerpsPercentChangeEnabled = useSelector(
+    selectPerpsPriceAlertsPercentChangeEnabledFlag,
+  );
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const shouldUseLivePrice =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
   const [livePrice, setLivePrice] = useState<number | undefined>();
   const displayPrice =
     isPerpsMode && livePrice !== undefined ? livePrice : currentPrice;
@@ -159,6 +171,8 @@ const CreatePriceAlertView: React.FC = () => {
     editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
   const editingPercentAlert =
     editingAlert?.type === 'percent_change' ? editingAlert : undefined;
+  const canUsePercentChange =
+    !isPerpsMode || isPerpsPercentChangeEnabled || Boolean(editingPercentAlert);
 
   return (
     <SafeAreaView
@@ -185,14 +199,13 @@ const CreatePriceAlertView: React.FC = () => {
           onBack={handleBack}
         />
 
-        {isPerpsMode ? (
+        {isPerpsMode && shouldUseLivePrice ? (
           <PerpsStreamProvider>
             <PerpsAlertLivePrice symbol={assetId} onPrice={setLivePrice} />
           </PerpsStreamProvider>
         ) : null}
 
-        {/* Percent-change tab is not supported by the perp alerts API */}
-        {!isPerpsMode && (
+        {(!isPerpsMode || isPerpsPercentChangeEnabled) && (
           <AlertTypeToggle
             value={alertType}
             onChange={setAlertType}
@@ -200,9 +213,10 @@ const CreatePriceAlertView: React.FC = () => {
           />
         )}
 
-        {!isPerpsMode && alertType === 'percent_change' ? (
+        {alertType === 'percent_change' && canUsePercentChange ? (
           <PercentChangeAlertForm
             assetId={assetId}
+            marketId={isPerpsMode ? marketId : undefined}
             saveAlert={saveAlert}
             editingAlert={editingPercentAlert}
             existingPercentAlerts={existingPercentAlerts}
