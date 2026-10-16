@@ -545,11 +545,12 @@ class TestSnaps {
         attempts += 1;
 
         if (!firstAttempt) {
-          try {
-            await this.expectEnabledSnapAlert(1_000);
-            return; // prior tap succeeded — dialog on screen
-          } catch {
-            /* not yet — re-tap or reload */
+          const dialogAlreadyVisible = await Utilities.isElementVisible(
+            Matchers.getElementByText('This is an alert dialog'),
+            1_000,
+          );
+          if (dialogAlreadyVisible) {
+            return;
           }
 
           // After two failed tap cycles, reload once so the Snap client remounts
