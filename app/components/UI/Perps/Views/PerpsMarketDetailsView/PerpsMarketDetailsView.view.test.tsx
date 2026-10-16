@@ -35,7 +35,15 @@ import EngineService from '../../../../../core/EngineService';
 import MarketInsightsView from '../../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { analytics } from '../../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  clearLeaderboardApiMock,
+  setupLeaderboardApiMock,
+} from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
+import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
+import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import {
+  getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
@@ -1260,6 +1268,118 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(
         screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.ABOUT_SECTION),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Social tabs', () => {
+    const socialOverrides = {
+      engine: {
+        backgroundState: {
+          PerpsController: { isEligible: true },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+    const ethPost = mockPerpFeedItem({ positionId: 'eth-perp-post' });
+    const ethPostTestId = `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${ethPost.positionId}-${ethPost.timestamp}`;
+    const statsSectionTestId = 'perps-home-section-stats';
+
+    afterEach(() => {
+      clearLeaderboardApiMock();
+    });
+
+    it('shows Overview by default with the position above the tab bar', async () => {
+      setupLeaderboardApiMock({ tokenFeedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(statsSectionTestId)).toBeOnTheScreen();
+      const orderedIds = screen.UNSAFE_root.findAll(
+        (node) =>
+          node.props.testID === PerpsPositionCardSelectorsIDs.CARD ||
+          node.props.testID === PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+      ).map((node) => node.props.testID);
+      expect(
+        orderedIds.indexOf(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeLessThan(
+        orderedIds.indexOf(PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS),
+      );
+      expect(screen.queryByTestId(ethPostTestId)).not.toBeOnTheScreen();
+    });
+
+    it('shows this market feed on Feed, hides Overview, and keeps the position', async () => {
+      const messengerSpy = setupLeaderboardApiMock({
+        tokenFeedItems: [ethPost],
+      });
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      try {
+        renderPerpsMarketDetailsView({
+          overrides: socialOverrides,
+          socialEnabled: true,
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(getPerpsMarketDetailsTabSelector('feed')),
+        );
+
+        expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+        expect(screen.queryByTestId(statsSectionTestId)).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+        ).toBeOnTheScreen();
+        expect(messengerSpy).toHaveBeenCalledWith(
+          'SocialService:fetchTokenFeed',
+          expect.objectContaining({
+            chain: 'hyperliquid',
+            contractAddress: 'ETH',
+          }),
+        );
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+            properties: expect.objectContaining({
+              interaction_type: 'tap',
+              screen_name: 'perps_market_details',
+              tab_name: 'feed',
+              asset: 'ETH',
+            }),
+          }),
+        );
+      } finally {
+        trackEventSpy.mockRestore();
+      }
+    });
+
+    it('keeps the current layout with no tab bar when Perps social is off', async () => {
+      setupLeaderboardApiMock({ tokenFeedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: false,
+      });
+
+      expect(await screen.findByTestId(statsSectionTestId)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.CARD),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS),
       ).not.toBeOnTheScreen();
     });
   });

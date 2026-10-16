@@ -101,6 +101,8 @@ import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarn
 import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsHomeSection from '../../components/PerpsHomeSection/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
+import PerpsMarketSocialTabs from '../../components/PerpsMarketSocialTabs';
+import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -342,6 +344,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
+  const isPerpsSocialEnabled = usePerpsSocialEnabled();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -1885,6 +1888,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     ],
   );
 
+  const positionSections = useMemo(
+    () =>
+      preMarketInsightsSections.filter((section) => section.key === 'position'),
+    [preMarketInsightsSections],
+  );
+
+  const overviewSections = useMemo(
+    () => [
+      ...preMarketInsightsSections.filter(
+        (section) => section.key !== 'position',
+      ),
+      ...postMarketInsightsSections,
+    ],
+    [preMarketInsightsSections, postMarketInsightsSections],
+  );
+
   if (!market) {
     return (
       <View style={styles.container}>
@@ -2173,9 +2192,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             </Box>
           ) : null}
 
-          <PerpsHomeSectionList sections={preMarketInsightsSections} />
-
-          <PerpsHomeSectionList sections={postMarketInsightsSections} />
+          {isPerpsSocialEnabled ? (
+            <>
+              <PerpsHomeSectionList sections={positionSections} />
+              <PerpsMarketSocialTabs
+                symbol={market.symbol}
+                overview={
+                  <PerpsHomeSectionList
+                    sections={overviewSections}
+                    hideLeadingDivider
+                  />
+                }
+              />
+            </>
+          ) : (
+            <>
+              <PerpsHomeSectionList sections={preMarketInsightsSections} />
+              <PerpsHomeSectionList sections={postMarketInsightsSections} />
+            </>
+          )}
 
           <View style={styles.chromeBlock}>
             <Text

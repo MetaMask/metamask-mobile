@@ -2910,6 +2910,10 @@
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed"
+      },
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
