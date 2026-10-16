@@ -804,7 +804,7 @@ describe('RewardsMoneyController', () => {
 
     it('keeps the newer claim history page when an older fetch answers last', async () => {
       const pending: ((page: ClaimHistoryPageDto) => void)[] = [];
-      mockMessenger.call.mockImplementation((action): any => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
           return sessionProfile(PROFILE_A);
         }
