@@ -20,7 +20,9 @@ import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBott
 appiumTest.describe(
   SmokeNetworkAbstractions('Chain Permission Management'),
   () => {
-    appiumTest.describe.configure({ timeout: 300_000 });
+    // iOS multi-account + network edit path is longer than Android (account
+    // sync probes + sheet transitions). 360s matches other multi-step smokes.
+    appiumTest.describe.configure({ timeout: 360_000 });
 
     appiumTest(
       'allows simultaneous granting and revoking of multiple chain permissions',
