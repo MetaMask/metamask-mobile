@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsCompetitionBanner from './PerpsCompetitionBanner';
 import { selectPerpsCompetitionBannerEnabledFlag } from '../../selectors/featureFlags';
@@ -100,6 +101,21 @@ describe('PerpsCompetitionBanner', () => {
 
     await waitFor(() => {
       expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+  });
+
+  it('matches the section divider gap above and below the banner', async () => {
+    setupSelector(true, [buildCampaign()]);
+
+    const { getByTestId } = render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(
+        StyleSheet.flatten(getByTestId('perps-competition-banner').props.style),
+      ).toMatchObject({
+        marginTop: 20,
+        marginBottom: 0,
+      });
     });
   });
 

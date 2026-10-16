@@ -215,7 +215,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
+        twClassName={
+          // Market list has nothing below this block. Home follows it with a
+          // section divider, so an extra margin there stacks into a double gap.
+          isBalanceEmpty && !hideBalanceSection ? 'mb-4 rounded-xl' : undefined
+        }
       >
         <Box
           onLayout={onTitleSectionLayout}
@@ -254,7 +258,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
-            <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+            <PerpsEmptyBalance
+              onAddFunds={handleAddFunds}
+              includeBottomPadding={!hideBalanceSection}
+            />
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box

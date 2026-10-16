@@ -8,9 +8,13 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
     ...actual,
-    SectionDivider: ({ testID }: { testID?: string }) => (
-      <View testID={testID} />
-    ),
+    SectionDivider: ({
+      testID,
+      style,
+    }: {
+      testID?: string;
+      style?: { marginTop?: number };
+    }) => <View testID={testID} style={style} />,
   };
 });
 
@@ -27,7 +31,10 @@ describe('PerpsHomeSectionList', () => {
 
     expect(screen.getByText('Positions')).toBeOnTheScreen();
     expect(screen.getByText('Orders')).toBeOnTheScreen();
-    expect(screen.getAllByTestId('perps-home-section-divider')).toHaveLength(2);
+    const dividers = screen.getAllByTestId('perps-home-section-divider');
+    expect(dividers).toHaveLength(2);
+    expect(dividers[0].props.style).toEqual({ marginTop: 32 });
+    expect(dividers[1].props.style).toBeUndefined();
   });
 
   it('skips hidden sections and their dividers', () => {
@@ -46,7 +53,9 @@ describe('PerpsHomeSectionList', () => {
 
     expect(screen.queryByText('Positions')).toBeNull();
     expect(screen.getByText('Whats Happening')).toBeOnTheScreen();
-    expect(screen.getAllByTestId('perps-home-section-divider')).toHaveLength(1);
+    const dividers = screen.getAllByTestId('perps-home-section-divider');
+    expect(dividers).toHaveLength(1);
+    expect(dividers[0].props.style).toEqual({ marginTop: 32 });
   });
 
   it('renders no sections when all are hidden', () => {
