@@ -7,6 +7,7 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import type { Action } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { BtcAccountType, BtcScope } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
@@ -70,8 +71,12 @@ jest.mock('../../../../util/networks', () => ({
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
   context: {
+    AccountsController: {
+      getAccountByAddress: jest.fn(),
+    },
     KeyringController: {
       signPersonalMessage: jest.fn(),
+      withKeyringV2: jest.fn(),
       state: {
         keyrings: [
           {
@@ -82,6 +87,11 @@ jest.mock('../../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('@metamask/eth-snap-keyring/v2', () => ({
+  isSnapKeyring: (keyring: { submitRequest?: unknown }) =>
+    typeof keyring?.submitRequest === 'function',
 }));
 
 jest.mock('../../../../core/NavigationService/NavigationService', () => ({
@@ -273,6 +283,10 @@ describe('useClaimEarnings', () => {
     });
     mockEngineCall.mockResolvedValue(authorized());
     mockSignPersonalMessage.mockResolvedValue('0xsig');
+    (
+      Engine.context.AccountsController.getAccountByAddress as jest.Mock
+    ).mockReset();
+    (Engine.context.KeyringController.withKeyringV2 as jest.Mock).mockReset();
     mockSubmitClaimVoucher.mockResolvedValue(undefined);
     mockGetCurrentRoute.mockReturnValue({
       name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -636,6 +650,135 @@ describe('useClaimEarnings', () => {
     expect(onSubmitted).not.toHaveBeenCalled();
   });
 
+  it('signs a Bitcoin challenge with the snap and submits the proof as hex', async () => {
+    const bitcoin = `bc1q${'q'.repeat(38)}`;
+    const earningAddress = `bip122:${bitcoin}`;
+    const submitRequest = jest.fn().mockResolvedValue({
+      signature: Buffer.from([1, 2, 3]).toString('base64'),
+    });
+    const getAccountByAddress = Engine.context.AccountsController
+      .getAccountByAddress as jest.Mock;
+    getAccountByAddress.mockImplementation((address: string) =>
+      address === bitcoin
+        ? { id: 'btc-account', address: bitcoin, type: BtcAccountType.P2wpkh }
+        : undefined,
+    );
+    const withKeyringV2 = Engine.context.KeyringController
+      .withKeyringV2 as jest.Mock;
+    withKeyringV2.mockImplementation(
+      async (
+        _filter: unknown,
+        operation: (args: {
+          keyring: { submitRequest: jest.Mock };
+        }) => Promise<unknown>,
+      ) => operation({ keyring: { submitRequest } }),
+    );
+    mockEngineCall.mockImplementation(
+      async (_action: string, _route: string, body: InitiateClaimBody) => {
+        if (!body.proofs) {
+          return {
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-btc',
+              expires_at: '2026-09-29T00:00:00.000Z',
+              challenges: [
+                {
+                  earning_address: earningAddress,
+                  amount_musd_base_units: ONE_DOLLAR,
+                  message: 'bip-322',
+                },
+              ],
+            },
+          };
+        }
+        return authorized();
+      },
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockSignPersonalMessage).not.toHaveBeenCalled();
+    expect(submitRequest).toHaveBeenCalledWith({
+      id: expect.any(String),
+      origin: 'metamask',
+      scope: BtcScope.Mainnet,
+      account: 'btc-account',
+      request: {
+        method: 'signMessage',
+        params: { account: { address: bitcoin }, message: 'bip-322' },
+      },
+    });
+    expect(mockEngineCall).toHaveBeenLastCalledWith(
+      'RewardsMoneyController:initiateClaim',
+      'referral-trade-fee-cashback',
+      {
+        money_account_address: MONEY_ACCOUNT,
+        claim_intent_id: 'intent-btc',
+        proofs: [{ earning_address: earningAddress, signature: '0x010203' }],
+      },
+    );
+    expect(onSubmitted).toHaveBeenCalledTimes(1);
+    expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('shows the unavailable toast and leaves Claim disabled when this phone has no Bitcoin account', async () => {
+    const bitcoin = `bc1q${'q'.repeat(38)}`;
+    const pressed = summary(ONE_DOLLAR);
+    mockEngineCall.mockResolvedValue({
+      kind: 'proof_required',
+      body: {
+        reason: 'PROOF_REQUIRED',
+        claim_intent_id: 'intent-btc',
+        expires_at: '2026-09-29T00:00:00.000Z',
+        challenges: [
+          {
+            earning_address: `bip122:${bitcoin}`,
+            amount_musd_base_units: ONE_DOLLAR,
+            message: 'bip-322',
+          },
+        ],
+      },
+    });
+    const { result, rerender } = renderHook(
+      ({ live }) =>
+        useClaimEarnings(PROFILE_ID, {
+          persona: 'referee',
+          summary: live,
+          onOpened,
+          onSubmitted,
+          onClaimsPaused,
+        }),
+      { initialProps: { live: pressed } },
+    );
+
+    await act(async () => {
+      await result.current.claim(pressed);
+    });
+
+    expect(mockSignPersonalMessage).not.toHaveBeenCalled();
+    expect(
+      Engine.context.KeyringController.withKeyringV2,
+    ).not.toHaveBeenCalled();
+    expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureUnavailableToast,
+    );
+    expect(result.current.isClaiming).toBe(true);
+
+    mockEngineCall.mockClear();
+    await act(async () => {
+      await result.current.claim(pressed);
+    });
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    rerender({ live: summary(ONE_DOLLAR) });
+    expect(result.current.isClaiming).toBe(false);
+  });
+
   it('shows the retry toast when the earning address cannot be signed', async () => {
     mockEngineCall.mockResolvedValue({
       kind: 'proof_required',
@@ -645,7 +788,7 @@ describe('useClaimEarnings', () => {
         expires_at: '2026-09-29T00:00:00.000Z',
         challenges: [
           {
-            earning_address: 'not-caip',
+            earning_address: 'eip155:0xabc',
             amount_musd_base_units: ONE_DOLLAR,
             message: 'sign me',
           },

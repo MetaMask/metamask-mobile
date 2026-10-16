@@ -26,6 +26,8 @@ import {
   canClaimEarnings,
   claimRoutesForSummary,
   evmAddressFromEarningAddress,
+  bitcoinAddressFromEarningAddress,
+  bitcoinProofHex,
   claimToastKey,
   claimToastText,
   isClaimSubmittable,
@@ -379,6 +381,7 @@ describe('claimToastKey', () => {
   it.each([
     ['NO_ELIGIBLE_BALANCE', 'claimFailureNoEligibleBalanceToast'],
     ['EARNING_ADDRESS_UNSCREENABLE', 'claimFailureUnavailableToast'],
+    ['UNSUPPORTED_EARNING_ADDRESS', 'claimFailureUnavailableToast'],
     ['EARNING_ADDRESS_MISSING', 'claimFailureContactSupportToast'],
     ['TAX_DETERMINATION_REQUIRED', 'claimFailureUnavailableToast'],
   ] as const)(
@@ -465,6 +468,46 @@ describe('evmAddressFromEarningAddress', () => {
     expect(evmAddressFromEarningAddress('bip122:bc1qabc')).toBeNull();
     expect(evmAddressFromEarningAddress('eip155:')).toBeNull();
     expect(evmAddressFromEarningAddress('not-caip')).toBeNull();
+  });
+});
+
+describe('bitcoinAddressFromEarningAddress', () => {
+  const p2wpkh = `bc1q${'q'.repeat(38)}`;
+  const p2tr = `bc1p${'p'.repeat(58)}`;
+
+  it('reads a mainnet bc1q or bc1p address', () => {
+    expect(bitcoinAddressFromEarningAddress(`bip122:${p2wpkh}`)).toBe(p2wpkh);
+    expect(bitcoinAddressFromEarningAddress(`bip122:${p2tr}`)).toBe(p2tr);
+  });
+
+  it('returns null for a short, legacy, or testnet address', () => {
+    expect(bitcoinAddressFromEarningAddress('bip122:bc1qexample')).toBeNull();
+    expect(
+      bitcoinAddressFromEarningAddress(
+        'bip122:1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH',
+      ),
+    ).toBeNull();
+    expect(
+      bitcoinAddressFromEarningAddress(`bip122:tb1q${'q'.repeat(38)}`),
+    ).toBeNull();
+    expect(bitcoinAddressFromEarningAddress('eip155:0xabc')).toBeNull();
+  });
+});
+
+describe('bitcoinProofHex', () => {
+  it('decodes the snap base64 witness to 0x hex', () => {
+    expect(bitcoinProofHex(Buffer.from([1, 2, 3]).toString('base64'))).toBe(
+      '0x010203',
+    );
+  });
+
+  it('keeps an already hex signature', () => {
+    expect(bitcoinProofHex('0x010203')).toBe('0x010203');
+  });
+
+  it('returns null for an empty or odd-length signature', () => {
+    expect(bitcoinProofHex('')).toBeNull();
+    expect(bitcoinProofHex('0x0')).toBeNull();
   });
 });
 
@@ -586,6 +629,11 @@ describe('runEarningsClaim', () => {
                 message: 'sign everything',
               },
               {
+                earning_address: 'bip122:bc1qexample',
+                amount_musd_base_units: ONE_DOLLAR,
+                message: 'bip-322',
+              },
+              {
                 earning_address: 'solana:not-on-this-phone',
                 amount_musd_base_units: ONE_DOLLAR,
                 message: 'cannot sign',
@@ -626,7 +674,94 @@ describe('runEarningsClaim', () => {
     expect(outcomes[0]).toMatchObject({ submitted: true, opened: true });
   });
 
-  it('fails the claim when this device can sign none of the challenges', async () => {
+  it('does not retry a Bitcoin address this phone cannot sign', async () => {
+    const bitcoin = `bip122:bc1q${'q'.repeat(38)}`;
+    const initiateClaim = jest.fn(
+      async (): Promise<InitiateClaimResult> => ({
+        kind: 'proof_required',
+        body: {
+          reason: 'PROOF_REQUIRED',
+          claim_intent_id: 'intent-btc',
+          expires_at: '2026-09-29T00:00:00.000Z',
+          challenges: [
+            {
+              earning_address: bitcoin,
+              amount_musd_base_units: ONE_DOLLAR,
+              message: 'bip-322',
+            },
+          ],
+        },
+      }),
+    );
+    const signMessage = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: (earningAddress) =>
+        evmAddressFromEarningAddress(earningAddress) !== null,
+      signMessage,
+      submitVoucher: jest.fn(),
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
+    expect(signMessage).not.toHaveBeenCalled();
+    expect(outcomes[0]).toMatchObject({
+      submitted: false,
+      opened: false,
+      reason: 'UNSUPPORTED_EARNING_ADDRESS',
+    });
+    expect(claimToastKey(outcomes)).toBe('claimFailureUnavailableToast');
+  });
+
+  it('signs a Bitcoin challenge when this phone can', async () => {
+    const bitcoin = `bip122:bc1q${'q'.repeat(38)}`;
+    const calls: unknown[] = [];
+    const initiateClaim = jest.fn(
+      async (_route, body): Promise<InitiateClaimResult> => {
+        calls.push(body);
+        if (body.proofs) {
+          return { kind: 'authorized', body: opened() };
+        }
+        return {
+          kind: 'proof_required',
+          body: {
+            reason: 'PROOF_REQUIRED',
+            claim_intent_id: 'intent-btc',
+            expires_at: '2026-09-29T00:00:00.000Z',
+            challenges: [
+              {
+                earning_address: bitcoin,
+                amount_musd_base_units: ONE_DOLLAR,
+                message: 'bip-322',
+              },
+            ],
+          },
+        };
+      },
+    );
+    const signMessage = jest.fn().mockResolvedValue('0x010203');
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xmoney',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: (earningAddress) => earningAddress === bitcoin,
+      signMessage,
+      submitVoucher: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(signMessage).toHaveBeenCalledWith('bip-322', bitcoin);
+    expect(calls[1]).toEqual({
+      money_account_address: '0xmoney',
+      claim_intent_id: 'intent-btc',
+      proofs: [{ earning_address: bitcoin, signature: '0x010203' }],
+    });
+    expect(outcomes[0]).toMatchObject({ submitted: true, opened: true });
+  });
+
+  it('keeps an unsigned EVM challenge on the retry list', async () => {
     const initiateClaim = jest.fn(
       async (): Promise<InitiateClaimResult> => ({
         kind: 'proof_required',
@@ -636,7 +771,7 @@ describe('runEarningsClaim', () => {
           expires_at: '2026-09-29T00:00:00.000Z',
           challenges: [
             {
-              earning_address: 'solana:not-on-this-phone',
+              earning_address: 'eip155:0xabc',
               amount_musd_base_units: ONE_DOLLAR,
               message: 'cannot sign',
             },

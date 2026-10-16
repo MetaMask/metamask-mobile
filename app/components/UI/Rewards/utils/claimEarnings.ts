@@ -1,10 +1,12 @@
 import { ethers } from 'ethers';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { isSnapKeyring } from '@metamask/eth-snap-keyring/v2';
+import { BtcScope, type AccountId } from '@metamask/keyring-api';
 import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { bytesToHex, Hex } from '@metamask/utils';
+import { bytesToHex, Hex, type Json } from '@metamask/utils';
 import { parse as uuidParse, v4 as uuidv4 } from 'uuid';
 import type {
   ClaimDto,
@@ -194,6 +196,130 @@ export function evmAddressFromEarningAddress(
   return address;
 }
 
+/** Mainnet P2WPKH (`bc1q…`, 42 characters) and P2TR (`bc1p…`, 62). */
+const BITCOIN_P2WPKH = /^bc1q[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{38}$/;
+const BITCOIN_P2TR = /^bc1p[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{58}$/;
+
+/**
+ * The Bitcoin address in `bip122:<address>`. Only a mainnet `bc1q` or `bc1p`
+ * address can be proven with BIP-322. Legacy and testnet addresses are not.
+ */
+export function bitcoinAddressFromEarningAddress(
+  earningAddress: string,
+): string | null {
+  const colon = earningAddress.indexOf(':');
+  if (colon <= 0 || colon === earningAddress.length - 1) {
+    return null;
+  }
+  const namespace = earningAddress.slice(0, colon).toLowerCase();
+  if (namespace !== 'bip122') {
+    return null;
+  }
+  const address = earningAddress.slice(colon + 1);
+  if (!BITCOIN_P2WPKH.test(address) && !BITCOIN_P2TR.test(address)) {
+    return null;
+  }
+  return address;
+}
+
+/**
+ * The claim wire form of a Bitcoin snap signature. The snap returns the
+ * BIP-322 witness as base64; the route wants those bytes as `0x` hex.
+ */
+export function bitcoinProofHex(signature: string): string | null {
+  const trimmed = signature.trim();
+  if (trimmed.startsWith('0x')) {
+    return /^0x[0-9a-fA-F]+$/.test(trimmed) && trimmed.length % 2 === 0
+      ? trimmed.toLowerCase()
+      : null;
+  }
+  if (trimmed === '' || !/^[A-Za-z0-9+/]+={0,2}$/.test(trimmed)) {
+    return null;
+  }
+  const bytes = Buffer.from(trimmed, 'base64');
+  if (bytes.length === 0) {
+    return null;
+  }
+  return `0x${bytes.toString('hex')}`;
+}
+
+function signatureFromKeyringResult(result: Json): string | null {
+  if (
+    typeof result !== 'object' ||
+    result === null ||
+    Array.isArray(result) ||
+    !('signature' in result)
+  ) {
+    return null;
+  }
+  const { signature } = result;
+  return typeof signature === 'string' ? bitcoinProofHex(signature) : null;
+}
+
+/**
+ * BIP-322 simple signature over the claim challenge, as `0x` hex.
+ *
+ * The Bitcoin snap's `signMessage` shows its confirmation and returns the
+ * witness as base64. The claim route wants those bytes as hex. `params.account`
+ * is the address; the request's `account` is the snap account id.
+ */
+export async function signBitcoinClaimMessage(
+  accountId: string,
+  address: string,
+  message: string,
+): Promise<string> {
+  const id = accountId as AccountId;
+  let result: Json;
+  try {
+    result = (await Engine.context.KeyringController.withKeyringV2(
+      {
+        filter: (keyring) => isSnapKeyring(keyring) && keyring.hasAccount(id),
+      },
+      async ({ keyring }) => {
+        if (!isSnapKeyring(keyring)) {
+          throw new Error('SIGN_FAILED');
+        }
+        return keyring.submitRequest({
+          id: uuidv4(),
+          origin: 'metamask',
+          scope: BtcScope.Mainnet,
+          account: id,
+          request: {
+            method: 'signMessage',
+            params: { account: { address }, message },
+          },
+        });
+      },
+    )) as Json;
+  } catch (error) {
+    if (error instanceof Error && error.message === 'SIGN_FAILED') {
+      throw error;
+    }
+    throw new Error('SIGN_FAILED');
+  }
+
+  const signature = signatureFromKeyringResult(result);
+  if (!signature) {
+    throw new Error('SIGN_FAILED');
+  }
+  return signature;
+}
+
+/**
+ * A challenge this phone cannot prove is not a retry. Pressing Claim again
+ * cannot succeed. An EVM address on a keyring this phone will not sign stays
+ * a retry: the user may switch to a software account.
+ */
+function unsignedChallengeReason(
+  challenges: { earning_address: string }[],
+): 'UNSUPPORTED_EARNING_ADDRESS' | 'SIGN_FAILED' {
+  const unsupported = challenges.every(
+    (challenge) =>
+      evmAddressFromEarningAddress(challenge.earning_address) === null,
+  );
+  return unsupported ? 'UNSUPPORTED_EARNING_ADDRESS' : 'SIGN_FAILED';
+}
+
 function toastKeyForReason(
   reason: string,
   retryAfterSeconds?: number,
@@ -212,6 +338,7 @@ function toastKeyForReason(
   }
   if (
     reason === 'EARNING_ADDRESS_UNSCREENABLE' ||
+    reason === 'UNSUPPORTED_EARNING_ADDRESS' ||
     reason === 'TAX_DETERMINATION_REQUIRED'
   ) {
     return 'claimFailureUnavailableToast';
@@ -296,8 +423,8 @@ export interface RunEarningsClaimDeps {
   ) => Promise<InitiateClaimResult>;
   /**
    * Whether this handset can sign for the earning-address key. EVM software
-   * keys on this phone can. Solana, Tron, hardware accounts, and keys that
-   * live on another device cannot; snap signing for those can come later.
+   * keys and mainnet Bitcoin accounts on this phone can. Solana, Tron,
+   * hardware accounts, and keys that live on another device cannot.
    */
   canSignEarningAddress: (earningAddress: string) => boolean;
   signMessage: (message: string, earningAddress: string) => Promise<string>;
@@ -325,7 +452,7 @@ async function claimOneRoute(
         route,
         submitted: false,
         opened: false,
-        reason: 'SIGN_FAILED',
+        reason: unsignedChallengeReason(result.body.challenges),
       };
     }
 
@@ -348,7 +475,12 @@ async function claimOneRoute(
         route,
         submitted: false,
         opened: false,
-        reason: 'SIGN_FAILED',
+        reason: unsignedChallengeReason(
+          result.body.challenges.filter(
+            (challenge) =>
+              !deps.canSignEarningAddress(challenge.earning_address),
+          ),
+        ),
       };
     }
 
