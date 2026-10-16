@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type {
   EarningsSummaryDto,
   ReferralMeDto,
@@ -31,19 +31,30 @@ jest.mock('../hooks/useReferralMe', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetParams = jest.fn();
 let mockParentNavigatorType = 'tab';
+let mockRouteParams: { initialTab?: 'earnings' } | undefined;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const React = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      setParams: mockSetParams,
       getParent: () => ({
         getState: () => ({ type: mockParentNavigatorType }),
       }),
     }),
+    useRoute: () => ({ params: mockRouteParams }),
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        const cleanup = effect();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [effect]);
+    },
   };
 });
 
@@ -297,6 +308,7 @@ describe('RewardsMoneyDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockParentNavigatorType = 'tab';
+    mockRouteParams = undefined;
     mockUseEarningsSummary.mockReturnValue({
       fetchEarningsSummary: jest.fn(),
     });
@@ -634,6 +646,22 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
     ).toBeNull();
+  });
+
+  it('opens on the earnings tab when initialTab is earnings and clears the param', async () => {
+    mockRouteParams = { initialTab: 'earnings' };
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-earnings-tab')).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+    });
   });
 
   it('switches to the Earnings tab body', () => {

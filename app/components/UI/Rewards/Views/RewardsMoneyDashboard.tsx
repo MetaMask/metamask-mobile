@@ -1,5 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -30,6 +35,7 @@ import {
   selectReferralMeEntry,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
+import type { RewardsHomeParamList } from '../../../Nav/Main/types/navigation';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import EarningsTab from '../components/Money/Tabs/EarningsTab';
@@ -94,6 +100,8 @@ function dashboardStillLoading(
 const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<RewardsHomeParamList, 'RewardsMoneyDashboard'>>();
   const floatingTabBarInset = useFloatingTabBarInset();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
@@ -116,7 +124,21 @@ const RewardsMoneyDashboard: React.FC = () => {
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
-  const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const [activeTab, setActiveTab] = useState<RewardsMoneyTab>(
+    route.params?.initialTab === 'earnings' ? 'earnings' : 'waysToEarn',
+  );
+
+  // A Money Home Claim tap sets this once. Clear it on focus so the next
+  // visit to Rewards opens on Ways to earn again.
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.initialTab !== 'earnings') {
+        return;
+      }
+      setActiveTab('earnings');
+      navigation.setParams({ initialTab: undefined });
+    }, [navigation, route.params?.initialTab]),
+  );
   const referralMe = referralMeEntry?.data;
   const showEarningsDot = canClaimEarnings(
     earningsSummaryEntry?.data,
