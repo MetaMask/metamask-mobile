@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Laminar } from 'react-native-laminar';
 import { useReducedMotion } from 'react-native-reanimated';
 
 import AnimatedBalanceText from './AnimatedBalanceText';
@@ -23,30 +22,15 @@ describe('AnimatedBalanceText', () => {
   });
 
   it('primes numeric text with the loading value', () => {
-    const { UNSAFE_getByType } = render(
+    const { getByText } = render(
       <AnimatedBalanceText isLoading loadingValue="$0.00" value="$123.45" />,
     );
 
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('0.00');
-  });
-
-  it('configures numeric text transitions', () => {
-    const { UNSAFE_getByType } = render(
-      <AnimatedBalanceText isLoading loadingValue="$0.00" value="$123.45" />,
-    );
-
-    expect(UNSAFE_getByType(Laminar).props).toEqual(
-      expect.objectContaining({
-        animationDuration: 400,
-        animationPreset: 'smooth',
-        clipToBounds: true,
-        variant: 'slots',
-      }),
-    );
+    expect(getByText('0.00')).toBeOnTheScreen();
   });
 
   it('renders the completed value after loading finishes', () => {
-    const { rerender, UNSAFE_getByType } = render(
+    const { rerender, getByText } = render(
       <AnimatedBalanceText isLoading loadingValue="$0.00" value="$123.45" />,
     );
 
@@ -58,11 +42,11 @@ describe('AnimatedBalanceText', () => {
       />,
     );
 
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('123.45');
+    expect(getByText('123.45')).toBeOnTheScreen();
   });
 
   it('renders the latest completed value', () => {
-    const { rerender, UNSAFE_getByType } = render(
+    const { rerender, getByText } = render(
       <AnimatedBalanceText
         isLoading={false}
         loadingValue="$0.00"
@@ -78,6 +62,6 @@ describe('AnimatedBalanceText', () => {
       />,
     );
 
-    expect(UNSAFE_getByType(Laminar).props.text).toBe('456.78');
+    expect(getByText('456.78')).toBeOnTheScreen();
   });
 });

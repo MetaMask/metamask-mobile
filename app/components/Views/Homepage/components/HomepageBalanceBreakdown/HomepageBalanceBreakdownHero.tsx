@@ -100,7 +100,7 @@ const HomepageBalanceBreakdownHero = ({
       </Animated.View>
 
       {!isLoading && hero.delta && amountText ? (
-        <Skeleton hideChildren={isLoading}>
+        <Skeleton>
           <Box
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
