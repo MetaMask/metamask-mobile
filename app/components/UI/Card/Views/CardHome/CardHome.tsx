@@ -970,7 +970,7 @@ const CardHome = () => {
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
-            showHowToUseApplePay={isCardInWallet}
+            showHowToUseApplePay={isCardInWallet && !canAddToWallet}
             onHowToUseApplePay={actions.howToUseApplePayAction}
             showUnlinkMoneyAccount={canUnlinkMoneyAccount}
             onUnlinkMoneyAccount={() =>
