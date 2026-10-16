@@ -23,7 +23,7 @@ const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
  * `ACTIVE_SUBSCRIPTION_STATUSES`, which is not part of the package's public
  * exports.
  */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
+export const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
   SUBSCRIPTION_STATUSES.active,
   SUBSCRIPTION_STATUSES.trialing,
   SUBSCRIPTION_STATUSES.provisional,

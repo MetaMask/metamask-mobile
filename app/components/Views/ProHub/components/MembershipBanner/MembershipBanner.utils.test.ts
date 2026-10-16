@@ -7,6 +7,7 @@ import {
   PAYMENT_TYPES,
   PRODUCT_TYPES,
   RECURRING_INTERVALS,
+  INVOICE_PAYMENT_STATUSES,
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
@@ -57,10 +58,7 @@ describe('getMembershipBannerModel', () => {
       cancelAtPeriodEnd: true,
     });
 
-    const model = getMembershipBannerModel({
-      current: subscription,
-      displayed: subscription,
-    });
+    const model = getMembershipBannerModel(subscription);
 
     expect(model).toEqual({
       statusKind: MembershipStatusKind.Active,
@@ -69,7 +67,7 @@ describe('getMembershipBannerModel', () => {
   });
 
   it('shows Active when no subscription has loaded', () => {
-    expect(getMembershipBannerModel({})).toEqual({
+    expect(getMembershipBannerModel()).toEqual({
       statusKind: MembershipStatusKind.Active,
       statusKey: 'pro_hub.membership_status.active',
     });
@@ -80,10 +78,7 @@ describe('getMembershipBannerModel', () => {
       status: SUBSCRIPTION_STATUSES.pastDue,
     });
 
-    const model = getMembershipBannerModel({
-      current: subscription,
-      displayed: subscription,
-    });
+    const model = getMembershipBannerModel(subscription);
 
     expect(model.statusKind).toBe(MembershipStatusKind.Overdue);
     expect(model.statusKey).toBe('pro_hub.membership_status.overdue');
@@ -102,10 +97,7 @@ describe('getMembershipBannerModel', () => {
     (status) => {
       const subscription = createSubscription({ status });
 
-      const model = getMembershipBannerModel({
-        current: subscription,
-        displayed: subscription,
-      });
+      const model = getMembershipBannerModel(subscription);
 
       expect(model.statusKind).toBe(MembershipStatusKind.Deactivated);
       expect(model.statusKey).toBe('pro_hub.membership_status.deactivated');
@@ -126,9 +118,7 @@ describe('getMembershipBannerModel', () => {
       canceledAt: '2026-09-20T12:00:00.000Z',
     });
 
-    const model = getMembershipBannerModel({
-      displayed: subscription,
-    });
+    const model = getMembershipBannerModel(subscription);
 
     expect(model.statusKind).toBe(MembershipStatusKind.Cancelled);
     expect(model.statusKey).toBe('pro_hub.membership_status.cancelled');
@@ -143,21 +133,56 @@ describe('getMembershipBannerModel', () => {
     });
   });
 
-  it('prefers the current plan over a canceled last plan', () => {
-    const current = createSubscription({
-      status: SUBSCRIPTION_STATUSES.pastDue,
-    });
-    const last = createSubscription({
-      id: 'sub-last',
+  it('repeats the cancelled title when the plan has no date', () => {
+    const subscription = createSubscription({
       status: SUBSCRIPTION_STATUSES.canceled,
+      currentPeriodEnd: undefined,
+      canceledAt: undefined,
     });
 
-    const model = getMembershipBannerModel({
-      current,
-      displayed: last,
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.alert?.descriptionKey).toBe(
+      'pro_hub.membership_alert.cancelled.title',
+    );
+    expect(model.alert?.descriptionValues).toBeUndefined();
+  });
+
+  it('shows the renewal-failed alert when the latest invoice failed', () => {
+    const subscription = createSubscription({
+      lastInvoice: {
+        id: 'inv-failed',
+        status: INVOICE_PAYMENT_STATUSES.FAILED,
+      },
     });
 
-    expect(model.statusKind).toBe(MembershipStatusKind.Overdue);
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Active);
+    expect(model.iconColor).toBe(IconColor.WarningDefault);
+    expect(model.alert?.titleKey).toBe(
+      'pro_hub.membership_alert.renewal_failed.title',
+    );
+    expect(model.alert?.action).toBe(MembershipAlertAction.AddFunds);
+  });
+
+  it('shows the add-funds alert while a plan is waiting for funds', () => {
+    const subscription = createSubscription({
+      status: SUBSCRIPTION_STATUSES.awaitingFunds,
+    });
+
+    const model = getMembershipBannerModel(subscription);
+
+    expect(model.statusKind).toBe(MembershipStatusKind.Active);
+    expect(model.iconColor).toBe(IconColor.PrimaryDefault);
+    expect(model.alert).toEqual({
+      severity: BannerAlertSeverity.Info,
+      titleKey: 'pro_hub.membership_alert.low_balance.title',
+      descriptionKey: 'pro_hub.membership_alert.low_balance.description',
+      descriptionValues: { date: '10/12/2026' },
+      actionKey: 'pro_hub.membership_alert.low_balance.action',
+      action: MembershipAlertAction.AddFunds,
+    });
   });
 });
 

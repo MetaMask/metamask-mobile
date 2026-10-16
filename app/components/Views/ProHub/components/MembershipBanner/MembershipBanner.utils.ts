@@ -3,21 +3,13 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import {
+  INVOICE_PAYMENT_STATUSES,
   SUBSCRIPTION_STATUSES,
   type Subscription,
-  type SubscriptionStatus,
 } from '@metamask/subscription-controller';
+import { ACTIVE_SUBSCRIPTION_STATUSES } from '../../../../../selectors/subscriptionController';
 
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/;
-
-/**
- * Statuses that show "Active". A trial stays Active; the label does not change.
- */
-const ACTIVE_SUBSCRIPTION_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-  SUBSCRIPTION_STATUSES.provisional,
-]);
 
 export const MembershipStatusKind = {
   Active: 'active',
@@ -53,13 +45,6 @@ export interface MembershipBannerModel {
   iconColor?: IconColor;
   /** Present for Overdue, Deactivated, and Cancelled. Active has no alert. */
   alert?: MembershipAlert;
-}
-
-export interface MembershipBannerInput {
-  /** Subscription still in the controller's current list, any status. */
-  current?: Subscription;
-  /** Current subscription, or the last one when the current list has none. */
-  displayed?: Subscription;
 }
 
 /** Formats a membership date as `MM/DD/YYYY`. */
@@ -100,31 +85,83 @@ const deactivatedAlert = (): MembershipAlert => ({
   action: MembershipAlertAction.AddFunds,
 });
 
-const cancelledAlert = (date: string | undefined): MembershipAlert => ({
+const cancelledAlert = (date: string | undefined): MembershipAlert => {
+  const formattedDate = date ? formatMembershipDueDate(date) : undefined;
+
+  return {
+    severity: BannerAlertSeverity.Warning,
+    titleKey: 'pro_hub.membership_alert.cancelled.title',
+    descriptionKey: formattedDate
+      ? 'pro_hub.membership_alert.cancelled.description'
+      : 'pro_hub.membership_alert.cancelled.title',
+    descriptionValues: formattedDate ? { date: formattedDate } : undefined,
+    actionKey: 'pro_hub.membership_alert.cancelled.action',
+    action: MembershipAlertAction.Renew,
+  };
+};
+
+const addFundsAlert = (date: string | undefined): MembershipAlert => {
+  const formattedDate = date ? formatMembershipDueDate(date) : undefined;
+
+  return {
+    severity: BannerAlertSeverity.Info,
+    titleKey: formattedDate
+      ? 'pro_hub.membership_alert.low_balance.title'
+      : 'pro_hub.membership_alert.low_balance.description',
+    descriptionKey: 'pro_hub.membership_alert.low_balance.description',
+    descriptionValues: formattedDate ? { date: formattedDate } : undefined,
+    actionKey: 'pro_hub.membership_alert.low_balance.action',
+    action: MembershipAlertAction.AddFunds,
+  };
+};
+
+const renewalFailedAlert = (): MembershipAlert => ({
   severity: BannerAlertSeverity.Warning,
-  titleKey: 'pro_hub.membership_alert.cancelled.title',
-  descriptionKey: 'pro_hub.membership_alert.cancelled.description',
-  descriptionValues: date ? { date: formatMembershipDueDate(date) } : undefined,
-  actionKey: 'pro_hub.membership_alert.cancelled.action',
-  action: MembershipAlertAction.Renew,
+  titleKey: 'pro_hub.membership_alert.renewal_failed.title',
+  descriptionKey: 'pro_hub.membership_alert.renewal_failed.description',
+  actionKey: 'pro_hub.membership_alert.renewal_failed.action',
+  action: MembershipAlertAction.AddFunds,
 });
+
+const activeModel = (subscription: Subscription): MembershipBannerModel => {
+  if (subscription.status === SUBSCRIPTION_STATUSES.awaitingFunds) {
+    return {
+      ...ACTIVE_MODEL,
+      iconColor: IconColor.PrimaryDefault,
+      alert: addFundsAlert(
+        subscription.currentPeriodEnd || subscription.endDate,
+      ),
+    };
+  }
+
+  if (
+    ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+    subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED
+  ) {
+    return {
+      ...ACTIVE_MODEL,
+      iconColor: IconColor.WarningDefault,
+      alert: renewalFailedAlert(),
+    };
+  }
+
+  return ACTIVE_MODEL;
+};
 
 /**
  * Maps a Money Account Plus subscription onto the four Pro Hub status labels.
  *
- * `active`, `trialing`, and `provisional` show Active, including a trial and
- * a plan that is scheduled to cancel. `past_due` shows Overdue. `paused` and
- * `unpaid` show Deactivated. `canceled` shows Cancelled. The label and alert
- * copy stay the existing Pro Hub strings.
+ * `active`, `trialing`, `provisional`, and `awaiting_funds` show Active. A
+ * plan waiting for funds, or an active plan whose latest invoice failed, also
+ * shows the existing add-funds or renewal-failed alert. `past_due` shows
+ * Overdue. `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
  *
- * @param input - Current and displayed subscriptions.
+ * @param subscription - The displayed Plus subscription. Current wins over the last one.
  * @returns The status label, icon color, and alert for that status.
  */
-export const getMembershipBannerModel = ({
-  current,
-  displayed,
-}: MembershipBannerInput): MembershipBannerModel => {
-  const subscription = current ?? displayed;
+export const getMembershipBannerModel = (
+  subscription?: Subscription,
+): MembershipBannerModel => {
   if (!subscription) {
     return ACTIVE_MODEL;
   }
@@ -161,9 +198,5 @@ export const getMembershipBannerModel = ({
     };
   }
 
-  if (ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status)) {
-    return ACTIVE_MODEL;
-  }
-
-  return ACTIVE_MODEL;
+  return activeModel(subscription);
 };

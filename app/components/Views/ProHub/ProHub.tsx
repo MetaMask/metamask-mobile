@@ -108,24 +108,26 @@ const StatRow = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { model: membershipBanner } = useMembershipBannerModel();
+  const { model: membershipBanner, subscription } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
+  const showHubContent =
+    proAccess !== MoneyAccountPlusAccess.Disabled &&
+    (proAccess === MoneyAccountPlusAccess.Subscriber || Boolean(subscription));
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // The hub is subscriber-only. Wait while subscriptions are unresolved so an
-  // empty controller slice does not bounce a paid user before the first fetch.
+  // A displayed plan stays on screen, including a cancelled last subscription.
+  // Unknown access waits for the first fetch. Disabled and eligible users with
+  // no plan leave.
   useEffect(() => {
-    if (
-      proAccess !== MoneyAccountPlusAccess.Subscriber &&
-      proAccess !== MoneyAccountPlusAccess.Unknown
-    ) {
-      navigation.goBack();
+    if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
+      return;
     }
-  }, [proAccess, navigation]);
+    navigation.goBack();
+  }, [navigation, proAccess, showHubContent]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
@@ -184,7 +186,7 @@ const ProHub = () => {
         {strings('pro_hub.title')}
       </HeaderBase>
 
-      {proAccess === MoneyAccountPlusAccess.Subscriber && (
+      {showHubContent && (
         <ScrollView
           contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
           showsVerticalScrollIndicator={false}

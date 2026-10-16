@@ -43,13 +43,7 @@ const createSubscription = (
 });
 
 const renderBanner = (subscription: Subscription, onAction = jest.fn()) => {
-  const model = getMembershipBannerModel({
-    current:
-      subscription.status === SUBSCRIPTION_STATUSES.canceled
-        ? undefined
-        : subscription,
-    displayed: subscription,
-  });
+  const model = getMembershipBannerModel(subscription);
 
   return {
     ...render(<MembershipBanner model={model} onAction={onAction} />),

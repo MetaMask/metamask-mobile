@@ -116,7 +116,7 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel({});
+const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel();
 
 // Earnings are still mock data, and the membership card is covered by the
 // banner model unit tests. This screen test mocks that hook.
@@ -172,6 +172,24 @@ describe('ProHub', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('stays open when a displayed plan remains after access lapses', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
     });
 
     it('does not render subscriber content without access', () => {

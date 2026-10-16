@@ -51,6 +51,7 @@ const MembershipBanner = ({
             name={IconName.Info}
             size={IconSize.Lg}
             color={model.iconColor}
+            accessibilityLabel={strings(model.statusKey)}
             testID={ProHubTestIds.MEMBERSHIP_STATUS_ICON}
           />
         ) : null}
@@ -69,7 +70,7 @@ const MembershipBanner = ({
           title={strings(membershipAlert.titleKey)}
           description={strings(
             membershipAlert.descriptionKey,
-            membershipAlert.descriptionValues,
+            membershipAlert.descriptionValues ?? {},
           )}
           actionButtonLabel={strings(membershipAlert.actionKey)}
           actionButtonOnPress={() => onAction(membershipAlert.action)}

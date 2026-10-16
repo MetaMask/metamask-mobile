@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { Subscription } from '@metamask/subscription-controller';
-import {
-  selectDisplayedMoneyAccountPlusSubscription,
-  selectMoneyAccountPlusSubscription,
-} from '../../../../selectors/subscriptionController';
+import { selectDisplayedMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import {
   getMembershipBannerModel,
   type MembershipBannerModel,
@@ -22,12 +19,11 @@ export interface MembershipBannerControllerState {
  * @returns The banner model and the subscription it was derived from.
  */
 export function useMembershipBannerModel(): MembershipBannerControllerState {
-  const current = useSelector(selectMoneyAccountPlusSubscription);
-  const displayed = useSelector(selectDisplayedMoneyAccountPlusSubscription);
+  const subscription = useSelector(selectDisplayedMoneyAccountPlusSubscription);
   const model = useMemo(
-    () => getMembershipBannerModel({ current, displayed }),
-    [current, displayed],
+    () => getMembershipBannerModel(subscription),
+    [subscription],
   );
 
-  return { model, subscription: current ?? displayed };
+  return { model, subscription };
 }
