@@ -247,4 +247,34 @@ describe('useInitialSourceToken', () => {
       expect(mockSwitchNetworks.onSetRpcTarget).not.toHaveBeenCalled();
     });
   });
+
+  it('consumes the initial source token only once per mount', async () => {
+    const firstToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'FIRST',
+      name: 'First Token',
+      decimals: 18,
+      chainId: mockChainId,
+    };
+    const secondToken: BridgeToken = {
+      ...firstToken,
+      address: '0x0000000000000000000000000000000000000002',
+      symbol: 'SECOND',
+      name: 'Second Token',
+    };
+    let initialSourceToken = firstToken;
+    const { rerender } = renderHookWithProvider(
+      () => useInitialSourceToken(initialSourceToken),
+      { state: initialState },
+    );
+    await waitFor(() => {
+      expect(setSourceToken).toHaveBeenCalledWith(firstToken);
+    });
+    jest.mocked(setSourceToken).mockClear();
+
+    initialSourceToken = secondToken;
+    rerender(undefined);
+
+    expect(setSourceToken).not.toHaveBeenCalled();
+  });
 });

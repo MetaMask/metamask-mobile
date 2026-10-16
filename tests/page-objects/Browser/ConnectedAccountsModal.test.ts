@@ -55,6 +55,7 @@ describe('ConnectedAccountsModal account summary', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('waitForAccountsSummaryReady', () => {
@@ -140,6 +141,59 @@ describe('ConnectedAccountsModal account summary', () => {
       expect(Assertions.expectTextDisplayed).toHaveBeenCalledWith('Account 1', {
         timeout: 45000,
         description: '"Account 1" in connected accounts summary',
+      });
+    });
+  });
+
+  describe('expectConnectedAccountsDisplayed', () => {
+    it('waits for the sheet once, then asserts each account name', async () => {
+      const ready = jest.spyOn(
+        ConnectedAccountsModal,
+        'waitForAccountsSummaryReady',
+      );
+
+      await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
+        'Account 1',
+        'Account 2',
+        'Account 3',
+      ]);
+
+      expect(ready).toHaveBeenCalledTimes(1);
+      expect(Assertions.expectTextDisplayed).toHaveBeenNthCalledWith(
+        1,
+        'Account 1',
+        {
+          timeout: 30000,
+          description: '"Account 1" in connected accounts summary',
+        },
+      );
+      expect(Assertions.expectTextDisplayed).toHaveBeenNthCalledWith(
+        2,
+        'Account 2',
+        {
+          timeout: 30000,
+          description: '"Account 2" in connected accounts summary',
+        },
+      );
+      expect(Assertions.expectTextDisplayed).toHaveBeenNthCalledWith(
+        3,
+        'Account 3',
+        {
+          timeout: 30000,
+          description: '"Account 3" in connected accounts summary',
+        },
+      );
+    });
+
+    it('applies a custom timeout to each account name assertion', async () => {
+      await ConnectedAccountsModal.expectConnectedAccountsDisplayed(
+        ['Account 2'],
+        { timeout: 45000 },
+      );
+
+      expect(Assertions.expectTextDisplayed).toHaveBeenCalledWith('Account 2', {
+        timeout: 45000,
+        description: '"Account 2" in connected accounts summary',
       });
     });
   });
