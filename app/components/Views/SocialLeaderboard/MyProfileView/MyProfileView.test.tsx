@@ -606,6 +606,12 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(
+        `${MyProfileViewSelectorsIDs.EMPTY_STATE_AVATAR}-art`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     ).toBeOnTheScreen();
   });

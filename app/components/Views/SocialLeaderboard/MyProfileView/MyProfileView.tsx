@@ -615,6 +615,9 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                avatarBackgroundId={displayProfile.avatarBackgroundId}
               />
             ) : postsError && posts.length === 0 ? (
               <Box
