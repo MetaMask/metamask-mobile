@@ -81,13 +81,23 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
+    );
+    expect(await screen.findByText('Select an account')).toBeOnTheScreen();
     expect(
       screen.getAllByTestId(
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(1);
+    expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
-    fireEvent(screen.getByRole('switch'), 'valueChange', false);
+    fireEvent.press(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-acc-1`,
+      ),
+    );
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
@@ -109,7 +119,7 @@ describe('SocialProfileOnboardingView', () => {
         displayName: 'Wen Cat',
         avatarPresetId: 'zombie',
         avatarBackgroundId: 'lime',
-        shareTradingActivity: false,
+        shareTradingActivity: true,
         linkedAccountId: 'acc-1',
       }),
     );
@@ -126,7 +136,7 @@ describe('SocialProfileOnboardingView', () => {
           'eip155:1:0x0000000000000000000000000000000000000001',
         ],
         avatar_url: 'foxicon://zombie/lime',
-        trading_privacy: 'private',
+        trading_privacy: 'public',
       },
     );
   });

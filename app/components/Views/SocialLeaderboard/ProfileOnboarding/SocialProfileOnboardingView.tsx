@@ -1,6 +1,4 @@
 import {
-  AvatarAccount,
-  AvatarAccountSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -16,8 +14,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  RadioButton,
-  Switch,
   Text,
   TextColor,
   TextField,
@@ -37,12 +33,9 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useHaptics } from '../../../../util/haptics';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
@@ -70,6 +63,7 @@ import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
 import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
+import LinkedAccountPicker from './LinkedAccountPicker';
 
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
@@ -280,8 +274,6 @@ const SocialProfileOnboardingView: React.FC = () => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const accounts = useSocialOnboardingAccounts();
-  const avatarAccountType = useSelector(selectAvatarAccountType);
-  const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { playSelection } = useHaptics();
   const { checkUsernameAvailability, createProfile, getXAuthorizationUrl } =
     useProfileController();
@@ -737,120 +729,18 @@ const SocialProfileOnboardingView: React.FC = () => {
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
                   </OnboardingTitle>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings(
-                      'social_leaderboard.profile_onboarding.link_account_description',
-                    )}
-                  </Text>
-                  <Box twClassName="bg-muted rounded-2xl overflow-hidden">
-                    {accounts.map((account, index) => {
-                      const isSelected = draft.linkedAccountId === account.id;
-                      return (
-                        <Pressable
-                          key={account.id}
-                          accessibilityRole="button"
-                          onPress={() => {
-                            playSelection().catch(() => undefined);
-                            setDraft((current) => ({
-                              ...current,
-                              linkedAccountId: account.id,
-                              linkedAccountAddress: account.address,
-                            }));
-                          }}
-                          testID={`${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
-                        >
-                          <Box
-                            flexDirection={BoxFlexDirection.Row}
-                            alignItems={BoxAlignItems.Center}
-                            justifyContent={BoxJustifyContent.Between}
-                            twClassName={`px-4 py-3 ${
-                              index > 0 ? 'border-t border-muted' : ''
-                            }`}
-                          >
-                            <Box
-                              flexDirection={BoxFlexDirection.Row}
-                              alignItems={BoxAlignItems.Center}
-                              twClassName="flex-1 min-w-0 mr-3"
-                              gap={3}
-                            >
-                              <AvatarAccount
-                                address={account.address}
-                                size={AvatarAccountSize.Md}
-                                variant={avatarVariant}
-                              />
-                              <Box twClassName="flex-1 min-w-0">
-                                <Text
-                                  variant={TextVariant.BodyMd}
-                                  fontWeight={FontWeight.Medium}
-                                  numberOfLines={1}
-                                >
-                                  {account.name}
-                                </Text>
-                                {account.balanceLabel ? (
-                                  <Text
-                                    variant={TextVariant.BodySm}
-                                    color={TextColor.TextAlternative}
-                                  >
-                                    {account.balanceLabel}
-                                  </Text>
-                                ) : null}
-                              </Box>
-                            </Box>
-                            <RadioButton
-                              isChecked={isSelected}
-                              onPress={() =>
-                                setDraft((current) => ({
-                                  ...current,
-                                  linkedAccountId: account.id,
-                                  linkedAccountAddress: account.address,
-                                }))
-                              }
-                            />
-                          </Box>
-                        </Pressable>
-                      );
-                    })}
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                    gap={3}
-                  >
-                    <Box twClassName="flex-1" gap={1}>
-                      <Text
-                        variant={TextVariant.HeadingSm}
-                        fontWeight={FontWeight.Bold}
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.share_trading_activity',
-                        )}
-                      </Text>
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.share_trading_activity_description',
-                        )}
-                      </Text>
-                    </Box>
-                    <Switch
-                      isOn={draft.shareTradingActivity}
-                      onValueChange={(value) =>
-                        setDraft((current) => ({
-                          ...current,
-                          shareTradingActivity: value,
-                        }))
-                      }
-                      testID={
-                        SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH
-                      }
-                    />
-                  </Box>
+                  <LinkedAccountPicker
+                    accounts={accounts}
+                    selectedAccountId={draft.linkedAccountId}
+                    onSelect={(account) => {
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        linkedAccountId: account.id,
+                        linkedAccountAddress: account.address,
+                      }));
+                    }}
+                  />
                 </Box>
               ) : null}
 
