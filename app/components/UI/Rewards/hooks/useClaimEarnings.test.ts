@@ -8,6 +8,7 @@ import type { Action } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { BtcAccountType, BtcScope } from '@metamask/keyring-api';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
@@ -31,12 +32,16 @@ import type {
   InitiateClaimResult,
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import useRewardsToast from './useRewardsToast';
 import { submitClaimVoucher } from '../utils/claimEarnings';
 import { useClaimEarnings } from './useClaimEarnings';
 
 const mockDispatch = jest.fn();
+const mockTrackEvent = jest.fn();
 let storedClaimWait: number | undefined;
 
 jest.mock('react-redux', () => ({
@@ -108,6 +113,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
 }));
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('./useRewardsToast', () => ({
   __esModule: true,
@@ -287,11 +294,33 @@ describe('useClaimEarnings', () => {
       Engine.context.AccountsController.getAccountByAddress as jest.Mock
     ).mockReset();
     (Engine.context.KeyringController.withKeyringV2 as jest.Mock).mockReset();
+    mockTrackEvent.mockClear();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     mockSubmitClaimVoucher.mockResolvedValue(undefined);
     mockGetCurrentRoute.mockReturnValue({
       name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
   });
+
+  function expectClaimMetric(
+    event: { category: string },
+    properties: Record<string, unknown>,
+  ) {
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    const tracked = mockTrackEvent.mock.calls[0][0] as {
+      name: string;
+      properties: { duration_ms: number };
+    };
+    expect(tracked.name).toBe(event.category);
+    expect(tracked.properties).toEqual(expect.objectContaining(properties));
+    expect(tracked.properties.duration_ms).toEqual(expect.any(Number));
+    expect(tracked.properties.duration_ms).toBeGreaterThanOrEqual(0);
+  }
 
   function renderClaim(persona: 'referee' | 'referrer' = 'referee') {
     return renderHook(() =>
@@ -313,6 +342,7 @@ describe('useClaimEarnings', () => {
 
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('leaves the claim unsent when the summary is under $1', async () => {
@@ -324,6 +354,7 @@ describe('useClaimEarnings', () => {
 
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
     expect(result.current.isClaiming).toBe(false);
   });
 
@@ -337,6 +368,7 @@ describe('useClaimEarnings', () => {
 
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('shows the generic failure toast and does not open a claim when there is no money account', async () => {
@@ -354,6 +386,10 @@ describe('useClaimEarnings', () => {
       localizedText.claimFailureToast,
     );
     expect(result.current.isClaiming).toBe(false);
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'not_submittable',
+    });
   });
 
   it('does not open a claim when gas sponsorship is off', async () => {
@@ -415,6 +451,10 @@ describe('useClaimEarnings', () => {
     expect(onSubmitted).toHaveBeenCalledTimes(1);
     expect(onOpened).toHaveBeenCalledTimes(1);
     expect(result.current.isClaiming).toBe(false);
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_COMPLETED, {
+      claim_type: 'cashback',
+      partial: false,
+    });
   });
 
   it('shows the partial toast when the claim deferred the rest', async () => {
@@ -915,6 +955,25 @@ describe('useClaimEarnings', () => {
     expect(onOpened).not.toHaveBeenCalled();
   });
 
+  it('records a retry when the signer is unavailable', async () => {
+    mockEngineCall.mockRejectedValue(
+      new RewardsMoneyClaimRefusalError(422, 'SIGNER_UNAVAILABLE'),
+    );
+    const { result } = renderClaim();
+
+    await act(async () => {
+      await result.current.claim(summary(ONE_DOLLAR));
+    });
+
+    expect(mockErrorToast).toHaveBeenCalledWith(
+      localizedText.claimFailureRetryToast,
+    );
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED, {
+      claim_type: 'cashback',
+      failure_reason: 'retry',
+    });
+  });
+
   it('shows the retry toast when login keys are unavailable', async () => {
     mockEngineCall.mockRejectedValue(
       new RewardsMoneyClaimRefusalError(503, 'JWKS_UNAVAILABLE', 30),
@@ -1106,10 +1165,12 @@ describe('useClaimEarnings', () => {
       expect(result.current.isClaimWaiting).toBe(true);
 
       mockEngineCall.mockClear();
+      const trackedBeforeSecondPress = mockTrackEvent.mock.calls.length;
       await act(async () => {
         await result.current.claim(summary(ONE_DOLLAR));
       });
       expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(trackedBeforeSecondPress);
 
       await act(async () => {
         jest.advanceTimersByTime(30_000);
@@ -1156,10 +1217,12 @@ describe('useClaimEarnings', () => {
 
       expect(second.result.current.isClaimWaiting).toBe(true);
       mockEngineCall.mockClear();
+      const trackedBeforeSecondPress = mockTrackEvent.mock.calls.length;
       await act(async () => {
         await second.result.current.claim(summary(ONE_DOLLAR));
       });
       expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(trackedBeforeSecondPress);
 
       await act(async () => {
         jest.advanceTimersByTime(90_000);
@@ -1193,6 +1256,7 @@ describe('useClaimEarnings', () => {
     });
 
     expect(mockEngineCall).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
 
     await act(async () => {
       release(authorized());
@@ -1201,5 +1265,9 @@ describe('useClaimEarnings', () => {
 
     expect(result.current.isClaiming).toBe(false);
     expect(onSubmitted).toHaveBeenCalledTimes(1);
+    expectClaimMetric(MetaMetricsEvents.REWARDS_MONEY_CLAIM_COMPLETED, {
+      claim_type: 'cashback',
+      partial: false,
+    });
   });
 });

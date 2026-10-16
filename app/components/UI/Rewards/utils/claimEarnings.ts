@@ -414,6 +414,60 @@ export function claimToastText(
   return template.replaceAll('{minutes}', String(Math.ceil(seconds / 60)));
 }
 
+/** Segment `claim_type` for a claim route. Follow-trade has no route yet. */
+export function claimTypeForRoute(route: ClaimRouteSlug): string {
+  switch (route) {
+    case 'referral-trade-fee-cashback':
+      return 'cashback';
+    case 'referral-rev-share':
+      return 'rev_share';
+    default: {
+      const unhandled: never = route;
+      return unhandled;
+    }
+  }
+}
+
+/**
+ * Client bucket for a route that did not pay. `not_submittable` is decided
+ * before a route runs, so it is not a member of this map.
+ */
+export function claimFailureReason(reason: string): string {
+  if (reason === 'MECHANISM_NOT_CLAIMABLE') {
+    return 'not_claimable';
+  }
+  if (CLAIMS_PAUSED_REASONS.has(reason)) {
+    return 'paused';
+  }
+  if (reason === 'UNSUPPORTED_EARNING_ADDRESS') {
+    return 'unsupported';
+  }
+  if (reason === 'ADDRESS_BLOCKED') {
+    return 'address_blocked';
+  }
+  if (reason === 'BELOW_MINIMUM') {
+    return 'below_minimum';
+  }
+  if (reason === 'CLAIM_TOO_LARGE') {
+    return 'too_large';
+  }
+  if (reason === 'NO_ELIGIBLE_BALANCE') {
+    return 'nothing_to_claim';
+  }
+  if (WAIT_REASONS.has(reason)) {
+    return 'wait';
+  }
+  if (RETRY_REASONS.has(reason) || reason === 'SERVER_BUSY') {
+    return 'retry';
+  }
+  return 'other';
+}
+
+/** True only when a paid claim left a refill for the signing budget. */
+export function claimOutcomeIsPartial(outcome: ClaimRouteOutcome): boolean {
+  return outcome.excludedReasons?.includes('VELOCITY_LIMIT_DEFERRED') ?? false;
+}
+
 export interface RunEarningsClaimDeps {
   moneyAccountAddress: string;
   routes: ClaimRouteSlug[];

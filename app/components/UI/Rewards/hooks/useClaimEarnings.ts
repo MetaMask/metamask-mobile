@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { BtcAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
@@ -24,16 +25,21 @@ import {
   isSnapAccount,
 } from '../../../../util/address';
 import type {
+  ClaimRouteSlug,
   ClaimVoucherDto,
   EarningsSummaryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import useRewardsToast from './useRewardsToast';
 import {
   canClaimEarnings,
+  claimFailureReason,
+  claimOutcomeIsPartial,
   claimRoutesForSummary,
   claimToastKey,
   claimToastText,
+  claimTypeForRoute,
   isClaimsPausedRefusal,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
@@ -41,6 +47,7 @@ import {
   runEarningsClaim,
   signBitcoinClaimMessage,
   submitClaimVoucher,
+  type ClaimRouteOutcome,
 } from '../utils/claimEarnings';
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 
@@ -112,6 +119,7 @@ export function useClaimEarnings(
 } {
   const navigation = useNavigation<AppNavigationProp>();
   const { navigateToConfirmation } = useConfirmNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const dispatch = useDispatch();
   const localizedText = useSelector((state: RootState) =>
@@ -182,6 +190,34 @@ export function useClaimEarnings(
       isClaimingRef.current = true;
       setIsClaiming(true);
       let refreshHold = false;
+      const startedAt = Date.now();
+      const routes = claimRoutesForSummary(summary);
+      let tracked = false;
+      const durationMs = () => Math.max(0, Date.now() - startedAt);
+      const trackFailed = (route: ClaimRouteSlug, failureReason: string) => {
+        tracked = true;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_MONEY_CLAIM_FAILED)
+            .addProperties({
+              claim_type: claimTypeForRoute(route),
+              duration_ms: durationMs(),
+              failure_reason: failureReason,
+            })
+            .build(),
+        );
+      };
+      const trackCompleted = (outcome: ClaimRouteOutcome) => {
+        tracked = true;
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REWARDS_MONEY_CLAIM_COMPLETED)
+            .addProperties({
+              claim_type: claimTypeForRoute(outcome.route),
+              duration_ms: durationMs(),
+              partial: claimOutcomeIsPartial(outcome),
+            })
+            .build(),
+        );
+      };
 
       const fail = (key: ReturnType<typeof claimToastKey>) => {
         showToast(RewardsToastOptions.error(localizedText[key]));
@@ -202,13 +238,14 @@ export function useClaimEarnings(
             isSponsored: Boolean(chainId && isSponsorshipEnabled(chainId)),
           })
         ) {
+          routes.forEach((route) => trackFailed(route, 'not_submittable'));
           fail('claimFailureToast');
           return;
         }
 
         const outcomes = await runEarningsClaim({
           moneyAccountAddress,
-          routes: claimRoutesForSummary(summary),
+          routes,
           initiateClaim: (route, body) =>
             Engine.controllerMessenger.call(
               'RewardsMoneyController:initiateClaim',
@@ -271,6 +308,17 @@ export function useClaimEarnings(
           },
         });
 
+        outcomes.forEach((outcome) => {
+          if (outcome.submitted) {
+            trackCompleted(outcome);
+            return;
+          }
+          trackFailed(
+            outcome.route,
+            claimFailureReason(outcome.reason ?? 'UNKNOWN'),
+          );
+        });
+
         const key = claimToastKey(outcomes);
         const paid = outcomes.some((outcome) => outcome.submitted);
         if (isClaimsPausedRefusal(outcomes)) {
@@ -326,6 +374,9 @@ export function useClaimEarnings(
           dispatch(setClaimWaitingUntil({ profileId, until }));
         }
       } catch (error) {
+        if (!tracked) {
+          routes.forEach((route) => trackFailed(route, 'other'));
+        }
         reportRewardsMoneyReadFailure(
           error,
           'claimEarnings.failed',
@@ -355,6 +406,8 @@ export function useClaimEarnings(
       RewardsToastOptions,
       dispatch,
       profileId,
+      trackEvent,
+      createEventBuilder,
     ],
   );
 
