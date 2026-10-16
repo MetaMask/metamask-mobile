@@ -34,6 +34,7 @@ const ANDROID_MANIFEST_PATH = path.join(
 const IOS_EXPO_PLIST_PATH = path.join(__dirname, '..', 'ios', 'Expo.plist');
 
 const CODE_SIGNING_ALGORITHM = 'rsa-v1_5-sha256';
+const DEVELOPMENT_ENVIRONMENT = 'dev';
 
 // Match the OTA environment selection logic from app.config.js:
 // - "production" and "rc" use their own certificates
@@ -195,6 +196,82 @@ function getConfigForEnvironment(environment) {
 }
 
 /**
+ * Resolves the runtime version embedded in a native build.
+ *
+ * Development builds use the native fingerprint so Metro can reject an
+ * incompatible binary. Other environments retain the release runtime version
+ * used by OTA updates.
+ *
+ * @param {string} environment
+ * @param {string | undefined} nativeFingerprint
+ * @returns {string}
+ */
+function getRuntimeVersion(
+  environment,
+  nativeFingerprint = process.env.METAMASK_NATIVE_FINGERPRINT,
+) {
+  if (environment !== DEVELOPMENT_ENVIRONMENT) {
+    return RUNTIME_VERSION;
+  }
+
+  if (!nativeFingerprint) {
+    throw new Error(
+      'METAMASK_NATIVE_FINGERPRINT is required for development builds',
+    );
+  }
+
+  return nativeFingerprint;
+}
+
+function setAndroidRuntimeVersion(content, runtimeVersion) {
+  const runtimeVersionKey = EXPO_CONFIG_MAP.runtimeVersion.android;
+  if (content.includes(runtimeVersionKey)) {
+    return content.replace(
+      /<meta-data android:name="expo\.modules\.updates\.EXPO_RUNTIME_VERSION"[\s\S]*?\/>/g,
+      `<meta-data android:name="${runtimeVersionKey}" android:value="${runtimeVersion}" />`,
+    );
+  }
+
+  return content.replace(
+    /(\s*)<\/application>/,
+    `\n\t\t<meta-data android:name="${runtimeVersionKey}" android:value="${runtimeVersion}" />$1</application>`,
+  );
+}
+
+function setIosRuntimeVersion(content, runtimeVersion) {
+  const runtimeVersionKey = EXPO_CONFIG_MAP.runtimeVersion.ios;
+  if (content.includes(`<key>${runtimeVersionKey}</key>`)) {
+    return content.replace(
+      new RegExp(
+        `<key>${runtimeVersionKey}<\\/key>\\s*<string>[\\s\\S]*?<\\/string>`,
+      ),
+      `<key>${runtimeVersionKey}</key>\n    <string>${runtimeVersion}</string>`,
+    );
+  }
+
+  return content.replace(
+    /(\s*)<\/dict>\s*<\/plist>/,
+    `\n\t<key>${runtimeVersionKey}</key>\n\t<string>${runtimeVersion}</string>$1</dict>\n</plist>`,
+  );
+}
+
+function updateDevelopmentRuntimeVersion(runtimeVersion) {
+  const androidContent = fs.readFileSync(ANDROID_MANIFEST_PATH, 'utf8');
+  fs.writeFileSync(
+    ANDROID_MANIFEST_PATH,
+    setAndroidRuntimeVersion(androidContent, runtimeVersion),
+    'utf8',
+  );
+
+  const iosContent = fs.readFileSync(IOS_EXPO_PLIST_PATH, 'utf8');
+  fs.writeFileSync(
+    IOS_EXPO_PLIST_PATH,
+    setIosRuntimeVersion(iosContent, runtimeVersion),
+    'utf8',
+  );
+}
+
+/**
  * Only toggles EXPO_UPDATES_CONFIGURATION_ENABLED in AndroidManifest.xml
  * @param {string} filePath
  * @param {string} channelName
@@ -231,18 +308,7 @@ function updateAndroidManifest(
   }
 
   // Update or insert EXPO_RUNTIME_VERSION
-  const runtimeVersionKey = EXPO_CONFIG_MAP.runtimeVersion.android;
-  if (content.includes(runtimeVersionKey)) {
-    content = content.replace(
-      /<meta-data android:name="expo\.modules\.updates\.EXPO_RUNTIME_VERSION" android:value="[^"]*" \/>/g,
-      `<meta-data android:name="${runtimeVersionKey}" android:value="${runtimeVersion}" />`
-    );
-  } else {
-    content = content.replace(
-      /(\s*)<\/application>/,
-      `\n\t\t<meta-data android:name="${runtimeVersionKey}" android:value="${runtimeVersion}" />$1</application>`
-    );
-  }
+  content = setAndroidRuntimeVersion(content, runtimeVersion);
 
   // Update or insert EXPO_UPDATE_URL
   const updateUrlKey = EXPO_CONFIG_MAP.url.android;
@@ -366,18 +432,7 @@ function updatePlistFile(
   let content = fs.readFileSync(filePath, 'utf8');
 
   // Update or insert EXUpdatesRuntimeVersion
-  const runtimeVersionKey = EXPO_CONFIG_MAP.runtimeVersion.ios;
-  if (content.includes(`<key>${runtimeVersionKey}</key>`)) {
-    content = content.replace(
-      new RegExp(`(<key>${runtimeVersionKey}<\\/key>\\s*<string>)[^<]*(<\\/string>)`),
-      `$1${runtimeVersion}$2`
-    );
-  } else {
-    content = content.replace(
-      /(\s*)<\/dict>\s*<\/plist>/,
-      `\n\t<key>${runtimeVersionKey}</key>\n\t<string>${runtimeVersion}</string>$1</dict>\n</plist>`
-    );
-  }
+  content = setIosRuntimeVersion(content, runtimeVersion);
 
   // Update or insert EXUpdatesURL
   const updateUrlKey = EXPO_CONFIG_MAP.url.ios;
@@ -530,13 +585,24 @@ function main() {
   // (currently: exp, rc, production)
   const config = getConfigForEnvironment(environment);
 
-  if (!config) {
+  if (!config && environment !== DEVELOPMENT_ENVIRONMENT) {
     console.log('✓ No configuration changes made');
     return;
   }
 
-  const codeSigningConfig = loadCodeSigningConfiguration(environment);
+  if (environment === DEVELOPMENT_ENVIRONMENT) {
+    try {
+      const runtimeVersion = getRuntimeVersion(environment);
+      updateDevelopmentRuntimeVersion(runtimeVersion);
+      console.log(`✓ Development runtime fingerprint: ${runtimeVersion}`);
+      return;
+    } catch (error) {
+      console.error('❌ Error updating development runtime:', error.message);
+      process.exit(1);
+    }
+  }
 
+  const codeSigningConfig = loadCodeSigningConfiguration(environment);
   // Get configuration for this environment
   const {
     channel,
@@ -595,6 +661,9 @@ if (require.main === module) {
 
 module.exports = {
   getConfigForEnvironment,
+  getRuntimeVersion,
+  setAndroidRuntimeVersion,
+  setIosRuntimeVersion,
   updateAndroidManifest,
   updatePlistFile,
   CONFIG_MAP,
