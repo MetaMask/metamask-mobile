@@ -280,7 +280,11 @@ const BridgeLimitOrderViewContent = () => {
     sourceToken,
     sourceAmount,
   });
+  const hasNonZeroSourceAmount =
+    Boolean(sourceAmount) && Number(sourceAmount) > 0;
+  const hasValidLimitPrice = Boolean(limitPrice) && Number(limitPrice) > 0;
   const isCreateOrderDisabled =
+    !hasValidLimitPrice ||
     isMissingPrice ||
     isHardwareWallet ||
     isBelowMinAmount ||
@@ -664,7 +668,7 @@ const BridgeLimitOrderViewContent = () => {
           {...keypadLayoutProps}
           {...keypadProps}
         >
-          {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
+          {hasNonZeroSourceAmount ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
               label={createOrderLabel}

@@ -1610,20 +1610,30 @@
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Display name",
-      "username_available": "Username available · metamask.io/{{handle}}",
+      "username_available": "Username available",
       "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_check_error": "Couldn't check that username. Check your connection and try again.",
+      "connect_x_error": "Couldn't connect X. Check your connection and try again.",
+      "save_error": "Couldn't create your profile. Check your connection and try again.",
       "shuffle_username": "Suggest a username",
-      "customize_avatar": "Customize your avatar",
+      "customize_avatar": "Choose an avatar",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
       "avatar_background_lime": "Lime background",
-      "link_account": "Link an account",
+      "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
+      "select_account": "Select an account",
+      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
+      "link_account_benefit_private": "Your account address stays private.",
+      "link_account_benefit_follow": "Other traders can follow your profile.",
+      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
+      "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
-      "feed_awaits": "The feed awaits",
+      "feed_awaits": "Your profile is ready!",
       "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
       "hi": "Hi!",
       "lets_go": "Let's go",
@@ -3139,7 +3149,10 @@
       "top_movers": "Top movers",
       "gainers": "Gainers",
       "losers": "Losers",
-      "recently_added": "Recently added"
+      "recently_added": "Recently added",
+      "social_feed": "Social feed",
+      "trending": "Trending",
+      "top_traders": "Top traders"
     },
     "learn_more": {
       "title": "Learn about Perps",
@@ -9109,6 +9122,34 @@
         }
       }
     },
+    "vba_home_card": {
+      "get_started": {
+        "title": "Add money from your bank",
+        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "cta": "Get started"
+      },
+      "account_is_ready": {
+        "title": "You’re all set",
+        "description": "Your virtual account details are ready.",
+        "cta": "View Pix details"
+      },
+      "kyc_pending": {
+        "title": "Verifying your identity",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
+        "cta": "Verifying"
+      },
+      "finish_verification": {
+        "title": "We need more info",
+        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "cta": "Continue"
+      },
+      "kyc_decision": {
+        "title": "We can’t verify your identity",
+        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "cta": "Learn more",
+        "dismiss": "Dismiss"
+      }
+    },
     "first_time_deposit": {
       "title": "First deposit, done",
       "content": "It’s in your Money account —\n and already earning.",
@@ -10241,6 +10282,9 @@
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
+    "rebate_banner": "You’re getting {{percent}}% back on fees",
+    "rebate_tooltip_title": "Trading Rewards",
+    "rebate_tooltip_content": "Claim {{percent}}% of the eligible MetaMask fee on this trade in mUSD to your Money account. Network fees are not included. Check the Rewards tab to see your trading rewards and learn more.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "recipient": "Recipient",
