@@ -5,6 +5,20 @@ import PerpsEmptyBalance from './PerpsEmptyBalance';
 import { mockTheme } from '../../../../../util/theme';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const mockStrings: Record<string, string> = {

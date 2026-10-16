@@ -16,6 +16,20 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { getDefaultPerpsControllerState } from '@metamask/perps-controller';
 
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
+
 // TypeScript interfaces for component props
 interface MockComponentProps {
   children?: ReactNode;
