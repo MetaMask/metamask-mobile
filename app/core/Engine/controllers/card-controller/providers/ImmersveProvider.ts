@@ -373,12 +373,15 @@ function buildImmersveTokenSet(
 function loginCompleteRequest(
   session: CardAuthSession,
   credentials: CardCredentials,
+  mfaEnabled: boolean,
 ): { path: string; body: Record<string, string> } {
   const loginRequestId = session.id;
   switch (credentials.type) {
     case 'siwe':
       return {
-        path: '/auth/login-complete?mfa=true',
+        path: mfaEnabled
+          ? '/auth/login-complete?mfa=true'
+          : '/auth/login-complete',
         body: { loginRequestId, signature: credentials.signature },
       };
     case 'mfa_method':
@@ -637,19 +640,23 @@ export class ImmersveProvider implements ICardProvider {
   private readonly service: ImmersveService;
   private readonly config: ImmersveProviderConfig;
   private readonly getProgramConfig: () => ImmersveProgramConfig;
+  private readonly isMfaEnabled: () => boolean;
 
   constructor({
     service,
     config,
     getProgramConfig,
+    isMfaEnabled,
   }: {
     service: ImmersveService;
     config: ImmersveProviderConfig;
     getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
+    isMfaEnabled?: () => boolean;
   }) {
     this.service = service;
     this.config = config;
     this.getProgramConfig = () => getProgramConfig?.() ?? {};
+    this.isMfaEnabled = isMfaEnabled ?? (() => false);
   }
 
   private get programConfig(): ImmersveProgramConfig {
@@ -781,7 +788,11 @@ export class ImmersveProvider implements ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult> {
-    const request = loginCompleteRequest(session, credentials);
+    const request = loginCompleteRequest(
+      session,
+      credentials,
+      this.isMfaEnabled(),
+    );
 
     let response: ImmersveLoginCompleteResponse;
     try {

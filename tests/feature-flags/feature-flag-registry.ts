@@ -1316,6 +1316,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardImmersveMfa: {
+    name: 'cardImmersveMfa',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.18.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   cardIntercomSupport: {
     name: 'cardIntercomSupport',
     type: FeatureFlagType.Remote,

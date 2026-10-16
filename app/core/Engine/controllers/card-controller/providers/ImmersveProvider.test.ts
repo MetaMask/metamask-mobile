@@ -60,6 +60,7 @@ function makeJwt(expMs: number): string {
 
 function createProvider(
   programConfig: ImmersveProgramConfig | null = PROGRAM_CONFIG,
+  options?: { isMfaEnabled?: () => boolean },
 ) {
   const service = {
     get: jest.fn(),
@@ -76,6 +77,7 @@ function createProvider(
     service,
     config: CONFIG,
     getProgramConfig: () => programConfig,
+    isMfaEnabled: options?.isMfaEnabled,
   });
   return { provider, service };
 }
@@ -425,7 +427,9 @@ describe('ImmersveProvider', () => {
     });
 
     it('completes login and binds cardholderAccountId + address', async () => {
-      const { provider, service } = createProvider();
+      const { provider, service } = createProvider(PROGRAM_CONFIG, {
+        isMfaEnabled: () => true,
+      });
       const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
       const refreshJwt = makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000);
       service.post.mockResolvedValue({
@@ -455,6 +459,37 @@ describe('ImmersveProvider', () => {
       expect(result.tokenSet?.accessTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
       expect(result.tokenSet?.refreshTokenExpiresAt).toBeGreaterThan(FIXED_NOW);
     });
+
+    it.each([
+      ['by default', undefined],
+      ['when MFA is disabled', () => false],
+    ] as const)(
+      'completes SIWE login without MFA %s',
+      async (_label, isMfaEnabled) => {
+        const { provider, service } = createProvider(PROGRAM_CONFIG, {
+          isMfaEnabled,
+        });
+        const accessJwt = makeJwt(FIXED_NOW + 60 * 60 * 1000);
+        service.post.mockResolvedValue({
+          accessToken: accessJwt,
+          refreshToken: makeJwt(FIXED_NOW + 30 * 24 * 60 * 60 * 1000),
+          cardholderAccountId: 'cardholder-1',
+        });
+
+        const result = await provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0xsig',
+        });
+
+        expect(service.post).toHaveBeenCalledWith('/auth/login-complete', {
+          loginRequestId: 'login-req-1',
+          signature: '0xsig',
+        });
+        expect(result.done).toBe(true);
+        expect(result.tokenSet?.accessToken).toBe(accessJwt);
+        expect(result.tokenSet?.cardholderAccountId).toBe('cardholder-1');
+      },
+    );
 
     it('omits refreshTokenExpiresAt when login response has no refresh token', async () => {
       const { provider, service } = createProvider();

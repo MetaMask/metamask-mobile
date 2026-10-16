@@ -13,6 +13,7 @@ import { startCardWalletExtensionSync } from './CardWalletExtensionSync';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
 import {
   readCardFeatureFlag,
+  readCardImmersveMfaEnabled,
   readCardProviderConfig,
   type CardFeatureFlag,
   type ImmersveProgramConfig,
@@ -57,6 +58,7 @@ export const cardControllerInit: MessengerClientInitFunction<
     }),
     config: immersveConfig,
     getProgramConfig: getImmersveConfig,
+    isMfaEnabled: () => readCardImmersveMfaEnabled(getRemoteFeatureFlags()),
   });
 
   const cardService = new CardService({
