@@ -54,7 +54,7 @@ describe('RebateBanner', () => {
 
     expect(mockOpenTooltipModal).toHaveBeenCalledWith(
       'bridge.rebate_tooltip_title',
-      'bridge.rebate_tooltip_content',
+      'bridge.rebate_tooltip_content:{"percent":5}',
     );
   });
 });

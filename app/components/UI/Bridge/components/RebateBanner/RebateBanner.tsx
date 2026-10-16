@@ -54,7 +54,9 @@ const RebateBanner: React.FC<RebateBannerProps> = ({ quote, twClassName }) => {
         onPress={() =>
           openTooltipModal(
             strings('bridge.rebate_tooltip_title'),
-            strings('bridge.rebate_tooltip_content'),
+            strings('bridge.rebate_tooltip_content', {
+              percent: rebatePercent,
+            }),
           )
         }
       />
