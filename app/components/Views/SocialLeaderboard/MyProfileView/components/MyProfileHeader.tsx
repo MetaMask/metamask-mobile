@@ -22,7 +22,7 @@ import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
-import MyProfileStats from './MyProfileStats';
+import MyProfilePerformanceStats from './MyProfilePerformanceStats';
 
 const RANKING_TAG_DISPLAY: Record<
   ProfileRankingTag,
@@ -215,7 +215,10 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Pressable>
       </Box>
 
-      <MyProfileStats stats={overlayedStats} onPress={onStatsPress} />
+      <MyProfilePerformanceStats
+        cells={overlayedStats.performanceCells}
+        onPress={onStatsPress}
+      />
     </Box>
   );
 };
