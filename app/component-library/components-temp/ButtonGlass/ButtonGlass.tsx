@@ -1,14 +1,17 @@
 import React from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
+import { BlurView } from 'expo-blur';
 import {
   Button,
   ButtonVariant,
   type ButtonBaseProps,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import BoxGlass from '../BoxGlass';
-import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 import { useTheme } from '../../../util/theme';
+import { useLiquidGlass } from '../../hooks/useLiquidGlass';
+import { BLUR_INTENSITY } from '../../hooks/useBlurMaterial';
 
 export type ButtonGlassVariant =
   | typeof ButtonVariant.Primary
@@ -18,7 +21,11 @@ export type ButtonGlassVariant =
 export type ButtonGlassProps = ButtonBaseProps & {
   /** The screen's flag. False, or an OS without glass, renders the plain `Button`. */
   isGlass?: boolean;
-  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: the plain button. */
+  /** Where glass isn't drawn, puts the button on a blurred material (iOS < 26). */
+  isBlur?: boolean;
+  /** Keeps the button's own fill under the glass; saturated tints wash out. */
+  hasSolidFill?: boolean;
+  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: clear glass. */
   variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
   /** Optional prop to show the danger state of the button. */
@@ -34,15 +41,38 @@ export type ButtonGlassProps = ButtonBaseProps & {
  */
 const ButtonGlass = ({
   isGlass = true,
+  isBlur = false,
+  hasSolidFill = false,
   variant = ButtonVariant.Secondary,
   containerStyle,
   twClassName,
   ...props
 }: ButtonGlassProps) => {
+  const tw = useTailwind();
   const { colors } = useTheme();
-  const { isGlassEnabled } = useLiquidGlass();
+  const { isGlassEnabled, blurTint } = useLiquidGlass();
+  const isGlassDrawn = isGlass && isGlassEnabled;
+  // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
+  const isFullWidth = props.isFullWidth ?? containerStyle !== undefined;
 
-  if (!isGlass || !isGlassEnabled || variant === ButtonVariant.Tertiary) {
+  if (!isGlassDrawn && isBlur) {
+    return (
+      <BlurView
+        tint={blurTint}
+        intensity={BLUR_INTENSITY}
+        style={[tw.style('overflow-hidden rounded-full'), containerStyle]}
+      >
+        <Button
+          {...props}
+          variant={variant}
+          twClassName="bg-transparent border-transparent"
+          isFullWidth={isFullWidth}
+        />
+      </BlurView>
+    );
+  }
+
+  if (!isGlassDrawn) {
     return (
       <Button
         {...props}
@@ -53,22 +83,23 @@ const ButtonGlass = ({
     );
   }
 
-  const isPrimary = variant === ButtonVariant.Primary;
+  const isTinted = variant === ButtonVariant.Primary && !hasSolidFill;
 
   return (
     <BoxGlass
       radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
-      hasSheen={variant === ButtonVariant.Secondary}
-      tintColor={isPrimary ? colors.icon.default : undefined}
+      hasSheen={variant === ButtonVariant.Secondary && !hasSolidFill}
+      tintColor={isTinted ? colors.icon.default : undefined}
       containerStyle={containerStyle}
     >
       <Button
         {...props}
         variant={variant}
-        twClassName="bg-transparent border-transparent"
-        // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
-        isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
+        twClassName={
+          hasSolidFill ? twClassName : 'bg-transparent border-transparent'
+        }
+        isFullWidth={isFullWidth}
       />
     </BoxGlass>
   );

@@ -23,6 +23,7 @@ import {
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type LayoutChangeEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -61,6 +62,7 @@ import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { useTokenDetailsGlassFooter } from '../hooks/useTokenDetailsGlassFooter';
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
@@ -102,6 +104,8 @@ import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 
 import TokenDetailsPagePending from './TokenDetailsPagePending';
+
+const GLASS_FOOTER_LIST_SPACING = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -566,6 +570,18 @@ const TokenDetails: React.FC<{
     });
   }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
 
+  // The glass footer floats over the list, so the list clears it at the bottom.
+  const { isRefreshed: isGlassFooter } = useTokenDetailsGlassFooter();
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback(
+    (event: LayoutChangeEvent) =>
+      setFooterHeight(event.nativeEvent.layout.height),
+    [],
+  );
+  const listBottomInset = isGlassFooter
+    ? footerHeight + GLASS_FOOTER_LIST_SPACING
+    : undefined;
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -715,6 +731,7 @@ const TokenDetails: React.FC<{
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
           onScroll={handleMultichainScroll}
+          contentBottomInset={listBottomInset}
         />
       ) : (
         <Transactions
@@ -735,6 +752,7 @@ const TokenDetails: React.FC<{
           skipScrollOnClick
           hideEmptyState
           location={TransactionDetailLocation.AssetDetails}
+          contentBottomInset={listBottomInset}
         />
       )}
       <TokenDetailsStickyFooter
@@ -754,6 +772,8 @@ const TokenDetails: React.FC<{
         quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
         onOpenQuickBuy={openQuickBuy}
+        isOverlay={isGlassFooter}
+        onLayout={handleFooterLayout}
       />
 
       {shareUrl && (

@@ -6091,6 +6091,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenDetailsBrandRefresh: {
+    name: 'tokenDetailsBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsTechnicalIndicators: {
     name: 'tokenDetailsTechnicalIndicators',
     type: FeatureFlagType.Remote,
