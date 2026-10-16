@@ -52,7 +52,7 @@ jest.mock('../Authentication', () => ({
 }));
 
 jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
-  jest.fn(),
+  jest.fn(() => Promise.resolve()),
 );
 
 jest.mock('../../util/Logger', () => ({
@@ -357,29 +357,57 @@ describe('AppLockService', () => {
       lockKeyringOnSetLocked();
     });
 
-    it('locks the keyring and rejects pending approvals on background', async () => {
+    it('locks the keyring on background and keeps pending approvals', async () => {
       emitAppState('background');
       await settle();
 
       expect(mockSetLocked).toHaveBeenCalledTimes(1);
-      expect(mockClearRequests).toHaveBeenCalledWith(
-        providerErrors.userRejectedRequest(),
-      );
+      expect(mockClearRequests).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(service.isAutoLockPending()).toBe(true);
     });
 
-    it('still finishes the lock when rejecting approvals throws', async () => {
-      mockClearRequests.mockImplementationOnce(() => {
-        throw new Error('clear failed');
-      });
-
+    it('keeps pending approvals when biometric unlock succeeds', async () => {
       emitAppState('background');
       await settle();
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(service.isAutoLockPending()).toBe(true);
+      emitAppState('active');
+      await settle();
+
+      expect(mockClearRequests).not.toHaveBeenCalled();
+      expectPrivacyCoverDismissed();
+    });
+
+    it('rejects pending approvals when biometric unlock leaves the vault locked', async () => {
+      mockTryBiometricUnlock.mockResolvedValue(undefined);
+      emitAppState('background');
+      await settle();
+
+      emitAppState('active');
+      await settle();
+
+      expect(mockClearRequests).toHaveBeenCalledWith(
+        providerErrors.userRejectedRequest(),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('still reaches Login when rejecting approvals throws after a failed unlock', async () => {
+      mockClearRequests.mockImplementationOnce(() => {
+        throw new Error('clear failed');
+      });
+      mockTryBiometricUnlock.mockRejectedValue(new Error('user cancelled'));
+      emitAppState('background');
+      await settle();
+
+      emitAppState('active');
+      await settle();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      });
       expect(Logger.error).toHaveBeenCalled();
+      expectPrivacyCoverDismissed();
     });
 
     it('prompts biometric unlock on resume and hides the privacy screen once it resolves', async () => {
@@ -429,6 +457,9 @@ describe('AppLockService', () => {
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.LOGIN }],
       });
+      expect(mockClearRequests).toHaveBeenCalledWith(
+        providerErrors.userRejectedRequest(),
+      );
       expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
         'Lockscreen: Authentication failed',
         'user cancelled',

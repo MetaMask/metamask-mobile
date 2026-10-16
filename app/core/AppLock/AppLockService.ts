@@ -400,11 +400,15 @@ export class AppLockService {
       }
       await this.#promptUnlock();
       // Face ID resolves while iOS is still `inactive`. A new background sets
-      // `#backgroundedAt` and keeps the hold. A failed unlock stays on Login.
-      if (
-        this.#backgroundedAt !== undefined ||
-        !KeyringController.isUnlocked()
-      ) {
+      // `#backgroundedAt` and keeps the hold for the next decision.
+      if (this.#backgroundedAt !== undefined) {
+        return;
+      }
+      // A failed or abandoned unlock leaves the vault locked. Drop the
+      // confirmation that was kept for a successful resume. Login does not
+      // clear it.
+      if (!KeyringController.isUnlocked()) {
+        this.#clearPendingApprovals();
         return;
       }
       // Resume does not reset navigation. A waiting deeplink is the only
@@ -488,23 +492,28 @@ export class AppLockService {
       return;
     }
 
-    const { KeyringController, ApprovalController } = Engine.context;
+    const { KeyringController } = Engine.context;
     try {
       await KeyringController.setLocked();
     } catch (error) {
       Logger.log('AppLockService: Failed to lock KeyringController', error);
-      return;
     }
+  };
 
-    // Reject pending confirmations so a stale one is not shown after unlock.
+  /**
+   * Drops confirmations after an unlock attempt finishes locked. A successful
+   * resume keeps them so the screen the user left can finish.
+   */
+  readonly #clearPendingApprovals = (): void => {
     try {
+      const { ApprovalController } = Engine.context;
       if (ApprovalController) {
         ApprovalController.clearRequests(providerErrors.userRejectedRequest());
       }
     } catch (error) {
       Logger.error(
         error as Error,
-        'AppLockService: Failed to reject pending approvals on app lock',
+        'AppLockService: Failed to reject pending approvals after a failed unlock',
       );
     }
   };
