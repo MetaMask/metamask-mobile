@@ -20,6 +20,7 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
+import { setPerpsSizeDenomination } from '../../../../../actions/settings';
 import configureStore from '../../../../../util/test/configureStore';
 
 let store = configureStore({});
@@ -347,6 +348,36 @@ describe('PerpsTradeScreen errors', () => {
         onKeypadChange={onKeypadChange}
       />,
     );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '1', valueAsNumber: 1 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
+  it('keeps the USD keypad when a saved coin unit has no price yet', () => {
+    store = configureStore({});
+    store.dispatch(setPerpsSizeDenomination('asset'));
+    const onKeypadChange = jest.fn();
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        tokenAmount="1.5"
+        amountPrice={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+    ).not.toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
 

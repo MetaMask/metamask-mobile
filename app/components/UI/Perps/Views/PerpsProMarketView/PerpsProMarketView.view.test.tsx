@@ -21,17 +21,17 @@ import type {
   TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
-/* eslint-disable-next-line import-x/no-extraneous-dependencies */
-import { NavigationProvider } from '@react-navigation/core';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   describeForPlatforms,
   itForPlatforms,
 } from '../../../../../../tests/component-view/platform';
 import {
+  createBtcMarketForViews,
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
+  createShortPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
@@ -52,6 +52,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProPositionRowSelector,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseHandleSelector,
   getPerpsProChaseRepriceSelector,
@@ -353,32 +354,6 @@ afterEach(async () => {
     dateNowSpy = undefined;
   }
 });
-
-const openMarketOnCurrentScreen = (market: {
-  symbol: string;
-  name: string;
-  price: string;
-  change24h: string;
-  change24hPercent: string;
-  volume: string;
-  openInterest: string;
-  maxLeverage: string;
-  marketType: string;
-  providerId: string;
-  szDecimals: number;
-}) => {
-  const provider = screen
-    .UNSAFE_getAllByType(NavigationProvider)
-    .find((node) => node.props.route?.params?.market?.symbol === 'ETH');
-
-  if (!provider) {
-    throw new Error('Pro market navigation was not mounted');
-  }
-
-  act(() => {
-    provider.props.navigation.setParams({ market });
-  });
-};
 
 const renderFundedProMarket = () =>
   renderPerpsProMarketView({
@@ -3201,54 +3176,74 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms('keeps coin sizing after opening another market', async () => {
-    const { store, stream } = renderFundedProMarket();
-    await findSizeInput();
+    const { store } = renderPerpsProMarketView({
+      streamOverrides: {
+        account: createFundedAccountForViews('1000'),
+        marketData: [
+          createEthMarketForViews({
+            providerId: 'hyperliquid',
+            szDecimals: 2,
+          }),
+          createBtcMarketForViews({
+            providerId: 'hyperliquid',
+            szDecimals: 5,
+          }),
+        ],
+        prices: {
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            markPrice: '2500',
+            percentChange24h: '2',
+            timestamp: 1,
+            isTradable: true,
+          },
+          BTC: {
+            symbol: 'BTC',
+            price: '50000',
+            markPrice: '50000',
+            percentChange24h: '1',
+            timestamp: 1,
+            isTradable: true,
+          },
+        },
+        positions: [createShortPositionForViews()],
+      },
+    });
+    const sizeInput = await findSizeInput();
+    fireEvent.changeText(sizeInput, '100');
+    await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
     await waitFor(() => {
+      expect(sizeInput).toHaveProp('value', '0.04');
       expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
         'Size (ETH)',
       );
     });
+    // ETH szDecimals is 2, so a third decimal place is rejected.
+    fireEvent.changeText(sizeInput, '0.123');
+    expect(sizeInput).toHaveProp('value', '0.04');
     expect(store.getState().settings.perpsSizeDenomination).toBe('asset');
 
-    act(() => {
-      stream.emitPrices({
-        ETH: {
-          symbol: 'ETH',
-          price: '2500',
-          markPrice: '2500',
-          percentChange24h: '2',
-          timestamp: 1,
-          isTradable: true,
-        },
-        BTC: {
-          symbol: 'BTC',
-          price: '90000',
-          markPrice: '90000',
-          percentChange24h: '1',
-          timestamp: 1,
-          isTradable: true,
-        },
-      });
-    });
-    openMarketOnCurrentScreen({
-      symbol: 'BTC',
-      name: 'Bitcoin',
-      price: '$90,000.00',
-      change24h: '+$100.00',
-      change24hPercent: '+1%',
-      volume: '$1.5B',
-      openInterest: '$500M',
-      maxLeverage: '50x',
-      marketType: 'crypto',
-      providerId: 'hyperliquid',
-      szDecimals: 5,
-    });
+    const btcRow = await screen.findByTestId(
+      getPerpsProPositionRowSelector('BTC'),
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    fireEvent.press(within(btcRow).getByText('BTC'));
 
     await waitFor(() => {
       expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
         'Size (BTC)',
       );
+    });
+    const nextSizeInput = screen.getByTestId(ids.SIZE_INPUT);
+    // BTC szDecimals is 5. A sixth decimal is rejected once market data lands.
+    // Stay under the balance cap so the draft is not clamped back to USD.
+    await waitFor(() => {
+      fireEvent.changeText(nextSizeInput, '0.00123');
+      fireEvent.changeText(nextSizeInput, '0.001234');
+      expect(nextSizeInput).toHaveProp('value', '0.00123');
     });
   });
 

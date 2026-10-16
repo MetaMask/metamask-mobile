@@ -188,7 +188,14 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `completion_duration_tutorial` (optional): Time spent in tutorial (number)
 - `steps_viewed` (optional): Number of tutorial steps viewed (number)
 - `view_occurrences` (optional): Number of times tutorial was viewed (number)
+- `size_unit` (optional): Order-size denomination on Place Order taps: `'usd' | 'coin'`. _(local constant `PERPS_ANALYTICS_SIZE_UNIT`, pending addition to `PERPS_EVENT_PROPERTY`)_. Pro and the Lite Trade sheet send the unit on screen. Full-screen Lite always sends `'usd'` because that form has no coin toggle.
 - `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
+
+### Perp Transaction Considered
+
+Lite emits `Perp Transaction Considered` once a filled order form settles.
+
+- `size_unit`: `'usd' | 'coin'` _(local constant `PERPS_ANALYTICS_SIZE_UNIT`, pending addition to `PERPS_EVENT_PROPERTY`)_. Same Place Order rule: full-screen Lite sends `'usd'`.
 
 ### 3. PERPS_TRADE_TRANSACTION
 

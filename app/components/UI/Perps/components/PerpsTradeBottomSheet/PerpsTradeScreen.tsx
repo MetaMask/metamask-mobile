@@ -333,7 +333,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
   const { denomination, setDenomination } = usePerpsSizeDenomination();
-  const showAssetValue = denomination === 'asset';
+  // A saved coin unit is not displayable until the price can project it.
+  // Until then the keypad stays in USD, matching the amount Place Order submits.
+  const priceReady = Number.isFinite(amountPrice) && amountPrice > 0;
+  const showAssetValue = denomination === 'asset' && priceReady;
   const { fireImpact } = useHaptics();
   const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
     fireImpact(ImpactMoment.PageNavigation);

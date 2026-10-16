@@ -7108,6 +7108,77 @@ describe('PerpsOrderView', () => {
       jest.useRealTimers();
     });
 
+    const placeOrderSizeUnit = () =>
+      eventsOf(MetaMetricsEvents.PERPS_UI_INTERACTION).filter(
+        (event) =>
+          event.props[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+      );
+
+    it('reports usd on the full-screen form when coin is saved', async () => {
+      mockPerpsSizeDenomination = 'asset';
+      jest.useFakeTimers();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED)[0]?.props,
+      ).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+        }),
+      );
+
+      jest.useRealTimers();
+      const placeOrderButton = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      expect(placeOrderSizeUnit()).toEqual([
+        expect.objectContaining({
+          props: expect.objectContaining({
+            [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+          }),
+        }),
+      ]);
+    });
+
+    it('reports coin on the Trade sheet when coin is saved', async () => {
+      mockPerpsSizeDenomination = 'asset';
+      useTradeSheetRoute();
+      jest.useFakeTimers();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED)[0]?.props,
+      ).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+        }),
+      );
+
+      jest.useRealTimers();
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(placeOrderSizeUnit()).toEqual([
+        expect.objectContaining({
+          props: expect.objectContaining({
+            [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+          }),
+        }),
+      ]);
+    });
+
     it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
       // Quote request in flight (custom pay token selected by default).
       mockIsPayQuoteLoading = true;

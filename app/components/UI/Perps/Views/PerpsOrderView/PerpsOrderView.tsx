@@ -386,6 +386,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { denomination: sizeDenomination } = usePerpsSizeDenomination();
   const sizeDenominationRef = useRef(sizeDenomination);
   sizeDenominationRef.current = sizeDenomination;
+  // Full-screen Lite has no coin toggle. Read the arm at event time so a
+  // saved coin unit is not reported for a USD entry.
+  const useBottomSheetRef = useRef(useBottomSheet);
+  useBottomSheetRef.current = useBottomSheet;
   const { openTooltipModal } = useTooltipModal();
 
   // Feature flags
@@ -1083,9 +1087,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
         // Read at fire time. A display-unit toggle is not a new fill, so it
         // must not reset this debounce or emit a second considered event.
-        [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
-          sizeDenominationRef.current,
-        ),
+        // Full-screen Lite has no coin toggle, so that arm always reports USD.
+        [PERPS_ANALYTICS_SIZE_UNIT]: useBottomSheetRef.current
+          ? toPerpsSizeUnitAnalyticsValue(sizeDenominationRef.current)
+          : 'usd',
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
@@ -1723,9 +1728,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-          [PERPS_ANALYTICS_SIZE_UNIT]: toPerpsSizeUnitAnalyticsValue(
-            sizeDenominationRef.current,
-          ),
+          [PERPS_ANALYTICS_SIZE_UNIT]: useBottomSheetRef.current
+            ? toPerpsSizeUnitAnalyticsValue(sizeDenominationRef.current)
+            : 'usd',
         });
       }
 
