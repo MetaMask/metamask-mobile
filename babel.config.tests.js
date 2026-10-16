@@ -125,6 +125,7 @@ const newOverrides = [
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',
+      '.yarn/plugins/plugin-tooling-insight.test.ts',
     ],
     plugins: ['transform-inline-environment-variables'],
   },
