@@ -3139,7 +3139,10 @@
       "top_movers": "Top movers",
       "gainers": "Gainers",
       "losers": "Losers",
-      "recently_added": "Recently added"
+      "recently_added": "Recently added",
+      "social_feed": "Social feed",
+      "trending": "Trending",
+      "top_traders": "Top traders"
     },
     "learn_more": {
       "title": "Learn about Perps",
