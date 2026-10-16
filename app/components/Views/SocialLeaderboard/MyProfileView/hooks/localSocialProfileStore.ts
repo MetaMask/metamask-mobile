@@ -16,12 +16,15 @@ interface StoreState {
 }
 
 const STORE_GLOBAL_KEY = '__mmLocalSocialProfileStore__';
+const DEFAULT_PROFILE_CREATED_AT = new Date(
+  Date.now() - 49 * 60 * 60 * 1000,
+).toISOString();
 
 const createDefaultProfile = (): MySocialProfile => ({
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  createdAt: new Date().toISOString(),
+  createdAt: DEFAULT_PROFILE_CREATED_AT,
   bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
   imageUrl: null,
   rankingTag: 'whale',

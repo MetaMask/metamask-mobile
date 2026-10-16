@@ -16,12 +16,18 @@ import { SwapQuotesProvider } from '../../Bridge/providers/SwapQuotesProvider';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { recordSocialTrade } from '../../../../util/social/socialActivityStorage';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
   },
+}));
+
+jest.mock('../../../../util/social/socialActivityStorage', () => ({
+  ...jest.requireActual('../../../../util/social/socialActivityStorage'),
+  recordSocialTrade: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -205,6 +211,10 @@ jest.mock('../../../../selectors/bridge', () => ({
 
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/selectedWallet', () => ({
+  selectSelectedAccountWalletId: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({

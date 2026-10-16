@@ -9,6 +9,7 @@ import {
   hasRecentSocialTrade,
   isRecentSocialActivityTimestamp,
 } from '../../../../util/social/socialActivityStorage';
+import { getLocalSocialProfileSnapshot } from '../../SocialLeaderboard/MyProfileView/hooks/localSocialProfileStore';
 import {
   evaluateIsSocialTopTradersEligible,
   useIsSocialTopTradersEligible,
@@ -38,6 +39,11 @@ const mockIsRecentSocialActivityTimestamp =
   isRecentSocialActivityTimestamp as jest.MockedFunction<
     typeof isRecentSocialActivityTimestamp
   >;
+const realIsRecentSocialActivityTimestamp = jest.requireActual<
+  typeof import('../../../../util/social/socialActivityStorage')
+>(
+  '../../../../util/social/socialActivityStorage',
+).isRecentSocialActivityTimestamp;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockFocusEffect = jest.fn();
 
@@ -115,6 +121,21 @@ describe('useIsSocialTopTradersEligible', () => {
         { profileId: 'unlinked-profile' } as MySocialProfile,
         walletId,
         NOW,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for the default profile outside the activity window', () => {
+      mockIsRecentSocialActivityTimestamp.mockImplementation(
+        realIsRecentSocialActivityTimestamp,
+      );
+      const { profile } = getLocalSocialProfileSnapshot();
+
+      const result = evaluateIsSocialTopTradersEligible(
+        profile,
+        walletId,
+        Date.now(),
       );
 
       expect(result).toBe(false);
