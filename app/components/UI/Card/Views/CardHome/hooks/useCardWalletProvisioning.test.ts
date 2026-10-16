@@ -14,6 +14,7 @@ import {
   useCardWalletProvisioning,
   type WalletEntry,
 } from './useCardWalletProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import {
   CardStatus,
   CardType,
@@ -166,6 +167,89 @@ describe('useCardWalletProvisioning', () => {
     expect(mockReplace).toHaveBeenCalledWith(
       Routes.CARD.APPLE_PAY_CONFIRMATION,
     );
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it.each(['active', 'pending', undefined] as const)(
+    'opens the confirmation screen when the pass activation state is %s',
+    (activationState) => {
+      renderProvisioning(homeData(walletProvisioning));
+
+      const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
+        onSuccess: (result: {
+          status: 'success';
+          activationState?: string;
+        }) => void;
+      };
+      onSuccess({ status: 'success', activationState });
+
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.CARD.APPLE_PAY_CONFIRMATION,
+      );
+    },
+  );
+
+  it('stays on Card Home when the pass still needs verification', () => {
+    const onSuccess = jest.fn();
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
+
+    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: (result: {
+        status: 'success';
+        activationState: string;
+      }) => void;
+    };
+    passedOptions.onSuccess({
+      status: 'success',
+      activationState: 'requires_activation',
+    });
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not toast when provisioning is canceled', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onCancel } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onCancel?: () => void;
+    };
+    onCancel?.();
+
+    expect(showToast).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ProvisioningErrorCode.NETWORK_ERROR,
+    ProvisioningErrorCode.UNKNOWN_ERROR,
+  ])('shows a toast for a %s', (code) => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onError } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onError: (error: { message: string; code: string }) => void;
+    };
+    onError({ message: 'Could not add the card', code });
+
+    expect(showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Could not add the card' }],
+      }),
+    );
+  });
+
+  it('does not toast when Apple Wallet already showed the error', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onError } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onError: (error: { message: string; code: string }) => void;
+    };
+    onError({
+      message: 'An unexpected error occurred. Try again or contact support.',
+      code: ProvisioningErrorCode.WALLET_DECLINED,
+    });
+
     expect(showToast).not.toHaveBeenCalled();
   });
 

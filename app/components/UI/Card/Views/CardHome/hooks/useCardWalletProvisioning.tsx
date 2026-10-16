@@ -17,6 +17,7 @@ import {
   usePushProvisioning,
   type ProvisioningError,
 } from '../../../pushProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
 import {
   CardStatus,
@@ -88,11 +89,16 @@ export function useCardWalletProvisioning(
     cardId: data?.card?.id,
     walletProvisioning,
     userAddress: userAddressForProvisioning,
-    onSuccess: () => {
-      navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+    onSuccess: (result) => {
+      if (result?.activationState !== 'requires_activation') {
+        navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+      }
       options?.onSuccess?.();
     },
     onError: (provisioningError: ProvisioningError) => {
+      if (provisioningError.code === ProvisioningErrorCode.WALLET_DECLINED) {
+        return;
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [

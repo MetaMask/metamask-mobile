@@ -39,6 +39,7 @@ export enum ProvisioningErrorCode {
   ENCRYPTION_FAILED = 'ENCRYPTION_FAILED',
   NETWORK_ERROR = 'NETWORK_ERROR',
   TIMEOUT = 'TIMEOUT',
+  WALLET_DECLINED = 'WALLET_DECLINED',
   PROVIDER_UNAVAILABLE = 'PROVIDER_UNAVAILABLE',
   INVALID_CARD_DATA = 'INVALID_CARD_DATA',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
@@ -106,6 +107,7 @@ export interface ProvisionCardParams {
 export interface ProvisioningResult {
   status: 'success' | 'canceled' | 'error';
   tokenId?: string;
+  activationState?: CardTokenStatus;
   error?: ProvisioningError;
 }
 

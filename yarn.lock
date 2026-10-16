@@ -4983,11 +4983,11 @@ __metadata:
 
 "@expensify/react-native-wallet@patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch":
   version: 0.1.41
-  resolution: "@expensify/react-native-wallet@patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch::version=0.1.41&hash=b62a42"
+  resolution: "@expensify/react-native-wallet@patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch::version=0.1.41&hash=067773"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/05a9e8acc1713850d6ba21670c7a99b5b67fe066d3839b11db2e2fdbd375670c18807f2cc3db3b3080d626239c88a4e2cc29f7c282979f8127d96f1b0ca5f422
+  checksum: 10/101e0ce09a1262b825545000494cfc89294c9d25fb652fddd02d857acb242cee6aa2cbbdd9eb94756716d341d1589d4233d75801a89ed39474f4a18f60c2e6a2
   languageName: node
   linkType: hard
 
