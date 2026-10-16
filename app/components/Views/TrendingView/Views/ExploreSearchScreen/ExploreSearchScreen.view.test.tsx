@@ -643,7 +643,9 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     const { findByTestId } = renderExploreSearchScreenWithRoutes();
 
     // Pill row mounts after the screen transition settles (see transition test).
-    const allPill = await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
     expect(allPill).toBeOnTheScreen();
     expect(allPill.props.accessibilityState?.selected).toBe(true);
   });
