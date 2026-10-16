@@ -3,6 +3,7 @@ import { type StyleProp, type TextStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Skeleton,
   Text,
@@ -122,12 +123,15 @@ export const TokenPriceTitleHub = ({
       amount={
         isLoading ? (
           <Box twClassName="pt-2">
-            <Skeleton style={tw.style('h-10 w-[100px] rounded-md')} />
+            <Skeleton style={tw.style('h-[53px] w-[100px] rounded-md')} />
           </Box>
         ) : (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
+            fontWeight={FontWeight.Regular}
+            twClassName="text-[48px] leading-[52.8px]"
             color={TextColor.TextDefault}
           >
             {formatPriceWithSubscriptNotation(price, currentCurrency)}
