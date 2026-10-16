@@ -30,6 +30,7 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
@@ -79,9 +80,15 @@ import {
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import type { SignedSafeExecution } from './preflight/core';
-import { planDepositWalletPreflight } from './preflight/depositWallet';
+import {
+  planDepositWalletPreflight,
+  planPositionsDepositWalletPreflight,
+} from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
-import { buildTradeAllowancesTx } from './preflight/trade';
+import {
+  buildPositionsTradeAllowancesTx,
+  buildTradeAllowancesTx,
+} from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
   generateTransferData,
@@ -183,6 +190,7 @@ jest.mock('./depositWallet', () => ({
   requestDepositWalletCreate: jest.fn(),
   resolveDepositWalletAddress: jest.fn(),
   syncDepositWalletCollateralBalanceAllowance: jest.fn(),
+  syncDepositWalletPositionBalanceAllowance: jest.fn(),
   toDepositWalletCalls: jest.fn(),
   waitForDepositWalletDeployed: jest.fn(),
   waitForDepositWalletTransaction: jest.fn(),
@@ -199,6 +207,7 @@ jest.mock('./preflight/deposit', () => ({
 
 jest.mock('./preflight/depositWallet', () => ({
   planDepositWalletPreflight: jest.fn(),
+  planPositionsDepositWalletPreflight: jest.fn(),
 }));
 
 jest.mock('./preflight/legacySafeMigration', () => ({
@@ -206,6 +215,7 @@ jest.mock('./preflight/legacySafeMigration', () => ({
 }));
 
 jest.mock('./preflight/trade', () => ({
+  buildPositionsTradeAllowancesTx: jest.fn(),
   buildTradeAllowancesTx: jest.fn(),
 }));
 
@@ -272,6 +282,12 @@ const mockBuildDepositMaintenanceTransaction = jest.mocked(
   buildDepositMaintenanceTransaction,
 );
 const mockPlanDepositWalletPreflight = jest.mocked(planDepositWalletPreflight);
+const mockPlanPositionsDepositWalletPreflight = jest.mocked(
+  planPositionsDepositWalletPreflight,
+);
+const mockSyncDepositWalletPositionBalanceAllowance = jest.mocked(
+  syncDepositWalletPositionBalanceAllowance,
+);
 const mockBuildLegacySafeMigrationSweepTransaction = jest.mocked(
   buildLegacySafeMigrationSweepTransaction,
 );
@@ -287,6 +303,9 @@ const mockWaitForDepositWalletTransaction = jest.mocked(
   waitForDepositWalletTransaction,
 );
 const mockBuildTradeAllowancesTx = jest.mocked(buildTradeAllowancesTx);
+const mockBuildPositionsTradeAllowancesTx = jest.mocked(
+  buildPositionsTradeAllowancesTx,
+);
 const mockBuildWithdrawTransaction = jest.mocked(buildWithdrawTransaction);
 
 const depositWalletAddress = '0x2222222222222222222222222222222222222222';
@@ -1047,6 +1066,15 @@ describe('PolymarketProvider', () => {
       to: '0x9999999999999999999999999999999999999999',
       data: '0xallowances',
     });
+    mockBuildPositionsTradeAllowancesTx.mockResolvedValue({
+      to: '0x8888888888888888888888888888888888888888',
+      data: '0xpositionsAllowances',
+    });
+    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+    mockSyncDepositWalletPositionBalanceAllowance.mockResolvedValue(undefined);
     mockGenerateTransferData.mockReturnValue('0xtransferData');
     mockIsSmartContractAddress.mockResolvedValue(true);
     mockGetDeployProxyWalletTransaction.mockResolvedValue({
@@ -1679,7 +1707,31 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  // Raw Gamma event fixtures for the version cache: a v1 market carries no
+  // version field and exposes CTF token ids; a v2 market carries version
+  // 'v2' and exposes PositionManager token ids.
+  const v1MarketEvent = {
+    id: 'market-1',
+    markets: [{ clobTokenIds: '["123","456"]' }],
+  };
+  const v2MarketEvent = {
+    id: 'market-1',
+    markets: [{ version: 'v2', positionIds: ['123', '456'] }],
+  };
+
+  // Builds a preview the way production does: the version cache is warm
+  // from market fetches — here the Gamma event fixture stands in for them —
+  // so placeOrder later routes from the cache without fetching.
+  const previewWithWarmVersionCache = async (
+    provider: PolymarketProvider,
+    event: { id: string; markets: unknown[] },
+  ) => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(event as never);
+    return provider.previewOrder({ ...basePreview, size: 10, signer });
+  };
+
   it('previews orders through canonical CLOB v2 with zero fee-rate bps', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v1MarketEvent as never);
     const provider = createProvider();
 
     const preview = await provider.previewOrder({
@@ -1692,6 +1744,30 @@ describe('PolymarketProvider', () => {
     expect(mockPreviewOrder).toHaveBeenCalledWith(
       expect.objectContaining({ feeCollection: DEFAULT_FEE_COLLECTION_FLAG }),
     );
+  });
+
+  it('resolves a sell market version from Gamma when building the preview', async () => {
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+      marketId: 'market-1',
+    });
+  });
+
+  it('fails the sell preview when the Gamma version lookup fails', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+    const provider = createProvider();
+
+    await expect(
+      provider.previewOrder({
+        ...basePreview,
+        size: 10,
+        side: Side.SELL,
+        signer,
+      }),
+    ).rejects.toThrow('Gamma down');
   });
 
   it('previews the maximum fully fillable buy through the provider', async () => {
@@ -1722,7 +1798,12 @@ describe('PolymarketProvider', () => {
   it('submits orders through the protocol CLOB v2 relayer path', async () => {
     const provider = createProvider();
 
-    const result = await provider.placeOrder({ signer, preview: basePreview });
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
 
     expect(result.success).toBe(true);
     expect(mockCreateApiKey).toHaveBeenCalledWith({ address: signer.address });
@@ -1757,6 +1838,361 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('routes v2 market buys through the positions protocol path', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    // The two calls are the preview's version lookup (a cache miss on the
+    // first preview) and the optimistic position update's market fetch —
+    // the order route itself reads the cache and never fetches.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        allowancesTx: {
+          to: '0x8888888888888888888888888888888888888888',
+          data: '0xpositionsAllowances',
+        },
+      }),
+    );
+  });
+
+  it('routes v1 market buys through the CTF path without fetching Gamma at order time', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    // The two calls are the preview's version lookup (a cache miss on the
+    // first preview) and the optimistic position update's market fetch —
+    // a third call would mean the route fetched, which it never does.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('routes sells through the positions path when the event market is v2', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
+  it('routes sells through the CTF path when the event market is v1', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('resolves the sell market version from Gamma once per market', async () => {
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const callsAfterFirstPreview =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The second preview hits the version cache — no second fetch.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterFirstPreview,
+    );
+  });
+
+  it('retries the version resolution when the Gamma lookup fails', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+    const provider = createProvider();
+
+    await expect(
+      provider.previewOrder({ ...basePreview, size: 10, signer }),
+    ).rejects.toThrow('Gamma down');
+    const callsAfterFirstPreview =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await expect(
+      provider.previewOrder({ ...basePreview, size: 10, signer }),
+    ).rejects.toThrow('Gamma down');
+
+    // A failed lookup is not pinned for the session — the next preview
+    // fetches again.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBeGreaterThan(
+      callsAfterFirstPreview,
+    );
+  });
+
+  it('answers a sell preview from the cache warmed by a buy on the same market', async () => {
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const callsAfterBuy = mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The buy preview warmed the cache, so the sell resolves its version
+    // without fetching Gamma at all.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterBuy,
+    );
+  });
+
+  it('populates the version cache when markets are parsed', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v2MarketEvent as never);
+    mockParsePolymarketEvents.mockReturnValue([{ id: 'market-1' }] as never);
+    const provider = createProvider();
+
+    await provider.getMarketDetails({ marketId: 'market-1' });
+    const callsAfterDetailsFetch =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The market detail fetch already cached the token's version — the
+    // sell preview resolves it without fetching.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterDetailsFetch,
+    );
+  });
+
+  it('routes sells through the positions path when the matching event market is v2 among v1 siblings', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { clobTokenIds: '["777","778"]' },
+        { version: 'v2', positionIds: ['123', '456'] },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
+  it('routes sells through the CTF path when the matching event market is v1 among v2 siblings', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { version: 'v2', positionIds: ['777', '778'] },
+        { clobTokenIds: '["123","456"]' },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('skips markets with malformed token ids when warming the version cache', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { clobTokenIds: 'not-json' },
+        { version: 'v2', positionIds: '{"oops":true}' },
+        { clobTokenIds: '["123","456"]' },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    // The malformed markets are skipped, not fatal — the good market still
+    // caches its version and the sell routes through the CTF path.
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
+  it('falls back to the CTF path when no event market matches the sell outcome', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [{ version: 'v2', positionIds: ['777', '778'] }],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    // A token the fetched event does not describe is unknown — the CTF
+    // path, same as a market whose payload omits the version.
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('fails an order when no market version is cached for its outcome token', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({ signer, preview: basePreview });
+
+    // Unreachable after previewOrder — a cold cache at order time is a
+    // programming error, and a loud failure beats silently routing an
+    // unknown version down the CTF path.
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('No market version cached');
+    expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+  });
+
+  it('authorizes v2 fees on pUSD through the positions path', async () => {
+    mockCreatePermit2FeeAuthorization.mockResolvedValue({
+      type: 'safe-permit2',
+      authorization: {
+        permit: {
+          permitted: { token: MATIC_CONTRACTS_V2.collateral, amount: '100000' },
+          nonce: '1',
+          deadline: '2',
+        },
+        spender: '0x2222222222222222222222222222222222222222',
+        signature: '0xsig',
+      },
+    });
+
+    const provider = createProvider({
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x2222222222222222222222222222222222222222'],
+      },
+    });
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        fees: {
+          metamaskFee: 0.05,
+          providerFee: 0.05,
+          totalFee: 0.1,
+          totalFeePercentage: 1,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        },
+      },
+    });
+
+    expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      }),
+    );
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+  });
+
+  it('passes the legacy Safe migration sweep as allowancesTx for deposit-wallet v2 orders', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ data: [] }),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    const sweepTransaction: SignedSafeExecution = {
+      params: {
+        to: legacySafeAddress as `0x${string}`,
+        data: '0xsweep' as `0x${string}`,
+      },
+      type: TransactionType.contractInteraction,
+    };
+    mockBuildLegacySafeMigrationSweepTransaction.mockResolvedValue(
+      sweepTransaction,
+    );
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(true);
+    // The sweep keeps the CTF-anchored tokens even on the positions path.
+    expect(mockBuildLegacySafeMigrationSweepTransaction).toHaveBeenCalledWith({
+      signer,
+      legacySafeAddress,
+      depositWalletAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+    });
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        allowancesTx: sweepTransaction.params,
+      }),
+    );
+  });
+
+  it('fails a v2 order when the positions allowances transaction cannot be built', async () => {
+    mockBuildPositionsTradeAllowancesTx.mockRejectedValueOnce(
+      new Error('allowance build failed'),
+    );
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Failed to prepare positions trade preflight');
+  });
+
   it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
     const innerSignature = `0x${'11'.repeat(65)}`;
     signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
@@ -1772,6 +2208,8 @@ describe('PolymarketProvider', () => {
         executors: ['0x4444444444444444444444444444444444444444'],
       },
     });
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
@@ -1849,7 +2287,11 @@ describe('PolymarketProvider', () => {
       transactions: [repairTransaction],
     });
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
       preview: basePreview,
     });
@@ -1881,6 +2323,117 @@ describe('PolymarketProvider', () => {
     ).toBeLessThan(mockSubmitProtocolClobOrder.mock.invocationCallOrder[0]);
   });
 
+  it('syncs the CONDITIONAL-V2 position balance for deposit-wallet v2 sells', async () => {
+    const repairTransaction = {
+      to: '0x4444444444444444444444444444444444444444',
+      data: '0xrepair',
+      operation: OperationType.Call,
+      value: '0',
+    };
+    mockIsSmartContractAddress.mockResolvedValue(false);
+    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [
+        {
+          type: 'erc20-allowance',
+          tokenAddress: repairTransaction.to,
+          spender: '0x5555555555555555555555555555555555555555',
+        },
+      ],
+      transactions: [repairTransaction],
+    });
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanPositionsDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+    });
+    expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'positions' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+      tokenId: '123',
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('keeps the collateral sync for deposit-wallet v2 buys', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(false);
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(true);
+    expect(
+      mockSyncDepositWalletPositionBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'v2' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+    });
+  });
+
+  it('syncs the position balance for v2 sells even when the wallet setup is unchanged', async () => {
+    // The deposit wallet is already deployed and the positions preflight
+    // plans no repair transactions, so the wallet setup did not change — a
+    // sell still needs the CONDITIONAL-V2 position balance refreshed before
+    // the relayer accepts the order.
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanPositionsDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+    });
+    expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'positions' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+      tokenId: '123',
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+      }),
+    );
+  });
+
   it('passes legacy Safe migration sweep as allowancesTx for deposit-wallet orders', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -1902,7 +2455,11 @@ describe('PolymarketProvider', () => {
       sweepTransaction,
     );
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
       preview: basePreview,
     });
@@ -1949,6 +2506,8 @@ describe('PolymarketProvider', () => {
         executors: ['0x2222222222222222222222222222222222222222'],
       },
     });
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     await provider.placeOrder({
       signer,

@@ -26,6 +26,7 @@ import {
   buildPolyHmacSignature,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
+  calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -47,6 +48,7 @@ import {
   getRawBalance,
   getTickSizeRoundConfig,
   parsePolymarketEvents,
+  parsePolymarketMarket,
   parsePolymarketActivity,
   parsePolymarketPositions,
   previewMaxBuyOrder,
@@ -4052,5 +4054,141 @@ describe('mapPolymarketActivityV2', () => {
     expect(mapped).toHaveLength(2);
     expect(mapped[0]).toMatchObject({ type: 'TRADE' });
     expect(mapped[1]).toMatchObject({ type: 'REDEEM', usdcSize: 25 });
+  });
+});
+
+describe('parsePolymarketMarket market version', () => {
+  const event = {
+    id: 'event-1',
+    description: 'Description',
+  } as PolymarketApiEvent;
+  const createVersionedMarket = (
+    overrides: Partial<PolymarketApiMarket> = {},
+  ): PolymarketApiMarket => ({
+    ...createPolymarketApiMarket(),
+    clobTokenIds: '["ctf-yes","ctf-no"]',
+    outcomes: '["Yes","No"]',
+    outcomePrices: '["0.5","0.5"]',
+    ...overrides,
+  });
+
+  it('copies the Gamma version onto the parsed market', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v2' }),
+      event,
+    );
+
+    expect(parsed.version).toBe('v2');
+  });
+
+  it('uses positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
+  it('uses native-array positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: ['pos-yes', 'pos-no'],
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
+  it('yields no outcome token ids when a v2 market has no positionIds', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v2' }),
+      event,
+    );
+
+    expect(parsed.tokens).toEqual([]);
+  });
+
+  it('keeps clobTokenIds for v1 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v1' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing', () => {
+    const parsed = parsePolymarketMarket(createVersionedMarket(), event);
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds for v1 markets even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v1',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ positionIds: '["pos-yes","pos-no"]' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+});
+
+describe('calculateFees', () => {
+  it('degrades to standard fees when the waiver lookup fails', async () => {
+    mockFetch.mockRejectedValue(new Error('gamma unavailable'));
+
+    const fees = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        collector: '0x9cNcwJegqX3hyKLM8jb9vpxUtqMVBetNhhF97k5Xy',
+        metamaskFee: 0.01,
+        providerFee: 0.02,
+        waiveList: ['some-waived-slug'],
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'some-market',
+      userBetAmount: 10,
+    });
+
+    expect(fees.metamaskFee).toBeCloseTo(0.1);
+    expect(fees.providerFee).toBeCloseTo(0.2);
+    expect(fees.totalFee).toBeCloseTo(0.3);
   });
 });

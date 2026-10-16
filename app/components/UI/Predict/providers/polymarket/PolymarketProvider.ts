@@ -96,6 +96,7 @@ import {
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
+  V1_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -136,6 +137,7 @@ import {
   mergeChildEventsIntoParent,
   parsePolymarketActivity,
   parsePolymarketEvents,
+  parseMarketOutcomeTokenIds,
   parsePolymarketPositions,
   previewOrder,
   previewMaxBuyOrder,
@@ -151,15 +153,20 @@ import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
 import {
+  getPolymarketProtocolForMarketVersion,
   getProtocolWithdrawTokenAddress,
+  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
+  type PolymarketTradeProtocol,
 } from './protocol/definitions';
 import {
+  buildPositionsProtocolUnsignedOrder,
   buildProtocolUnsignedOrder,
   getPreviewFeeRateBpsForProtocol,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
+  signPositionsProtocolOrder,
   signProtocolOrder,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
@@ -168,9 +175,16 @@ import {
   planDepositWalletClaim,
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
-import { planDepositWalletPreflight } from './preflight/depositWallet';
+import {
+  planDepositWalletPreflight,
+  planPositionsDepositWalletPreflight,
+  type DepositWalletPreflightPlan,
+} from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
-import { buildTradeAllowancesTx } from './preflight/trade';
+import {
+  buildPositionsTradeAllowancesTx,
+  buildTradeAllowancesTx,
+} from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
   executeDepositWalletBatch,
@@ -178,6 +192,7 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
@@ -290,6 +305,15 @@ export class PolymarketProvider implements PredictProvider {
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
+  /**
+   * The Gamma market version of every outcome token this session has seen —
+   * populated whenever markets are parsed and by Gamma lookups for tokens
+   * no fetch has covered yet (sells). A market's version never changes, so
+   * entries are set-if-absent and never invalidated. The 'v1' default for
+   * markets whose Gamma payload omits the field is applied at population
+   * time, so a hit is always a resolved version.
+   */
+  #marketVersionsByOutcomeTokenId: Map<string, Promise<string>> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
   #optimisticPositionUpdatesByAddress = new Map<
@@ -424,6 +448,8 @@ export class PolymarketProvider implements PredictProvider {
     await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
 
     const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+    this.#cacheMarketVersionsFromEvents(events);
 
     let markets = parsePolymarketEvents(events, {
       category,
@@ -887,6 +913,332 @@ export class PolymarketProvider implements PredictProvider {
     return orderResult.response;
   }
 
+  /**
+   * Caches the market version of every outcome token in the given raw Gamma
+   * events — the one version-resolution function, reused on both paths that
+   * learn about markets: regular market fetches (before parsing) and the
+   * Gamma lookup that backs {@link #ensureOutcomeVersion}. Set-if-absent: a
+   * market's version never changes, and a payload in hand can be an older
+   * snapshot than an already-cached read. Markets whose payload omits the
+   * field are v1 — the default is applied here, at population time. Returns
+   * the versions it saw, so a lookup in progress can read them without
+   * awaiting its own cache entry.
+   */
+  #cacheMarketVersionsFromEvents(
+    events: PolymarketApiEvent[],
+  ): Map<string, string> {
+    const versions = new Map<string, string>();
+    for (const event of events) {
+      for (const market of event.markets ?? []) {
+        try {
+          const version = market.version ?? V1_MARKET_VERSION;
+          for (const outcomeTokenId of parseMarketOutcomeTokenIds(market)) {
+            versions.set(outcomeTokenId, version);
+            if (!this.#marketVersionsByOutcomeTokenId.has(outcomeTokenId)) {
+              this.#marketVersionsByOutcomeTokenId.set(
+                outcomeTokenId,
+                Promise.resolve(version),
+              );
+            }
+          }
+        } catch (error) {
+          // Token-id payloads are untrusted wire data — a malformed value
+          // must skip this market, not fail the listing. Parsing skips the
+          // same markets, and order-time resolution retries through
+          // #ensureOutcomeVersion on a cache miss.
+          DevLogger.log(
+            'PolymarketProvider: Failed to cache market version from outcome token ids',
+            {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              eventId: event.id,
+              marketId: market.id,
+            },
+          );
+        }
+      }
+    }
+    return versions;
+  }
+
+  /**
+   * Resolves the Gamma market version of an outcome token, used before an
+   * order preview is built so routing reads only from the cache. Market
+   * fetches usually cover this — a sell holds a position whose market the
+   * session may never have parsed, so a cache miss reads Gamma by market
+   * id (once per market; failures stay uncached and retry).
+   */
+  async #ensureOutcomeVersion({
+    marketId,
+    outcomeTokenId,
+  }: {
+    marketId: string;
+    outcomeTokenId: string;
+  }): Promise<string> {
+    const cached = this.#marketVersionsByOutcomeTokenId.get(outcomeTokenId);
+    if (cached) {
+      return cached;
+    }
+
+    const version = getMarketDetailsFromGammaApi({ marketId })
+      .then(
+        (event) =>
+          // A token the fetched event does not describe is unknown — the CTF
+          // path, same as a market whose payload omits the version.
+          this.#cacheMarketVersionsFromEvents([event]).get(outcomeTokenId) ??
+          V1_MARKET_VERSION,
+      )
+      .catch((error) => {
+        DevLogger.log('PolymarketProvider: Failed to resolve market version', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          marketId,
+          outcomeTokenId,
+        });
+        // Don't pin a failed lookup for the session — retry on the next
+        // preview.
+        this.#marketVersionsByOutcomeTokenId.delete(outcomeTokenId);
+        throw error;
+      });
+    this.#marketVersionsByOutcomeTokenId.set(outcomeTokenId, version);
+    return version;
+  }
+
+  /**
+   * Chooses the trade protocol for an order from the cached Gamma market
+   * version of its outcome token — no resolution happens at order time.
+   * Every preview ensures its version was resolved when it was built (see
+   * previewOrder), so a cache miss here is a programming error.
+   */
+  async #resolveTradeProtocol({
+    preview,
+  }: {
+    preview: OrderPreview;
+  }): Promise<PolymarketTradeProtocol> {
+    const cached = this.#marketVersionsByOutcomeTokenId.get(
+      preview.outcomeTokenId,
+    );
+    if (!cached) {
+      // Unreachable after previewOrder — a loud failure beats silently
+      // routing an unknown version down the CTF path.
+      throw new Error(
+        `No market version cached for outcome token ${preview.outcomeTokenId}`,
+      );
+    }
+    return getPolymarketProtocolForMarketVersion(await cached);
+  }
+
+  /**
+   * Protocol V2 (positions) order path — selected by the Gamma market
+   * version. Mirrors {@link #submitOrder} section-for-section with the
+   * positions protocol; the CTF path is untouched. The legacy USDC.e balance
+   * read and the legacy-Safe sweep keep using the CTF definition because
+   * they move CTF-era assets, which no v2 market changes.
+   */
+  async #submitPositionsOrder({
+    signer,
+    preview,
+    protocol,
+  }: {
+    signer: Signer;
+    preview: OrderPreview;
+    protocol: typeof POLYMARKET_POSITIONS_PROTOCOL;
+  }) {
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const isDepositWallet = accountState.walletType === 'deposit-wallet';
+    const tradingWalletAddress = accountState.address;
+    const verifyingContract = getProtocolVerifyingContract({
+      protocol,
+      negRisk: preview.negRisk,
+    });
+
+    let depositWalletSetupUpdatedState = false;
+    if (isDepositWallet) {
+      depositWalletSetupUpdatedState = await this.ensureDepositWalletReady({
+        ownerAddress: signer.address,
+        depositWalletAddress: tradingWalletAddress,
+        // Unused when the positions planner is supplied below; the wallet
+        // setup itself is protocol-independent.
+        protocol: POLYMARKET_V2_PROTOCOL,
+        getSigner: () => signer,
+        operation: 'deposit_wallet_order_preflight',
+        getPreflightPlan: ({ walletAddress }) =>
+          planPositionsDepositWalletPreflight({ walletAddress }),
+      });
+    }
+
+    const order = buildPositionsProtocolUnsignedOrder({
+      preview: {
+        ...preview,
+        feeRateBps: getPreviewFeeRateBpsForProtocol(),
+      },
+      makerAddress: tradingWalletAddress,
+      signerAddress: isDepositWallet
+        ? tradingWalletAddress
+        : getAddress(signer.address),
+      signatureType: isDepositWallet
+        ? SignatureType.POLY_1271
+        : SignatureType.POLY_GNOSIS_SAFE,
+    });
+
+    const signature = await signPositionsProtocolOrder({
+      signer,
+      order,
+      verifyingContract,
+    });
+
+    const signedOrder = {
+      ...order,
+      signature,
+    };
+    const signerApiKey = await this.getApiKey({
+      address: signer.address,
+    });
+
+    if (
+      isDepositWallet &&
+      (depositWalletSetupUpdatedState || preview.side === Side.SELL)
+    ) {
+      await this.syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
+        preview,
+        signerAddress: signer.address,
+        apiKey: signerApiKey,
+      });
+    }
+
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const shouldUsePermit2 =
+      !isDepositWallet &&
+      this.#hasPermit2Config({
+        permit2Enabled: preview.fees?.permit2Enabled,
+        executors: preview.fees?.executors,
+      });
+
+    let feeAuthorization: Permit2FeeAuthorization | undefined;
+    let executor: string | undefined;
+    let permit2FeeReady = false;
+
+    if (
+      preview.fees !== undefined &&
+      preview.fees.totalFee > 0 &&
+      shouldUsePermit2
+    ) {
+      const feeAmount = BigInt(
+        parseUnits(preview.fees.totalFee.toString(), 6).toString(),
+      );
+      executor = this.#pickExecutor(preview.fees.executors ?? []);
+      feeAuthorization = await createPermit2FeeAuthorization({
+        safeAddress: tradingWalletAddress,
+        signer,
+        amount: feeAmount,
+        spender: executor,
+        tokenAddress: protocol.collateral.feeAuthorizationToken,
+      });
+      permit2FeeReady = true;
+    }
+
+    let allowancesTx: { to: string; data: string } | undefined;
+    let permit2AllowanceReady = false;
+
+    if (isDepositWallet) {
+      const legacySafeAddress = computeProxyAddress(signer.address);
+      const legacySafeDeployed = await isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      );
+
+      if (legacySafeDeployed) {
+        const sweepTransaction = await buildLegacySafeMigrationSweepTransaction(
+          {
+            signer,
+            legacySafeAddress,
+            depositWalletAddress: tradingWalletAddress,
+            protocol: POLYMARKET_V2_PROTOCOL,
+          },
+        );
+
+        allowancesTx = sweepTransaction?.params;
+      }
+    } else {
+      try {
+        const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+          safeAddress: tradingWalletAddress,
+          protocol: POLYMARKET_V2_PROTOCOL,
+        });
+        allowancesTx = await buildPositionsTradeAllowancesTx({
+          signer,
+          safeAddress: tradingWalletAddress,
+          safeUsdceBalance: safeLegacyUsdceBalance,
+        });
+        permit2AllowanceReady = true;
+      } catch (allowanceError) {
+        DevLogger.log(
+          'PolymarketProvider: Failed to generate positions allowances transaction',
+          { error: allowanceError },
+        );
+        Logger.error(
+          allowanceError instanceof Error
+            ? allowanceError
+            : new Error(String(allowanceError)),
+          this.getErrorContext('placeOrder:positionsAllowancesTx', {
+            operation: 'generate_allowances_tx_positions',
+          }),
+        );
+        throw new Error('Failed to prepare positions trade preflight');
+      }
+    }
+
+    const orderType = this.#getPlaceOrderType({
+      preview,
+      feeCollection,
+      fakOrdersEnabled,
+      permit2FeeReady,
+      permit2AllowanceReady,
+      manualFeeCollectionSupported: !isDepositWallet,
+    });
+
+    const clobOrder = serializeProtocolRelayerOrder({
+      signedOrder,
+      owner: signerApiKey.apiKey,
+      orderType,
+      side: preview.side,
+    });
+    const body = JSON.stringify(clobOrder);
+    const headers = await getL2Headers({
+      l2HeaderArgs: {
+        method: 'POST',
+        requestPath: `/order`,
+        body,
+      },
+      address: signer.address,
+      apiKey: signerApiKey,
+    });
+
+    const orderResult = await submitProtocolClobOrder({
+      protocol,
+      headers,
+      clobOrder,
+      feeAuthorization,
+      executor,
+      allowancesTx,
+    });
+
+    if (!orderResult.success) {
+      DevLogger.log('PolymarketProvider: Place order failed', {
+        error: orderResult.error,
+        errorDetails: undefined,
+        side: preview.side,
+        outcomeTokenId: preview.outcomeTokenId,
+      });
+      this.#throwPlaceOrderError({
+        error: orderResult.error,
+        side: preview.side,
+      });
+    }
+
+    return orderResult.response;
+  }
+
   public async getMarketDetails({
     marketId,
   }: {
@@ -929,6 +1281,8 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const teamLookup = this.#createTeamLookup(isSportsEvent);
+
+      this.#cacheMarketVersionsFromEvents([mergedEvent]);
 
       const [parsedMarket] = parsePolymarketEvents([mergedEvent], {
         category: PolymarketProvider.FALLBACK_CATEGORY,
@@ -1206,6 +1560,8 @@ export class PolymarketProvider implements PredictProvider {
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
 
+      this.#cacheMarketVersionsFromEvents(events);
+
       return parsePolymarketEvents(events, {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
@@ -1243,6 +1599,8 @@ export class PolymarketProvider implements PredictProvider {
       await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
 
       const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      this.#cacheMarketVersionsFromEvents(events);
 
       const parsedMarkets = parsePolymarketEvents(events, {
         category: 'trending',
@@ -2286,6 +2644,14 @@ export class PolymarketProvider implements PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview> {
+    // Fail fast on an unresolvable market version — before the CLOB round
+    // trip — so routing always reads a warm cache. Market fetches usually
+    // covered this; a sell's market may need one Gamma read (cached).
+    await this.#ensureOutcomeVersion({
+      marketId: params.marketId,
+      outcomeTokenId: params.outcomeTokenId,
+    });
+
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewOrder({
       ...params,
@@ -2379,12 +2745,19 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const protocol = this.#getProtocol();
-      const orderResponse = await this.#submitOrder({
-        signer,
-        preview,
-        protocol,
-      });
+      const protocol = await this.#resolveTradeProtocol({ preview });
+      const orderResponse =
+        protocol.key === 'positions'
+          ? await this.#submitPositionsOrder({
+              signer,
+              preview,
+              protocol,
+            })
+          : await this.#submitOrder({
+              signer,
+              preview,
+              protocol,
+            });
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
@@ -3188,12 +3561,20 @@ export class PolymarketProvider implements PredictProvider {
     protocol,
     getSigner,
     operation = 'deposit_wallet_preflight',
+    getPreflightPlan,
   }: {
     ownerAddress: string;
     depositWalletAddress: Hex;
     protocol: PolymarketProtocolDefinition;
     getSigner: (address?: string) => Signer;
     operation?: string;
+    /**
+     * Override for the allowance preflight plan — the Protocol V2 order path
+     * supplies the positions planner. Defaults to the CTF planner.
+     */
+    getPreflightPlan?: (input: {
+      walletAddress: string;
+    }) => Promise<DepositWalletPreflightPlan>;
   }): Promise<boolean> {
     let updatedState = false;
     let depositWalletDeploymentConfirmed = false;
@@ -3280,10 +3661,12 @@ export class PolymarketProvider implements PredictProvider {
       updatedState = true;
     }
 
-    const preflightPlan = await planDepositWalletPreflight({
-      walletAddress: depositWalletAddress,
-      protocol,
-    });
+    const preflightPlan = getPreflightPlan
+      ? await getPreflightPlan({ walletAddress: depositWalletAddress })
+      : await planDepositWalletPreflight({
+          walletAddress: depositWalletAddress,
+          protocol,
+        });
 
     DevLogger.log('PolymarketProvider: Deposit wallet preflight planned', {
       operation: 'deposit_wallet_allowance_preflight',
@@ -3415,6 +3798,62 @@ export class PolymarketProvider implements PredictProvider {
           operation: 'deposit_wallet_order_balance_allowance_sync',
           walletType: 'deposit-wallet',
         }),
+      );
+    }
+  }
+
+  /**
+   * The positions-protocol counterpart of
+   * {@link syncDepositWalletBalanceAllowanceForOrderIfNeeded}, selected by
+   * the Gamma market version: a sell needs the CONDITIONAL-V2 position
+   * balance refreshed before the relayer accepts the order; a buy needs the
+   * same collateral sync as the CTF path (pUSD is either protocol's
+   * collateral and the collateral request is protocol-independent). The sell
+   * refresh runs even when the wallet setup did not change — the position
+   * can move on chain without this order touching allowances, and a stale
+   * CLOB view makes the relayer reject the sell.
+   */
+  private async syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
+    preview,
+    signerAddress,
+    apiKey,
+  }: {
+    preview: OrderPreview;
+    signerAddress: string;
+    apiKey: ApiKeyCreds;
+  }): Promise<void> {
+    try {
+      if (preview.side === Side.SELL) {
+        await syncDepositWalletPositionBalanceAllowance({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
+          signerAddress,
+          apiKey,
+          tokenId: preview.outcomeTokenId,
+        });
+      } else {
+        await syncDepositWalletCollateralBalanceAllowance({
+          protocol: POLYMARKET_V2_PROTOCOL,
+          signerAddress,
+          apiKey,
+        });
+      }
+    } catch (error) {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet positions order balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_positions_order_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext(
+          'placeOrder:depositWalletPositionsBalanceAllowanceSync',
+          {
+            operation: 'deposit_wallet_positions_order_balance_allowance_sync',
+            walletType: 'deposit-wallet',
+          },
+        ),
       );
     }
   }

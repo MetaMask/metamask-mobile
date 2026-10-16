@@ -365,6 +365,12 @@ export type PredictOutcome = {
   line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
+  /**
+   * Gamma market version for this outcome's market: "v2" markets use the
+   * Protocol V2 trade path (ExchangeV3, PositionManager outcome ids);
+   * "v1", missing, or unknown versions stay on the CTF path.
+   */
+  version?: string;
 };
 
 export type PredictOutcomeToken = {
