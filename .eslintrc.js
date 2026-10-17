@@ -331,6 +331,7 @@ module.exports = {
     {
       files: [
         'scripts/**/*.{js,ts}',
+        '.yarn/plugins/**/*.test.ts',
         'tests/tools/**/*.{js,ts}',
         'app.config.js',
       ],
