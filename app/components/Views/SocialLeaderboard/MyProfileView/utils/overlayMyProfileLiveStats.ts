@@ -1,13 +1,14 @@
 import type { TraderProfileResponse } from '@metamask/social-controllers';
 import {
   EM_DASH,
-  formatCount,
   formatPercent,
   formatSignedFullUsdNoDecimals,
 } from '../../../../UI/SocialFeed/utils/formatters';
 import type { TraderProfileWithSheetStats } from '../../TraderProfileView/types/traderProfileStatsSheet';
 import {
   FAKE_STATS_PREFIX,
+  formatSheetHoldFromMinutes,
+  formatSheetUnsignedUsd,
   prefixFakeStat,
   type StatsSheetFallbackFields,
 } from '../../TraderProfileView/components/statsSheetFormatters';
@@ -18,6 +19,14 @@ import { preferTraderAvatarUrl } from './preferTraderAvatarUrl';
 
 export { FAKE_STATS_PREFIX };
 
+export type PerformanceCellId = 'pnl' | 'winRate' | 'holdTime' | 'volume';
+
+export interface PerformanceCell {
+  id: PerformanceCellId;
+  value: string;
+  tone: 'default' | 'success' | 'error';
+}
+
 export interface OverlayedMyProfileStats {
   rankingTag: ProfileRankingTag | null | undefined;
   followerCount: number;
@@ -26,7 +35,8 @@ export interface OverlayedMyProfileStats {
   pnlLabel: string;
   hasPnl: boolean;
   isPnlPositive: boolean;
-  timesCopiedLabel: string;
+  /** Live-only stats for the Performance grid; cells without data are omitted. */
+  performanceCells: PerformanceCell[];
   profileAgeLabel: string;
   copySuccessRateLabel: string;
   fallbackFields: Required<StatsSheetFallbackFields>;
@@ -35,6 +45,46 @@ export interface OverlayedMyProfileStats {
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
+
+export const buildPerformanceCells = (
+  live: TraderProfileResponse | null,
+): PerformanceCell[] => {
+  const stats = live?.stats;
+  if (!stats) {
+    return [];
+  }
+  const cells: PerformanceCell[] = [];
+  if (isPresentNumber(stats.pnl30d)) {
+    cells.push({
+      id: 'pnl',
+      value: formatSignedFullUsdNoDecimals(stats.pnl30d),
+      tone: stats.pnl30d >= 0 ? 'success' : 'error',
+    });
+  }
+  if (isPresentNumber(stats.winRate30d)) {
+    cells.push({
+      id: 'winRate',
+      value: formatPercent(stats.winRate30d * 100, {
+        showSign: false,
+        decimals: 0,
+      }),
+      tone: 'default',
+    });
+  }
+  const holdTime = isPresentNumber(stats.medianHoldMinutes)
+    ? formatSheetHoldFromMinutes(stats.medianHoldMinutes)
+    : '';
+  if (holdTime) {
+    cells.push({ id: 'holdTime', value: holdTime, tone: 'default' });
+  }
+  const volume = isPresentNumber(stats.volumeUsd30d)
+    ? formatSheetUnsignedUsd(stats.volumeUsd30d)
+    : '';
+  if (volume) {
+    cells.push({ id: 'volume', value: volume, tone: 'default' });
+  }
+  return cells;
+};
 
 export const markFakeStat = (label: string): string =>
   prefixFakeStat(label, true);
@@ -78,9 +128,6 @@ export const overlayMyProfileLiveStats = (
     : formatLocalWinRate(localWithMocks.winRatePercent);
   const pnlValue = fallbackFields.pnl ? localWithMocks.pnlUsd : livePnl;
   const pnlRaw = formatSignedFullUsdNoDecimals(pnlValue);
-  const copiedRaw = fallbackFields.timesCopied
-    ? formatCount(localWithMocks.timesCopied)
-    : formatCount(liveCopied);
   const profileAgeRaw = localWithMocks.profileAgeLabel?.trim() || EM_DASH;
   const copySuccessRaw =
     localWithMocks.copySuccessRatePercent != null
@@ -140,9 +187,7 @@ export const overlayMyProfileLiveStats = (
     pnlLabel: fallbackFields.pnl ? markFakeStat(pnlRaw) : pnlRaw,
     hasPnl: pnlValue != null,
     isPnlPositive: pnlValue != null && pnlValue >= 0,
-    timesCopiedLabel: fallbackFields.timesCopied
-      ? markFakeStat(copiedRaw)
-      : copiedRaw,
+    performanceCells: buildPerformanceCells(live),
     profileAgeLabel: markFakeStat(profileAgeRaw),
     copySuccessRateLabel: markFakeStat(copySuccessRaw),
     fallbackFields,
