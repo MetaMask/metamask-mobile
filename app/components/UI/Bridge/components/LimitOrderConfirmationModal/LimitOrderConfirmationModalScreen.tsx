@@ -69,6 +69,10 @@ export const LimitOrderConfirmationModalScreen = () => {
     sourceAssetId: params.order.sourceAssetId,
     destinationAssetId: params.order.destAssetId,
   });
+  const supportedFeeTokenSymbols =
+    feeTokenValidation.reason === 'unsupported-pair'
+      ? feeTokenValidation.supportedTokenSymbols
+      : undefined;
   const sourceChainId = params.sourceToken?.chainId;
   const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
     address: sourceWalletAddress,
@@ -114,7 +118,9 @@ export const LimitOrderConfirmationModalScreen = () => {
   const error = useMemo(() => {
     if (feeTokenValidation.reason === 'unsupported-pair') {
       return {
-        bannerMessage: strings('bridge.limit.unsupported_fee_token_pair'),
+        bannerMessage: strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: supportedFeeTokenSymbols?.join(', ') ?? '',
+        }),
       };
     }
 
@@ -137,7 +143,12 @@ export const LimitOrderConfirmationModalScreen = () => {
         primaryButtonLabel: strings('bridge.limit.try_again'),
       };
     }
-  }, [delegationFee, confirmError, feeTokenValidation.reason]);
+  }, [
+    delegationFee,
+    confirmError,
+    feeTokenValidation.reason,
+    supportedFeeTokenSymbols,
+  ]);
 
   const handleConfirm = useCallback(async () => {
     if (!feeTokenValidation.isValid) {

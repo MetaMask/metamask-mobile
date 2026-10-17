@@ -649,6 +649,7 @@ describe('BridgeLimitOrderView', () => {
     jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
 
