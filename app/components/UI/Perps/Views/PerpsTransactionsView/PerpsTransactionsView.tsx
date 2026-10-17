@@ -343,7 +343,13 @@ const PerpsTransactionsView: React.FC = () => {
       return (
         <Text
           variant={TextVariant.BodySm}
-          style={item.fill.isPositive ? styles.profitAmount : styles.lossAmount}
+          style={
+            item.fill.isPositive === undefined
+              ? undefined
+              : item.fill.isPositive
+                ? styles.profitAmount
+                : styles.lossAmount
+          }
         >
           {item.fill.amount}
         </Text>

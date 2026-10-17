@@ -3,14 +3,14 @@ import {
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
-  selectMoneyMovementBrazilNeobankEnabled,
+  selectMoneyMovementNeobank,
   isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   selectProSubscriptionEnabled,
   SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
-  MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
 import { getVersion } from 'react-native-device-info';
@@ -108,61 +108,103 @@ describe('Money Account feature flag selectors', () => {
     });
   });
 
-  describe('selectMoneyMovementBrazilNeobankEnabled', () => {
-    it('uses the camelCased key as served by client-config-api-mobile', () => {
-      expect(MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY).toBe(
-        'moneyMovementBrazilNeobank',
-      );
+  describe('selectMoneyMovementNeobank', () => {
+    const disabled = { isEnabled: false, regions: [] };
+    const enabledFlag = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      regions: ['BR'],
+    };
+
+    it('reads the camelCase key Client Config stores for money-movement-neobank', () => {
+      expect(MONEY_MOVEMENT_NEOBANK_FLAG_KEY).toBe('moneyMovementNeobank');
     });
 
-    it('returns true when enabled and the minimum version passes', () => {
-      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
-          enabled: true,
-          minimumVersion: '0.0.0',
+    it('returns uppercase region codes when enabled and the minimum version passes', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          regions: ['br', ' us ', 'BR'],
         },
       });
 
-      expect(result).toBe(true);
+      expect(result).toEqual({ isEnabled: true, regions: ['BR', 'US'] });
     });
 
-    it('returns false when the flag serves enabled: false', () => {
-      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
+    it('reads regions from a progressive-rollout wrapper', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          name: 'treatment',
+          value: { ...enabledFlag, regions: ['US'] },
+        },
+      });
+
+      expect(result).toEqual({ isEnabled: true, regions: ['US'] });
+    });
+
+    it('is disabled when the flag serves enabled: false', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
           enabled: false,
-          minimumVersion: '0.0.0',
         },
       });
 
-      expect(result).toBe(false);
+      expect(result).toEqual(disabled);
     });
 
-    it('returns false when the minimum version requirement fails', () => {
-      const result = selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-        [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: {
-          enabled: true,
+    it('is disabled when the minimum version requirement fails', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
           minimumVersion: '999.0.0',
         },
       });
 
-      expect(result).toBe(false);
+      expect(result).toEqual(disabled);
     });
 
-    it('returns false when the flag is absent or malformed', () => {
-      expect(selectMoneyMovementBrazilNeobankEnabled.resultFunc({})).toBe(
-        false,
-      );
+    it('is disabled when the flag is absent or malformed', () => {
+      expect(selectMoneyMovementNeobank.resultFunc({})).toEqual(disabled);
       expect(
-        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: 'not-an-object',
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: 'not-an-object',
         }),
-      ).toBe(false);
+      ).toEqual(disabled);
       expect(
-        selectMoneyMovementBrazilNeobankEnabled.resultFunc({
-          // Missing minimumVersion — no longer a valid version-gated shape.
-          [MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY]: { enabled: true },
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { enabled: true },
         }),
-      ).toBe(false);
+      ).toEqual(disabled);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: true,
+        }),
+      ).toEqual(disabled);
+    });
+
+    it('is disabled when regions is missing, empty, or not a list of strings', () => {
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toEqual(disabled);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { ...enabledFlag, regions: [] },
+        }),
+      ).toEqual(disabled);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            regions: ['', '  ', 1, null],
+          },
+        }),
+      ).toEqual(disabled);
     });
   });
 

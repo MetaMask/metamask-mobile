@@ -216,6 +216,52 @@ jest.mock('../../app/core/Engine', () => {
       },
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+        getSessionProfile: jest.fn().mockResolvedValue(undefined),
+      },
+      ProfileController: {
+        state: {
+          profile: {
+            profileId: '',
+            username: '',
+            displayName: '',
+            bio: '',
+            linkedAddresses: [],
+            avatarUrl: '',
+            tradingPrivacy: 'public',
+            connectedToX: false,
+            createdAt: '',
+            updatedAt: '',
+          },
+        },
+        createProfile: jest
+          .fn()
+          .mockResolvedValue({ profileId: 'mock-profile-id' }),
+        updateProfile: jest.fn().mockResolvedValue(undefined),
+        checkUsernameAvailability: jest.fn().mockResolvedValue({
+          username: 'wen-cat',
+          available: true,
+          valid: true,
+          normalized: 'wen-cat',
+          errors: [],
+        }),
+        getXAuthorizationUrl: jest.fn().mockResolvedValue({
+          authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
+          state: 'mock-oauth-state',
+        }),
+        fetchAndUpdateProfile: jest.fn().mockResolvedValue({
+          profileId: '',
+          username: '',
+          displayName: '',
+          bio: '',
+          linkedAddresses: [],
+          avatarUrl: '',
+          tradingPrivacy: 'public',
+          connectedToX: false,
+          createdAt: '',
+          updatedAt: '',
+        }),
+        fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
+        disconnectX: jest.fn().mockResolvedValue(undefined),
       },
       GeolocationController: {
         state: {
@@ -445,6 +491,27 @@ jest.mock('../../app/core/Engine', () => {
       // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
+        getRecoveredDispatches: jest.fn().mockResolvedValue([]),
+        getPendingManualRecoveries: jest.fn().mockResolvedValue([]),
+        getScaleOrderGroups: jest.fn().mockResolvedValue([]),
+        reviewScaleOrderGroups: jest.fn().mockResolvedValue([]),
+        getScalePriceLadder: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'not_implemented',
+        }),
+        reconcileRecoveredDispatches: jest.fn().mockResolvedValue([]),
+        acknowledgeRecoveredDispatch: jest.fn().mockResolvedValue(undefined),
+        reviewRecoveryVenue: jest.fn().mockResolvedValue({
+          status: 'unsupported',
+          providerId: 'hyperliquid',
+          reason: 'Recovery review is not supported by this provider',
+        }),
+        resolveRecoveryProtection: jest.fn().mockResolvedValue({
+          status: 'unsupported',
+          providerId: 'hyperliquid',
+          success: false,
+          error: 'Recovery protection is not supported by this provider',
+        }),
         init: jest.fn().mockResolvedValue({ success: true }),
         disconnect: jest.fn().mockResolvedValue(undefined),
         getActiveProvider: jest.fn(() => ({

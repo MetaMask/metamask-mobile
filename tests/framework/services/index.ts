@@ -11,6 +11,7 @@ export {
   type ProviderType,
   EmulatorProvider,
   BrowserStackProvider,
+  TestMuAIProvider,
 } from './providers';
 
 // Appium utilities

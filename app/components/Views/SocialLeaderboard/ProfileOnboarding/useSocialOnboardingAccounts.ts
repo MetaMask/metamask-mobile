@@ -1,8 +1,14 @@
+import { isEvmAccountType } from '@metamask/keyring-api';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectInternalEvmAccounts } from '../../../../selectors/accountsController';
+import {
+  selectInternalAccountsById,
+  selectInternalEvmAccounts,
+} from '../../../../selectors/accountsController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
+import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
 import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
 import { formatWithThreshold } from '../../../../util/assets';
@@ -20,43 +26,86 @@ const accountLabel = (name: string | undefined, address: string): string =>
   name?.trim() ? name : renderShortAddress(address);
 
 /**
- * EVM wallet accounts the profile can link, with fiat totals from the same
- * balance hooks the portfolio uses.
+ * Accounts offered on the link step, named the same way as the homepage
+ * account selector (the account-group name, not the raw address).
  *
- * Those hooks are EVM-only and checksum each address, so non-EVM accounts are
- * left out. The hook runs when onboarding mounts, before the link-account step.
+ * Each row still resolves to its EVM account so the profile can link
+ * `eip155:1:{address}`. Groups with no EVM account are left out.
  */
 export const useSocialOnboardingAccounts = (): SocialOnboardingAccount[] => {
-  const accounts = useSelector(selectInternalEvmAccounts);
+  const evmAccounts = useSelector(selectInternalEvmAccounts);
+  const accountsById = useSelector(selectInternalAccountsById);
+  const accountSections = useSelector(selectVisibleAccountGroupsByWallet);
+  const seedAddressByGroupId = useSelector(
+    selectAllAccountGroupIconSeedAddresses,
+  );
   const enabledChains = useSelector(selectEVMEnabledNetworks);
   const currency = useSelector(selectCurrentCurrency);
   const formattedTokens = useGetFormattedTokensPerChain(
-    accounts,
+    evmAccounts,
     true,
     enabledChains,
   );
-  const totals = useGetTotalFiatBalanceCrossChains(accounts, formattedTokens);
-
-  return useMemo(
-    () =>
-      accounts.map((account) => {
-        const fiat = totals[account.address]?.totalFiatBalance;
-        const currencyCode = (currency || 'usd').toUpperCase();
-        const balanceLabel =
-          typeof fiat === 'number'
-            ? formatWithThreshold(fiat, 0.01, I18n.locale, {
-                style: 'currency',
-                currency: currencyCode,
-              })
-            : '';
-
-        return {
-          id: account.id,
-          name: accountLabel(account.metadata.name, account.address),
-          address: account.address,
-          balanceLabel,
-        };
-      }),
-    [accounts, currency, totals],
+  const totals = useGetTotalFiatBalanceCrossChains(
+    evmAccounts,
+    formattedTokens,
   );
+
+  return useMemo(() => {
+    const currencyCode = (currency || 'usd').toUpperCase();
+    const balanceLabelFor = (address: string): string => {
+      const fiat = totals[address]?.totalFiatBalance;
+      return typeof fiat === 'number'
+        ? formatWithThreshold(fiat, 0.01, I18n.locale, {
+            style: 'currency',
+            currency: currencyCode,
+          })
+        : '';
+    };
+    const accountsByAddress = new Map(
+      Object.values(accountsById).map((account) => [
+        account.address.toLowerCase(),
+        account,
+      ]),
+    );
+    const groupRows = accountSections.flatMap((section) =>
+      section.data.flatMap((group) => {
+        const seedAddress = seedAddressByGroupId[group.id];
+        const account = seedAddress
+          ? accountsByAddress.get(seedAddress.toLowerCase())
+          : undefined;
+        if (!account || !isEvmAccountType(account.type)) {
+          return [];
+        }
+        const groupName = group.metadata.name?.trim();
+        return [
+          {
+            id: account.id,
+            name:
+              groupName || accountLabel(account.metadata.name, account.address),
+            address: account.address,
+            balanceLabel: balanceLabelFor(account.address),
+          },
+        ];
+      }),
+    );
+
+    if (groupRows.length > 0) {
+      return groupRows;
+    }
+
+    return evmAccounts.map((account) => ({
+      id: account.id,
+      name: accountLabel(account.metadata.name, account.address),
+      address: account.address,
+      balanceLabel: balanceLabelFor(account.address),
+    }));
+  }, [
+    accountSections,
+    accountsById,
+    currency,
+    evmAccounts,
+    seedAddressByGroupId,
+    totals,
+  ]);
 };
