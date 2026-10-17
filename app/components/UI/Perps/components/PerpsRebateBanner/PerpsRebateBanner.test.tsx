@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { usePerpsRebateQuote } from '../../hooks/usePerpsRebateQuote';
 import PerpsRebateBanner, {
   PERPS_REBATE_BANNER_TEST_ID,
+  PERPS_REBATE_BANNER_CONTAINER_TEST_ID,
 } from './PerpsRebateBanner';
 
 jest.mock('../../hooks/usePerpsRebateQuote', () => ({
@@ -26,13 +27,23 @@ describe('PerpsRebateBanner', () => {
       data: { eligible: true, rebateBips: 500, reason: null },
     } as ReturnType<typeof usePerpsRebateQuote>);
 
-    render(<PerpsRebateBanner coin="ETH" direction="long" notionalUsd="100" />);
+    render(
+      <PerpsRebateBanner
+        coin="ETH"
+        containerTwClassName="px-4 mb-3"
+        direction="long"
+        notionalUsd="100"
+      />,
+    );
 
     expect(mockUsePerpsRebateQuote).toHaveBeenCalledWith({
       coin: 'ETH',
       direction: 'long',
       notionalUsd: '100',
     });
+    expect(
+      screen.getByTestId(PERPS_REBATE_BANNER_CONTAINER_TEST_ID),
+    ).toBeOnTheScreen();
     expect(screen.getByTestId(PERPS_REBATE_BANNER_TEST_ID)).toBeOnTheScreen();
   });
 
@@ -45,8 +56,11 @@ describe('PerpsRebateBanner', () => {
       data,
     } as ReturnType<typeof usePerpsRebateQuote>);
 
-    render(<PerpsRebateBanner />);
+    render(<PerpsRebateBanner containerTwClassName="px-4 mb-3" />);
 
+    expect(
+      screen.queryByTestId(PERPS_REBATE_BANNER_CONTAINER_TEST_ID),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(PERPS_REBATE_BANNER_TEST_ID),
     ).not.toBeOnTheScreen();

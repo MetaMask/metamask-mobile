@@ -250,6 +250,7 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     expect(mockPerpsRebateBanner).toHaveBeenCalledWith(
       expect.objectContaining({
         coin: 'ETH',
+        containerTwClassName: 'px-4 mb-3',
         direction: 'short',
       }),
     );

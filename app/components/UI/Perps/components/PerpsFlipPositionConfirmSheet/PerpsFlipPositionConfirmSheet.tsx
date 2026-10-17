@@ -372,13 +372,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         )}
       </View>
 
-      <Box twClassName="px-4 mb-3">
-        <PerpsRebateBanner
-          coin={position.symbol}
-          direction={oppositeDirection}
-          notionalUsd={usdAmount}
-        />
-      </Box>
+      <PerpsRebateBanner
+        coin={position.symbol}
+        direction={oppositeDirection}
+        notionalUsd={usdAmount}
+        containerTwClassName="px-4 mb-3"
+      />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={secondaryButtonProps}

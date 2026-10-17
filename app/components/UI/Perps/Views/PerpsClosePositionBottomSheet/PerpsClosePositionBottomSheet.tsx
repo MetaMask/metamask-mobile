@@ -262,13 +262,12 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           keypad is open. */}
       {!isEditingLimitPrice && !isInputFocused && (
         <>
-          <Box twClassName="px-4 mb-3">
-            <PerpsRebateBanner
-              coin={position.symbol}
-              direction={isLong ? 'short' : 'long'}
-              notionalUsd={closeAmountUSDString}
-            />
-          </Box>
+          <PerpsRebateBanner
+            coin={position.symbol}
+            direction={isLong ? 'short' : 'long'}
+            notionalUsd={closeAmountUSDString}
+            containerTwClassName="px-4 mb-3"
+          />
 
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 

@@ -365,7 +365,9 @@ describe('PerpsCloseAllPositionsView', () => {
   it('renders the close-all rebate banner', () => {
     render(<PerpsCloseAllPositionsView />);
 
-    expect(mockPerpsRebateBanner).toHaveBeenCalled();
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+      containerTwClassName: 'px-4 mb-3',
+    });
   });
 
   it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {

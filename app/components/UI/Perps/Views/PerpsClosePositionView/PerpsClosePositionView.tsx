@@ -112,13 +112,12 @@ const PerpsClosePositionView: React.FC = () => {
       rewardsAccount={rewardsState.account}
       afterFees={
         !isInputFocused ? (
-          <Box twClassName="px-4 mb-3">
-            <PerpsRebateBanner
-              coin={position.symbol}
-              direction={isLong ? 'short' : 'long'}
-              notionalUsd={closeAmountUSDString}
-            />
-          </Box>
+          <PerpsRebateBanner
+            coin={position.symbol}
+            direction={isLong ? 'short' : 'long'}
+            notionalUsd={closeAmountUSDString}
+            containerTwClassName="px-4 mb-3"
+          />
         ) : undefined
       }
       testIDs={{

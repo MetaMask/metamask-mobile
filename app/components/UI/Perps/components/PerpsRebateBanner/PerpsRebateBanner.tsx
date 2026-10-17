@@ -1,4 +1,5 @@
 import React from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import RebateBanner from '../../../shared/RebateBanner';
 import {
   usePerpsRebateQuote,
@@ -6,8 +7,11 @@ import {
 } from '../../hooks/usePerpsRebateQuote';
 
 export const PERPS_REBATE_BANNER_TEST_ID = 'perps-rebate-banner';
+export const PERPS_REBATE_BANNER_CONTAINER_TEST_ID =
+  'perps-rebate-banner-container';
 
 type PerpsRebateBannerProps = Omit<UsePerpsRebateQuoteParams, 'enabled'> & {
+  containerTwClassName?: string;
   textTwClassName?: string;
   twClassName?: string;
 };
@@ -18,6 +22,7 @@ type PerpsRebateBannerProps = Omit<UsePerpsRebateQuoteParams, 'enabled'> & {
  */
 const PerpsRebateBanner: React.FC<PerpsRebateBannerProps> = ({
   coin,
+  containerTwClassName,
   direction,
   notionalUsd,
   textTwClassName,
@@ -37,13 +42,24 @@ const PerpsRebateBanner: React.FC<PerpsRebateBannerProps> = ({
     return null;
   }
 
-  return (
+  const banner = (
     <RebateBanner
       rebatePercent={rebatePercent}
       testID={PERPS_REBATE_BANNER_TEST_ID}
       textTwClassName={textTwClassName}
       twClassName={twClassName}
     />
+  );
+
+  return containerTwClassName ? (
+    <Box
+      testID={PERPS_REBATE_BANNER_CONTAINER_TEST_ID}
+      twClassName={containerTwClassName}
+    >
+      {banner}
+    </Box>
+  ) : (
+    banner
   );
 };
 
