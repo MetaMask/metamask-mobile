@@ -7,6 +7,7 @@ import {
   setBasicFunctionalityMigrationNotification,
   setHasLinkedSocialLoginProfile,
   setLockTime,
+  setPerpsSizeDenomination,
 } from '../../actions/settings';
 
 const getInitialState = () =>
@@ -63,6 +64,30 @@ describe('settingsReducer', () => {
 
       expect(state.basicFunctionalityEnabled).toBe(false);
       expect(state.lockTime).toBe(30000);
+    });
+  });
+
+  describe('perps size denomination', () => {
+    it('defaults to USD', () => {
+      expect(getInitialState().perpsSizeDenomination).toBe('usd');
+    });
+
+    it('stores a coin denomination', () => {
+      const state = settingsReducer(
+        getInitialState(),
+        setPerpsSizeDenomination('asset'),
+      );
+
+      expect(state.perpsSizeDenomination).toBe('asset');
+    });
+
+    it('keeps the previous denomination when the value is unknown', () => {
+      const state = settingsReducer(
+        getInitialState(),
+        setPerpsSizeDenomination('coin'),
+      );
+
+      expect(state.perpsSizeDenomination).toBe('usd');
     });
   });
 });

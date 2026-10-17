@@ -339,6 +339,13 @@ export function setPerpsMarketListPreferences(preferences) {
   };
 }
 
+export function setPerpsSizeDenomination(perpsSizeDenomination) {
+  return {
+    type: 'SET_PERPS_SIZE_DENOMINATION',
+    perpsSizeDenomination,
+  };
+}
+
 export function setShowAccountOnLeaderboard(showAccountOnLeaderboard) {
   return {
     type: 'SET_SHOW_ACCOUNT_ON_LEADERBOARD',

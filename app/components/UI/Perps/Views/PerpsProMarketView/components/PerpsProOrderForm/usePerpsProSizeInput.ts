@@ -1,5 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePerpsSizeDenomination } from '../../../../hooks/usePerpsSizeDenomination';
 import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
@@ -11,11 +12,14 @@ import type {
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
 
-type SizeDenominationUnit = PerpsProSizeDenomination['unit'];
-
 interface AssetDraftState {
   value: string;
   source: 'canonical' | 'user';
+  /**
+   * False until the coin field has been converted with a positive price.
+   * An unprojected draft must not be shown: its placeholder is not the order size.
+   */
+  projected: boolean;
 }
 
 export interface UsePerpsProSizeInputParams {
@@ -100,6 +104,29 @@ const clampSliderUsdAmount = (
 
 const isEmptyUsdAmount = (value: string) => value === '' || value === '0';
 
+/**
+ * True when the USD field still represents the canonical amount.
+ * A trailing separator is an in-progress edit, so it stays on the USD field
+ * until blur instead of being replaced by a coin conversion.
+ */
+const isCanonicalUsdDraft = (draft: string, canonicalUsdAmount: string) => {
+  const finalizedDraft = finalizeNumericTextInput(draft);
+  if (draft !== finalizedDraft) {
+    return false;
+  }
+
+  if (
+    isEmptyUsdAmount(finalizedDraft) &&
+    isEmptyUsdAmount(canonicalUsdAmount)
+  ) {
+    return true;
+  }
+
+  return new BigNumber(finalizedDraft || 0).eq(
+    new BigNumber(finalizeNumericTextInput(canonicalUsdAmount) || 0),
+  );
+};
+
 const getSliderDisplayValue = (
   usdAmount: string,
   maxPossibleAmount: number,
@@ -135,19 +162,29 @@ export const usePerpsProSizeInput = ({
   preserveMaxIntent = false,
   preserveAssetIntent = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
-  const canToggleDenomination =
-    Number.isFinite(effectivePrice) && effectivePrice > 0;
-  const [activeDenominationUnit, setDenominationUnit] =
-    useState<SizeDenominationUnit>('usd');
+  const priceReady = Number.isFinite(effectivePrice) && effectivePrice > 0;
+  const { denomination: activeDenominationUnit, setDenomination } =
+    usePerpsSizeDenomination();
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
-      value: canToggleDenomination
+      value: priceReady
         ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
-        : '0',
+        : '',
       source: 'canonical',
+      // A persisted coin unit is not displayable until this projection exists.
+      projected: priceReady,
     }),
   );
+  /**
+   * Coin mode is visible only after a real USD→coin projection. Until then the
+   * field stays in USD, matching the amount Place Order submits.
+   */
+  const showsAssetSize =
+    activeDenominationUnit === 'asset' && assetDraftState.projected;
+  const canToggleDenomination =
+    priceReady &&
+    (activeDenominationUnit === 'usd' || assetDraftState.projected);
   const assetDraft = assetDraftState.value;
   const hasAssetIntent =
     preserveAssetIntent && assetDraftState.source === 'user';
@@ -161,6 +198,10 @@ export const usePerpsProSizeInput = ({
   // balance / payment-token caps) can be distinguished from our own setAmount
   // echoes and from live price ticks that should keep a dirty asset draft.
   const pendingInternalUsdRef = useRef<string | null>(null);
+  // A USD edit made before the price loads still matches usdAmount after the
+  // parent echoes it. Remember the edit so that echo is not treated as a clean
+  // draft and swapped to coin while the field is focused.
+  const usdFallbackEditRef = useRef(false);
 
   const clearSliderPreview = useCallback(() => {
     sliderPreviewRef.current = null;
@@ -218,16 +259,33 @@ export const usePerpsProSizeInput = ({
       // keep user-typed asset text stable while the draft is dirty or focused,
       // and avoid overwriting a blur snap with a stale usdAmount before the
       // parent echoes the pending internal commit.
-      if (
+      const canSyncAssetDraft =
         activeDenominationUnit === 'asset' &&
-        canToggleDenomination &&
+        priceReady &&
         assetDraftState.source === 'canonical' &&
-        !isSizeFocused &&
-        pendingInternalUsdRef.current === null
-      ) {
+        pendingInternalUsdRef.current === null;
+      // The first projection can run while focused when the user has not typed.
+      // An in-progress USD edit stays in USD until blur, even after its echo
+      // makes the draft match the canonical amount.
+      const shouldProjectInitialAssetDraft =
+        canSyncAssetDraft &&
+        !assetDraftState.projected &&
+        !usdFallbackEditRef.current &&
+        isCanonicalUsdDraft(usdDraft, usdAmount);
+      const shouldRefreshProjectedAssetDraft =
+        canSyncAssetDraft && assetDraftState.projected && !isSizeFocused;
+
+      if (shouldProjectInitialAssetDraft || shouldRefreshProjectedAssetDraft) {
         setAssetDraftState({
-          value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
+          value: getAssetFromUsd(
+            shouldProjectInitialAssetDraft
+              ? finalizeNumericTextInput(usdDraft) || usdAmount
+              : usdAmount,
+            effectivePrice,
+            szDecimals,
+          ),
           source: 'canonical',
+          projected: true,
         });
       }
       return;
@@ -240,6 +298,21 @@ export const usePerpsProSizeInput = ({
       new BigNumber(pendingInternalUsd || 0).eq(new BigNumber(usdAmount || 0));
 
     if (wasInternalCommit) {
+      // A USD edit made before the price loaded still needs its coin projection
+      // once the field is no longer being edited.
+      if (
+        !isSizeFocused &&
+        activeDenominationUnit === 'asset' &&
+        priceReady &&
+        assetDraftState.source === 'canonical' &&
+        !assetDraftState.projected
+      ) {
+        setAssetDraftState({
+          value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
+          source: 'canonical',
+          projected: true,
+        });
+      }
       return;
     }
 
@@ -258,15 +331,26 @@ export const usePerpsProSizeInput = ({
       clearSliderMaxIntent();
     }
     setUsdDraft(usdAmount);
-    setAssetDraftState((previous) => ({
-      value: canToggleDenomination
-        ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
-        : previous.value,
-      source: 'canonical',
-    }));
+    usdFallbackEditRef.current = false;
+    if (priceReady) {
+      setAssetDraftState({
+        value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
+        source: 'canonical',
+        projected: true,
+      });
+    } else {
+      // Drop the stale coin projection so the field follows the new USD amount
+      // instead of keeping a coin value that no longer converts. Clearing the
+      // source also drops a retained venue base intent.
+      setAssetDraftState({
+        value: '',
+        source: 'canonical',
+        projected: false,
+      });
+    }
   }, [
+    assetDraftState.projected,
     assetDraftState.source,
-    canToggleDenomination,
     clearSliderMaxIntent,
     clearSliderPreview,
     activeDenominationUnit,
@@ -274,22 +358,23 @@ export const usePerpsProSizeInput = ({
     isSizeFocused,
     maxPossibleAmount,
     preserveMaxIntent,
+    priceReady,
     szDecimals,
     usdAmount,
+    usdDraft,
   ]);
 
   const inputOptions = useMemo<NormalizeNumericTextInputOptions>(
     () => ({
       maxDigits,
-      maxDecimalPlaces:
-        activeDenominationUnit === 'usd'
-          ? 2
-          : preserveAssetIntent
-            ? undefined
-            : getDecimalPlaces(szDecimals),
+      maxDecimalPlaces: showsAssetSize
+        ? preserveAssetIntent
+          ? undefined
+          : getDecimalPlaces(szDecimals)
+        : 2,
       acceptedDecimalSeparators: ['.', ','],
     }),
-    [activeDenominationUnit, maxDigits, preserveAssetIntent, szDecimals],
+    [maxDigits, preserveAssetIntent, showsAssetSize, szDecimals],
   );
 
   const onChange = useCallback(
@@ -298,8 +383,7 @@ export const usePerpsProSizeInput = ({
         return;
       }
 
-      const previousValue =
-        activeDenominationUnit === 'usd' ? usdDraft : assetDraft;
+      const previousValue = showsAssetSize ? assetDraft : usdDraft;
       const result = normalizeNumericTextInput(
         text,
         previousValue,
@@ -314,7 +398,10 @@ export const usePerpsProSizeInput = ({
       clearSliderPreview();
       clearSliderMaxIntent();
 
-      if (activeDenominationUnit === 'usd') {
+      if (!showsAssetSize) {
+        if (activeDenominationUnit === 'asset') {
+          usdFallbackEditRef.current = true;
+        }
         setAssetDraftState((previous) => ({
           ...previous,
           source: 'canonical',
@@ -324,41 +411,59 @@ export const usePerpsProSizeInput = ({
         return;
       }
 
-      setAssetDraftState({ value: result.value, source: 'user' });
-      if (canToggleDenomination) {
+      setAssetDraftState({
+        value: result.value,
+        source: 'user',
+        projected: true,
+      });
+      if (priceReady) {
         const nextUsdAmount = getUsdFromAsset(result.value, effectivePrice);
         setUsdDraft(nextUsdAmount);
         commitUsdAmount(nextUsdAmount || '0');
       }
     },
     [
+      activeDenominationUnit,
       assetDraft,
-      canToggleDenomination,
       clearSliderMaxIntent,
       clearSliderPreview,
       commitUsdAmount,
-      activeDenominationUnit,
       effectivePrice,
       inputOptions,
       keepSizeEmpty,
+      priceReady,
+      showsAssetSize,
       usdDraft,
     ],
   );
 
   const onBlur = useCallback(() => {
     setIsSizeFocused(false);
+    usdFallbackEditRef.current = false;
     if (keepSizeEmpty) {
       return;
     }
 
-    if (activeDenominationUnit === 'usd') {
-      // USD is only a display projection until the user edits it.
-      if (hasAssetIntent) {
+    if (!showsAssetSize) {
+      // A retained base amount projects USD live, so blur must not replace it
+      // with the stale quote draft.
+      if (activeDenominationUnit === 'usd' && hasAssetIntent) {
         return;
       }
       const finalizedDraft = finalizeNumericTextInput(usdDraft);
       setUsdDraft(finalizedDraft);
       commitUsdAmount(finalizedDraft || '0');
+      if (
+        activeDenominationUnit === 'asset' &&
+        priceReady &&
+        assetDraftState.source === 'canonical'
+      ) {
+        setAssetDraftState({
+          value: getAssetFromUsd(finalizedDraft, effectivePrice, szDecimals),
+          source: 'canonical',
+          projected: true,
+        });
+      }
       return;
     }
 
@@ -367,13 +472,15 @@ export const usePerpsProSizeInput = ({
       setAssetDraftState({
         value: finalizedDraft,
         source: assetDraftState.source,
+        projected: assetDraftState.projected,
       });
       return;
     }
-    if (!canToggleDenomination) {
+    if (!priceReady) {
       setAssetDraftState({
         value: finalizedDraft,
         source: 'canonical',
+        projected: assetDraftState.projected,
       });
       return;
     }
@@ -382,6 +489,7 @@ export const usePerpsProSizeInput = ({
       setAssetDraftState({
         value: finalizedDraft,
         source: 'canonical',
+        projected: true,
       });
       return;
     }
@@ -400,18 +508,21 @@ export const usePerpsProSizeInput = ({
     setAssetDraftState({
       value: snappedAssetAmount,
       source: 'canonical',
+      projected: true,
     });
     commitUsdAmount(nextUsdAmount || '0');
   }, [
-    assetDraft,
-    assetDraftState.source,
-    canToggleDenomination,
-    commitUsdAmount,
     activeDenominationUnit,
+    assetDraft,
+    assetDraftState.projected,
+    assetDraftState.source,
+    commitUsdAmount,
     effectivePrice,
     hasAssetIntent,
     keepSizeEmpty,
     preserveAssetIntent,
+    priceReady,
+    showsAssetSize,
     szDecimals,
     usdDraft,
   ]);
@@ -435,9 +546,10 @@ export const usePerpsProSizeInput = ({
         setAssetDraftState({
           value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
           source: 'canonical',
+          projected: true,
         });
       }
-      setDenominationUnit('asset');
+      setDenomination('asset');
       return;
     }
 
@@ -447,7 +559,7 @@ export const usePerpsProSizeInput = ({
         : getUsdFromAsset(assetDraft, effectivePrice);
     setUsdDraft(nextUsdAmount);
     commitUsdAmount(nextUsdAmount || '0');
-    setDenominationUnit('usd');
+    setDenomination('usd');
   }, [
     assetDraft,
     assetDraftState.source,
@@ -460,6 +572,7 @@ export const usePerpsProSizeInput = ({
     keepSizeEmpty,
     preserveAssetIntent,
     clearSliderMaxIntent,
+    setDenomination,
     szDecimals,
     usdDraft,
   ]);
@@ -473,15 +586,15 @@ export const usePerpsProSizeInput = ({
       return sliderPreview;
     }
 
-    if (hasAssetIntent && canToggleDenomination) {
+    if (hasAssetIntent && priceReady) {
       return getUsdFromAsset(assetDraft, effectivePrice) || '0';
     }
 
-    if (activeDenominationUnit === 'usd') {
+    if (!showsAssetSize) {
       return finalizeNumericTextInput(usdDraft) || '0';
     }
 
-    if (!canToggleDenomination) {
+    if (!priceReady) {
       return usdAmount || '0';
     }
 
@@ -496,11 +609,11 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraft,
     assetDraftState.source,
-    canToggleDenomination,
-    activeDenominationUnit,
     effectivePrice,
     hasAssetIntent,
     keepSizeEmpty,
+    priceReady,
+    showsAssetSize,
     sliderPreview,
     usdAmount,
     usdDraft,
@@ -524,20 +637,27 @@ export const usePerpsProSizeInput = ({
       sliderAtMaxRef.current = atMax;
       setIsAtMaxAmount(atMax);
       setUsdDraft(nextUsdAmount);
-      setAssetDraftState((previous) => ({
-        value: canToggleDenomination
-          ? getAssetFromUsd(nextUsdAmount, effectivePrice, szDecimals)
-          : previous.value,
-        source: 'canonical',
-      }));
+      if (priceReady) {
+        setAssetDraftState({
+          value: getAssetFromUsd(nextUsdAmount, effectivePrice, szDecimals),
+          source: 'canonical',
+          projected: true,
+        });
+      } else {
+        setAssetDraftState((previous) => ({
+          ...previous,
+          source: 'canonical',
+          projected: false,
+        }));
+      }
       clearSliderPreview();
       return didCommitCanonicalAmount;
     },
     [
-      canToggleDenomination,
       clearSliderPreview,
       commitUsdAmount,
       effectivePrice,
+      priceReady,
       szDecimals,
     ],
   );
@@ -596,27 +716,28 @@ export const usePerpsProSizeInput = ({
     }
 
     if (sliderPreview === null) {
-      if (activeDenominationUnit === 'asset') {
+      if (showsAssetSize) {
         return assetDraft;
       }
-      return hasAssetIntent && canToggleDenomination
-        ? getUsdFromAsset(assetDraft, effectivePrice)
-        : usdDraft;
+      if (hasAssetIntent && priceReady) {
+        return getUsdFromAsset(assetDraft, effectivePrice);
+      }
+      return usdDraft;
     }
-    if (activeDenominationUnit === 'usd') {
+    if (!showsAssetSize) {
       return sliderPreview;
     }
-    if (canToggleDenomination) {
+    if (priceReady) {
       return getAssetFromUsd(sliderPreview, effectivePrice, szDecimals);
     }
     return assetDraft;
   }, [
     assetDraft,
-    canToggleDenomination,
-    activeDenominationUnit,
     effectivePrice,
     hasAssetIntent,
     keepSizeEmpty,
+    priceReady,
+    showsAssetSize,
     sliderPreview,
     szDecimals,
     usdDraft,
@@ -624,10 +745,8 @@ export const usePerpsProSizeInput = ({
 
   const denomination = useMemo<PerpsProSizeDenomination>(
     () =>
-      activeDenominationUnit === 'usd'
-        ? { unit: 'usd' }
-        : { unit: 'asset', symbol: assetSymbol },
-    [activeDenominationUnit, assetSymbol],
+      showsAssetSize ? { unit: 'asset', symbol: assetSymbol } : { unit: 'usd' },
+    [assetSymbol, showsAssetSize],
   );
 
   const sizeInput = useMemo<PerpsProSizeInputModel>(

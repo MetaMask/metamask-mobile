@@ -22,7 +22,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { OrderType } from '@metamask/perps-controller';
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
@@ -55,6 +55,7 @@ import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
+import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -331,8 +332,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { denomination, setDenomination } = usePerpsSizeDenomination();
+  // A saved coin unit is not displayable until the price can project it.
+  // Until then the keypad stays in USD, matching the amount Place Order submits.
+  const priceReady = Number.isFinite(amountPrice) && amountPrice > 0;
+  const showAssetValue = denomination === 'asset' && priceReady;
   const { fireImpact } = useHaptics();
-  const [showAssetValue, setShowAssetValue] = useState(false);
   const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
     fireImpact(ImpactMoment.PageNavigation);
     navigateTo(screen);
@@ -471,7 +476,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               'perps.trade_sheet.amount_slider_accessibility_label',
             )}, ${amount || '0'}`}
             onPress={onAmountPress}
-            onDisplayToggle={() => setShowAssetValue((value) => !value)}
+            onDisplayToggle={() =>
+              setDenomination(showAssetValue ? 'usd' : 'asset')
+            }
             displayToggleAccessibilityLabel={strings(
               showAssetValue
                 ? 'perps.trade_sheet.show_fiat_value'

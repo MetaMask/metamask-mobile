@@ -982,6 +982,7 @@
         "marketTypeFilter": "all",
         "showFavoritesOnly": false
       },
+      "perpsSizeDenomination": "usd",
       "primaryCurrency": "ETH",
       "searchEngine": "Google",
       "showAccountOnLeaderboard": true
