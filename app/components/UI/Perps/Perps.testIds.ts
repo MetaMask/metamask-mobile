@@ -102,6 +102,9 @@ export const getPerpsCrossLiquidationInfoSelector = (
   symbol: string,
 ) => `cross-liquidation-info-${mode}-${symbol}`;
 
+export const getPerpsMarketDetailsTabSelector = (tab: string) =>
+  `perps-market-details-tab-${tab}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -323,6 +326,8 @@ export const PerpsHomeViewSelectorsIDs = {
   SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
   SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
   SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
+  SOCIAL_FEED_TRENDING_SEE_MORE: 'perps-social-feed-trending-see-more',
+  SOCIAL_FEED_TOP_TRADERS_EMPTY: 'perps-social-feed-top-traders-empty',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -490,6 +495,10 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   MORE_SECTION: 'perps-market-details-more-section',
+  SOCIAL_TABS: 'perps-market-details-social-tabs',
+  FEED_TAB_CONTENT: 'perps-market-details-feed-tab-content',
+  TOP_TRADERS_TAB_CONTENT: 'perps-market-details-top-traders-tab-content',
+  LIVE_TRADES_TAB_CONTENT: 'perps-market-details-live-trades-tab-content',
   ABOUT_SECTION: 'perps-market-details-about-section',
   ABOUT_DESCRIPTION: 'perps-market-details-about-description',
   ABOUT_READ_MORE: 'perps-market-details-about-read-more',
