@@ -50,6 +50,9 @@ describe('ManageProfileTextEditorView', () => {
       linkedAddresses: [],
       updateProfile: jest.fn().mockResolvedValue(undefined),
       createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn().mockResolvedValue({
         username: 'giga-whale',
@@ -99,6 +102,9 @@ describe('ManageProfileTextEditorView', () => {
       linkedAddresses: [],
       updateProfile,
       createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
@@ -138,6 +144,9 @@ describe('ManageProfileTextEditorView', () => {
       linkedAddresses: [],
       updateProfile,
       createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
     });
@@ -175,6 +184,9 @@ describe('ManageProfileTextEditorView', () => {
       linkedAddresses: [],
       updateProfile,
       createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
     });

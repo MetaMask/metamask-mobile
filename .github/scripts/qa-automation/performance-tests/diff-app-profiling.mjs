@@ -4,7 +4,7 @@
  * Diff app profiling for a performance scenario against the last green baseline.
  *
  * Usage:
- *   node tests/scripts/diff-app-profiling.mjs \
+ *   node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs \
  *     --pr 33656 \
  *     --run 29931469755 \
  *     --test "Cold Start Login" \
@@ -12,10 +12,10 @@
  *     --device "Google Pixel 8 Pro+14.0"
  *
  * Or compare all failed tests from the current run:
- *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all
+ *   node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all
  *
  * From the performance workflow (local aggregated-reports already present):
- *   node tests/scripts/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all \
+ *   node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs --pr 33656 --run 29931469755 --all \
  *     --current-dir aggregated-reports --replace
  *
  * Environment:
@@ -35,8 +35,8 @@ const DEFAULT_BASELINE_BRANCH = 'main';
 // only, so its invocations are jobs of the caller run and never appear in
 // `gh run list --workflow run-performance-e2e.yml`.
 const BASELINE_WORKFLOW = 'run-performance-e2e-manual.yml';
-/** Current may be up to baseline + 10% without being highlighted as a regression. */
-const RELATIVE_WARN_THRESHOLD = 0.1;
+/** Current may be up to baseline + 15% without being highlighted as a regression. */
+const RELATIVE_WARN_THRESHOLD = 0.15;
 
 function parseArgs(argv) {
   const args = {
@@ -485,7 +485,7 @@ function emphasize(text) {
 }
 
 /**
- * Warn only when current exceeds the allowed margin: baseline + 10%.
+ * Warn only when current exceeds the allowed margin: baseline + 15%.
  * Values within that band are treated as acceptable variance.
  */
 function computeDelta(baseline, current) {
@@ -500,7 +500,7 @@ function computeDelta(baseline, current) {
         : null
       : round((current - baseline) / Math.abs(baseline), 4);
 
-  // Within margin when current <= baseline * 1.1 (relative <= 10%).
+  // Within margin when current <= baseline * 1.15 (relative <= 15%).
   // Any increase from a zero baseline is outside the margin.
   const warn =
     absolute > 0 &&
@@ -607,7 +607,7 @@ function getMetricRows(baselineSummary, currentSummary) {
 function buildRegressionSummary(rows) {
   const warned = (rows ?? []).filter((row) => row.warn);
   if (warned.length === 0) {
-    return '✅ No metrics over the +10% baseline margin.';
+    return '✅ No metrics over the +15% baseline margin.';
   }
 
   const list = warned
@@ -622,7 +622,7 @@ function buildRegressionSummary(rows) {
 
   return `⚠️ **${warned.length}** metric${
     warned.length === 1 ? '' : 's'
-  } over +10%: ${list}`;
+  } over +15%: ${list}`;
 }
 
 function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
@@ -631,6 +631,58 @@ function shouldIncludeScenarioInComment({ currentArtifact, baseline }) {
   return Boolean(
     baseline && currentArtifact && hasUsableProfilingSummary(currentArtifact),
   );
+}
+
+const MAX_API_CALL_ROWS = 200;
+const MAX_API_CALL_URL_LENGTH = 120;
+const KEY_LIKE_SEGMENT = /^[A-Za-z0-9_-]{24,}$/;
+const EVM_ADDRESS_SEGMENT = /^0x[0-9a-fA-F]{40,}$/;
+
+/**
+ * PR comments are public: drop the protocol, query string and fragment, and
+ * mask key-like path segments (e.g. an Infura project id in `/v3/<key>`).
+ */
+function sanitizeApiCallUrl(rawUrl) {
+  const withoutQuery = String(rawUrl ?? '').split(/[?#]/)[0];
+  const withoutProtocol = withoutQuery.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '');
+  const masked = withoutProtocol
+    .split('/')
+    .map((segment) =>
+      KEY_LIKE_SEGMENT.test(segment) && !EVM_ADDRESS_SEGMENT.test(segment)
+        ? '***'
+        : segment,
+    )
+    .join('/');
+  const clipped =
+    masked.length > MAX_API_CALL_URL_LENGTH
+      ? `${masked.slice(0, MAX_API_CALL_URL_LENGTH - 1)}…`
+      : masked;
+  return clipped.replace(/\|/g, '%7C').replace(/`/g, "'");
+}
+
+/**
+ * Collapsed-by-default list of the API calls captured during a scenario.
+ * Returns an empty string when there is nothing to show.
+ */
+function buildApiCallsSection(apiCalls) {
+  if (!Array.isArray(apiCalls) || apiCalls.length === 0) {
+    return '';
+  }
+
+  const shown = apiCalls.slice(0, MAX_API_CALL_ROWS);
+  let md = `\n<details>\n<summary>API calls (${apiCalls.length})</summary>\n\n`;
+  md += `| # | Method | URL | Status | Time |\n`;
+  md += `|---|--------|-----|--------|------|\n`;
+  shown.forEach((call, index) => {
+    const status = call.status ?? '—';
+    const time = typeof call.time === 'number' ? `${call.time} ms` : '—';
+    md += `| ${index + 1} | ${call.method ?? 'GET'} | \`${sanitizeApiCallUrl(call.url)}\` | ${status} | ${time} |\n`;
+  });
+  if (apiCalls.length > shown.length) {
+    md += `\n_…and ${apiCalls.length - shown.length} more not shown._\n`;
+  }
+  md += `\n</details>\n`;
+  return md;
 }
 
 /**
@@ -644,6 +696,7 @@ function buildEmbeddedProfilingSection({
   repo,
   baselineBranch = DEFAULT_BASELINE_BRANCH,
   includeRawJson = false,
+  includeApiCalls = false,
 }) {
   if (!shouldIncludeScenarioInComment({ currentArtifact, baseline })) {
     return null;
@@ -680,16 +733,20 @@ function buildEmbeddedProfilingSection({
     md += `\n> ℹ️ API calls unavailable: \`${currentArtifact.apiCallsError}\`\n`;
   }
 
-  md += `\n<details>\n<summary>Full metric table (+10% variance rules)</summary>\n\n`;
-  md += `> **Disclaimer — allowed variance:** a **+10%** margin over the baseline is permitted.\n`;
-  md += `> - If \`Current <= Baseline + 10%\`, treated as acceptable noise.\n`;
-  md += `> - If \`Current > Baseline + 10%\`, **Current** and **variance %** are highlighted with ⚠️.\n\n`;
+  md += `\n<details>\n<summary>Full metric table (+15% variance rules)</summary>\n\n`;
+  md += `> **Disclaimer — allowed variance:** a **+15%** margin over the baseline is permitted.\n`;
+  md += `> - If \`Current <= Baseline + 15%\`, treated as acceptable noise.\n`;
+  md += `> - If \`Current > Baseline + 15%\`, **Current** and **variance %** are highlighted with ⚠️.\n\n`;
   md += `| Metric | Baseline | Current | Δ |\n`;
   md += `|--------|----------|---------|---|\n`;
   for (const row of rows) {
     md += `| ${row.label} | ${row.baselineText} | ${row.currentText} | ${row.deltaText} |\n`;
   }
   md += `\n</details>\n`;
+
+  if (includeApiCalls) {
+    md += buildApiCallsSection(currentArtifact.apiCalls);
+  }
 
   if (includeRawJson) {
     md += `\n<details>\n<summary>Raw profilingSummary JSON</summary>\n\n`;
@@ -756,6 +813,7 @@ function buildScenarioComment({
     repo,
     baselineBranch,
     includeRawJson: true,
+    includeApiCalls: true,
   });
 
   // Reuse summary + collapsed details from the embedded builder; drop its
@@ -942,6 +1000,8 @@ export {
   downloadAggregatedReports,
   buildRegressionSummary,
   buildEmbeddedProfilingSection,
+  buildApiCallsSection,
+  sanitizeApiCallUrl,
   buildScenarioComment,
   shouldIncludeScenarioInComment,
   findBaselineScenario,

@@ -137,7 +137,10 @@ const useTronAssetOverviewSection = ({
     claimableRewardsTrxAmount,
     claimableRewardsFiatAmount,
     claimableRewardsCurrency,
+    claimableRewardsUnknown,
     totalStakedTrx,
+    totalStakedTrxUnknown,
+    isLoading: stakingSummaryLoading,
     fiatRate,
     currentCurrency,
   } = useTronStakingRewardsSummary({
@@ -180,6 +183,10 @@ const useTronAssetOverviewSection = ({
           },
         )
       : '-';
+    // While the shared balance request is in flight, no value is known yet:
+    // render placeholders instead of flashing zeros.
+    const claimableRewardsUnavailable =
+      claimableRewardsUnknown || stakingSummaryLoading;
 
     const apyErrorMessage = getApyErrorMessage({
       hasValidApyDecimal,
@@ -187,37 +194,42 @@ const useTronAssetOverviewSection = ({
       errorMessage: tronApyErrorMessage,
     });
 
-    const estimatedRewards = hasValidApyDecimal
-      ? (() => {
-          const rewardRounded = new BigNumber(totalStakedTrx)
-            .multipliedBy(new BigNumber(apyDecimal as string).dividedBy(100))
-            .decimalPlaces(3, BigNumber.ROUND_HALF_UP);
-          const estimatedTrxNum = rewardRounded.toNumber();
-          const formattedEstimatedTrx = `${estimatedTrxNum.toLocaleString(
-            appLocale,
-            {
-              minimumFractionDigits: 3,
-              maximumFractionDigits: 3,
-            },
-          )} TRX`;
-          const estimatedFiatNum =
-            fiatRate != null ? estimatedTrxNum * fiatRate : null;
-          const formattedEstimatedFiat =
-            estimatedFiatNum != null
-              ? formatWithThreshold(
-                  estimatedFiatNum,
-                  FIAT_THRESHOLD,
-                  localeLanguageCode,
-                  { style: 'currency', currency: currentCurrency },
-                )
-              : '-';
-          return { formattedEstimatedTrx, formattedEstimatedFiat };
-        })()
-      : undefined;
+    const estimatedRewards =
+      hasValidApyDecimal && !totalStakedTrxUnknown && !stakingSummaryLoading
+        ? (() => {
+            const rewardRounded = new BigNumber(totalStakedTrx)
+              .multipliedBy(new BigNumber(apyDecimal as string).dividedBy(100))
+              .decimalPlaces(3, BigNumber.ROUND_HALF_UP);
+            const estimatedTrxNum = rewardRounded.toNumber();
+            const formattedEstimatedTrx = `${estimatedTrxNum.toLocaleString(
+              appLocale,
+              {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3,
+              },
+            )} TRX`;
+            const estimatedFiatNum =
+              fiatRate != null ? estimatedTrxNum * fiatRate : null;
+            const formattedEstimatedFiat =
+              estimatedFiatNum != null
+                ? formatWithThreshold(
+                    estimatedFiatNum,
+                    FIAT_THRESHOLD,
+                    localeLanguageCode,
+                    { style: 'currency', currency: currentCurrency },
+                  )
+                : '-';
+            return { formattedEstimatedTrx, formattedEstimatedFiat };
+          })()
+        : undefined;
 
     const claimableRewardsRowProps = buildClaimableRewardsRowProps({
-      formattedClaimableFiat,
-      formattedClaimableTrx,
+      formattedClaimableFiat: claimableRewardsUnavailable
+        ? '-'
+        : formattedClaimableFiat,
+      formattedClaimableTrx: claimableRewardsUnavailable
+        ? '-'
+        : formattedClaimableTrx,
       privacyMode,
     });
     const estimatedAnnualRewardsRowProps = buildEstimatedAnnualRewardsRowProps({
@@ -242,6 +254,7 @@ const useTronAssetOverviewSection = ({
     apyPercent,
     claimableRewardsCurrency,
     claimableRewardsFiatAmount,
+    claimableRewardsUnknown,
     claimableRewardsTrxAmount,
     currentCurrency,
     enabled,
@@ -250,7 +263,9 @@ const useTronAssetOverviewSection = ({
     localeLanguageCode,
     privacyMode,
     tokenChainId,
+    stakingSummaryLoading,
     totalStakedTrx,
+    totalStakedTrxUnknown,
     tronApyErrorMessage,
     tronApyFetchStatus,
   ]);
