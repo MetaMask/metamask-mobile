@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { ScreenOrientationService } from './ScreenOrientationService';
 import {
   lockAsync,
@@ -8,6 +9,13 @@ import {
 jest.mock('expo-screen-orientation');
 jest.mock('../../util/Logger');
 
+const setIsPad = (isPad: boolean) => {
+  Object.defineProperty(Platform, 'isPad', {
+    configurable: true,
+    get: () => isPad,
+  });
+};
+
 const mockLockAsync = lockAsync as jest.MockedFunction<typeof lockAsync>;
 const mockUnlockAsync = unlockAsync as jest.MockedFunction<typeof unlockAsync>;
 
@@ -16,6 +24,37 @@ describe('ScreenOrientationService', () => {
     jest.clearAllMocks();
     mockLockAsync.mockResolvedValue(undefined);
     mockUnlockAsync.mockResolvedValue(undefined);
+    setIsPad(false);
+  });
+
+  describe('lockToDefault', () => {
+    it('locks phones to portrait', async () => {
+      await ScreenOrientationService.lockToDefault();
+
+      expect(mockLockAsync).toHaveBeenCalledWith(OrientationLock.PORTRAIT_UP);
+      expect(ScreenOrientationService.isLockedToPortrait()).toBe(true);
+    });
+
+    it('unlocks iPad so it follows the orientations allowed in Info.plist', async () => {
+      setIsPad(true);
+      await ScreenOrientationService.lockToPortrait();
+      mockLockAsync.mockClear();
+
+      await ScreenOrientationService.lockToDefault();
+
+      expect(mockUnlockAsync).toHaveBeenCalledTimes(1);
+      expect(mockLockAsync).not.toHaveBeenCalled();
+      expect(ScreenOrientationService.isLockedToPortrait()).toBe(false);
+    });
+
+    it('handles iPad unlock errors gracefully', async () => {
+      setIsPad(true);
+      mockUnlockAsync.mockRejectedValueOnce(new Error('Unlock failed'));
+
+      await expect(
+        ScreenOrientationService.lockToDefault(),
+      ).resolves.not.toThrow();
+    });
   });
 
   describe('lockToPortrait', () => {

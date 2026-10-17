@@ -1,5 +1,5 @@
 import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
-import { Dimensions, Animated, Linking } from 'react-native';
+import { Animated, Linking, useWindowDimensions } from 'react-native';
 import Reanimated, {
   useAnimatedStyle,
   useSharedValue,
@@ -42,8 +42,7 @@ import AppConstants from '../../../core/AppConstants';
 const MAX_CAROUSEL_SLIDES = 8;
 
 // Constants from original styles
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const BANNER_WIDTH = SCREEN_WIDTH - 32;
+const BANNER_HORIZONTAL_MARGIN = 32;
 const BANNER_HEIGHT = 100;
 
 function getSlideVariableName(slide: Pick<CarouselSlide, 'variableName'>) {
@@ -129,6 +128,8 @@ export function useFetchCarouselSlides() {
 const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { priorityContentfulSlides, regularContentfulSlides } =
     useFetchCarouselSlides();
+  const { width: windowWidth } = useWindowDimensions();
+  const bannerWidth = windowWidth - BANNER_HORIZONTAL_MARGIN;
 
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [isCarouselVisible, setIsCarouselVisible] = useState(true);
@@ -618,7 +619,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
                         'rounded-xl relative overflow-hidden border border-muted bg-default',
                         {
                           height: BANNER_HEIGHT,
-                          width: BANNER_WIDTH,
+                          width: bannerWidth,
                         },
                       )}
                     >

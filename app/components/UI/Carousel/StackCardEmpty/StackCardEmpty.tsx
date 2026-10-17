@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions } from 'react-native';
+import { Animated, useWindowDimensions } from 'react-native';
 import {
   Alignment,
   Fit,
@@ -21,8 +21,7 @@ import { strings } from '../../../../../locales/i18n';
 import CarouselConfetti from '../../../../animations/Carousel_Confetti.riv';
 
 const BANNER_HEIGHT = 100;
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const BANNER_WIDTH = SCREEN_WIDTH - 32;
+const BANNER_HORIZONTAL_MARGIN = 32;
 
 // Opacity threshold at which to trigger the confetti animation
 // Set to 0.95 instead of 1.0 to account for animation rounding and ensure
@@ -41,6 +40,8 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
   onTransitionToEmpty,
 }) => {
   const tw = useTailwind();
+  const { width: windowWidth } = useWindowDimensions();
+  const bannerWidth = windowWidth - BANNER_HORIZONTAL_MARGIN;
   const { riveFile } = useRiveFile(CarouselConfetti);
   // riveViewRef (state) is non-null only after the native view resolves
   // awaitViewReady — gating the confetti effect on it retries a late-ready
@@ -138,7 +139,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
           'rounded-xl relative overflow-hidden border border-muted bg-default',
           {
             height: BANNER_HEIGHT,
-            width: BANNER_WIDTH,
+            width: bannerWidth,
           },
         )}
       >
@@ -147,7 +148,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
           <Box
             style={tw.style('absolute inset-0 rounded-xl overflow-hidden', {
               height: BANNER_HEIGHT,
-              width: BANNER_WIDTH,
+              width: bannerWidth,
             })}
           >
             <RiveView
@@ -159,7 +160,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
               fit={Fit.Cover}
               alignment={Alignment.Center}
               style={{
-                width: BANNER_WIDTH,
+                width: bannerWidth,
                 height: BANNER_HEIGHT,
               }}
               onError={(error) => {

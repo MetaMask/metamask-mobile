@@ -4,9 +4,9 @@ import { ScreenOrientationService } from './ScreenOrientationService';
 
 jest.mock('./ScreenOrientationService');
 
-const mockLockToPortrait =
-  ScreenOrientationService.lockToPortrait as jest.MockedFunction<
-    typeof ScreenOrientationService.lockToPortrait
+const mockLockToDefault =
+  ScreenOrientationService.lockToDefault as jest.MockedFunction<
+    typeof ScreenOrientationService.lockToDefault
   >;
 const mockAllowLandscape =
   ScreenOrientationService.allowLandscape as jest.MockedFunction<
@@ -16,7 +16,7 @@ const mockAllowLandscape =
 describe('useScreenOrientation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLockToPortrait.mockResolvedValue(undefined);
+    mockLockToDefault.mockResolvedValue(undefined);
     mockAllowLandscape.mockResolvedValue(undefined);
   });
 
@@ -29,7 +29,7 @@ describe('useScreenOrientation', () => {
       expect(mockAllowLandscape).toHaveBeenCalled();
     });
 
-    it('calls lockToPortrait on unmount', async () => {
+    it('calls lockToDefault on unmount', async () => {
       let unmountFn: () => void;
 
       await act(async () => {
@@ -45,7 +45,7 @@ describe('useScreenOrientation', () => {
         unmountFn();
       });
 
-      expect(mockLockToPortrait).toHaveBeenCalled();
+      expect(mockLockToDefault).toHaveBeenCalled();
     });
   });
 
@@ -58,7 +58,7 @@ describe('useScreenOrientation', () => {
       expect(mockAllowLandscape).not.toHaveBeenCalled();
     });
 
-    it('does not call lockToPortrait on unmount when never unlocked', async () => {
+    it('does not call lockToDefault on unmount when never unlocked', async () => {
       let unmountFn: () => void;
 
       await act(async () => {
@@ -74,7 +74,7 @@ describe('useScreenOrientation', () => {
         unmountFn();
       });
 
-      expect(mockLockToPortrait).not.toHaveBeenCalled();
+      expect(mockLockToDefault).not.toHaveBeenCalled();
     });
   });
 
@@ -94,7 +94,7 @@ describe('useScreenOrientation', () => {
       expect(mockAllowLandscape).toHaveBeenCalled();
     });
 
-    it('calls lockToPortrait when changed from true to false', async () => {
+    it('calls lockToDefault when changed from true to false', async () => {
       const { rerender } = renderHook(
         ({ allowLandscape }) => useScreenOrientation({ allowLandscape }),
         { initialProps: { allowLandscape: true } },
@@ -110,7 +110,7 @@ describe('useScreenOrientation', () => {
         rerender({ allowLandscape: false });
       });
 
-      expect(mockLockToPortrait).toHaveBeenCalled();
+      expect(mockLockToDefault).toHaveBeenCalled();
     });
   });
 });

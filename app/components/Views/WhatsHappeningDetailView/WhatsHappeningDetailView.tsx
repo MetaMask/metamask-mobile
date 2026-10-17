@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Dimensions,
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -40,12 +40,11 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 const HORIZONTAL_PADDING = 16;
 const GAP = 12;
-export const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - GAP;
-const SNAP_INTERVAL = CARD_WIDTH + GAP;
+
+export const getCardWidth = (windowWidth: number) =>
+  windowWidth - HORIZONTAL_PADDING * 2 - GAP;
 
 const SKELETON_KEYS = Array.from(
   { length: SKELETON_CARD_COUNT },
@@ -67,6 +66,9 @@ interface WhatsHappeningDetailParams {
 const WhatsHappeningDetailView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = getCardWidth(windowWidth);
+  const snapInterval = cardWidth + GAP;
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
 
@@ -147,17 +149,17 @@ const WhatsHappeningDetailView = () => {
       if (
         !hasScrolledToInitial.current &&
         initialIndex > 0 &&
-        contentWidth > initialIndex * SNAP_INTERVAL &&
+        contentWidth > initialIndex * snapInterval &&
         scrollViewRef.current
       ) {
         hasScrolledToInitial.current = true;
         scrollViewRef.current.scrollTo({
-          x: initialIndex * SNAP_INTERVAL,
+          x: initialIndex * snapInterval,
           animated: false,
         });
       }
     },
-    [initialIndex],
+    [initialIndex, snapInterval],
   );
 
   useEffect(() => {
@@ -204,11 +206,11 @@ const WhatsHappeningDetailView = () => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.max(
         0,
-        Math.min(Math.floor(offsetX / SNAP_INTERVAL + 0.8), items.length - 1),
+        Math.min(Math.floor(offsetX / snapInterval + 0.8), items.length - 1),
       );
       setCurrentIndex(index);
     },
-    [items.length],
+    [items.length, snapInterval],
   );
 
   // Fires analytics once the carousel has fully settled on a card.
@@ -219,7 +221,7 @@ const WhatsHappeningDetailView = () => {
       const offsetX = event.nativeEvent.contentOffset.x;
       const index = Math.max(
         0,
-        Math.min(Math.round(offsetX / SNAP_INTERVAL), items.length - 1),
+        Math.min(Math.round(offsetX / snapInterval), items.length - 1),
       );
       const prev = previousIndexRef.current;
       if (index !== prev) {
@@ -245,7 +247,7 @@ const WhatsHappeningDetailView = () => {
         previousIndexRef.current = index;
       }
     },
-    [items, source, trackEvent, createEventBuilder],
+    [items, source, trackEvent, createEventBuilder, snapInterval],
   );
 
   const hasError = !isLoading && items.length === 0 && !!error;
@@ -291,7 +293,7 @@ const WhatsHappeningDetailView = () => {
               {SKELETON_KEYS.map((key) => (
                 <WhatsHappeningExpandedCardSkeleton
                   key={key}
-                  cardWidth={CARD_WIDTH}
+                  cardWidth={cardWidth}
                 />
               ))}
             </ScrollView>
@@ -309,7 +311,7 @@ const WhatsHappeningDetailView = () => {
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 decelerationRate="fast"
-                snapToInterval={SNAP_INTERVAL}
+                snapToInterval={snapInterval}
                 snapToAlignment="start"
                 style={tw`flex-1`}
                 contentContainerStyle={tw.style('px-4 gap-3')}
@@ -326,7 +328,7 @@ const WhatsHappeningDetailView = () => {
                       key={item.id}
                       item={item}
                       cardIndex={index}
-                      cardWidth={CARD_WIDTH}
+                      cardWidth={cardWidth}
                       cardHeight={cardHeight}
                       source={source}
                       onSourcesPress={(articles) =>

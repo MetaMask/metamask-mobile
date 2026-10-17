@@ -15,6 +15,7 @@ import {
   Pressable,
   StyleProp,
   TextLayoutEventData,
+  useWindowDimensions,
   View,
   ViewStyle,
 } from 'react-native';
@@ -197,7 +198,9 @@ const resolveToastIconAppearance = (
  * @since @metamask/design-system-react-native@0.7.0
  */
 const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { width: windowWidth } = useWindowDimensions();
+  const styleVars = useMemo(() => ({ windowWidth }), [windowWidth]);
+  const { styles } = useStyles(styleSheet, styleVars);
   const [toastOptions, setToastOptions] = useState<ToastOptions | undefined>(
     undefined,
   );

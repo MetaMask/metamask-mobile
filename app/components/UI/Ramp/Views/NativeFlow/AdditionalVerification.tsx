@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Image } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Image, useWindowDimensions } from 'react-native';
 import {
   Text,
   TextVariant,
@@ -36,7 +36,10 @@ const V2AdditionalVerification = () => {
     amount: userEnteredAmount,
   } = useParams<V2AdditionalVerificationParams>();
 
-  const { styles } = useStyles(styleSheet, {});
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const shortSide = Math.min(windowWidth, windowHeight);
+  const styleVars = useMemo(() => ({ shortSide }), [shortSide]);
+  const { styles } = useStyles(styleSheet, styleVars);
 
   const { navigateToKycWebview } = useTransakRouting({
     screenLocation: 'V2 AdditionalVerification Screen',

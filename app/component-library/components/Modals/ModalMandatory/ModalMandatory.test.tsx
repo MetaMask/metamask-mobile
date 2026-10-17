@@ -221,7 +221,10 @@ describe('ModalMandatory', () => {
 
   describe('styleSheet', () => {
     it('creates styles with theme colors', () => {
-      const styles = styleSheet({ theme: mockTheme });
+      const styles = styleSheet({
+        theme: mockTheme,
+        vars: { windowHeight: 800 },
+      });
 
       expect(styles).toBeDefined();
       expect(styles.screen).toBeDefined();
@@ -229,6 +232,20 @@ describe('ModalMandatory', () => {
       expect(styles.modal.backgroundColor).toBe(
         mockTheme.colors.background.default,
       );
+    });
+
+    it('sizes the body container to half of the window height', () => {
+      const portraitStyles = styleSheet({
+        theme: mockTheme,
+        vars: { windowHeight: 1366 },
+      });
+      const landscapeStyles = styleSheet({
+        theme: mockTheme,
+        vars: { windowHeight: 1024 },
+      });
+
+      expect(portraitStyles.bodyContainer.height).toBe(683);
+      expect(landscapeStyles.bodyContainer.height).toBe(512);
     });
   });
 });
