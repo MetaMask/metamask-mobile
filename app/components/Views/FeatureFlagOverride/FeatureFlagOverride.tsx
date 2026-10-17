@@ -32,10 +32,7 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import {
-  selectRawRemoteFeatureFlags,
-  selectFeatureFlagThresholdGroups,
-} from '../../../selectors/featureFlagController';
+import { selectFeatureFlagThresholdGroups } from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
@@ -53,7 +50,6 @@ interface AbTestType {
 }
 
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
-  const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
   const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
   const tw = useTailwind();
   const theme = useTheme();
@@ -186,16 +182,11 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           />
         );
       case FeatureFlagType.FeatureFlagAbTest: {
-        const abTestOptions = rawRemoteFeatureFlags[flag.key] as unknown as
-          | AbTestType[]
-          | undefined;
-        const isOptionsAvailable =
-          abTestOptions && Array.isArray(abTestOptions);
+        const { abTestOptions } = flag;
 
         const handleSelectOption = (name: string) => {
-          if (!isOptionsAvailable) return;
-          const selectedOption = abTestOptions.find(
-            (option: { name: string }) => option.name === name,
+          const selectedOption = abTestOptions?.find(
+            (option) => option.name === name,
           );
           if (selectedOption === undefined) {
             return;
@@ -218,16 +209,14 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         return (
           <Box
             twClassName="flex-1 ml-2 justify-center min-w-[160px]"
-            pointerEvents={isOptionsAvailable ? 'auto' : 'none'}
+            pointerEvents={abTestOptions ? 'auto' : 'none'}
           >
             <SelectOptionSheet
               options={
-                isOptionsAvailable
-                  ? abTestOptions.map((option: AbTestType) => ({
-                      label: option.name,
-                      value: option.name,
-                    }))
-                  : []
+                abTestOptions?.map((option) => ({
+                  label: option.name,
+                  value: option.name,
+                })) ?? []
               }
               label={flag.key}
               defaultValue={selectedName}
