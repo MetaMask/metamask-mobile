@@ -158,10 +158,6 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
-jest.mock('../../hooks/useBlinkingCursor', () => ({
-  useBlinkingCursor: () => 1,
-}));
-
 const mockUseRampsController = jest.requireMock(
   '../../hooks/useRampsController',
 ).useRampsController as jest.Mock;
@@ -417,7 +413,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
@@ -430,7 +426,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('250');
+      expect(amountInput).toHaveTextContent('$250');
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
@@ -443,7 +439,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('99.99');
+      expect(amountInput).toHaveTextContent('$99.99');
     });
 
     it('clears rampsError when amount is updated', async () => {
@@ -471,7 +467,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount when Back key pressed and keyboard is dirty', async () => {
@@ -487,7 +483,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('10');
+      expect(amountInput).toHaveTextContent('$10');
     });
   });
 
