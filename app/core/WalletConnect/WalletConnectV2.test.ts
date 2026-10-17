@@ -16,6 +16,11 @@ import { store } from '../../store';
 import { ActionType } from '../../actions/sdk';
 // eslint-disable-next-line import-x/no-namespace
 import * as waitUtil from '../SDKConnect/utils/wait.util';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import {
+  getWalletConnectSessionId,
+  trackWalletConnectEvent,
+} from './wc-analytics';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -53,6 +58,13 @@ jest.mock('../NavigationService', () => ({
       // Mock setter - does nothing but prevents errors
     },
   },
+}));
+
+// Only the emitter is stubbed; getWalletConnectSessionId stays real so the
+// assertions below exercise the actual id derivation.
+jest.mock('./wc-analytics', () => ({
+  ...jest.requireActual('./wc-analytics'),
+  trackWalletConnectEvent: jest.fn(),
 }));
 
 jest.mock('@reown/walletkit', () => {
@@ -1240,6 +1252,169 @@ describe('WC2Manager', () => {
         expect.any(Error),
       );
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('WalletConnect connection telemetry', () => {
+    const PAIRING_TOPIC = 'telemetry-pairing-topic';
+    const mockTrack = trackWalletConnectEvent as jest.Mock;
+
+    const createProposal = (url = 'https://example.com') => ({
+      id: 1,
+      params: {
+        id: 1,
+        pairingTopic: PAIRING_TOPIC,
+        proposer: {
+          publicKey: 'test-public-key',
+          metadata: {
+            name: 'Test App',
+            description: 'Test App',
+            url,
+            icons: ['https://example.com/icon.png'],
+          },
+        },
+        requiredNamespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+          },
+        },
+        optionalNamespaces: {},
+        expiryTimestamp: Date.now() + 300000,
+        relays: [{ protocol: 'irn' }],
+      },
+      verifyContext: {
+        verified: {
+          verifyUrl: 'https://example.com',
+          validation: 'VALID' as const,
+          origin: 'https://example.com',
+        },
+      },
+    });
+
+    const callsFor = (event: unknown) =>
+      mockTrack.mock.calls.filter(([emitted]) => emitted === event);
+
+    const approveSuccessfully = () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'test-topic',
+        pairingTopic: PAIRING_TOPIC,
+        peer: {
+          metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+        },
+      });
+    };
+
+    it('emits a received event tagged as the walletconnect transport', async () => {
+      approveSuccessfully();
+
+      await manager.onSessionProposal(createProposal());
+
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED),
+      ).toHaveLength(1);
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED)[0][1],
+      ).toEqual(
+        expect.objectContaining({
+          transport_type: 'walletconnect',
+          remote_session_id: getWalletConnectSessionId(PAIRING_TOPIC),
+          dapp_url: 'https://example.com',
+        }),
+      );
+    });
+
+    it('emits an established event carrying the same session id as the received event', async () => {
+      approveSuccessfully();
+
+      await manager.onSessionProposal(createProposal());
+
+      const received = callsFor(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+      );
+      const established = callsFor(
+        MetaMetricsEvents.REMOTE_CONNECTION_ESTABLISHED,
+      );
+
+      expect(established).toHaveLength(1);
+      // Pairing received -> established on one id is what makes connection
+      // success rate computable.
+      expect(established[0][1].remote_session_id).toBe(
+        received[0][1].remote_session_id,
+      );
+    });
+
+    it('emits rejected rather than failed when the user declines the approval', async () => {
+      approveSuccessfully();
+      (
+        Engine.context.PermissionController.requestPermissions as jest.Mock
+      ).mockRejectedValueOnce(new Error('User rejected the request'));
+
+      await manager.onSessionProposal(createProposal());
+
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_REJECTED),
+      ).toHaveLength(1);
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED),
+      ).toHaveLength(0);
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_ESTABLISHED),
+      ).toHaveLength(0);
+    });
+
+    it('classifies a bare 4001 rejection with no message as rejected', async () => {
+      approveSuccessfully();
+      (
+        Engine.context.PermissionController.requestPermissions as jest.Mock
+      ).mockRejectedValueOnce({ code: 4001 });
+
+      await manager.onSessionProposal(createProposal());
+
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_REJECTED),
+      ).toHaveLength(1);
+    });
+
+    it('emits failed with a reason when permissions fail for a non-user reason', async () => {
+      approveSuccessfully();
+      (
+        Engine.context.PermissionController.requestPermissions as jest.Mock
+      ).mockRejectedValueOnce(new Error('controller exploded'));
+
+      await manager.onSessionProposal(createProposal());
+
+      const failed = callsFor(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+      );
+
+      expect(failed).toHaveLength(1);
+      expect(failed[0][1]).toEqual(
+        expect.objectContaining({
+          failure_reason: 'request_permissions_failed',
+          transport_type: 'walletconnect',
+        }),
+      );
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_REJECTED),
+      ).toHaveLength(0);
+    });
+
+    it('emits failed with invalid_dapp_url for a malformed dapp url', async () => {
+      await manager.onSessionProposal(createProposal('not-a-url'));
+
+      const failed = callsFor(
+        MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED,
+      );
+
+      expect(failed).toHaveLength(1);
+      expect(failed[0][1]).toEqual(
+        expect.objectContaining({ failure_reason: 'invalid_dapp_url' }),
+      );
+      expect(
+        callsFor(MetaMetricsEvents.REMOTE_CONNECTION_ESTABLISHED),
+      ).toHaveLength(0);
     });
   });
 
