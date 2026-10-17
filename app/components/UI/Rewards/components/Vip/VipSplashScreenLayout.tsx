@@ -131,7 +131,7 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
             accessibilityRole="button"
             onPress={onPrimaryPress}
             style={tw.style(
-              'items-center justify-center rounded-[10px] border',
+              'items-center justify-center overflow-hidden rounded-full border',
               isSmallScreen ? 'h-10' : 'h-12',
               primaryButtonBorderStyle,
               primaryButtonBackgroundStyle,
