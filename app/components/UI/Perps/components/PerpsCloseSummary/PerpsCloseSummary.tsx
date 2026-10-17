@@ -18,6 +18,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import createStyles from './PerpsCloseSummary.styles';
 import Routes from '../../../../../constants/navigation/Routes';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import type { PerpsFeeSource } from '@metamask/perps-controller';
 import {
   FontWeight,
   IconName,
@@ -41,6 +42,8 @@ export interface PerpsCloseSummaryProps {
   originalTotalFees?: number;
   /** Fee discount percentage (0-100, undefined when unavailable) */
   feeDiscountPercentage?: number;
+  /** Winning fee source for this close (subscription renders a member badge, rewards renders a VIP badge) */
+  feeSource?: PerpsFeeSource;
   /** MetaMask fee rate (as decimal, e.g. 0.01 for 1%) - undefined means unavailable/error state */
   metamaskFeeRate?: number;
   /** Protocol fee rate (as decimal, e.g. 0.00045 for 0.045%) - undefined means unavailable/error state */
@@ -102,6 +105,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   totalFees,
   originalTotalFees,
   feeDiscountPercentage,
+  feeSource,
   metamaskFeeRate,
   protocolFeeRate,
   originalMetamaskFeeRate,
@@ -156,6 +160,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   ) : totalFees !== undefined ? (
     <PerpsFeesDisplay
       feeDiscountPercentage={feeDiscountPercentage}
+      feeSource={feeSource}
       fee={totalFees}
       originalFee={originalTotalFees}
       testID={testIDs?.feesValue}
@@ -231,6 +236,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 protocolFeeRate,
                 originalMetamaskFeeRate,
                 feeDiscountPercentage,
+                feeSource,
               }),
             testID: testIDs?.feesTooltip,
           },

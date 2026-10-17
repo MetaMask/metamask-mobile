@@ -21,7 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { OrderType } from '@metamask/perps-controller';
+import type { OrderType, PerpsFeeSource } from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -106,6 +106,7 @@ interface PerpsTradeScreenProps {
   /** Formatted fiat bridge fee, shown when the user pays with a token. */
   bridgeFee?: string;
   feeDiscountPercentage?: number;
+  feeSource?: PerpsFeeSource;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -309,6 +310,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   feePercentage,
   bridgeFee,
   feeDiscountPercentage,
+  feeSource,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -900,7 +902,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 gap={2}
               >
                 {(feeDiscountPercentage ?? 0) > 0 ? (
-                  <MembershipVipBadge />
+                  <MembershipVipBadge
+                    hasProEntitlement={feeSource === 'subscription'}
+                  />
                 ) : null}
                 <Text
                   variant={TextVariant.BodyXs}
