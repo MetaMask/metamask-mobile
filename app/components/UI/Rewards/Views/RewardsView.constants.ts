@@ -6,7 +6,6 @@ export const REWARDS_VIEW_SELECTORS = {
   BOTTOM_SHEET_CLOSE_BUTTON: 'rewards-bottom-sheet-modal-close-button',
   TITLE: 'rewards-view-title',
   BACK_BUTTON: 'rewards-view-back-button',
-  REFERRAL_BUTTON: 'rewards-view-referral-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
   VIP_BUTTON: 'rewards-view-vip-button',
   VIP_REFEREE_BUTTON: 'rewards-view-vip-referee-button',
@@ -51,8 +50,6 @@ export const REWARDS_VIEW_SELECTORS = {
   PREVIOUS_SEASON_SUMMARY: 'rewards-view-previous-season-summary',
   PREVIOUS_SEASON_BALANCE: 'rewards-view-previous-season-balance',
   PREVIOUS_SEASON_LEVEL: 'rewards-view-previous-season-level',
-  PREVIOUS_SEASON_REFERRAL_DETAILS:
-    'rewards-view-previous-season-referral-details',
   // Benefits
   TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
   TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',

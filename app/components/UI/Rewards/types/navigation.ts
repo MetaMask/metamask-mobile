@@ -176,7 +176,6 @@ export interface RewardOptInAccountGroupModalParams {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsStackParamList = {
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;

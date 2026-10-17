@@ -61,8 +61,6 @@ jest.mock(
     UserProfileProperty: {
       HAS_REWARDS_OPTED_IN: 'has_rewards_opted_in',
       ON: 'on',
-      REWARDS_REFERRED: 'rewards_referred',
-      REWARDS_REFERRAL_CODE_USED: 'rewards_referral_code_used',
     },
   }),
 );
@@ -287,7 +285,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockActiveGroupAccounts,
-        undefined,
       );
       expect(mockDispatch).toHaveBeenCalledWith(
         mockSetCandidateSubscriptionId('subscription-123'),
@@ -306,33 +303,6 @@ describe('useOptIn', () => {
         }),
       );
     });
-
-    it('should handle optin with referral code', async () => {
-      const { result } = renderHook(() => useOptin());
-
-      await act(async () => {
-        await result.current.optin({
-          referralCode: 'ABC123',
-          isPrefilled: true,
-        });
-      });
-
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:optIn',
-        mockActiveGroupAccounts,
-        'ABC123',
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_OPT_IN_STARTED,
-      );
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2); // Started and Completed
-      expect(mockIdentify).toHaveBeenCalledWith({
-        has_rewards_opted_in: 'on',
-        rewards_referred: true,
-        rewards_referral_code_used: 'ABC123',
-      });
-    });
-
     it('should handle optin failure', async () => {
       const error = new Error('Network error');
       mockEngineCall.mockRejectedValue(error);
@@ -514,7 +484,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockSideEffectAccounts,
-        undefined,
       );
 
       // Then should link the selected account group (group-1) after optin completes
@@ -574,7 +543,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockActiveGroupAccounts,
-        undefined,
       );
 
       // Should link the side effect account group
@@ -614,7 +582,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockActiveGroupAccounts,
-        undefined,
       );
       expect(mockLinkAccountGroup).not.toHaveBeenCalled();
     });
@@ -674,7 +641,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockActiveGroupAccounts,
-        undefined,
       );
       expect(mockLinkAccountGroup).not.toHaveBeenCalled();
     });
@@ -739,7 +705,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockSideEffectAccounts,
-        undefined,
       );
 
       // Should attempt to link the selected account group (group-1)
@@ -823,7 +788,6 @@ describe('useOptIn', () => {
       expect(mockEngineCall).toHaveBeenCalledWith(
         'RewardsController:optIn',
         mockSideEffectAccounts,
-        undefined,
       );
 
       // Should not call linkAccountGroup since optin failed
@@ -841,33 +805,7 @@ describe('useOptIn', () => {
   });
 
   describe('Metrics tracking', () => {
-    it('should track metrics with referral code properties', async () => {
-      const { result } = renderHook(() => useOptin());
-
-      await act(async () => {
-        await result.current.optin({
-          referralCode: 'REF123',
-          isPrefilled: false,
-        });
-      });
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_OPT_IN_STARTED,
-      );
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED,
-      );
-
-      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
-      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
-        referred: true,
-        referral_code_used: 'REF123',
-        referral_code_input_type: 'manual',
-        bulk_link: undefined,
-      });
-    });
-
-    it('should track metrics without referral code properties', async () => {
+    it('should track metrics with only the bulk_link property', async () => {
       const { result } = renderHook(() => useOptin());
 
       await act(async () => {
@@ -876,9 +814,6 @@ describe('useOptIn', () => {
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
-        referred: false,
-        referral_code_used: undefined,
-        referral_code_input_type: 'manual',
         bulk_link: undefined,
       });
     });
@@ -894,9 +829,6 @@ describe('useOptIn', () => {
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
-        referred: false,
-        referral_code_used: undefined,
-        referral_code_input_type: 'manual',
         bulk_link: true,
       });
     });
@@ -912,9 +844,6 @@ describe('useOptIn', () => {
 
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
-        referred: false,
-        referral_code_used: undefined,
-        referral_code_input_type: 'manual',
         bulk_link: false,
       });
     });
@@ -1010,12 +939,11 @@ describe('useOptIn', () => {
       expect(mockStartBulkLink).not.toHaveBeenCalled();
     });
 
-    it('should cancel bulk link and start bulk link with referral code', async () => {
+    it('should cancel bulk link and start bulk link after successful opt-in', async () => {
       const { result } = renderHook(() => useOptin());
 
       await act(async () => {
         await result.current.optin({
-          referralCode: 'ABC123',
           bulkLink: true,
         });
       });
