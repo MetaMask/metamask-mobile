@@ -50,7 +50,17 @@ const SimpleWebView = () => {
           },
         ]}
       />
-      <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
+      <WebView
+        containerStyle={baseStyles.flexGrow}
+        source={{ uri: url }}
+        testID="simple-webview"
+        originWhitelist={[
+          'https://*',
+          'http://*',
+          'about:blank',
+          'about:srcdoc',
+        ]}
+      />
     </View>
   );
 };
