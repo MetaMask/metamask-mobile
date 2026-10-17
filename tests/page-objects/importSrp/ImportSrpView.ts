@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
@@ -36,15 +37,24 @@ class ImportSrpView {
     });
   }
 
+  /**
+   * Taps Continue/Import and waits until the import screen leaves the tree.
+   * Import keeps this screen mounted while `loading` is true; callers must not
+   * assert wallet-home chrome until this resolves.
+   */
   async tapImportButton() {
     if (!PlatformDetector.isAndroid()) {
       await Gestures.hideKeyboard();
     }
     await Gestures.waitAndTap(this.importButton, {
-      elemDescription: 'Import button',
+      elemDescription: 'Import SRP Continue button',
       timeout: 15_000,
       checkForDisplayed: true,
       checkEnabled: true,
+    });
+    await Assertions.expectElementToNotBeVisible(this.container, {
+      description: 'Import SRP screen dismissed after Continue',
+      timeout: 30_000,
     });
   }
 
