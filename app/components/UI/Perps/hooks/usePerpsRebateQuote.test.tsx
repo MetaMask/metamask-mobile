@@ -272,12 +272,7 @@ describe('retryPerpsRebateQuote', () => {
 });
 
 describe('getPerpsRebateRetryDelay', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('adds jitter to the server retry delay', () => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.5);
+  it('uses the server retry delay', () => {
     const error = new RewardsMoneyRebateQuoteError(
       429,
       'RATE_LIMITED',
@@ -287,6 +282,6 @@ describe('getPerpsRebateRetryDelay', () => {
 
     const delay = getPerpsRebateRetryDelay(0, error);
 
-    expect(delay).toBe(12_125);
+    expect(delay).toBe(12_000);
   });
 });

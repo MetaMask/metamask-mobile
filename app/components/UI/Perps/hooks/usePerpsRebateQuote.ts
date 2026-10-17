@@ -20,7 +20,6 @@ import { useSessionProfileId } from '../../../../util/notifications/hooks/useSes
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 
 const DEFAULT_RETRY_DELAY_MS = 1_000;
-const MAX_RETRY_JITTER_MS = 250;
 
 export interface UsePerpsRebateQuoteParams {
   /** Prevents a quote outside an active order or position confirmation. */
@@ -88,13 +87,10 @@ export function getPerpsRebateRetryDelay(
   _failureCount: number,
   error: Error,
 ): number {
-  const retryAfterMs =
-    error instanceof RewardsMoneyRebateQuoteError &&
+  return error instanceof RewardsMoneyRebateQuoteError &&
     error.retryAfterSeconds !== undefined
-      ? error.retryAfterSeconds * 1_000
-      : DEFAULT_RETRY_DELAY_MS;
-
-  return retryAfterMs + Math.floor(Math.random() * (MAX_RETRY_JITTER_MS + 1));
+    ? error.retryAfterSeconds * 1_000
+    : DEFAULT_RETRY_DELAY_MS;
 }
 
 /**
