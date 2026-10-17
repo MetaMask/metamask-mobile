@@ -3,7 +3,9 @@ import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import type { EncryptionKey } from '../../../Encryptor/types';
 import AuthTokenHandler from '../../../OAuthService/AuthTokenHandler';
 import { web3AuthNetwork } from '../../../OAuthService/OAuthLoginHandlers/constants';
+import { isMoneyMfaEnabled } from '../../../../lib/Money/feature-flags';
 import {
+  getSeedlessOidcIdentifierAuthProvider,
   getSeedlessOnboardingControllerInstanceOptions,
   seedlessOnboardingEncryptorAdapter,
 } from './seedless-onboarding-controller';
@@ -59,6 +61,12 @@ jest.mock('../../../OAuthService/AuthTokenHandler', () => ({
 jest.mock('../../../OAuthService/OAuthLoginHandlers/constants', () => ({
   web3AuthNetwork: 'sapphire_mainnet',
 }));
+
+jest.mock('../../../../lib/Money/feature-flags', () => ({
+  isMoneyMfaEnabled: jest.fn(),
+}));
+
+const mockedIsMoneyMfaEnabled = jest.mocked(isMoneyMfaEnabled);
 
 const getEncryptorMocks = () => {
   const mocks = jest.requireMock('../../../Encryptor') as {
@@ -119,6 +127,40 @@ describe('getSeedlessOnboardingControllerInstanceOptions', () => {
     } finally {
       constants.web3AuthNetwork = originalNetwork;
     }
+  });
+});
+
+describe('getSeedlessOidcIdentifierAuthProvider', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns a Seedless OIDC provider gated by isMoneyMfaEnabled', async () => {
+    mockedIsMoneyMfaEnabled.mockReturnValue(false);
+    const remoteFlags = {
+      isMoneyMfaEnabled: { enabled: false, minimumVersion: '0.0.0' },
+    };
+    const loginWithNonce = jest.fn();
+
+    const provider = getSeedlessOidcIdentifierAuthProvider({
+      getRemoteFeatureFlags: () => remoteFlags,
+      loginWithNonce,
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierToken({
+        identifier: {
+          type: 'oidc',
+          namespace: 'https://accounts.google.com',
+          value: 'google-sub-1',
+          verifier: { auds: ['client-id'] },
+        },
+        proofPublicKey: '{"kty":"EC"}',
+        requestHash: `0x${'11'.repeat(32)}`,
+      }),
+    ).rejects.toThrow('MFA recovery is disabled');
+    expect(mockedIsMoneyMfaEnabled).toHaveBeenCalledWith(remoteFlags);
+    expect(loginWithNonce).not.toHaveBeenCalled();
   });
 });
 

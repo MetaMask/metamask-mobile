@@ -65,6 +65,11 @@ export interface BaseHandlerOptions {
   authServerUrl: string;
   clientId: string;
   web3AuthNetwork: string;
+  /**
+   * Caller-supplied OIDC nonce. MFA recovery binds a proof key into the ID
+   * token through this value, so it must reach the provider unchanged.
+   */
+  nonce?: string;
 }
 
 /**
@@ -74,6 +79,8 @@ export abstract class BaseLoginHandler {
   public options: BaseHandlerOptions;
 
   public nonce: string;
+
+  protected readonly hasCallerNonce: boolean;
 
   protected readonly CODE_CHALLENGE_METHOD = 'S256';
 
@@ -91,7 +98,8 @@ export abstract class BaseLoginHandler {
 
   constructor(options: BaseHandlerOptions) {
     this.options = options;
-    this.nonce = this.generateNonce();
+    this.hasCallerNonce = options.nonce !== undefined;
+    this.nonce = options.nonce ?? this.generateNonce();
   }
 
   /**

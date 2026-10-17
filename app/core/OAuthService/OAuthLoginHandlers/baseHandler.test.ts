@@ -107,6 +107,16 @@ describe('BaseLoginHandler', () => {
       expect(handler1.nonce.length).toBeGreaterThan(0);
       expect(handler1.nonce).not.toBe(handler2.nonce); // Each instance should have unique nonce
     });
+
+    it('uses the caller nonce instead of generating one', () => {
+      const handler = new MockLoginHandler({
+        ...mockBaseHandlerParams,
+        nonce: '0xbound-nonce',
+      });
+
+      expect(handler.nonce).toBe('0xbound-nonce');
+      expect(mockRandomUUID).not.toHaveBeenCalled();
+    });
   });
 
   describe('abstract properties', () => {
