@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { selectMarketingConsent } from '../../../../selectors/analyticsController';
 import {
   Switch,
   ScrollView,
@@ -127,7 +128,7 @@ const Settings: React.FC = () => {
   );
 
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
 
   /**

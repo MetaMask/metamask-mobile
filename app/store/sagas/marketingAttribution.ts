@@ -5,14 +5,22 @@ import {
   type SetDataCollectionForMarketing,
 } from '../../actions/security';
 import { CLEAR_ONBOARDING } from '../../actions/onboarding';
-import { clearAttribution } from '../../core/redux/slices/attribution';
+import {
+  clearAttribution,
+  type AttributionRecord,
+} from '../../core/redux/slices/attribution';
+import {
+  INIT_BG_STATE_KEY,
+  UPDATE_BG_STATE_KEY,
+} from '../../core/EngineService/constants';
 import { analytics } from '../../util/analytics/analytics';
 import { ensureError } from '../../util/errorUtils';
 import Logger from '../../util/Logger';
 import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
+import { selectAttributionRecord } from '../../selectors/attribution';
 
 /**
- * Clear persisted acquisition data when marketing consent is disabled.
+ * Copy each marketing preference the UI writes into AnalyticsController.
  */
 export function* watchMarketingAttributionOnConsentChange() {
   yield takeEvery(
@@ -48,9 +56,26 @@ export function* watchMarketingAttributionOnConsentChange() {
             );
           }
         }
-        return;
       }
-      if (enabled === false) {
+    },
+  );
+}
+
+/**
+ * Clear persisted acquisition data whenever marketing consent is off,
+ * including when it was revoked on another device.
+ */
+export function* watchMarketingAttributionOnControllerConsent() {
+  yield takeEvery(
+    [INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY],
+    function* clearAttributionWithoutConsent() {
+      const optedIn: boolean | undefined = yield select(
+        selectAnalyticsOptedInToMarketing,
+      );
+      const attribution: AttributionRecord | null = yield select(
+        selectAttributionRecord,
+      );
+      if (optedIn === false && attribution) {
         yield put(clearAttribution());
       }
     },

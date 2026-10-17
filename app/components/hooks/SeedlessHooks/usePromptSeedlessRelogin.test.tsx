@@ -7,6 +7,7 @@ import usePromptSeedlessRelogin from './usePromptSeedlessRelogin';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { clearHistory } from '../../../actions/browser';
+import { engineWithMarketingConsent } from '../../../util/test/marketingConsentState';
 
 // Mock dependencies
 jest.mock('../useAnalytics/useAnalytics');
@@ -51,9 +52,7 @@ describe('usePromptSeedlessRelogin', () => {
   const mockMetrics = createMockUseAnalyticsHook();
 
   const initialState = {
-    security: {
-      dataCollectionForMarketing: true,
-    },
+    engine: engineWithMarketingConsent(true),
   };
 
   const store = mockStore(initialState);
@@ -414,12 +413,10 @@ describe('usePromptSeedlessRelogin', () => {
   });
 
   describe('selector integration', () => {
-    it('uses dataCollectionForMarketing from Redux state', async () => {
+    it('uses marketing consent from AnalyticsController state', async () => {
       // Arrange
       const stateWithMarketingDisabled = {
-        security: {
-          dataCollectionForMarketing: false,
-        },
+        engine: engineWithMarketingConsent(false),
       };
       const storeWithMarketingDisabled = mockStore(stateWithMarketingDisabled);
 

@@ -1589,10 +1589,9 @@ class FixtureBuilder {
     this.fixture.asyncState['@MetaMask:metricsOptIn'] = 'agreed';
 
     // Also set up AnalyticsController state so analytics.isEnabled() returns true
-    this.fixture.state.engine.backgroundState.AnalyticsController = {
-      optedIn: true,
-      analyticsId: TEST_ANALYTICS_ID,
-    };
+    merge(this.fixture.state.engine.backgroundState, {
+      AnalyticsController: { optedIn: true, analyticsId: TEST_ANALYTICS_ID },
+    });
     return this;
   }
 
@@ -2409,6 +2408,14 @@ class FixtureBuilder {
     const { capturedAt: capturedAtInput, ...restFields } = attributionFields;
     const capturedAt = capturedAtInput ?? Date.now();
     merge(this.fixture.state, {
+      engine: {
+        backgroundState: {
+          AnalyticsController: {
+            marketingConsentDecisionMade: true,
+            optedInToMarketing: true,
+          },
+        },
+      },
       security: {
         allowLoginWithRememberMe: false,
         dataCollectionForMarketing: true,

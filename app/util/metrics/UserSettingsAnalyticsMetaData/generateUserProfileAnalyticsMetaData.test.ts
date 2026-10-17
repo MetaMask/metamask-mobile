@@ -9,6 +9,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
+import { analyticsControllerWithMarketingConsent } from '../../../util/test/marketingConsentState';
 
 const mockGetState = jest.fn();
 jest.mock('../../../store', () => ({
@@ -53,6 +54,7 @@ function makeAccount(id: string, keyringType: KeyringTypes): InternalAccount {
 const mockState = {
   engine: {
     backgroundState: {
+      AnalyticsController: analyticsControllerWithMarketingConsent(true),
       PreferencesController: {
         displayNftMedia: true,
         useNftDetection: false,
@@ -69,7 +71,6 @@ const mockState = {
     },
   },
   user: { appTheme: 'os' },
-  security: { dataCollectionForMarketing: true },
 };
 
 describe('generateUserProfileAnalyticsMetaData', () => {
@@ -110,7 +111,13 @@ describe('generateUserProfileAnalyticsMetaData', () => {
   ])('returns marketing consent "%s"', (expected, stateConsentValue) => {
     mockGetState.mockReturnValue({
       ...mockState,
-      security: { dataCollectionForMarketing: stateConsentValue },
+      engine: {
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          AnalyticsController:
+            analyticsControllerWithMarketingConsent(stateConsentValue),
+        },
+      },
     });
 
     const metadata = generateUserProfileAnalyticsMetaData();

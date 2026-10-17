@@ -6,9 +6,12 @@ import { clearAttribution } from '../../core/redux/slices/attribution';
 import { analytics } from '../../util/analytics/analytics';
 import Logger from '../../util/Logger';
 import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
+import { selectAttributionRecord } from '../../selectors/attribution';
+import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
 import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
+  watchMarketingAttributionOnControllerConsent,
 } from './marketingAttribution';
 
 jest.mock('../../util/analytics/analytics', () => ({
@@ -26,15 +29,14 @@ jest.mock('../../util/Logger', () => ({
 
 describe('marketingAttribution sagas', () => {
   describe('watchMarketingAttributionOnConsentChange', () => {
-    it('opts the controller out and clears attribution when marketing is disabled', async () => {
+    it('opts the controller out when marketing is disabled', async () => {
       await expectSaga(watchMarketingAttributionOnConsentChange)
         .dispatch(setDataCollectionForMarketing(false))
         .call([analytics, analytics.setDataCollectionForMarketing], false)
-        .put(clearAttribution())
         .silentRun(50);
     });
 
-    it('opts the controller in and keeps attribution when marketing is enabled', async () => {
+    it('opts the controller in when marketing is enabled', async () => {
       await expectSaga(watchMarketingAttributionOnConsentChange)
         .dispatch(setDataCollectionForMarketing(true))
         .call([analytics, analytics.setDataCollectionForMarketing], true)
@@ -76,6 +78,47 @@ describe('marketingAttribution sagas', () => {
           setDataCollectionForMarketing(true, { skipControllerSync: true }),
         )
         .not.call([analytics, analytics.setDataCollectionForMarketing], true)
+        .not.put(clearAttribution())
+        .silentRun(50);
+    });
+  });
+
+  describe('watchMarketingAttributionOnControllerConsent', () => {
+    const attribution = { utm_source: 'source', capturedAt: 1 };
+    const bgStateUpdate = {
+      type: UPDATE_BG_STATE_KEY,
+      payload: { key: 'AnalyticsController' },
+    };
+
+    it('clears attribution when the controller reports marketing off', async () => {
+      await expectSaga(watchMarketingAttributionOnControllerConsent)
+        .provide([
+          [select(selectAnalyticsOptedInToMarketing), false],
+          [select(selectAttributionRecord), attribution],
+        ])
+        .dispatch(bgStateUpdate)
+        .put(clearAttribution())
+        .silentRun(50);
+    });
+
+    it('keeps attribution while marketing is on', async () => {
+      await expectSaga(watchMarketingAttributionOnControllerConsent)
+        .provide([
+          [select(selectAnalyticsOptedInToMarketing), true],
+          [select(selectAttributionRecord), attribution],
+        ])
+        .dispatch(bgStateUpdate)
+        .not.put(clearAttribution())
+        .silentRun(50);
+    });
+
+    it('waits for controller state before clearing anything', async () => {
+      await expectSaga(watchMarketingAttributionOnControllerConsent)
+        .provide([
+          [select(selectAnalyticsOptedInToMarketing), undefined],
+          [select(selectAttributionRecord), attribution],
+        ])
+        .dispatch(bgStateUpdate)
         .not.put(clearAttribution())
         .silentRun(50);
     });
