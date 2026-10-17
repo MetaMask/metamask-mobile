@@ -5,6 +5,7 @@ import {
 } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { PhishingModalSelectorsIDs } from '../../../app/components/UI/PhishingModal/PhishingModal.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import type { AppiumElement } from '../../framework/AppiumElement';
@@ -101,8 +102,8 @@ class Browser {
   }
 
   get backToSafetyButton(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+    return Matchers.getElementByID(
+      PhishingModalSelectorsIDs.BACK_TO_SAFETY_BUTTON,
     );
   }
 
@@ -510,10 +511,46 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
+    //
+    // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
+    // rescan can mount a new full-screen warning about a second later, which
+    // covers the URL bar again. A 3s editor-dismiss probe before the first read
+    // misses that gap (`Element not visible` for the whole retry). Poll the bar
+    // immediately, and only dismiss the URL editor when Cancel is already up.
     await AppiumContextHelpers.switchToNativeContext();
-    await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
+    const assertionDescription =
+      description ?? `URL input box text is not "${text}"`;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        if (await Utilities.isElementVisible(this.cancelUrlInputButton, 250)) {
+          await Gestures.waitAndTap(this.cancelUrlInputButton, {
+            elemDescription: 'Cancel URL input (dismiss URL editor)',
+            timeout: 2_000,
+          });
+        }
+
+        await Assertions.expectElementToBeVisible(this.urlBarDisplayText, {
+          description:
+            'URL bar display text is visible before not-equal assert',
+          timeout: 700,
+        });
+        const urlText = (
+          await Utilities.getElementText(this.urlBarDisplayText)
+        ).trim();
+        if (!urlText || urlText.includes(text)) {
+          throw new Error(
+            `URL bar still shows the blocked page (got "${urlText}")`,
+          );
+        }
+      },
+      {
+        timeout: 12_000,
+        interval: 200,
+        description: assertionDescription,
+        elemDescription: 'browser URL bar',
+      },
+    );
   }
 
   /**
