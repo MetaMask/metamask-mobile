@@ -8,6 +8,7 @@ import {
   type PredictPosition as PredictPositionType,
 } from '../../types';
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
+import { AvatarPredictSelectorsIDs } from '../AvatarPredict/AvatarPredict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
@@ -126,10 +127,9 @@ describe('PredictPosition', () => {
     const iconUrl = 'https://example.com/icon.png';
     renderComponent({ icon: iconUrl });
 
-    const image = screen.getByTestId(
-      PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
-    );
+    const image = screen.getByTestId(AvatarPredictSelectorsIDs.IMAGE);
     expect(image).toBeOnTheScreen();
+    expect(image.props.source).toEqual({ uri: iconUrl });
   });
 
   it('calls onPress handler when pressed', () => {

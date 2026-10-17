@@ -28,11 +28,11 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Linking,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import AvatarPredict from '../../components/AvatarPredict';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import Button, {
@@ -400,9 +400,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
       </TouchableOpacity>
-      <Image
-        source={{ uri: outcome?.image }}
-        style={tw.style('w-10 h-10 rounded')}
+      <AvatarPredict
+        src={outcome?.image ? { uri: outcome.image } : undefined}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
         <Box flexDirection={BoxFlexDirection.Row} twClassName="min-w-0 gap-4">

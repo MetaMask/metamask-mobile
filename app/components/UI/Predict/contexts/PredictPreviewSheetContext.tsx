@@ -6,7 +6,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
   createContext,
   useCallback,
@@ -16,7 +15,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -58,6 +56,7 @@ import { usePredictActiveOrder } from '../hooks/usePredictActiveOrder';
 import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
+import AvatarPredict from '../components/AvatarPredict';
 import { getBuyOutcomeImage } from '../utils/sports';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
@@ -120,7 +119,6 @@ export function shouldSuppressLegacyOrderFailureToast(): boolean {
 const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
   params,
 }) => {
-  const tw = useTailwind();
   const position = params.position;
   const outcomeGroupTitle = params.outcome?.groupItemTitle ?? '';
   const outcomeToken = params.outcome?.tokens?.find(
@@ -134,12 +132,7 @@ const SellSheetHeader: React.FC<{ params: PredictSellPreviewParams }> = ({
       alignItems={BoxAlignItems.Center}
       twClassName="gap-3 flex-1 min-w-0"
     >
-      {position?.icon && (
-        <Image
-          source={{ uri: position.icon }}
-          style={tw.style('w-10 h-10 rounded')}
-        />
-      )}
+      {position?.icon && <AvatarPredict src={{ uri: position.icon }} />}
       <Box twClassName="flex-1 min-w-0">
         <Text
           variant={TextVariant.HeadingSm}

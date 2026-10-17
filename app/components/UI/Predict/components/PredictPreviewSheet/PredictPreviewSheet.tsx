@@ -7,10 +7,11 @@ import {
   Text,
   TextColor,
   TextVariant,
+  AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { forwardRef, useImperativeHandle } from 'react';
-import { Image } from 'expo-image';
+import AvatarPredict from '../AvatarPredict';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
@@ -89,12 +90,9 @@ const PredictPreviewSheet = forwardRef<
               twClassName={`gap-3 flex-1 min-w-0 ${image ? '' : 'pl-2'}`}
               testID="preview-sheet-header-content"
             >
-              {image && (
-                <Image
-                  source={{ uri: image }}
-                  style={tw.style('w-12 h-12 rounded')}
-                />
-              )}
+              {image ? (
+                <AvatarPredict src={{ uri: image }} size={AvatarBaseSize.Xl} />
+              ) : null}
               <Box twClassName="flex-1 min-w-0 shrink">
                 <Box
                   flexDirection={BoxFlexDirection.Row}
