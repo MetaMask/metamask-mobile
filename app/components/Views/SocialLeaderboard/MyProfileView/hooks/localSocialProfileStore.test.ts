@@ -5,6 +5,7 @@ import {
   restoreDefaultLocalSocialProfile,
   saveLocalSocialProfile,
 } from './localSocialProfileStore';
+import { isRecentSocialActivityTimestamp } from '../../../../../util/social/socialActivityStorage';
 
 const onboardedProfile: MySocialProfile = {
   profileId: 'current-user',
@@ -31,6 +32,15 @@ describe('localSocialProfileStore', () => {
 
     expect(profile?.handle).toBe('giga-whale');
     expect(profile?.displayName).toBe('Giga Whale');
+    expect(profile?.createdAt).toEqual(expect.any(String));
+  });
+
+  it('keeps the default profile outside the recent activity window', () => {
+    const { profile } = getLocalSocialProfileSnapshot();
+
+    expect(
+      isRecentSocialActivityTimestamp(profile?.createdAt, Date.now()),
+    ).toBe(false);
   });
 
   it('clears the profile on reset', () => {

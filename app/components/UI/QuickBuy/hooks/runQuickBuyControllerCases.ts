@@ -20,6 +20,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { selectSelectedAccountWalletId } from '../../../../selectors/multichainAccounts/selectedWallet';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -74,6 +75,7 @@ import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { recordSocialTrade } from '../../../../util/social/socialActivityStorage';
 
 const mockUseQuickBuyAnalytics = useQuickBuyAnalytics as jest.MockedFunction<
   typeof useQuickBuyAnalytics
@@ -111,6 +113,13 @@ const mockUseDestTokenExchangeRate =
 const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockToAssetId = toAssetId as jest.MockedFunction<typeof toAssetId>;
+const mockSelectSelectedAccountWalletId =
+  selectSelectedAccountWalletId as jest.MockedFunction<
+    typeof selectSelectedAccountWalletId
+  >;
+const mockRecordSocialTrade = recordSocialTrade as jest.MockedFunction<
+  typeof recordSocialTrade
+>;
 
 const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
@@ -223,6 +232,7 @@ export const setupDefaultMocks = () => {
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
   );
+  mockSelectSelectedAccountWalletId.mockReturnValue('entropy:wallet-1');
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
   (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(true);
   (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
@@ -3590,6 +3600,105 @@ export const runQuickBuyControllerCases = ({
         );
       });
 
+      it('records the selected wallet after a resolved social Quick Buy', async () => {
+        const callOrder: string[] = [];
+        mockRecordSocialTrade.mockImplementation(() => {
+          callOrder.push('record');
+        });
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockImplementation(async () => {
+          callOrder.push('submit');
+          return undefined;
+        });
+        setupQuoteSourceMock({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+
+        const { result } = renderHook(createTarget(), jest.fn(), {
+          source: 'profile_position',
+        });
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockRecordSocialTrade).toHaveBeenCalledWith('entropy:wallet-1');
+        expect(callOrder).toStrictEqual(['submit', 'record']);
+      });
+
+      it('does not record a wallet for a non-social Quick Buy', async () => {
+        setupQuoteSourceMock({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+
+        const { result } = renderHook(createTarget(), jest.fn(), {
+          source: 'asset_details',
+        });
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockRecordSocialTrade).not.toHaveBeenCalled();
+      });
+
+      it('does not record a wallet when the social Quick Buy has no wallet ID', async () => {
+        mockSelectSelectedAccountWalletId.mockReturnValue(null);
+        setupQuoteSourceMock({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+
+        const { result } = renderHook(createTarget(), jest.fn(), {
+          source: 'profile_position',
+        });
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockRecordSocialTrade).not.toHaveBeenCalled();
+      });
+
       it('does not call submitTx when there is no active quote', async () => {
         setupQuoteSourceMock({
           activeQuote: undefined,
@@ -3662,6 +3771,7 @@ export const runQuickBuyControllerCases = ({
             }),
           }),
         );
+        expect(mockRecordSocialTrade).not.toHaveBeenCalled();
       });
 
       describe('copy-trade intents', () => {

@@ -28,6 +28,7 @@ import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagCo
 import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
+import { useIsSocialTopTradersEligible } from './hooks/useIsSocialTopTradersEligible';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useABTest } from '../../../hooks';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
@@ -45,6 +46,10 @@ import {
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../../constants/socialV1';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
@@ -94,11 +99,21 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       PERPS_SECTION_PRIORITY_VARIANTS,
       PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
     );
+    const { variant: socialV1Variant } = useABTest(
+      SOCIAL_V1_AB_KEY,
+      SOCIAL_V1_VARIANTS,
+      { trackExposure: false },
+    );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const showPerpsAboveTokens =
       isPerpsEnabled &&
       perpsSectionPriorityVariant.perpsAboveTokensEligible &&
       isActivePerpsTrader;
+    const isSocialTopTradersEligible = useIsSocialTopTradersEligible();
+    const showTopTradersAboveAllocation =
+      isTopTradersEnabled &&
+      socialV1Variant.useSocialV1 &&
+      isSocialTopTradersEligible;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -133,6 +148,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const enabledSections = useMemo(
       () =>
         [
+          ...(showTopTradersAboveAllocation
+            ? [{ name: HomeSectionNames.TOP_TRADERS, enabled: true }]
+            : []),
           // Order must match the JSX below — this drives `sectionIndex` on Home Viewed.
           ...(showPerpsAboveTokens
             ? [
@@ -148,7 +166,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
             name: HomeSectionNames.TOP_TRADERS,
-            enabled: isTopTradersEnabled,
+            enabled: isTopTradersEnabled && !showTopTradersAboveAllocation,
           },
           { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
           { name: HomeSectionNames.NFTS, enabled: true },
@@ -156,6 +174,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       [
         isPerpsEnabled,
         showPerpsAboveTokens,
+        showTopTradersAboveAllocation,
         shouldRenderEarnSection,
         isPredictEnabled,
         isDeFiEnabled,
@@ -221,6 +240,14 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               {balanceBreakdownSectionProps ? (
                 <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
               ) : null}
+              {showTopTradersAboveAllocation && (
+                <TopTradersSection
+                  key="top-traders"
+                  ref={topTradersSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
               {showPerpsAboveTokens ? (
                 <>
                   {perpsSection}
@@ -252,8 +279,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                   totalSectionsLoaded={totalSectionsLoaded}
                 />
               )}
-              {isTopTradersEnabled && (
+              {isTopTradersEnabled && !showTopTradersAboveAllocation && (
                 <TopTradersSection
+                  key="top-traders"
                   ref={topTradersSectionRef}
                   sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
                   totalSectionsLoaded={totalSectionsLoaded}
