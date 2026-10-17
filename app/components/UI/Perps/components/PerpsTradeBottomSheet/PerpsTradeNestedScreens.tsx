@@ -76,7 +76,6 @@ export const PerpsTradeLeverageScreen: React.FC<
 /** Explainers that the Trade sheet shows inline instead of in a new sheet. */
 export type PerpsInlineInfoContentKey =
   | 'margin'
-  | 'rebate'
   | 'liquidation_price'
   | 'liquidation_distance';
 

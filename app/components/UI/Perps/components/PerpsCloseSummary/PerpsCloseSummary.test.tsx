@@ -128,34 +128,6 @@ describe('PerpsCloseSummary', () => {
     expect(getByTestId('fees-tooltip-button')).toBeOnTheScreen();
   });
 
-  it('renders an eligible rebate after fees and opens its tooltip', () => {
-    const testIDs = {
-      rebateRow: 'rebate-row',
-      rebateValue: 'rebate-value',
-      rebateTooltip: 'rebate-tooltip',
-    };
-
-    const { getByTestId } = render(
-      <PerpsCloseSummary
-        {...defaultProps}
-        rebateBips={500}
-        testIDs={testIDs}
-      />,
-    );
-
-    expect(getByTestId('rebate-row')).toBeOnTheScreen();
-    expect(getByTestId('rebate-value')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('rebate-tooltip'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        params: expect.objectContaining({ contentKey: 'rebate' }),
-      }),
-    );
-  });
-
   it('renders receive amount with tooltip', () => {
     // Arrange
     const testIDs = { receiveTooltip: 'receive-tooltip-button' };

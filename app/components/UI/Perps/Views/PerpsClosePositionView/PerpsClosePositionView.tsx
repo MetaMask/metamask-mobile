@@ -21,7 +21,7 @@ import {
   getPerpsDisplaySymbol,
   isStrategyOrderType,
 } from '@metamask/perps-controller';
-import { usePerpsRebateQuote, usePerpsToasts } from '../../hooks';
+import { usePerpsToasts } from '../../hooks';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import {
   formatPositionSize,
@@ -36,7 +36,7 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
-import { getDisplayablePerpsRebateBips } from '../../components/PerpsRebate';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -91,16 +91,6 @@ const PerpsClosePositionView: React.FC = () => {
     }
   }, [effectiveOrderType, limitPrice]);
 
-  const { data: rebateQuote } = usePerpsRebateQuote({
-    coin: position.symbol,
-    direction: isLong ? 'short' : 'long',
-    notionalUsd: closeAmountUSDString,
-  });
-  const rebateBips = getDisplayablePerpsRebateBips(
-    rebateQuote?.eligible,
-    rebateQuote?.rebateBips,
-  );
-
   const Summary = (
     <PerpsCloseSummary
       totalMargin={summaryMargin}
@@ -111,7 +101,6 @@ const PerpsClosePositionView: React.FC = () => {
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
       originalMetamaskFeeRate={feeResults.originalMetamaskFeeRate}
-      rebateBips={rebateBips}
       receiveAmount={receiveAmount}
       shouldShowRewards={rewardsState.shouldShowRewardsRow}
       estimatedPoints={rewardsState.estimatedPoints}
@@ -128,9 +117,6 @@ const PerpsClosePositionView: React.FC = () => {
         pointsTooltip: PerpsClosePositionViewSelectorsIDs.POINTS_TOOLTIP_BUTTON,
         marginValue: PerpsClosePositionViewSelectorsIDs.MARGIN_VALUE,
         feesValue: PerpsClosePositionViewSelectorsIDs.FEES_VALUE,
-        rebateRow: PerpsClosePositionViewSelectorsIDs.REBATE_ROW,
-        rebateValue: PerpsClosePositionViewSelectorsIDs.REBATE_VALUE,
-        rebateTooltip: PerpsClosePositionViewSelectorsIDs.REBATE_TOOLTIP_BUTTON,
         receiveValue: PerpsClosePositionViewSelectorsIDs.RECEIVE_VALUE,
       }}
     />
@@ -280,7 +266,15 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
+          <>
+            <PerpsRebateBanner
+              coin={position.symbol}
+              direction={isLong ? 'short' : 'long'}
+              notionalUsd={closeAmountUSDString}
+              twClassName="mx-4 mb-3"
+            />
+            <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
+          </>
         )}
       </Box>
 

@@ -16,7 +16,6 @@ import { ContentRegistry } from './types';
  */
 export const tooltipContentRegistry: ContentRegistry = {
   fees: FeesTooltipContent, // Now works for both order and close position views
-  rebate: undefined,
   closing_fees: FeesTooltipContent, // Use the same component, it handles both cases
   withdrawal_fees: WithdrawalFeesTooltipContent,
   receive: undefined,

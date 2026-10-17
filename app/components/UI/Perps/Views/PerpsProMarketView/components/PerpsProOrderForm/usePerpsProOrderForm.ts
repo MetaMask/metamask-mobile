@@ -55,7 +55,6 @@ import Logger from '../../../../../../../util/Logger';
 import { ensureError } from '../../../../../../../util/errorUtils';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
-import { getDisplayablePerpsRebateBips } from '../../../../components/PerpsRebate';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import {
@@ -71,7 +70,6 @@ import {
   usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderFees,
-  usePerpsRebateQuote,
   usePerpsOrderValidation,
   usePerpsToasts,
   usePerpsTrading,
@@ -163,6 +161,7 @@ import {
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
+  PerpsProRebateQuote,
   PerpsProOrderSummaryProps,
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
@@ -556,6 +555,7 @@ export interface UsePerpsProOrderFormResult {
   onTPSLPress: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   scaleOrder: PerpsProScaleOrderModel;
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
@@ -1677,16 +1677,6 @@ export const usePerpsProOrderForm = ({
   });
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-  const { data: rebateQuote } = usePerpsRebateQuote({
-    coin: orderForm.asset,
-    direction: orderForm.direction,
-    notionalUsd: calculationUsdAmount,
-  });
-  const rebateBips = getDisplayablePerpsRebateBips(
-    rebateQuote?.eligible,
-    rebateQuote?.rebateBips,
-  );
-
   // Scale endpoints are compared against the side of the book they would hit:
   // best ask for a long, best bid for a short. Top-of-book arrives on its own
   // stream and can be absent for the first frames; mid is not a substitute,
@@ -4003,9 +3993,7 @@ export const usePerpsProOrderForm = ({
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
-      rebateBips,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
-      onRebateInfoPress: () => setSelectedTooltip('rebate'),
       twapSummary: isTwapOrder
         ? {
             runtime: twapRuntimeSummary,
@@ -4030,7 +4018,6 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
-    rebateBips,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
@@ -4699,6 +4686,11 @@ export const usePerpsProOrderForm = ({
     onTPSLPress,
     notices,
     summary,
+    rebateQuote: {
+      coin: orderForm.asset,
+      direction: orderForm.direction,
+      notionalUsd: calculationUsdAmount,
+    },
     scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading:

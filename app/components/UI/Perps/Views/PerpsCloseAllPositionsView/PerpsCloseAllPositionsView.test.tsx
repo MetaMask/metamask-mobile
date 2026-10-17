@@ -6,7 +6,6 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRebateQuote,
   usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -28,7 +27,6 @@ jest.mock('../../hooks', () => ({
   usePerpsCloseAllCalculations: jest.fn(),
   usePerpsCloseAllPositions: jest.fn(),
   usePerpsRewardAccountOptedIn: jest.fn(),
-  usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -52,6 +50,13 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../../components/PerpsCloseSummary', () => jest.fn(() => null));
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 const mockUsePerpsLivePositions = usePerpsLivePositions as jest.MockedFunction<
   typeof usePerpsLivePositions
@@ -68,9 +73,6 @@ const mockUsePerpsRewardAccountOptedIn =
   usePerpsRewardAccountOptedIn as jest.MockedFunction<
     typeof usePerpsRewardAccountOptedIn
   >;
-const mockUsePerpsRebateQuote = usePerpsRebateQuote as jest.MockedFunction<
-  typeof usePerpsRebateQuote
->;
 const mockPerpsCloseSummary = jest.requireMock(
   '../../components/PerpsCloseSummary',
 ) as jest.Mock;
@@ -151,9 +153,6 @@ describe('PerpsCloseAllPositionsView', () => {
     });
     mockUsePerpsCloseAllCalculations.mockReturnValue(mockCalculations);
     mockUsePerpsCloseAllPositions.mockReturnValue(mockCloseAllHook);
-    mockUsePerpsRebateQuote.mockReturnValue({
-      data: undefined,
-    } as ReturnType<typeof usePerpsRebateQuote>);
     mockUsePerpsRewardAccountOptedIn.mockReturnValue({
       accountOptedIn: true,
       account: mockRewardAccountOptedIn as unknown as InternalAccount,
@@ -359,17 +358,10 @@ describe('PerpsCloseAllPositionsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('passes an eligible rebate to the close-all summary', () => {
-    mockUsePerpsRebateQuote.mockReturnValue({
-      data: { eligible: true, rebateBips: 500 },
-    } as ReturnType<typeof usePerpsRebateQuote>);
-
+  it('renders the close-all rebate banner', () => {
     render(<PerpsCloseAllPositionsView />);
 
-    expect(mockPerpsCloseSummary).toHaveBeenCalledWith(
-      expect.objectContaining({ rebateBips: 500 }),
-      undefined,
-    );
+    expect(mockPerpsRebateBanner).toHaveBeenCalled();
   });
 
   it('calls usePerpsRewardAccountOptedIn with totalEstimatedPoints', () => {

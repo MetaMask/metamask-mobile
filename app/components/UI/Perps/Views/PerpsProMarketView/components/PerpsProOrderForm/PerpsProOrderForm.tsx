@@ -48,7 +48,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
-import { PerpsRebateRow } from '../../../../components/PerpsRebate';
+import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -240,10 +240,8 @@ const OrderSummary = ({
   fee,
   originalFee,
   feeDiscountPercentage,
-  rebateBips,
   onSlippagePress,
   onFeesInfoPress,
-  onRebateInfoPress,
   twapSummary,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
@@ -343,17 +341,6 @@ const OrderSummary = ({
       twClassName={summaryFeesRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
-    />
-    <PerpsRebateRow
-      rebateBips={rebateBips}
-      onInfoPress={onRebateInfoPress}
-      testID={ids.SUMMARY_REBATE}
-      valueTestID={ids.SUMMARY_REBATE_VALUE}
-      infoTestID={ids.SUMMARY_REBATE_BUTTON}
-      keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryValueTextProps}
-      twClassName={summaryFeesRowClassName}
-      style={summaryRowStyle}
     />
   </Box>
 );
@@ -493,17 +480,6 @@ const ScalePreview = ({
         twClassName={summaryFeesRowClassName}
         style={summaryRowStyle}
       />
-      <PerpsRebateRow
-        rebateBips={summary.rebateBips}
-        onInfoPress={summary.onRebateInfoPress}
-        testID={ids.SUMMARY_REBATE}
-        valueTestID={ids.SCALE_PREVIEW_REBATE_VALUE}
-        infoTestID={ids.SUMMARY_REBATE_BUTTON}
-        keyTextProps={summaryKeyTextProps}
-        valueTextProps={summaryValueTextProps}
-        twClassName={summaryFeesRowClassName}
-        style={summaryRowStyle}
-      />
     </Box>
   );
 };
@@ -553,6 +529,7 @@ const PerpsProOrderForm = ({
   onTPSLPress,
   notices,
   summary,
+  rebateQuote,
   placeOrderLabel,
   placeOrderIntent,
   isPlaceOrderDisabled = false,
@@ -1034,6 +1011,11 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
+          <PerpsRebateBanner
+            coin={rebateQuote?.coin}
+            direction={rebateQuote?.direction}
+            notionalUsd={rebateQuote?.notionalUsd}
+          />
           <ButtonSemantic
             severity={
               placeOrderIntent === 'long'

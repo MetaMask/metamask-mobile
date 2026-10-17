@@ -32,7 +32,6 @@ export type PerpsTradeSheetScreen =
   | 'tpsl'
   | 'payWith'
   | 'marginInfo'
-  | 'rebateInfo'
   | 'liquidationInfo';
 
 type ScreenDirection = 1 | -1;

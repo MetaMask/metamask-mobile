@@ -9,7 +9,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
-import { PerpsRebateRow } from '../PerpsRebate';
 import { type PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -48,9 +47,6 @@ export interface PerpsCloseSummaryProps {
   protocolFeeRate?: number;
   /** Original MetaMask fee rate before discounts - undefined means unavailable/error state */
   originalMetamaskFeeRate?: number;
-  /** Eligible rebate in basis points of the MetaMask fee. */
-  rebateBips?: number;
-
   /** Amount user will receive after closing */
   receiveAmount: number;
 
@@ -75,9 +71,6 @@ export interface PerpsCloseSummaryProps {
 
   /** Whether to enable tooltips (default: true) */
   enableTooltips?: boolean;
-  /** Optional rebate tooltip action for parents with a different navigator. */
-  onRebateInfoPress?: () => void;
-
   /** Optional test IDs for tooltips */
   testIDs?: {
     feesTooltip?: string;
@@ -85,9 +78,6 @@ export interface PerpsCloseSummaryProps {
     pointsTooltip?: string;
     marginValue?: string;
     feesValue?: string;
-    rebateRow?: string;
-    rebateValue?: string;
-    rebateTooltip?: string;
     receiveValue?: string;
   };
 }
@@ -113,7 +103,6 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   metamaskFeeRate,
   protocolFeeRate,
   originalMetamaskFeeRate,
-  rebateBips,
   receiveAmount,
   shouldShowRewards,
   estimatedPoints = 0,
@@ -125,7 +114,6 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   rewardsAccount = undefined,
   style,
   enableTooltips = true,
-  onRebateInfoPress,
   testIDs,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -246,17 +234,6 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           },
         })}
         value={feesValue}
-      />
-
-      <PerpsRebateRow
-        rebateBips={rebateBips}
-        onInfoPress={
-          onRebateInfoPress ??
-          (enableTooltips ? () => handleTooltipPress('rebate') : undefined)
-        }
-        testID={testIDs?.rebateRow}
-        valueTestID={testIDs?.rebateValue}
-        infoTestID={testIDs?.rebateTooltip}
       />
 
       <SectionDivider marginVertical={1} twClassName="mx-4" />

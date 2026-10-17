@@ -9,6 +9,9 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -21,11 +24,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
-import {
-  getDisplayablePerpsRebateBips,
-  PerpsRebateFooterText,
-} from '../../components/PerpsRebate';
-import { usePerpsRebateQuote } from '../../hooks';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { formatPositionSize } from '../../utils/formatUtils';
@@ -160,16 +159,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
   }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
-  const { data: rebateQuote } = usePerpsRebateQuote({
-    coin: position.symbol,
-    direction: isLong ? 'short' : 'long',
-    notionalUsd: closeAmountUSDString,
-  });
-  const rebateBips = getDisplayablePerpsRebateBips(
-    rebateQuote?.eligible,
-    rebateQuote?.rebateBips,
-  );
-
   const totalFeeRate =
     (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
   const feePercentage =
@@ -283,6 +272,13 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             twClassName="min-h-[22px] justify-center px-4"
           />
 
+          <PerpsRebateBanner
+            coin={position.symbol}
+            direction={isLong ? 'short' : 'long'}
+            notionalUsd={closeAmountUSDString}
+            twClassName="mx-4"
+          />
+
           <BottomSheetFooter
             primaryButtonProps={{
               ...confirmButtonProps,
@@ -303,13 +299,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
                 <MembershipVipBadge />
               ) : null}
-              <PerpsRebateFooterText
-                feeText={strings('perps.trade_sheet.includes_fee', {
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('perps.trade_sheet.includes_fee', {
                   feePercentage,
                 })}
-                rebateBips={rebateBips}
-                onInfoPress={() => setInfoContentKey('rebate')}
-              />
+              </Text>
             </Box>
           ) : null}
         </>

@@ -36,7 +36,7 @@ import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
 import PerpsSwapIcon from '../PerpsSwapIcon';
 import PerpsTokenLogo from '../PerpsTokenLogo';
-import { PerpsRebateFooterText } from '../PerpsRebate';
+import PerpsRebateBanner from '../PerpsRebateBanner';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import { typography } from '@metamask/design-tokens';
 import {
@@ -107,7 +107,6 @@ interface PerpsTradeScreenProps {
   /** Formatted fiat bridge fee, shown when the user pays with a token. */
   bridgeFee?: string;
   feeDiscountPercentage?: number;
-  rebateBips?: number;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -311,7 +310,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   feePercentage,
   bridgeFee,
   feeDiscountPercentage,
-  rebateBips,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -872,6 +870,11 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ))}
               </Box>
             ) : null}
+            <PerpsRebateBanner
+              coin={asset}
+              direction={direction}
+              notionalUsd={amount}
+            />
             <ButtonSemantic
               severity={
                 direction === 'long'

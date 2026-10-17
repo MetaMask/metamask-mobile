@@ -57,7 +57,13 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
-  usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
+}));
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
@@ -207,10 +213,6 @@ describe('PerpsClosePositionBottomSheet', () => {
   const usePerpsRewardsMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsRewards,
   );
-  const usePerpsRebateQuoteMock = jest.mocked(
-    jest.requireMock('../../hooks').usePerpsRebateQuote,
-  );
-
   beforeEach(() => {
     jest.clearAllMocks();
     resetLastCloseOrderType();
@@ -240,7 +242,6 @@ describe('PerpsClosePositionBottomSheet', () => {
     usePerpsLivePricesMock.mockReturnValue(defaultPerpsLivePricesMock);
     usePerpsTopOfBookMock.mockReturnValue(defaultPerpsTopOfBookMock);
     usePerpsOrderFeesMock.mockReturnValue(defaultPerpsOrderFeesMock);
-    usePerpsRebateQuoteMock.mockReturnValue({ data: undefined });
     usePerpsClosePositionValidationMock.mockReturnValue(
       defaultPerpsClosePositionValidationMock,
     );

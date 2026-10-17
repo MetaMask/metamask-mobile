@@ -1807,15 +1807,6 @@
       "margin_info_accessibility_label": "About margin",
       "liquidation_price_info_accessibility_label": "About liquidation price"
     },
-    "rebate": {
-      "label": "Fee rebate",
-      "back": "{{percentage}}% back",
-      "earned": "{{percentage}}% rebate",
-      "earned_suffix": " earned",
-      "footer_separator": " • ",
-      "footer_accessibility": " • {{percentage}}% rebate earned",
-      "info_accessibility_label": "About fee rebates"
-    },
     "mode": {
       "lite": "Lite",
       "pro": "Pro",
@@ -2998,10 +2989,6 @@
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP."
-      },
-      "rebate": {
-        "title": "Fee rebate",
-        "content": "Your rebate is an estimate of the MetaMask fee you'll earn back in mUSD. It accrues in your Money account after the trade completes and can be claimed there."
       },
       "size_skew": {
         "title": "Size skew",
@@ -10312,9 +10299,6 @@
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-    "rebate_banner": "You’re getting {{percent}}% back on fees",
-    "rebate_tooltip_title": "Trading Rewards",
-    "rebate_tooltip_content": "Claim {{percent}}% of the eligible MetaMask fee on this trade in mUSD to your Money account. Network fees are not included. Check the Rewards tab to see your trading rewards and learn more.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "recipient": "Recipient",
@@ -11642,6 +11626,11 @@
     "close": "Close"
   },
   "rewards": {
+    "rebate": {
+      "banner": "You’re getting {{percent}}% back on fees",
+      "tooltip_title": "Trading Rewards",
+      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your Money account. Network fees aren’t included. See the Rewards tab for details."
+    },
     "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with MetaMask Rewards. Try again later.",
     "failed_to_authenticate": "Failed to authenticate with MetaMask Rewards",

@@ -37,7 +37,6 @@ const tradeSheetConfig = {
     tpsl: 1,
     payWith: 1,
     marginInfo: 1,
-    rebateInfo: 1,
     liquidationInfo: 1,
   },
 };
@@ -46,7 +45,6 @@ const emptyNestedScreens = {
   tpsl: null,
   payWith: null,
   marginInfo: null,
-  rebateInfo: null,
   liquidationInfo: null,
 };
 

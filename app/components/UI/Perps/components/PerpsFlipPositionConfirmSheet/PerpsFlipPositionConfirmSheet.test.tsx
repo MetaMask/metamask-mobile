@@ -7,7 +7,7 @@ import {
 } from '@testing-library/react-native';
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
 import { type Position } from '@metamask/perps-controller';
-import { usePerpsOrderFees, usePerpsRebateQuote } from '../../hooks';
+import { usePerpsOrderFees } from '../../hooks';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 
@@ -68,7 +68,6 @@ jest.mock('../../hooks', () => ({
     takerFee: 0.3,
     isLoadingMetamaskFee: false,
   })),
-  usePerpsRebateQuote: jest.fn(() => ({ data: undefined })),
   usePerpsRewards: () => ({
     shouldShowRewardsRow: false,
     estimatedPoints: undefined,
@@ -78,6 +77,13 @@ jest.mock('../../hooks', () => ({
     bonusBips: 0,
   }),
   usePerpsMeasurement: jest.fn(),
+}));
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
 jest.mock('../../hooks/usePerpsFlipPosition', () => ({
@@ -202,7 +208,6 @@ describe('PerpsFlipPositionConfirmSheet', () => {
       takerFee: 0.3,
       isLoadingMetamaskFee: false,
     });
-    (usePerpsRebateQuote as jest.Mock).mockReturnValue({ data: undefined });
   });
 
   it('renders the flip position title', () => {
@@ -239,16 +244,15 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     expect(screen.getByText('Fees')).toBeOnTheScreen();
   });
 
-  it('renders an eligible rebate after fees', () => {
-    (usePerpsRebateQuote as jest.Mock).mockReturnValue({
-      data: { eligible: true, rebateBips: 500 },
-    });
-
+  it('renders the rebate banner with flip metadata', () => {
     render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
 
-    expect(
-      screen.getByTestId(PerpsFlipPositionConfirmSheetSelectorsIDs.REBATE_ROW),
-    ).toBeOnTheScreen();
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coin: 'ETH',
+        direction: 'short',
+      }),
+    );
   });
 
   it('renders cancel button', () => {

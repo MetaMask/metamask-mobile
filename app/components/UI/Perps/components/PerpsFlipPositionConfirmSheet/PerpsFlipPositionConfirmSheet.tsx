@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -27,7 +26,6 @@ import { TraceName } from '../../../../../util/trace';
 import {
   useMinimumOrderAmount,
   usePerpsOrderFees,
-  usePerpsRebateQuote,
   usePerpsRewards,
   usePerpsMeasurement,
 } from '../../hooks';
@@ -41,7 +39,7 @@ import {
 import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../../constants/slippageConfig';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
-import { getDisplayablePerpsRebateBips, PerpsRebateRow } from '../PerpsRebate';
+import PerpsRebateBanner from '../PerpsRebateBanner';
 import PerpsValidationErrors from '../PerpsValidationErrors';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -107,16 +105,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       ? Number.parseFloat(topOfBook.bestBid)
       : undefined,
   });
-  const { data: rebateQuote } = usePerpsRebateQuote({
-    coin: position.symbol,
-    direction: oppositeDirection,
-    notionalUsd: usdAmount,
-  });
-  const rebateBips = getDisplayablePerpsRebateBips(
-    rebateQuote?.eligible,
-    rebateQuote?.rebateBips,
-  );
-
   const hasValidAmount = parseFloat(usdAmount) > 0;
 
   // The flip is a market order filled up to the default slippage away from
@@ -348,23 +336,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               />
             </View>
 
-            <PerpsRebateRow
-              rebateBips={rebateBips}
-              onInfoPress={() =>
-                navigation.navigate(Routes.PERPS.MODALS.CLOSE_POSITION_MODALS, {
-                  screen: Routes.PERPS.MODALS.TOOLTIP,
-                  params: { contentKey: 'rebate' },
-                })
-              }
-              testID={PerpsFlipPositionConfirmSheetSelectorsIDs.REBATE_ROW}
-              valueTestID={
-                PerpsFlipPositionConfirmSheetSelectorsIDs.REBATE_VALUE
-              }
-              infoTestID={
-                PerpsFlipPositionConfirmSheetSelectorsIDs.REBATE_INFO_BUTTON
-              }
-            />
-
             {/* Est. Points */}
             {rewardsState.shouldShowRewardsRow &&
               rewardsState.estimatedPoints !== undefined &&
@@ -400,6 +371,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         )}
       </View>
 
+      <PerpsRebateBanner
+        coin={position.symbol}
+        direction={oppositeDirection}
+        notionalUsd={usdAmount}
+        twClassName="mx-4 mb-3"
+      />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={secondaryButtonProps}

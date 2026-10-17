@@ -10,6 +10,12 @@ export interface ScaleOrderRung {
 
 export type PerpsProOrderDirection = 'long' | 'short';
 
+export interface PerpsProRebateQuote {
+  coin: string;
+  direction: PerpsProOrderDirection;
+  notionalUsd: string;
+}
+
 /**
  * Active size-denomination for the Pro order form size field.
  * USD is the canonical controller amount; asset is a UI conversion view.
@@ -57,10 +63,8 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
-  rebateBips?: number;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
-  onRebateInfoPress?: () => void;
   /**
    * Present only for TWAP orders. The Figma TWAP summary lists Runtime and Size
    * per suborder in place of Est Liquidation and Slippage.
@@ -184,6 +188,7 @@ export interface PerpsProOrderFormProps {
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   placeOrderLabel: string;
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;

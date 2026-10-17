@@ -82,10 +82,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
-import {
-  getDisplayablePerpsRebateBips,
-  PerpsRebateRow,
-} from '../../components/PerpsRebate';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
@@ -134,7 +131,6 @@ import {
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
-  usePerpsRebateQuote,
   usePerpsOrderValidation,
   usePerpsRewards,
   usePerpsToasts,
@@ -276,7 +272,6 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   tpsl: 1,
   payWith: 1,
   marginInfo: 1,
-  rebateInfo: 1,
   liquidationInfo: 1,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
@@ -284,7 +279,6 @@ const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'leverage',
   'payWith',
   'marginInfo',
-  'rebateInfo',
   'liquidationInfo',
 ];
 
@@ -804,16 +798,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-  const { data: rebateQuote } = usePerpsRebateQuote({
-    coin: orderForm.asset,
-    direction: orderForm.direction,
-    notionalUsd: orderForm.amount,
-  });
-  const rebateBips = getDisplayablePerpsRebateBips(
-    rebateQuote?.eligible,
-    rebateQuote?.rebateBips,
-  );
-
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
@@ -2625,7 +2609,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feePercentage={feePercentage}
                 bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                rebateBips={rebateBips}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2685,7 +2668,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               />
             ),
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,
-            rebateInfo: <PerpsTradeInfoScreen contentKey="rebate" />,
             liquidationInfo: (
               <PerpsTradeInfoScreen contentKey="liquidation_price" />
             ),
@@ -2980,11 +2962,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             }
           />
 
-          <PerpsRebateRow
-            rebateBips={rebateBips}
-            onInfoPress={() => handleTooltipPress('rebate')}
-          />
-
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
             rewardsState.estimatedPoints !== undefined &&
@@ -3124,6 +3101,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           {/* Service Interruption Banner */}
           <PerpsServiceInterruptionBanner
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+
+          <PerpsRebateBanner
+            coin={orderForm.asset}
+            direction={orderForm.direction}
+            notionalUsd={orderForm.amount}
           />
 
           {buttonColorVariant === 'colors' ? (
