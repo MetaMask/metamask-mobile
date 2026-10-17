@@ -10,9 +10,11 @@ import Complete from './Complete';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
+import { MarketingMomentSelectorsIDs } from '../../../MarketingMoment';
 
 // Mock dependencies
 const mockNavigationDispatch = jest.fn();
+const mockNavigate = jest.fn();
 const mockStackReplace = jest.fn((routeName: string) => ({
   type: 'REPLACE',
   routeName,
@@ -114,18 +116,21 @@ jest.mock('@metamask/design-system-react-native', () => {
     >) => React.createElement(Text, { testID, ...props }, children),
     TextVariant: {
       BodyMd: 'BodyMd',
+      DisplayMd: 'DisplayMd',
       DisplayLg: 'DisplayLg',
     },
-    FontFamily: {
-      Accent: 'accent',
-      Default: 'default',
-      Hero: 'hero',
+    TextColor: {
+      TextAlternative: 'text-alternative',
     },
+    FontFamily: { Hero: 'hero' },
     FontWeight: {
       Regular: '400',
       Medium: '500',
       Bold: '700',
     },
+    BoxFlexDirection: { Column: 'column' },
+    BoxAlignItems: { Center: 'center' },
+    BoxJustifyContent: { Center: 'center' },
     Button: ({
       children,
       testID,
@@ -143,6 +148,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     ButtonVariant: {
       Primary: 'Primary',
       Secondary: 'Secondary',
+      Tertiary: 'Tertiary',
       Link: 'Link',
     },
     ButtonSize: {
@@ -249,6 +255,7 @@ describe('Complete Component', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       dispatch: mockNavigationDispatch,
+      navigate: mockNavigate,
     });
 
     // Default: no route params
@@ -302,36 +309,25 @@ describe('Complete Component', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders the Complete component', () => {
+    it('renders the completion title and description', () => {
       const { getByTestId } = render(<Complete />);
 
-      expect(getByTestId('onboarding-step')).toBeTruthy();
+      expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
+        'Complete',
+      );
+      expect(
+        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Your card setup is complete!');
     });
+  });
 
-    it('renders with empty title and description props to OnboardingStep', () => {
+  describe('Not Now Button', () => {
+    it('navigates to the wallet home when pressed', () => {
       const { getByTestId } = render(<Complete />);
 
-      // OnboardingStep receives empty strings for title and description
-      // as they are now rendered inside formFields
-      const title = getByTestId('onboarding-step-title');
-      expect(title).toBeTruthy();
-      expect(title.props.children).toBe('');
+      fireEvent.press(getByTestId('complete-not-now-button'));
 
-      const description = getByTestId('onboarding-step-description');
-      expect(description).toBeTruthy();
-      expect(description.props.children).toBe('');
-    });
-
-    it('renders OnboardingStep with correct structure', () => {
-      const { getByTestId } = render(<Complete />);
-
-      const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields).toBeTruthy();
-      // formFields now contains the image, title, and description
-      expect(formFields.props.children).not.toBeNull();
-
-      const actions = getByTestId('onboarding-step-actions');
-      expect(actions).toBeTruthy();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 
@@ -415,7 +411,7 @@ describe('Complete Component', () => {
     it('uses navigation hook', () => {
       render(<Complete />);
 
-      expect(useNavigation).toHaveBeenCalledTimes(1);
+      expect(useNavigation).toHaveBeenCalled();
     });
 
     it('dispatches replace action to correct route on continue', async () => {
@@ -435,43 +431,17 @@ describe('Complete Component', () => {
     });
   });
 
-  describe('OnboardingStep Integration', () => {
-    it('passes correct props to OnboardingStep', () => {
-      const { getByTestId } = render(<Complete />);
+  describe('Marketing moment', () => {
+    it('renders the completion copy and continue action', () => {
+      const { getByTestId, getByText } = render(<Complete />);
 
-      const onboardingStep = getByTestId('onboarding-step');
-      expect(onboardingStep).toBeTruthy();
-
-      // Verify title and description are empty strings (content is in formFields)
-      const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('');
-
-      const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('');
-
-      // Verify form fields contain content (image, title, and description)
-      const formFields = getByTestId('onboarding-step-form-fields');
-      expect(formFields.props.children).not.toBeNull();
-
-      // Verify actions are passed
-      const actions = getByTestId('onboarding-step-actions');
-      expect(actions).toBeTruthy();
-    });
-
-    it('renders correct OnboardingStep structure', () => {
-      const { getByTestId } = render(<Complete />);
-
-      const onboardingStep = getByTestId('onboarding-step');
-      const title = getByTestId('onboarding-step-title');
-      const description = getByTestId('onboarding-step-description');
-      const formFields = getByTestId('onboarding-step-form-fields');
-      const actions = getByTestId('onboarding-step-actions');
-
-      expect(onboardingStep).toBeTruthy();
-      expect(title).toBeTruthy();
-      expect(description).toBeTruthy();
-      expect(formFields).toBeTruthy();
-      expect(actions).toBeTruthy();
+      expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
+        'Complete',
+      );
+      expect(
+        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Your card setup is complete!');
+      expect(getByText('Continue')).toBeOnTheScreen();
     });
   });
 
@@ -492,20 +462,20 @@ describe('Complete Component', () => {
       );
     });
 
-    it('renders empty OnboardingStep title prop', () => {
+    it('renders the completion title', () => {
       const { getByTestId } = render(<Complete />);
 
-      // Title is now rendered in formFields, not passed to OnboardingStep
-      const title = getByTestId('onboarding-step-title');
-      expect(title.props.children).toBe('');
+      expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
+        'Complete',
+      );
     });
 
-    it('renders empty OnboardingStep description prop', () => {
+    it('renders the completion description', () => {
       const { getByTestId } = render(<Complete />);
 
-      // Description is now rendered in formFields, not passed to OnboardingStep
-      const description = getByTestId('onboarding-step-description');
-      expect(description.props.children).toBe('');
+      expect(
+        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Your card setup is complete!');
     });
 
     it('renders translated button label', () => {
