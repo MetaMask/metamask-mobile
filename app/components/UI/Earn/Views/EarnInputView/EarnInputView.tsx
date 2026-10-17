@@ -370,9 +370,6 @@ const EarnInputView = () => {
     ],
   );
 
-  // TODO: Remove dead code as we are not using the legacy confirmations anymore
-  const isStakingDepositRedesignedEnabled = true;
-
   const handleLendingFlow = useCallback(async () => {
     if (
       !selectedAccount?.address ||
@@ -609,63 +606,42 @@ const EarnInputView = () => {
       experience: stakingExperienceType,
     };
 
-    if (isStakingDepositRedesignedEnabled) {
-      // start trace between user initiating deposit and the redesigned confirmation screen loading
-      trace({
-        name: TraceName.EarnDepositConfirmationScreen,
-        data: {
-          experience: earnToken?.experience?.type ?? '',
-        },
-      });
-
-      // this prevents the user from adding the transaction deposit into the
-      // controller state multiple times
-      setIsSubmittingStakeDepositTransaction(true);
-
-      // Here we add the transaction to the transaction controller. The
-      // redesigned confirmations architecture relies on the transaction
-      // metadata object being defined by the time the confirmation is displayed
-      // to the user.
-      if (!attemptDepositTransaction) return;
-      await attemptDepositTransaction(
-        amountWeiString,
-        selectedAccount?.address as string,
-        undefined,
-        true,
-      );
-
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
-
-      const withRedesignedPropEventProperties = {
-        ...stakeButtonClickEventProperties,
-        is_redesigned: true,
-      };
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-          .addProperties(withRedesignedPropEventProperties)
-          .build(),
-      );
-      return;
-    }
-
-    navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.STAKE_CONFIRMATION,
-      params: {
-        amountWei: amountWeiString,
-        amountFiat: amountFiatNumber,
-        annualRewardsToken,
-        annualRewardsFiat,
-        annualRewardRate,
-        chainId: earnToken?.chainId,
+    // start trace between user initiating deposit and the redesigned confirmation screen loading
+    trace({
+      name: TraceName.EarnDepositConfirmationScreen,
+      data: {
+        experience: earnToken?.experience?.type ?? '',
       },
     });
 
+    // this prevents the user from adding the transaction deposit into the
+    // controller state multiple times
+    setIsSubmittingStakeDepositTransaction(true);
+
+    // Here we add the transaction to the transaction controller. The
+    // redesigned confirmations architecture relies on the transaction
+    // metadata object being defined by the time the confirmation is displayed
+    // to the user.
+    if (!attemptDepositTransaction) return;
+    await attemptDepositTransaction(
+      amountWeiString,
+      selectedAccount?.address as string,
+      undefined,
+      true,
+    );
+
+    navigation.navigate('StakeScreens', {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+
+    const withRedesignedPropEventProperties = {
+      ...stakeButtonClickEventProperties,
+      is_redesigned: true,
+    };
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
-        .addProperties(stakeButtonClickEventProperties)
+        .addProperties(withRedesignedPropEventProperties)
         .build(),
     );
   }, [
@@ -685,7 +661,6 @@ const EarnInputView = () => {
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
-    isStakingDepositRedesignedEnabled,
     navigation,
     trackEvent,
   ]);

@@ -10,22 +10,6 @@ import type {
 } from './types/lending.types';
 import type { SimulatedAaveV3HealthFactorAfterWithdrawal } from './utils/tempLending';
 
-/** Stake confirmation parameters */
-export interface StakeConfirmationParams {
-  amountWei?: string;
-  amountFiat?: string;
-  annualRewardsETH?: string;
-  annualRewardsFiat?: string;
-  annualRewardRate?: string;
-  chainId?: string;
-}
-
-/** Unstake confirmation parameters */
-export interface UnstakeConfirmationParams {
-  amountWei?: string;
-  amountFiat?: string;
-}
-
 /** Learn more modal parameters */
 export interface LearnMoreModalParams {
   chainId?: Hex;

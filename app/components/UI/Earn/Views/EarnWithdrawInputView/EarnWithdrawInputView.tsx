@@ -551,9 +551,6 @@ const EarnWithdrawInputView = () => {
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
-    // TODO: Remove dead code as we are not using the legacy confirmations anymore
-    const isStakingDepositRedesignedEnabled = true;
-
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
@@ -563,59 +560,41 @@ const EarnWithdrawInputView = () => {
       experience: EARN_EXPERIENCES.POOLED_STAKING,
     };
 
-    if (isStakingDepositRedesignedEnabled) {
-      // start trace between user initiating withdrawal and the redesigned confirmation screen loading
-      trace({
-        name: TraceName.EarnWithdrawConfirmationScreen,
-        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
-      });
+    // start trace between user initiating withdrawal and the redesigned confirmation screen loading
+    trace({
+      name: TraceName.EarnWithdrawConfirmationScreen,
+      data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+    });
 
-      // this prevents the user from adding the transaction withdrawal into the
-      // controller state multiple times
-      setIsSubmittingStakeWithdrawalTransaction(true);
+    // this prevents the user from adding the transaction withdrawal into the
+    // controller state multiple times
+    setIsSubmittingStakeWithdrawalTransaction(true);
 
-      // Here we add the transaction to the transaction controller. The
-      // redesigned confirmations architecture relies on the transaction
-      // metadata object being defined by the time the confirmation is displayed
-      // to the user.
-      await attemptUnstakeTransaction(
-        amountTokenMinimalUnit.toString(),
-        selectedAccount?.address as string,
-      );
-
-      navigation.navigate('StakeScreens', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
-          amountWei: amountTokenMinimalUnit.toString(),
-          amountFiat: amountFiatNumber,
-        },
-      });
-
-      const withRedesignedPropEventProperties = {
-        ...unstakeButtonClickEventProperties,
-        is_redesigned: true,
-      };
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
-          .addProperties(withRedesignedPropEventProperties)
-          .build(),
-      );
-
-      return;
-    }
+    // Here we add the transaction to the transaction controller. The
+    // redesigned confirmations architecture relies on the transaction
+    // metadata object being defined by the time the confirmation is displayed
+    // to the user.
+    await attemptUnstakeTransaction(
+      amountTokenMinimalUnit.toString(),
+      selectedAccount?.address as string,
+    );
 
     navigation.navigate('StakeScreens', {
-      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       params: {
         amountWei: amountTokenMinimalUnit.toString(),
         amountFiat: amountFiatNumber,
       },
     });
 
+    const withRedesignedPropEventProperties = {
+      ...unstakeButtonClickEventProperties,
+      is_redesigned: true,
+    };
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
-        .addProperties(unstakeButtonClickEventProperties)
+        .addProperties(withRedesignedPropEventProperties)
         .build(),
     );
   }, [

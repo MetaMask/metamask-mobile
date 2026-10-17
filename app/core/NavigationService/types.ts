@@ -256,8 +256,6 @@ import type {
 
 // Earn params
 import type {
-  StakeConfirmationParams,
-  UnstakeConfirmationParams,
   LearnMoreModalParams,
   MaxInputModalParams,
   GasImpactModalParams,
@@ -1107,9 +1105,7 @@ export type RootStackParamList = {
     | NavigatorScreenParams<StakeModalsNavigationParamList>
     | undefined;
   Stake: StakeParams | undefined;
-  StakeConfirmation: StakeConfirmationParams | undefined;
   Unstake: UnstakeParams | undefined;
-  UnstakeConfirmation: UnstakeConfirmationParams | undefined;
   EarningsHistory: { asset: TokenI };
   Claim: ClaimParams | undefined;
   LearnMore: LearnMoreModalParams | undefined;

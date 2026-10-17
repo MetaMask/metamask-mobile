@@ -139,7 +139,7 @@ describe('GasImpactModal', () => {
   });
 
   describe('navigates to', () => {
-    it('StakeConfirmationView on approval', async () => {
+    it('redesigned confirmation after approving the gas warning', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
 
       usePoolStakedDepositMock.mockReturnValue({
