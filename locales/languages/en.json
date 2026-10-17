@@ -2292,7 +2292,8 @@
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
         "reduce_only_too_large": "Reduce only order is larger than your open position",
-        "twap_unavailable": "TWAP placement is not available for this provider."
+        "twap_unavailable": "TWAP placement is not available for this provider.",
+        "lighter_limit_tpsl_unsupported": "Take profit and stop loss can't both be set on a limit order for this provider yet"
       },
       "error": {
         "placement_failed": "Order placement failed",
