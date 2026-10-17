@@ -19,6 +19,7 @@ import {
 } from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -2619,11 +2620,11 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      const key0 = screen.getByText('0');
+      const key0 = screen.getByTestId(KeypadTestIds.KEY_0);
       fireEvent.press(key0);
-      const dot = screen.getByText('.');
+      const dot = screen.getByTestId(KeypadTestIds.KEY_DOT);
       fireEvent.press(dot);
-      const key5 = screen.getByText('5');
+      const key5 = screen.getByTestId(KeypadTestIds.KEY_5);
       fireEvent.press(key5);
 
       expect(screen.getByText(/Minimum amount/)).toBeOnTheScreen();
