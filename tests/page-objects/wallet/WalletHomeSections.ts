@@ -171,6 +171,7 @@ export class WalletHomeSections {
         {
           tapTimeout: 5_000,
           overshootSwipe: clippedHeaderNudge,
+          clearTabBar: true,
         },
       )
     ) {
@@ -197,6 +198,7 @@ export class WalletHomeSections {
             // wrong direction returns in about half the previous ~30s.
             // A hit still stops as soon as the header is in view.
             maxAttempts: 4,
+            clearTabBar: true,
           },
         ),
       [direction, fallbackDirection],

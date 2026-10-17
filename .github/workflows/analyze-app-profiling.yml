@@ -3,7 +3,7 @@
 # Downloads Hermes CPU profiles from a performance E2E run, groups every
 # segment and retry by scenario, symbolicates with verified same-run Android
 # sourcemaps when available, then emits deterministic skill timing. Claude
-# adds optional short context only. BrowserStack app-profiling metrics are
+# adds optional short context only. TestMu app-profiling metrics are
 # intentionally not used.
 #
 # Cadence:
