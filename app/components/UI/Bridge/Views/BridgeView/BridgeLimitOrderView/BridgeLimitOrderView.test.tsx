@@ -22,8 +22,14 @@ import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../../../util/deviceCapability/types';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+  LIMIT_ORDERS_REFETCH_INTERVAL,
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
   getSwapsLimitOrderExpirationLabel,
@@ -120,6 +126,17 @@ jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
 
 jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
+}));
+
+let mockHardwareTier: HardwareTier | null = 'HIGH';
+let mockNetworkTier: NetworkTier | null = 'WIFI';
+
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 const mockNavigate = jest.fn();
@@ -454,6 +471,8 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = false;
     mockIsCustomPercentFocused = false;
     mockSourceAmount = '';
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'WIFI';
 
     jest
       .mocked(useLimitOrderSwapInputs)
@@ -1062,6 +1081,86 @@ describe('BridgeLimitOrderView', () => {
       }),
     );
   });
+
+  it('only enables the orders of the selected orders tab', () => {
+    renderLimitOrderView();
+
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: false,
+      }),
+    );
+
+    act(() => {
+      mockOnOrdersTabChange?.(OrdersTabKey.History);
+    });
+
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
+      }),
+    );
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Open]),
+        enabled: false,
+      }),
+    );
+  });
+
+  it.each([
+    {
+      hardwareTier: 'HIGH',
+      networkTier: 'WIFI',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: 'FAST_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'HIGH',
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: null,
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: null,
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+    },
+    { hardwareTier: 'HIGH', networkTier: 'NONE', expected: undefined },
+  ] as {
+    hardwareTier: HardwareTier | null;
+    networkTier: NetworkTier | null;
+    expected: number | undefined;
+  }[])(
+    'refetches the orders every $expected ms on $hardwareTier hardware over $networkTier network',
+    ({ hardwareTier, networkTier, expected }) => {
+      mockHardwareTier = hardwareTier;
+      mockNetworkTier = networkTier;
+
+      renderLimitOrderView();
+
+      const calls = jest.mocked(useLimitOrders).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach(([params]) => {
+        expect(params.refetchInterval).toBe(expected);
+      });
+    },
+  );
 
   describe('pull to refresh', () => {
     beforeEach(() => {
