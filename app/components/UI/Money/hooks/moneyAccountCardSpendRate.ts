@@ -5,12 +5,25 @@ import type {
 
 export type { RateHistoryEntry } from '@metamask/money-account-api-data-service';
 
+export interface CardSpendRateHistory {
+  rates: RateHistoryEntry[];
+  asOfBlock: number;
+}
+
 export const CARD_SPEND_RATE_HISTORY_INITIAL_LOOKBACK_MS =
   30 * 24 * 60 * 60 * 1000;
 export const CARD_SPEND_RATE_HISTORY_MAX_LOOKBACK_MS =
   365 * 24 * 60 * 60 * 1000;
 const RATE_DECIMALS = 18;
 const RATE_PATTERN = /^(\d+)(?:\.(\d{1,18}))?$/u;
+
+/** Error used to retry rate-history reads until the indexer catches up. */
+export class RateHistoryIndexerBehindError extends Error {
+  constructor() {
+    super('Rate history indexer has not reached the activity block');
+    this.name = 'RateHistoryIndexerBehindError';
+  }
+}
 
 /**
  * Parses the API's fixed-point decimal rate into an 18-decimal integer.
@@ -24,7 +37,8 @@ export function parseRate18(rate: string): bigint | undefined {
     return undefined;
   }
   const [, whole, fractional = ''] = match;
-  return BigInt(`${whole}${fractional.padEnd(RATE_DECIMALS, '0')}`);
+  const parsedRate = BigInt(`${whole}${fractional.padEnd(RATE_DECIMALS, '0')}`);
+  return parsedRate > 0n ? parsedRate : undefined;
 }
 
 /**
@@ -80,14 +94,19 @@ export async function fetchCardSpendRateHistory(
   vaultAddress: string,
   chainId: number,
   activities: readonly { blockNumber?: number; time: number }[],
-): Promise<RateHistoryEntry[]> {
+): Promise<CardSpendRateHistory> {
   const oldestActivityTime = Math.min(...activities.map(({ time }) => time));
   const latestActivityTime = Math.max(...activities.map(({ time }) => time));
+  const activityBlocks = activities
+    .map(({ blockNumber }) => blockNumber)
+    .filter((blockNumber): blockNumber is number => blockNumber !== undefined);
+  const latestActivityBlock =
+    activityBlocks.length > 0 ? Math.max(...activityBlocks) : undefined;
   if (
     !Number.isFinite(oldestActivityTime) ||
     !Number.isFinite(latestActivityTime)
   ) {
-    return [];
+    return { rates: [], asOfBlock: 0 };
   }
 
   const to = new Date(latestActivityTime + 24 * 60 * 60 * 1000).toISOString();
@@ -104,6 +123,13 @@ export async function fetchCardSpendRateHistory(
     }
 
     const rates = response.rates;
+    if (
+      latestActivityBlock !== undefined &&
+      response.as_of_block < latestActivityBlock
+    ) {
+      throw new RateHistoryIndexerBehindError();
+    }
+
     const hasUnmatchedEarlierBlock = activities.some(
       ({ blockNumber, time }) =>
         blockNumber !== undefined &&
@@ -119,7 +145,7 @@ export async function fetchCardSpendRateHistory(
       lookbackMs >= CARD_SPEND_RATE_HISTORY_MAX_LOOKBACK_MS ||
       !hasUnmatchedEarlierBlock
     ) {
-      return rates;
+      return { rates, asOfBlock: response.as_of_block };
     }
 
     lookbackMs = Math.min(

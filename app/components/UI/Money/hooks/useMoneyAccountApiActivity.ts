@@ -14,6 +14,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountVedaTokenConfig } from '../../../../selectors/cardController';
+import { MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID } from '../../Card/util/vedaToken';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
 import Engine from '../../../../core/Engine';
@@ -28,6 +29,7 @@ import {
 } from '../utils/moneyActivityCache';
 import {
   fetchCardSpendRateHistory,
+  RateHistoryIndexerBehindError,
   selectHistoricalRateForBlock,
 } from './moneyAccountCardSpendRate';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
@@ -187,24 +189,36 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       ? Number.parseInt(vaultConfig.chainId, 16)
       : Number(vaultConfig.chainId)
     : NaN;
-  const isConfiguredVaultShare = useCallback(
+  const isVaultShareActivity = useCallback(
     (
       row: AccountsApiActivity,
-    ): row is Extract<AccountsApiActivity, { kind: 'card' }> =>
-      row.kind === 'card' &&
-      row.token.address.toLowerCase() ===
-        vedaTokenConfig?.address.toLowerCase() &&
-      row.token.decimals === 6,
-    [vedaTokenConfig?.address],
+    ): row is Extract<AccountsApiActivity, { kind: 'card' }> => {
+      if (row.kind !== 'card' || row.token.decimals !== 6) {
+        return false;
+      }
+      const vedaChainId = Number.parseInt(
+        MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID.slice('eip155:'.length),
+        10,
+      ).toString(16);
+      if (row.chainId.toLowerCase() !== `0x${vedaChainId}`) {
+        return false;
+      }
+      return vedaTokenConfig
+        ? row.token.address.toLowerCase() ===
+            vedaTokenConfig.address.toLowerCase()
+        : row.token.symbol.toLowerCase() === 'vmusd';
+    },
+    [vedaTokenConfig],
   );
   const vaultCardActivities = useMemo(
     () =>
       activity.filter(
         (row) =>
-          isConfiguredVaultShare(row) &&
-          row.chainId.toLowerCase() === vaultConfig?.chainId.toLowerCase(),
+          isVaultShareActivity(row) &&
+          (!vaultConfig ||
+            row.chainId.toLowerCase() === vaultConfig.chainId.toLowerCase()),
       ),
-    [activity, isConfiguredVaultShare, vaultConfig?.chainId],
+    [activity, isVaultShareActivity, vaultConfig],
   );
   const rateActivities = useMemo(
     () => vaultCardActivities.filter((row) => row.blockNumber !== undefined),
@@ -259,7 +273,9 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       ),
     enabled: rateHistoryEnabled,
     staleTime: 5 * MINUTE,
-    retry: false,
+    retry: (failureCount, error) =>
+      error instanceof RateHistoryIndexerBehindError && failureCount < 3,
+    retryDelay: 5 * MINUTE,
     placeholderData: (previousData, previousQuery) => {
       const previousQueryKey = previousQuery?.queryKey;
       const previousScope = previousQueryKey?.[2] as
@@ -274,12 +290,10 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   });
 
   const resolvedActivity = useMemo(() => {
-    const rates = rateHistoryQuery.data ?? [];
+    const rateHistory = rateHistoryQuery.data;
+    const rates = rateHistory?.rates ?? [];
     return activity.map((row) => {
-      if (
-        !isConfiguredVaultShare(row) ||
-        row.chainId.toLowerCase() !== vaultConfig?.chainId.toLowerCase()
-      ) {
+      if (!isVaultShareActivity(row)) {
         return row;
       }
       const historicalRate = selectHistoricalRateForBlock(
@@ -289,20 +303,18 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       return {
         ...row,
         isVaultShare: true,
-        ...(rateHistoryQuery.data ? { historicalRate } : {}),
+        ...(rateHistory &&
+        rateHistory.asOfBlock >= (row.blockNumber ?? Infinity)
+          ? { historicalRate }
+          : {}),
       };
     });
-  }, [
-    activity,
-    rateHistoryQuery.data,
-    isConfiguredVaultShare,
-    vaultConfig?.chainId,
-  ]);
+  }, [activity, rateHistoryQuery.data, isVaultShareActivity]);
 
   // "Complete" means no further pages will arrive, so the merged list can be
   // shown in full. This happens if:
   //   - the query is disabled (no money account) — nothing will ever be fetched;
-  //   - the fetch errored (`retry: false`, so it won't recover on its own);
+  //   - the fetch errored (its query retry policy has been exhausted);
   //   - we've paged to the end (`hasNextPage === false`).
   const isComplete = !enabled || query.isError || query.hasNextPage === false;
   const watermark = useMemo(
@@ -312,8 +324,8 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   );
 
   const { hasNextPage, isFetchingNextPage, fetchNextPage, isError } = query;
-  // An errored query is terminal (`retry: false`), but `hasNextPage` is derived
-  // from the last *successful* page and stays true — without the `isError`
+  // An errored query is terminal once retries are exhausted, but `hasNextPage`
+  // is derived from the last *successful* page and stays true — without the `isError`
   // guards every pagination driver (fill effects, onEndReached) would re-issue
   // the failed request in a loop. Recovery is via the explicit `refetch`.
   const loadMore = useCallback(() => {
