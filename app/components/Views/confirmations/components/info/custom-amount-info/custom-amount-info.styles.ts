@@ -41,12 +41,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: ACCOUNT_SELECTOR_VERTICAL_PADDING - BOTTOM_BLOCK_GAP,
     },
 
-    // Matches the rendered balance projection row height to avoid layout shift.
-    balanceProjectionSkeleton: {
-      justifyContent: 'center',
-      minHeight: 24,
-    },
-
     buttonSkeleton: {
       borderRadius: 999,
       marginTop: 16,

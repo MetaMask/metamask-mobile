@@ -633,25 +633,6 @@ describe('CustomAmountInfo', () => {
     );
   });
 
-  it('renders a balance projection skeleton while the Money deposit amount is loading', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.moneyAccountDeposit,
-      txParams: { from: '0x123' },
-    } as ReturnType<typeof useTransactionMetadataRequest>);
-    useTransactionCustomAmountMock.mockReturnValue(
-      createCustomAmountMock({
-        depositPrefillStatus: DepositPrefillStatus.Loading,
-      }),
-    );
-
-    const { getByTestId } = render({
-      transactionType: TransactionType.moneyAccountDeposit,
-    });
-
-    expect(getByTestId('balance-projection-skeleton')).toBeOnTheScreen();
-    expect(BalanceProjection).not.toHaveBeenCalled();
-  });
-
   it('can prepare a fixed membership amount without displaying the keypad', async () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,

@@ -17,11 +17,6 @@ const styleSheet = (params: { theme: Theme }) =>
       alignItems: 'center',
     },
 
-    skeleton: {
-      marginBottom: 7,
-      marginLeft: -2,
-    },
-
     skeletonCircle: {
       borderRadius: 99,
     },

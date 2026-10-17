@@ -7,7 +7,7 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
 import { Text as MockText } from 'react-native';
 
-import { PayWithRow, PayWithRowSkeleton } from './pay-with-row';
+import { PayWithRow } from './pay-with-row';
 import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -192,35 +192,6 @@ describe('PayWithRow', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
-  });
-
-  it('shows the receive label on the skeleton in withdraw mode', () => {
-    useTransactionPayWithdrawMock.mockReturnValue({
-      isWithdraw: true,
-      canSelectWithdrawToken: true,
-    });
-
-    const { getByText } = renderWithProvider(<PayWithRowSkeleton />, {
-      state: STATE_MOCK,
-    });
-
-    expect(getByText('Receive')).toBeDefined();
-  });
-
-  it('hides the label when noLabel is set', () => {
-    useTransactionPayWithdrawMock.mockReturnValue({
-      isWithdraw: true,
-      canSelectWithdrawToken: true,
-    });
-
-    const { getByTestId, queryByText } = renderWithProvider(
-      <PayWithRowSkeleton noLabel />,
-      { state: STATE_MOCK },
-    );
-
-    expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
-    expect(queryByText('Receive')).toBeNull();
-    expect(queryByText('Pay with')).toBeNull();
   });
 
   it('renders empty state when no pay token and no available tokens', () => {

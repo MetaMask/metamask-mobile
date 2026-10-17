@@ -443,11 +443,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
-    const isAmountLoading =
-      !hasAccountNoFunds &&
-      stage !== CustomAmountStage.AmountInput &&
-      (isPrefillPending || isDepositPrefillLoading);
-
     // Keep payment details fixed while the amount update prepares the request.
     // Once quote loading takes over, reopening a picker is safe and keeps the
     // loading screen responsive.
@@ -460,7 +455,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             amountFiat={amountFiat}
             currency={currency}
             hasAlert={hasAlert}
-            isLoading={isAmountLoading}
+            isLoading={
+              !hasAccountNoFunds &&
+              stage !== CustomAmountStage.AmountInput &&
+              (isPrefillPending || isDepositPrefillLoading)
+            }
             // Editable amounts remain an escape hatch from stalled quotes.
             onPress={isMembershipSubscription ? undefined : handleAmountPress}
             disabled={!hasPaymentOption}
@@ -478,12 +477,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             (isMembershipSubscription ? (
               <MembershipInfo amountFiat={amountFiat} />
             ) : isMoneyAccountDeposit ? (
-              // Projecting an unresolved amount would flash a $0 APY line.
-              isAmountLoading ? (
-                <BalanceProjectionSkeleton />
-              ) : (
-                <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
-              )
+              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
@@ -644,7 +638,7 @@ export function CustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </Box>
       <Box style={styles.bottomBlock}>
-        <PayWithRowSkeleton noLabel />
+        <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
       </Box>
     </Box>
@@ -713,24 +707,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
         {!hideAccountRows && (
           <>
             <AccountSelectorSkeleton />
-            <PayWithRowSkeleton noLabel />
+            <PayWithRowSkeleton />
           </>
         )}
+
         <DepositKeyboardSkeleton />
       </View>
-    </View>
-  );
-}
-
-function BalanceProjectionSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
-
-  return (
-    <View
-      style={styles.balanceProjectionSkeleton}
-      testID="balance-projection-skeleton"
-    >
-      <Skeleton height={20} width={160} />
     </View>
   );
 }
