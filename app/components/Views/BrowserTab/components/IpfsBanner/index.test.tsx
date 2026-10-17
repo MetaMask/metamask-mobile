@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import IpfsBanner from '.';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TESTID_BANNER_CLOSE_BUTTON_ICON } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
+const IPFS_BANNER_CLOSE_BUTTON_TEST_ID = 'ipfs-banner-close-button';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -23,7 +23,7 @@ describe('IpfsBanner', () => {
       <IpfsBanner setIpfsBannerVisible={mockSetIpfsBannerVisible} />,
     );
 
-    const closeButton = getByTestId(TESTID_BANNER_CLOSE_BUTTON_ICON);
+    const closeButton = getByTestId(IPFS_BANNER_CLOSE_BUTTON_TEST_ID);
     fireEvent.press(closeButton);
 
     expect(mockSetIpfsBannerVisible).toHaveBeenCalledWith(false);
