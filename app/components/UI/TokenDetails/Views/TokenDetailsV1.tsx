@@ -172,10 +172,6 @@ const styleSheet = (params: { theme: Theme }) => {
     scroll: {
       flex: 1,
     },
-    scrollContent: {
-      flexGrow: 1,
-      minHeight: '100%',
-    },
   });
 };
 
@@ -355,8 +351,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     scrollViewRef,
     handleScroll: onScrollViewScroll,
     handleTabBarLayout,
-    handleScrollViewLayout,
-    tabContentContainerStyle,
     clampScrollToTabBar,
     scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
@@ -573,10 +567,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scroll}
-              contentContainerStyle={styles.scrollContent}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
               onScroll={onScrollViewScroll}
-              onLayout={handleScrollViewLayout}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
@@ -631,7 +623,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
-                  style={tabContentContainerStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
                   {visibleTabs.map((tab) => {
