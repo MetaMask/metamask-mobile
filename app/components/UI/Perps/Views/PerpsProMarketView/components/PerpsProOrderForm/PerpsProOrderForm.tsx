@@ -1011,11 +1011,6 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <PerpsRebateBanner
-            coin={rebateQuote?.coin}
-            direction={rebateQuote?.direction}
-            notionalUsd={rebateQuote?.notionalUsd}
-          />
           <ButtonSemantic
             severity={
               placeOrderIntent === 'long'
@@ -1044,6 +1039,12 @@ const PerpsProOrderForm = ({
             }
           />
         ) : null}
+        <PerpsRebateBanner
+          coin={rebateQuote?.coin}
+          direction={rebateQuote?.direction}
+          notionalUsd={rebateQuote?.notionalUsd}
+          textTwClassName="text-body-xs leading-[16px]"
+        />
       </Box>
       <PerpsProInputKeyboardAccessory
         inputTestID={ids.SIZE_INPUT}

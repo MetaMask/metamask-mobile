@@ -1830,7 +1830,10 @@ describe('PerpsProOrderForm', () => {
         notionalUsd: '100',
       };
       const view = renderForm({ rebateQuote });
-      expect(mockPerpsRebateBanner).toHaveBeenCalledWith(rebateQuote);
+      expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+        ...rebateQuote,
+        textTwClassName: 'text-body-xs leading-[16px]',
+      });
 
       view.rerender(
         <PerpsProOrderForm

@@ -8,6 +8,7 @@ import {
 export const PERPS_REBATE_BANNER_TEST_ID = 'perps-rebate-banner';
 
 type PerpsRebateBannerProps = Omit<UsePerpsRebateQuoteParams, 'enabled'> & {
+  textTwClassName?: string;
   twClassName?: string;
 };
 
@@ -19,6 +20,7 @@ const PerpsRebateBanner: React.FC<PerpsRebateBannerProps> = ({
   coin,
   direction,
   notionalUsd,
+  textTwClassName,
   twClassName,
 }) => {
   const { data } = usePerpsRebateQuote({
@@ -39,6 +41,7 @@ const PerpsRebateBanner: React.FC<PerpsRebateBannerProps> = ({
     <RebateBanner
       rebatePercent={rebatePercent}
       testID={PERPS_REBATE_BANNER_TEST_ID}
+      textTwClassName={textTwClassName}
       twClassName={twClassName}
     />
   );

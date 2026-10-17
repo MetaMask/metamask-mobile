@@ -19,6 +19,7 @@ export const REBATE_BANNER_TEST_ID = 'rebate-banner';
 export interface RebateBannerProps {
   rebatePercent: number;
   testID?: string;
+  textTwClassName?: string;
   twClassName?: string;
 }
 
@@ -31,6 +32,7 @@ export interface RebateBannerProps {
 const RebateBanner: React.FC<RebateBannerProps> = ({
   rebatePercent,
   testID = REBATE_BANNER_TEST_ID,
+  textTwClassName,
   twClassName,
 }) => {
   const { openTooltipModal } = useTooltipModal();
@@ -51,7 +53,7 @@ const RebateBanner: React.FC<RebateBannerProps> = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextDefault}
-        twClassName="flex-1"
+        twClassName={`flex-1 ${textTwClassName ?? ''}`}
       >
         {strings('rewards.rebate.banner', { percent: rebatePercent })}
       </Text>

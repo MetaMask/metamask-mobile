@@ -770,6 +770,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   showEndIcon={false}
                   onPress={() => navigateTo('liquidationInfo')}
                 />
+                {!isAtOICap ? (
+                  <PerpsRebateBanner
+                    coin={asset}
+                    direction={direction}
+                    notionalUsd={amount}
+                    twClassName="mt-2"
+                  />
+                ) : null}
               </>
             ) : null}
           </Box>
@@ -870,11 +878,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 ))}
               </Box>
             ) : null}
-            <PerpsRebateBanner
-              coin={asset}
-              direction={direction}
-              notionalUsd={amount}
-            />
             <ButtonSemantic
               severity={
                 direction === 'long'
