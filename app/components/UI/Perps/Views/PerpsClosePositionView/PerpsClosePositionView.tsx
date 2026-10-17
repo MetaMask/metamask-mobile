@@ -110,6 +110,17 @@ const PerpsClosePositionView: React.FC = () => {
       hasRewardsError={rewardsState.hasError}
       accountOptedIn={rewardsState.accountOptedIn}
       rewardsAccount={rewardsState.account}
+      afterFees={
+        !isInputFocused ? (
+          <Box twClassName="px-4 mb-3">
+            <PerpsRebateBanner
+              coin={position.symbol}
+              direction={isLong ? 'short' : 'long'}
+              notionalUsd={closeAmountUSDString}
+            />
+          </Box>
+        ) : undefined
+      }
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
         receiveTooltip:
@@ -266,15 +277,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Summary Section (not shown here if input focused, as it's rendered above keypad) */}
         {!isInputFocused && Summary}
         {!isInputFocused && (
-          <>
-            <PerpsRebateBanner
-              coin={position.symbol}
-              direction={isLong ? 'short' : 'long'}
-              notionalUsd={closeAmountUSDString}
-              twClassName="mx-4 mb-3"
-            />
-            <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
-          </>
+          <BottomSheetFooter primaryButtonProps={confirmButtonProps} />
         )}
       </Box>
 

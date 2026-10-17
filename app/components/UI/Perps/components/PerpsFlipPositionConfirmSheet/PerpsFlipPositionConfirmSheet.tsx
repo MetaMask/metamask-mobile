@@ -8,6 +8,7 @@ import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
+  Box,
   ButtonSize,
   ButtonsAlignment,
   Icon,
@@ -371,12 +372,13 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         )}
       </View>
 
-      <PerpsRebateBanner
-        coin={position.symbol}
-        direction={oppositeDirection}
-        notionalUsd={usdAmount}
-        twClassName="mx-4 mb-3"
-      />
+      <Box twClassName="px-4 mb-3">
+        <PerpsRebateBanner
+          coin={position.symbol}
+          direction={oppositeDirection}
+          notionalUsd={usdAmount}
+        />
+      </Box>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={secondaryButtonProps}

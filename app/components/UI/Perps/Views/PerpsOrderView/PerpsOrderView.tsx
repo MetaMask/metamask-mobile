@@ -116,13 +116,11 @@ import {
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
-import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import {
-  useBottomSafeAreaInset,
   useHasExistingPosition,
   useMinimumOrderAmount,
   usePerpsLiquidationPrice,
@@ -326,7 +324,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     selectSelectedInternalAccountByScope,
   );
   const { colors } = useTheme();
-  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   useAddToken({
     chainId: CHAIN_IDS.ARBITRUM,
@@ -350,16 +347,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const styles = createStyles(colors);
-
-  // Dynamic bottom padding for fixed container: system navigation-bar inset plus
-  // the visual padding, so the CTA is never drawn under the navigation bar.
-  const fixedBottomContainerStyle = useMemo(
-    () => ({
-      ...styles.fixedBottomContainer,
-      paddingBottom: bottomSafeAreaInset + FIXED_BOTTOM_CONTAINER_PADDING,
-    }),
-    [styles.fixedBottomContainer, bottomSafeAreaInset],
-  );
 
   // Deferred loading: Load non-critical data after UI renders
   const [isDataReady, setIsDataReady] = useState(false);
@@ -2708,6 +2695,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
+          twClassName="pt-4"
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -3073,7 +3061,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
-        <View style={fixedBottomContainerStyle}>
+        <View
+          style={styles.fixedBottomContainer}
+          testID={PerpsOrderViewSelectorsIDs.FOOTER}
+        >
+          <PerpsRebateBanner
+            coin={orderForm.asset}
+            direction={orderForm.direction}
+            notionalUsd={orderForm.amount}
+            twClassName="mb-3"
+          />
+          <Box twClassName="-mx-4 mb-3 border-t border-muted" />
+
           {footerErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null && (
@@ -3101,12 +3100,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           {/* Service Interruption Banner */}
           <PerpsServiceInterruptionBanner
             testID={PerpsOrderViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-          />
-
-          <PerpsRebateBanner
-            coin={orderForm.asset}
-            direction={orderForm.direction}
-            notionalUsd={orderForm.amount}
           />
 
           {buttonColorVariant === 'colors' ? (

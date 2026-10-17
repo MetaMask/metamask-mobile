@@ -262,6 +262,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           keypad is open. */}
       {!isEditingLimitPrice && !isInputFocused && (
         <>
+          <Box twClassName="px-4 mb-3">
+            <PerpsRebateBanner
+              coin={position.symbol}
+              direction={isLong ? 'short' : 'long'}
+              notionalUsd={closeAmountUSDString}
+            />
+          </Box>
+
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 
           {/* One BodySm line stays reserved so an error appearing while the
@@ -270,13 +278,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             errors={displayedErrors}
             alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
-          />
-
-          <PerpsRebateBanner
-            coin={position.symbol}
-            direction={isLong ? 'short' : 'long'}
-            notionalUsd={closeAmountUSDString}
-            twClassName="mx-4"
           />
 
           <BottomSheetFooter

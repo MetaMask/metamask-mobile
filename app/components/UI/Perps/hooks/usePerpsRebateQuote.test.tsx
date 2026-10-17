@@ -1,8 +1,14 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  cleanup,
+  renderHook,
+  waitFor,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
+import type { RebateQuoteResponse } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import {
   RewardsMoneyAuthorizationError,
   RewardsMoneyRebateQuoteError,
@@ -52,6 +58,12 @@ const mockUseSessionProfileId = jest.mocked(useSessionProfileId);
 const mockGetPerpsRebateQuote = jest.mocked(
   Engine.context.RewardsMoneyController.getPerpsRebateQuote,
 );
+const REBATE_QUOTE = {
+  product: 'perps',
+  eligible: true,
+  rebateBips: 500,
+  reason: null,
+} satisfies RebateQuoteResponse;
 
 interface SelectorState {
   perpsRebatesEnabled: boolean;
@@ -70,6 +82,7 @@ const selectorState: SelectorState = {
   isUnlocked: true,
   address: '0xabc',
 };
+const queryClients = new Set<QueryClient>();
 
 const setSelectorMock = () => {
   mockUseSelector.mockImplementation((selector) => {
@@ -95,7 +108,7 @@ const setSelectorMock = () => {
   });
 };
 
-const createWrapper = () => {
+const createQueryClient = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -104,7 +117,11 @@ const createWrapper = () => {
       },
     },
   });
+  queryClients.add(queryClient);
+  return queryClient;
+};
 
+const createWrapper = (queryClient = createQueryClient()) => {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
@@ -129,15 +146,13 @@ describe('usePerpsRebateQuote', () => {
       profileId: 'profile-1',
       isLoading: false,
     });
-    mockGetPerpsRebateQuote.mockResolvedValue({
-      product: 'perps',
-      eligible: true,
-      rebateBips: 500,
-      reason: null,
-    });
+    mockGetPerpsRebateQuote.mockResolvedValue(REBATE_QUOTE);
   });
 
   afterEach(() => {
+    cleanup();
+    queryClients.forEach((queryClient) => queryClient.clear());
+    queryClients.clear();
     jest.restoreAllMocks();
   });
 
@@ -160,6 +175,63 @@ describe('usePerpsRebateQuote', () => {
       side: 'SELL',
       notionalUsd: '1250.50',
     });
+  });
+
+  it('returns a cached quote while remount revalidation is pending', async () => {
+    const queryClient = createQueryClient();
+    const Wrapper = createWrapper(queryClient);
+    const firstRender = renderHook(() => usePerpsRebateQuote(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() =>
+      expect(firstRender.result.current.data).toEqual(REBATE_QUOTE),
+    );
+    firstRender.unmount();
+
+    let resolveRevalidation: (quote: RebateQuoteResponse) => void = () =>
+      undefined;
+    const revalidationPromise = new Promise<RebateQuoteResponse>((resolve) => {
+      resolveRevalidation = resolve;
+    });
+    mockGetPerpsRebateQuote.mockReturnValueOnce(revalidationPromise);
+
+    const secondRender = renderHook(() => usePerpsRebateQuote(), {
+      wrapper: Wrapper,
+    });
+
+    expect(secondRender.result.current.data).toEqual(REBATE_QUOTE);
+    await waitFor(() =>
+      expect(secondRender.result.current.isFetching).toBe(true),
+    );
+    expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      resolveRevalidation(REBATE_QUOTE);
+      await revalidationPromise;
+    });
+  });
+
+  it('does not expose an enabled cache entry when a gate is disabled', async () => {
+    const queryClient = createQueryClient();
+    const Wrapper = createWrapper(queryClient);
+    const firstRender = renderHook(() => usePerpsRebateQuote(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() =>
+      expect(firstRender.result.current.data).toEqual(REBATE_QUOTE),
+    );
+    firstRender.unmount();
+    selectorState.perpsRebatesEnabled = false;
+
+    const disabledRender = renderHook(() => usePerpsRebateQuote(), {
+      wrapper: Wrapper,
+    });
+
+    expect(disabledRender.result.current.data).toBeUndefined();
+    expect(disabledRender.result.current.fetchStatus).toBe('idle');
+    expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(1);
   });
 
   it('does not request a quote when the Perps flag is disabled', () => {

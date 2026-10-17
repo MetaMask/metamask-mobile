@@ -406,6 +406,11 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             accountOptedIn={accountOptedIn}
             rewardsAccount={rewardsAccount}
             enableTooltips={false}
+            afterFees={
+              <Box twClassName="px-4 mb-3">
+                <PerpsRebateBanner />
+              </Box>
+            }
             testIDs={{
               feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
             }}
@@ -413,7 +418,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         )}
       </Box>
 
-      <PerpsRebateBanner twClassName="mx-4 mb-3" />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         secondaryButtonProps={secondaryButtonProps}

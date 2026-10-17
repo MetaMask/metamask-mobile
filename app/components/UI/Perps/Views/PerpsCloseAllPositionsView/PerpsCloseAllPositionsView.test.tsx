@@ -49,7 +49,11 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-jest.mock('../../components/PerpsCloseSummary', () => jest.fn(() => null));
+jest.mock('../../components/PerpsCloseSummary', () =>
+  jest.fn(
+    ({ afterFees }: { afterFees?: React.ReactNode }) => afterFees ?? null,
+  ),
+);
 const mockPerpsRebateBanner = jest.fn(
   (_props: Record<string, unknown>) => null,
 );

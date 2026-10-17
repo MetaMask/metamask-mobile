@@ -20,6 +20,7 @@ import { useSessionProfileId } from '../../../../util/notifications/hooks/useSes
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 
 const DEFAULT_RETRY_DELAY_MS = 1_000;
+const REBATE_QUOTE_GC_TIME_MS = 5 * 60 * 1_000;
 
 export interface UsePerpsRebateQuoteParams {
   /** Prevents a quote outside an active order or position confirmation. */
@@ -35,7 +36,15 @@ export interface UsePerpsRebateQuoteParams {
 export const perpsRebateQuoteQueryKey = (
   profileId: string | undefined,
   address: string | undefined,
-) => ['perps', 'rebateQuote', profileId ?? null, address ?? null] as const;
+  canFetch: boolean,
+) =>
+  [
+    'perps',
+    'rebateQuote',
+    profileId ?? null,
+    address ?? null,
+    canFetch,
+  ] as const;
 
 /**
  * Builds optional trade metadata for the rebate quote.
@@ -136,12 +145,12 @@ export function usePerpsRebateQuote({
     networkTier !== 'NONE';
 
   return useQuery({
-    queryKey: perpsRebateQuoteQueryKey(profileId, address),
+    queryKey: perpsRebateQuoteQueryKey(profileId, address, canFetch),
     queryFn: () =>
       Engine.context.RewardsMoneyController.getPerpsRebateQuote(trade),
     enabled: canFetch,
     staleTime: 0,
-    gcTime: 0,
+    gcTime: REBATE_QUOTE_GC_TIME_MS,
     retry: retryPerpsRebateQuote,
     retryDelay: getPerpsRebateRetryDelay,
     refetchOnWindowFocus: false,
