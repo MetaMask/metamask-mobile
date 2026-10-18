@@ -83,7 +83,10 @@ import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateS
 import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import { useRewardsMoneyTabRouting } from '../../UI/Rewards/hooks/useRewardsMoneyTabRouting';
 import { usePrefetchRewardsIdentity } from '../../UI/Rewards/hooks/usePrefetchRewardsIdentity';
-import { getRewardsTabContentState } from '../../UI/Rewards/utils/rewardsTabContentState';
+import {
+  getRewardsTabContentState,
+  type RewardsTabContentVariant,
+} from '../../UI/Rewards/utils/rewardsTabContentState';
 import RewardsTabSkeleton from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
@@ -411,7 +414,21 @@ const REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT = {
   money_dashboard: Routes.REWARDS_MONEY_DASHBOARD,
   dashboard: Routes.REWARDS_DASHBOARD,
   onboarding: Routes.REWARDS_ONBOARDING_FLOW,
-};
+} as const;
+
+type RewardsHomeInitialVariant =
+  keyof typeof REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT;
+
+/** Update-required replaces the stack, so it has no initial route. */
+function isRewardsHomeInitialVariant(
+  variant: RewardsTabContentVariant,
+): variant is RewardsHomeInitialVariant {
+  return (
+    variant === 'money_dashboard' ||
+    variant === 'dashboard' ||
+    variant === 'onboarding'
+  );
+}
 
 const RewardsHome = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -473,7 +490,8 @@ const RewardsHome = () => {
   }
 
   const initialRouteName =
-    tabContent.status === 'ready'
+    tabContent.status === 'ready' &&
+    isRewardsHomeInitialVariant(tabContent.variant)
       ? REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT[tabContent.variant]
       : Routes.REWARDS_ONBOARDING_FLOW;
 

@@ -57,15 +57,11 @@ const buildConfig = ({
   moneyEnabled = false,
   moneyReferralResolved = false,
   moneyPersona = undefined as MoneyDashboardPersona | undefined,
-  navigatorKey = 'disabled',
-  profileId = undefined as string | undefined,
 } = {}) => ({
   isVersionBlocked,
   moneyEnabled,
   moneyReferralResolved,
   moneyPersona,
-  navigatorKey,
-  profileId,
 });
 
 describe('useRewardsTabPerformance', () => {

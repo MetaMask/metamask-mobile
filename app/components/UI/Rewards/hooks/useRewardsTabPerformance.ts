@@ -12,10 +12,13 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { getRewardsTabContentState } from '../utils/rewardsTabContentState';
 import type { RewardsMoneyTabRouting } from './useRewardsMoneyTabRouting';
 
-interface UseRewardsTabPerformanceConfig extends RewardsMoneyTabRouting {
+type UseRewardsTabPerformanceConfig = Pick<
+  RewardsMoneyTabRouting,
+  'moneyEnabled' | 'moneyReferralResolved' | 'moneyPersona'
+> & {
   /** True when RewardsHome shows the update-required screen. */
   isVersionBlocked: boolean;
-}
+};
 
 /**
  * Rewards tab time-to-content telemetry.
