@@ -1,9 +1,11 @@
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { EarningsSummaryDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { RootState } from '../../../../reducers';
+import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 import {
   selectEarningsSummaryEntry,
   selectMoneyDashboardPersona,
@@ -53,11 +55,20 @@ export function useMoneyHomeClaimableRewards(): {
   amount: string;
   refresh: () => Promise<void>;
 } {
-  const { profileId, fetchReferralMe } = useReferralMe();
-  const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const store = useStore<RootState>();
+  const moneyEnabled = useSelector(selectRewardsMoneyControllerEnabled);
+  const profileId = useSelector(selectSessionProfileId);
+  // Prefetch already warms referral me. This read is for pull-to-refresh.
+  const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
   const persona = useSelector((state: RootState) =>
     selectMoneyDashboardPersona(state, profileId),
   );
+  // The summary is only useful for a referee, and only after referral me has
+  // settled. A missing persona means that payload is not in Redux yet.
+  const { fetchEarningsSummary } = useEarningsSummary(profileId, {
+    enabled: moneyEnabled,
+    fetchOnFocus: moneyEnabled && persona === 'referee',
+  });
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
@@ -65,18 +76,27 @@ export function useMoneyHomeClaimableRewards(): {
     useSelector((state: RootState) =>
       selectEarningsSummaryEntry(state, profileId),
     )?.data ?? null;
-  const show = Boolean(localizedText) && canClaimEarnings(summary, persona);
+  const show =
+    moneyEnabled &&
+    Boolean(localizedText) &&
+    canClaimEarnings(summary, persona);
   const amount =
     formatMusdBaseUnits(cashbackClaimable(summary), {
       maximumFractionDigits: 2,
     }) ?? '';
 
   const refresh = useCallback(async () => {
-    await Promise.all([
-      fetchReferralMe({ forceFresh: true }).catch(() => undefined),
-      fetchEarningsSummary({ forceFresh: true }).catch(() => undefined),
-    ]);
-  }, [fetchEarningsSummary, fetchReferralMe]);
+    if (!moneyEnabled) {
+      return;
+    }
+    await fetchReferralMe({ forceFresh: true }).catch(() => undefined);
+    if (
+      selectMoneyDashboardPersona(store.getState(), profileId) !== 'referee'
+    ) {
+      return;
+    }
+    await fetchEarningsSummary({ forceFresh: true }).catch(() => undefined);
+  }, [fetchEarningsSummary, fetchReferralMe, moneyEnabled, profileId, store]);
 
   return { show, localizedText, amount, refresh };
 }
