@@ -46,8 +46,15 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
-import { useSocialFeed } from '../../SocialFeed';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../QuickBuy';
+import type { SocialV1FeedItem } from '../../SocialFeed/types';
+import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -65,6 +72,7 @@ import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExpla
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
+import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
@@ -362,26 +370,45 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
-  const feedSource = useMemo(
-    () =>
-      socialEnabled && caip19AssetId
-        ? { kind: 'token' as const, assetId: caip19AssetId }
-        : null,
-    [caip19AssetId, socialEnabled],
+  const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
+
+  const [copyTrade, setCopyTrade] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+  } | null>(null);
+  const handleFeedCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+      setCopyTrade({
+        target: {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        copyTradeOrigin: commentId ? { commentId } : undefined,
+      });
+    },
+    [],
   );
-  const { posts: feedPosts } = useSocialFeed(feedSource);
-  const showFeedTab = feedPosts.length > 0;
+  const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
   const visibleTabs = useMemo(
     () =>
-      showFeedTab
-        ? TOKEN_DETAILS_V1_TABS
-        : TOKEN_DETAILS_V1_TABS.filter((tab) => tab !== 'feed'),
-    [showFeedTab],
+      TOKEN_DETAILS_V1_TABS.filter(
+        (tab) => (tab !== 'feed' && tab !== 'holders') || showSocialTabs,
+      ),
+    [showSocialTabs],
   );
-  // Feed is first in TOKEN_DETAILS_V1_TABS, so it is the landing tab once it
-  // is visible. Until the token feed has posts the tab is omitted and the
-  // reader lands on the next tab. A later post response still moves them
-  // there, unless they already chose a tab.
+  // Feed is first, so it is the landing tab while social tabs are shown.
+  // An empty feed or an empty holders list still keeps its tab. Both tabs
+  // are omitted only when social is off or the token has no CAIP-19 id.
   const landingTab = visibleTabs[0] ?? 'overview';
   const userPickedTabRef = useRef(false);
   const applyingLandingTabRef = useRef(false);
@@ -473,7 +500,15 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         );
       }
       if (tab === 'feed' && socialEnabled && caip19AssetId) {
-        return <TokenDetailsFeedTab assetId={caip19AssetId} />;
+        return (
+          <TokenDetailsFeedTab
+            assetId={caip19AssetId}
+            onCopyTrade={handleFeedCopyTrade}
+          />
+        );
+      }
+      if (tab === 'holders' && socialEnabled && caip19AssetId) {
+        return <TokenDetailsHoldersTab assetId={caip19AssetId} />;
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
@@ -491,6 +526,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleAttributionPress,
       handleOpenContractSecurity,
       socialEnabled,
+      handleFeedCopyTrade,
     ],
   );
 
@@ -686,6 +722,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             networkName={networkConfigurationByChainId?.name}
           />
         )}
+
+        <QuickBuy.Root
+          isVisible={copyTrade !== null}
+          target={copyTrade?.target ?? null}
+          onClose={closeCopyTrade}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+          copyTradeOrigin={copyTrade?.copyTradeOrigin}
+        />
       </View>
     </PriceChartProvider>
   );
