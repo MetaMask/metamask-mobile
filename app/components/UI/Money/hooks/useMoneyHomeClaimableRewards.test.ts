@@ -180,6 +180,7 @@ describe('useMoneyHomeClaimableRewards', () => {
     expect(mockUseReferralMe).toHaveBeenCalledWith({ fetchOnMount: false });
     expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: false,
+      fetchOnFocus: false,
     });
     expect(result.current.show).toBe(false);
 
