@@ -12,6 +12,19 @@ const BUSY_READ_RETRY_MAX_SECONDS = 30;
 /** One rejection shared by several screens is still one failure. */
 const reportedErrors = new WeakSet<object>();
 
+/**
+ * The controller throws this as an ordinary Error when the flag is off.
+ * Prefetch and tab routing skip the call. A hook that still calls, including
+ * the Money Home hook on a later branch, must not report it.
+ */
+const REWARDS_MONEY_DISABLED_MESSAGE = 'Rewards Money is disabled';
+
+function isRewardsMoneyDisabled(error: unknown): boolean {
+  return (
+    error instanceof Error && error.message === REWARDS_MONEY_DISABLED_MESSAGE
+  );
+}
+
 function isShortBusyRead(error: unknown): boolean {
   if (!(error instanceof RewardsMoneyHttpError)) {
     return false;
@@ -29,8 +42,10 @@ function isShortBusyRead(error: unknown): boolean {
  *
  * A `429` or `503` whose `Retry-After` is at most 30 seconds still has one
  * refetch ahead of it, so the first failure stays quiet. The refetch's
- * failure is the one that stuck. Any other failure is reported now. A second
- * screen waiting on the same rejected promise does not report it again.
+ * failure is the one that stuck. A disabled controller is not a failure of
+ * the read, so it stays quiet too. Any other failure is reported now. A
+ * second screen waiting on the same rejected promise does not report it
+ * again.
  */
 export function reportRewardsMoneyReadFailure(
   error: unknown,
@@ -38,6 +53,9 @@ export function reportRewardsMoneyReadFailure(
   followUp: boolean,
   feature: string,
 ): void {
+  if (isRewardsMoneyDisabled(error)) {
+    return;
+  }
   if (!followUp && isShortBusyRead(error)) {
     return;
   }

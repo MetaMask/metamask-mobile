@@ -82,6 +82,25 @@ describe('reportRewardsMoneyReadFailure', () => {
     });
   });
 
+  it('stays quiet when the controller reports Rewards Money is disabled', () => {
+    const disabled = new Error('Rewards Money is disabled');
+
+    reportRewardsMoneyReadFailure(
+      disabled,
+      'earningsSummary.fetch_failed',
+      false,
+      'rewards-money',
+    );
+    reportRewardsMoneyReadFailure(
+      disabled,
+      'referralMe.fetch_failed',
+      true,
+      'rewards-money',
+    );
+
+    expect(mockCaptureException).not.toHaveBeenCalled();
+  });
+
   it('reports any other failure immediately, and only once when screens share it', () => {
     const failure = new Error('network');
 
