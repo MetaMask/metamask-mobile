@@ -102,6 +102,23 @@ describe('RewardsOptInSection', () => {
     ).toBe(false);
   });
 
+  it('keeps the CTA disabled until geo eligibility is known', () => {
+    mockOptinAllowedForGeo = null;
+
+    const { getByTestId, getByText } = render(
+      <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
+    );
+
+    fireEvent.press(getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION));
+
+    expect(mockOptin).not.toHaveBeenCalled();
+    expect(getByText('Rewards terms apply.')).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
   it('disables the CTA and explains when the region is unsupported', () => {
     mockOptinAllowedForGeo = false;
 
@@ -125,24 +142,22 @@ describe('RewardsOptInSection', () => {
     ).toBe(true);
   });
 
-  it('disables the CTA and explains when geo eligibility cannot be checked', () => {
+  it('still allows opt-in when the geo check fails', () => {
     mockOptinAllowedForGeo = null;
     mockOptinAllowedForGeoError = true;
 
-    const { getByTestId, getByText, queryByText } = render(
+    const { getByTestId, getByText } = render(
       <RewardsOptInSection localizedText={LOCALIZED_TEXT} />,
     );
 
-    expect(
-      getByText(
-        'We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.',
-      ),
-    ).toBeOnTheScreen();
-    expect(queryByText('Rewards terms apply.')).not.toBeOnTheScreen();
+    fireEvent.press(getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION));
+
+    expect(mockOptin).toHaveBeenCalledWith({ bulkLink: true });
+    expect(getByText('Rewards terms apply.')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
-        .accessibilityState?.disabled,
-    ).toBe(true);
+        .accessibilityState?.disabled ?? false,
+    ).toBe(false);
   });
 
   it('disables the CTA and explains when the group has a hardware account', () => {

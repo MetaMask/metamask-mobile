@@ -83,15 +83,23 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
   }, [accountGroupAccounts]);
 
   let disabledReason: string | null = null;
-  if (optinAllowedForGeoError && !optinAllowedForGeoLoading) {
-    disabledReason = strings('rewards.onboarding.geo_check_fail_description');
-  } else if (optinAllowedForGeo === false) {
+  if (optinAllowedForGeo === false) {
     disabledReason = strings(
       'rewards.onboarding.not_supported_region_description',
     );
-  } else {
+  } else if (accountRefusalReason) {
     disabledReason = accountRefusalReason;
   }
+
+  // Null with no error means the lookup has not finished. The fetch waits
+  // until after first paint, so hold the CTA for that gap. A finished check
+  // that failed leaves the answer unknown and does not block opt-in.
+  const geoNotResolved =
+    optinAllowedForGeo === null &&
+    !optinAllowedForGeoError &&
+    !accountRefusalReason;
+  const geoAllowsOptIn =
+    optinAllowedForGeo === true || Boolean(optinAllowedForGeoError);
 
   useEffect(() => {
     if (!optinError) {
@@ -130,14 +138,26 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           size: ButtonSize.Lg,
           twClassName: 'mt-3 self-stretch',
           accessibilityLabel: localizedText.invitedOptInAction,
-          isLoading: optinLoading || optinAllowedForGeoLoading,
+          isLoading:
+            optinLoading || optinAllowedForGeoLoading || geoNotResolved,
           isDisabled:
             optinLoading ||
             optinAllowedForGeoLoading ||
+            geoNotResolved ||
             Boolean(disabledReason),
           testID: REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION,
         }}
-        onAction={() => optin({ bulkLink: true })}
+        onAction={() => {
+          if (
+            !geoAllowsOptIn ||
+            disabledReason ||
+            optinAllowedForGeoLoading ||
+            optinLoading
+          ) {
+            return;
+          }
+          optin({ bulkLink: true });
+        }}
         twClassName="mx-auto px-4"
       />
       {disabledReason || localizedText.invitedOptInLegal ? (
