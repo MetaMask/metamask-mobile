@@ -198,11 +198,12 @@ describe('AcceptInviteSheet', () => {
     referralMeEntries = {
       [PROFILE_ID]: { loading: false, error: false, data: buildReferralMe() },
     };
-    mockAcceptReferralCode.mockResolvedValue(true);
+    mockAcceptReferralCode.mockResolvedValue({ accepted: true });
     mockUseAcceptMoneyReferralCode.mockReturnValue({
       acceptReferralCode: mockAcceptReferralCode,
       isLoading: false,
       errorMessage: '',
+      refusalReason: null,
       acceptBlockedUntil: null,
       clearError: jest.fn(),
     });
@@ -819,12 +820,17 @@ describe('AcceptInviteSheet', () => {
     });
 
     it('does not record accepted until registration resolves', async () => {
-      let resolveAccept: (didAccept: boolean) => void = () => undefined;
+      let resolveAccept: (result: {
+        accepted: boolean;
+        refusalReason?: string;
+      }) => void = () => undefined;
       mockAcceptReferralCode.mockImplementation(
         () =>
-          new Promise<boolean>((resolve) => {
-            resolveAccept = resolve;
-          }),
+          new Promise<{ accepted: boolean; refusalReason?: string }>(
+            (resolve) => {
+              resolveAccept = resolve;
+            },
+          ),
       );
 
       const { getByTestId } = await renderSheet('KOL1');
@@ -838,7 +844,7 @@ describe('AcceptInviteSheet', () => {
       );
 
       await act(async () => {
-        resolveAccept(true);
+        resolveAccept({ accepted: true });
       });
 
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
@@ -854,12 +860,17 @@ describe('AcceptInviteSheet', () => {
     ])(
       'keeps accepted as the answer when %s is pressed before the hook reports loading',
       async (_name, testId) => {
-        let resolveAccept: (didAccept: boolean) => void = () => undefined;
+        let resolveAccept: (result: {
+          accepted: boolean;
+          refusalReason?: string;
+        }) => void = () => undefined;
         mockAcceptReferralCode.mockImplementation(
           () =>
-            new Promise<boolean>((resolve) => {
-              resolveAccept = resolve;
-            }),
+            new Promise<{ accepted: boolean; refusalReason?: string }>(
+              (resolve) => {
+                resolveAccept = resolve;
+              },
+            ),
         );
 
         const { getByTestId } = await renderSheet('KOL1');
@@ -875,7 +886,7 @@ describe('AcceptInviteSheet', () => {
         expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
 
         await act(async () => {
-          resolveAccept(true);
+          resolveAccept({ accepted: true });
         });
 
         const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
@@ -887,12 +898,17 @@ describe('AcceptInviteSheet', () => {
     );
 
     it('keeps accepted as the answer when goBack runs before the hook reports loading', async () => {
-      let resolveAccept: (didAccept: boolean) => void = () => undefined;
+      let resolveAccept: (result: {
+        accepted: boolean;
+        refusalReason?: string;
+      }) => void = () => undefined;
       mockAcceptReferralCode.mockImplementation(
         () =>
-          new Promise<boolean>((resolve) => {
-            resolveAccept = resolve;
-          }),
+          new Promise<{ accepted: boolean; refusalReason?: string }>(
+            (resolve) => {
+              resolveAccept = resolve;
+            },
+          ),
       );
 
       const { getByTestId } = await renderSheet('KOL1');
@@ -908,7 +924,7 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
 
       await act(async () => {
-        resolveAccept(true);
+        resolveAccept({ accepted: true });
       });
 
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
@@ -918,11 +934,80 @@ describe('AcceptInviteSheet', () => {
       });
     });
 
+    it('tracks refused with the reason and keeps the sheet open', async () => {
+      mockAcceptReferralCode.mockResolvedValue({
+        accepted: false,
+        refusalReason: 'already_referred',
+      });
+
+      const { getByTestId, queryByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
+
+      const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'refused',
+        refusal_reason: 'already_referred',
+      });
+      expect(queryByTestId(TEST_IDS.CONTAINER)).toBeTruthy();
+      expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
     it.each([
       ['declined', TEST_IDS.DECLINE],
       ['dismissed', TEST_IDS.CLOSE],
-    ])('records %s after a refused registration', async (action, testId) => {
-      mockAcceptReferralCode.mockResolvedValue(false);
+    ])(
+      'records %s without a refusal_reason after a refused Accept',
+      async (action, testId) => {
+        mockAcceptReferralCode.mockResolvedValue({
+          accepted: false,
+          refusalReason: 'already_referred',
+        });
+
+        const { getByTestId } = await renderSheet('KOL1');
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+
+        await act(async () => {
+          fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+        });
+
+        expect(
+          mockCreateEventBuilder.mock.results.at(-1)?.value.addProperties,
+        ).toHaveBeenCalledWith({
+          referral_code: 'KOL1',
+          interaction_type: 'refused',
+          refusal_reason: 'already_referred',
+        });
+
+        mockTrackEvent.mockClear();
+        mockCreateEventBuilder.mockClear();
+        fireEvent.press(getByTestId(testId));
+
+        const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+        expect(builder.addProperties).toHaveBeenCalledWith({
+          referral_code: 'KOL1',
+          interaction_type: action,
+        });
+        expect(builder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({ refusal_reason: expect.anything() }),
+        );
+      },
+    );
+
+    it('records accepted without a refusal_reason after a prior refused Accept', async () => {
+      mockAcceptReferralCode
+        .mockResolvedValueOnce({
+          accepted: false,
+          refusalReason: 'invalid_code',
+        })
+        .mockResolvedValueOnce({ accepted: true });
 
       const { getByTestId } = await renderSheet('KOL1');
       mockTrackEvent.mockClear();
@@ -932,17 +1017,43 @@ describe('AcceptInviteSheet', () => {
         fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
       });
 
-      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
-      );
+      expect(
+        mockCreateEventBuilder.mock.results.at(-1)?.value.addProperties,
+      ).toHaveBeenCalledWith({
+        referral_code: 'KOL1',
+        interaction_type: 'refused',
+        refusal_reason: 'invalid_code',
+      });
 
-      fireEvent.press(getByTestId(testId));
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
 
       const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
-        interaction_type: action,
+        interaction_type: 'accepted',
       });
+      expect(builder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ refusal_reason: expect.anything() }),
+      );
+    });
+
+    it('does not track refused when Accept fails without a register reason', async () => {
+      mockAcceptReferralCode.mockResolvedValue({ accepted: false });
+
+      const { getByTestId } = await renderSheet('KOL1');
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     });
 
     it('tracks declined only from the decline button', async () => {
@@ -960,6 +1071,9 @@ describe('AcceptInviteSheet', () => {
         referral_code: 'KOL1',
         interaction_type: 'declined',
       });
+      expect(builder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ refusal_reason: expect.anything() }),
+      );
     });
 
     it('tracks dismissed, not declined, when the header close button is pressed', async () => {

@@ -28,7 +28,10 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
 import { selectSessionProfileId } from '../../../../../selectors/identity';
-import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
+import {
+  useAcceptMoneyReferralCode,
+  type ReferralRefusalReason,
+} from '../../hooks/useAcceptMoneyReferralCode';
 import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
@@ -205,6 +208,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // that follows Accept or Decline is the sheet acting on that press, not a
   // second interaction. An answer also requires the matching viewed
   // interaction, since the sheet can be dismissed while its copy is pending.
+  // `refused` is not an answer: the sheet stays open, so it does not lock
+  // this guard.
   const trackResponded = useCallback(
     (interactionType: 'accepted' | 'declined' | 'dismissed') => {
       if (hasRespondedRef.current) {
@@ -221,6 +226,29 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           .addProperties({
             referral_code: referralCode,
             interaction_type: interactionType,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, referralCode, trackEvent],
+  );
+
+  // Failed Accept: the user tried to take the invite and the server turned
+  // them away. Does not lock the one-answer guard, so a later answer or
+  // another failed Accept can still fire.
+  const trackRefused = useCallback(
+    (refusalReason: ReferralRefusalReason) => {
+      if (!hasTrackedOfferViewedRef.current) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+        )
+          .addProperties({
+            referral_code: referralCode,
+            interaction_type: 'refused',
+            refusal_reason: refusalReason,
           })
           .build(),
       );
@@ -264,19 +292,29 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // the invite, so that write cannot be read as a stale deeplink.
     hasSeenEligibleInviteRef.current = true;
     // Registration is the accept. A refused write leaves the sheet open, so
-    // `accepted` must not lock the funnel until the hook returns true.
+    // `accepted` must not lock the funnel until the hook reports accepted.
     acceptInFlightRef.current = true;
     acceptReferralCode(referralCode)
-      .then((didAccept) => {
-        if (didAccept) {
+      .then((result) => {
+        if (result.accepted) {
           trackResponded('accepted');
+          return;
+        }
+        if (result.refusalReason) {
+          trackRefused(result.refusalReason);
         }
       })
       .catch(() => undefined)
       .finally(() => {
         acceptInFlightRef.current = false;
       });
-  }, [acceptReferralCode, canAccept, referralCode, trackResponded]);
+  }, [
+    acceptReferralCode,
+    canAccept,
+    referralCode,
+    trackRefused,
+    trackResponded,
+  ]);
 
   const handleGoBack = useCallback(() => {
     if (isAccepting || acceptInFlightRef.current) {
