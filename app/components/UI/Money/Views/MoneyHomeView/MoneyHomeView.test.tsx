@@ -8,6 +8,7 @@ import {
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import type { MoneyAccount } from '@metamask/money-account-controller';
+import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import Engine from '../../../../../core/Engine';
@@ -134,6 +135,13 @@ const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockRefetchInterest = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockRefreshClaimableRewards = jest.fn().mockResolvedValue(undefined);
+const mockUseMoneyHomeClaimableRewards = jest.fn(() => ({
+  show: false,
+  localizedText: undefined as ReferralLocalizedText | undefined,
+  amount: '',
+  refresh: mockRefreshClaimableRewards,
+}));
 const mockGetLinkFlowRedirectTarget = jest.fn<
   ReturnType<
     ReturnType<typeof useMoneyAccountCardLinkage>['getLinkFlowRedirectTarget']
@@ -187,6 +195,11 @@ const mockUseMoneyDepositTokens = jest.fn(() => ({
 
 jest.mock('../../hooks/useMoneyDepositTokens', () => ({
   useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
+}));
+
+jest.mock('../../hooks/useMoneyHomeClaimableRewards', () => ({
+  ...jest.requireActual('../../hooks/useMoneyHomeClaimableRewards'),
+  useMoneyHomeClaimableRewards: () => mockUseMoneyHomeClaimableRewards(),
 }));
 
 // Animated Rive graphic pulls in device sensors; not exercised by these tests.
@@ -784,6 +797,12 @@ describe('MoneyHomeView', () => {
       isPlusSubscriber: false,
       isPlusAccessUnknown: false,
     });
+    mockUseMoneyHomeClaimableRewards.mockReturnValue({
+      show: false,
+      localizedText: undefined,
+      amount: '',
+      refresh: mockRefreshClaimableRewards,
+    });
 
     mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
@@ -936,6 +955,32 @@ describe('MoneyHomeView', () => {
     expect(
       queryByTestId(MoneyClaimableRewardsCardTestIds.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('renders claimable rewards from the Rewards Money session', () => {
+    mockUseMoneyHomeClaimableRewards.mockReturnValue({
+      show: true,
+      localizedText: {
+        availableToClaim: 'Available to claim',
+        mUSD: 'mUSD',
+        claim: 'Claim',
+      } as ReferralLocalizedText,
+      amount: '$12.34',
+      refresh: mockRefreshClaimableRewards,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(
+      getByTestId(MoneyClaimableRewardsCardTestIds.AMOUNT),
+    ).toHaveTextContent('$12.34');
+
+    fireEvent.press(getByTestId(MoneyClaimableRewardsCardTestIds.CLAIM_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW, {
+      screen: Routes.REWARDS_MONEY_DASHBOARD,
+      params: { initialTab: 'earnings' },
+    });
   });
 
   it('renders the earnings section when its feature flag is enabled', () => {
@@ -1353,6 +1398,7 @@ describe('MoneyHomeView', () => {
       expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
       expect(mockRefetchInterest).toHaveBeenCalledTimes(1);
       expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
+      expect(mockRefreshClaimableRewards).toHaveBeenCalledTimes(1);
     });
 
     it('logs refresh failure when refetchBalance rejects', async () => {

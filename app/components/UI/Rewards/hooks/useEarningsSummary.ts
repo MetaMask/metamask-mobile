@@ -65,6 +65,10 @@ function leaveEarningsSummaryFlight(profileId: string): void {
  */
 export const useEarningsSummary = (
   profileId: string | undefined,
+  {
+    enabled = true,
+    fetchOnFocus = true,
+  }: { enabled?: boolean; fetchOnFocus?: boolean } = {},
 ): {
   fetchEarningsSummary: (options?: {
     forceFresh?: boolean;
@@ -94,7 +98,7 @@ export const useEarningsSummary = (
     }: { forceFresh?: boolean; followUp?: boolean } = {}): Promise<
       EarningsSummaryDto | undefined
     > => {
-      if (!profileId) {
+      if (!enabled || !profileId) {
         return undefined;
       }
       const current = inFlightRef.current;
@@ -159,16 +163,19 @@ export const useEarningsSummary = (
         }
       }
     },
-    [armBusyRefetch, cancelBusyRefetch, dispatch, profileId],
+    [armBusyRefetch, cancelBusyRefetch, dispatch, enabled, profileId],
   );
   fetchRef.current = fetchEarningsSummary;
 
   useFocusEffect(
     useCallback(() => {
+      if (!fetchOnFocus) {
+        return;
+      }
       // The error is already on the slice. A focus refresh has no caller to
       // tell, so the rejection stops here.
       void fetchEarningsSummary().catch(() => undefined);
-    }, [fetchEarningsSummary]),
+    }, [fetchEarningsSummary, fetchOnFocus]),
   );
 
   return { fetchEarningsSummary };

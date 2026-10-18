@@ -14,6 +14,20 @@ import {
   useMoneyHomeClaimableRewards,
 } from './useMoneyHomeClaimableRewards';
 
+const mockRewardsMoneyEnabled = jest.fn(() => true);
+let mockSessionProfileId: string | undefined;
+
+jest.mock(
+  '../../../../selectors/featureFlagController/rewardsMoneyController',
+  () => ({
+    selectRewardsMoneyControllerEnabled: () => mockRewardsMoneyEnabled(),
+  }),
+);
+
+jest.mock('../../../../selectors/identity', () => ({
+  selectSessionProfileId: () => mockSessionProfileId,
+}));
+
 jest.mock('../../Rewards/hooks/useReferralMe', () => ({
   useReferralMe: jest.fn(),
 }));
@@ -85,6 +99,7 @@ const renderClaimCard = ({
   profileId?: string;
   localizedText?: ReferralLocalizedText | undefined;
 } = {}) => {
+  mockSessionProfileId = profileId;
   mockUseReferralMe.mockReturnValue({
     profileId,
     fetchReferralMe: mockFetchReferralMe,
@@ -124,11 +139,13 @@ const renderClaimCard = ({
 describe('useMoneyHomeClaimableRewards', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRewardsMoneyEnabled.mockReturnValue(true);
   });
 
   it('shows a referee rebate of at least $1', () => {
     const { result } = renderClaimCard({ claimable: ONE_DOLLAR });
 
+    expect(mockUseReferralMe).toHaveBeenCalledWith({ fetchOnMount: false });
     expect(result.current.show).toBe(true);
     expect(result.current.amount).toBe('$1.00');
     expect(result.current.localizedText).toBe(LOCALIZED_TEXT);
@@ -155,6 +172,25 @@ describe('useMoneyHomeClaimableRewards', () => {
     expect(result.current.show).toBe(false);
   });
 
+  it('disables reads and hides cached rewards when Rewards Money is off', async () => {
+    mockRewardsMoneyEnabled.mockReturnValue(false);
+
+    const { result } = renderClaimCard({ claimable: ONE_DOLLAR });
+
+    expect(mockUseReferralMe).toHaveBeenCalledWith({ fetchOnMount: false });
+    expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+    expect(result.current.show).toBe(false);
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockFetchReferralMe).not.toHaveBeenCalled();
+    expect(mockFetchEarningsSummary).not.toHaveBeenCalled();
+  });
+
   it('refreshes referral me and the earnings summary', async () => {
     const { result } = renderClaimCard({ claimable: ONE_DOLLAR });
 
@@ -167,6 +203,27 @@ describe('useMoneyHomeClaimableRewards', () => {
       forceFresh: true,
     });
   });
+
+  it.each([
+    ['referral me', mockFetchReferralMe, mockFetchEarningsSummary],
+    ['earnings summary', mockFetchEarningsSummary, mockFetchReferralMe],
+  ])(
+    'still resolves and runs both refreshes when %s rejects',
+    async (_name, rejectedFetch, resolvedFetch) => {
+      rejectedFetch.mockRejectedValueOnce(new Error('read failed'));
+      resolvedFetch.mockResolvedValueOnce(undefined);
+      const { result } = renderClaimCard({ claimable: ONE_DOLLAR });
+
+      await act(async () => {
+        await expect(result.current.refresh()).resolves.toBeUndefined();
+      });
+
+      expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
+      expect(mockFetchEarningsSummary).toHaveBeenCalledWith({
+        forceFresh: true,
+      });
+    },
+  );
 });
 
 describe('navigateToRewardsEarningsTab', () => {

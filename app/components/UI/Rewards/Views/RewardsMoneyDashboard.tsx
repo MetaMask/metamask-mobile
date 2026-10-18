@@ -163,17 +163,20 @@ const RewardsMoneyDashboard: React.FC = () => {
   const hasTrackedDashboardViewed = useRef(false);
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
+  const initialTabRef = useRef(route.params?.initialTab);
+  initialTabRef.current = route.params?.initialTab;
 
   // A Money Home Claim tap sets this once. Clear it on focus so the next
   // visit to Rewards opens on Ways to earn again.
   useFocusEffect(
     useCallback(() => {
-      if (route.params?.initialTab !== 'earnings') {
+      if (initialTabRef.current !== 'earnings') {
+        setActiveTab('waysToEarn');
         return;
       }
       setActiveTab('earnings');
       navigation.setParams({ initialTab: undefined });
-    }, [navigation, route.params?.initialTab]),
+    }, [navigation]),
   );
   const referralMe = referralMeEntry?.data;
   const showEarningsDot = canClaimEarnings(
