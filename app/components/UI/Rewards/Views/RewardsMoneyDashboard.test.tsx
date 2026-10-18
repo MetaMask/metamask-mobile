@@ -560,7 +560,13 @@ describe('RewardsMoneyDashboard', () => {
 
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
-    ).toBeOnTheScreen();
+    ).toHaveStyle({
+      position: 'absolute',
+      top: 4,
+      right: -4,
+      width: 6,
+      height: 6,
+    });
   });
 
   it('switches to an empty Earnings tab body', () => {

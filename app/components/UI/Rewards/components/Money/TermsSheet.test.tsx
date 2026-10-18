@@ -1,6 +1,7 @@
 import React from 'react';
+import { Icon, IconName } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import configureStore from '../../../../../util/test/configureStore';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -91,6 +92,12 @@ describe('TermsSheet', () => {
     expect(
       getByText('These terms explain how you earn, claim, and share rewards.'),
     ).toBeOnTheScreen();
+
+    expect(
+      within(getByTestId(TERMS_SHEET_TEST_IDS.LEARN_MORE)).UNSAFE_getByType(
+        Icon,
+      ).props.name,
+    ).toBe(IconName.ArrowSquareOut);
 
     fireEvent.press(getByTestId(TERMS_SHEET_TEST_IDS.LEARN_MORE));
 

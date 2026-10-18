@@ -99,7 +99,7 @@ const TermsSheet: React.FC = () => {
           isFullWidth
           isDisabled={termsUrl.length === 0}
           onPress={() => handleLinkPress(termsUrl)}
-          endIconName={IconName.Export}
+          endIconName={IconName.ArrowSquareOut}
           testID={TERMS_SHEET_TEST_IDS.LEARN_MORE}
         >
           {localizedText?.termsLearnMore ?? ''}

@@ -197,9 +197,12 @@ const RewardsMoneyDashboard: React.FC = () => {
         content: null,
         testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB,
         endAccessory: showEarningsDot ? (
+          // Absolute so the dot drops out of the tab layout and does not
+          // widen the underline. top-1 cancels the tab's py-1 so it sits on
+          // the label's top-right corner.
           <Box
             testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT}
-            twClassName="h-1.5 w-1.5 rounded-full bg-success-default"
+            twClassName="absolute top-1 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
           />
         ) : undefined,
       },
