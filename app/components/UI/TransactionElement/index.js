@@ -1,30 +1,21 @@
-import React, { PureComponent, useCallback } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import PropTypes from 'prop-types';
-import {
-  TouchableOpacity,
-  TouchableHighlight,
-  StyleSheet,
-  Image,
-  Text,
-  View,
-} from 'react-native';
-import { fontStyles } from '../../../styles/common';
-import FAIcon from 'react-native-vector-icons/FontAwesome';
-import { strings } from '../../../../locales/i18n';
-import { toDateFormat } from '../../../util/date';
-import { safeToChecksumAddress } from '../../../util/address';
 import { connect, useSelector } from 'react-redux';
-import StyledButton from '../StyledButton';
-import decodeTransaction from './utils';
-import { TRANSACTION_TYPES } from '../../../util/transactions';
-import ListItem from '../../Base/ListItem';
-import StatusText from '../../Base/StatusText';
-import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import {
   TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
+import { safeToChecksumAddress } from '../../../util/address';
+import { toDateFormat } from '../../../util/date';
+import { getDecimalChainId } from '../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
 import { selectTickerByChainId } from '../../../selectors/networkController';
 import {
   selectSelectedInternalAccount,
@@ -36,26 +27,8 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../selectors/transactionController';
-import {
-  FINAL_NON_CONFIRMED_STATUSES,
-  useBridgeTxHistoryData,
-} from '../../../util/bridge/hooks/useBridgeTxHistoryData';
-import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/BridgeActivityItemTxSegments';
-import {
-  getSwapBridgeTxActivityTitle,
-  handleUnifiedSwapsTxHistoryItemClick,
-  isBridgeTxHistoryItemBridge,
-} from '../Bridge/utils/transaction-history';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { useBridgeTxHistoryData } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
+import { handleUnifiedSwapsTxHistoryItemClick } from '../Bridge/utils/transaction-history';
 import {
   selectConversionRateByChainId,
   selectCurrencyRates,
@@ -64,10 +37,7 @@ import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRa
 import { selectTokensByChainIdAndWalletAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../util/navigation/navigateToTransactionDetails';
-import {
-  hasGasFeeTokenSelected,
-  hasTransactionType,
-} from '../../Views/confirmations/utils/transaction';
+import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   ACTIVITY_DETAIL_EVENTS,
@@ -75,92 +45,9 @@ import {
   getMonetizedPrimitive,
 } from '../../../core/Analytics/events/transactions';
 import { getTransactionTypeValue } from '../../../core/Engine/controllers/transaction-controller/metrics_properties/base';
-
-const createStyles = (colors, typography) =>
-  StyleSheet.create({
-    row: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-    },
-    rowWithBorder: {
-      backgroundColor: colors.background.default,
-      flex: 1,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
-    actionContainerStyle: {
-      height: 25,
-      padding: 0,
-    },
-    speedupActionContainerStyle: {
-      marginRight: 10,
-    },
-    actionStyle: {
-      fontSize: 10,
-      padding: 0,
-      paddingHorizontal: 10,
-    },
-    icon: {
-      width: 32,
-      height: 32,
-    },
-    iconBadgePosition: {
-      bottom: -4,
-      right: -4,
-    },
-    importText: {
-      color: colors.text.alternative,
-      fontSize: 14,
-      ...fontStyles.bold,
-      alignContent: 'center',
-    },
-    importRowBody: {
-      alignItems: 'center',
-      paddingTop: 10,
-    },
-    listItemDate: {
-      marginBottom: 10,
-      paddingBottom: 0,
-    },
-    listItemContent: {
-      alignItems: 'flex-start',
-      marginTop: 0,
-      paddingTop: 0,
-    },
-    listItemTitle: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
-      marginTop: 0,
-    },
-    listItemStatus: {
-      ...typography.sBodyMDBold,
-      fontFamily: getFontFamily(TextVariant.BodyMDBold),
-    },
-    listItemFiatAmount: {
-      ...typography.sBodyLGMedium,
-      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
-      marginTop: 0,
-    },
-    listItemAmount: {
-      ...typography.sBodyMD,
-      fontFamily: getFontFamily(TextVariant.BodyMD),
-      color: colors.text.alternative,
-    },
-  });
-
-/* eslint-disable import-x/no-commonjs */
-const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
-const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
-const transactionIconSent = require('../../../images/transaction-icons/send.png');
-const transactionIconReceived = require('../../../images/transaction-icons/receive.png');
-const transactionIconSwap = require('../../../images/transaction-icons/swap.png');
-
-const transactionIconApproveFailed = require('../../../images/transaction-icons/approve-failed.png');
-const transactionIconInteractionFailed = require('../../../images/transaction-icons/interaction-failed.png');
-const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
-const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
-const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
-/* eslint-enable import-x/no-commonjs */
+import useDecodedTransaction from './hooks/useDecodedTransaction';
+import TransactionElementView from './TransactionElementView';
+import createStyles from './styles';
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdClaim,
@@ -175,616 +62,225 @@ const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.predictWithdraw,
 ];
 
-const INTENT_STATUS = {
-  SUBMITTED: 'SUBMITTED',
-  PENDING: 'PENDING',
-  COMPLETE: 'COMPLETE',
-  FAILED: 'FAILED',
-  UNKNOWN: 'UNKNOWN',
+const transactionElementPropTypes = {
+  assetSymbol: PropTypes.string,
+  /**
+   * Asset object (in this case ERC721 token)
+   */
+  tx: PropTypes.object.isRequired,
+  /**
+   * InternalAccount object required to get import time name
+   */
+  selectedInternalAccount: PropTypes.object,
+  /**
+   * Internal accounts for the selected account group
+   */
+  selectSelectedAccountGroupInternalAccounts: PropTypes.array,
+  /**
+   * Current element of the list index
+   */
+  i: PropTypes.number,
+  /**
+   * Callback to render transaction details view
+   */
+  onPressItem: PropTypes.func,
+  /**
+   * Callback to speed up tx
+   */
+  onSpeedUpAction: PropTypes.func,
+  /**
+   * Callback to cancel tx
+   */
+  onCancelAction: PropTypes.func,
+  swapsTransactions: PropTypes.object,
+  signQRTransaction: PropTypes.func,
+  cancelUnsignedQRTransaction: PropTypes.func,
+  isQRHardwareAccount: PropTypes.bool,
+  isLedgerAccount: PropTypes.bool,
+  signLedgerTransaction: PropTypes.func,
+  bridgeTxHistoryData: PropTypes.object.isRequired,
+  /**
+   * Chain Id
+   */
+  txChainId: PropTypes.string,
+  /**
+   * Selected wallet address for decoding and token map (optional override from parent)
+   */
+  selectedAddress: PropTypes.string,
+  /**
+   * Ticker
+   */
+  ticker: PropTypes.string,
+  /**
+   * Navigation object for routing
+   */
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+  /**
+   * Whether to render a bottom border for row separation (used in unified list)
+   */
+  showBottomBorder: PropTypes.bool,
+  /**
+   * All EVM transactions in controller state
+   */
+  transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+  /**
+   * Callback to track transaction detail click analytics
+   */
+  trackTransactionDetailClicked: PropTypes.func,
 };
 
-const TRANSACTION_STATUS = {
-  SUBMITTED: 'submitted',
-  PENDING: 'pending',
-  CONFIRMED: 'confirmed',
-  FAILED: 'failed',
-};
 /**
- * View that renders a transaction item part of transactions list
+ * Connected transaction item container for the transactions list.
  */
-class TransactionElement extends PureComponent {
-  static propTypes = {
-    assetSymbol: PropTypes.string,
-    /**
-     * Asset object (in this case ERC721 token)
-     */
-    tx: PropTypes.object,
-    /**
-    /* InternalAccount object required to get import time name
-    */
-    selectedInternalAccount: PropTypes.object,
-    /**
-     * Internal accounts for the selected account group
-     */
-    selectSelectedAccountGroupInternalAccounts: PropTypes.array,
-    /**
-     * Current element of the list index
-     */
-    i: PropTypes.number,
-    /**
-     * Callback to render transaction details view
-     */
-    onPressItem: PropTypes.func,
-    /**
-     * Callback to speed up tx
-     */
-    onSpeedUpAction: PropTypes.func,
-    /**
-     * Callback to cancel tx
-     */
-    onCancelAction: PropTypes.func,
-    swapsTransactions: PropTypes.object,
-    signQRTransaction: PropTypes.func,
-    cancelUnsignedQRTransaction: PropTypes.func,
-    isQRHardwareAccount: PropTypes.bool,
-    isLedgerAccount: PropTypes.bool,
-    signLedgerTransaction: PropTypes.func,
-    bridgeTxHistoryData: PropTypes.object,
-    /**
-     * Chain Id
-     */
-    txChainId: PropTypes.string,
-    /**
-     * Selected wallet address for decoding and token map (optional override from parent)
-     */
-    selectedAddress: PropTypes.string,
-    /**
-     * Ticker
-     */
-    ticker: PropTypes.string,
-    /**
-     * Navigation object for routing
-     */
-    navigation: PropTypes.shape({
-      navigate: PropTypes.func.isRequired,
-    }).isRequired,
-    /**
-     * Whether to render a bottom border for row separation (used in unified list)
-     */
-    showBottomBorder: PropTypes.bool,
-    /**
-     * All EVM transactions in controller state
-     */
-    transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
-    /**
-     * Callback to track transaction detail click analytics
-     */
-    trackTransactionDetailClicked: PropTypes.func,
+const TransactionElement = (props) => {
+  const {
+    assetSymbol,
+    bridgeTxHistoryData,
+    i,
+    isLedgerAccount,
+    isQRHardwareAccount,
+    selectedAddress,
+    selectedInternalAccount,
+    selectSelectedAccountGroupInternalAccounts: selectedGroupAccounts,
+    showBottomBorder,
+    swapsTransactions,
+    ticker,
+    transactions,
+    tx,
+    txChainId,
+  } = props;
+  const theme = useContext(ThemeContext) || mockTheme;
+  const styles = useMemo(
+    () => createStyles(theme.colors, theme.typography),
+    [theme.colors, theme.typography],
+  );
+  const mountedRef = useRef(false);
+  const decodeProps = {
+    ...props,
+    assetSymbol,
+    ticker,
+  };
+  const { transactionElement, transactionDetails } = useDecodedTransaction({
+    props: decodeProps,
+    txChainId,
+    swapsTransactions,
+    selectedAddress,
+  });
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const showCancelModal = () => {
+    mountedRef.current && props.onCancelAction(true, tx);
+  };
+  const showSpeedUpModal = () => {
+    mountedRef.current && props.onSpeedUpAction(true, tx);
+  };
+  const showQRSigningModal = () => {
+    mountedRef.current && props.signQRTransaction(tx);
+  };
+  const showLedgerSigninModal = () => {
+    mountedRef.current && props.signLedgerTransaction(tx);
+  };
+  const cancelUnsignedQRTransaction = () => {
+    mountedRef.current && props.cancelUnsignedQRTransaction(tx);
   };
 
-  state = {
-    actionKey: undefined,
-    cancelIsOpen: false,
-    speedUpIsOpen: false,
-    transactionGas: {
-      gasBN: undefined,
-      gasPriceBN: undefined,
-      gasTotal: undefined,
-    },
-    transactionElement: undefined,
-    transactionDetails: undefined,
-  };
-
-  mounted = false;
-
-  componentDidMount = async () => {
-    this.mounted = true;
-    const [transactionElement, transactionDetails] = await decodeTransaction({
-      ...this.props,
-      swapsTransactions: this.props.swapsTransactions,
-      assetSymbol: this.props.assetSymbol,
-      ticker: this.props.ticker,
-    });
-
-    this.mounted && this.setState({ transactionElement, transactionDetails });
-  };
-
-  componentDidUpdate(prevProps) {
-    if (
-      prevProps.txChainId !== this.props.txChainId ||
-      prevProps.swapsTransactions !== this.props.swapsTransactions ||
-      prevProps.selectedAddress !== this.props.selectedAddress
-    ) {
-      this.componentDidMount();
-    }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-  }
-
-  onPressItem = () => {
-    const { tx, i, onPressItem, trackTransactionDetailClicked } = this.props;
-    const bridgeTxHistoryItem =
-      this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
-    onPressItem && onPressItem(tx.id, i);
-    trackTransactionDetailClicked && trackTransactionDetailClicked();
+  const onPressItem = () => {
+    const bridgeTxHistoryItem = bridgeTxHistoryData?.bridgeTxHistoryItem;
+    props.onPressItem && props.onPressItem(tx.id, i);
+    props.trackTransactionDetailClicked &&
+      props.trackTransactionDetailClicked();
 
     if (tx.type === TransactionType.bridge || bridgeTxHistoryItem) {
       handleUnifiedSwapsTxHistoryItemClick({
-        navigation: this.props.navigation,
+        navigation: props.navigation,
         evmTxMeta: tx,
         bridgeTxHistoryItem,
       });
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
-      navigateToTransactionDetails(this.props.navigation, {
+      navigateToTransactionDetails(props.navigation, {
         transactionId: tx.id,
       });
     } else {
-      const { transactionElement, transactionDetails } = this.state;
-      this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.TRANSACTION_DETAILS,
         params: {
           tx,
           transactionElement,
           transactionDetails,
-          showSpeedUpModal: this.showSpeedUpModal,
-          showCancelModal: this.showCancelModal,
+          showSpeedUpModal,
+          showCancelModal,
         },
       });
     }
   };
 
-  onPressImportWalletTip = () => {
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+  const onPressImportWalletTip = () => {
+    props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.IMPORT_WALLET_TIP,
     });
   };
 
-  renderTxTime = () => {
-    const {
-      tx,
-      selectedInternalAccount,
-      selectSelectedAccountGroupInternalAccounts,
-    } = this.props;
+  const selectedAddresses = selectedGroupAccounts.map(
+    (account) => account.address,
+  );
+  const incoming = selectedAddresses.includes(
+    safeToChecksumAddress(tx.txParams.to),
+  );
+  const selfSent =
+    incoming &&
+    selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
+  const shouldShowFromDevice =
+    (!incoming || selfSent) && tx.deviceConfirmedOn === WalletDevice.MM_MOBILE;
+  const hasNonce = tx.txParams?.nonce;
+  let txTime = `${toDateFormat(tx.time)}`;
 
-    let incoming = false;
-    let selfSent = false;
-
-    const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
-      (account) => account.address,
-    );
-    incoming = selectedAddresses.includes(
-      safeToChecksumAddress(tx.txParams.to),
-    );
-    selfSent =
-      incoming &&
-      selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
-    const shouldShowFromDevice =
-      (!incoming || selfSent) &&
-      tx.deviceConfirmedOn === WalletDevice.MM_MOBILE;
-    const hasNonce = tx.txParams?.nonce;
-
-    if (shouldShowFromDevice && hasNonce) {
-      return `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
-        tx.time,
-      )} ${strings('transactions.from_device_label')}`;
-    }
-    if (shouldShowFromDevice && !hasNonce) {
-      return `${toDateFormat(tx.time)} ${strings('transactions.from_device_label')}`;
-    }
-    return `${toDateFormat(tx.time)}`;
-  };
-
-  /**
-   * Function that evaluates tx to see if the Added Wallet label should be rendered.
-   * @returns Account added to wallet view
-   */
-  renderImportTime = () => {
-    const { tx, selectedInternalAccount } = this.props;
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    const accountImportTime = selectedInternalAccount?.metadata.importTime;
-    if (tx.insertImportTime && accountImportTime) {
-      return (
-        <View style={styles.row}>
-          <TouchableOpacity
-            onPress={this.onPressImportWalletTip}
-            style={styles.importRowBody}
-          >
-            <Text style={styles.importText}>
-              {`${strings('transactions.import_wallet_row')} `}
-              <FAIcon name="info-circle" style={styles.infoIcon} />
-            </Text>
-            <ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return null;
-  };
-
-  renderTxElementIcon = (transactionElement, tx) => {
-    const { chainId: txChainId, requiredTransactionIds, status, type } = tx;
-    const { transactionType } = transactionElement;
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    const { transactions } = this.props;
-
-    const isFailedTransaction = status === 'cancelled' || status === 'failed';
-    let icon;
-    switch (transactionType) {
-      case TRANSACTION_TYPES.SENT_TOKEN:
-      case TRANSACTION_TYPES.SENT_COLLECTIBLE:
-      case TRANSACTION_TYPES.SENT:
-        icon = isFailedTransaction
-          ? transactionIconSentFailed
-          : transactionIconSent;
-        break;
-      case TRANSACTION_TYPES.RECEIVED_TOKEN:
-      case TRANSACTION_TYPES.RECEIVED_COLLECTIBLE:
-      case TRANSACTION_TYPES.RECEIVED:
-        icon = isFailedTransaction
-          ? transactionIconReceivedFailed
-          : transactionIconReceived;
-        break;
-      case TRANSACTION_TYPES.SITE_INTERACTION:
-        icon = isFailedTransaction
-          ? transactionIconInteractionFailed
-          : transactionIconInteraction;
-        break;
-      case TRANSACTION_TYPES.BATCH_SELL_TRANSACTION:
-      case TRANSACTION_TYPES.SWAPS_TRANSACTION:
-        icon = isFailedTransaction
-          ? transactionIconSwapFailed
-          : transactionIconSwap;
-        break;
-      case TRANSACTION_TYPES.BRIDGE_TRANSACTION:
-        icon = isFailedTransaction
-          ? transactionIconSwapFailed
-          : transactionIconSwap;
-        break;
-      case TRANSACTION_TYPES.APPROVE:
-      case TRANSACTION_TYPES.INCREASE_ALLOWANCE:
-      case TRANSACTION_TYPES.SET_APPROVAL_FOR_ALL:
-        icon = isFailedTransaction
-          ? transactionIconApproveFailed
-          : transactionIconApprove;
-        break;
-    }
-
-    const perpsDepositChainId =
-      type === TransactionType.perpsDeposit && requiredTransactionIds?.length
-        ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
-        : undefined;
-
-    const withdrawChainId = hasTransactionType(this.props.tx, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-      ? this.props.tx.metamaskPay?.chainId
-      : undefined;
-
-    const chainId = perpsDepositChainId ?? withdrawChainId ?? txChainId;
-
-    return (
-      <BadgeWrapper
-        badgePosition={styles.iconBadgePosition}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={NetworkBadgeSource(chainId)}
-            isScaled={false}
-            size={AvatarSize.Xs}
-          />
-        }
-      >
-        <Image source={icon} style={styles.icon} resizeMode="stretch" />
-      </BadgeWrapper>
-    );
-  };
-
-  mapIntentStatusToTransactionStatus = (intentStatus) => {
-    if (intentStatus === INTENT_STATUS.PENDING) {
-      return TRANSACTION_STATUS.PENDING;
-    }
-    if (intentStatus === INTENT_STATUS.COMPLETE) {
-      return TRANSACTION_STATUS.CONFIRMED;
-    }
-    if (intentStatus === INTENT_STATUS.FAILED) {
-      return TRANSACTION_STATUS.FAILED;
-    }
-    if (intentStatus === INTENT_STATUS.SUBMITTED) {
-      return TRANSACTION_STATUS.SUBMITTED;
-    }
-
-    // if it is unknown status, default to failed
-    return TRANSACTION_STATUS.FAILED;
-  };
-
-  /**
-   * Renders an horizontal bar with basic tx information
-   *
-   * @param {object} transactionElement - Transaction information to render, containing addressTo, actionKey, value, fiatValue, contractDeployment
-   */
-  renderTxElement = (transactionElement) => {
-    const {
-      isQRHardwareAccount,
-      isLedgerAccount,
-      i,
-      tx: { status, isSmartTransaction, chainId, type },
-      tx,
-      bridgeTxHistoryData: {
-        bridgeTxHistoryItem,
-        is7702Batch,
-        isBridgeComplete,
-      },
-    } = this.props;
-    const isBridgeTransaction =
-      type === TransactionType.bridge ||
-      (bridgeTxHistoryItem && isBridgeTxHistoryItemBridge(bridgeTxHistoryItem));
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    const { value, fiatValue = false, actionKey } = transactionElement;
-    const transactionStatus =
-      bridgeTxHistoryItem?.status && bridgeTxHistoryItem.quote.intent
-        ? this.mapIntentStatusToTransactionStatus(
-            bridgeTxHistoryItem.status.status,
-          )
-        : status;
-
-    const renderNormalActions =
-      (transactionStatus === 'submitted' ||
-        (transactionStatus === 'approved' &&
-          !isQRHardwareAccount &&
-          !isLedgerAccount)) &&
-      !isSmartTransaction &&
-      !isBridgeTransaction &&
-      !hasGasFeeTokenSelected(tx);
-    const renderUnsignedQRActions =
-      transactionStatus === 'approved' && isQRHardwareAccount;
-    const renderLedgerActions =
-      transactionStatus === 'approved' && isLedgerAccount;
-    let title = actionKey;
-    if (bridgeTxHistoryItem) {
-      title =
-        getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch) ?? title;
-    }
-
-    return (
-      <ListItem>
-        <ListItem.Date style={styles.listItemDate}>
-          {this.renderTxTime()}
-        </ListItem.Date>
-        <ListItem.Content style={styles.listItemContent}>
-          <ListItem.Icon>
-            {this.renderTxElementIcon(transactionElement, tx)}
-          </ListItem.Icon>
-          <ListItem.Body>
-            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-              {title}
-            </ListItem.Title>
-            {!FINAL_NON_CONFIRMED_STATUSES.includes(transactionStatus) &&
-            isBridgeTransaction &&
-            !isBridgeComplete ? (
-              <BridgeActivityItemTxSegments
-                bridgeTxHistoryItem={bridgeTxHistoryItem}
-                transactionStatus={transactionStatus}
-              />
-            ) : (
-              <StatusText
-                testID={`transaction-status-${i}`}
-                status={transactionStatus}
-                style={styles.listItemStatus}
-              />
-            )}
-          </ListItem.Body>
-          {Boolean(value) && (
-            <ListItem.Amounts>
-              {!isTestNet(chainId) && (
-                <ListItem.FiatAmount style={styles.listItemFiatAmount}>
-                  {fiatValue}
-                </ListItem.FiatAmount>
-              )}
-              <ListItem.Amount style={styles.listItemAmount}>
-                {value}
-              </ListItem.Amount>
-            </ListItem.Amounts>
-          )}
-        </ListItem.Content>
-        {renderNormalActions && (
-          <ListItem.Actions>
-            {this.renderSpeedUpButton()}
-            {this.renderCancelButton()}
-          </ListItem.Actions>
-        )}
-        {renderUnsignedQRActions && (
-          <ListItem.Actions>
-            {this.renderQRSignButton()}
-            {this.renderCancelUnsignedButton()}
-          </ListItem.Actions>
-        )}
-        {renderLedgerActions && (
-          <ListItem.Actions>{this.renderLedgerSignButton()}</ListItem.Actions>
-        )}
-      </ListItem>
-    );
-  };
-
-  renderCancelButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={styles.actionContainerStyle}
-        style={styles.actionStyle}
-        onPress={this.showCancelModal}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
-    );
-  };
-
-  showCancelModal = () => {
-    this.mounted && this.props.onCancelAction(true, this.props.tx);
-  };
-
-  showSpeedUpModal = () => {
-    this.mounted && this.props.onSpeedUpAction(true, this.props.tx);
-  };
-
-  hideSpeedUpModal = () => {
-    this.mounted && this.props.onSpeedUpAction(false);
-  };
-
-  showQRSigningModal = () => {
-    this.mounted && this.props.signQRTransaction(this.props.tx);
-  };
-
-  showLedgerSigninModal = () => {
-    this.mounted && this.props.signLedgerTransaction(this.props.tx);
-  };
-
-  cancelUnsignedQRTransaction = () => {
-    this.mounted && this.props.cancelUnsignedQRTransaction(this.props.tx);
-  };
-
-  renderSpeedUpButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showSpeedUpModal}
-      >
-        {strings('transaction.speedup')}
-      </StyledButton>
-    );
-  };
-
-  renderQRSignButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showQRSigningModal}
-      >
-        {strings('transaction.sign_with_keystone')}
-      </StyledButton>
-    );
-  };
-
-  renderLedgerSignButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    return (
-      <StyledButton
-        type={'normal'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.showLedgerSigninModal}
-      >
-        {strings('transaction.sign_with_ledger')}
-      </StyledButton>
-    );
-  };
-
-  renderCancelUnsignedButton = () => {
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-    return (
-      <StyledButton
-        type={'cancel'}
-        containerStyle={[
-          styles.actionContainerStyle,
-          styles.speedupActionContainerStyle,
-        ]}
-        style={styles.actionStyle}
-        onPress={this.cancelUnsignedQRTransaction}
-      >
-        {strings('transaction.cancel')}
-      </StyledButton>
-    );
-  };
-
-  renderPendingElement = () => {
-    const { i, tx } = this.props;
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    return (
-      <ListItem>
-        <ListItem.Date style={styles.listItemDate}>
-          {this.renderTxTime()}
-        </ListItem.Date>
-        <ListItem.Content style={styles.listItemContent}>
-          <ListItem.Icon>
-            <View style={styles.icon} />
-          </ListItem.Icon>
-          <ListItem.Body>
-            <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-              ...
-            </ListItem.Title>
-            <StatusText
-              testID={`transaction-status-${i}`}
-              status={tx.status}
-              style={styles.listItemStatus}
-            />
-          </ListItem.Body>
-        </ListItem.Content>
-      </ListItem>
-    );
-  };
-
-  render() {
-    const { tx, selectedInternalAccount } = this.props;
-    const { transactionElement, transactionDetails } = this.state;
-
-    const { colors, typography } = this.context || mockTheme;
-    const styles = createStyles(colors, typography);
-
-    const isReady = Boolean(transactionElement && transactionDetails);
-
-    const accountImportTime = selectedInternalAccount?.metadata.importTime;
-    const { time } = tx;
-
-    return (
-      <>
-        {accountImportTime > time && this.renderImportTime()}
-        <TouchableHighlight
-          style={
-            this.props.showBottomBorder ? styles.rowWithBorder : styles.row
-          }
-          onPress={isReady ? this.onPressItem : undefined}
-          underlayColor={colors.background.alternative}
-          activeOpacity={1}
-        >
-          {isReady
-            ? this.renderTxElement(transactionElement)
-            : this.renderPendingElement()}
-        </TouchableHighlight>
-        {accountImportTime <= time && this.renderImportTime()}
-      </>
-    );
+  if (shouldShowFromDevice && hasNonce) {
+    txTime = `#${parseInt(tx.txParams.nonce, 16)} - ${toDateFormat(
+      tx.time,
+    )} ${strings('transactions.from_device_label')}`;
+  } else if (shouldShowFromDevice) {
+    txTime = `${toDateFormat(tx.time)} ${strings(
+      'transactions.from_device_label',
+    )}`;
   }
-}
+
+  return (
+    <TransactionElementView
+      accountImportTime={selectedInternalAccount?.metadata.importTime}
+      bridgeTxHistoryData={bridgeTxHistoryData}
+      colors={theme.colors}
+      i={i}
+      isLedgerAccount={isLedgerAccount}
+      isQRHardwareAccount={isQRHardwareAccount}
+      onCancel={showCancelModal}
+      onCancelUnsignedQR={cancelUnsignedQRTransaction}
+      onImportWalletTip={onPressImportWalletTip}
+      onPress={onPressItem}
+      onSignLedger={showLedgerSigninModal}
+      onSignQR={showQRSigningModal}
+      onSpeedUp={showSpeedUpModal}
+      showBottomBorder={showBottomBorder}
+      styles={styles}
+      transactionElement={transactionElement}
+      transactionDetails={transactionDetails}
+      transactions={transactions}
+      tx={tx}
+      txTime={txTime}
+    />
+  );
+};
+
+export { TransactionElement };
+
+TransactionElement.propTypes = transactionElementPropTypes;
 
 const mapStateToProps = (state, ownProps) => {
   const walletAddressForTokens =
@@ -810,9 +306,6 @@ const mapStateToProps = (state, ownProps) => {
   };
 };
 
-TransactionElement.contextType = ThemeContext;
-
-// Create a wrapper functional component
 const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
   const transactions = useSelector(selectTransactions);
