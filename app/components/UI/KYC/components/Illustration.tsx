@@ -1,10 +1,12 @@
 import React from 'react';
 import { Image, type ImageSourcePropType } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import vbaCheckmark from '../../../../images/money-vba-account-ready-art.png';
 import vbaHazard from './assets/vba-hazard.png';
 import vbaScanner from './assets/vba-scanner.png';
 
 export const VbaIllustrationSource = {
+  checkmark: vbaCheckmark,
   hazard: vbaHazard,
   scanner: vbaScanner,
 } as const;

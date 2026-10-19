@@ -398,13 +398,34 @@ export class AppLockService {
       ) {
         return;
       }
-      await this.#promptUnlock();
+      let authenticationError: Error | undefined;
+      try {
+        // Preserve the route under the privacy cover. Cold start uses the
+        // default navigation instead.
+        await Authentication.tryBiometricUnlock({
+          navigationBehavior: 'preserve',
+        });
+      } catch (error) {
+        authenticationError =
+          error instanceof Error ? error : new Error(String(error));
+      }
+      // If the vault is locked, clear the pending approvals and show the Login screen.
+      if (!KeyringController.isUnlocked()) {
+        this.#clearPendingApprovals();
+        if (authenticationError) {
+          NavigationService.navigation?.reset({
+            routes: [{ name: Routes.ONBOARDING.LOGIN }],
+          });
+          trackErrorAsAnalytics(
+            'Lockscreen: Authentication failed',
+            authenticationError.message,
+          ).catch(() => undefined);
+        }
+        return;
+      }
       // Face ID resolves while iOS is still `inactive`. A new background sets
-      // `#backgroundedAt` and keeps the hold. A failed unlock stays on Login.
-      if (
-        this.#backgroundedAt !== undefined ||
-        !KeyringController.isUnlocked()
-      ) {
+      // `#backgroundedAt` and keeps the hold for the next decision.
+      if (this.#backgroundedAt !== undefined) {
         return;
       }
       // Resume does not reset navigation. A waiting deeplink is the only
@@ -444,26 +465,6 @@ export class AppLockService {
       }
     };
 
-  /**
-   * Prompts authentication, falling back to the Login screen on failure.
-   * The privacy screen is the only cover while this runs.
-   */
-  readonly #promptUnlock = async (): Promise<void> => {
-    try {
-      await Authentication.tryBiometricUnlock({
-        navigationBehavior: 'preserve',
-      });
-    } catch (error) {
-      NavigationService.navigation?.reset({
-        routes: [{ name: Routes.ONBOARDING.LOGIN }],
-      });
-      trackErrorAsAnalytics(
-        'Lockscreen: Authentication failed',
-        (error as Error)?.message,
-      ).catch(() => undefined);
-    }
-  };
-
   // ---------------------------------------------------------------------------
   // Locking
   // ---------------------------------------------------------------------------
@@ -488,23 +489,28 @@ export class AppLockService {
       return;
     }
 
-    const { KeyringController, ApprovalController } = Engine.context;
+    const { KeyringController } = Engine.context;
     try {
       await KeyringController.setLocked();
     } catch (error) {
       Logger.log('AppLockService: Failed to lock KeyringController', error);
-      return;
     }
+  };
 
-    // Reject pending confirmations so a stale one is not shown after unlock.
+  /**
+   * Drops confirmations after an unlock attempt finishes locked. A successful
+   * resume keeps them so the screen the user left can finish.
+   */
+  readonly #clearPendingApprovals = (): void => {
     try {
+      const { ApprovalController } = Engine.context;
       if (ApprovalController) {
         ApprovalController.clearRequests(providerErrors.userRejectedRequest());
       }
     } catch (error) {
       Logger.error(
         error as Error,
-        'AppLockService: Failed to reject pending approvals on app lock',
+        'AppLockService: Failed to reject pending approvals after a failed unlock',
       );
     }
   };
