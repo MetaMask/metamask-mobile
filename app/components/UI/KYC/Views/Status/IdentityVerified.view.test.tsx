@@ -124,6 +124,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
                     minimumVersion: '0.0.0',
                     regions: ['BR', 'US'],
                     regionCurrencies: { BR: 'BRL', US: 'USD' },
+                    defaultCurrency: 'USD',
                     chooseCurrency,
                   },
                 },

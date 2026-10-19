@@ -53,6 +53,7 @@ jest.mock(
       isEnabled: true,
       regions: ['BR', 'US'],
       regionCurrencies: { BR: 'BRL', US: 'USD' },
+      defaultCurrency: undefined,
       chooseCurrency: mockChooseCurrency,
     }),
   }),

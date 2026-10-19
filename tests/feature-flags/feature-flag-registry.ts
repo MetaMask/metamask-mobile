@@ -4603,7 +4603,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   // Not in the production client-config response yet. inProd stays false so
   // the weekly registry sync does not treat this as removed from production.
-  // A missing, disabled, or empty value allows no region.
+  // A missing, disabled, or empty value allows no region. A blank
+  // defaultCurrency means an enabled region with no regionCurrencies entry
+  // creates nothing.
   moneyMovementNeobank: {
     name: 'moneyMovementNeobank',
     type: FeatureFlagType.Remote,
@@ -4613,6 +4615,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '0.0.0',
       regions: [],
       regionCurrencies: {},
+      defaultCurrency: '',
       chooseCurrency: false,
     },
     status: FeatureFlagStatus.Active,

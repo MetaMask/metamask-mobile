@@ -1,4 +1,4 @@
-import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { isVbaRegionEnabled } from './isVbaRegionEnabled';
 
 /** Fiat codes a Virtual Bank Account autoramp can be created in. */
 export type VbaSourceCurrency = 'BRL' | 'USD' | 'EUR';
@@ -25,29 +25,43 @@ export const VBA_CHOOSABLE_SOURCE_CURRENCIES: readonly VbaSourceCurrency[] =
 /**
  * Picks the autoramp fiat from a GeolocationController location.
  *
- * Only the leading country segment is used, so `US-CA` reads as `US`. The map
- * comes from `moneyMovementNeobank.regionCurrencies`. A missing country or a
- * currency without a details layout fails closed.
+ * Only the leading country segment is used, so `US-CA` reads as `US`. Callers
+ * pass the IP country, or `MM_MONEY_VBA_REGION_OVERRIDE` when it is set. That
+ * country must be in `regions`; a country outside the list creates nothing.
+ * An explicit `regionCurrencies` entry wins. Otherwise `defaultCurrency` is
+ * used. A missing mapping, a missing default, or a currency without a details
+ * layout fails closed. An explicit currency that has no details layout does
+ * not fall through to the default.
  *
  * @param location - Raw GeolocationController location, such as `BR` or `US-CA`.
  * @param regionCurrencies - Country-to-currency map from the remote flag.
- * @returns The fiat to create, or undefined when the country has no mapping.
+ * @param regions - Enabled country codes from the remote flag.
+ * @param defaultCurrency - Fiat for an enabled region with no explicit entry.
+ * @returns The fiat to create, or undefined when nothing should be created.
  */
 export function getVbaSourceCurrencyForCountry(
   location: string | undefined | null,
   regionCurrencies: Readonly<Record<string, VbaSourceCurrency>>,
+  regions: readonly string[],
+  defaultCurrency?: VbaSourceCurrency,
 ): VbaSourceCurrency | undefined {
-  if (!location || location === UNKNOWN_LOCATION) {
+  if (!location || !isVbaRegionEnabled(location, regions)) {
     return undefined;
   }
   const country = location.trim().toUpperCase().split('-')[0];
-  const currency = regionCurrencies[country];
-  if (!currency) {
+  const explicit = regionCurrencies[country];
+  if (explicit) {
+    return VBA_CURRENCIES_WITH_DEPOSIT_DETAILS.has(explicit)
+      ? explicit
+      : undefined;
+  }
+  if (
+    !defaultCurrency ||
+    !VBA_CURRENCIES_WITH_DEPOSIT_DETAILS.has(defaultCurrency)
+  ) {
     return undefined;
   }
-  return VBA_CURRENCIES_WITH_DEPOSIT_DETAILS.has(currency)
-    ? currency
-    : undefined;
+  return defaultCurrency;
 }
 
 /**

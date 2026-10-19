@@ -227,14 +227,18 @@ const VbaDetails = () => {
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const { chooseCurrency, regionCurrencies } = useSelector(
-    selectMoneyMovementNeobank,
-  );
+  const { chooseCurrency, regionCurrencies, regions, defaultCurrency } =
+    useSelector(selectMoneyMovementNeobank);
   const effectiveLocation = getVbaRegionOverride() ?? location;
   // With chooseCurrency on, only the picked currency may create an account.
   const regionCurrency = chooseCurrency
     ? undefined
-    : getVbaSourceCurrencyForCountry(effectiveLocation, regionCurrencies);
+    : getVbaSourceCurrencyForCountry(
+        effectiveLocation,
+        regionCurrencies,
+        regions,
+        defaultCurrency,
+      );
   const requestedCurrency = route.params?.sourceCurrency;
   // EUR stays out until that deposit layout exists. Ignore anything else too.
   const pickedCurrency =
