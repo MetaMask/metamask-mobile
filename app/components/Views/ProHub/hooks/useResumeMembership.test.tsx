@@ -207,4 +207,32 @@ describe('useResumeMembership', () => {
     );
     expect(result.current.isResuming).toBe(false);
   });
+
+  it('clears the resume error after a later uncancel resolves', async () => {
+    mockUnCancelSubscription
+      .mockRejectedValueOnce(new Error('request failed'))
+      .mockResolvedValueOnce(undefined);
+    const pendingCancellation: Subscription = {
+      ...subscription,
+      cancelAtPeriodEnd: true,
+    };
+    const { result } = renderResumeHook(pendingCancellation);
+
+    await act(async () => {
+      await result.current.resumeMembership();
+    });
+
+    await waitFor(() =>
+      expect(result.current.errorMessage).toBe(
+        strings('pro_hub.membership.resume_failed'),
+      ),
+    );
+
+    await act(async () => {
+      await result.current.resumeMembership();
+    });
+
+    expect(result.current.errorMessage).toBeNull();
+    expect(mockUnCancelSubscription).toHaveBeenCalledTimes(2);
+  });
 });

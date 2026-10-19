@@ -107,6 +107,15 @@ describe('canResumeMembership', () => {
     expect(canResumeMembership(subscription, now)).toBe(false);
   });
 
+  it('is false when the period end is exactly now', () => {
+    const subscription = createSubscription({
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: now.toISOString(),
+    });
+
+    expect(canResumeMembership(subscription, now)).toBe(false);
+  });
+
   it('is false when the period end is missing', () => {
     const subscription = createSubscription({
       cancelAtPeriodEnd: true,

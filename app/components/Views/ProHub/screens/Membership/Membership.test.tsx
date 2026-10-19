@@ -359,6 +359,14 @@ describe('Membership', () => {
       announceSpy.mockRestore();
     });
 
+    it('does not announce resuming membership before resume starts', () => {
+      renderMembership(pendingCancellation);
+
+      expect(announceSpy).not.toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+    });
+
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
       const { getByTestId, queryByTestId } =
         renderMembership(pendingCancellation);
