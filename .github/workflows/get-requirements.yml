@@ -147,9 +147,7 @@ jobs:
                 echo "-> performance area label: $label"
                 ;;
             esac
-          done <<EOF
-$LABELS
-EOF
+          done <<< "$LABELS"
           echo "PERFORMANCE_AREA_LABELS=$AREA_LABELS" >> "$GITHUB_OUTPUT"
 
           if echo "$LABELS" | grep -qx "run-appium-ios-tests"; then
