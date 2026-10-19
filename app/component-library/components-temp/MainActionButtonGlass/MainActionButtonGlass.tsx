@@ -6,12 +6,13 @@ import {
 } from '@metamask/design-system-react-native';
 
 import BoxGlass from '../BoxGlass';
+import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 
 // Clears the button's own `bg-muted` so only the glass shows.
 const transparentStyle = { backgroundColor: 'transparent' };
 
 export type MainActionButtonGlassProps = MainActionButtonProps & {
-  /** False renders the plain `MainActionButton`. */
+  /** The screen's flag. False, or an OS without glass, renders the plain `MainActionButton`. */
   isGlass?: boolean;
   /** Layout for the button or its glass wrapper, e.g. `flex: 1` in a row. */
   containerStyle?: StyleProp<ViewStyle>;
@@ -27,7 +28,9 @@ const MainActionButtonGlass = ({
   style,
   ...props
 }: MainActionButtonGlassProps) => {
-  if (!isGlass) {
+  const { isGlassEnabled } = useLiquidGlass();
+
+  if (!isGlass || !isGlassEnabled) {
     return <MainActionButton {...props} style={style ?? containerStyle} />;
   }
 
