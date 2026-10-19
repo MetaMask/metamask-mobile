@@ -257,7 +257,7 @@ describe('getLimitOrders', () => {
   // Drives the orders through every layer the orders tabs use: the hook, the UI
   // query client, the messenger and LimitOrdersDataService.
   describe('through useLimitOrders', () => {
-    function setUp() {
+    function setUp({ refetchInterval }: { refetchInterval?: number } = {}) {
       const rootMessenger = new Messenger<
         MockAnyNamespace,
         LimitOrdersDataServiceActions,
@@ -304,6 +304,7 @@ describe('getLimitOrders', () => {
           useLimitOrders({
             walletAddress: WALLET_ADDRESS,
             states: OPEN_STATES,
+            refetchInterval,
           }),
         { wrapper },
       );
@@ -430,6 +431,36 @@ describe('getLimitOrders', () => {
           ]),
         );
         expect(globalFetchSpy).toHaveBeenCalledTimes(2);
+      } finally {
+        tearDown();
+      }
+    });
+
+    it('reloads the orders from the API on the refetch interval', async () => {
+      globalFetchSpy
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        )
+        .mockResolvedValue(
+          createPageResponse({
+            orders: [createApiOrder('order-2'), createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        );
+      const { result, tearDown } = setUp({ refetchInterval: 50 });
+
+      try {
+        await waitFor(() => expect(result.current.orders).toHaveLength(1));
+
+        await waitFor(() =>
+          expect(result.current.orders.map(({ id }) => id)).toStrictEqual([
+            'order-2',
+            'order-1',
+          ]),
+        );
       } finally {
         tearDown();
       }

@@ -41,6 +41,10 @@ import {
 } from './pickLatestTransaction';
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
+import {
+  ensureBrazilMusdAutoramp,
+  findUsableAutoramp,
+} from './ensureBrazilMusdAutoramp';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -57,6 +61,8 @@ export const VbaDetailsSelectorsIDs = {
   WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
+  SETUP_ERROR: 'vba-details-setup-error',
+  RETRY_BUTTON: 'vba-details-retry-button',
   DEBUG_BUTTON: 'vba-details-debug-button',
 } as const;
 
@@ -86,24 +92,13 @@ interface DepositRamps {
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
 }
 
-const findUsableAutoramp = (
-  autoramps: AutorampCursor[],
-  walletAddress: string,
-): AutorampCursor | undefined => {
-  const normalized = walletAddress.toLowerCase();
-  return autoramps.find(
-    (autoramp) =>
-      autoramp.walletAddress.toLowerCase() === normalized &&
-      autoramp.status !== 'Rejected' &&
-      autoramp.status !== 'Cancelled',
-  );
-};
-
 /**
- * Completed virtual bank account screen. Reached once the Money account is
- * provisioned. Pushed on the root stack (`Routes.RAMP.VBA_DETAILS`) with the
- * same horizontal transition as onboarding. The header stays, without a back
- * button. PIX values come from `NeoBankService.getPixDepositInstructions`.
+ * Virtual bank account screen. This is the only place that registers the
+ * wallet and creates the BRL autoramp. Until a PIX rail exists, the existing
+ * waiting state stays on screen. Pushed on the root stack
+ * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
+ * onboarding. The header stays, without a back button. PIX values come from
+ * `NeoBankService.getPixDepositInstructions`.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -120,6 +115,7 @@ const VbaDetails = () => {
     null,
   );
   const [loadError, setLoadError] = useState(false);
+  const [setupFailed, setSetupFailed] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
@@ -136,16 +132,28 @@ const VbaDetails = () => {
       return;
     }
     const ramps = Engine.context.RampsController as DepositRamps;
-    const autoramp = findUsableAutoramp(
+    let autoramp = findUsableAutoramp(
       ramps.state?.autoramps ?? [],
       walletAddress,
     );
     if (!autoramp) {
-      setAutorampId(null);
-      setAutorampStatus(null);
-      setInstructions(null);
-      return;
+      const outcome = await ensureBrazilMusdAutoramp(walletAddress);
+      if (!isMountedRef.current) {
+        return;
+      }
+      autoramp = findUsableAutoramp(
+        ramps.state?.autoramps ?? [],
+        walletAddress,
+      );
+      if (!autoramp) {
+        setSetupFailed(outcome === 'failed');
+        setAutorampId(null);
+        setAutorampStatus(null);
+        setInstructions(null);
+        return;
+      }
     }
+    setSetupFailed(false);
 
     let status = autoramp.status;
     if (status !== 'Approved' && ramps.refreshAutoramp) {
@@ -249,6 +257,19 @@ const VbaDetails = () => {
       strings('virtual_bank_account.vba_details.load_error'),
     );
   }, [instructions?.brCode, loadError]);
+
+  useEffect(() => {
+    if (!setupFailed || instructions?.brCode) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('virtual_bank_account.vba_details.setup_error'),
+    );
+  }, [instructions?.brCode, setupFailed]);
+
+  const handleRetrySetup = useCallback(() => {
+    refreshDeposit().catch(() => undefined);
+  }, [refreshDeposit]);
 
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -446,8 +467,31 @@ const VbaDetails = () => {
             {strings('virtual_bank_account.vba_details.load_error')}
           </Text>
         ) : null}
+        {setupFailed && !instructions?.brCode ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            twClassName="mt-4 text-center"
+            testID={VbaDetailsSelectorsIDs.SETUP_ERROR}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
+            {strings('virtual_bank_account.vba_details.setup_error')}
+          </Text>
+        ) : null}
       </ScrollView>
       <Box twClassName="gap-4 px-4 pb-2 pt-4">
+        {setupFailed && !instructions?.brCode ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleRetrySetup}
+            testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
+          >
+            {strings('virtual_bank_account.vba_details.retry')}
+          </Button>
+        ) : null}
         {debugEnabled ? (
           <Button
             variant={ButtonVariant.Secondary}

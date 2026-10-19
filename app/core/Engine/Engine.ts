@@ -144,12 +144,7 @@ import { rewardsMoneyControllerInit } from './controllers/rewards-money-controll
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
 import type { GatorPermissionsController } from '@metamask/gator-permissions-controller';
 import { DelegationControllerInit } from './controllers/delegation/delegation-controller-init';
-import { selectedNetworkControllerInit } from './controllers/selected-network-controller-init';
 import { tokensControllerInit } from './controllers/tokens-controller-init';
-import { permissionControllerInit } from './controllers/permission-controller-init';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
-import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
-///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
@@ -171,7 +166,6 @@ import { rewardsDataServiceInit } from './controllers/rewards-data-service-init'
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
-import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
@@ -191,7 +185,6 @@ import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { qrSyncControllerInit } from './controllers/qr-sync-controller-init';
 import { qrSyncProvisioningServiceInit } from './controllers/qr-sync-provisioning-service-init';
-import { clientControllerInit } from './controllers/client-controller-init';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 import { neoBankServiceInit } from './controllers/ramps-controller/neo-bank-service-init';
 import { complianceServiceInit } from './controllers/compliance/compliance-service-init';
@@ -317,16 +310,10 @@ export class Engine {
     const { messengerClientsByName } = initMessengerClients({
       wallet: this.#wallet,
       initFunctions: {
-        LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
-        PermissionController: permissionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        SubjectMetadataController: subjectMetadataControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         AccountTreeController: accountTreeControllerInit,
         AppMetadataController: appMetadataControllerInit,
         AssetsContractController: assetsContractControllerInit,
-        SelectedNetworkController: selectedNetworkControllerInit,
         GatorPermissionsController: GatorPermissionsControllerInit,
         SmartTransactionsController: smartTransactionsControllerInit,
         TransactionPayController: TransactionPayControllerInit,
@@ -375,10 +362,7 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
-        // AssetsController must be initialized before ClientController so it
-        // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
-        ClientController: clientControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
@@ -426,7 +410,7 @@ export class Engine {
     });
 
     const analyticsController = messengerClientsByName.AnalyticsController;
-    const loggingController = messengerClientsByName.LoggingController;
+    const loggingController = this.#wallet.getInstance('LoggingController');
     const remoteFeatureFlagController = this.#wallet.getInstance(
       'RemoteFeatureFlagController',
     );
@@ -454,8 +438,9 @@ export class Engine {
       messengerClientsByName.RewardsMoneyController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
-    const selectedNetworkController =
-      messengerClientsByName.SelectedNetworkController;
+    const selectedNetworkController = this.#wallet.getInstance(
+      'SelectedNetworkController',
+    );
     const preferencesController = messengerClientsByName.PreferencesController;
     const delegationController = messengerClientsByName.DelegationController;
     const addressBookController = this.#wallet.getInstance(
@@ -497,7 +482,7 @@ export class Engine {
       messengerClientsByName.AuthenticatedUserStorageService;
     const cardController = messengerClientsByName.CardController;
     const uiSlotsController = messengerClientsByName.UiSlotsController;
-    const clientController = messengerClientsByName.ClientController;
+    const clientController = this.#wallet.getInstance('ClientController');
     const complianceService = messengerClientsByName.ComplianceService;
     const complianceController = messengerClientsByName.ComplianceController;
     const kycService = messengerClientsByName.KycService;
@@ -511,7 +496,9 @@ export class Engine {
     this.gatorPermissionsController = gatorPermissionsController;
     this.transactionController = transactionController;
     this.smartTransactionsController = smartTransactionsController;
-    this.permissionController = messengerClientsByName.PermissionController;
+    this.permissionController = this.#wallet.getInstance(
+      'PermissionController',
+    );
     this.preferencesController = preferencesController;
     this.keyringController = this.#wallet.getInstance('KeyringController');
 
@@ -542,8 +529,9 @@ export class Engine {
       messengerClientsByName.NotificationServicesController;
     const notificationServicesPushController =
       messengerClientsByName.NotificationServicesPushController;
-    this.subjectMetadataController =
-      messengerClientsByName.SubjectMetadataController;
+    this.subjectMetadataController = this.#wallet.getInstance(
+      'SubjectMetadataController',
+    );
     const authenticationController =
       messengerClientsByName.AuthenticationController;
     const userStorageController = messengerClientsByName.UserStorageController;

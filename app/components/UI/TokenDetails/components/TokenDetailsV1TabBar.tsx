@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
-  useWindowDimensions,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -158,8 +157,6 @@ export interface UseTokenDetailsV1ScrollStabilizationResult {
   scrollViewRef: React.RefObject<ScrollView | null>;
   handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   handleTabBarLayout: (event: LayoutChangeEvent) => void;
-  handleScrollViewLayout: (event: LayoutChangeEvent) => void;
-  tabContentContainerStyle: ViewStyle;
   /**
    * Pulls the page back down to the tab bar when a tab change would otherwise
    * leave the reader below the new tab's content. Only ever scrolls up.
@@ -183,25 +180,8 @@ export const useTokenDetailsV1ScrollStabilization = (
   const currentScrollYRef = useRef(0);
   const tabBarOffsetYRef = useRef<number | null>(null);
 
-  const { height: windowHeight } = useWindowDimensions();
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
-
-  const minTabContentHeight = useMemo(
-    () => Math.max(scrollViewHeight, windowHeight),
-    [scrollViewHeight, windowHeight],
-  );
-
-  const tabContentContainerStyle = useMemo<ViewStyle>(
-    () => ({ minHeight: minTabContentHeight }),
-    [minTabContentHeight],
-  );
-
   const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
     tabBarOffsetYRef.current = event.nativeEvent.layout.y;
-  }, []);
-
-  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
-    setScrollViewHeight(event.nativeEvent.layout.height);
   }, []);
 
   const onScroll = options?.onScroll;
@@ -236,8 +216,6 @@ export const useTokenDetailsV1ScrollStabilization = (
     scrollViewRef,
     handleScroll,
     handleTabBarLayout,
-    handleScrollViewLayout,
-    tabContentContainerStyle,
     clampScrollToTabBar,
     scrollToTabBar,
   };
@@ -247,7 +225,7 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
-  /** Visible tabs. Defaults to the full Overview, Security, Feed order. */
+  /** Visible tabs. Defaults to Feed, Overview, Security, Holders. */
   tabs?: readonly TokenDetailsV1TabKey[];
 }
 
