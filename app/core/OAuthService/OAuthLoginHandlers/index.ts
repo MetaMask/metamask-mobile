@@ -87,6 +87,7 @@ export function createLoginHandler(
             redirectUri,
             authServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         }
         case AuthConnection.Apple:
@@ -122,6 +123,7 @@ export function createLoginHandler(
                 redirectUri: GoogleRedirectUri,
                 authServerUrl: w3aAuthServerUrl,
                 web3AuthNetwork,
+                nonce: options?.nonce,
               })
             : new AndroidGoogleLoginHandler({
                 clientId: GoogleWebGID,
@@ -138,6 +140,7 @@ export function createLoginHandler(
             appRedirectUri: GoogleRedirectUri,
             authServerUrl: w3aAuthServerUrl,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         case AuthConnection.Telegram:
           return new TelegramLoginHandler({

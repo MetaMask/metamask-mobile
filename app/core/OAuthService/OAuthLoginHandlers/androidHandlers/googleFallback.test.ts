@@ -59,6 +59,39 @@ describe('AndroidGoogleFallbackLoginHandler', () => {
       });
     });
 
+    it('sends a caller nonce as the OIDC nonce parameter', async () => {
+      mockPromptAsync.mockResolvedValue({
+        type: 'success',
+        params: { code: 'test-auth-code' },
+      });
+      const nonceHandler = new AndroidGoogleFallbackLoginHandler({
+        clientId: 'test-client-id',
+        redirectUri: 'test://redirect',
+        authServerUrl: 'https://test-auth-server.com',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+        nonce: '0xabc',
+      });
+
+      await nonceHandler.login();
+
+      expect(AuthRequest).toHaveBeenCalledWith(
+        expect.objectContaining({ extraParams: { nonce: '0xabc' } }),
+      );
+    });
+
+    it('omits the nonce parameter when no caller nonce is set', async () => {
+      mockPromptAsync.mockResolvedValue({
+        type: 'success',
+        params: { code: 'test-auth-code' },
+      });
+
+      await handler.login();
+
+      expect(AuthRequest).toHaveBeenCalledWith(
+        expect.not.objectContaining({ extraParams: expect.anything() }),
+      );
+    });
+
     it('throws UserCancelled error when user cancels', async () => {
       mockPromptAsync.mockResolvedValue({
         type: 'cancel',

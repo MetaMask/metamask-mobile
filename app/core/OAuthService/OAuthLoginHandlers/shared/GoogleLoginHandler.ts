@@ -61,6 +61,7 @@ export abstract class BaseGoogleLoginHandler extends BaseLoginHandler {
       authServerUrl: params.authServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
+      nonce: params.nonce,
     });
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri;
@@ -86,6 +87,7 @@ export abstract class BaseGoogleLoginHandler extends BaseLoginHandler {
       usePKCE: true,
       state,
       prompt: [Prompt.SelectAccount],
+      ...(this.hasCallerNonce ? { extraParams: { nonce: this.nonce } } : {}),
     });
 
     const result = await authRequest.promptAsync(
