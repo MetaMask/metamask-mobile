@@ -1,7 +1,12 @@
 import type { MpcMoneyKeyringSetupMode } from '@metamask/eth-money-mpc-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Keyring } from '@metamask/keyring-utils';
-import { isHexAddress, type Hex, type Json } from '@metamask/utils';
+import {
+  isHexAddress,
+  isValidHexAddress,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
 
 const MPC_MONEY_KEYRING_TYPE = KeyringTypes.mpcMoney;
 
@@ -96,6 +101,8 @@ export class MpcMoneyKeyring implements Keyring {
   /**
    * Get the addresses of all accounts in the keyring.
    *
+   * The configured address may be all-lowercase or EIP-55 checksummed.
+   *
    * @returns The addresses of all accounts in the keyring.
    */
   async getAccounts(): Promise<Hex[]> {
@@ -103,12 +110,14 @@ export class MpcMoneyKeyring implements Keyring {
     if (!address) {
       return [];
     }
-    if (!isHexAddress(address)) {
+    // The env value is an unvalidated `string`; `isValidHexAddress` performs
+    // the actual all-lowercase / EIP-55 checksummed validation at runtime.
+    if (!isHexAddress(address) || !isValidHexAddress(address)) {
       throw new Error(
         `MM_MONEY_MPC_ADDRESS must be a valid hex address: \`${address}\``,
       );
     }
-    return [address];
+    return [address.toLowerCase() as Hex];
   }
 
   /**

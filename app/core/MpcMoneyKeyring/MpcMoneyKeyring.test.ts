@@ -27,6 +27,15 @@ describe('MpcMoneyKeyring (stub)', () => {
     ]);
   });
 
+  it('accepts an EIP-55 checksummed address and normalizes it to lowercase', async () => {
+    process.env.MM_MONEY_MPC_ADDRESS =
+      '0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed';
+
+    await expect(new MpcMoneyKeyring().getAccounts()).resolves.toStrictEqual([
+      '0x5aaeb6053f3e94c9b9a09f33669435e7ef1beaed',
+    ]);
+  });
+
   it('returns no accounts when no static address is configured', async () => {
     delete process.env.MM_MONEY_MPC_ADDRESS;
 
@@ -37,6 +46,15 @@ describe('MpcMoneyKeyring (stub)', () => {
 
   it('throws when the configured static address is not a valid hex address', async () => {
     process.env.MM_MONEY_MPC_ADDRESS = 'not-an-address';
+
+    await expect(new MpcMoneyKeyring().getAccounts()).rejects.toThrow(
+      'MM_MONEY_MPC_ADDRESS must be a valid hex address',
+    );
+  });
+
+  it('throws when the configured static address has an invalid EIP-55 checksum', async () => {
+    process.env.MM_MONEY_MPC_ADDRESS =
+      '0x5AAeb6053F3E94C9b9A09f33669435E7Ef1BeAed';
 
     await expect(new MpcMoneyKeyring().getAccounts()).rejects.toThrow(
       'MM_MONEY_MPC_ADDRESS must be a valid hex address',
