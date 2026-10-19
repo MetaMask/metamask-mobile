@@ -975,13 +975,17 @@ describe('MoneyHomeView', () => {
       ).toBeNull();
     });
 
-    it('tracks and opens the same destination as the VBA card on press', () => {
+    it('tracks and opens the same destination as the VBA card on press', async () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
       mockOpenVbaOnboarding.mockResolvedValue(undefined);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
 
-      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+        );
+      });
 
       expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
