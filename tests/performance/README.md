@@ -143,8 +143,11 @@ Workflow layout:
 
 ### TestMu scheduled-performance dashboard
 
-The four daily scheduled runs (Monday–Saturday) use stable TestMu dimensions so
-their history is isolated from PR and manual traffic:
+A pull request does not run performance tests unless it has
+`run-performance-tests`, so an ordinary PR never creates TestMu sessions. The
+four daily scheduled runs (Monday–Saturday) use one stable project and build.
+Manual TestMu dispatches and labeled PR runs keep a branch build name, so they
+do not join this history:
 
 - Project: `MetaMask Mobile Scheduled Performance`
 - Build: `TestMu-Android-Performance-main-Scheduled-HyperExecute`
