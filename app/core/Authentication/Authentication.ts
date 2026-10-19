@@ -84,6 +84,7 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
+import { deleteKalshiDeviceKey } from '../../components/UI/PredictNext/auth/kalshiDeviceKey';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -1998,6 +1999,15 @@ class AuthenticationService {
         Engine.context.KycController.clearState();
 
         await depositResetProviderToken();
+
+        try {
+          await deleteKalshiDeviceKey();
+        } catch (error) {
+          Logger.error(
+            ensureError(error, 'Failed to delete Kalshi device key'),
+            'Failed to delete Kalshi device key during wallet reset',
+          );
+        }
 
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());

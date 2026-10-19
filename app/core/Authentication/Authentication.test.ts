@@ -302,6 +302,12 @@ jest.mock('../SecureKeychain', () => ({
   getGenericPassword: jest.fn(),
   setGenericPassword: jest.fn(),
   resetGenericPassword: jest.fn(),
+  setSecureItem: jest.fn(),
+  getSecureItem: jest.fn(),
+  clearSecureScope: jest.fn(),
+  ACCESSIBLE: {
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
+  },
   TYPES: {
     BIOMETRICS: 'biometrics',
     PASSCODE: 'passcode',

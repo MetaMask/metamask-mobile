@@ -37,6 +37,10 @@ PredictNext/
   hooks/                       # Existing cross-screen React query integration
   navigation/
 
+  auth/                        # Kalshi P-256 device key in SecureKeychain
+    kalshiDeviceKey.ts
+    KalshiDeviceKeyBootstrap.tsx
+
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy
