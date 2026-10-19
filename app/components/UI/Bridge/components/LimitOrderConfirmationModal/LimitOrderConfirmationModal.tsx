@@ -25,6 +25,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import DottedUnderline from '../../../DottedUnderline';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
 import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
@@ -36,6 +37,7 @@ export const LimitOrderConfirmationModal = ({
   destToken,
   payingAmount,
   triggerPrice,
+  triggerDirection,
   triggerComparison,
   triggerToken,
   expiry,
@@ -62,6 +64,12 @@ export const LimitOrderConfirmationModal = ({
   const handleAccountUpgradeFeeInfoPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
+
+  const handleMetaMaskFeeInfoPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_METAMASK_FEE_INFO_MODAL,
     });
   }, [navigation]);
 
@@ -124,7 +132,7 @@ export const LimitOrderConfirmationModal = ({
           />
         </Box>
       )}
-      <Box paddingBottom={2}>
+      <>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
@@ -137,7 +145,11 @@ export const LimitOrderConfirmationModal = ({
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow label={strings('bridge.limit.trigger_condition')}>
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
-            <TokenAmountValue amount={triggerPrice} token={triggerToken} />
+            <TokenAmountValue
+              amount={triggerPrice}
+              prefix={strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)}
+              token={triggerToken}
+            />
             {triggerComparison ? (
               <Text
                 variant={TextVariant.BodySm}
@@ -159,8 +171,7 @@ export const LimitOrderConfirmationModal = ({
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
-          label={strings('bridge.cost_tolerance')}
-          labelAccessory={
+          label={
             <LimitOrderCostToleranceTooltip
               testID={
                 LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
@@ -217,8 +228,9 @@ export const LimitOrderConfirmationModal = ({
             </DetailRow>
           </>
         )}
-      </Box>
+      </>
       <BottomSheetFooter
+        twClassName="mt-4"
         primaryButtonProps={{
           children: primaryButton.label,
           onPress: primaryButton.onPress,
@@ -231,10 +243,10 @@ export const LimitOrderConfirmationModal = ({
         alignItems={BoxAlignItems.Center}
         paddingHorizontal={4}
         paddingBottom={4}
-        twClassName="pt-1"
+        twClassName="pt-3"
       >
         <Pressable
-          onPress={handleAccountUpgradeFeeInfoPress}
+          onPress={handleMetaMaskFeeInfoPress}
           accessibilityRole="button"
           accessibilityLabel={strings('bridge.limit.includes_metamask_fee')}
           style={({ pressed }) => pressed && tw.style('opacity-50')}

@@ -105,7 +105,6 @@ import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import LockScreen from '../../Views/LockScreen';
 import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
@@ -1346,11 +1345,6 @@ const AppFlow = () => {
         ) : null}
       </NativeStack.Group>
       <NativeStack.Screen
-        name={Routes.LOCK_SCREEN}
-        component={LockScreen}
-        options={{ gestureEnabled: false }}
-      />
-      <NativeStack.Screen
         name={Routes.CONFIRMATION_REQUEST_MODAL}
         options={{
           gestureEnabled: true,
@@ -1402,11 +1396,10 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MFA.FLOW}
         component={MfaFlowHost}
+        // A transparent modal, as the picker is a sheet over the app.
         options={{
-          headerShown: false,
           gestureEnabled: false,
-          presentation: 'fullScreenModal',
-          animation: 'slide_from_bottom',
+          contentStyle: { backgroundColor: 'transparent' },
         }}
       />
       <NativeStack.Screen

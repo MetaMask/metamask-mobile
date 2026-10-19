@@ -29,9 +29,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import FloatingHeader, {
-  useFloatingHeaderInset,
-} from '../../../component-library/components-temp/FloatingHeader';
+import HeaderGlass, {
+  useHeaderGlassInset,
+} from '../../../component-library/components-temp/HeaderGlass';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -832,7 +832,8 @@ const Wallet = ({
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (isCompactHeader) {
+      // Drives the compact header and the floating header's backdrop.
+      if (isCompactHeader || isInterimHeader) {
         homepageScrollY.value = event.nativeEvent.contentOffset.y;
       }
       const now = Date.now();
@@ -841,7 +842,7 @@ const Wallet = ({
         scrollSubscribersRef.current.forEach((cb) => cb());
       }
     },
-    [homepageScrollY, isCompactHeader],
+    [homepageScrollY, isCompactHeader, isInterimHeader],
   );
 
   const touchAreaSlop = useMemo(
@@ -941,7 +942,7 @@ const Wallet = ({
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useFloatingHeaderInset(isFloatingJsHeader);
+    useHeaderGlassInset(isFloatingJsHeader, safeAreaInsets.top);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1315,8 +1316,10 @@ const Wallet = ({
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
-          // The native bar owns the top inset; content scrolls under it.
-          edges={isNativeHeader ? [] : { top: 'additive' }}
+          // The native bar or the floating header owns the top inset; content scrolls under it.
+          edges={
+            isNativeHeader || isFloatingJsHeader ? [] : { top: 'additive' }
+          }
           testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
@@ -1359,12 +1362,14 @@ const Wallet = ({
               >
                 {isFloatingJsHeader && (
                   // Mounted before the content so assistive tech reads the header first.
-                  <FloatingHeader
+                  <HeaderGlass
                     onLayout={handleFloatingHeaderLayout}
+                    topInset={safeAreaInsets.top}
+                    scrollDistance={homepageScrollY}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
                   >
                     {renderWalletHeader()}
-                  </FloatingHeader>
+                  </HeaderGlass>
                 )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider

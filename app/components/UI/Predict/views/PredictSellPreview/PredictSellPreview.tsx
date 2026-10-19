@@ -118,6 +118,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     isLoading,
     result,
     error: placeOrderError,
+    lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
@@ -126,6 +128,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     preview,
     error: previewError,
     isLoading: isPreviewLoading,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -139,14 +142,20 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (position data + preview)
@@ -410,7 +419,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Text
                     fontWeight={FontWeight.Medium}
-                    variant={TextVariant.AmountDisplayLg}
+                    variant={TextVariant.DisplayLg}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
@@ -480,9 +489,11 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? position?.price ?? 0}
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.SELL}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />

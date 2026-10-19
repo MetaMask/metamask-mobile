@@ -50,6 +50,7 @@ describe('traderProfileResponseToMySocialProfile', () => {
       volumeUsd30d: 200,
       tradeCount30d: 9,
       linkedAccountAddress: '0xabc',
+      joinedAt: null,
     });
   });
 

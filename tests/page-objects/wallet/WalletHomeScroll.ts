@@ -2,7 +2,13 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { type AppiumElement, getDriver, wrapElement } from '../../framework';
+import Utilities from '../../framework/Utilities';
+import {
+  type AppiumElement,
+  createLogger,
+  getDriver,
+  wrapElement,
+} from '../../framework';
 import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
 import {
   getPerformanceLocatorRecovery,
@@ -10,6 +16,8 @@ import {
 } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import TabBarComponent from './TabBarComponent';
+import { pixelsToClearTabBar } from './tabBarClearance';
 
 /**
  * WDIO derives the swipe coordinates from the scrollable element and defaults
@@ -19,6 +27,8 @@ import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
  * bar on both gesture and three-button navigation.
  */
 const WALLET_HOME_SWIPE_PERCENT = 0.5;
+
+const logger = createLogger({ name: 'WalletHomeScroll' });
 
 export class WalletHomeScroll {
   get walletScrollContainer(): string {
@@ -170,6 +180,44 @@ export class WalletHomeScroll {
     );
   }
 
+  /**
+   * Scrolls the home list just far enough that `target` is not covered by the
+   * floating tab bar. A header that peeks out from behind the bar counts as
+   * displayed, but tapping its center hits the bar (e.g. Money) instead.
+   * Leaves the target untouched when the tab bar is not on screen.
+   */
+  async scrollClearOfTabBar(
+    target: Promise<AppiumElement>,
+    description: string,
+  ): Promise<AppiumElement> {
+    const tabBarButton = TabBarComponent.tabBarWalletButton;
+    if (!(await Utilities.isElementVisible(tabBarButton, 1_000))) {
+      return target;
+    }
+
+    const fresh = await this.resolveFreshWalletHomeTarget(target);
+    const [tabBarLocation, location, size, scrollView] = await Promise.all([
+      (await tabBarButton).unwrap().getLocation(),
+      fresh.unwrap().getLocation(),
+      fresh.unwrap().getSize(),
+      Promise.resolve(this.walletScrollView),
+    ]);
+    const needed = pixelsToClearTabBar(
+      { y: location.y, height: size.height },
+      tabBarLocation.y,
+    );
+    if (needed === 0) {
+      return fresh;
+    }
+
+    const viewHeight = (await scrollView.unwrap().getSize()).height;
+    logger.debug(
+      `Scrolling ${needed}px so "${description}" clears the floating tab bar`,
+    );
+    await this.scrollWalletHome('down', needed / viewHeight);
+    return this.resolveFreshWalletHomeTarget(target);
+  }
+
   async tapIfAlreadyVisible(
     target: Promise<AppiumElement>,
     description: string,
@@ -181,16 +229,28 @@ export class WalletHomeScroll {
        * so the first tap misses and this nudge clears it.
        */
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+      /** Scroll clear of the floating tab bar before the first tap. */
+      clearTabBar?: boolean;
     } = {},
   ): Promise<boolean> {
-    const { tapTimeout = 30_000, overshootSwipe } = options;
+    const {
+      tapTimeout = 30_000,
+      overshootSwipe,
+      clearTabBar = false,
+    } = options;
 
     try {
-      const freshTarget = await this.resolveFreshWalletHomeTarget(target);
+      let freshTarget = await this.resolveFreshWalletHomeTarget(target);
       await Assertions.expectElementToBeVisible(freshTarget, {
         timeout: 2000,
         description,
       });
+      if (clearTabBar) {
+        freshTarget = await this.scrollClearOfTabBar(
+          Promise.resolve(freshTarget),
+          description,
+        );
+      }
       try {
         await Gestures.waitAndTap(freshTarget, {
           elemDescription: description,
@@ -256,6 +316,8 @@ export class WalletHomeScroll {
       /** Overrides the attempt count derived from `timeout`, including below 8. */
       maxAttempts?: number;
       tapTimeout?: number;
+      /** Scroll clear of the floating tab bar before tapping. */
+      clearTabBar?: boolean;
     } = {},
   ): Promise<void> {
     const {
@@ -263,6 +325,7 @@ export class WalletHomeScroll {
       timeout = 15_000,
       maxAttempts: maxAttemptsOverride,
       tapTimeout = 30_000,
+      clearTabBar = false,
     } = options;
     const maxAttempts =
       maxAttemptsOverride ?? Math.max(8, Math.ceil(timeout / 2_000));
@@ -310,7 +373,11 @@ export class WalletHomeScroll {
       onRecovered: recovery?.onRecovered,
     });
 
-    await Gestures.waitAndTap(element, {
+    const tapTarget = clearTabBar
+      ? await this.scrollClearOfTabBar(Promise.resolve(element), description)
+      : element;
+
+    await Gestures.waitAndTap(tapTarget, {
       elemDescription: description,
       timeout: tapTimeout,
     });

@@ -44,6 +44,7 @@ import { TokenAmountValue } from '../../components/LimitOrderConfirmationModal/T
 import { getUsdTriggerPrice } from '../../components/OpenLimitOrderDetailsModal/utils';
 import { useLimitOrder } from '../../hooks/useLimitOrder';
 import { useTokenUsdRate } from '../../hooks/useTokenFiatRate';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import { formatLimitOrderAmount } from '../../utils/limitOrders/formatLimitOrderAmount';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
@@ -134,7 +135,7 @@ function SwapsLimitOrderActivityPage() {
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
   const chainId = parseCaipAssetType(order.src.asset.assetId).chainId;
   const networkName = useActivityNetworkName(chainId);
-  const { triggerPrice, triggerToken } = getUsdTriggerPrice(
+  const { triggerPrice, triggerToken, triggerDirection } = getUsdTriggerPrice(
     order,
     sourceToken,
     destinationToken,
@@ -200,6 +201,10 @@ function SwapsLimitOrderActivityPage() {
           showsVerticalScrollIndicator={false}
         >
           <ActivityDetailsTemplateFrame
+            heroDividerMarginVertical={2}
+            heroDividerTestID={
+              SwapsLimitOrderActivityPageSelectorsIDs.AMOUNT_DIVIDER
+            }
             hero={
               <ActivityDetailsDualAmountHeader
                 sentToken={sentToken}
@@ -259,7 +264,14 @@ function SwapsLimitOrderActivityPage() {
                     value={
                       <TokenAmountValue
                         amount={triggerPrice}
+                        prefix={
+                          triggerDirection &&
+                          strings(
+                            LIMIT_ORDER_DIRECTION[triggerDirection].signKey,
+                          )
+                        }
                         token={triggerToken}
+                        fontWeight={FontWeight.Medium}
                       />
                     }
                     testID={

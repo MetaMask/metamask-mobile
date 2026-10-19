@@ -22,6 +22,10 @@ import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
+import {
+  focusedRouteFromNavigationState,
+  recordFocusedRoute,
+} from '../../../util/analytics/navigationAnalyticsAttribution';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
 
@@ -77,6 +81,9 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const onReady = () => {
     // End trace when navigation is ready
     endTrace({ name: TraceName.NavInit });
+    // onReady runs for the first commit. Recording that focused route gives
+    // the next navigation a source screen when onStateChange follows.
+    recordFocusedRoute(NavigationService.getCurrentRoute());
     // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
   };
@@ -90,6 +97,12 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const onStateChange = (state: NavigationState | undefined) => {
     if (!state) {
       return;
+    }
+    // Destination screen views emit in a child effect, before this callback.
+    // The enricher reads the route recorded from the previous commit.
+    const focusedRoute = focusedRouteFromNavigationState(state);
+    if (focusedRoute) {
+      recordFocusedRoute(focusedRoute);
     }
     handleDeeplinkNavigationStateChange({
       focusedRouteNames: collectFocusedRouteNames(state),

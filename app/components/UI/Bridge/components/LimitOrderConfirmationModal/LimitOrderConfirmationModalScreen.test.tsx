@@ -25,8 +25,10 @@ import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrde
 import { ToastSeverity } from '@metamask/design-system-react-native';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
@@ -374,6 +376,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it.each([
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      'bridge.limit.trigger_condition_at_or_above',
+    ],
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      'bridge.limit.trigger_condition_at_or_below',
+    ],
+  ])(
+    'signs the trigger price of an order placed %s the limit price',
+    (priceComparisonDirection, expectedPrefixKey) => {
+      mockUseParams.mockReturnValue({
+        ...mockParams,
+        triggerInput: { ...mockTriggerInput, priceComparisonDirection },
+      });
+
+      const { getByTestId } = renderScreen();
+
+      expect(
+        getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+      ).toHaveTextContent(strings(expectedPrefixKey));
+    },
+  );
+
   it('displays the cost tolerance from bridge state', () => {
     const { getByText } = renderScreen(
       createBridgeTestState({
@@ -697,6 +724,32 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('clears the token amounts and preserves the remaining form state once the order is created', async () => {
+    const { getByTestId, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '0.1',
+          destAmount: '341.22',
+          limitOrderCostTolerance: '0.5',
+        },
+      }),
+    );
+    const initialSourceToken = store.getState().bridge.sourceToken;
+    const initialDestToken = store.getState().bridge.destToken;
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBeUndefined();
+      expect(store.getState().bridge.destAmount).toBeUndefined();
+    });
+    expect(store.getState().bridge.sourceToken).toEqual(initialSourceToken);
+    expect(store.getState().bridge.destToken).toEqual(initialDestToken);
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
+  });
+
   it('shows the order created success toast once the order is created', async () => {
     const { getByTestId } = renderScreen(createBridgeTestState({}));
 
@@ -717,7 +770,14 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
   it('displays an error banner when the order cannot be created', async () => {
     mockCreateLimitOrder.mockRejectedValue(new Error('boom'));
-    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+    const { getByTestId, getByText, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '0.1',
+          destAmount: '341.22',
+        },
+      }),
+    );
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -731,6 +791,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();
+    expect(store.getState().bridge.sourceAmount).toBe('0.1');
+    expect(store.getState().bridge.destAmount).toBe('341.22');
   });
 
   it('retries the order creation when pressed after a failure', async () => {

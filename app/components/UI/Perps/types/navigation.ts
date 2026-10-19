@@ -19,6 +19,7 @@ import type {
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -104,6 +105,8 @@ export type PerpsOrderRouteParams = {
    * / failed toasts still fire.
    */
   stayOnCurrentScreen?: boolean;
+  /** Social post being copied; a matching order records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -407,6 +410,8 @@ export type PerpsStackParamList = {
      * of opening market details.
      */
     stayOnCurrentScreen?: boolean;
+    /** Social post being copied, forwarded to the order view. */
+    copyTradeOrigin?: CopyTradeOrigin;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)
