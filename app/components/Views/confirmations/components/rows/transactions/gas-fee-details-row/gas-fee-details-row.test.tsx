@@ -1,6 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 import { cloneDeep } from 'lodash';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -595,19 +595,31 @@ describe('GasFeesDetailsRow', () => {
       );
     };
 
-    const renderWithContexts = () =>
-      renderWithProvider(
-        <ConfirmationContextProvider>
-          <AlertsContextProvider alerts={[]}>
-            <ContextControls />
-            <GasFeesDetailsRow />
-          </AlertsContextProvider>
-        </ConfirmationContextProvider>,
-        { state: createStateWithSimulationData() },
-      );
+    const GasModalVisibleText = () => {
+      const { isGasFeeModalVisible } = useConfirmationContext();
+      return <Text>{`gas-modal-visible-${isGasFeeModalVisible}`}</Text>;
+    };
+
+    const renderWithContexts = ({
+      disableUpdate = false,
+      showRow = true,
+    } = {}) => (
+      <ConfirmationContextProvider>
+        <AlertsContextProvider alerts={[]}>
+          <ContextControls />
+          <GasModalVisibleText />
+          {showRow && <GasFeesDetailsRow disableUpdate={disableUpdate} />}
+        </AlertsContextProvider>
+      </ConfirmationContextProvider>
+    );
+
+    const renderRow = (options?: Parameters<typeof renderWithContexts>[0]) =>
+      renderWithProvider(renderWithContexts(options), {
+        state: createStateWithSimulationData(),
+      });
 
     it('opens gas fee modal when network fee is pressed', () => {
-      const { getByText, getByTestId, queryByTestId } = renderWithContexts();
+      const { getByText, getByTestId, queryByTestId } = renderRow();
 
       expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
 
@@ -617,7 +629,7 @@ describe('GasFeesDetailsRow', () => {
     });
 
     it('opens gas fee modal only after alert modal is hidden', () => {
-      const { getByTestId, queryByTestId } = renderWithContexts();
+      const { getByTestId, queryByTestId } = renderRow();
 
       fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
 
@@ -626,6 +638,28 @@ describe('GasFeesDetailsRow', () => {
       fireEvent.press(getByTestId('hide-alert-modal'));
 
       expect(getByTestId(GAS_FEE_MODAL_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('does not open gas fee modal when update is disabled', () => {
+      const { getByTestId, queryByTestId } = renderRow({
+        disableUpdate: true,
+      });
+
+      fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
+      fireEvent.press(getByTestId('hide-alert-modal'));
+
+      expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
+    });
+
+    it('resets gas fee modal visibility when row unmounts', () => {
+      const { getByTestId, getByText, rerender } = renderRow();
+
+      fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
+      expect(getByText('gas-modal-visible-true')).toBeOnTheScreen();
+
+      rerender(renderWithContexts({ showRow: false }));
+
+      expect(getByText('gas-modal-visible-false')).toBeOnTheScreen();
     });
   });
 });

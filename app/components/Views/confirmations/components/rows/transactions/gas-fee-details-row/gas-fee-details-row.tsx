@@ -2,7 +2,7 @@ import {
   TransactionBatchMeta,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
@@ -267,6 +267,8 @@ const GasFeesDetailsRow = ({
   } = useConfirmationContext();
   const { alertModalVisible } = useAlerts();
   const { styles } = useStyles(styleSheet, {});
+
+  useEffect(() => () => setGasModalVisible(false), [setGasModalVisible]);
   useAutomaticGasFeeTokenSelect();
 
   const transactionMetadata = useTransactionMetadataRequest();
@@ -387,7 +389,7 @@ const GasFeesDetailsRow = ({
           )}
       </Container>
       {/* Wait for the alert modal to close, as iOS can't stack native modals reliably. */}
-      {gasModalVisible && !alertModalVisible && (
+      {gasModalVisible && !alertModalVisible && !disableUpdate && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
       <GasFeeTokenToast />

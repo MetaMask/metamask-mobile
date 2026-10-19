@@ -9,6 +9,7 @@ import { renderHook } from '@testing-library/react-native';
 
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
+import { MMM_ORIGIN } from '../../constants/confirmations';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import {
   useConfirmationContext,
@@ -195,17 +196,43 @@ describe('useSuggestedGasFeeHighAlert', () => {
     ]);
   });
 
-  it('returns alert when native token is selected as gas fee token', () => {
+  it('returns alert when dapp gas price is high against fee market estimates', () => {
     const alerts = runHook(
-      buildEip1559Transaction(GWEI_100, {
-        selectedGasFeeToken: NATIVE_TOKEN_ADDRESS,
-      }),
+      buildLegacyTransaction(GWEI_100, FEE_MARKET_ESTIMATES),
     );
 
     expect(alerts.map(({ key }) => key)).toEqual([
       AlertKeys.SuggestedGasFeeHigh,
     ]);
   });
+
+  it('returns no alerts when native token is selected as gas fee token', () => {
+    expect(
+      runHook(
+        buildEip1559Transaction(GWEI_100, {
+          selectedGasFeeToken: NATIVE_TOKEN_ADDRESS,
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it('returns no alerts for MetaMask origin', () => {
+    expect(
+      runHook(buildEip1559Transaction(GWEI_100, { origin: MMM_ORIGIN })),
+    ).toEqual([]);
+  });
+
+  it.each([
+    ['legacy', LEGACY_ESTIMATES],
+    ['gas price', GAS_PRICE_ESTIMATES],
+  ])(
+    'returns no alerts when dapp max fee is compared to %s estimates',
+    (_name, gasFeeEstimates) => {
+      expect(
+        runHook(buildEip1559Transaction(GWEI_100, { gasFeeEstimates })),
+      ).toEqual([]);
+    },
+  );
 
   it('returns no alerts when transaction metadata is undefined', () => {
     expect(runHook(undefined)).toEqual([]);

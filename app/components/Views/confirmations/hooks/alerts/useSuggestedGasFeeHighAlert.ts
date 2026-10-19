@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { hexToBN } from '@metamask/controller-utils';
+import { GasFeeEstimateType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
+import { MMM_ORIGIN } from '../../constants/confirmations';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import {
@@ -28,13 +29,20 @@ export const useSuggestedGasFeeHighAlert = (): Alert[] => {
       return NO_ALERTS;
     }
 
-    const { dappSuggestedGasFees, gasFeeEstimates, selectedGasFeeToken } =
-      transactionMeta;
+    const {
+      dappSuggestedGasFees,
+      gasFeeEstimates,
+      origin,
+      selectedGasFeeToken,
+    } = transactionMeta;
 
-    if (
-      selectedGasFeeToken &&
-      selectedGasFeeToken.toLowerCase() !== NATIVE_TOKEN_ADDRESS
-    ) {
+    if (origin === MMM_ORIGIN) {
+      return NO_ALERTS;
+    }
+
+    // Any selected gas fee token, native included, is paid from a quote and
+    // the network fee can't be edited.
+    if (selectedGasFeeToken) {
       return NO_ALERTS;
     }
 
@@ -46,8 +54,20 @@ export const useSuggestedGasFeeHighAlert = (): Alert[] => {
       return NO_ALERTS;
     }
 
-    const dappFee = (dappSuggestedGasFees?.maxFeePerGas ??
-      dappSuggestedGasFees?.gasPrice) as Hex | undefined;
+    const dappMaxFeePerGas = dappSuggestedGasFees?.maxFeePerGas as
+      | Hex
+      | undefined;
+
+    // A max fee cap is only comparable to fee market estimates.
+    if (
+      dappMaxFeePerGas &&
+      gasFeeEstimates?.type !== GasFeeEstimateType.FeeMarket
+    ) {
+      return NO_ALERTS;
+    }
+
+    const dappFee =
+      dappMaxFeePerGas ?? (dappSuggestedGasFees?.gasPrice as Hex | undefined);
     const marketFee = getMarketFeeFromEstimates(gasFeeEstimates);
 
     if (!dappFee || !marketFee) {
