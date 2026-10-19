@@ -155,7 +155,45 @@ describe('CreateVirtualBankAccount', () => {
       resolveSuccess?.();
     });
 
+    // Component-view and integration tests cannot observe Fabric's Android
+    // removal transition. The crash happens when this loading state clears
+    // before the screen unmounts, so success must leave the CTA disabled.
     await waitFor(() => {
+      expect(button).toBeDisabled();
+    });
+  });
+
+  it('reenables the CTA when vendor terms are not accepted', async () => {
+    mockAcceptDisclaimers.mockResolvedValue(false);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockAcceptDisclaimers).toHaveBeenCalledTimes(1);
+      expect(button).toBeEnabled();
+    });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('reenables the CTA when advancing throws', async () => {
+    mockOnSuccess.mockRejectedValue(new Error('navigation failed'));
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(button).toBeEnabled();
     });
   });

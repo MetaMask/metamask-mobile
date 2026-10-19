@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { isPositiveNumberOrZero } from '../../../Money/utils/number';
@@ -93,14 +94,29 @@ const CreateVirtualBankAccount = ({
     }
 
     setIsAdvancing(true);
+    let didAdvance = false;
     try {
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
       if (await acceptDisclaimers()) {
         await onSuccess();
+        didAdvance = true;
       }
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: {
+          name: 'CreateVirtualBankAccount',
+          data: { step: 'agreeAndContinue' },
+        },
+      });
     } finally {
-      setIsAdvancing(false);
+      // A successful advance unmounts this screen. Clearing the loading state
+      // first swaps the button label back in while Android is still removing
+      // the screen, and Fabric crashes re-parenting that text.
+      if (!didAdvance) {
+        setIsAdvancing(false);
+      }
     }
   }, [acceptDisclaimers, isAdvancing, onSuccess]);
 
