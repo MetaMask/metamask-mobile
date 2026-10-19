@@ -156,7 +156,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           ) {
             return;
           }
-          optin({ bulkLink: true });
+          void optin({ bulkLink: true });
         }}
         twClassName="mx-auto px-4"
       />

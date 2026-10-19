@@ -92,7 +92,7 @@ export const useCursorPaginatedList = <T>({
       preserveItems?: boolean;
       followUp?: boolean;
     }) => Promise<{ cancelled: boolean }>
-  >(async () => ({ cancelled: false }));
+  >(() => Promise.resolve({ cancelled: false }));
 
   const fetchList = useCallback(
     async ({
@@ -210,7 +210,7 @@ export const useCursorPaginatedList = <T>({
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && !isLoading && hasMore && cursor) {
-      fetchList({ isFirstPage: false, currentCursor: cursor });
+      void fetchList({ isFirstPage: false, currentCursor: cursor });
     }
   }, [isLoadingMore, isLoading, hasMore, cursor, fetchList]);
 
@@ -259,7 +259,7 @@ export const useCursorPaginatedList = <T>({
     setHasMore(true);
     setIsLoadingMore(false);
     setIsRefreshing(false);
-    fetchList({ isFirstPage: true, preserveItems: false });
+    void fetchList({ isFirstPage: true, preserveItems: false });
 
     return () => {
       cancelBusyRefetch();
