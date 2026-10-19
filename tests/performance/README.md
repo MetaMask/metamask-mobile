@@ -596,7 +596,7 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 #
 # Android performance dual builds (main-e2e-bs-*) follow the same fingerprint
 # procedure as main-e2e Android (build-android-e2e.yml), via find-reusable-build in
-# build-android-upload-to-browserstack.yml. Performance runs upload the staged
+# build-android-performance-apks.yml. Performance runs upload the staged
 # APKs to TestMu only:
 #   - miss → fresh dual Gradle builds
 #   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is

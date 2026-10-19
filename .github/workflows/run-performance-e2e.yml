@@ -296,7 +296,7 @@ jobs:
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Upload to TestMu
-    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    uses: ./.github/workflows/build-android-performance-apks.yml
     needs: [prepare, check-testmu-credentials]
     # Android runs without explicit TestMu app URLs go through this workflow.
     # It selects fingerprint reuse for app changes and latest-main artifact

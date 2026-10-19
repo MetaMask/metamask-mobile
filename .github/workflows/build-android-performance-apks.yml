@@ -1,4 +1,6 @@
-# This workflow creates two Android Builds and uploads to BrowserStack using GitHub Actions.
+# This workflow creates two Android performance APKs and uploads them.
+# Performance runs upload to TestMu. Nightly system tests can still upload
+# to BrowserStack by leaving upload_to_browserstack at its default.
 # Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
 # Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
 #
@@ -15,7 +17,7 @@
 #      current JS, then upload the APKs and newly generated sourcemaps
 #      (fingerprint ignores JS-only changes).
 
-name: Build Android Dual Versions and Upload to BrowserStack
+name: Build Android Dual Versions
 
 on:
   workflow_call:
