@@ -122,9 +122,7 @@ const PredictPositionsViewHeader = ({
               }
             />
           ) : portfolio.balanceError ? (
-            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
-              {strings('predict.unrealized_pnl_error')}
-            </Text>
+            <Text variant={TextVariant.BodyMd}>—</Text>
           ) : (
             <SensitiveText
               variant={TextVariant.BodyMd}
@@ -166,12 +164,7 @@ const PredictPositionsViewHeader = ({
                   }
                 />
               ) : portfolio.openPositionsError ? (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.ErrorDefault}
-                >
-                  {strings('predict.unrealized_pnl_error')}
-                </Text>
+                <Text variant={TextVariant.BodyMd}>—</Text>
               ) : (
                 <SensitiveText
                   variant={TextVariant.BodyMd}

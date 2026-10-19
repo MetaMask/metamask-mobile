@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import { GoogleWalletAdapter } from './GoogleWalletAdapter';
 import {
   ProvisionCardParams,
@@ -725,7 +726,8 @@ describe('GoogleWalletAdapter', () => {
     });
 
     it('notifies listeners on activated status', async () => {
-      let nativeCallback: (data: unknown) => void = () => undefined;
+      let nativeCallback: (data: onCardActivatedPayload) => void = () =>
+        undefined;
       mockAddListener.mockImplementation((_event, callback) => {
         nativeCallback = callback;
         return { remove: jest.fn() };
@@ -735,8 +737,7 @@ describe('GoogleWalletAdapter', () => {
       adapter.addActivationListener(listener);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Android SDK sends 'status' property with 'active' value
-      nativeCallback({ tokenId: 'token-123', status: 'active' });
+      nativeCallback({ tokenId: 'token-123', status: 'activated' });
 
       expect(listener).toHaveBeenCalledWith({
         tokenId: 'token-123',
@@ -745,7 +746,8 @@ describe('GoogleWalletAdapter', () => {
     });
 
     it('notifies listeners on canceled status', async () => {
-      let nativeCallback: (data: unknown) => void = () => undefined;
+      let nativeCallback: (data: onCardActivatedPayload) => void = () =>
+        undefined;
       mockAddListener.mockImplementation((_event, callback) => {
         nativeCallback = callback;
         return { remove: jest.fn() };
@@ -755,32 +757,11 @@ describe('GoogleWalletAdapter', () => {
       adapter.addActivationListener(listener);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      // Android SDK sends 'status' property with 'canceled' value
       nativeCallback({ tokenId: 'token-123', status: 'canceled' });
 
       expect(listener).toHaveBeenCalledWith({
         tokenId: 'token-123',
         status: 'canceled',
-      });
-    });
-
-    it('notifies listeners on failed status (unknown status)', async () => {
-      let nativeCallback: (data: unknown) => void = () => undefined;
-      mockAddListener.mockImplementation((_event, callback) => {
-        nativeCallback = callback;
-        return { remove: jest.fn() };
-      });
-
-      const listener = jest.fn();
-      adapter.addActivationListener(listener);
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      // Unknown status falls through to 'failed'
-      nativeCallback({ tokenId: 'token-123', status: 'unknown' });
-
-      expect(listener).toHaveBeenCalledWith({
-        tokenId: 'token-123',
-        status: 'failed',
       });
     });
   });

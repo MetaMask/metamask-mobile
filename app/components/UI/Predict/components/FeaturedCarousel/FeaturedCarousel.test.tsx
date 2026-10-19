@@ -184,27 +184,6 @@ describe('FeaturedCarousel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders pagination dots matching market count', () => {
-    mockUseFeaturedCarouselData.mockReturnValue({
-      markets: [
-        mockMarket,
-        { ...mockMarket, id: 'market-2', slug: 'btc-210k' },
-        { ...mockMarket, id: 'market-3', slug: 'btc-220k' },
-      ],
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
-    const { getByTestId } = renderWithProvider(<FeaturedCarousel />, {
-      state: initialState,
-    });
-
-    expect(
-      getByTestId(FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS),
-    ).toBeOnTheScreen();
-  });
-
   it('renders the expected number of carousel cards', () => {
     mockUseFeaturedCarouselData.mockReturnValue({
       markets: [
@@ -230,7 +209,7 @@ describe('FeaturedCarousel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('resets activeIndex when refetch returns fewer markets', () => {
+  it('still renders cards when refetch returns fewer markets', () => {
     mockUseFeaturedCarouselData.mockReturnValue({
       markets: [
         mockMarket,
@@ -245,10 +224,6 @@ describe('FeaturedCarousel', () => {
     const { rerender, getByTestId } = renderWithProvider(<FeaturedCarousel />, {
       state: initialState,
     });
-
-    expect(
-      getByTestId(FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS),
-    ).toBeOnTheScreen();
 
     mockUseFeaturedCarouselData.mockReturnValue({
       markets: [mockMarket],

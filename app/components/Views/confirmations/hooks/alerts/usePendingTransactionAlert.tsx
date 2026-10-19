@@ -2,16 +2,16 @@ import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
+import { Text, TextButton } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import { selectTransactions } from '../../../../../selectors/transactionController';
-import Text from '../../../../../component-library/components/Texts/Text';
-import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { SPEEDUP_CANCEL_TRANSACTION_URL } from '../../constants/url';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
-import { Severity } from '../../types/alerts';
+import { NO_ALERTS, Severity } from '../../types/alerts';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { PendingTransactionAlertTestIds } from './pending-transaction-alert.testIds';
 
 export const usePendingTransactionAlert = () => {
   const transactions = useSelector(selectTransactions);
@@ -19,7 +19,7 @@ export const usePendingTransactionAlert = () => {
 
   return useMemo(() => {
     if (!transactionMeta) {
-      return [];
+      return NO_ALERTS;
     }
 
     const showAlert = transactions.some(
@@ -29,7 +29,7 @@ export const usePendingTransactionAlert = () => {
     );
 
     if (!showAlert) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [
@@ -38,13 +38,15 @@ export const usePendingTransactionAlert = () => {
         key: AlertKeys.PendingTransaction,
         field: RowAlertKey.PendingTransaction,
         message: (
-          <>
-            <Text>{strings('alert_system.pending_transaction.message')}</Text>
-            <ButtonLink
-              label={strings('alert_system.pending_transaction.learn_more')}
+          <Text>
+            {strings('alert_system.pending_transaction.message')}{' '}
+            <TextButton
+              testID={PendingTransactionAlertTestIds.LEARN_MORE_BUTTON}
               onPress={() => Linking.openURL(SPEEDUP_CANCEL_TRANSACTION_URL)}
-            />
-          </>
+            >
+              {strings('alert_system.pending_transaction.learn_more')}
+            </TextButton>
+          </Text>
         ),
         title: strings('alert_system.pending_transaction.title'),
         severity: Severity.Warning,

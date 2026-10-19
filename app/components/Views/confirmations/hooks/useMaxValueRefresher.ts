@@ -20,7 +20,7 @@ export function useMaxValueRefresher() {
   const [valueJustUpdated, setValueJustUpdated] = useState(false);
   const { setIsTransactionValueUpdating } = useConfirmationContext();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { chainId, id, txParams, type } =
+  const { chainId, id, simulationFails, txParams, type } =
     transactionMetadata as TransactionMeta;
   const { maxFeeNativeHex } = useFeeCalculations(
     transactionMetadata as TransactionMeta,
@@ -28,7 +28,11 @@ export function useMaxValueRefresher() {
   const { balanceWeiInHex } = useAccountNativeBalance(chainId, txParams.from);
 
   useEffect(() => {
-    if (!maxValueMode || type !== TransactionType.simpleSend) {
+    if (
+      !maxValueMode ||
+      type !== TransactionType.simpleSend ||
+      simulationFails
+    ) {
       // Not compatible with transaction value refresh logic
       return;
     }
@@ -41,7 +45,10 @@ export function useMaxValueRefresher() {
 
     if (shouldUpdate && maxValue.isPositive()) {
       setIsTransactionValueUpdating(true);
+      // Keep the transaction type so a send to a contract recipient remains a
+      // simple send rather than becoming a contract interaction.
       updateEditableParams(id, {
+        updateType: false,
         value: maxValueHex,
       });
       // Do it on the next tick to avoid race condition in insufficient balance alert
@@ -55,6 +62,7 @@ export function useMaxValueRefresher() {
     maxValueMode,
     maxFeeNativeHex,
     setIsTransactionValueUpdating,
+    simulationFails,
     txParams,
     type,
   ]);

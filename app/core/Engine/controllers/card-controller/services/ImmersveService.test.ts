@@ -14,8 +14,14 @@ beforeEach(() => {
   mockRequest.mockResolvedValue({ data: { result: 'ok' }, status: 200 });
 });
 
-const createService = (baseUrl = 'https://api.test.immersve.com') =>
-  new ImmersveService({ getBaseUrl: () => baseUrl });
+const createService = ({
+  baseUrl = 'https://api.test.immersve.com',
+}: {
+  baseUrl?: string;
+} = {}) =>
+  new ImmersveService({
+    getBaseUrl: () => baseUrl,
+  });
 
 const TOKEN_SET = {
   accessToken: 'access-token',
@@ -26,7 +32,7 @@ const TOKEN_SET = {
 describe('ImmersveService', () => {
   describe('constructor', () => {
     it('does not bake a baseURL into the axios instance', () => {
-      createService('https://a.example');
+      createService({ baseUrl: 'https://a.example' });
 
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -46,7 +52,9 @@ describe('ImmersveService', () => {
   describe('get', () => {
     it('resolves baseURL from the thunk on each request', async () => {
       let base = 'https://first.example';
-      const service = new ImmersveService({ getBaseUrl: () => base });
+      const service = new ImmersveService({
+        getBaseUrl: () => base,
+      });
 
       await service.get('/v1/test');
       expect(mockRequest).toHaveBeenLastCalledWith(
@@ -126,6 +134,29 @@ describe('ImmersveService', () => {
             Authorization: 'Bearer access-token',
             origin: 'https://app.immersve.com',
           }),
+        }),
+      );
+    });
+  });
+
+  describe('request', () => {
+    it('supports an explicit baseURL override for secure-host calls', async () => {
+      mockRequest.mockResolvedValue({ data: {}, status: 200 });
+      const service = createService();
+
+      await service.request('/api/cards/card-1/set-pin', {
+        method: 'POST',
+        body: { newPin: '1337' },
+        tokenSet: TOKEN_SET,
+        baseURL: 'https://test-sec.immersve.com',
+      });
+
+      expect(mockRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          baseURL: 'https://test-sec.immersve.com',
+          url: '/api/cards/card-1/set-pin',
+          method: 'POST',
+          data: { newPin: '1337' },
         }),
       );
     });

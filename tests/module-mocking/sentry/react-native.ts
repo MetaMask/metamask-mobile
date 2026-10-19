@@ -10,6 +10,13 @@ export const init = (_options?: unknown) => {
   console.log('[E2E Sentry Mock] init', _options ?? '(no options)');
 };
 
+/** Used by isSentryEnabled() during onboarding social login (main-e2e build). */
+export const getClient = (): undefined => {
+  // eslint-disable-next-line no-console
+  console.log('[E2E Sentry Mock] getClient');
+  return undefined;
+};
+
 export const wrap = <T>(component: T): T => {
   // eslint-disable-next-line no-console
   console.log('[E2E Sentry Mock] wrap');
@@ -62,6 +69,14 @@ export const captureMessage = (_message: string) => {
   // eslint-disable-next-line no-console
   console.log('[E2E Sentry Mock] captureMessage', _message);
 };
+
+export const captureFeedback = (_feedback: unknown) => {
+  // eslint-disable-next-line no-console
+  console.log('[E2E Sentry Mock] captureFeedback', _feedback);
+};
+
+export const dedupeIntegration = () => ({ name: 'Dedupe' });
+export const extraErrorDataIntegration = () => ({ name: 'ExtraErrorData' });
 
 // `lastEventId` is consumed by `ErrorBoundary.componentDidCatch` to attach the
 // last reported Sentry event ID to a feedback submission. Without this export

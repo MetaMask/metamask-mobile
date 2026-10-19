@@ -22,6 +22,17 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 2,
       minHeight: 32,
     },
+    // Dot-variant geometry mirrors ActivityDetailsStepTimeline: a 24px-high
+    // box centres the StepDot on the title line, with the StepConnector
+    // hanging below it inside the same rail column.
+    statusDotBox: {
+      height: 24,
+      justifyContent: 'center' as const,
+    },
+    dotContent: {
+      flex: 1,
+      paddingBottom: 8,
+    },
     subtitleSpacer: {
       width: 20,
     },

@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
-import { pooledStakingSelectors } from '../../../../selectors/earnController';
+import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 import Engine from '../../../../core/Engine';
 
 const useVaultMetadata = (chainId: number) => {

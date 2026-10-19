@@ -2,6 +2,10 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { InteractionManager, Platform, Share } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  selectReferralCode,
+  selectReferralDetailsLoading,
+} from '../../../../reducers/rewards/selectors';
 import RewardsReferralView from './RewardsReferralView';
 
 const mockGoBack = jest.fn();
@@ -110,10 +114,9 @@ describe('RewardsReferralView', () => {
       }),
     );
     mockUseSelector.mockImplementation((selector) => {
-      // selectReferralCode
-      if (selector.name === 'selectReferralCode') return 'TESTCODE';
-      // selectReferralDetailsLoading
-      if (selector.name === 'selectReferralDetailsLoading') return false;
+      // Compare by reference — createSelector results are named "memoized"
+      if (selector === selectReferralCode) return 'TESTCODE';
+      if (selector === selectReferralDetailsLoading) return false;
       return undefined;
     });
   });
@@ -201,8 +204,8 @@ describe('RewardsReferralView', () => {
 
     it('disables the share button when referral code is loading', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralDetailsLoading') return true;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralDetailsLoading) return true;
         return undefined;
       });
 
@@ -214,8 +217,8 @@ describe('RewardsReferralView', () => {
 
     it('disables the share button when referral code is absent', () => {
       mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectReferralCode') return null;
-        if (selector.name === 'selectReferralDetailsLoading') return false;
+        if (selector === selectReferralCode) return null;
+        if (selector === selectReferralDetailsLoading) return false;
         return undefined;
       });
 

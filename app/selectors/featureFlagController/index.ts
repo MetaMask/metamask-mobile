@@ -23,16 +23,10 @@ export const selectRawFeatureFlags = createSelector(
 
 const selectRemoteFeatureFlagsMerged = createSelector(
   selectRemoteFeatureFlagControllerState,
-  (remoteFeatureFlagControllerState) => {
-    const localOverrides =
-      remoteFeatureFlagControllerState?.localOverrides ?? {};
-    const remoteFeatureFlags =
-      remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
-    return {
-      ...remoteFeatureFlags,
-      ...localOverrides,
-    };
-  },
+  // `remoteFeatureFlags` already has `localOverrides` applied, so consumers
+  // receive the effective flag values with no app-side merge needed.
+  (remoteFeatureFlagControllerState) =>
+    remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
 );
 
 /**
@@ -67,4 +61,23 @@ export const selectRawRemoteFeatureFlags = createSelector(
   selectRemoteFeatureFlagControllerState,
   (remoteFeatureFlagControllerState) =>
     remoteFeatureFlagControllerState?.rawRemoteFeatureFlags ?? {},
+);
+
+/**
+ * Maps threshold feature flag names to their selected group name, which the
+ * controller stores separately from the flag value for threshold and A/B flags.
+ *
+ * Respects the basic functionality gate (returns `{}` when disabled), mirroring
+ * `selectRemoteFeatureFlags`, so A/B assignment stays off when the user has
+ * turned basic functionality off.
+ */
+export const selectFeatureFlagThresholdGroups = createSelector(
+  selectBasicFunctionalityEnabledForRemoteFlags,
+  selectRemoteFeatureFlagControllerState,
+  (isBasicFunctionalityEnabled, remoteFeatureFlagControllerState) => {
+    if (!isBasicFunctionalityEnabled) {
+      return {};
+    }
+    return remoteFeatureFlagControllerState?.featureFlagThresholdGroups ?? {};
+  },
 );

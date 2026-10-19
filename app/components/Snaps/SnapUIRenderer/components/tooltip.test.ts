@@ -37,9 +37,9 @@ describe('tooltip component', () => {
               children: 'Hover me',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -48,11 +48,11 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
           key: expect.any(String),
         },
@@ -66,9 +66,9 @@ describe('tooltip component', () => {
               children: 'Tooltip content',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -77,11 +77,11 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
           key: expect.any(String),
         },
@@ -115,9 +115,9 @@ describe('tooltip component', () => {
               children: 'Hover me',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -126,11 +126,11 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
           key: expect.any(String),
         },
@@ -144,9 +144,9 @@ describe('tooltip component', () => {
               children: 'Complex content',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -155,11 +155,11 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
           key: expect.any(String),
         },
@@ -193,9 +193,9 @@ describe('tooltip component', () => {
               children: 'Nested text',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -204,11 +204,11 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
           key: expect.any(String),
         },
@@ -222,9 +222,9 @@ describe('tooltip component', () => {
               children: 'Tooltip content',
               props: {
                 color: undefined,
-                variant: 'sBodyMD',
+                variant: 'body-md',
+                fontWeight: 'regular',
                 style: {
-                  fontWeight: '400',
                   textAlign: 'left',
                 },
               },
@@ -233,11 +233,11 @@ describe('tooltip component', () => {
           ],
           props: {
             color: undefined,
+            fontWeight: 'regular',
             style: {
-              fontWeight: '400',
               textAlign: 'left',
             },
-            variant: 'sBodyMD',
+            variant: 'body-md',
           },
           key: expect.any(String),
         },

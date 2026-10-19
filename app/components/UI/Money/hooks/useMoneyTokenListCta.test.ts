@@ -11,7 +11,7 @@ import {
   SCREEN_NAMES,
 } from '../constants/moneyEvents';
 import { useMoneyAccountDeposit } from './useMoneyAccount';
-import useMoneyAccountBalance from './useMoneyAccountBalance';
+import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from './useMoneyNavigation';
@@ -23,7 +23,7 @@ jest.mock('../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 jest.mock('./useMoneyAccount');
-jest.mock('./useMoneyAccountBalance');
+jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
 jest.mock('./useMoneyNavigation');
@@ -34,7 +34,7 @@ const mockTrackTokenButtonClicked = jest.fn();
 const mockShouldShowMoneyTokenListItemCta = jest.fn();
 
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
-const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
 const mockUseMoneyOnboardingNavigation = jest.mocked(
@@ -45,6 +45,7 @@ const asset = {
   address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
   chainId: '0x1',
   symbol: 'USDC',
+  balance: '1',
 } as TokenI;
 
 const tokenContext = {
@@ -61,25 +62,28 @@ describe('useMoneyTokenListCta', () => {
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyAnalytics.mockReturnValue({
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
     mockUseMoneyCtaVisibility.mockReturnValue({
+      shouldShowMoneyAssetOverviewBalanceCta: jest.fn(),
+      shouldShowMoneyAssetOverviewFooterCta: jest.fn(),
       shouldShowMoneyTokenListItemCta: mockShouldShowMoneyTokenListItemCta,
       shouldShowMoneyEarnBanner: jest.fn(),
     });
     mockUseMoneyOnboardingNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
       redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
     });
   });
 
   it('returns undefined when APY is unavailable', () => {
-    mockUseMoneyAccountBalance.mockReturnValue({
+    mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: undefined,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as ReturnType<typeof useMoneyVaultApy>);
 
     const { result } = renderHook(() =>
       useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
@@ -195,6 +199,7 @@ describe('useMoneyTokenListCta', () => {
       token_position_in_list: tokenContext.tokenPositionInList,
       token_chain_id: asset.chainId,
       tokens_in_list: tokenContext.tokensInList,
+      token_has_balance: true,
     });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
@@ -225,8 +230,26 @@ describe('useMoneyTokenListCta', () => {
       token_position_in_list: tokenContext.tokenPositionInList,
       token_chain_id: asset.chainId,
       tokens_in_list: tokenContext.tokensInList,
+      token_has_balance: true,
     });
     expect(mockInitiateDeposit).toHaveBeenCalledWith({ preferredPaymentToken });
+  });
+
+  it('tracks zero raw balance for the token-list CTA', async () => {
+    const { result } = renderHook(() =>
+      useMoneyTokenListCta(SCREEN_NAMES.WALLET_HOME),
+    );
+
+    await act(async () => {
+      await result.current.tokenListItemCta?.onPress(
+        { ...asset, balance: '0.00' },
+        tokenContext,
+      );
+    });
+
+    expect(mockTrackTokenButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ token_has_balance: false }),
+    );
   });
 
   it('logs rejected deposits', async () => {

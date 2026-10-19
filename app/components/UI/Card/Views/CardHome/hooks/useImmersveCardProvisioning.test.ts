@@ -1,11 +1,13 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
 import Engine from '../../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   CardProviderError,
   CardProviderErrorCode,
   type CardHomeData,
 } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
+import { CardActions } from '../../../util/metrics';
 
 let mockProviderId: string | null = 'immersve';
 let mockReduxFundingSourceId: string | null = 'fs-1';
@@ -27,8 +29,8 @@ jest.mock('../../../../../../selectors/cardController', () => ({
   selectCardSelectedCountry: () => mockSelectedCountry,
 }));
 jest.mock('../../../../../../selectors/featureFlagController/card', () => ({
-  selectCardFeatureFlag: () => ({
-    immersve: { fundingChannelId: mockFundingChannelId },
+  selectCardImmersveConfig: () => ({
+    fundingChannelId: mockFundingChannelId,
   }),
 }));
 jest.mock('../../../../../../core/redux/slices/card', () => ({
@@ -42,6 +44,21 @@ jest.mock('../../../../../../core/redux/slices/card', () => ({
 const mockRoute = jest.fn();
 jest.mock('../../../hooks/useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRoute,
+}));
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({});
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const mockResolve = jest.fn();
@@ -101,21 +118,33 @@ describe('useImmersveCardProvisioning', () => {
   });
 
   describe('polling', () => {
-    beforeEach(() => jest.useFakeTimers());
-    afterEach(() => jest.useRealTimers());
-
-    it('polls fetchCardHomeData while provisioning on Immersve', () => {
-      const { result } = renderHook(() =>
+    it('polls fetchCardHomeData while provisioning on Immersve after reconcile', async () => {
+      const { result, rerender } = renderHook(() =>
         useImmersveCardProvisioning(provisioningData),
       );
 
       expect(result.current.isProvisioning).toBe(true);
-      jest.advanceTimersByTime(10000);
+      await waitFor(() => expect(result.current.isReconciling).toBe(false));
+
+      jest.useFakeTimers();
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+      controller.fetchCardHomeData.mockClear();
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
       expect(controller.fetchCardHomeData).toHaveBeenCalledTimes(2);
+      expect(controller.fetchCardHomeData).toHaveBeenCalledWith({
+        force: true,
+      });
+      jest.useRealTimers();
     });
 
     it('does not poll for non-Immersve providers', () => {
       mockProviderId = 'baanx';
+      jest.useFakeTimers();
 
       const { result } = renderHook(() =>
         useImmersveCardProvisioning(provisioningData),
@@ -124,66 +153,194 @@ describe('useImmersveCardProvisioning', () => {
       expect(result.current.isProvisioning).toBe(false);
       jest.advanceTimersByTime(10000);
       expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
+      jest.useRealTimers();
     });
 
     it('does not poll when there is no provisioning alert', () => {
+      jest.useFakeTimers();
       renderHook(() => useImmersveCardProvisioning({ alerts: [] } as never));
 
       jest.advanceTimersByTime(10000);
       expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
+      jest.useRealTimers();
     });
 
-    it('does not poll while Card Home is not focused', () => {
+    it('does not poll while Card Home is not focused', async () => {
       mockIsFocused = false;
 
-      renderHook(() => useImmersveCardProvisioning(provisioningData));
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
 
+      await waitFor(() => expect(result.current.isReconciling).toBe(false));
+      jest.useFakeTimers();
+      controller.fetchCardHomeData.mockClear();
       jest.advanceTimersByTime(10000);
       expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('does not poll while status is still reconciling', async () => {
+      let resolvePrereqs!: (value: { prerequisites: never[] }) => void;
+      controller.getSpendingPrerequisites.mockReturnValue(
+        new Promise((resolve) => {
+          resolvePrereqs = resolve;
+        }),
+      );
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      expect(result.current.isReconciling).toBe(true);
+      jest.useFakeTimers();
+      act(() => {
+        jest.advanceTimersByTime(10000);
+      });
+      expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
+      jest.useRealTimers();
+
+      await act(async () => {
+        resolvePrereqs({ prerequisites: [] });
+      });
     });
   });
 
   describe('reconcile', () => {
+    it('starts reconciling and clears once status is resolved', async () => {
+      let resolvePrereqs!: (value: {
+        prerequisites: typeof kycPrerequisites;
+      }) => void;
+      controller.getSpendingPrerequisites.mockReturnValue(
+        new Promise((resolve) => {
+          resolvePrereqs = resolve;
+        }),
+      );
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      expect(result.current.isReconciling).toBe(true);
+      expect(result.current.pendingAction).toBeNull();
+
+      await act(async () => {
+        resolvePrereqs({ prerequisites: kycPrerequisites });
+      });
+
+      await waitFor(() => {
+        expect(result.current.isReconciling).toBe(false);
+        expect(result.current.pendingAction).toEqual({
+          type: 'kyc',
+          url: 'https://kyc',
+          ctaHint: undefined,
+        });
+      });
+    });
+
     it('creates the card once when prerequisites are active', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [],
       });
 
-      renderHook(() => useImmersveCardProvisioning(provisioningData));
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
 
+      expect(result.current.isReconciling).toBe(true);
       await waitFor(() =>
         expect(controller.createCard).toHaveBeenCalledWith('fs-1'),
       );
+      expect(result.current.isReconciling).toBe(false);
+      expect(result.current.pendingAction).toBeNull();
       expect(mockRoute).not.toHaveBeenCalled();
     });
 
-    it('redirects a mid-onboarding (non-active) user to the derived step', async () => {
+    it('exposes pendingAction for a mid-onboarding user without auto-routing', async () => {
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: kycPrerequisites,
       });
 
-      renderHook(() => useImmersveCardProvisioning(provisioningData));
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
 
       await waitFor(() =>
-        expect(mockRoute).toHaveBeenCalledWith(
-          { type: 'kyc', url: 'https://kyc' },
-          { navigateFromRoot: true, countryKey: 'GB' },
-        ),
+        expect(result.current.pendingAction).toEqual({
+          type: 'kyc',
+          url: 'https://kyc',
+          ctaHint: undefined,
+        }),
       );
+      expect(result.current.isReconciling).toBe(false);
+      expect(mockRoute).not.toHaveBeenCalled();
       expect(controller.createCard).not.toHaveBeenCalled();
+    });
+
+    it('does not poll while there is a pending verification action', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: kycPrerequisites,
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() => expect(result.current.pendingAction).not.toBeNull());
+
+      jest.useFakeTimers();
+      controller.fetchCardHomeData.mockClear();
+      jest.advanceTimersByTime(10000);
+      expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('resumePendingAction routes to the left-off step', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: kycPrerequisites,
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() => expect(result.current.pendingAction).not.toBeNull());
+
+      act(() => {
+        result.current.resumePendingAction();
+      });
+
+      expect(mockRoute).toHaveBeenCalledWith(
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+        { navigateFromRoot: true, countryKey: 'GB' },
+      );
     });
 
     it('resolves + persists the funding source when the Redux id is empty', async () => {
       mockReduxFundingSourceId = null;
+      mockDispatch.mockImplementation(
+        (action: { type?: string; payload?: string }) => {
+          if (action?.type === 'card/setImmersveFundingSourceId') {
+            mockReduxFundingSourceId = action.payload ?? null;
+          }
+        },
+      );
 
-      renderHook(() => useImmersveCardProvisioning(provisioningData));
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
 
-      await waitFor(() =>
+      await waitFor(() => expect(mockDispatch).toHaveBeenCalled());
+      // Simulate Redux subscription updating the selector after dispatch.
+      rerender(undefined);
+
+      await waitFor(() => {
         expect(controller.getSpendingPrerequisites).toHaveBeenCalledWith(
           'fs-resolved',
           expect.any(Object),
-        ),
-      );
+        );
+        expect(result.current.isReconciling).toBe(false);
+      });
       expect(mockResolve).toHaveBeenCalledWith({
         fundingChannelId: 'base-channel',
         existingId: null,
@@ -208,6 +365,37 @@ describe('useImmersveCardProvisioning', () => {
       await waitFor(() =>
         expect(controller.createCard).toHaveBeenCalledTimes(1),
       );
+    });
+
+    it('emits BUTTON_CLICKED (not Funding COMPLETED) on Conflict before createCard', async () => {
+      mockResolve.mockRejectedValue(
+        new CardProviderError(
+          CardProviderErrorCode.Conflict,
+          'Conflict on reconcile',
+          409,
+        ),
+      );
+
+      renderHook(() => useImmersveCardProvisioning(provisioningData));
+
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalled());
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_FUNDING_PROCESS_COMPLETED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          provider: 'immersve',
+          action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
+          step: 'provisioning_reconcile',
+          status: 'completed',
+          already_provisioned: true,
+        }),
+      );
+      expect(controller.createCard).not.toHaveBeenCalled();
     });
 
     it('does not reconcile when not provisioning', async () => {

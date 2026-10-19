@@ -1,11 +1,6 @@
 import { Platform } from 'react-native';
 import { AuthConnection, AuthRefreshTokenResponse } from './OAuthInterface';
 import { createLoginHandler } from './OAuthLoginHandlers';
-import type {
-  RefreshJWTToken,
-  RenewRefreshToken,
-  RevokeRefreshToken,
-} from '@metamask/seedless-onboarding-controller/dist/types.d.cts';
 import ReduxService from '../redux';
 import Device from '../../util/device';
 import {
@@ -32,6 +27,30 @@ export class RefreshTokenHttpError extends Error {
     this.statusCode = statusCode;
   }
 }
+
+// TODO: Export these types from `@metamask/seedless-onboarding-controller` and
+// remove these duplicates.
+type RefreshJWTToken = (params: {
+  connection: AuthConnection;
+  refreshToken: string;
+}) => Promise<{
+  idTokens: string[];
+  accessToken: string;
+  metadataAccessToken: string;
+}>;
+
+type RevokeRefreshToken = (params: {
+  connection: AuthConnection;
+  revokeToken: string;
+}) => Promise<void>;
+
+type RenewRefreshToken = (params: {
+  connection: AuthConnection;
+  revokeToken: string;
+}) => Promise<{
+  newRevokeToken: string;
+  newRefreshToken: string;
+}>;
 
 interface AuthTokenHandlerInterface {
   refreshJWTToken: RefreshJWTToken;

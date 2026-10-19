@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { Image, ImageSourcePropType, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { ImageSourcePropType, View } from 'react-native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -16,22 +16,13 @@ import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 import { getTokenImageSource } from './tokenIcon';
 import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 
-function getImageUri(
-  source: ImageSourcePropType | undefined,
-): string | undefined {
-  if (source && typeof source === 'object' && 'uri' in source) {
-    return source.uri;
-  }
-
-  return undefined;
-}
-
 function TokenAvatar({
   fallbackIconName,
   isFailed,
   iconUrl,
   perpsMarketSymbol,
   styles,
+  testIdSuffix,
   tokens,
 }: {
   fallbackIconName: IconName;
@@ -39,6 +30,7 @@ function TokenAvatar({
   iconUrl?: string;
   perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
+  testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
   const tokenImageSources = useMemo(
@@ -50,15 +42,6 @@ function TokenAvatar({
       ),
     [tokens, iconUrl],
   );
-
-  useEffect(() => {
-    tokenImageSources.forEach((source) => {
-      const uri = getImageUri(source);
-      if (uri) {
-        Image.prefetch(uri);
-      }
-    });
-  }, [tokenImageSources]);
 
   if (perpsMarketSymbol) {
     return (
@@ -72,7 +55,13 @@ function TokenAvatar({
 
   if (tokens.length === 0) {
     if (iconUrl) {
-      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Md} />;
+      return (
+        <AvatarToken
+          src={{ uri: iconUrl }}
+          size={AvatarTokenSize.Md}
+          testID={`activity-row-avatar-single-${testIdSuffix}`}
+        />
+      );
     }
     return (
       <AvatarIcon
@@ -81,6 +70,7 @@ function TokenAvatar({
           isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
         }
         size={AvatarIconSize.Md}
+        testID={`activity-row-avatar-single-${testIdSuffix}`}
       />
     );
   }
@@ -92,6 +82,7 @@ function TokenAvatar({
         name={token.symbol}
         src={tokenImageSources[0]}
         size={AvatarTokenSize.Md}
+        testID={`activity-row-avatar-single-${testIdSuffix}`}
       />
     );
   }
@@ -99,7 +90,10 @@ function TokenAvatar({
   const [sourceToken, destinationToken] = tokens;
 
   return (
-    <View style={styles.tokenIconStack}>
+    <View
+      style={styles.tokenIconStack}
+      testID={`activity-row-avatar-stack-${testIdSuffix}`}
+    >
       <View style={styles.tokenIconStackBack}>
         <AvatarToken
           name={sourceToken.symbol}
@@ -127,6 +121,7 @@ export function ActivityListItemRowIcon({
   networkImageSource,
   perpsMarketSymbol,
   styles,
+  testIdSuffix,
   tokens,
 }: {
   /** Design-system arrow icon shown when the row has no token avatar. */
@@ -143,15 +138,9 @@ export function ActivityListItemRowIcon({
   networkImageSource?: ImageSourcePropType;
   perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
+  testIdSuffix: string | number;
   tokens: TokenAmount[];
 }) {
-  useEffect(() => {
-    const uri = getImageUri(networkImageSource);
-    if (uri) {
-      Image.prefetch(uri);
-    }
-  }, [networkImageSource]);
-
   const avatar = (
     <TokenAvatar
       fallbackIconName={fallbackIconName}
@@ -159,6 +148,7 @@ export function ActivityListItemRowIcon({
       iconUrl={iconUrl}
       perpsMarketSymbol={perpsMarketSymbol}
       styles={styles}
+      testIdSuffix={testIdSuffix}
       tokens={tokens}
     />
   );

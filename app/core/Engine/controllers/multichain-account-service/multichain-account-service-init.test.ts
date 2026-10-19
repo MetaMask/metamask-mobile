@@ -1,4 +1,5 @@
 import {
+  AccountProviderWrapper,
   MultichainAccountService,
   MultichainAccountServiceMessenger,
   SOL_ACCOUNT_PROVIDER_NAME,
@@ -40,14 +41,20 @@ function getBaseMessenger(): MockInitMessenger {
 
 function getInitRequestMock({
   messenger = getBaseMessenger(),
+  remoteFeatureFlags = {},
 }: {
   messenger?: MockInitMessenger;
+  remoteFeatureFlags?: Record<string, unknown>;
 } = {}): jest.Mocked<
   MessengerClientInitRequest<
     MultichainAccountServiceMessenger,
     MultichainAccountServiceInitMessenger
   >
 > {
+  messenger.registerActionHandler(
+    'RemoteFeatureFlagController:getState',
+    jest.fn().mockReturnValue({ remoteFeatureFlags }),
+  );
   const controllerMessenger = getMultichainAccountServiceMessenger(messenger);
   const initMessenger = getMultichainAccountServiceInitMessenger(messenger);
 
@@ -91,7 +98,7 @@ describe('MultichainAccountServiceInit', () => {
     expect(callArgs.providerConfigs).toBeDefined();
   });
 
-  it('does enable batched account creation for bitcoin, tron, and solana', () => {
+  it('configures createAccounts with a timeout for bitcoin, tron, and solana', () => {
     multichainAccountServiceInit(getInitRequestMock());
 
     const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
@@ -101,17 +108,127 @@ describe('MultichainAccountServiceInit', () => {
     expect(
       providerConfigs?.[BTC_ACCOUNT_PROVIDER_NAME]?.createAccounts,
     ).toMatchObject({
-      batched: true,
+      timeoutMs: 3000,
     });
     expect(
       providerConfigs?.[TRX_ACCOUNT_PROVIDER_NAME]?.createAccounts,
     ).toMatchObject({
-      batched: true,
+      timeoutMs: 3000,
     });
     expect(
       providerConfigs?.[SOL_ACCOUNT_PROVIDER_NAME]?.createAccounts,
     ).toMatchObject({
-      batched: true,
+      timeoutMs: 3000,
     });
+  });
+
+  describe('Stellar provider', () => {
+    const mockSetEnabled = jest.fn();
+    const mockXlmProvider = {
+      setEnabled: mockSetEnabled,
+    } as unknown as AccountProviderWrapper;
+
+    function getSubscriptionHandler(
+      subscribeSpy: jest.SpyInstance,
+      eventName: string,
+    ) {
+      const handler = subscribeSpy.mock.calls.find(
+        (call) => call[0] === eventName,
+      )?.[1];
+      expect(handler).toBeDefined();
+      return handler as (payload: unknown) => unknown;
+    }
+
+    beforeEach(() => {
+      jest
+        .mocked(AccountProviderWrapper)
+        .mockImplementation(() => mockXlmProvider);
+      jest.mocked(MultichainAccountService).mockImplementation(
+        () =>
+          ({
+            alignWallets: jest.fn().mockResolvedValue(undefined),
+          }) as unknown as MultichainAccountService,
+      );
+    });
+
+    it('calls RemoteFeatureFlagController:getState during init', () => {
+      const requestMock = getInitRequestMock();
+      const callSpy = jest.spyOn(requestMock.initMessenger, 'call');
+
+      multichainAccountServiceInit(requestMock);
+
+      expect(callSpy).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+    });
+
+    it.each([true, false])(
+      'sets XLM provider enabled to %s based on stellarAccounts feature flag at init',
+      (enabled: boolean) => {
+        multichainAccountServiceInit(
+          getInitRequestMock({
+            remoteFeatureFlags: { stellarAccounts: enabled },
+          }),
+        );
+
+        expect(mockSetEnabled).toHaveBeenCalledWith(enabled);
+      },
+    );
+
+    it('subscribes to RemoteFeatureFlagController:stateChange on initMessenger', () => {
+      const requestMock = getInitRequestMock();
+      const subscribeSpy = jest.spyOn(requestMock.initMessenger, 'subscribe');
+
+      multichainAccountServiceInit(requestMock);
+
+      expect(subscribeSpy).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:stateChange',
+        expect.any(Function),
+      );
+    });
+
+    it.each([
+      { initial: false, next: true, setEnabledCalls: 1, alignCalls: 1 },
+      { initial: true, next: false, setEnabledCalls: 0, alignCalls: 0 },
+      { initial: false, next: false, setEnabledCalls: 0, alignCalls: 0 },
+      { initial: true, next: true, setEnabledCalls: 0, alignCalls: 0 },
+    ])(
+      'when feature flag goes from $initial to $next, setEnabled=$setEnabledCalls alignWallets=$alignCalls',
+      async ({
+        initial,
+        next,
+        setEnabledCalls,
+        alignCalls,
+      }: {
+        initial: boolean;
+        next: boolean;
+        setEnabledCalls: number;
+        alignCalls: number;
+      }) => {
+        const requestMock = getInitRequestMock({
+          remoteFeatureFlags: { stellarAccounts: initial },
+        });
+        const subscribeSpy = jest.spyOn(requestMock.initMessenger, 'subscribe');
+
+        const result = multichainAccountServiceInit(requestMock);
+        const alignWalletsSpy = jest.spyOn(result.controller, 'alignWallets');
+
+        mockSetEnabled.mockClear();
+
+        const handler = getSubscriptionHandler(
+          subscribeSpy,
+          'RemoteFeatureFlagController:stateChange',
+        );
+
+        await handler({
+          remoteFeatureFlags: {
+            stellarAccounts: next,
+          },
+        });
+
+        expect(mockSetEnabled).toHaveBeenCalledTimes(setEnabledCalls);
+        expect(alignWalletsSpy).toHaveBeenCalledTimes(alignCalls);
+      },
+    );
   });
 });

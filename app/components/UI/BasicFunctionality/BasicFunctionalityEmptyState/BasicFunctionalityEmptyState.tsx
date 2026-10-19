@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 
 interface BasicFunctionalityEmptyStateProps {
@@ -23,7 +24,7 @@ const BasicFunctionalityEmptyState = ({
   title,
   iconName,
 }: BasicFunctionalityEmptyStateProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleEnableBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

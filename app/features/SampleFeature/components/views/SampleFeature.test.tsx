@@ -1,11 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
+import { useNavigation } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SampleFeature from './SampleFeature';
 import initialRootState from '../../../../util/test/initial-root-state';
 import { selectSampleFeatureCounterEnabled } from '../../selectors/sampleFeatureCounter';
 import useSampleNetwork from '../hooks/useSampleNetwork/useSampleNetwork';
 import { strings } from '../../../../../locales/i18n';
+import { SampleFeatureSelectorsIDs } from '../../e2e/selectors/SampleFeature.selectors';
 
 /**
  * Mock implementation for react-native Linking module
@@ -43,6 +46,13 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return mockStrings[key] || key;
   }),
+}));
+
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
 }));
 
 /**
@@ -105,6 +115,9 @@ describe('SampleFeature', () => {
     jest.clearAllMocks();
     mockUseSampleNetwork.mockReturnValue(mockNetworkData);
     mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
+    jest.mocked(useNavigation).mockReturnValue({
+      goBack: mockGoBack,
+    } as ReturnType<typeof useNavigation>);
   });
 
   describe('Rendering', () => {
@@ -131,8 +144,38 @@ describe('SampleFeature', () => {
       });
 
       // Assert
-      expect(getByText('Sample Feature Title')).toBeDefined();
+      expect(getByText('Sample Feature Title')).toBeOnTheScreen();
       expect(mockStrings).toHaveBeenCalledWith('sample_feature.title');
+    });
+
+    it('renders HeaderStandard with title and back button', () => {
+      const { getByTestId, getByText } = renderWithProvider(<SampleFeature />, {
+        state: initialRootState,
+      });
+
+      expect(
+        getByTestId(SampleFeatureSelectorsIDs.SAMPLE_FEATURE_HEADER),
+      ).toBeOnTheScreen();
+      expect(getByText('Sample Feature Title')).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          SampleFeatureSelectorsIDs.SAMPLE_FEATURE_HEADER_BACK_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when header back button is pressed', () => {
+      const { getByTestId } = renderWithProvider(<SampleFeature />, {
+        state: initialRootState,
+      });
+
+      fireEvent.press(
+        getByTestId(
+          SampleFeatureSelectorsIDs.SAMPLE_FEATURE_HEADER_BACK_BUTTON,
+        ),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
     it('displays description text from i18n strings', () => {

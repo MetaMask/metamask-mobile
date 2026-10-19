@@ -25,7 +25,6 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import i18n, { strings } from '../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 import { RootState } from '../../../../reducers';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
@@ -124,7 +123,6 @@ const ShareTokenBottomSheet = ({
   onClose,
 }: ShareTokenBottomSheetProps) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const surfaceClass = useElevatedSurface();
 
   const isNonEvm = isNonEvmChainId(token.chainId as string);
   const checksumAddress = !isNonEvm
@@ -326,7 +324,6 @@ const ShareTokenBottomSheet = ({
     <BottomSheet
       ref={bottomSheetRef}
       onClose={onClose}
-      twClassName={surfaceClass}
       testID="share-token-sheet"
     >
       <BottomSheetHeader textProps={{ variant: TextVariant.HeadingLg }}>

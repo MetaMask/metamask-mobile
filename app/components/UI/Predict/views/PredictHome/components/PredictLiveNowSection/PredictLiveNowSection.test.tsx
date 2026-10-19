@@ -7,15 +7,26 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import type { PredictMarket } from '../../../../types';
 import { CRYPTO_TAG, UP_OR_DOWN_TAG } from '../../../../utils/cryptoUpDown';
 import { PredictEventValues } from '../../../../constants/eventNames';
+import AppConstants from '../../../../../../../core/AppConstants';
+import { DEFAULT_PREDICT_FEED_CAROUSEL_FLAG } from '../../../../constants/flags';
+import type { PredictFeedCarouselConfig } from '../../../../types/flags';
 import PredictLiveNowSection from './PredictLiveNowSection';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
 import { usePredictLiveNowSection } from './usePredictLiveNowSection';
 
 const mockNavigate = jest.fn();
+const mockParseDeeplink = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../../../../../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  __esModule: true,
+  default: {
+    getInstance: () => ({ parse: mockParseDeeplink }),
+  },
 }));
 
 const mockTrackHomeSectionInteraction = jest.fn();
@@ -145,12 +156,14 @@ const setSection = (
     items: PredictMarket[];
     isLoading: boolean;
     isEmpty: boolean;
+    config: PredictFeedCarouselConfig;
   }> = {},
 ) => {
   mockUsePredictLiveNowSection.mockReturnValue({
     items: [],
     isLoading: false,
     isEmpty: false,
+    config: DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
     ...overrides,
   });
 };
@@ -159,6 +172,23 @@ const renderSection = () =>
   renderWithProvider(<PredictLiveNowSection />, {
     state: { engine: { backgroundState } },
   });
+
+const createCustomConfig = (
+  overrides: Partial<PredictFeedCarouselConfig> = {},
+): PredictFeedCarouselConfig => ({
+  enabled: true,
+  minimumVersion: '1.0.0',
+  mode: 'custom',
+  title: 'Wimbledon',
+  priorityOrder: [],
+  prioritySlots: [],
+  contentSource: {
+    composition: 'query-results',
+    queryParams: 'tag_slug=tennis',
+    excludedMarketIds: [],
+  },
+  ...overrides,
+});
 
 describe('PredictLiveNowSection', () => {
   beforeEach(() => {
@@ -220,6 +250,9 @@ describe('PredictLiveNowSection', () => {
     const header = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER);
     expect(header).toBeOnTheScreen();
     expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
+    expect(
+      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER_CHEVRON),
+    ).toBeOnTheScreen();
 
     fireEvent.press(header);
 
@@ -237,24 +270,58 @@ describe('PredictLiveNowSection', () => {
     });
   });
 
-  it('renders pagination dots when there are 2+ items after load', () => {
-    setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
+  it('uses the custom title and opens a configured deeplink', () => {
+    const deeplink = 'https://link.metamask.io/predict?feed=sports&tab=tennis';
+    setSection({
+      items: [createLiveMarket('L1')],
+      config: createCustomConfig({ deeplink }),
+    });
 
-    const { getByTestId } = renderSection();
+    const { getByTestId, getByText } = renderSection();
+    const header = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER);
 
+    expect(getByText('Wimbledon')).toBeOnTheScreen();
     expect(
-      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
+      getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER_CHEVRON),
     ).toBeOnTheScreen();
+
+    fireEvent.press(header);
+
+    expect(mockParseDeeplink).toHaveBeenCalledWith(deeplink, {
+      origin: AppConstants.DEEPLINKS.ORIGIN_CAROUSEL,
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('does not render pagination dots when there is fewer than 2 items', () => {
-    setSection({ items: [createLiveMarket('L1')] });
+  it('uses the translated Live now title when custom title is omitted', () => {
+    setSection({
+      items: [createLiveMarket('L1')],
+      config: createCustomConfig({ title: undefined }),
+    });
 
-    const { queryByTestId } = renderSection();
+    const { getByText } = renderSection();
+
+    expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
+  });
+
+  it('renders a static custom header without a deeplink or chevron', () => {
+    setSection({
+      items: [createLiveMarket('L1')],
+      config: createCustomConfig(),
+    });
+
+    const { getByTestId, queryByTestId } = renderSection();
+    const header = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER);
 
     expect(
-      queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.PAGINATION_DOTS),
+      queryByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER_CHEVRON),
     ).not.toBeOnTheScreen();
+
+    fireEvent.press(header);
+
+    expect(mockParseDeeplink).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrackHomeSectionInteraction).not.toHaveBeenCalled();
   });
 
   it('updates the active card without crashing when the carousel is scrolled', () => {

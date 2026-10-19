@@ -23,5 +23,12 @@ export function getTransakServiceMessenger(
     namespace: 'TransakService',
     parent: rootMessenger,
   });
+  rootMessenger.delegate({
+    // `createWidgetUrl` authenticates against the ramps API proxy with the
+    // MetaMask bearer token.
+    actions: ['AuthenticationController:getBearerToken'],
+    events: [],
+    messenger,
+  });
   return messenger;
 }

@@ -6,21 +6,20 @@ on:
       - 'v*'
 
 permissions:
-      contents: write
-      pull-requests: read
+  contents: write
+  pull-requests: read
 
 jobs:
   draft_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
-          ref: ${{ github.ref }}  # Explicitly specifies the tag ref
-
+          ref: ${{ github.ref }} # Explicitly specifies the tag ref
 
       - name: Setup GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
       - name: Create Draft Release
-        run: ./scripts/create-release-draft.sh ${{ github.ref_name }} ${{ github.workspace }}
+        run: ./scripts/create-release-draft.sh "${GITHUB_REF_NAME}" ${{ github.workspace }}

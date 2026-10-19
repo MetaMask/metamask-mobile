@@ -179,6 +179,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
   );
   const [afterHoursPendingToken, setAfterHoursPendingToken] =
     useState<BridgeToken | null>(null);
+  const [isMarketClosedSheetOpen, setIsMarketClosedSheetOpen] = useState(false);
 
   // Uppercase the source symbol — on-chain BSC symbols use mixed case
   // (e.g. "NIOon") but the convention on this screen is always uppercase.
@@ -279,7 +280,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     };
   }, [mode, activeGroupAccounts, allTokenBalances]);
 
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradingOpen, isTokenMarketFullyClosed } = useRWAToken();
 
   useTrackRewardsPageView({
     page_type:
@@ -326,6 +327,15 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
           ? (ondoUsdSrcToken ?? getOndoOpenPositionSourceToken(destChainId))
           : undefined;
 
+      // Fully closed: stay on this list and show a dismissible alert.
+      // Closing it lets the user search or pick another asset.
+      if (isTokenMarketFullyClosed(destToken)) {
+        setIsMarketClosedSheetOpen(true);
+        return;
+      }
+
+      // Off-hours: tradable, but outside regular market hours. Warn first,
+      // then continue into swap on confirm.
       if (!isTokenTradingOpen(destToken)) {
         const rawNextOpen = destToken.rwaData?.market?.nextOpen;
         const nextOpenDate = rawNextOpen ? new Date(String(rawNextOpen)) : null;
@@ -349,6 +359,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     [
       mode,
       goToSwaps,
+      isTokenMarketFullyClosed,
       isTokenTradingOpen,
       trackEvent,
       createEventBuilder,
@@ -517,6 +528,17 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
               setAfterHoursPendingToken(null);
             }}
             nextOpenAt={afterHoursNextOpen}
+          />
+        )}
+
+        {isMarketClosedSheetOpen && (
+          <OndoAfterHoursSheet
+            onClose={() => setIsMarketClosedSheetOpen(false)}
+            nextOpenAt={null}
+            title={strings('bridge.market_closed.title')}
+            content={strings('bridge.market_closed.description')}
+            confirmLabel={strings('bridge.market_closed.done')}
+            testID="ondo-rwa-selector-market-closed-sheet"
           />
         )}
       </SafeAreaView>

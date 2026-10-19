@@ -1,4 +1,3 @@
-import isEqual from 'lodash/isEqual';
 import { useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 
@@ -29,9 +28,8 @@ export function useGasFeeEstimates(networkClientId: string | undefined) {
     ? networkClientId
     : undefined;
 
-  const gasFeeEstimates = useSelector(
-    (state: RootState) => selectGasFeeEstimatesByChainId(state, chainId),
-    isEqual,
+  const gasFeeEstimates = useSelector((state: RootState) =>
+    selectGasFeeEstimatesByChainId(state, chainId),
   );
   const { NetworkController } = Engine.context;
 

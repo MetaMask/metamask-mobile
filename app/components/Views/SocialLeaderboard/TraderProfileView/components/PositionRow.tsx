@@ -13,15 +13,19 @@ import {
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
 import PerpBadges from '../../components/PerpBadges';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import {
+  EM_DASH,
   formatPercent,
   formatSignedUsd,
   formatTokenAmount,
   formatTradeDate,
   formatUsd,
-} from '../../utils/formatters';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+} from '../../../../UI/SocialFeed/utils/formatters';
+import {
+  getPerpPositionDirection,
+  isPerpPosition,
+} from '../../../../UI/SocialFeed/utils/perp';
 
 export interface PositionRowProps {
   position: Position;
@@ -43,11 +47,14 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
   const isClosed =
-    isClosedProp ?? (position.positionAmount === 0 && position.soldUsd > 0);
+    isClosedProp ??
+    (position.positionAmount === 0 && (position.soldUsd ?? 0) > 0);
   const isPerp = isPerpPosition(position);
 
   const closedPnlPercent =
-    position.boughtUsd > 0
+    position.boughtUsd != null &&
+    position.boughtUsd > 0 &&
+    position.realizedPnl != null
       ? (position.realizedPnl / position.boughtUsd) * 100
       : null;
 
@@ -101,7 +108,7 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
       twClassName={pnlColorClass}
       color={pnlColorClass ? undefined : TextColor.TextAlternative}
     >
-      {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : '—'}
+      {perpPnlValue != null ? formatSignedUsd(perpPnlValue) : EM_DASH}
     </Text>
   ) : (
     <Text

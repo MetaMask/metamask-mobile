@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import { RootState } from '../../reducers';
 import { isUUID } from '../../core/SDKConnect/utils/isUUID';
+import { isWalletConnectPermissionOrigin } from '../../core/WalletConnect/wc-utils';
 import { SourceType } from './useAnalytics/useAnalytics.types';
 import AppConstants from '../../core/AppConstants';
 
@@ -85,13 +86,11 @@ export const useOriginSource = ({
     ) {
       // --- SDK v1 (bare UUID) ---
       source = SourceType.SDK;
-    } else if (wc2Metadata?.id && wc2Metadata.id.length > 0) {
+    } else if (isWalletConnectPermissionOrigin(origin, wc2Metadata)) {
       // --- WalletConnect ---
-      // wc2Metadata is a single Redux slot holding the *most recent* WC proposal
-      // metadata (set on session_proposal, cleared after approval/rejection).
-      // It is not keyed by origin — we rely on the WC proposal flow being
-      // serialized (via proposalLock in WalletConnectV2) so that during the
-      // approval window, a non-empty id implies *this* origin is from WC.
+      // wc2Metadata.id is the pairing topic (permission origin). Only classify
+      // as WC when the request origin matches, so stale metadata cannot bleed
+      // into unrelated in-app browser connection prompts.
       source = SourceType.WALLET_CONNECT;
     }
 

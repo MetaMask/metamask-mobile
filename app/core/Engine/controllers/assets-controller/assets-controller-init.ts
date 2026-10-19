@@ -1,15 +1,14 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
 import { getVersion } from 'react-native-device-info';
 import {
+  getBackendApiUrlsOption,
+  isBackendAuthDisabled,
+} from '../../../coreBackendApiUrls';
+import {
   AssetsController,
   AssetsControllerMessenger,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
-import {
-  isAssetsUnifyStateFeatureEnabled,
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 import type { MessengerClientInitFunction } from '../../types';
 import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
@@ -33,6 +32,9 @@ let apiClient: QueryApiClient | null = null;
 async function safeGetBearerToken(
   initMessenger: AssetsControllerInitMessenger,
 ): Promise<string | undefined> {
+  if (isBackendAuthDisabled()) {
+    return undefined;
+  }
   try {
     return await initMessenger.call('AuthenticationController:getBearerToken');
   } catch {
@@ -73,6 +75,7 @@ function getApiClient(
       clientProduct: 'metamask-mobile',
       clientVersion: getVersion(),
       getBearerToken: () => safeGetBearerToken(initMessenger),
+      ...getBackendApiUrlsOption(),
     });
   }
   return apiClient;
@@ -85,49 +88,19 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
 export const assetsControllerInit: MessengerClientInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger
-> = ({
-  controllerMessenger,
-  persistedState,
-  initMessenger,
-  getMessengerClient: _getController,
-}) => {
+> = ({ controllerMessenger, persistedState, initMessenger }) => {
   /**
-   * Check if the AssetsController feature is enabled based on the remote feature flag.
-   * Uses initMessenger.call('RemoteFeatureFlagController:getState') to get the flag.
+   * The controller only runs while the wallet is unlocked.
    *
-   * @returns True if the feature is enabled, false otherwise.
+   * @returns True if the controller is enabled.
    */
-  const isEnabled = (): boolean => {
-    try {
-      if (!selectIsUnlocked(store.getState())) {
-        return false;
-      }
-      const remoteFeatureFlagState = initMessenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const featureFlag =
-        remoteFeatureFlagState?.remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG];
-
-      return isAssetsUnifyStateFeatureEnabled(
-        featureFlag,
-        ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-      );
-    } catch {
-      // When getState isn't ready, fall back to flag check with undefined
-      // so that forcing isAssetsUnifyStateFeatureEnabled to true still enables the controller
-      return isAssetsUnifyStateFeatureEnabled(
-        undefined,
-        ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-      );
-    }
-  };
+  const isEnabled = (): boolean => selectIsUnlocked(store.getState());
 
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({

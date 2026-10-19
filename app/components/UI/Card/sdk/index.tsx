@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,7 +22,11 @@ import {
   resetOnboardingState,
   setContactVerificationId,
 } from '../../../../core/redux/slices/card';
-import { selectCardUserLocation } from '../../../../selectors/cardController';
+import {
+  selectCardUserLocation,
+  selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
+} from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
@@ -61,11 +66,27 @@ export const CardSDKProvider = ({
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const lastUnauthenticatedReason = useSelector(
+    selectCardLastUnauthenticatedReason,
+  );
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   // Start with true to indicate initialization in progress
   const [isLoading, setIsLoading] = useState(true);
   // Add user state management
   const [user, setUser] = useState<UserResponse | null>(null);
+
+  // Drop credit / cashback caches on session expiry (logout already clears all
+  // card queries; this covers controller-driven unauth without explicit logout).
+  const wasAuthenticatedRef = useRef(isAuthenticated);
+  useEffect(() => {
+    const wasAuthenticated = wasAuthenticatedRef.current;
+    wasAuthenticatedRef.current = isAuthenticated;
+    if (wasAuthenticated && !isAuthenticated) {
+      queryClient.removeQueries({ queryKey: cardQueries.credit.keys.all() });
+      queryClient.removeQueries({ queryKey: cardQueries.cashback.keys.all() });
+    }
+  }, [isAuthenticated, lastUnauthenticatedReason, queryClient]);
 
   // Initialize CardSDK when feature flag is enabled
   useEffect(() => {
@@ -119,18 +140,31 @@ export const CardSDKProvider = ({
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);
 
-  // Fetch user data ONLY on initial mount if onboardingId already exists.
-  // This prevents fetching when onboardingId is newly set during email verification,
-  // which could cause race conditions and navigation issues.
+  // Keep latest fetchUserData without putting it in the resume-fetch effect deps.
+  // fetchUserData changes when effectiveLocation changes (and when the first fetch
+  // writes location), which would otherwise re-trigger getRegistrationStatus.
+  const fetchUserDataRef = useRef(fetchUserData);
   useEffect(() => {
-    if (!sdk || !onboardingId || !hasInitialOnboardingId) {
+    fetchUserDataRef.current = fetchUserData;
+  }, [fetchUserData]);
+
+  // One-shot resume fetch: run when SDK is ready and onboardingId existed at mount.
+  // hasFetchedInitialUserDataRef also blocks re-runs when SDK is recreated after a
+  // location update from the first fetch.
+  const hasFetchedInitialUserDataRef = useRef(false);
+  useEffect(() => {
+    if (
+      !sdk ||
+      !onboardingId ||
+      !hasInitialOnboardingId ||
+      hasFetchedInitialUserDataRef.current
+    ) {
       return;
     }
 
-    fetchUserData();
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sdk]);
+    hasFetchedInitialUserDataRef.current = true;
+    fetchUserDataRef.current();
+  }, [sdk, onboardingId, hasInitialOnboardingId]);
 
   const logoutFromProvider = useCallback(async () => {
     try {

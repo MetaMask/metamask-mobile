@@ -2,6 +2,8 @@ import { renderHook } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsActions } from './usePerpsActions';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
+import { useIsPerpsProModeActive } from '../../Perps/utils/perpsModeSwitch';
+import { usePerpsScreenVsBottomSheetAbTest } from '../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest';
 import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
@@ -13,13 +15,29 @@ jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
   usePerpsMarketForAsset: jest.fn(),
 }));
 
+jest.mock('../../Perps/utils/perpsModeSwitch', () => ({
+  useIsPerpsProModeActive: jest.fn(),
+}));
+
+jest.mock('../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest', () => ({
+  usePerpsScreenVsBottomSheetAbTest: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUsePerpsMarketForAsset = jest.mocked(usePerpsMarketForAsset);
+const mockUseIsPerpsProModeActive = jest.mocked(useIsPerpsProModeActive);
+const mockUsePerpsScreenVsBottomSheetAbTest = jest.mocked(
+  usePerpsScreenVsBottomSheetAbTest,
+);
 
 describe('usePerpsActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsPerpsProModeActive.mockReturnValue(false);
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: false,
+    });
     mockUseNavigation.mockReturnValue({ navigate: mockNavigate } as never);
   });
 
@@ -125,6 +143,98 @@ describe('usePerpsActions', () => {
       params: expect.objectContaining({
         direction: 'short',
         asset: 'BTC',
+      }),
+    });
+  });
+
+  it('opens the Trade sheet over Token Details in the bottom sheet variant', () => {
+    // Arrange
+    mockUsePerpsScreenVsBottomSheetAbTest.mockReturnValue({
+      useBottomSheet: true,
+    });
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData: {
+        symbol: 'ETH',
+        name: 'ETH',
+        maxLeverage: '50x',
+        price: '',
+        change24h: '',
+        change24hPercent: '',
+        volume: '',
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsActions({ symbol: 'ETH', fromTokenDetails: true }),
+    );
+
+    // Act
+    result.current.handlePerpsAction?.('long');
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.ORDER_REDIRECT,
+      params: {
+        direction: 'long',
+        asset: 'ETH',
+        useBottomSheet: true,
+        stayOnCurrentScreen: true,
+      },
+    });
+  });
+
+  it('reads the bottom sheet assignment without tracking exposure', () => {
+    // Arrange
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: false,
+      marketData: null,
+      isLoading: false,
+      error: null,
+    });
+
+    // Act
+    renderHook(() => usePerpsActions({ symbol: 'ETH' }));
+
+    // Assert
+    expect(mockUsePerpsScreenVsBottomSheetAbTest).toHaveBeenCalledWith({
+      trackExposure: false,
+    });
+  });
+
+  it('opens the Pro market with the side preselected while Pro mode is active', () => {
+    // Arrange
+    mockUseIsPerpsProModeActive.mockReturnValue(true);
+    const marketData = {
+      symbol: 'ETH',
+      name: 'ETH',
+      maxLeverage: '50x',
+      price: '',
+      change24h: '',
+      change24hPercent: '',
+      volume: '',
+    };
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData,
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => usePerpsActions({ symbol: 'ETH' }));
+
+    // Act
+    result.current.handlePerpsAction?.('short');
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: expect.objectContaining({
+        market: marketData,
+        direction: 'short',
       }),
     });
   });

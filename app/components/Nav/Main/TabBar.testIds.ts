@@ -7,4 +7,5 @@ export const TabBarSelectorIDs = {
   ACTIVITY: 'tab-bar-item-Activity',
   TRADE: 'tab-bar-item-Trade',
   REWARDS: 'tab-bar-item-Rewards',
+  MONEY: 'tab-bar-item-Money',
 };

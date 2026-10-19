@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
@@ -31,7 +31,7 @@ export function useOriginTrustSignalAlerts(): Alert[] {
 
   return useMemo(() => {
     if (!origin) {
-      return [];
+      return NO_ALERTS;
     }
 
     const alerts: Alert[] = [];

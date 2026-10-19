@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectTransak } from '../../../../selectors/rampsController';
-import { selectDepositProviderApiKey } from '../../../../selectors/featureFlagController/deposit';
+import { useEnsureTransakApiKey } from './useEnsureTransakApiKey';
 import {
   getProviderToken,
   storeProviderToken,
@@ -62,6 +62,7 @@ export interface UseTransakControllerResult {
     network: string,
     paymentMethod: string,
     fiatAmount: string,
+    isFeeExcludedFromFiat?: boolean,
   ) => Promise<TransakBuyQuote>;
   getKycRequirement: (quoteId: string) => Promise<TransakKycRequirement>;
   getAdditionalRequirements: (
@@ -89,6 +90,11 @@ export interface UseTransakControllerResult {
     walletAddress: string,
     extraParams?: Record<string, string>,
   ) => string;
+  createWidgetUrl: (
+    quote: TransakBuyQuote,
+    walletAddress: string,
+    extraParams?: Record<string, string>,
+  ) => Promise<string>;
   submitPurposeOfUsageForm: (purpose: string[]) => Promise<void>;
   patchUser: (data: TransakPatchUserRequestBody) => Promise<unknown>;
   submitSsnDetails: (ssn: string, quoteId: string) => Promise<unknown>;
@@ -111,16 +117,11 @@ function getRampsController() {
 
 export function useTransakController(): UseTransakControllerResult {
   const transakState = useSelector(selectTransak);
-  const providerApiKey = useSelector(selectDepositProviderApiKey);
 
-  const apiKeySetRef = useRef(false);
-
-  useEffect(() => {
-    if (providerApiKey && !apiKeySetRef.current) {
-      getRampsController().transakSetApiKey(providerApiKey);
-      apiKeySetRef.current = true;
-    }
-  }, [providerApiKey]);
+  // Ensure the Transak partner API key is set on the shared TransakService so
+  // native buy-quote lookups work in this flow (shared with the deposit
+  // confirmation, which pre-warms the key before its fee estimate runs).
+  useEnsureTransakApiKey();
 
   const checkExistingToken = useCallback(async (): Promise<boolean> => {
     try {
@@ -211,6 +212,7 @@ export function useTransakController(): UseTransakControllerResult {
       network: string,
       paymentMethod: string,
       fiatAmount: string,
+      isFeeExcludedFromFiat = true,
     ) =>
       getRampsController().transakGetBuyQuote(
         fiatCurrency,
@@ -218,6 +220,7 @@ export function useTransakController(): UseTransakControllerResult {
         network,
         paymentMethod,
         fiatAmount,
+        isFeeExcludedFromFiat,
       ),
     [],
   );
@@ -277,6 +280,20 @@ export function useTransakController(): UseTransakControllerResult {
     ) =>
       getRampsController().transakGeneratePaymentWidgetUrl(
         ottToken,
+        quote,
+        walletAddress,
+        extraParams,
+      ),
+    [],
+  );
+
+  const createWidgetUrl = useCallback(
+    async (
+      quote: TransakBuyQuote,
+      walletAddress: string,
+      extraParams?: Record<string, string>,
+    ) =>
+      getRampsController().transakCreateWidgetUrl(
         quote,
         walletAddress,
         extraParams,
@@ -364,6 +381,7 @@ export function useTransakController(): UseTransakControllerResult {
     getUserLimits,
     requestOtt,
     generatePaymentWidgetUrl,
+    createWidgetUrl,
     submitPurposeOfUsageForm,
     patchUser,
     submitSsnDetails,

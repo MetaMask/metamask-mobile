@@ -3,7 +3,6 @@ import { IsAtomicBatchSupportedResult } from '@metamask/transaction-controller';
 import { View } from 'react-native';
 import { waitFor } from '@testing-library/react-native';
 
-import Text from '../../../../../component-library/components/Texts/Text';
 import renderWithProvider, {
   renderHookWithProvider,
 } from '../../../../../util/test/renderWithProvider';
@@ -13,6 +12,7 @@ import {
 } from '../../../../../util/test/confirm-data-helpers';
 import { RootState } from '../../../../../reducers';
 import { useEIP7702Networks } from './useEIP7702Networks';
+import { Text } from '@metamask/design-system-react-native';
 
 const mockNetworkBatchSupport = [
   {

@@ -8,9 +8,8 @@ import { Theme } from '../../../../util/theme/models';
  * @param {Theme} params.theme - The theme object containing color definitions and other theme properties
  *
  * @returns {StyleSheet} A StyleSheet object containing the following styles:
- * - wrapper: Main container style with background color and padding
- * - heading: Style for the main heading text
- * - desc: Style for the description text
+ * - wrapper: Main container style with background color
+ * - content: Padding for the scrollable content below the header
  *
  * @sampleFeature do not use in production code
  */
@@ -21,14 +20,10 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
       padding: 24,
       paddingBottom: 48,
-    },
-    heading: {
-      marginTop: 16,
-    },
-    desc: {
-      marginTop: 8,
     },
   });
 };

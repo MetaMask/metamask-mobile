@@ -35,6 +35,7 @@ export interface StatCellProps {
   valueColor?: TextColor;
   testID?: string;
   suffix?: React.ReactNode;
+  valueSuffix?: React.ReactNode;
 }
 
 export const StatCell: React.FC<StatCellProps> = ({
@@ -44,6 +45,7 @@ export const StatCell: React.FC<StatCellProps> = ({
   valueColor = TextColor.TextDefault,
   testID,
   suffix,
+  valueSuffix,
 }) => {
   const tw = useTailwind();
   return (
@@ -65,14 +67,21 @@ export const StatCell: React.FC<StatCellProps> = ({
       {isLoading ? (
         <Skeleton style={tw.style('h-5 w-20 rounded')} />
       ) : (
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={valueColor}
-          testID={testID}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
         >
-          {value}
-        </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={valueColor}
+            testID={testID}
+          >
+            {value}
+          </Text>
+          {valueSuffix}
+        </Box>
       )}
     </Box>
   );

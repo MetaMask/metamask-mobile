@@ -3,9 +3,8 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import { selectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
+import { makeSelectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
 import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { RootState } from '../../../../../../reducers';
 
 import { sortAssets } from '../../../../../UI/Tokens/util';
 
@@ -53,11 +52,21 @@ const MAX_POSITIONS_DEFAULT = 5;
 export const useDeFiPositionsForHomepage = (
   maxPositions: number = MAX_POSITIONS_DEFAULT,
 ): UseDeFiPositionsForHomepageResult => {
-  const { popularEvmNetworks } = useNetworkEnablement();
-
-  const defiPositionsByChainIds = useSelector((state: RootState) =>
-    selectDefiPositionsByChainIds(state, popularEvmNetworks),
+  const { popularEvmNetworks: rawPopularEvmNetworks } = useNetworkEnablement();
+  const popularEvmNetworksKey = (rawPopularEvmNetworks ?? []).join(',');
+  const popularEvmNetworks = useMemo(
+    () =>
+      popularEvmNetworksKey
+        ? (popularEvmNetworksKey.split(',') as Hex[])
+        : undefined,
+    [popularEvmNetworksKey],
   );
+
+  const selectHomepageDeFiPositions = useMemo(
+    () => makeSelectDefiPositionsByChainIds(popularEvmNetworks),
+    [popularEvmNetworks],
+  );
+  const defiPositionsByChainIds = useSelector(selectHomepageDeFiPositions);
 
   const result = useMemo((): UseDeFiPositionsForHomepageResult => {
     // Loading state - data not yet available

@@ -44,10 +44,15 @@ jest.mock('../../../../UI/Perps/selectors/perpsController', () => ({
   selectPerpsWatchlistMarkets: jest.fn(),
 }));
 
+const mockUseHomepageSparklines = jest.fn();
+
 jest.mock(
   '../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
   () => ({
-    useHomepageSparklines: jest.fn(() => ({ sparklines: {} })),
+    useHomepageSparklines: (markets: PerpsMarketData[]) => {
+      mockUseHomepageSparklines(markets);
+      return { sparklines: {} };
+    },
   }),
 );
 
@@ -75,6 +80,7 @@ jest.mock('@metamask/perps-controller', () => ({
 // ---------------------------------------------------------------------------
 
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
+import { TILE_CAROUSEL_DEFAULT_MAX_TILES } from '../../components/TileCarousel';
 
 const makeMarket = (
   symbol: string,
@@ -103,6 +109,40 @@ describe('usePerpsFeed', () => {
     // Default: fuseSearch returns items as-is
     mockFuseSearch.mockImplementation((items: unknown[]) => items);
   });
+
+  it.each([true, false])(
+    'limits sparkline markets to visible tiles when withTileExtras is %s',
+    (withTileExtras) => {
+      const markets = Array.from(
+        { length: TILE_CAROUSEL_DEFAULT_MAX_TILES + 1 },
+        (_, index) => ({
+          ...makeMarket(`MARKET${index}`, String(index), 100),
+          trend:
+            index === 0
+              ? undefined
+              : ([
+                  [1, '100'],
+                  [2, '101'],
+                ] as PerpsMarketData['trend']),
+        }),
+      );
+      // Keep a market without trends visible so the hook can provide its fallback.
+      markets[0].change24hPercent = '100';
+      (usePerpsMarkets as jest.Mock).mockReturnValue({
+        markets,
+        isLoading: false,
+        refresh: mockRefetch,
+        isRefreshing: false,
+      });
+
+      const { result } = renderFeed({ withTileExtras });
+
+      expect(mockUseHomepageSparklines).toHaveBeenLastCalledWith(
+        withTileExtras ? [markets[0], ...markets.slice(2).reverse()] : [],
+      );
+      expect(result.current.data).toHaveLength(markets.length);
+    },
+  );
 
   describe('no-query path', () => {
     it('sorts all/crypto/rwa variants by 24h price change descending', () => {

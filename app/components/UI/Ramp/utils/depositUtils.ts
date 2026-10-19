@@ -1,7 +1,7 @@
 import { DepositOrder } from '../types/legacyDeposit';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
-import { renderNumber } from '../../../../util/number';
+import { renderNumber } from '../../../../util/number/bigint';
 import { strings } from '../../../../../locales/i18n';
 import { AppThemeKey, Colors } from '../../../../util/theme/models';
 
@@ -134,6 +134,24 @@ export const generateThemeParameters = (
     surfaceFillColor: colors.background.muted,
   };
 };
+
+export const generateWidgetThemeParameters = (
+  themeAppearance: AppThemeKey,
+  colors: Colors,
+): Record<string, string> => ({
+  themeColor: colors.primary.default,
+  colorMode: themeAppearance === AppThemeKey.light ? 'LIGHT' : 'DARK',
+  widgetBackgroundFillColor:
+    themeAppearance === AppThemeKey.light
+      ? colors.background.default
+      : colors.background.alternative,
+  surfaceFillColor: colors.background.muted,
+  textPrimaryColor: colors.text.default,
+  textSecondaryColor: colors.text.alternative,
+  borderColor: colors.border.default,
+  primaryButtonFillColor: colors.icon.default,
+  primaryButtonTextColor: colors.icon.inverse,
+});
 
 /**
  * Transforms a timestamp to a Transak format

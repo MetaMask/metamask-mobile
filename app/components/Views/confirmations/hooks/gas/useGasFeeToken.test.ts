@@ -59,6 +59,25 @@ function getState({
             },
           },
         },
+        AssetsController: {
+          selectedCurrency: 'usd',
+          assetsInfo: {
+            'eip155:1/slip44:60': {
+              type: 'native' as const,
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+          },
+          assetsPrice: {
+            'eip155:1/slip44:60': {
+              assetPriceType: 'fungible' as const,
+              price: 556.12,
+              usdPrice: 556.12,
+              lastUpdated: 1732887955694,
+            },
+          },
+        },
       },
     },
   });
@@ -127,7 +146,7 @@ describe('useGasFeeToken', () => {
 
   it('returns token transfer transaction', () => {
     const result = runHook({ tokenAddress: GAS_FEE_TOKEN_MOCK.tokenAddress });
-    expect(result.transferTransaction).toStrictEqual({
+    expect(result.getTransferTransaction()).toStrictEqual({
       data: `0xa9059cbb000000000000000000000000${GAS_FEE_TOKEN_MOCK.recipient.slice(
         2,
       )}00000000000000000000000000000000000000000000000000000000000004d2`,
@@ -146,7 +165,7 @@ describe('useGasFeeToken', () => {
       ],
       tokenAddress: NATIVE_TOKEN_ADDRESS,
     });
-    expect(result.transferTransaction).toStrictEqual({
+    expect(result.getTransferTransaction()).toStrictEqual({
       gas: GAS_FEE_TOKEN_MOCK.gasTransfer,
       maxFeePerGas: GAS_FEE_TOKEN_MOCK.maxFeePerGas,
       maxPriorityFeePerGas: GAS_FEE_TOKEN_MOCK.maxPriorityFeePerGas,
@@ -180,7 +199,7 @@ describe('useGasFeeToken', () => {
 
   it('returns token transfer transaction when tokenAddress is not the native token address', () => {
     const result = runHook({ tokenAddress: GAS_FEE_TOKEN_MOCK.tokenAddress });
-    expect(result.transferTransaction).toEqual(
+    expect(result.getTransferTransaction()).toEqual(
       expect.objectContaining({
         to: GAS_FEE_TOKEN_MOCK.tokenAddress,
         data: expect.any(String),

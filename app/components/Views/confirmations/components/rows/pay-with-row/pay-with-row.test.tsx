@@ -206,7 +206,9 @@ describe('PayWithRow', () => {
     const { getByTestId, queryByTestId } = render();
 
     expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
-    expect(getByTestId('pay-with-symbol')).toHaveTextContent('Select token');
+    expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+      'Select payment method',
+    );
   });
 
   it('does not re-render on parent re-render with identical props', () => {
@@ -442,6 +444,51 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount();
 
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('shows money account from the flag default before a pay token is chosen', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-no-override',
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+    });
+
+    it('shows the selected token when the money-account override is cleared', () => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-no-override',
+        txParams: { from: '0x1' },
+      } as never);
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: {
+          address: ADDRESS_MOCK,
+          balanceHuman: '0',
+          balanceFiat: '$0',
+          balanceRaw: '0',
+          balanceUsd: '0',
+          chainId: CHAIN_ID_MOCK,
+          decimals: 6,
+          symbol: 'USDC',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(<PayWithRow />, {
+        state: STATE_MOCK,
+      });
+
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^USDC/);
     });
 
     it('renders interactive row on review page when only flag-defaulted (no explicit override)', () => {

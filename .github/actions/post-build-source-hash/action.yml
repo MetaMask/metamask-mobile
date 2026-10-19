@@ -42,7 +42,7 @@ runs:
 
     - name: Post commit status
       if: ${{ inputs.post-status == 'true' }}
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       continue-on-error: true
       env:
         FINGERPRINT: ${{ steps.generate-fingerprint.outputs.fingerprint }}

@@ -5,10 +5,10 @@ import {
   type GasFeeController as GasFeeControllerType,
 } from '@metamask/gas-fee-controller';
 
-import BN from 'bnjs4';
 import Engine from '../../../../../core/Engine';
 import { decGWEIToHexWEI } from '../../../../../util/conversions';
 import { selectGasFeeControllerState } from '../../../../../selectors/gasFeeController';
+import { hexToBigInt } from '../../../../../util/number/bigint';
 
 const defaultGasLimit = 21000;
 
@@ -25,7 +25,7 @@ interface Options {
  * @param options.gasLimit - The gas limit for the transaction, defaults to 21_000. If 0 is passed,
  * it returns null, used in the buy flow
  * @param options.estimateRange - The range to use for the estimation, defaults to 'medium'
- * @returns The estimated gas fee in estimatedGasFee property as BN or null
+ * @returns The estimated gas fee in estimatedGasFee property as bigint or null
  */
 function useGasPriceEstimation({
   gasLimit = defaultGasLimit,
@@ -78,8 +78,8 @@ function useGasPriceEstimation({
     gasPrice = gasFeeControllerState.gasFeeEstimates.gasPrice;
   }
 
-  const weiGasPrice = new BN(decGWEIToHexWEI(gasPrice) as string, 'hex');
-  const estimatedGasFee = weiGasPrice.muln(gasLimit);
+  const weiGasPrice = hexToBigInt(decGWEIToHexWEI(gasPrice) as string);
+  const estimatedGasFee = weiGasPrice * BigInt(gasLimit);
 
   return {
     estimatedGasFee,

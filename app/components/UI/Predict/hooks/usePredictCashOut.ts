@@ -7,6 +7,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
+import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { PredictEventValues } from '../constants/eventNames';
 import { usePredictActionGuard } from './usePredictActionGuard';
@@ -26,6 +27,7 @@ export const usePredictCashOut = ({
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const { openSellSheet } = usePredictPreviewSheet();
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
 
   const onCashOut = useCallback(
     (position: PredictPosition) => {
@@ -55,6 +57,7 @@ export const usePredictCashOut = ({
             toastRef?.current?.showToast({
               variant: ToastVariants.Icon,
               iconName: IconName.Danger,
+              iconColor: colors.error.default,
               labelOptions: [
                 {
                   label: strings('predict.order.cashout_failed'),
@@ -68,7 +71,14 @@ export const usePredictCashOut = ({
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
       );
     },
-    [executeGuardedAction, market, openSellSheet, toastRef, callerName],
+    [
+      executeGuardedAction,
+      market,
+      openSellSheet,
+      toastRef,
+      callerName,
+      colors.error.default,
+    ],
   );
 
   return { onCashOut };

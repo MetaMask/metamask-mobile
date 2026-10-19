@@ -4,7 +4,7 @@ import {
 } from '../../../util/test/renderWithProvider';
 import type { RootState } from '../../../reducers';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
-import type { MultichainAssetsControllerState } from '@metamask/assets-controllers';
+import type { CaipAssetType } from '@metamask/utils';
 import Engine from '../../../core/Engine';
 import { useArcDefaultTokens } from './index';
 
@@ -14,8 +14,8 @@ import { useArcDefaultTokens } from './index';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
-    MultichainAssetsController: {
-      addAssets: jest.fn().mockResolvedValue(undefined),
+    AssetsController: {
+      addCustomAsset: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -73,11 +73,11 @@ const solanaAccount = {
 const buildState = ({
   arcPresent = true,
   accounts = [evmAccount1],
-  accountsAssets = {},
+  existingArcAssetIds,
 }: {
   arcPresent?: boolean;
   accounts?: (typeof evmAccount1 | typeof solanaAccount)[];
-  accountsAssets?: Record<string, string[]>;
+  existingArcAssetIds?: string[];
 } = {}): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
@@ -102,16 +102,27 @@ const buildState = ({
           },
         ],
       },
-      MultichainAssetsController: {
-        accountsAssets:
-          accountsAssets as unknown as MultichainAssetsControllerState['accountsAssets'],
+      AssetsController: {
+        customAssets: existingArcAssetIds
+          ? { [accounts[0].id]: existingArcAssetIds as CaipAssetType[] }
+          : {},
+        assetsBalance: existingArcAssetIds
+          ? {
+              [accounts[0].id]: Object.fromEntries(
+                existingArcAssetIds.map((assetId) => [
+                  assetId,
+                  { amount: '1' },
+                ]),
+              ),
+            }
+          : {},
       },
     },
   },
 });
 
-const mockAddAssets = jest.mocked(
-  Engine.context.MultichainAssetsController.addAssets,
+const mockAddCustomAsset = jest.mocked(
+  Engine.context.AssetsController.addCustomAsset,
 );
 
 // ---------------------------------------------------------------------------
@@ -123,31 +134,31 @@ describe('useArcDefaultTokens', () => {
     jest.clearAllMocks();
   });
 
-  it('calls addAssets for an EVM account when Arc is present and the asset is missing', () => {
+  it('calls addCustomAsset for an EVM account when Arc is present and the asset is missing', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState(),
     });
 
-    expect(mockAddAssets).toHaveBeenCalledTimes(1);
-    expect(mockAddAssets).toHaveBeenCalledWith(
-      [ARC_USDC_ASSET_ID],
+    expect(mockAddCustomAsset).toHaveBeenCalledTimes(1);
+    expect(mockAddCustomAsset).toHaveBeenCalledWith(
       evmAccount1.id,
+      ARC_USDC_ASSET_ID,
     );
   });
 
-  it('calls addAssets for every EVM account', () => {
+  it('calls addCustomAsset for every EVM account', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState({ accounts: [evmAccount1, evmAccount2] }),
     });
 
-    expect(mockAddAssets).toHaveBeenCalledTimes(2);
-    expect(mockAddAssets).toHaveBeenCalledWith(
-      [ARC_USDC_ASSET_ID],
+    expect(mockAddCustomAsset).toHaveBeenCalledTimes(2);
+    expect(mockAddCustomAsset).toHaveBeenCalledWith(
       evmAccount1.id,
+      ARC_USDC_ASSET_ID,
     );
-    expect(mockAddAssets).toHaveBeenCalledWith(
-      [ARC_USDC_ASSET_ID],
+    expect(mockAddCustomAsset).toHaveBeenCalledWith(
       evmAccount2.id,
+      ARC_USDC_ASSET_ID,
     );
   });
 
@@ -156,7 +167,7 @@ describe('useArcDefaultTokens', () => {
       state: buildState({ arcPresent: false }),
     });
 
-    expect(mockAddAssets).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
   it('skips non-EVM accounts', () => {
@@ -164,39 +175,39 @@ describe('useArcDefaultTokens', () => {
       state: buildState({ accounts: [solanaAccount] }),
     });
 
-    expect(mockAddAssets).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
-  it('calls addAssets only for EVM accounts when mixed with non-EVM accounts', () => {
+  it('calls addCustomAsset only for EVM accounts when mixed with non-EVM accounts', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState({ accounts: [evmAccount1, solanaAccount] }),
     });
 
-    expect(mockAddAssets).toHaveBeenCalledTimes(1);
-    expect(mockAddAssets).toHaveBeenCalledWith(
-      [ARC_USDC_ASSET_ID],
+    expect(mockAddCustomAsset).toHaveBeenCalledTimes(1);
+    expect(mockAddCustomAsset).toHaveBeenCalledWith(
       evmAccount1.id,
+      ARC_USDC_ASSET_ID,
     );
   });
 
-  it('does not call addAssets when the account already has the Arc USDC asset', () => {
+  it('does not call addCustomAsset when the account already has the Arc USDC asset', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState({
-        accountsAssets: { [evmAccount1.id]: [ARC_USDC_ASSET_ID] },
+        existingArcAssetIds: [ARC_USDC_ASSET_ID],
       }),
     });
 
-    expect(mockAddAssets).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
   it('treats the existing asset ID case-insensitively', () => {
     renderHookWithProvider(() => useArcDefaultTokens(), {
       state: buildState({
-        accountsAssets: { [evmAccount1.id]: [ARC_USDC_ASSET_ID.toUpperCase()] },
+        existingArcAssetIds: [ARC_USDC_ASSET_ID.toUpperCase()],
       }),
     });
 
-    expect(mockAddAssets).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 
   it('does not re-dispatch on re-render', () => {
@@ -204,8 +215,8 @@ describe('useArcDefaultTokens', () => {
       state: buildState(),
     });
 
-    expect(mockAddAssets).toHaveBeenCalledTimes(1);
+    expect(mockAddCustomAsset).toHaveBeenCalledTimes(1);
     rerender(undefined);
-    expect(mockAddAssets).toHaveBeenCalledTimes(1);
+    expect(mockAddCustomAsset).toHaveBeenCalledTimes(1);
   });
 });

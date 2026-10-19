@@ -1,7 +1,7 @@
 import Braze from '@braze/react-native-sdk';
 import {
-  getBrazeInitialDeeplink,
-  subscribeToBrazePushDeeplinks,
+  getBrazeInitialPush,
+  subscribeToBrazePushOpens,
 } from './BrazeDeeplinks';
 
 const mockRemove = jest.fn();
@@ -25,7 +25,7 @@ describe('BrazeDeeplinks', () => {
     jest.clearAllMocks();
   });
 
-  describe('getBrazeInitialDeeplink', () => {
+  describe('getBrazeInitialPush', () => {
     it('returns the URL when payload contains a deep link', async () => {
       (Braze.getInitialPushPayload as jest.Mock).mockImplementation(
         (callback) => {
@@ -33,44 +33,49 @@ describe('BrazeDeeplinks', () => {
         },
       );
 
-      const result = await getBrazeInitialDeeplink();
+      const result = await getBrazeInitialPush();
 
-      expect(result).toBe('https://link.metamask.io/swap?token=ETH');
+      expect(result).toEqual({
+        opened: true,
+        deeplink: 'https://link.metamask.io/swap?token=ETH',
+      });
       expect(Braze.getInitialPushPayload).toHaveBeenCalledTimes(1);
     });
 
-    it('returns null when payload is null', async () => {
+    it('reports no open when payload is null', async () => {
       (Braze.getInitialPushPayload as jest.Mock).mockImplementation(
         (callback) => {
           callback(null);
         },
       );
 
-      const result = await getBrazeInitialDeeplink();
+      const result = await getBrazeInitialPush();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ opened: false, deeplink: null });
     });
 
-    it('returns null when payload has no URL', async () => {
+    // On-chain activity notifications commonly carry no CTA link, so a payload
+    // without a URL is still a tap that opened the app.
+    it('reports an open with no deeplink when payload has no URL', async () => {
       (Braze.getInitialPushPayload as jest.Mock).mockImplementation(
         (callback) => {
           callback({ url: '', title: 'Test notification' });
         },
       );
 
-      const result = await getBrazeInitialDeeplink();
+      const result = await getBrazeInitialPush();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ opened: true, deeplink: null });
     });
 
-    it('returns null when getInitialPushPayload throws', async () => {
+    it('reports no open when getInitialPushPayload throws', async () => {
       (Braze.getInitialPushPayload as jest.Mock).mockImplementation(() => {
         throw new Error('Native module error');
       });
 
-      const result = await getBrazeInitialDeeplink();
+      const result = await getBrazeInitialPush();
 
-      expect(result).toBeNull();
+      expect(result).toEqual({ opened: false, deeplink: null });
     });
 
     it('handles metamask:// scheme URLs', async () => {
@@ -80,17 +85,20 @@ describe('BrazeDeeplinks', () => {
         },
       );
 
-      const result = await getBrazeInitialDeeplink();
+      const result = await getBrazeInitialPush();
 
-      expect(result).toBe('metamask://buy-crypto');
+      expect(result).toEqual({
+        opened: true,
+        deeplink: 'metamask://buy-crypto',
+      });
     });
   });
 
-  describe('subscribeToBrazePushDeeplinks', () => {
+  describe('subscribeToBrazePushOpens', () => {
     it('subscribes to push events and invokes callback with URL', () => {
       const callback = jest.fn();
 
-      subscribeToBrazePushDeeplinks(callback);
+      subscribeToBrazePushOpens(callback);
 
       expect(Braze.addListener).toHaveBeenCalledWith(
         'pushNotificationEvent',
@@ -111,7 +119,7 @@ describe('BrazeDeeplinks', () => {
     it('ignores push_received events (foreground notifications)', () => {
       const callback = jest.fn();
 
-      subscribeToBrazePushDeeplinks(callback);
+      subscribeToBrazePushOpens(callback);
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
@@ -127,7 +135,7 @@ describe('BrazeDeeplinks', () => {
     it('ignores silent push notifications', () => {
       const callback = jest.fn();
 
-      subscribeToBrazePushDeeplinks(callback);
+      subscribeToBrazePushOpens(callback);
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
@@ -143,7 +151,7 @@ describe('BrazeDeeplinks', () => {
     it('ignores Braze internal push notifications', () => {
       const callback = jest.fn();
 
-      subscribeToBrazePushDeeplinks(callback);
+      subscribeToBrazePushOpens(callback);
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
@@ -156,10 +164,10 @@ describe('BrazeDeeplinks', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('does not invoke callback when push event has no URL', () => {
+    it('invokes callback with null when push event has no URL', () => {
       const callback = jest.fn();
 
-      subscribeToBrazePushDeeplinks(callback);
+      subscribeToBrazePushOpens(callback);
 
       const handler = (Braze.addListener as jest.Mock).mock.calls[0][1];
       handler({
@@ -169,13 +177,13 @@ describe('BrazeDeeplinks', () => {
         is_silent: false,
       });
 
-      expect(callback).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledWith(null);
     });
 
     it('returns the EmitterSubscription', () => {
       const callback = jest.fn();
 
-      const result = subscribeToBrazePushDeeplinks(callback);
+      const result = subscribeToBrazePushOpens(callback);
 
       expect(result).toEqual({ remove: mockRemove });
     });
@@ -186,7 +194,7 @@ describe('BrazeDeeplinks', () => {
       });
       const callback = jest.fn();
 
-      const result = subscribeToBrazePushDeeplinks(callback);
+      const result = subscribeToBrazePushOpens(callback);
 
       expect(result).toBeNull();
     });

@@ -4,6 +4,15 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { WhatsHappeningSource } from '../../../../../components/UI/WhatsHappening/constants';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
@@ -29,6 +38,17 @@ describe('handleWhatsHappeningUrl', () => {
         source: WhatsHappeningSource.Deeplink,
         initialIndex: 0,
       });
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: "What's Happening View Load",
+        op: 'whats_happening.load',
+        id: 'deeplink:expanded',
+        tags: {
+          feature: 'whats_happening',
+          source: 'deeplink',
+          stage: 'expanded',
+          cache_state: 'cold',
+        },
+      });
     });
 
     it('does not pass an outdatedItemId', () => {
@@ -51,6 +71,15 @@ describe('handleWhatsHappeningUrl', () => {
         '[handleWhatsHappeningUrl] Failed to handle deeplink:',
         expect.any(Error),
       );
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: "What's Happening View Load",
+        id: 'deeplink:expanded',
+        data: {
+          result: 'cancelled',
+          success: false,
+          reason: 'owner_cancelled',
+        },
+      });
     });
   });
 

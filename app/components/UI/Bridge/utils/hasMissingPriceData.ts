@@ -1,15 +1,9 @@
-interface QuoteLike {
-  quote?: {
-    priceData?: {
-      priceImpact?: string | null;
-    } | null;
-  } | null;
-}
+import type { DeepPartial, QuoteResponse } from '@metamask/bridge-controller';
 
-export const hasMissingPriceData = (quote?: QuoteLike | null) => {
+export const hasMissingPriceData = (
+  quote?: DeepPartial<QuoteResponse> | null,
+) => {
   const priceData = quote?.quote?.priceData;
 
-  return (
-    !priceData || priceData.priceImpact == null || priceData.priceImpact === ''
-  );
+  return !priceData?.priceImpact?.amount;
 };

@@ -1,5 +1,7 @@
 import { Theme } from '../../../../../util/theme/models';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { hexToRgba } from '../../utils/chartColors';
+import { createLimitOrderOverlayScript } from './limitOrderOverlay';
 
 export const createTradingViewChartTemplate = (
   theme: Theme,
@@ -395,6 +397,9 @@ export const createTradingViewChartTemplate = (
 
         // Edge detection variables for historical data loading
         window.lastHistoryFetchTime = 0;
+        window.lastReportedVisibleCandleCount = null;
+        window.isPinchZoomActive = false;
+        window.pinchTrackingInstalled = false;
         window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
         window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
         // Set up edge detection for loading more historical data
@@ -404,10 +409,70 @@ export const createTradingViewChartTemplate = (
             }
 
             try {
+                // Lightweight Charts emits visible-range changes for pans,
+                // programmatic framing, resize, and initial layout as well as
+                // pinch zoom. Track two-finger gestures so only actual user zoom
+                // changes are persisted.
+                if (!window.pinchTrackingInstalled) {
+                    var chartContainer = document.getElementById('container');
+                    if (chartContainer) {
+                        chartContainer.addEventListener('touchstart', function(event) {
+                            window.isPinchZoomActive = event.touches.length >= 2;
+                        }, { passive: true });
+                        chartContainer.addEventListener('touchmove', function(event) {
+                            if (event.touches.length >= 2) {
+                                window.isPinchZoomActive = true;
+                            }
+                        }, { passive: true });
+                        chartContainer.addEventListener('touchend', function(event) {
+                            if (event.touches.length < 2) {
+                                // Keep the flag through this event loop so a final
+                                // range callback emitted by the gesture is captured.
+                                setTimeout(function() {
+                                    window.isPinchZoomActive = false;
+                                }, 0);
+                            }
+                        }, { passive: true });
+                        chartContainer.addEventListener('touchcancel', function() {
+                            window.isPinchZoomActive = false;
+                        }, { passive: true });
+                        window.pinchTrackingInstalled = true;
+                    }
+                }
+
                 // Subscribe to visible logical range changes
                 window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
                     if (!range || !window.allCandleData || window.allCandleData.length === 0) {
                         return;
+                    }
+
+                    if (window.isPinchZoomActive) {
+                        // applyZoom frames logical indices as
+                        // [dataLength - N, dataLength - 1 + RIGHT_MARGIN_CANDLES], so the
+                        // inverse must clamp the right edge to the last real bar and count
+                        // inclusively. Measuring the raw span instead would report N - 1 and
+                        // ratchet the persisted zoom down by one candle on every apply.
+                        var lastBarIndex = window.allCandleData.length - 1;
+                        var rightEdge = Math.min(range.to, lastBarIndex);
+                        var candleCount = Math.round(rightEdge - range.from) + 1;
+                        if (candleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
+                            candleCount = window.ZOOM_LIMITS.MIN_CANDLES;
+                        }
+                        if (candleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
+                            candleCount = window.ZOOM_LIMITS.MAX_CANDLES;
+                        }
+                        // Keep realtime-follow and interval refreshes aligned with the
+                        // user's latest pinch instead of reapplying the pre-pinch zoom.
+                        window.visibleCandleCount = candleCount;
+                        if (window.lastReportedVisibleCandleCount !== candleCount) {
+                            window.lastReportedVisibleCandleCount = candleCount;
+                            if (window.ReactNativeWebView) {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                    type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+                                    candleCount: candleCount
+                                }));
+                            }
+                        }
                     }
 
                     // Check if we're near the left edge (oldest data)
@@ -683,6 +748,27 @@ export const createTradingViewChartTemplate = (
                 window.chart.removeSeries(window.candlestickSeries);
             }
             // Create new candlestick series in pane 0 (top pane)
+            window.collectLimitOverlayPrices = function() {
+                var seen = {};
+                var prices = [];
+                function pushPrice(value) {
+                    var price = parseFloat(value);
+                    if (!isNaN(price) && isFinite(price) && !seen[price]) {
+                        seen[price] = true;
+                        prices.push(price);
+                    }
+                }
+                (window.lastLimitOrderPrices || []).forEach(pushPrice);
+                if (window.priceLines && window.priceLines.limitOrders) {
+                    window.priceLines.limitOrders.forEach(function(item) {
+                        if (item) {
+                            pushPrice(item.price);
+                        }
+                    });
+                }
+                return prices;
+            };
+
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
                 upColor: '${theme.colors.success.default}',
                 downColor: '${theme.colors.error.default}',
@@ -700,6 +786,28 @@ export const createTradingViewChartTemplate = (
                     type: 'price',
                     precision: 6, // Allow up to 6 decimal places for very small values
                     minMove: 0.000001, // Very small minimum move for precision
+                },
+                // Keep resting Limit lines on-scale instead of clipping them
+                autoscaleInfoProvider: function(original) {
+                    var result = original();
+                    var overlayPrices = window.collectLimitOverlayPrices ? window.collectLimitOverlayPrices() : [];
+                    if (!result || !result.priceRange || overlayPrices.length === 0) {
+                        return result;
+                    }
+                    var minValue = result.priceRange.minValue;
+                    var maxValue = result.priceRange.maxValue;
+                    overlayPrices.forEach(function(price) {
+                        minValue = Math.min(minValue, price);
+                        maxValue = Math.max(maxValue, price);
+                    });
+                    var padding = (maxValue - minValue) * ${PERPS_CHART_CONFIG.LIMIT_AUTOSCALE_PADDING_FRACTION};
+                    return {
+                        priceRange: {
+                            minValue: minValue - padding,
+                            maxValue: maxValue + padding,
+                        },
+                        margins: result.margins,
+                    };
                 },
                 // Optimize for smooth panning
                 crosshairMarkerVisible: false, // Disable crosshair during panning for performance
@@ -1075,8 +1183,14 @@ export const createTradingViewChartTemplate = (
             liquidationPrice: null, 
             takeProfitPrice: null,
             stopLossPrice: null,
-            currentPrice: null
+            currentPrice: null,
+            limitOrders: []
         };
+
+${createLimitOrderOverlayScript({
+  sell: theme.colors.error.default,
+  buy: theme.colors.success.default,
+})}
         
         // Store original price line data for restoration
         window.originalPriceLineData = null;
@@ -1090,7 +1204,10 @@ export const createTradingViewChartTemplate = (
                 entryPrice: window.priceLines.entryPrice,
                 liquidationPrice: window.priceLines.liquidationPrice,
                 takeProfitPrice: window.priceLines.takeProfitPrice,
-                stopLossPrice: window.priceLines.stopLossPrice
+                stopLossPrice: window.priceLines.stopLossPrice,
+                limitOrders: (window.priceLines.limitOrders || []).map(function(item) {
+                    return { price: item.price, side: item.side };
+                })
             };
 
             // Remove price lines (exclude currentPrice as it's managed by updateCurrentPriceLine)
@@ -1104,6 +1221,8 @@ export const createTradingViewChartTemplate = (
                     }
                 }
             });
+            window.clearLimitOrderLines();
+            window.lastLimitOrderPrices = [];
         };
         
         window.showAllPriceLines = function() {
@@ -1165,6 +1284,10 @@ export const createTradingViewChartTemplate = (
                 } catch (error) {
                     // Silent error handling
                 }
+            }
+
+            if (window.originalPriceLineData.limitOrders && window.originalPriceLineData.limitOrders.length) {
+                window.updateLimitOrderLines(window.originalPriceLineData.limitOrders);
             }
 
             // Clear stored data
@@ -1334,6 +1457,7 @@ export const createTradingViewChartTemplate = (
                     console.error('TradingView: Error creating liquidation line:', error);
                 }
             }
+            window.updateLimitOrderLines(lines.limitOrders || []);
         };
         // Message handling from React Native
         window.addEventListener('message', function(event) {
@@ -1573,6 +1697,8 @@ export const createTradingViewChartTemplate = (
                                     console.error('TradingView: Error removing liquidation line:', error);
                                 }
                             }
+
+                            window.clearLimitOrderLines();
 
                             // Note: currentPrice line is intentionally preserved
                         }

@@ -8,7 +8,6 @@ import {
   IconSize,
   ListItem,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import type { PerpsActionSheetProps } from './PerpsActionSheet.types';
 
 function PerpsActionSheet<T extends string>({
@@ -20,7 +19,6 @@ function PerpsActionSheet<T extends string>({
   sheetRef: externalSheetRef,
   testID,
 }: PerpsActionSheetProps<T>) {
-  const surfaceClass = useElevatedSurface();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
 
@@ -46,7 +44,6 @@ function PerpsActionSheet<T extends string>({
       ref={sheetRef}
       goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
-      twClassName={surfaceClass}
       testID={testID}
     >
       <BottomSheetHeader onClose={handleClose}>{title}</BottomSheetHeader>

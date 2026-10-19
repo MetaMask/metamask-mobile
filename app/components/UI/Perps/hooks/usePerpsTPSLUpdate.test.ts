@@ -5,7 +5,22 @@ import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { endPerpsCufTrace } from '../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 jest.mock('./usePerpsTrading');
+jest.mock('../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  startPerpsCufTrace: jest.fn(() => 'tpsl-cuf-op'),
+  endPerpsCufTrace: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  watchPerpsCufTpSlChanged: jest.fn(),
+  acceptPerpsCufRequest: jest.fn(),
+}));
 jest.mock('./usePerpsToasts');
 jest.mock('../providers/PerpsStreamManager');
 jest.mock('../../../../../locales/i18n', () => ({
@@ -31,6 +46,13 @@ jest.mock('../../../../component-library/components/Buttons/Button', () => ({
 }));
 jest.mock('../../../../util/haptics');
 
+interface MockToast {
+  labelOptions?: { label: string }[];
+}
+
+const getToastLabel = (toast: MockToast) =>
+  toast.labelOptions?.[0]?.label ?? 'unknown';
+
 describe('usePerpsTPSLUpdate', () => {
   const mockUpdatePositionTPSL = jest.fn();
   const mockShowToast = jest.fn();
@@ -52,7 +74,31 @@ describe('usePerpsTPSLUpdate', () => {
 
   const mockPerpsToastOptions = {
     positionManagement: {
+      closePosition: {
+        positionAlreadyClosed: {
+          variant: 'icon',
+          iconName: 'Info',
+          labelOptions: [
+            {
+              label: 'perps.close_position.already_closed',
+              isBold: true,
+            },
+          ],
+        },
+      },
       tpsl: {
+        updateTPSLInProgress: {
+          variant: 'icon',
+          iconName: 'Loading',
+          hapticsType: 'warning',
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: 'perps.position.tpsl.update_in_progress',
+              isBold: true,
+            },
+          ],
+        },
         updateTPSLSuccess: {
           variant: 'icon',
           iconName: 'CheckBold',
@@ -163,8 +209,78 @@ describe('usePerpsTPSLUpdate', () => {
       stopLossPrice,
       trackingData: undefined,
       position,
+      expectedPosition: { size: '1.5', entryPrice: '3000' },
     });
   });
+
+  it('preserves the displayed short position and provider when the position changes during submission', async () => {
+    const onSuccess = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess });
+    const position = {
+      ...createMockPosition({ size: '-1.5' }),
+      providerId: 'lighter' as const,
+    };
+    const error = PERPS_ERROR_CODES.TPSL_UPDATE_FAILED;
+    mockUpdatePositionTPSL.mockImplementation(async () => {
+      position.size = '-2';
+      position.entryPrice = '3100';
+      return { success: false, error };
+    });
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '2700',
+        '3300',
+      );
+    });
+
+    expect(mockUpdatePositionTPSL).toHaveBeenCalledWith(
+      expect.objectContaining({
+        providerId: 'lighter',
+        expectedPosition: { size: '-1.5', entryPrice: '3000' },
+      }),
+    );
+    expect(updateResult).toEqual({ success: false });
+    expect(mockUpdatePositionTPSLOptimistic).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(
+      mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+    ).toHaveBeenCalledWith('perps.errors.tpslUpdateFailed');
+  });
+
+  it.each(['response', 'exception'] as const)(
+    'translates a lifecycle-stale %s for error feedback',
+    async (failurePath) => {
+      const onError = jest.fn();
+      const { result } = renderHookWithToast({ onError });
+      if (failurePath === 'response') {
+        mockUpdatePositionTPSL.mockResolvedValue({
+          success: false,
+          error: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
+        });
+      } else {
+        mockUpdatePositionTPSL.mockRejectedValue(
+          new Error(PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE),
+        );
+      }
+
+      await act(async () => {
+        await result.current.handleUpdateTPSL(
+          createMockPosition(),
+          '3300',
+          '2700',
+        );
+      });
+
+      expect(
+        mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
+      ).toHaveBeenCalledWith('perps.errors.clientReinitializing');
+      expect(onError).toHaveBeenCalledWith('perps.errors.clientReinitializing');
+      expect(mockUpdatePositionTPSLOptimistic).not.toHaveBeenCalled();
+    },
+  );
 
   it('should show success toast and call onSuccess callback', async () => {
     const onSuccess = jest.fn();
@@ -199,13 +315,94 @@ describe('usePerpsTPSLUpdate', () => {
 
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('Network error');
+    ).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'Network error',
+        'perps.errors.networkErrorSimple',
       ),
     );
-    expect(onError).toHaveBeenCalledWith('Network error');
+    expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
+  });
+
+  it('shows already-closed toast when TP/SL update returns No position found', async () => {
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess, onError });
+    const position = createMockPosition();
+
+    mockUpdatePositionTPSL.mockResolvedValue({
+      success: false,
+      error: 'No position found for ETH',
+    });
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(updateResult).toEqual({ success: false });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.closePosition
+        .positionAlreadyClosed,
+    );
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+      'accountState',
+    );
+    expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'tpsl-cuf-op',
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+      },
+    });
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('shows already-closed toast when TP/SL update throws No position found', async () => {
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess, onError });
+    const position = createMockPosition();
+
+    mockUpdatePositionTPSL.mockRejectedValue(
+      new Error('No position found for ETH'),
+    );
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(updateResult).toEqual({ success: false });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.closePosition
+        .positionAlreadyClosed,
+    );
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+      'accountState',
+    );
+    expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'tpsl-cuf-op',
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+      },
+    });
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it('should show error toast and call onError callback on exception', async () => {
@@ -222,13 +419,13 @@ describe('usePerpsTPSLUpdate', () => {
 
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('Network error');
+    ).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'Network error',
+        'perps.errors.networkErrorSimple',
       ),
     );
-    expect(onError).toHaveBeenCalledWith('Network error');
+    expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
   it('should handle undefined TP/SL prices', async () => {
@@ -247,6 +444,7 @@ describe('usePerpsTPSLUpdate', () => {
       stopLossPrice: undefined,
       trackingData: undefined,
       position,
+      expectedPosition: { size: '1.5', entryPrice: '3000' },
     });
   });
 
@@ -263,13 +461,12 @@ describe('usePerpsTPSLUpdate', () => {
       await result.current.handleUpdateTPSL(position, '3300', '2700');
     });
 
-    // When error is null, the mock falls back to 'perps.errors.unknown'
     expect(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError,
-    ).toHaveBeenCalledWith('perps.errors.unknown');
+    ).toHaveBeenCalledWith('perps.errors.unknownError');
     expect(mockShowToast).toHaveBeenCalledWith(
       mockPerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-        'perps.errors.unknown',
+        'perps.errors.unknownError',
       ),
     );
   });
@@ -413,8 +610,8 @@ describe('usePerpsTPSLUpdate', () => {
       mockUpdatePositionTPSLOptimistic.mockImplementation(() => {
         callOrder.push('optimistic');
       });
-      mockShowToast.mockImplementation(() => {
-        callOrder.push('toast');
+      mockShowToast.mockImplementation((toast: MockToast) => {
+        callOrder.push(getToastLabel(toast));
       });
 
       const { result } = renderHookWithToast();
@@ -426,7 +623,78 @@ describe('usePerpsTPSLUpdate', () => {
         await result.current.handleUpdateTPSL(position, '3300', '2700');
       });
 
-      expect(callOrder).toEqual(['optimistic', 'toast']);
+      expect(callOrder).toEqual([
+        'perps.position.tpsl.update_in_progress',
+        'optimistic',
+        'perps.position.tpsl.update_success',
+      ]);
+    });
+  });
+
+  describe('pending toast', () => {
+    it('shows the pending toast before the update request is sent', async () => {
+      // Arrange
+      const callOrder: string[] = [];
+      mockShowToast.mockImplementation((toast: MockToast) => {
+        callOrder.push(getToastLabel(toast));
+      });
+      mockUpdatePositionTPSL.mockImplementation(() => {
+        callOrder.push('request');
+        return Promise.resolve({ success: true });
+      });
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+
+      // Act
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      // Assert
+      expect(callOrder[0]).toBe('perps.position.tpsl.update_in_progress');
+      expect(callOrder[1]).toBe('request');
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        1,
+        mockPerpsToastOptions.positionManagement.tpsl.updateTPSLInProgress,
+      );
+    });
+
+    it('replaces the pending toast with the error toast when the update fails', async () => {
+      // Arrange
+      mockUpdatePositionTPSL.mockResolvedValue({
+        success: false,
+        error: 'Network error',
+      });
+      const { result } = renderHookWithToast();
+      const position = createMockPosition();
+
+      // Act
+      await act(async () => {
+        await result.current.handleUpdateTPSL(position, '3300', '2700');
+      });
+
+      // Assert
+      expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        1,
+        mockPerpsToastOptions.positionManagement.tpsl.updateTPSLInProgress,
+      );
+      expect(getToastLabel(mockShowToast.mock.calls[1][0])).toBe(
+        'perps.position.tpsl.update_failed',
+      );
+    });
+
+    it('shows the pending toast with the in-progress spinner styling', () => {
+      // Arrange
+      const { updateTPSLInProgress } =
+        mockPerpsToastOptions.positionManagement.tpsl;
+
+      // Act
+      const { label } = updateTPSLInProgress.labelOptions[0];
+
+      // Assert
+      expect(label).toBe('perps.position.tpsl.update_in_progress');
+      expect(updateTPSLInProgress.hapticsType).toBe('warning');
     });
   });
 });

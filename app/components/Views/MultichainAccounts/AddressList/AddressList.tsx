@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
@@ -43,11 +44,26 @@ export const createAddressListNavigationDetails =
  * @returns {JSX.Element} The rendered component.
  */
 export const AddressList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { groupId, title, source, onLoad } = useParams<AddressListProps>();
+
+  const hasCompletedLoadTraceRef = useRef(false);
+
+  const completeLoadTrace = useCallback(() => {
+    if (hasCompletedLoadTraceRef.current) {
+      return;
+    }
+
+    hasCompletedLoadTraceRef.current = true;
+    onLoad?.();
+  }, [onLoad]);
+
+  useFocusEffect(useCallback(() => completeLoadTrace, [completeLoadTrace]));
+
+  useEffect(() => completeLoadTrace, [completeLoadTrace]);
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -94,6 +110,7 @@ export const AddressList = () => {
           chainId={item.scope}
           networkName={item.networkName}
           address={item.account.address}
+          accountType={item.account.type}
           copyParams={{
             callback: async () => {
               await copyAddressToClipboard();
@@ -152,7 +169,7 @@ export const AddressList = () => {
         data={internalAccountsSpreadByScopes}
         keyExtractor={(item) => item.scope}
         renderItem={renderAddressItem}
-        onLoad={onLoad}
+        onLoad={completeLoadTrace}
       />
     </View>
   );

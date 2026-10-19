@@ -1,21 +1,36 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useInfiniteQuery,
-  type UseInfiniteQueryOptions,
-} from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyAccountVedaTokenConfig } from '../../../../selectors/cardController';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
+import Engine from '../../../../core/Engine';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import {
   oldestRawActivityTime,
   parseAccountsApiActivity,
 } from '../utils/accountsApi';
+import {
+  readCachedFirstPage,
+  writeCachedFirstPage,
+} from '../utils/moneyActivityCache';
+import {
+  fetchCardSpendRateHistory,
+  selectHistoricalRateForBlock,
+} from './moneyAccountCardSpendRate';
+import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
@@ -67,6 +82,8 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const cashbackMultisendContracts = useSelector(
     selectMoneyCardActivityCashbackMultisendContracts,
   );
+  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const vedaTokenConfig = useSelector(selectMoneyAccountVedaTokenConfig);
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
   const enabled = moneyAddress !== '';
@@ -78,15 +95,49 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
 
-  // `apiClient` is built against query-core v5; this repo's react-query is v4, so
-  // the query options aren't nominally compatible. The shapes match at runtime.
+  // `initialDataUpdatedAt` carries the write time, so the `staleTime` below
+  // still decides whether a background refetch runs — the freshness policy is
+  // unchanged, only the starting point.
+  const cachedFirstPage = useMemo(
+    () => (enabled ? readCachedFirstPage(moneyAddress) : undefined),
+    [enabled, moneyAddress],
+  );
+
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) =>
-      apiClient.accounts.fetchV1AccountTransactions(moneyAddress, {
-        ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
-        cursor: pageParam,
-      }),
+    initialPageParam: undefined as string | undefined,
+    queryFn: async ({ pageParam }: { pageParam?: string }) => {
+      // `useMoneyActivityItems` auto-fills pages serially, so `is_initial_page`
+      // separates the request gating time-to-content from those behind it.
+      const page = await trace(
+        {
+          name: TraceName.MoneyActivityFetch,
+          op: TraceOperation.MoneyAccountDataFetch,
+          tags: { is_initial_page: pageParam === undefined },
+        },
+        async (context) => {
+          const response = await apiClient.accounts.fetchV1AccountTransactions(
+            moneyAddress,
+            {
+              ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+              cursor: pageParam,
+            },
+          );
+          annotateTrace(context, {
+            row_count: response.data?.length ?? 0,
+            has_next_page: response.pageInfo?.hasNextPage ?? false,
+          });
+          return response;
+        },
+      );
+
+      // Outside the span: serialising is our cost, not the request's, and
+      // folding it in would inflate the metric the span exists to measure.
+      if (pageParam === undefined) {
+        writeCachedFirstPage(moneyAddress, page);
+      }
+      return page;
+    },
     // Guard the cursor too: react-query only stops on `undefined`, so a
     // malformed page with `hasNextPage: true` but an empty cursor would
     // otherwise refetch the first page in a loop.
@@ -97,10 +148,11 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<
-    V1AccountTransactionsResponse,
-    Error
-  >);
+    initialData: cachedFirstPage
+      ? { pages: [cachedFirstPage.page], pageParams: [undefined] }
+      : undefined,
+    initialDataUpdatedAt: cachedFirstPage?.cachedAt,
+  });
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
@@ -130,6 +182,123 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       });
   }, [pages, moneyAddress, cashbackMultisendContracts]);
 
+  const configuredChainId = vaultConfig
+    ? vaultConfig.chainId.startsWith('0x')
+      ? Number.parseInt(vaultConfig.chainId, 16)
+      : Number(vaultConfig.chainId)
+    : NaN;
+  const isConfiguredVaultShare = useCallback(
+    (
+      row: AccountsApiActivity,
+    ): row is Extract<AccountsApiActivity, { kind: 'card' }> =>
+      row.kind === 'card' &&
+      row.token.address.toLowerCase() ===
+        vedaTokenConfig?.address.toLowerCase() &&
+      row.token.decimals === 6,
+    [vedaTokenConfig?.address],
+  );
+  const vaultCardActivities = useMemo(
+    () =>
+      activity.filter(
+        (row) =>
+          isConfiguredVaultShare(row) &&
+          row.chainId.toLowerCase() === vaultConfig?.chainId.toLowerCase(),
+      ),
+    [activity, isConfiguredVaultShare, vaultConfig?.chainId],
+  );
+  const rateActivities = useMemo(
+    () => vaultCardActivities.filter((row) => row.blockNumber !== undefined),
+    [vaultCardActivities],
+  );
+  const rateHistoryEnabled = Boolean(
+    rateActivities.length > 0 &&
+      vaultConfig?.boringVault &&
+      Number.isSafeInteger(configuredChainId),
+  );
+  const rateQueryKey = useMemo(
+    () => [
+      MoneyAccountApiDataServiceQueryKeys.FETCH_RATE_HISTORY,
+      vaultConfig?.boringVault ?? '',
+      {
+        chainId: configuredChainId,
+        from: rateActivities.length
+          ? new Date(
+              Math.min(...rateActivities.map(({ time }) => time)) -
+                365 * 24 * 60 * 60 * 1000,
+            ).toISOString()
+          : '',
+        to: rateActivities.length
+          ? new Date(
+              Math.min(
+                Math.max(...rateActivities.map(({ time }) => time)),
+                Date.now(),
+              ) +
+                24 * 60 * 60 * 1000,
+            ).toISOString()
+          : '',
+      },
+    ],
+    [configuredChainId, rateActivities, vaultConfig?.boringVault],
+  );
+  const rateHistoryQuery = useQuery({
+    queryKey: rateQueryKey,
+    queryFn: () =>
+      fetchCardSpendRateHistory(
+        (vaultAddress, options) =>
+          Engine.controllerMessenger.call(
+            'MoneyAccountApiDataService:fetchRateHistory',
+            vaultAddress,
+            options,
+          ),
+        vaultConfig?.boringVault ?? '',
+        configuredChainId,
+        rateActivities.map(({ blockNumber, time }) => ({
+          blockNumber,
+          time,
+        })),
+      ),
+    enabled: rateHistoryEnabled,
+    staleTime: 5 * MINUTE,
+    retry: false,
+    placeholderData: (previousData, previousQuery) => {
+      const previousQueryKey = previousQuery?.queryKey;
+      const previousScope = previousQueryKey?.[2] as
+        | { chainId?: number }
+        | undefined;
+      const sameVaultAndChain =
+        previousQueryKey?.[0] === rateQueryKey[0] &&
+        previousQueryKey?.[1] === rateQueryKey[1] &&
+        previousScope?.chainId === configuredChainId;
+      return sameVaultAndChain ? previousData : undefined;
+    },
+  });
+
+  const resolvedActivity = useMemo(() => {
+    const rates = rateHistoryQuery.data ?? [];
+    return activity.map((row) => {
+      if (
+        !isConfiguredVaultShare(row) ||
+        row.chainId.toLowerCase() !== vaultConfig?.chainId.toLowerCase()
+      ) {
+        return row;
+      }
+      const historicalRate = selectHistoricalRateForBlock(
+        rates,
+        row.blockNumber,
+      );
+      return {
+        ...row,
+        isVaultShare: true,
+        ...(rateHistoryQuery.data ? { historicalRate } : {}),
+      };
+    });
+  }, [
+    activity,
+    rateHistoryQuery.data,
+    isConfiguredVaultShare,
+    vaultConfig?.chainId,
+  ]);
+
   // "Complete" means no further pages will arrive, so the merged list can be
   // shown in full. This happens if:
   //   - the query is disabled (no money account) — nothing will ever be fetched;
@@ -154,16 +323,14 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 
   return {
-    activity,
+    activity: resolvedActivity,
     watermark,
     isComplete,
     pageCount: pages.length,
     hasMore: hasNextPage === true && !isError,
     loadMore,
     isLoadingMore: isFetchingNextPage,
-    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
-    // loading and a background refetch doesn't flash the spinner.
-    isLoading: query.isInitialLoading,
+    isLoading: query.isLoading,
     error: query.isError,
     refetch: query.refetch,
   };

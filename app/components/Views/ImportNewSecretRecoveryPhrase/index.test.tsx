@@ -24,6 +24,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { Alert } from 'react-native';
+import { mockTheme } from '../../../util/theme';
 
 // Mock for keyboard state visibility
 const mockUseKeyboardState = jest.fn();
@@ -183,12 +184,14 @@ describe('ImportNewSecretRecoveryPhrase', () => {
             callback({
               address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
               discoveredAccountsCount: 3,
+              entropySource: 'mock-entropy-source',
             });
           });
         }
         return Promise.resolve({
           address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
           discoveredAccountsCount: 0,
+          entropySource: 'mock-entropy-source',
         });
       },
     );
@@ -475,7 +478,8 @@ describe('ImportNewSecretRecoveryPhrase', () => {
           label: 'Wallet 2 imported',
         },
       ],
-      iconName: IconName.Check,
+      iconName: IconName.Confirmation,
+      iconColor: mockTheme.colors.success.default,
       hasNoTimeout: false,
     });
   });

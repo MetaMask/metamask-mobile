@@ -654,6 +654,7 @@ function RegionSelector() {
             iconName: ComponentLibraryIconName.Close,
             testID: REGION_SELECTOR_TEST_IDS.CLEAR_BUTTON,
           }}
+          testID={REGION_SELECTOR_TEST_IDS.SEARCH_INPUT}
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
           placeholder={strings(

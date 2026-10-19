@@ -7,6 +7,7 @@ import {
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import {
   Encryptor,
@@ -34,7 +35,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { useSelector } from 'react-redux';
 
 const AesCryptoTestForm = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);

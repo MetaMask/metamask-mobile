@@ -194,7 +194,7 @@ export const ONBOARDING_DISPLAY_TRADERS = RIVE_AVATAR_ASSET_KEYS.length;
  * data hasn't arrived yet.
  *
  * In the normal flow this rarely fires: the leaderboard is usually opened from
- * the home "Weekly Top Traders" section, which has already warmed the same
+ * the home "Weekly top traders" section, which has already warmed the same
  * react-query cache, so the onboarding's `useTopTraders` resolves immediately.
  */
 export const REFERENCED_ASSETS_TIMEOUT_MS = 1500;

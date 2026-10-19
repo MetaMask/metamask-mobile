@@ -14,7 +14,7 @@ const PAGE_SIZE = 20;
 // add a row here AND a usePredictMarketData call below (Rules of Hooks).
 const SOCCER = {
   key: 'soccer',
-  labelKey: 'trending.football',
+  labelKey: 'trending.soccer',
   customQueryParams: 'tag_id=100350',
 } as const;
 const BASKETBALL = {

@@ -1,0 +1,160 @@
+# Perps use-case matrix
+
+What every perps user-facing flow looks like, and which test layer is responsible for proving it works. The framing is "main happy paths first" — the bug-finding stuff lives in those tests as edge cases, not as their reason for existing.
+
+Layer notation: **U** = Unit, **CV** = Component View, **I** = Integration, **E2E** = End-to-end. Primary layer is **bold**.
+
+Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.md). Shared four-layer model: [`../../STRATEGY.md`](../../STRATEGY.md).
+
+---
+
+## Order lifecycle
+
+| Use case                                 |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                                              |
+| ---------------------------------------- | :-: | :-: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Open long, market order                  |     |  ✓  | **✓** |  ✓  | I: real `placeOrder` flow incl. validation. CV: order-screen variant. E2E: one happy-path on testnet for native signing.                                                                    |
+| Open short, market order                 |     |  ✓  | **✓** |     | Same as above; one CV variant covers both sides. E2E doesn't need duplication.                                                                                                              |
+| Open long, limit order                   |     |  ✓  | **✓** |     | I: limit-price branch through validation + asset-info lookup. CV: limit-price input UI.                                                                                                     |
+| Open short, limit order                  |     |     | **✓** |     | I only — short-limit doesn't need separate CV; covered by long-limit variant.                                                                                                               |
+| Start a TWAP strategy                    |     |  ✓  | **✓** |     | I: dedicated venue strategy action, accepted + rejected responses. CV: gated configuration and validation journey.                                                                          |
+| Run and terminate a Chase strategy       |  ✓  |  ✓  | **✓** |     | U: form/provider lifecycle and retry paths. I: placement, repricing, suspension, rejection, and termination. CV: rollout/lifecycle UI. Exact-head device proof uses the external PR recipe. |
+| Edit existing limit order                |     |  ✓  | **✓** |     | I: real `editOrder` flow (price + size update). CV: edit-screen UI.                                                                                                                         |
+| Cancel single open order                 |     |  ✓  | **✓** |     | I: real `cancelOrder` action. CV: cancel button + confirmation.                                                                                                                             |
+| Cancel multiple open orders (cancel-all) |     |     | **✓** |     | Multi-cancel logic is purely controller; no UI variant beyond a button.                                                                                                                     |
+| Close position — full (market)           |     |  ✓  | **✓** |     | I: full-close branch (skips USD validation). CV: close-screen.                                                                                                                              |
+| Close position — partial (market)        |     |  ✓  | **✓** |     | I: partial-close size handling. CV: partial-size slider.                                                                                                                                    |
+| Close position — limit order             |     |     | **✓** |     | I: limit-close validation path. UI is shared with open-limit; no extra CV needed.                                                                                                           |
+| Reverse / flip position                  |     |     | **✓** |     | I: multi-step (close + open opposite). The "two functions correct alone, broken together" case.                                                                                             |
+
+## Position management
+
+| Use case                             |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                   |
+| ------------------------------------ | :-: | :-: | :---: | :-: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Add collateral (increase margin)     |     |  ✓  | **✓** |     | I: state transition on margin-update. CV: input form + confirmation.                                                                                             |
+| Remove collateral (decrease margin)  |     |  ✓  | **✓** |     | Same; covers the rejection path when margin would drop below maintenance.                                                                                        |
+| Set take-profit                      |     |  ✓  | **✓** |     | I: TP-price validation, state update. CV: TP input.                                                                                                              |
+| Set stop-loss                        |     |  ✓  | **✓** |     | Same shape as TP.                                                                                                                                                |
+| Update existing TP/SL                |     |     | **✓** |     | Signed-size/entry preconditions, exact child receipts, account/network switches and dispatch-time drift. Removal preserves protection when the position changes. |
+| Adjust leverage on existing position |     |  ✓  | **✓** |     | I: leverage validation against position size. CV: leverage slider clamping.                                                                                      |
+
+## Account / funds
+
+| Use case                         |  U  |  CV   |   I   | E2E | Coverage notes                                                                                            |
+| -------------------------------- | :-: | :---: | :---: | :-: | --------------------------------------------------------------------------------------------------------- |
+| Deposit USDC into perps account  |     |   ✓   | **✓** |  ✓  | I: deposit validation, state preparation. CV: deposit form. E2E: real signing of the deposit transaction. |
+| Withdraw USDC from perps account |     |   ✓   | **✓** |  ✓  | Same shape as deposit.                                                                                    |
+| View account balance / equity    |     | **✓** |       |     | Pure rendering of state; selectors do composition. CV is the right scope.                                 |
+| View open positions list         |     | **✓** |       |     | Same.                                                                                                     |
+| View open orders list            |     | **✓** |       |     | Same.                                                                                                     |
+| View order history / fills       |     | **✓** |       |     | Same. CV with mocked state per variant (empty, populated, paginated).                                     |
+
+## Market data / discovery
+
+| Use case                          |  U  |  CV   |  I  | E2E | Coverage notes                                                 |
+| --------------------------------- | :-: | :---: | :-: | :-: | -------------------------------------------------------------- |
+| View markets list                 |     | **✓** |     |     | Pure variant rendering.                                        |
+| Sort markets (volume, change %)   |  ✓  | **✓** |     |     | U: sort comparator if it's a pure helper. CV: list re-renders. |
+| Search markets by symbol          |     | **✓** |     |     | Pure UI filtering.                                             |
+| View market detail (chart, depth) |     | **✓** |     |     | Variant rendering with live + cached data states.              |
+| View funding rate for a market    |     | **✓** |     |     | Selector composition + visual.                                 |
+
+## Realtime / subscriptions
+
+| Use case                                  |  U  |  CV   |   I   | E2E | Coverage notes                                                                       |
+| ----------------------------------------- | :-: | :---: | :---: | :-: | ------------------------------------------------------------------------------------ |
+| Live price updates flow into state        |     |       | **✓** |     | I: drive a price-update event through the subscription handler, assert state update. |
+| Live position updates flow into state     |     |       | **✓** |     | Same shape.                                                                          |
+| Live order-fill notifications             |     |       | **✓** |     | Same.                                                                                |
+| Live account balance updates              |     |       | **✓** |     | Same.                                                                                |
+| Component re-renders on subscription tick |     | **✓** |       |     | CV with redux state mutated via dispatch — verifies the consumer reacts.             |
+
+E2E for live data is impractical (timing-dependent, needs real WS); rely on integration with mocked subscription messages.
+
+## Session / config
+
+| Use case                                    |  U  | CV  |   I   |  E2E  | Coverage notes                                                                           |
+| ------------------------------------------- | :-: | :-: | :---: | :---: | ---------------------------------------------------------------------------------------- |
+| Initialize provider on login                |     |     | **✓** |   ✓   | I: real init with mocked SDK, assert ready state. E2E: real keychain read on cold start. |
+| Toggle testnet ↔ mainnet                   |     |     | **✓** | **✓** | I: state transition. E2E: native re-init across SecureKeychain scope change.             |
+| Switch active provider (HyperLiquid ↔ MYX) |     |     | **✓** |       | I: routing logic, both providers exist in harness.                                       |
+| Approve builder fee                         |     |     | **✓** |       | I: one-time approval flow.                                                               |
+| Set referrer code                           |     |     | **✓** |       | I: referrer state update.                                                                |
+
+## Lighter recovery
+
+| Use case                                                     |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------ | :-: | :-: | :---: | :-: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Review selected wallet's venue positions/orders              |     |  ✓  | **✓** |  ✓  | Real installed Core controller/provider and Mobile messenger; registered local key only, no venue writes. CV owns controls; live recipes prove native signer and actual venue.                                                                              |
+| Discover healthy stored keys beside unreadable slots         |  ✓  |     | **✓** |     | Real Mobile bridge and installed controller scan past typed decryption failures for hardware/Snap recovery. Public stored reads stay strict, and recovery fails when every stored candidate is unreadable. Native I/O remains mocked.                       |
+| Acknowledge a resolved stored outcome through Mobile hooks   |     |  ✓  | **✓** |  ✓  | Real Core list output retains its optional flag shape; Mobile reviews and acknowledges exactly that outcome and persists removal without financial submission. Native storage remains a live-recipe requirement.                                            |
+| Replace selected parked protection through Mobile hooks      |     |  ✓  | **✓** |  ✓  | Real installed source-to-successor execution with exact opaque source, signed long/short position and new prices. Mocked HTTP acceptance owns trigger-book mutation; durable settlement survives controller recreation and preserves unrelated obligations. |
+| Remove selected parked protection through Mobile hooks       |     |  ✓  | **✓** |  ✓  | Real installed removal cancels only selected owned orders, retains unrelated protection and persists settlement. CV owns the explicit warning/confirmation controls; native signing/storage remains live proof.                                             |
+| Retain unresolved protection without automatic replay        |     |  ✓  | **✓** |     | Transport uncertainty retains the exact parked source and pending successor. Reload and controller recreation perform no financial retry; only external I/O is mocked.                                                                                      |
+| Refuse stale or wrong protection identity and position drift |  ✓  |  ✓  | **✓** |     | Real installed provider refuses changed durable source/provider and signed side/size/entry mismatch before mutation. Real Mobile context retires claimed editor authority after account and real-controller network A-to-B-to-A.                            |
+| Keep recovery harness financial writes explicitly isolated   |     |     | **✓** |     | Default read mode refuses an actual installed-provider cancellation signature with valid venue/source fixtures, preserves the selected order/source and never submits. Financial I/O requires explicit isolated-write mode.                                 |
+| Refuse a mismatched local and registered key                 |     |     | **✓** |     | Read authentication cannot overwrite an occupied key or submit registration.                                                                                                                                                                                |
+| Refuse incomplete order responses                            |     |     | **✓** |     | Missing venue data cannot become an assumed empty account.                                                                                                                                                                                                  |
+| Refuse account data owned by another wallet                  |     |     | **✓** |     | Real wallet/client validation must preserve Ethereum-address ownership.                                                                                                                                                                                     |
+| Expire authoritative reads after selected-wallet changes     |     |  ✓  | **✓** |  ✓  | Core rejects late reads; CV independently owns account/network A-to-B-to-A expiry, and live recipes cover native account switching.                                                                                                                         |
+| Expire review after A-to-B-to-A provider rebinding           |     |  ✓  | **✓** |  ✓  | Both in-flight account reviews reject after a real intervening provider read; a fresh review works for A without registration or writes.                                                                                                                    |
+| Expire review across a controller network change             |     |  ✓  | **✓** |  ✓  | Real controller teardown/reinitialization invalidates old testnet reads. Integration HTTP remains mocked on both networks; native scope isolation still requires live proof.                                                                                |
+
+## Lighter Scale
+
+| Use case                                         |  U  |  CV   |   I   | E2E | Coverage notes                                                                                                                                                                                                                                                                                                                                         |
+| ------------------------------------------------ | :-: | :---: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Preview quote budget and exact base quantity     |  ✓  |   ✓   | **✓** |     | Real installed provider supplies its grids and totals through the Mobile preview hook; helper tests reject inconsistent quantities and excess budget.                                                                                                                                                                                                  |
+| Place the settled current Scale draft            |  ✓  | **✓** |   ✓   |  ✓  | Pro screen waits for preview and rechecks it after capability validation. The actual builder submits quote, base and reduce-only payloads to Core with the approved normalized ladder. Changed metadata is refused before financial signing or submission; lifetime tests retire held requests. Native signing and venue proof belong to live recipes. |
+| Display complete, partial and uncertain receipts |  ✓  | **✓** |   ✓   |     | Rendered receipt copy uses actual accepted children and size. Partial or missing acceptance retains the draft and durable groups.                                                                                                                                                                                                                      |
+| Review and cancel the selected owned group       |  ✓  |   ✓   | **✓** |  ✓  | Real Core list/review/cancel methods preserve opaque group identity and unrelated orders. Unknown review cannot create children. Account, network, provider and unmount fence actions; native storage remains live proof.                                                                                                                              |
+
+## Pure helpers (utility functions)
+
+These don't have user-facing flows; they're consumed by the layers above. Unit is the right home for all of them.
+
+| Module                                         | Tests | Notes                                                                                        |
+| ---------------------------------------------- | ----- | -------------------------------------------------------------------------------------------- |
+| `orderCalculations.ts`                         | ~15   | `calculateFinalPositionSize`, `calculateOrderPriceAndSize`, slippage, BPS, decimal precision |
+| `hyperLiquidValidation.ts` (utility functions) | ~10   | `validateOrderParams`, `validateBalance`, `validateDepositParams`, etc.                      |
+| Composed selectors (perps area)                | ~5    | Position with market data joined for PnL display                                             |
+
+---
+
+## Distribution
+
+| Layer           | Count | Role                                                        |
+| --------------- | ----: | ----------------------------------------------------------- |
+| **Unit**        |   ~30 | Pure helpers, calculations, selector composition            |
+| **CV**          |   ~22 | UI variant coverage; user actions on the screen             |
+| **Integration** |   ~33 | Every controller action that has user-visible state effects |
+| **E2E**         |    ~5 | Cold launch, real signing, network re-init, testnet toggle  |
+| **Total**       |   ~90 |                                                             |
+
+The shape: one CV test per UI variant, one integration test per public controller action (happy path + main rejection paths), one E2E per native-runtime concern, unit tests for everything pure. No use case is covered redundantly across layers; every use case is covered exactly where it's cheapest to detect a regression. PoC branches may keep side-by-side Shape A/B/C examples to compare harness boundaries, but the rollout matrix should assign one primary integration shape per use case before the suite hardens.
+
+---
+
+## Decision rules used to assign use cases
+
+When in doubt, the layer choice for a use case follows these rules:
+
+1. **Native modules involved (keychain, signing, deep links, real network)?** → E2E. There's no other layer that can run real native code.
+2. **State changes triggered by a controller action?** → Integration. Real action through real reducer is the only way to catch the seams between intent and effect.
+3. **Same UI rendering across many states (loading, empty, populated, error)?** → CV. Cheap variant coverage, sharp failure isolation.
+4. **Pure function on values (no async, no state)?** → Unit. Fast, precise, robust to refactor.
+5. **Multi-step user flow (open → close → flip)?** → Integration. Tests state transitions across actions, which CV can't reach.
+
+Where a use case fits multiple rules, pick the one with the **cheapest sufficient layer** as the primary, and add secondaries only when there's a _unique_ concern at another layer (e.g. real signing for deposit → secondary E2E even if integration covers the validation).
+
+## What's deliberately not in the matrix
+
+- **Snapshot tests** — out of scope; team killed them previously for reasons that still apply.
+- **Hook-level integration as a default** — Shape B exists, but it is not the default for every flow. Use it when hook wiring or the `TradingService` -> provider seam is part of the risk; use Shape A when a direct provider/service call is sufficient.
+- **Visual regression / Storybook** — orthogonal; if it gets adopted, it owns "did the rendered pixels change?" and CV continues to own "did the structure render correctly?"
+
+## Bounded testnet Lighter Chase
+
+| Use case                                     | Primary layer | Coverage                                                                                                                                                                                |
+| -------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public probe config and actual network guard | Integration   | Actual Mobile config to installed Core provider; absent probe and mainnet leave Chase unadvertised.                                                                                     |
+| Pro USD request accepted at 1x within 20 USD | Integration   | Production builder and real trading hook/controller submit one synthetic resting child. Existing component views cover Pro/Chase rollout gates; native and venue proof remain separate. |

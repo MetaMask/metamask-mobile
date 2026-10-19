@@ -6,6 +6,8 @@ import {
 import { TokensControllerInitMessenger } from '../messengers/tokens-controller-messenger';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { assert } from '@metamask/utils';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the tokens controller.
@@ -37,6 +39,8 @@ export const tokensControllerInit: MessengerClientInitFunction<
     chainId: getGlobalChainId(networkController),
     provider,
     tokenListService,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('TokensController')(store.getState()),
   });
 
   return {

@@ -124,7 +124,7 @@ const EnabledVsDisabledComponent = () => {
         Enabled vs Disabled Comparison
       </Text>
       <ActionListItemComponent
-        label="Enabled Item"
+        label="Enabled item"
         description="This item is interactive and fully opaque"
         iconName={IconName.Setting}
         isDisabled={false}
@@ -133,7 +133,7 @@ const EnabledVsDisabledComponent = () => {
         }}
       />
       <ActionListItemComponent
-        label="Disabled Item"
+        label="Disabled item"
         description="This item has 50% opacity and is not interactive"
         iconName={IconName.Setting}
         isDisabled

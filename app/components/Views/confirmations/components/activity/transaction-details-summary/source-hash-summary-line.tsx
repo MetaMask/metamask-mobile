@@ -2,13 +2,13 @@ import React from 'react';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { TransactionSummaryLine } from './transaction-summary-line';
-import { hasTransactionType } from '../../../utils/transaction';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { ARBITRUM_USDC } from '../../../constants/perps';
 import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';

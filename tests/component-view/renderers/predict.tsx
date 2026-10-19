@@ -28,7 +28,7 @@ interface RenderPredictFeedOptions {
  */
 function createWrappedPredictFeed(): React.ComponentType {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
 
   return function WrappedPredictFeed(props: Record<string, unknown>) {

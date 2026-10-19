@@ -20,8 +20,17 @@ const baseConfig = require('./jest.config.js');
 // feature already does.
 process.env.HAS_TEST_OVERRIDES = 'true';
 
+// The Predict Order Flow transport bakes its base URL at first compile via
+// babel's inline-environment-variables plugin. Provide a deterministic origin
+// for every run (CI included); component-view tests stub global fetch.
+process.env.MM_PREDICT_API_URL =
+  process.env.MM_PREDICT_API_URL || 'https://predict.api.test';
+
 module.exports = {
   ...baseConfig,
+  // Unit coverage owns the repo-wide file list. Report the production files
+  // exercised by view tests without rescanning the entire app in every shard.
+  collectCoverageFrom: undefined,
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetupView.js'],
   testPathIgnorePatterns: (baseConfig.testPathIgnorePatterns || []).filter(
     (pattern) => !pattern.includes('view'),
@@ -30,4 +39,13 @@ module.exports = {
   testTimeout: 30000,
   forceExit: true,
   maxWorkers: 1,
+  // With `maxWorkers: 1` and no memory limit, Jest schedules every suite in
+  // band (see @jest/core `shouldRunInBand`), so all ~100 view files share one
+  // process that is never recycled. A view suite needs 1-2 GB for React
+  // Native, Engine and the controllers, and whatever each one fails to
+  // release accumulates until the run dies with "Ineffective mark-compacts
+  // near heap limit". Setting a limit moves the suites into a worker that
+  // Jest restarts once it grows past it, which caps the peak instead of
+  // letting it climb for the whole shard.
+  workerIdleMemoryLimit: '2GB',
 };

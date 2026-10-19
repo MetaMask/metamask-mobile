@@ -13,6 +13,7 @@ const stylesheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: 8,
     },
     valueContainer: {
       flexDirection: 'row',
@@ -24,7 +25,7 @@ const stylesheet = (params: { theme: Theme }) => {
     modalRoot: {
       flex: 1,
     },
-    /** Lets the account list consume remaining height under HeaderStandard inside BottomSheet. */
+    /** Lets the account list consume remaining height under BottomSheetHeader inside BottomSheet. */
     modalSheetBody: {
       flex: 1,
       minHeight: 0,

@@ -1,9 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../../locales/i18n';
 import Icon, {
@@ -13,12 +20,9 @@ import Icon, {
 import TagBase, {
   TagShape,
 } from '../../../../../../component-library/base-components/TagBase';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Device from '../../../../../../util/device';
@@ -33,16 +37,27 @@ import { useSendContext } from '../../../context/send-context';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
-import { AnimatedCursor } from './animated-cursor';
-import { styleSheet } from './amount.styles';
+import { getFontSizeForInputLength, styleSheet } from './amount.styles';
+import { formatAmountWithCommas } from '../../../utils/format-amount';
 import { InitSendLocation } from '../../../constants/send';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export const Amount = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { header: renderAmountHeader } = useSendNavbar().Amount;
-  const { location } = useParams<{ location?: string }>();
+  const { location, predefinedAmount } = useParams<{
+    location?: string;
+    predefinedAmount?: string;
+  }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const { asset, value } = useSendContext();
+  const { asset, updateValue, value } = useSendContext();
   const { balance } = useBalance();
   const { amountError } = useAmountValidation();
   const [amount, setAmount] = useState('');
@@ -60,17 +75,46 @@ export const Amount = () => {
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
-  const { styles } = useStyles(styleSheet, {
-    contentLength: amount.length + assetDisplaySymbol.length,
-  });
+  const displaySuffix = fiatMode
+    ? (fiatCurrencySymbol ?? '')
+    : assetDisplaySymbol;
+  const defaultValue = fiatMode ? '0.00' : '0';
+  const displayAmount = useMemo(
+    () => formatAmountWithCommas(amount.length ? amount : defaultValue),
+    [amount, defaultValue],
+  );
+  const inputFontSize = getFontSizeForInputLength(
+    displayAmount.length +
+      displaySuffix.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+  );
+  const { styles } = useStyles(styleSheet, { inputFontSize });
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
   const { isLoading: isNftLoading } = useRouteParams();
+  const hasSeededPredefinedAmountRef = useRef(false);
 
   useEffect(() => {
+    if (predefinedAmount) {
+      setFiatMode(false);
+      return;
+    }
     setFiatMode(primaryCurrency === 'Fiat');
-  }, [primaryCurrency, setFiatMode]);
+  }, [primaryCurrency, predefinedAmount, setFiatMode]);
+
+  // Seed once from navigation params. Do not re-run when the user clears the
+  // field — that would restore the QR amount while send-context value stays
+  // empty (AmountKeyboard already called updateValue('')).
+  useEffect(() => {
+    if (!predefinedAmount || hasSeededPredefinedAmountRef.current) {
+      return;
+    }
+    hasSeededPredefinedAmountRef.current = true;
+    setAmountInputTypeToken();
+    setAmount(predefinedAmount);
+    updateValue(predefinedAmount);
+  }, [predefinedAmount, setAmountInputTypeToken, updateValue]);
 
   useEffect(() => {
     if (location && location === InitSendLocation.AssetOverview) {
@@ -123,13 +167,12 @@ export const Amount = () => {
     [balance, balanceUnit, fiatMode, getFiatDisplayValue],
   );
 
-  const defaultValue = fiatMode ? '0.00' : '0';
-  let textColor = TextColor.Default;
+  let textColor: TextColor = TextColor.TextDefault;
   if (amountError) {
-    textColor = TextColor.Error;
+    textColor = TextColor.ErrorDefault;
   }
   if (!amount.length) {
-    textColor = TextColor.Muted;
+    textColor = TextColor.TextMuted;
   }
 
   return (
@@ -146,10 +189,13 @@ export const Amount = () => {
               collectible={asset as Nft}
               isTokenImage
             />
-            <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+              {asset?.name}
+            </Text>
             <Text
-              color={TextColor.Alternative}
-              variant={TextVariant.BodyMDBold}
+              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
             >
               {asset?.tokenId}
             </Text>
@@ -164,31 +210,32 @@ export const Amount = () => {
         )}
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
-            <Text
+            <AnimatedAmountDisplay
+              amountTestID="send_amount"
+              accessibilityLabel={
+                displaySuffix
+                  ? `${displayAmount} ${displaySuffix}`
+                  : displayAmount
+              }
               color={textColor}
+              cursor={{ animated: true }}
               style={styles.inputText}
-              numberOfLines={1}
-              variant={TextVariant.DisplayMD}
-              adjustsFontSizeToFit
-              testID="send_amount"
-            >
-              {amount?.length ? amount : defaultValue}
-            </Text>
-            <AnimatedCursor />
-            <Text
-              style={styles.inputText}
-              color={amountError ? TextColor.Error : TextColor.Muted}
-              numberOfLines={1}
-              variant={TextVariant.DisplayLG}
-            >
-              {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
-            </Text>
+              suffix={displaySuffix}
+              suffixColor={
+                amountError ? TextColor.ErrorDefault : TextColor.TextMuted
+              }
+              suffixStyle={styles.inputText}
+              value={displayAmount}
+              variant={TextVariant.DisplayMd}
+            />
           </View>
         </View>
         {conversionSupportedForAsset && (
           <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+              <Text color={TextColor.TextAlternative}>
+                {alternateDisplayValue}
+              </Text>
               <Icon
                 color={IconColor.Alternative}
                 name={IconName.SwapVertical}
@@ -199,7 +246,7 @@ export const Amount = () => {
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
         ) : (
-          <Text style={styles.balanceText} color={TextColor.Alternative}>
+          <Text color={TextColor.TextAlternative} style={styles.balanceText}>
             {balanceDisplayValue}
           </Text>
         )}

@@ -94,6 +94,7 @@ const getMockShowToast = () =>
 const strategy: FlowStrategy = {
   flow: Flow.Send,
   isSendFlow: true,
+  isSwap: false,
   walletAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
   trackerOptions: {
     flow: Flow.Send,
@@ -120,6 +121,7 @@ function renderLifecycle(isQrHardwareWallet: boolean) {
     ({ isQr }: { isQr: boolean }) =>
       useHwSwapLifecycle({
         strategy,
+        setPendingOperationAddress: jest.fn(),
         isQrHardwareWallet: isQr,
       }),
     { initialProps: { isQr: isQrHardwareWallet } },
@@ -148,7 +150,11 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(getMockShowToast()).toHaveBeenCalled();
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
@@ -181,7 +187,11 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(getMockShowToast()).toHaveBeenCalled();
   });
 
@@ -193,7 +203,11 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.TRANSACTIONS_VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(getMockShowToast()).toHaveBeenCalled();
   });
 

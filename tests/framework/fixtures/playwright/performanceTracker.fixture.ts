@@ -12,10 +12,15 @@ import {
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
-import type { TestLevelFixtures } from './types.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import type { TestLevelFixtures, WorkerLevelFixtures } from './types.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
+import { createClaudeLocatorRecoveryProvider } from '../../ai-locator/ClaudeLocatorRecoveryProvider.ts';
+import {
+  configurePerformanceLocatorRecovery,
+  setPerformanceSuiteActive,
+} from '../../ai-locator/PerformanceLocatorRecovery.ts';
 
-const logger = createPlaywrightLogger('performanceTracker');
+const logger = createAppiumLogger('performanceTracker');
 
 function getSessionIdFromAnnotations(
   annotations?: { type: string; description?: string }[],
@@ -25,7 +30,7 @@ function getSessionIdFromAnnotations(
 
 export const performanceTrackerFixture = {
   performanceTracker: async (
-    { deviceProvider }: Pick<TestLevelFixtures, 'deviceProvider'>,
+    { deviceProvider }: Pick<WorkerLevelFixtures, 'deviceProvider'>,
     use: (performanceTracker: PerformanceTracker) => Promise<void>,
     testInfo: TestInfo,
   ) => {
@@ -56,7 +61,27 @@ export const performanceTrackerFixture = {
       `Test assigned to team: ${teamInfo.teamName} (${teamInfo.teamId})`,
     );
 
-    await use(performanceTracker);
+    setPerformanceSuiteActive(true);
+    const locatorRecovery = createClaudeLocatorRecoveryProvider();
+    configurePerformanceLocatorRecovery(
+      locatorRecovery
+        ? {
+            provider: locatorRecovery,
+            onRecovered: (result) =>
+              testInfo.attach('ai-locator-recovery', {
+                body: JSON.stringify(result),
+                contentType: 'application/json',
+              }),
+          }
+        : undefined,
+    );
+
+    try {
+      await use(performanceTracker);
+    } finally {
+      configurePerformanceLocatorRecovery(undefined);
+      setPerformanceSuiteActive(false);
+    }
 
     if (isSystemTestMode) {
       return;
@@ -133,6 +158,29 @@ export const performanceTrackerFixture = {
       }
     }
 
+    logger.debug('Looking for session ID');
+
+    // Attach before quality gates: a gate failure throws, and the reporter
+    // needs session-data (with projectName) to fetch the recording.
+    if (sessionId) {
+      await testInfo.attach('session-data', {
+        body: JSON.stringify({
+          sessionId,
+          testTitle: testInfo.title,
+          testFilePath: testInfo.file || '',
+          tags: testTags,
+          projectName: testInfo.project.name,
+          timestamp: new Date().toISOString(),
+          team: teamInfo,
+        }),
+        contentType: 'application/json',
+      });
+
+      logger.info(`Session data stored: ${sessionId}`);
+    } else {
+      logger.warn('No session ID found - video URL cannot be retrieved');
+    }
+
     const hasThresholds = performanceTracker.timers.some((t) =>
       t.hasThreshold(),
     );
@@ -155,27 +203,6 @@ export const performanceTrackerFixture = {
         }
         throw error;
       }
-    }
-
-    logger.debug('Looking for session ID');
-
-    if (sessionId) {
-      await testInfo.attach('session-data', {
-        body: JSON.stringify({
-          sessionId,
-          testTitle: testInfo.title,
-          testFilePath: testInfo.file || '',
-          tags: testTags,
-          projectName: testInfo.project.name,
-          timestamp: new Date().toISOString(),
-          team: teamInfo,
-        }),
-        contentType: 'application/json',
-      });
-
-      logger.info(`Session data stored: ${sessionId}`);
-    } else {
-      logger.warn('No session ID found - video URL cannot be retrieved');
     }
   },
 };

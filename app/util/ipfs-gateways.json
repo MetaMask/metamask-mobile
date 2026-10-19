@@ -10,11 +10,6 @@
     "label": "https://gateway.ipfs.io/ipfs/"
   },
   {
-    "value": "https://ipfs.infura.io/ipfs/",
-    "key": 2,
-    "label": "https://ipfs.infura.io/ipfs/"
-  },
-  {
     "value": "https://gateway.pinata.cloud/ipfs/",
     "key": 24,
     "label": "https://gateway.pinata.cloud/ipfs/"

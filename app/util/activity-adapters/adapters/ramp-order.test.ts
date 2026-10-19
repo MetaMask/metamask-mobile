@@ -34,7 +34,6 @@ describe('mapRampOrder', () => {
       status: 'success',
       timestamp: 1_700_000_000_000,
       hash: '0xbuyhash',
-      raw: { type: 'rampOrder', data: baseOrder },
       data: {
         from: baseOrder.account,
         token: {
@@ -141,6 +140,27 @@ describe('mapRampOrder', () => {
     expect(
       mapRampOrder({ order: { ...baseOrder, network: 'not-a-chain' } }),
     ).toBeNull();
+  });
+
+  it('falls through an unparseable network name to cryptoCurrency.assetId', () => {
+    const order = {
+      ...baseOrder,
+      network: 'ethereum',
+      data: {
+        cryptoCurrency: {
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as FiatOrder;
+
+    expect(mapRampOrder({ order })?.chainId).toBe('eip155:1');
+  });
+
+  it('treats placeholder txHash values as missing and falls back to order id', () => {
+    expect(mapRampOrder({ order: { ...baseOrder, txHash: '0x' } })?.hash).toBe(
+      'order-1',
+    );
   });
 
   it('maps orders with a non-EVM CAIP-2 network', () => {

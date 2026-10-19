@@ -97,22 +97,22 @@ describe('TransactionDetailsToRow', () => {
     expect(getByText(RECIPIENT_MOCK)).toBeDefined();
   });
 
-  it('renders "Perps Account 1" label for perpsDeposit', () => {
+  it('renders "Account 1 Perps" label for perpsDeposit', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: createTransactionMeta(TransactionType.perpsDeposit),
     });
 
     const { getByText } = render();
-    expect(getByText('Perps Account 1')).toBeDefined();
+    expect(getByText('Account 1 Perps')).toBeDefined();
   });
 
-  it('renders "Predictions Account 1" label for predictDeposit', () => {
+  it('renders "Account 1 Predictions" label for predictDeposit', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: createTransactionMeta(TransactionType.predictDeposit),
     });
 
     const { getByText } = render();
-    expect(getByText('Predictions Account 1')).toBeDefined();
+    expect(getByText('Account 1 Predictions')).toBeDefined();
   });
 
   it('renders nothing when no recipient can be decoded', () => {

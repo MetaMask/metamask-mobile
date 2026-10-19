@@ -116,6 +116,21 @@ describe('useGetSlippageOptions', () => {
     expect(result.current[3].selected).toBe(false); // 3
   });
 
+  it('does not select an option when slippage is undefined', () => {
+    const { result } = renderHook(() =>
+      useGetSlippageOptions({
+        ...defaultProps,
+        allowCustomSlippage: true,
+        slippageOptions: ['0.5', '2', '3'],
+        slippage: undefined,
+      }),
+    );
+
+    result.current.forEach((option) => {
+      expect(option.selected).toBe(false);
+    });
+  });
+
   it('set custom slippage option if slippage value does not exist on slippageOptions array', () => {
     const { result } = renderHook(() =>
       useGetSlippageOptions({

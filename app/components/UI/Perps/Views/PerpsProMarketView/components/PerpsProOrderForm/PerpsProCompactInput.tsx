@@ -1,86 +1,397 @@
 import {
   Box,
+  ButtonBase,
+  ButtonBaseSize,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
+  IconName,
   Input,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
-import { Keyboard, Platform } from 'react-native';
+import React, { useEffect, useImperativeHandle, useRef, useState } from 'react';
+import {
+  InputAccessoryView,
+  Keyboard,
+  Platform,
+  Pressable,
+  type KeyboardTypeOptions,
+  type View,
+} from 'react-native';
+import { strings } from '../../../../../../../../locales/i18n';
+import {
+  getPerpsProCompactInputLabelContainerTestId,
+  getPerpsProCompactInputRowTestId,
+  PerpsProOrderFormSelectorsIDs,
+} from '../../../../Perps.testIds';
+import usePerpsProInputDisplay from './usePerpsProInputDisplay';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
 
-interface PerpsProCompactInputProps {
+export const getPerpsProCompactFieldTestId = (testID: string): string =>
+  `${testID}-field`;
+
+export interface PerpsProInputKeyboardAccessoryProps {
+  inputTestID: string;
+  onPrevious?: () => void;
+  onNext?: () => void;
+}
+
+export const PerpsProInputKeyboardAccessory = ({
+  inputTestID,
+  onPrevious,
+  onNext,
+}: PerpsProInputKeyboardAccessoryProps) => {
+  const showsNavigation = Boolean(onPrevious || onNext);
+
+  return Platform.OS === 'ios' ? (
+    <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
+      <Box twClassName="flex-row items-center justify-between border-t border-muted bg-default px-3 py-2">
+        {showsNavigation ? (
+          <Box twClassName="flex-row gap-2">
+            <ButtonIcon
+              iconName={IconName.ArrowUp}
+              size={ButtonIconSize.Md}
+              variant={ButtonIconVariant.Filled}
+              isDisabled={!onPrevious}
+              onPress={onPrevious}
+              testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_PREVIOUS}-${inputTestID}`}
+              accessibilityLabel={strings(
+                'perps.pro_order_form.keyboard_previous',
+              )}
+            />
+            <ButtonIcon
+              iconName={IconName.ArrowDown}
+              size={ButtonIconSize.Md}
+              variant={ButtonIconVariant.Filled}
+              isDisabled={!onNext}
+              onPress={onNext}
+              testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_NEXT}-${inputTestID}`}
+              accessibilityLabel={strings('perps.pro_order_form.keyboard_next')}
+            />
+          </Box>
+        ) : (
+          <Box />
+        )}
+        <ButtonBase
+          size={ButtonBaseSize.Sm}
+          onPress={Keyboard.dismiss}
+          twClassName="h-10 rounded-full bg-muted px-4"
+          testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${inputTestID}`}
+        >
+          {strings('perps.pro_order_form.keyboard_done')}
+        </ButtonBase>
+      </Box>
+    </InputAccessoryView>
+  ) : null;
+};
+
+export interface PerpsProCompactInputProps {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   testID: string;
-  variant?: 'stacked' | 'inline';
+  variant?: 'stacked' | 'inline' | 'inline-labeled';
+  startAccessory?: React.ReactNode;
   endAccessory?: React.ReactNode;
   footer?: React.ReactNode;
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
+  keyboardType?: KeyboardTypeOptions;
+  labelVariant?: TextVariant;
+  labelNumberOfLines?: number;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  /**
+   * Fires when the field wrapper is tapped or an already-focused native input
+   * is re-tapped. Initial native focus is reported through onFocus instead.
+   */
+  onFieldPress?: () => void;
+  containerRef?: React.Ref<View>;
+  isDisabled?: boolean;
+  /**
+   * Keeps the native input mounted so its iOS keyboard accessory can bind
+   * before the field is shown. Hidden fields take no layout and ignore taps.
+   */
+  isHidden?: boolean;
 }
 
-const PerpsProCompactInput = ({
-  label,
-  value,
-  onChangeText,
-  testID,
-  variant = 'stacked',
-  endAccessory,
-  footer,
-  placeholder = '0',
-  placeholderColor = 'muted',
-}: PerpsProCompactInputProps) => {
-  const tw = useTailwind();
-  const inputAccessoryViewID =
-    Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+/** Live focus facade that avoids exposing a snapshot of the native input ref. */
+export interface PerpsProCompactInputRef {
+  focus: () => void;
+}
 
-  const input = (
-    <Input
-      value={value}
-      onChangeText={onChangeText}
-      keyboardType="decimal-pad"
-      returnKeyType="done"
-      onSubmitEditing={Keyboard.dismiss}
-      inputAccessoryViewID={inputAccessoryViewID}
-      placeholder={placeholder}
-      placeholderTextColor={tw.color(`text-${placeholderColor}`)}
-      textVariant={TextVariant.BodySm}
-      isStateStylesDisabled
-      twClassName="flex-1 border-0 bg-transparent p-0 font-medium"
-      testID={testID}
-      accessibilityLabel={label}
-    />
-  );
+type DirectPressPhase = 'idle' | 'initial-press' | 'initial-focused' | 'retap';
 
-  if (variant === 'inline') {
+const PerpsProCompactInput = React.forwardRef<
+  PerpsProCompactInputRef,
+  PerpsProCompactInputProps
+>(
+  (
+    {
+      label,
+      value,
+      onChangeText,
+      testID,
+      variant = 'stacked',
+      startAccessory,
+      endAccessory,
+      footer,
+      placeholder = '0',
+      placeholderColor = 'muted',
+      keyboardType = 'decimal-pad',
+      labelVariant = TextVariant.BodySm,
+      labelNumberOfLines,
+      onFocus,
+      onBlur,
+      onFieldPress,
+      containerRef,
+      isDisabled = false,
+      isHidden = false,
+    },
+    ref,
+  ) => {
+    const tw = useTailwind();
+    const isNativeFocusedRef = useRef(false);
+    const directPressPhaseRef = useRef<DirectPressPhase>('idle');
+    const isInteractionBlocked = isDisabled || isHidden;
+    const {
+      captureInputLocale,
+      displayValue,
+      inputProps,
+      inputRef,
+      isFocused,
+      setIsFocused,
+    } = usePerpsProInputDisplay({
+      value,
+      onChangeText,
+      onFocus: () => {
+        isNativeFocusedRef.current = true;
+        if (directPressPhaseRef.current === 'initial-press') {
+          // Scale fields scroll on focus. Wait for release so that scroll cannot
+          // cancel Android's in-flight native focus handoff.
+          directPressPhaseRef.current = 'initial-focused';
+          return;
+        }
+        onFocus?.();
+      },
+      onBlur: () => {
+        isNativeFocusedRef.current = false;
+        directPressPhaseRef.current = 'idle';
+        onBlur?.();
+      },
+      isDisabled: isInteractionBlocked,
+      allowDisabledBlurCallbacks: true,
+    });
+    const [shouldFocusInput, setShouldFocusInput] = useState(false);
+    const isInlineActive = isFocused || displayValue.length > 0;
+    const usesFloatingLabel =
+      variant === 'inline' || variant === 'inline-labeled';
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => {
+          // Same guard as a tap. A disabled input never focuses or blurs, so
+          // setting isFocused here would leave the empty field expanded.
+          if (isInteractionBlocked) {
+            return;
+          }
+          captureInputLocale();
+          directPressPhaseRef.current = 'idle';
+          // Match a tap: expand the empty inline field, then focus it once it
+          // has a real frame. Focusing the collapsed input dismisses iOS.
+          setIsFocused(true);
+          setShouldFocusInput(true);
+        },
+      }),
+      [captureInputLocale, isInteractionBlocked, setIsFocused],
+    );
+    const inputAccessoryViewID =
+      Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+
+    useEffect(() => {
+      if (isInteractionBlocked) {
+        isNativeFocusedRef.current = false;
+        directPressPhaseRef.current = 'idle';
+        setShouldFocusInput(false);
+        setIsFocused(false);
+        inputRef.current?.blur();
+        return;
+      }
+      if (shouldFocusInput) {
+        setShouldFocusInput(false);
+        inputRef.current?.focus();
+      }
+    }, [inputRef, isInteractionBlocked, setIsFocused, shouldFocusInput]);
+
+    const hiddenProps = isHidden
+      ? ({
+          pointerEvents: 'none' as const,
+          accessibilityElementsHidden: true,
+          importantForAccessibility: 'no-hide-descendants' as const,
+          style: { height: 0, overflow: 'hidden' as const, opacity: 0 },
+        } as const)
+      : undefined;
+    const handleFieldPressIn = () => {
+      if (isInteractionBlocked) {
+        return;
+      }
+      directPressPhaseRef.current = isNativeFocusedRef.current
+        ? 'retap'
+        : 'initial-press';
+    };
+    // Initial focus realigns through onFocus. Only a re-tap needs this fallback;
+    // scrolling every initial press again can make adjacent Scale inputs fight.
+    const handleFieldPressOut = () => {
+      const phase = directPressPhaseRef.current;
+      directPressPhaseRef.current = 'idle';
+      if (isInteractionBlocked) {
+        return;
+      }
+      if (phase === 'initial-focused') {
+        onFocus?.();
+        return;
+      }
+      if (phase === 'retap') {
+        onFieldPress?.();
+      }
+    };
+    const focusInput = () => {
+      if (isInteractionBlocked) {
+        return;
+      }
+      if (isNativeFocusedRef.current) {
+        onFieldPress?.();
+        return;
+      }
+      captureInputLocale();
+      // Pressable.onPress runs after release, so native onFocus can realign
+      // immediately without arming the direct-input press delay.
+      directPressPhaseRef.current = 'idle';
+      setIsFocused(true);
+      setShouldFocusInput(true);
+    };
+
+    const input = (
+      <Input
+        ref={inputRef}
+        {...inputProps}
+        keyboardType={keyboardType}
+        // A tap landing here is consumed by the input, so neither the inline
+        // variant's wrapping pressable nor the stacked variant's label fires.
+        onPressIn={handleFieldPressIn}
+        onPressOut={handleFieldPressOut}
+        inputAccessoryViewID={inputAccessoryViewID}
+        placeholder={placeholder}
+        placeholderTextColor={tw.color(`text-${placeholderColor}`)}
+        textVariant={TextVariant.BodySm}
+        isStateStylesDisabled
+        twClassName="flex-1 border-0 bg-transparent p-0"
+        testID={testID}
+        accessibilityLabel={label}
+      />
+    );
+
+    if (usesFloatingLabel) {
+      return (
+        <Box
+          ref={containerRef}
+          twClassName={
+            isHidden
+              ? undefined
+              : 'h-[54px] flex-row items-center border-t border-muted px-3 py-1'
+          }
+          testID={`${testID}-container`}
+          {...hiddenProps}
+        >
+          {/* Props stay fixed across focus; Android drops focus if they toggle. */}
+          <Pressable
+            onPress={focusInput}
+            disabled={isInteractionBlocked}
+            accessible={false}
+            style={tw`h-full min-w-0 flex-1 justify-center`}
+            testID={getPerpsProCompactFieldTestId(testID)}
+          >
+            <Box
+              twClassName={
+                isInlineActive
+                  ? 'absolute inset-x-0 top-0'
+                  : 'absolute inset-0 justify-center'
+              }
+              testID={getPerpsProCompactInputLabelContainerTestId(testID)}
+            >
+              <Text
+                variant={
+                  isInlineActive ? TextVariant.BodyXs : TextVariant.BodySm
+                }
+                color={TextColor.TextAlternative}
+                numberOfLines={labelNumberOfLines}
+                accessible={false}
+                importantForAccessibility="no"
+                testID={`${testID}-label`}
+              >
+                {label}
+              </Text>
+            </Box>
+            {/* Opacity hides the empty input, but opacity 0 is also what keeps
+                this row a native view. collapsable={false} keeps that true at
+                opacity 1, so focusing cannot reparent the Android input. */}
+            <Box
+              collapsable={false}
+              twClassName={
+                isInlineActive
+                  ? 'absolute inset-x-0 bottom-0 flex-row items-center'
+                  : 'absolute inset-x-0 bottom-0 flex-row items-center opacity-0'
+              }
+              testID={getPerpsProCompactInputRowTestId(testID)}
+            >
+              <Box twClassName="shrink-0">{startAccessory}</Box>
+              {input}
+            </Box>
+          </Pressable>
+          {endAccessory}
+        </Box>
+      );
+    }
+
     return (
       <Box
-        twClassName="h-12 flex-row items-center border-t border-muted px-3"
+        twClassName={isHidden ? undefined : 'rounded-xl bg-muted p-3'}
         testID={`${testID}-container`}
+        {...hiddenProps}
       >
-        {input}
-        {endAccessory}
+        <Box twClassName="flex-row items-center justify-between">
+          {/* Tapping the label focuses the input and opens the keyboard, same
+              as tapping the visually small input row itself. */}
+          <Pressable onPress={focusInput} disabled={isInteractionBlocked}>
+            <Text
+              variant={labelVariant}
+              color={TextColor.TextAlternative}
+              numberOfLines={labelNumberOfLines}
+            >
+              {label}
+            </Text>
+          </Pressable>
+          {endAccessory}
+        </Box>
+        <Box twClassName="flex-row items-center">
+          {startAccessory}
+          {input}
+        </Box>
+        {footer ? (
+          <Box twClassName="mt-3" testID={`${testID}-footer`}>
+            {footer}
+          </Box>
+        ) : null}
       </Box>
     );
-  }
+  },
+);
 
-  return (
-    <Box twClassName="rounded-xl bg-muted p-3" testID={`${testID}-container`}>
-      <Box twClassName="flex-row items-center justify-between">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
-        {endAccessory}
-      </Box>
-      {input}
-      {footer}
-    </Box>
-  );
-};
+PerpsProCompactInput.displayName = 'PerpsProCompactInput';
 
 export default PerpsProCompactInput;

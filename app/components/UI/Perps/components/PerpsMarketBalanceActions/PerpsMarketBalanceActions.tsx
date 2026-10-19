@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Animated, LayoutChangeEvent, Modal, View } from 'react-native';
+import { LayoutChangeEvent, Modal, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -39,6 +40,7 @@ import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
@@ -226,26 +228,24 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
           />
           {isAnyTransactionInProgress && (
             <>
-              <Box twClassName="px-4">
-                <KeyValueRow
-                  variant={KeyValueRowVariant.Summary}
-                  keyLabel={statusText}
-                  twClassName="mt-3 h-6"
-                  value={
-                    transactionAmountDisplay ? (
-                      <SensitiveText
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.TextDefault}
-                        isHidden={privacyMode}
-                        length={SensitiveTextLength.Short}
-                      >
-                        {transactionAmountDisplay}
-                      </SensitiveText>
-                    ) : undefined
-                  }
-                />
-              </Box>
+              <KeyValueRow
+                variant={KeyValueRowVariant.Summary}
+                keyLabel={statusText}
+                twClassName="mt-3 h-6"
+                value={
+                  transactionAmountDisplay ? (
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextDefault}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                    >
+                      {transactionAmountDisplay}
+                    </SensitiveText>
+                  ) : undefined
+                }
+              />
               <SectionDivider marginVertical={3} />
             </>
           )}
@@ -364,14 +364,16 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey={'geo_block'}
-              testID={
-                PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
-              }
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey={'geo_block'}
+                testID={
+                  PerpsMarketBalanceActionsSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP
+                }
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

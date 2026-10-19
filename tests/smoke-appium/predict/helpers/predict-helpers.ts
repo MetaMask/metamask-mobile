@@ -1,5 +1,9 @@
 import { createLogger, LogLevel } from '../../../framework/logger.js';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  POLYGON_PUSD_TOKEN_ADDRESS,
+  USDC_CONTRACT_ADDRESS,
+} from '../../../api-mocking/mock-responses/polymarket/polymarket-constants.js';
 
 const logger = createLogger({
   name: 'PredictHelpers',
@@ -23,6 +27,66 @@ export const remoteFeatureFlagPerpsDisabledForPredictSmoke = () => ({
   perpsPerpTradingEnabled: {
     enabled: false,
     minimumVersion: '0.0.0',
+  },
+});
+
+/**
+ * Keeps legacy Predict smoke flows off the extended sports details experience.
+ * Feature flag mocks deep-merge version maps, so every app-supported variation
+ * must be disabled explicitly.
+ */
+export const remoteFeatureFlagExtendedSportsMarketsDisabledForPredictSmoke =
+  () => ({
+    predictExtendedSportsMarkets: {
+      versions: {
+        '8.6.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '8.4.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '8.10.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+        '7.82.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+      },
+    },
+  });
+
+/**
+ * Disables the Predict "withdraw to any token" (MetaMask Pay) flow, forcing the
+ * legacy same-token withdraw path.
+ */
+export const remoteFeatureFlagWithdrawAnyTokenDisabled = () => ({
+  confirmations_pay_post_quote: {
+    versions: {
+      '8.0.0': {
+        overrides: {
+          predictWithdraw: { enabled: false },
+        },
+      },
+    },
+  },
+});
+
+/**
+ * Keeps Polygon Predict collateral classified as USD-pegged in E2E.
+ * The production stableTokens flag replaces the app fallback, but currently
+ * omits Polygon. Without a fiat rate, confirmation amount input stays at zero.
+ */
+export const remoteFeatureFlagPolygonStableTokensForPredictSmoke = () => ({
+  stableTokens: {
+    '0x89': [USDC_CONTRACT_ADDRESS, POLYGON_PUSD_TOKEN_ADDRESS],
   },
 });
 

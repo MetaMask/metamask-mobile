@@ -1,5 +1,6 @@
 import {
   BridgeController,
+  UnifiedSwapBridgeEventName,
   type BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
 import { TransactionController } from '@metamask/transaction-controller';
@@ -23,12 +24,11 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
-import {
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 
-jest.mock('@metamask/bridge-controller');
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  BridgeController: jest.fn(),
+}));
 jest.mock('../../utils/analytics');
 jest.mock('../../../../util/trace');
 jest.mock('../../../../util/analytics/AnalyticsEventBuilder');
@@ -263,25 +263,41 @@ describe('BridgeController Init', () => {
       );
     });
 
-    describe('getUseAssetsControllerForRates', () => {
-      function buildInitRequestWithCallMock(callImpl: () => unknown) {
-        return buildInitRequestMock({
-          initMessenger: {
-            call: jest.fn().mockImplementation(callImpl),
-          } as unknown as BridgeControllerInitMessenger,
-        });
-      }
+    it('forwards Failed failure telemetry including hash presence', () => {
+      const requestMock = buildInitRequestMock();
 
-      it('returns true when the assets unify state feature flag is enabled', () => {
+      bridgeControllerInit(requestMock);
+
+      const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+      const { trackMetaMetricsFn } = constructorOptions;
+      const properties = {
+        error_message: 'Snap request failed',
+        error_code: 'unknown',
+        failure_phase: 'broadcast',
+        source_hash_present: false,
+        destination_hash_present: false,
+        provider: 'rango_sunswap',
+        chain_id_source: 'tron:728126428',
+      };
+
+      // The payload shape is enforced at runtime by the controller; the test
+      // fixture intentionally omits unrelated required fields.
+      trackMetaMetricsFn(
+        UnifiedSwapBridgeEventName.Failed,
+        properties as never,
+      );
+
+      expect(buildAndTrackEvent).toHaveBeenCalledWith(
+        requestMock.initMessenger,
+        UnifiedSwapBridgeEventName.Failed,
+        properties,
+      );
+    });
+
+    describe('getUseAssetsControllerForRates', () => {
+      it('always returns true, since AssetsController is the sole rates source', () => {
         // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => ({
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-            },
-          },
-        }));
+        const requestMock = buildInitRequestMock();
 
         // Act
         bridgeControllerInit(requestMock);
@@ -291,56 +307,6 @@ describe('BridgeController Init', () => {
           bridgeControllerClassMock.mock.calls[0][0];
         expect(getUseAssetsControllerForRates).toBeDefined();
         expect(getUseAssetsControllerForRates?.()).toBe(true);
-      });
-
-      it('returns false when the assets unify state feature flag is disabled', () => {
-        // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => ({
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: { enabled: false, featureVersion: null },
-          },
-        }));
-
-        // Act
-        bridgeControllerInit(requestMock);
-
-        // Assert
-        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
-        );
-      });
-
-      it('returns true when the feature flag is absent while hardcoded on for development', () => {
-        // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => ({
-          remoteFeatureFlags: {},
-        }));
-
-        // Act
-        bridgeControllerInit(requestMock);
-
-        // Assert
-        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
-        );
-      });
-
-      it('returns false when initMessenger.call throws', () => {
-        // Arrange
-        const requestMock = buildInitRequestWithCallMock(() => {
-          throw new Error('Controller not ready');
-        });
-
-        // Act
-        bridgeControllerInit(requestMock);
-
-        // Assert
-        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
-        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          false,
-        );
       });
     });
 

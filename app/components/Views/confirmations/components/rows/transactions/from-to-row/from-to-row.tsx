@@ -4,10 +4,6 @@ import { View } from 'react-native';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
 import { useAddressPoisoningDetection } from '../../../../hooks/send/useAddressPoisoningDetection';
@@ -23,6 +19,12 @@ import useDisplayName, {
 } from '../../../../../../hooks/DisplayName/useDisplayName';
 import { toFormattedAddress } from '../../../../../../../util/address';
 import styleSheet from './from-to-row.styles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 interface AddressDisplayProps {
   address: string;
@@ -46,8 +48,8 @@ const AddressDisplay = ({
       <View style={styles.addressContent}>
         {label}
         <Text
-          variant={TextVariant.BodyMD}
-          color={isPoisoned ? TextColor.Error : undefined}
+          variant={TextVariant.BodyMd}
+          color={isPoisoned ? TextColor.ErrorDefault : undefined}
           numberOfLines={1}
           ellipsizeMode="middle"
         >
@@ -128,8 +130,8 @@ const FromToRow = () => {
             image={fromImage}
             label={
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 style={styles.label}
               >
                 {fromLabel}
@@ -153,8 +155,9 @@ const FromToRow = () => {
                 {isPoisoningSuspect && (
                   <View style={styles.poisonedBadge}>
                     <Text
-                      variant={TextVariant.BodyXSMedium}
-                      color={TextColor.Error}
+                      variant={TextVariant.BodyXs}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.ErrorDefault}
                     >
                       {strings('alert_system.address_poisoning.badge')}
                     </Text>

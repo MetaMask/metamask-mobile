@@ -71,7 +71,8 @@ describe('useMaxValueRefresher', () => {
     });
 
     expect(mockUpdateEditableParams).toHaveBeenCalledWith(transactionId, {
-      value: '0xb', // 16 - 11 = 5
+      updateType: false,
+      value: '0xb', // 16 - 5 = 11
     });
   });
 
@@ -123,6 +124,44 @@ describe('useMaxValueRefresher', () => {
 
       renderHookWithProvider(() => useMaxValueRefresher(), {
         state: transferConfirmationStateWithoutSimpleSend,
+      });
+
+      expect(mockUpdateEditableParams).not.toHaveBeenCalled();
+    });
+
+    it('gas estimation has failed', () => {
+      mockUseMaxValueMode.mockReturnValue({
+        maxValueMode: true,
+      });
+
+      const transferConfirmationStateWithSimulationFails = merge(
+        {},
+        transferConfirmationState,
+        {
+          engine: {
+            backgroundState: {
+              TransactionController: {
+                transactions: [
+                  {
+                    simulationFails: {
+                      reason: 'execution reverted',
+                      debug: {},
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      );
+
+      mockUseSelector.mockImplementation(
+        (fn: (state: DeepPartial<RootState>) => unknown) =>
+          fn(transferConfirmationStateWithSimulationFails),
+      );
+
+      renderHookWithProvider(() => useMaxValueRefresher(), {
+        state: transferConfirmationStateWithSimulationFails,
       });
 
       expect(mockUpdateEditableParams).not.toHaveBeenCalled();

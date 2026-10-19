@@ -68,7 +68,7 @@ import PredictWithdrawUnavailableSheet, {
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictPortfolioEnabledFlag,
@@ -86,6 +86,7 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -98,16 +99,10 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-  topInset?: number;
-  hideTitle?: boolean;
-}> = ({ onDepositWalletWithdrawPress, topInset = 0, hideTitle = false }) => (
-  <Box
-    twClassName="pb-4"
-    style={topInset > 0 ? { paddingTop: topInset } : undefined}
-  >
+}> = ({ onDepositWalletWithdrawPress }) => (
+  <Box twClassName="pb-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-      hideTitle={hideTitle}
     />
   </Box>
 );
@@ -154,8 +149,6 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
-  topInset?: number;
-  hideTitle?: boolean;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -169,8 +162,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
-  topInset = 0,
-  hideTitle = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -210,15 +201,20 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-          topInset={topInset}
-          hideTitle={hideTitle}
+        />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterBalance}
+          containerClassName="px-4 pb-3"
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
           </Box>
         )}
-        <PredictWorldCupMainFeedBanner variant="compact" />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterFeaturedCarousel}
+          containerClassName="px-4 pb-3"
+        />
       </Animated.View>
       <View
         ref={tabBarRef}
@@ -271,6 +267,7 @@ interface PredictTabContentProps {
   headerHidden: boolean;
   customQueryParams?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  onInteractiveChange?: (isInteractive: boolean) => void;
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
@@ -283,6 +280,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   headerHidden,
   customQueryParams,
   transactionActiveAbTests,
+  onInteractiveChange,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -321,6 +319,18 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Same gate as the skeleton branch below. The feed TTI span must end when
+  // this tab can show list/empty/error, not when the screen merely mounts.
+  const isShowingInitialSkeleton =
+    !hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+    onInteractiveChange?.(!isShowingInitialSkeleton);
+  }, [isActive, isShowingInitialSkeleton, onInteractiveChange]);
 
   const contentInsetTop = headerHeight + tabBarHeight;
   const currentPaddingTop = headerHidden ? tabBarHeight : contentInsetTop;
@@ -397,7 +407,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     [tw, contentInsetTop, headerHidden, tabBarHeight],
   );
 
-  if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
+  if (isShowingInitialSkeleton) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
         <PredictMarketSkeleton
@@ -478,6 +488,7 @@ interface PredictFeedTabsProps {
   headerHidden: boolean;
   initialPage: number;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  onActiveTabInteractiveChange: (isInteractive: boolean) => void;
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
@@ -491,6 +502,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   headerHidden,
   initialPage,
   transactionActiveAbTests,
+  onActiveTabInteractiveChange,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -531,6 +543,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
             headerHidden={headerHidden}
             customQueryParams={tab.customQueryParams}
             transactionActiveAbTests={transactionActiveAbTests}
+            onInteractiveChange={onActiveTabInteractiveChange}
           />
         </View>
       ))}
@@ -539,26 +552,11 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 };
 
 interface PredictFeedProps {
-  hideHeader?: boolean;
-  /**
-   * Top padding before the title/balance header when embedded in
-   * HomepageDiscoveryTabs — keeps the predict background flush under the
-   * discovery tab bar and adds spacing before the screen title (32px).
-   */
-  topInset?: number;
   entryPoint?: PredictEntryPoint;
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-  walletHeaderTranslateY?: SharedValue<number>;
-  walletHeaderHeight?: number;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
-  hideHeader = false,
-  topInset = 0,
   entryPoint: propEntryPoint,
-  onHeaderHiddenChange,
-  walletHeaderTranslateY,
-  walletHeaderHeight,
 }) => {
   const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
@@ -577,6 +575,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
+  const [isActiveTabInteractive, setIsActiveTabInteractive] = useState(false);
 
   const {
     isSearchVisible,
@@ -598,12 +597,15 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   const sessionManager = PredictFeedSessionManager.getInstance();
 
+  // End on the active tab's data, not mount. `!isSearchVisible` is already
+  // true on first paint, so using it alone closed this span at ~0ms.
   usePredictMeasurement({
     traceName: TraceName.PredictFeedView,
-    conditions: [!isSearchVisible],
+    conditions: [!isSearchVisible, isActiveTabInteractive],
     debugContext: {
       entryPoint: feedEntryPoint,
       isSearchVisible,
+      isActiveTabInteractive,
     },
   });
 
@@ -641,9 +643,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     headerRef,
     tabBarRef,
     setActiveIndex,
-    onHeaderHiddenChange,
-    walletHeaderTranslateY,
-    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -679,11 +678,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     showSearch();
   }, [tabs, activeIndex, listEntryPoint, showSearch]);
 
-  const headerTopInset = hideHeader ? topInset : 0;
-
   return (
     <SafeAreaView
-      edges={hideHeader ? [] : { bottom: 'additive' }}
+      edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -691,28 +688,26 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {!hideHeader && (
-          <Box
-            style={tw.style('z-20', {
-              backgroundColor: colors.background.default,
-            })}
-          >
-            <HeaderStandard
-              includesTopInset
-              onBack={handleBackPress}
-              backButtonProps={{
-                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-              }}
-              endButtonIconProps={[
-                {
-                  iconName: IconName.Search,
-                  onPress: handleShowSearch,
-                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-                },
-              ]}
-            />
-          </Box>
-        )}
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderStandard
+            includesTopInset
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleShowSearch,
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+              },
+            ]}
+          />
+        </Box>
 
         <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
@@ -726,8 +721,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-            topInset={headerTopInset}
-            hideTitle={hideHeader}
           />
 
           {layoutReady && (
@@ -742,6 +735,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               headerHidden={headerHidden}
               initialPage={activeIndex}
               transactionActiveAbTests={transactionActiveAbTests}
+              onActiveTabInteractiveChange={setIsActiveTabInteractive}
             />
           )}
         </Box>

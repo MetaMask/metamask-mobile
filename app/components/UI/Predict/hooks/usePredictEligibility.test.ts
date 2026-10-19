@@ -16,6 +16,9 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       refreshEligibility: jest.fn(),
+      state: {
+        eligibility: { status: 'eligible', country: 'US' },
+      },
     },
   },
 }));
@@ -40,7 +43,7 @@ describe('usePredictEligibility', () => {
     engine: {
       backgroundState: {
         PredictController: {
-          eligibility: { eligible: boolean; country?: string };
+          eligibility: { status: string; country?: string };
         };
       };
     };
@@ -63,56 +66,87 @@ describe('usePredictEligibility', () => {
       remove: mockSubscriptionRemove,
     });
 
-    mockRefreshEligibility.mockResolvedValue(undefined);
+    mockRefreshEligibility.mockResolvedValue({
+      status: 'eligible',
+      country: 'US',
+    });
 
     mockState = {
       engine: {
         backgroundState: {
           PredictController: {
-            eligibility: { eligible: false },
+            eligibility: { status: 'eligible', country: 'US' },
           },
         },
       },
     };
 
+    (
+      Engine.context.PredictController as {
+        state: { eligibility: unknown };
+      }
+    ).state.eligibility =
+      mockState.engine.backgroundState.PredictController.eligibility;
+
     mockUseSelector.mockImplementation((selector) => selector(mockState));
   });
 
   afterEach(() => {
+    getRefreshManagerForTesting().reset();
     jest.resetAllMocks();
     jest.useRealTimers();
   });
 
   describe('eligibility state', () => {
     it('returns isEligible true when eligible', () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
-      };
-
       const { result } = renderHook(() => usePredictEligibility());
 
+      expect(result.current.status).toBe('eligible');
       expect(result.current.isEligible).toBe(true);
+      expect(result.current.isIneligible).toBe(false);
+      expect(result.current.isChecking).toBe(false);
+      expect(result.current.isUnavailable).toBe(false);
       expect(result.current.country).toBe('US');
     });
 
-    it('returns isEligible false when ineligible', () => {
+    it('returns isIneligible when status is ineligible', () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: false,
-        country: 'UK',
+        status: 'ineligible',
+        country: 'DE',
       };
 
       const { result } = renderHook(() => usePredictEligibility());
 
+      expect(result.current.status).toBe('ineligible');
       expect(result.current.isEligible).toBe(false);
-      expect(result.current.country).toBe('UK');
+      expect(result.current.isIneligible).toBe(true);
+      expect(result.current.country).toBe('DE');
     });
 
-    it('returns false when eligibility is not set', () => {
+    it('returns isChecking when status is checking', () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        status: 'checking',
+      };
+
       const { result } = renderHook(() => usePredictEligibility());
 
+      expect(result.current.status).toBe('checking');
+      expect(result.current.isChecking).toBe(true);
       expect(result.current.isEligible).toBe(false);
       expect(result.current.country).toBeUndefined();
+    });
+
+    it('returns isUnavailable when status is unavailable', () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        status: 'unavailable',
+      };
+
+      const { result } = renderHook(() => usePredictEligibility());
+
+      expect(result.current.status).toBe('unavailable');
+      expect(result.current.isUnavailable).toBe(true);
+      expect(result.current.isEligible).toBe(false);
+      expect(result.current.isIneligible).toBe(false);
     });
   });
 
@@ -218,7 +252,7 @@ describe('usePredictEligibility', () => {
 
     it('ignores transition from active to background', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -237,7 +271,7 @@ describe('usePredictEligibility', () => {
 
     it('ignores transition from active to inactive', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -256,7 +290,7 @@ describe('usePredictEligibility', () => {
 
     it('ignores transition from background to inactive', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -277,7 +311,7 @@ describe('usePredictEligibility', () => {
   describe('debouncing', () => {
     it('skips refresh when less than debounce interval has passed', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -293,7 +327,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(50);
+      jest.advanceTimersByTime(30_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -305,14 +339,14 @@ describe('usePredictEligibility', () => {
         'PredictController: Skipping refresh due to debounce',
         expect.objectContaining({
           timeSinceLastRefresh: expect.any(Number),
-          minimumInterval: 100,
+          minimumInterval: 60_000,
         }),
       );
     });
 
     it('allows refresh when debounce interval has elapsed', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -328,7 +362,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(100);
+      jest.advanceTimersByTime(60_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -340,7 +374,7 @@ describe('usePredictEligibility', () => {
 
     it('allows refresh when more than debounce interval has elapsed', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -356,7 +390,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(200);
+      jest.advanceTimersByTime(90_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -368,7 +402,7 @@ describe('usePredictEligibility', () => {
 
     it('resets debounce timer after successful refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -384,7 +418,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(100);
+      jest.advanceTimersByTime(60_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -393,7 +427,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
 
-      jest.advanceTimersByTime(50);
+      jest.advanceTimersByTime(30_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -435,7 +469,7 @@ describe('usePredictEligibility', () => {
 
     it('updates debounce timer after manual refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -450,7 +484,7 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      jest.advanceTimersByTime(50);
+      jest.advanceTimersByTime(30_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -511,7 +545,7 @@ describe('usePredictEligibility', () => {
 
     it('continues operation after failed refresh', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -529,8 +563,11 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      mockRefreshEligibility.mockResolvedValueOnce(undefined);
-      jest.advanceTimersByTime(100);
+      mockRefreshEligibility.mockResolvedValueOnce({
+        status: 'eligible',
+        country: 'US',
+      });
+      jest.advanceTimersByTime(60_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -632,7 +669,7 @@ describe('usePredictEligibility', () => {
 
     it('allows new refresh after previous one completes', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -659,8 +696,11 @@ describe('usePredictEligibility', () => {
         await firstRefreshPromise;
       });
 
-      mockRefreshEligibility.mockResolvedValueOnce(undefined);
-      jest.advanceTimersByTime(100);
+      mockRefreshEligibility.mockResolvedValueOnce({
+        status: 'eligible',
+        country: 'US',
+      });
+      jest.advanceTimersByTime(60_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -672,7 +712,7 @@ describe('usePredictEligibility', () => {
 
     it('clears in-flight promise after error', async () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'eligible',
         country: 'US',
       };
 
@@ -703,8 +743,11 @@ describe('usePredictEligibility', () => {
         }
       });
 
-      mockRefreshEligibility.mockResolvedValueOnce(undefined);
-      jest.advanceTimersByTime(100);
+      mockRefreshEligibility.mockResolvedValueOnce({
+        status: 'eligible',
+        country: 'US',
+      });
+      jest.advanceTimersByTime(60_000);
 
       await act(async () => {
         handleAppStateChange('background');
@@ -715,101 +758,73 @@ describe('usePredictEligibility', () => {
     });
   });
 
-  describe('auto-refresh when country is missing', () => {
-    it('starts polling when country is not returned', async () => {
+  describe('auto-refresh when eligibility is unavailable', () => {
+    const setUnavailable = () => {
       mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
+        status: 'unavailable',
       };
+      (
+        Engine.context.PredictController as { state: { eligibility: unknown } }
+      ).state = {
+        eligibility: { status: 'unavailable' },
+      };
+      mockRefreshEligibility.mockResolvedValue({ status: 'unavailable' });
+    };
+
+    it('starts a retry cycle when eligibility is unavailable', async () => {
+      setUnavailable();
 
       renderHook(() => usePredictEligibility());
 
       await act(async () => {
+        jest.advanceTimersByTime(0);
         await Promise.resolve();
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
       expect(mockDevLogger).toHaveBeenCalledWith(
-        'PredictController: Country missing, auto-refreshing eligibility',
+        'PredictController: Eligibility unavailable, auto-refreshing',
         { retryCount: 1, maxRetries: 3 },
       );
     });
 
-    it('polls again after polling interval when country is still missing', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
+    it('polls sequentially up to three automatic retries', async () => {
+      setUnavailable();
 
       renderHook(() => usePredictEligibility());
 
       await act(async () => {
+        jest.advanceTimersByTime(0);
         await Promise.resolve();
       });
-
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
       });
-
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
 
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
       });
-
-      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
-    });
-
-    it('continues polling while country is missing up to max retries', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
-
-      renderHook(() => usePredictEligibility());
-
-      // Wait for initial poll to complete (retry 1)
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
-
-      // Advance timer to trigger second poll (retry 2)
-      await act(async () => {
-        jest.advanceTimersByTime(2000);
-        await Promise.resolve();
-      });
-
-      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
-
-      // Advance timer to trigger third poll (retry 3 - max)
-      await act(async () => {
-        jest.advanceTimersByTime(2000);
-        await Promise.resolve();
-      });
-
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
     });
 
     it('stops polling after reaching max retries', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
+      setUnavailable();
 
       renderHook(() => usePredictEligibility());
 
-      // Complete all 3 retries
       await act(async () => {
+        jest.advanceTimersByTime(0);
         await Promise.resolve();
       });
-
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
       });
-
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
@@ -817,63 +832,89 @@ describe('usePredictEligibility', () => {
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
 
-      // Advance timer again - no more polls should happen
       await act(async () => {
         jest.advanceTimersByTime(2000);
         await Promise.resolve();
       });
 
-      // Still 3 calls - no additional polling after max retries
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
       expect(mockDevLogger).toHaveBeenCalledWith(
-        'PredictController: Max retries reached for missing country',
+        'PredictController: Max retries reached for unavailable eligibility',
         expect.objectContaining({
           retryCount: 3,
         }),
       );
     });
 
-    it('does not start polling when country is already available', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-        country: 'US',
-      };
-
+    it('does not start polling when eligibility is already known', async () => {
       renderHook(() => usePredictEligibility());
 
       await act(async () => {
         await Promise.resolve();
       });
 
-      expect(mockDevLogger).not.toHaveBeenCalledWith(
-        'PredictController: Country missing, auto-refreshing eligibility',
-        expect.any(Object),
-      );
+      expect(mockRefreshEligibility).not.toHaveBeenCalled();
     });
 
-    it('continues polling after failed refresh', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
+    it('uses one retry cycle across multiple hook instances', async () => {
+      setUnavailable();
 
+      renderHook(() => usePredictEligibility());
+      renderHook(() => usePredictEligibility());
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops retrying once a definitive result is returned', async () => {
+      setUnavailable();
+      mockRefreshEligibility.mockResolvedValueOnce({
+        status: 'eligible',
+        country: 'PT',
+      });
+
+      renderHook(() => usePredictEligibility());
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues retrying after an individual failure', async () => {
+      setUnavailable();
       mockRefreshEligibility.mockRejectedValueOnce(new Error('Network error'));
 
       renderHook(() => usePredictEligibility());
 
       await act(async () => {
+        jest.advanceTimersByTime(0);
         await Promise.resolve();
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
       expect(mockDevLogger).toHaveBeenCalledWith(
-        'PredictController: Auto-refresh for missing country failed',
+        'PredictController: Auto-refresh for unavailable eligibility failed',
         expect.objectContaining({
           error: 'Network error',
           retryCount: 1,
         }),
       );
 
-      mockRefreshEligibility.mockResolvedValueOnce(undefined);
+      mockRefreshEligibility.mockResolvedValueOnce({ status: 'unavailable' });
 
       await act(async () => {
         jest.advanceTimersByTime(2000);
@@ -883,36 +924,13 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
     });
 
-    it('logs unknown error when auto-refresh fails with non-Error', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
-
-      mockRefreshEligibility.mockRejectedValueOnce('string error');
-
-      renderHook(() => usePredictEligibility());
-
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(mockDevLogger).toHaveBeenCalledWith(
-        'PredictController: Auto-refresh for missing country failed',
-        expect.objectContaining({
-          error: 'Unknown',
-          retryCount: 1,
-        }),
-      );
-    });
-
-    it('clears timeout on unmount', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
+    it('clears the retry timeout on unmount', async () => {
+      setUnavailable();
 
       const { unmount } = renderHook(() => usePredictEligibility());
 
       await act(async () => {
+        jest.advanceTimersByTime(0);
         await Promise.resolve();
       });
 
@@ -928,13 +946,38 @@ describe('usePredictEligibility', () => {
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
     });
 
-    it('uses sequential polling pattern - waits for response before scheduling next poll', async () => {
-      mockState.engine.backgroundState.PredictController.eligibility = {
-        eligible: true,
-      };
+    it('allows an explicit retry after the automatic budget is exhausted', async () => {
+      setUnavailable();
 
-      let resolveRefresh: (() => void) | undefined;
-      const refreshPromise = new Promise<void>((resolve) => {
+      const { result } = renderHook(() => usePredictEligibility());
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+        await Promise.resolve();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(3);
+
+      await act(async () => {
+        await result.current.refreshEligibility();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(4);
+    });
+
+    it('waits for the in-flight response before scheduling the next poll', async () => {
+      setUnavailable();
+
+      let resolveRefresh: ((value: { status: string }) => void) | undefined;
+      const refreshPromise = new Promise<{ status: string }>((resolve) => {
         resolveRefresh = resolve;
       });
       mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
@@ -942,12 +985,17 @@ describe('usePredictEligibility', () => {
       renderHook(() => usePredictEligibility());
 
       await act(async () => {
-        jest.advanceTimersByTime(2000);
+        jest.advanceTimersByTime(0);
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
 
-      resolveRefresh?.();
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      resolveRefresh?.({ status: 'unavailable' });
       await act(async () => {
         await refreshPromise;
       });
@@ -958,6 +1006,76 @@ describe('usePredictEligibility', () => {
       });
 
       expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+    });
+
+    it('attaches to an in-flight check and starts retries if it becomes unavailable', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        status: 'checking',
+      };
+      (
+        Engine.context.PredictController as { state: { eligibility: unknown } }
+      ).state = {
+        eligibility: { status: 'checking' },
+      };
+
+      let resolveRefresh: ((value: { status: string }) => void) | undefined;
+      const refreshPromise = new Promise<{ status: string }>((resolve) => {
+        resolveRefresh = resolve;
+      });
+      mockRefreshEligibility.mockReturnValueOnce(refreshPromise);
+
+      renderHook(() => usePredictEligibility());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveRefresh?.({ status: 'unavailable' });
+        await refreshPromise;
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not start retries when an in-flight check becomes eligible', async () => {
+      mockState.engine.backgroundState.PredictController.eligibility = {
+        status: 'checking',
+      };
+      (
+        Engine.context.PredictController as { state: { eligibility: unknown } }
+      ).state = {
+        eligibility: { status: 'checking' },
+      };
+
+      mockRefreshEligibility.mockResolvedValueOnce({
+        status: 'eligible',
+        country: 'PT',
+      });
+
+      renderHook(() => usePredictEligibility());
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(mockRefreshEligibility).toHaveBeenCalledTimes(1);
     });
   });
 });

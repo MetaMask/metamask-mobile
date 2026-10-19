@@ -25,12 +25,18 @@ export enum TokenDetailsSource {
   ExploreRwasStocks = 'explore_rwas_stocks',
   /** Explore omni-search result tap */
   ExploreSearch = 'explore_search',
+  /** Explore Earn section */
+  ExploreEarn = 'explore_earn',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
   /** Swap discovery feed — hot tokens / movers pills */
   MoversSwaps = 'movers-swaps',
   /** Swap discovery feed — stocks section */
   RwasStocksSwaps = 'rwas_stocks-swaps',
+  /** Robinhood Chain promo banner on the Swaps screen */
+  BannerRobinhoodSwaps = 'banner-robinhood-swaps',
+  /** Robinhood Chain promo banner on the Explore Crypto tab */
+  BannerRobinhoodExplore = 'banner-robinhood-explore',
   /** Swap/Bridge token selector */
   Swap = 'swap',
   /** Price alert notification deeplink */
@@ -55,7 +61,9 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreCryptoTrending,
   TokenDetailsSource.ExploreRwasStocks,
   TokenDetailsSource.ExploreSearch,
+  TokenDetailsSource.ExploreEarn,
   TokenDetailsSource.Trending,
+  TokenDetailsSource.BannerRobinhoodExplore,
 ]);
 
 /**
@@ -89,7 +97,40 @@ export interface TokenDetailsRouteParams extends TokenI {
   caipAssetId?: CaipAssetType;
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Long-form token description surfaced on the V1 Overview tab. Hidden when absent. */
+  description?: string;
 }
+
+/**
+ * Asset categories that get a dedicated Token Details V1 experience.
+ *
+ * V1 ships for memecoins first; stablecoins, stocks and RWAs follow on the
+ * same page with variant-specific sections and copy. Declared as a const
+ * object so adding an entry turns every `Record<TokenDetailsVariant, ...>`
+ * lookup into a type error until it handles the new variant.
+ */
+export const TokenDetailsVariant = {
+  Memecoin: 'memecoin',
+} as const;
+
+export type TokenDetailsVariant =
+  (typeof TokenDetailsVariant)[keyof typeof TokenDetailsVariant];
+
+/**
+ * Tabs on the V1 (meme) Token Details view. Feed is the default (landing) tab;
+ * Overview and Security follow, then Holders. Index order matters — it
+ * aligns with the tab bar and the swipeable pager pages, so keep it in sync
+ * with `strings('token_details_v1.tabs.*')`.
+ */
+export type TokenDetailsV1TabKey = 'overview' | 'security' | 'feed' | 'holders';
+
+/** Stable tab order — pager page order and tab bar order share this array. */
+export const TOKEN_DETAILS_V1_TABS: TokenDetailsV1TabKey[] = [
+  'feed',
+  'overview',
+  'security',
+  'holders',
+];
 
 /**
  * Exit actions tracked by TOKEN_DETAILS_CLOSED event.

@@ -1,5 +1,6 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
+import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 /**
  * Card spends and musdback from the accounts API
@@ -12,6 +13,8 @@ interface AccountsApiSettlement {
   /** Settlement time, epoch ms (parsed from the API's ISO timestamp). */
   time: number;
   chainId: Hex;
+  /** Block containing the settlement; omitted when Accounts API has no block. */
+  blockNumber?: number;
   /** The settlement token. */
   token: {
     address: Hex;
@@ -26,6 +29,10 @@ export type AccountsApiActivity =
   | (AccountsApiSettlement & {
       kind: 'card';
       paidTo: Hex;
+      /** True when the settlement transfer is denominated in configured vmUSD shares. */
+      isVaultShare?: boolean;
+      /** 18-decimal indexed rate selected at-or-before blockNumber, when available. */
+      historicalRate?: string;
     })
   | (AccountsApiSettlement & {
       kind: 'cashback';
@@ -41,7 +48,8 @@ export type AccountsApiActivity =
  **/
 export type MoneyActivityItem =
   | { kind: 'onchain'; id: string; time: number; tx: TransactionMeta }
-  | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity };
+  | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity }
+  | { kind: 'cardProvider'; id: string; time: number; tx: CardTransaction };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
   kind: 'onchain',
@@ -56,5 +64,12 @@ export const accountsApiItem = (
   kind: 'accountsApi',
   id: tx.hash,
   time: tx.time,
+  tx,
+});
+
+export const cardProviderItem = (tx: CardTransaction): MoneyActivityItem => ({
+  kind: 'cardProvider',
+  id: tx.id,
+  time: tx.timestamp,
   tx,
 });

@@ -29,7 +29,7 @@ export default HeaderRootMeta;
 
 export const Default = {
   args: {
-    title: 'Header Title',
+    title: 'Header title',
   },
 };
 
@@ -69,7 +69,7 @@ export const WithChildren = {
 export const WithEndAccessory = {
   render: () => (
     <HeaderRoot
-      title="Page Title"
+      title="Page title"
       endAccessory={<Text variant={TextVariant.BodyMd}>Custom end</Text>}
     />
   ),

@@ -5,21 +5,15 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 
 const mockQuickBuyRoot = jest.fn((_props: unknown) => null);
 
-jest.mock(
-  '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy',
-  () => ({
-    QuickBuy: {
-      Root: (props: unknown) => mockQuickBuyRoot(props),
-    },
-  }),
-);
+jest.mock('../../QuickBuy/quickBuy', () => ({
+  QuickBuy: {
+    Root: (props: unknown) => mockQuickBuyRoot(props),
+  },
+}));
 
-jest.mock(
-  '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/features',
-  () => ({
-    TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy'] },
-  }),
-);
+jest.mock('../../QuickBuy/features', () => ({
+  TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy'] },
+}));
 
 const mockFormatChainIdToCaip = jest.fn();
 jest.mock('@metamask/bridge-controller', () => ({

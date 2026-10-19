@@ -17,24 +17,18 @@ export const selectorStyleSheet = (params: { theme: Theme }) => {
     },
     intervalTab: {
       paddingVertical: 6,
-      borderRadius: 6,
+      borderRadius: 9999,
       padding: 10,
       alignItems: 'center',
     },
     intervalTabActive: {
-      backgroundColor: colors.primary.muted,
+      backgroundColor: colors.background.muted,
     },
     intervalTabInactive: {
       backgroundColor: importedColors.transparent,
     },
     intervalTabText: {
       fontSize: 12,
-    },
-    intervalTabTextActive: {
-      color: colors.primary.inverse,
-    },
-    intervalTabTextInactive: {
-      color: colors.text.muted,
     },
   });
 };

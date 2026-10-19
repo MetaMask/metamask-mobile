@@ -7,12 +7,14 @@ import {
 
 const initialState = {
   securityAlertsEnabled: true,
+  mmPayDebugEnabled: false,
 };
 
 const experimentalSettingsReducer = (
   state = initialState,
   action: {
     securityAlertsEnabled: SetSecurityAlertsEnabled;
+    mmPayDebugEnabled: boolean;
     type: string;
   },
 ) => {
@@ -21,6 +23,11 @@ const experimentalSettingsReducer = (
       return {
         ...state,
         securityAlertsEnabled: action.securityAlertsEnabled,
+      };
+    case ActionType.SET_MM_PAY_DEBUG_ENABLED:
+      return {
+        ...state,
+        mmPayDebugEnabled: action.mmPayDebugEnabled,
       };
     default:
       return state;

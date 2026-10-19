@@ -1,13 +1,46 @@
+import { Platform } from 'react-native';
 import { getSocialAccountType } from '../../constants/onboarding';
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { AuthConnection } from './OAuthInterface';
 import { OAuthError, OAuthErrorType } from './error';
+import {
+  getOAuthBackgroundAnalyticsProperties,
+  OAUTH_RESUME_OUTCOME,
+} from './oauthLifecycleTracking';
 
 export type SocialLoginFailureErrorCategory =
   | 'provider_login'
   | 'get_auth_tokens'
   | 'seedless_auth';
+
+const ANDROID_GOOGLE_BROWSER_FALLBACK_ERROR_CODES: ReadonlySet<OAuthErrorType> =
+  new Set([
+    OAuthErrorType.GoogleLoginNoCredential,
+    OAuthErrorType.GoogleLoginNoMatchingCredential,
+    OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
+    OAuthErrorType.GoogleLoginOneTapFailure,
+    OAuthErrorType.GoogleLoginNoProviderDependencies,
+    OAuthErrorType.UnknownError,
+  ]);
+
+/**
+ * Android Google One Tap failures retry in the system browser. Skip terminal
+ * Social Login Failed for these errors so a successful fallback is not paired
+ * with a Failed event for the same attempt.
+ */
+export function shouldAttemptAndroidGoogleBrowserFallback(
+  error: unknown,
+  socialConnectionType: string,
+): boolean {
+  return (
+    Platform.OS === 'android' &&
+    socialConnectionType === AuthConnection.Google &&
+    error instanceof OAuthError &&
+    ANDROID_GOOGLE_BROWSER_FALLBACK_ERROR_CODES.has(error.code)
+  );
+}
 
 /**
  * OAuth failures that occur in Onboarding before {@link OAuthService.handleOAuthLogin}
@@ -62,6 +95,11 @@ export function trackSocialLoginFailed({
         ...(oauthErrorCode !== undefined && {
           oauth_error_code: oauthErrorCode,
         }),
+        ...getOAuthBackgroundAnalyticsProperties(
+          isUserCancelled
+            ? OAUTH_RESUME_OUTCOME.DISMISSED
+            : OAUTH_RESUME_OUTCOME.FAILED,
+        ),
       })
       .build(),
   );

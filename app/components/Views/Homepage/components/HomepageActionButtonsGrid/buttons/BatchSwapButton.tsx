@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { IconName } from '@metamask/design-system-react-native';
@@ -7,7 +8,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../core/AppConstants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsSwapsEnabled } from '../../../../../../core/redux/slices/bridge';
-import type { RootState } from '../../../../../../reducers';
 import { selectBatchSellEnabled } from '../../../../../../selectors/featureFlagController/batchSell';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -27,12 +27,10 @@ const BatchSwapButton = ({
   actionPosition,
   allowTwoLineLabel,
 }: HomepageActionButtonSlotProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
-  const isSwapsEnabled = useSelector((state: RootState) =>
-    selectIsSwapsEnabled(state),
-  );
+  const isSwapsEnabled = useSelector(selectIsSwapsEnabled);
   const label = strings('homepage.action_buttons.batch_swap');
   const isDisabled =
     !isBatchSellEnabled || !AppConstants.SWAPS.ACTIVE || !isSwapsEnabled;

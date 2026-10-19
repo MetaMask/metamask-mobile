@@ -18,6 +18,7 @@ import {
 const GAP = 12;
 const SNAP_INTERVAL_FOR_TEST = CARD_WIDTH + GAP;
 
+const mockEndTrace = jest.fn();
 const mockGoBack = jest.fn();
 const mockRefresh = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -26,6 +27,11 @@ const mockCreateEventBuilder = jest.fn((eventName: string) => ({
     build: jest.fn(() => ({ category: eventName, properties })),
   })),
   build: jest.fn(() => ({ category: eventName })),
+}));
+
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -116,10 +122,8 @@ describe('WhatsHappeningDetailView', () => {
     (WhatsHappeningExpandedCard as unknown as jest.Mock).mockImplementation(
       ({
         onSourcesPress,
-        onAIDisclaimerPress,
       }: {
         onSourcesPress?: (articles: unknown[]) => void;
-        onAIDisclaimerPress?: () => void;
       }) => (
         <View>
           <Pressable
@@ -134,10 +138,6 @@ describe('WhatsHappeningDetailView', () => {
                 },
               ])
             }
-          />
-          <Pressable
-            testID="mock-ai-disclaimer-button"
-            onPress={onAIDisclaimerPress}
           />
         </View>
       ),
@@ -218,6 +218,15 @@ describe('WhatsHappeningDetailView', () => {
       nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
     });
     expect(screen.getByTestId('mock-expanded-card')).toBeOnTheScreen();
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: "What's Happening View Load",
+      id: 'homepage:expanded',
+      data: {
+        result: 'success',
+        success: true,
+        content_state: 'filled',
+      },
+    });
   });
 
   it('does not show the skeleton or error when items are loaded', () => {
@@ -457,7 +466,7 @@ describe('WhatsHappeningDetailView', () => {
     expect(screen.queryByTestId('mock-sources-bottom-sheet')).toBeNull();
   });
 
-  it('shows the AI disclaimer bottom sheet when onAIDisclaimerPress is called from a card', () => {
+  it('renders the AI generated row below the carousel', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
       isLoading: false,
@@ -465,12 +474,36 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'layout', {
-      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
-    });
+    expect(screen.getByText('AI generated')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('whats-happening-ai-disclaimer-button'),
+    ).toBeOnTheScreen();
+  });
 
-    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+  it('does not render the AI generated row when items are empty', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+    expect(screen.queryByText('AI generated')).toBeNull();
+    expect(
+      screen.queryByTestId('whats-happening-ai-disclaimer-button'),
+    ).toBeNull();
+  });
+
+  it('shows the AI disclaimer bottom sheet when the AI info button is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: mockRefresh,
+    });
+    renderWithProvider(<WhatsHappeningDetailView />);
+
+    fireEvent.press(screen.getByTestId('whats-happening-ai-disclaimer-button'));
 
     expect(
       screen.getByTestId('mock-ai-disclaimer-bottom-sheet'),
@@ -485,11 +518,7 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    const carousel = screen.getByTestId('whats-happening-detail-carousel');
-    fireEvent(carousel, 'layout', {
-      nativeEvent: { layout: { height: 600, width: 375, x: 0, y: 0 } },
-    });
-    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-button'));
+    fireEvent.press(screen.getByTestId('whats-happening-ai-disclaimer-button'));
 
     fireEvent.press(screen.getByTestId('mock-ai-disclaimer-close'));
 

@@ -29,10 +29,12 @@ export function getCardControllerMessenger(
     messenger,
     actions: [
       'AccountsController:getState',
-      'AccountTreeController:getState',
+      'AccountTreeController:getAccountFromSelectedAccountGroup',
+      'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',
+      'NetworkController:getNetworkClientById',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',

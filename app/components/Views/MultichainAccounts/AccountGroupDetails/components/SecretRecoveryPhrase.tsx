@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Box,
@@ -33,7 +34,7 @@ export const SecretRecoveryPhrase = ({
   account,
 }: SecretRecoveryPhraseProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { seedphraseBackedUp } = useSelector((state: RootState) => state.user);
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
 
@@ -55,7 +56,7 @@ export const SecretRecoveryPhrase = ({
     if (account?.options.entropySource) {
       navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         shouldUpdateNav: true,
-        keyringId: account.options.entropySource,
+        keyringId: account.options.entropySource as string,
       });
     }
   }, [navigation, account?.options.entropySource]);

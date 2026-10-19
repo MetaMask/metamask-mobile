@@ -2,6 +2,14 @@ import { renderHook } from '@testing-library/react-hooks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { WALLET_HOME_ONBOARDING_CHECKLIST_INTERACTION_TYPE } from './walletHomeOnboardingChecklistAnalytics';
 import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
+import { walletHomeOnboardingVisibleSteps } from './walletHomeOnboardingStepsModel';
+
+const ALL_STEPS = walletHomeOnboardingVisibleSteps({
+  includeNotificationsStep: true,
+});
+const STEPS_WITHOUT_NOTIFICATIONS = walletHomeOnboardingVisibleSteps({
+  includeNotificationsStep: false,
+});
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ builtEvent: true }));
@@ -45,6 +53,7 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
         isAwaitingBalance: false,
         stepIndex: 0,
         isFocused: true,
+        steps: ALL_STEPS,
       }),
     );
 
@@ -57,6 +66,7 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
         isAwaitingBalance: false,
         stepIndex: 0,
         isFocused: false,
+        steps: ALL_STEPS,
       }),
     );
 
@@ -69,6 +79,7 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
         isAwaitingBalance: false,
         stepIndex: 0,
         isFocused: true,
+        steps: ALL_STEPS,
       }),
     );
 
@@ -96,6 +107,7 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
         isAwaitingBalance: false,
         stepIndex: 1,
         isFocused: true,
+        steps: ALL_STEPS,
       }),
     );
 
@@ -113,6 +125,7 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
         isAwaitingBalance: false,
         stepIndex: 2,
         isFocused: true,
+        steps: ALL_STEPS,
       }),
     );
 
@@ -124,12 +137,67 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
     );
   });
 
+  it('reports two sections and no notifications section when the notifications step is dropped', () => {
+    renderHook(() =>
+      useWalletHomeOnboardingChecklistHomeViewed({
+        isAwaitingBalance: false,
+        stepIndex: 1,
+        isFocused: true,
+        steps: STEPS_WITHOUT_NOTIFICATIONS,
+      }),
+    );
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        section_name: 'first_trade',
+        section_index: 1,
+        total_sections_loaded: 2,
+      }),
+    );
+  });
+
+  it('stays quiet when the persisted step outruns the visible steps', () => {
+    renderHook(() =>
+      useWalletHomeOnboardingChecklistHomeViewed({
+        isAwaitingBalance: false,
+        stepIndex: 2,
+        isFocused: true,
+        steps: STEPS_WITHOUT_NOTIFICATIONS,
+      }),
+    );
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not report the previous step as re-viewed when the notifications step is dropped mid-visit', () => {
+    const { rerender } = renderHook(
+      ({ steps }) =>
+        useWalletHomeOnboardingChecklistHomeViewed({
+          isAwaitingBalance: false,
+          stepIndex: 2,
+          isFocused: true,
+          steps,
+        }),
+      { initialProps: { steps: ALL_STEPS } },
+    );
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenLastCalledWith(
+      expect.objectContaining({ section_name: 'notifications' }),
+    );
+
+    rerender({ steps: STEPS_WITHOUT_NOTIFICATIONS });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
   it('refires when visitId increments', () => {
     const { rerender } = renderHook(() =>
       useWalletHomeOnboardingChecklistHomeViewed({
         isAwaitingBalance: false,
         stepIndex: 0,
         isFocused: true,
+        steps: ALL_STEPS,
       }),
     );
 
@@ -159,6 +227,7 @@ describe('useWalletHomeOnboardingChecklistHomeViewed', () => {
           isAwaitingBalance: false,
           stepIndex,
           isFocused: true,
+          steps: ALL_STEPS,
         }),
       { initialProps: { stepIndex: 0 } },
     );

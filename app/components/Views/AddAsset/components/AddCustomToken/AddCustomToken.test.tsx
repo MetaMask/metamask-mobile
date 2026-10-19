@@ -8,17 +8,17 @@ import { isSmartContractAddress } from '../../../../../util/transactions';
 import Engine from '../../../../../core/Engine';
 import { CaipAssetType } from '@metamask/utils';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { getBlockExplorerAddressUrl } from '../../../../../util/networks';
 
 const mockPush = jest.fn();
+const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
 const mockAddCustomAsset = jest.fn();
-const mockAddToken = jest.fn();
 const mockSelectInternalAccountByScope = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -26,7 +26,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       push: mockPush,
       goBack: jest.fn(),
     }),
@@ -51,9 +51,6 @@ jest.mock('../../../../../core/Engine', () => ({
       getERC721AssetSymbol: jest.fn().mockResolvedValue('WBTC'),
       getERC20TokenName: jest.fn().mockResolvedValue('Wrapped Bitcoin'),
     },
-    TokensController: {
-      addToken: jest.fn(),
-    },
     AssetsController: {
       addCustomAsset: jest.fn(),
     },
@@ -63,13 +60,6 @@ jest.mock('../../../../../core/Engine', () => ({
 jest.mock('../../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   toAssetId: jest.fn(),
 }));
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/assetsUnifyState',
-  () => ({
-    selectIsAssetsUnifyStateEnabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   ...jest.requireActual('../../../../../selectors/multichainAccounts/accounts'),
@@ -87,10 +77,8 @@ jest.mock('../../../../../util/networks', () => ({
 }));
 
 const mockIsSmartContractAddress = isSmartContractAddress as jest.Mock;
+const mockGetBlockExplorerAddressUrl = getBlockExplorerAddressUrl as jest.Mock;
 const mockToAssetId = jest.mocked(toAssetId);
-const mockSelectIsAssetsUnifyStateEnabled = jest.mocked(
-  selectIsAssetsUnifyStateEnabled,
-);
 
 const VALID_ADDRESS = '0x1234567890123456789012345678901234567890';
 const SHORT_ADDRESS = '0x12345';
@@ -137,14 +125,13 @@ describe('AddCustomToken', () => {
       addProperties: mockAddProperties,
     });
     mockBuild.mockReturnValue({ event: 'mock-event' });
-    mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(false);
     mockSelectInternalAccountByScope.mockReturnValue(null);
+    mockGetBlockExplorerAddressUrl.mockReturnValue({
+      title: 'Etherscan',
+      url: 'https://etherscan.io',
+    });
     mockToAssetId.mockReturnValue(MOCK_CAIP_ASSET);
-    mockAddToken.mockResolvedValue(undefined);
     mockAddCustomAsset.mockResolvedValue(undefined);
-    (Engine.context.TokensController.addToken as jest.Mock).mockResolvedValue(
-      undefined,
-    );
     (Engine.context.AssetsController.addCustomAsset as jest.Mock) =
       mockAddCustomAsset;
   });
@@ -262,41 +249,73 @@ describe('AddCustomToken', () => {
     );
   });
 
-  describe('addToken', () => {
-    it('calls TokensController.addToken with correct params', async () => {
-      const utils = renderComponent();
-      await setupAndPressNext(utils);
-
-      const [, params] = mockPush.mock.calls[0];
+  describe('block explorer link in the decimals warning', () => {
+    // The warning only renders once the decimals field is both empty and
+    // touched, so clear the auto-filled value and blur it.
+    const showDecimalsWarning = async (
+      renderResult: ReturnType<typeof renderComponent>,
+    ) => {
+      mockIsSmartContractAddress.mockResolvedValue(true);
       await act(async () => {
-        await params.addTokenList();
+        fireEvent.changeText(
+          renderResult.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+          VALID_ADDRESS,
+        );
       });
 
-      expect(Engine.context.TokensController.addToken).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: VALID_ADDRESS,
-          symbol: 'WBTC',
-          decimals: 18,
-        }),
+      const decimalsInput = renderResult.getByTestId(
+        ImportTokenViewSelectorsIDs.DECIMAL_INPUT,
       );
+      fireEvent.changeText(decimalsInput, '');
+      fireEvent(decimalsInput, 'blur');
+    };
+
+    it('opens the block explorer for the token address', async () => {
+      const utils = renderComponent();
+      await showDecimalsWarning(utils);
+
+      expect(
+        utils.getByTestId(
+          ImportTokenViewSelectorsIDs.PRECISION_WARNING_MESSAGE,
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        utils.getByTestId(
+          ImportTokenViewSelectorsIDs.PRECISION_WARNING_EXPLORER_LINK,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: 'https://etherscan.io', title: 'Etherscan' },
+      });
     });
 
-    it('does not call AssetsController when isAssetsUnifyStateEnabled is false', async () => {
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(false);
-
-      const utils = renderComponent();
-      await setupAndPressNext(utils);
-
-      const [, params] = mockPush.mock.calls[0];
-      await act(async () => {
-        await params.addTokenList();
+    it('passes undefined when the network has no block explorer', async () => {
+      mockGetBlockExplorerAddressUrl.mockReturnValue({
+        title: null,
+        url: null,
       });
 
-      expect(mockAddCustomAsset).not.toHaveBeenCalled();
-    });
+      const utils = renderComponent();
+      await showDecimalsWarning(utils);
 
-    it('calls AssetsController.addCustomAsset when isAssetsUnifyStateEnabled is true', async () => {
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
+      fireEvent.press(
+        utils.getByTestId(
+          ImportTokenViewSelectorsIDs.PRECISION_WARNING_EXPLORER_LINK,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: undefined, title: undefined },
+      });
+    });
+  });
+
+  describe('addToken', () => {
+    it('calls AssetsController.addCustomAsset', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'evm-account-id',
         address: '0xabc',
@@ -318,8 +337,11 @@ describe('AddCustomToken', () => {
       );
     });
 
-    it('logs warning and still tracks analytics when no EVM account found', async () => {
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
+    // `handleAddCustomAsset` (useAssetVisibility) silently no-ops when there is
+    // no matching account, rather than throwing — a separate, pre-existing gap
+    // outside this component. Documenting the current (imperfect) behavior here
+    // rather than asserting on it as correct.
+    it('still tracks analytics when no EVM account is found (handleAddCustomAsset no-ops)', async () => {
       mockSelectInternalAccountByScope.mockReturnValue(null);
 
       const utils = renderComponent();
@@ -336,8 +358,7 @@ describe('AddCustomToken', () => {
       );
     });
 
-    it('logs error but still tracks analytics when addCustomAsset throws', async () => {
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
+    it('rejects and does not track analytics or reset the form when addCustomAsset throws', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'evm-account-id',
         address: '0xabc',
@@ -348,18 +369,20 @@ describe('AddCustomToken', () => {
       await setupAndPressNext(utils);
 
       const [, params] = mockPush.mock.calls[0];
-      await act(async () => {
-        await params.addTokenList();
-      });
+      await expect(params.addTokenList()).rejects.toThrow('contract error');
 
       expect(mockAddCustomAsset).toHaveBeenCalled();
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.TOKEN_ADDED,
       );
+      // Address input should retain the entered value since the import failed.
+      expect(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT).props
+          .value,
+      ).toBe(VALID_ADDRESS);
     });
 
-    it('skips addCustomAsset when toAssetId returns undefined', async () => {
-      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
+    it('rejects and does not track analytics when toAssetId returns undefined', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'evm-account-id',
         address: '0xabc',
@@ -370,11 +393,12 @@ describe('AddCustomToken', () => {
       await setupAndPressNext(utils);
 
       const [, params] = mockPush.mock.calls[0];
-      await act(async () => {
-        await params.addTokenList();
-      });
+      await expect(params.addTokenList()).rejects.toThrow();
 
       expect(mockAddCustomAsset).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_ADDED,
+      );
     });
 
     it('tracks TOKEN_ADDED analytics after successful token import', async () => {

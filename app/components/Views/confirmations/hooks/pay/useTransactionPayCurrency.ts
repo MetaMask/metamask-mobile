@@ -2,7 +2,8 @@ import {
   PAY_TRANSACTION_TYPES,
   USER_CURRENCY_TYPES,
 } from '../../constants/confirmations';
-import { hasTransactionType } from '../../utils/transaction';
+import { hasTransactionType } from '@metamask/transaction-controller';
+
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 const PAY_CURRENCY = 'USD';

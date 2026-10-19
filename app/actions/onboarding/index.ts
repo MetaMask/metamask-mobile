@@ -23,6 +23,8 @@ export const SET_WALLET_HOME_ONBOARDING_STEPS_STEP =
   'SET_WALLET_HOME_ONBOARDING_STEPS_STEP';
 export const SUPPRESS_WALLET_HOME_ONBOARDING_STEPS =
   'SUPPRESS_WALLET_HOME_ONBOARDING_STEPS';
+export const MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED =
+  'MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -96,6 +98,10 @@ export interface SuppressWalletHomeOnboardingStepsAction {
   reason: WalletHomeOnboardingStepsSuppressedReason;
 }
 
+export interface MarkPushNotificationOsPromptRequestedAction {
+  type: typeof MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
@@ -110,7 +116,8 @@ export type OnboardingActionTypes =
   | SetWalletHomeOnboardingStepsEligibleAction
   | ResetWalletHomeOnboardingStepsAction
   | SetWalletHomeOnboardingStepsStepAction
-  | SuppressWalletHomeOnboardingStepsAction;
+  | SuppressWalletHomeOnboardingStepsAction
+  | MarkPushNotificationOsPromptRequestedAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -233,5 +240,11 @@ export function suppressWalletHomeOnboardingSteps(
   return {
     type: SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
     reason,
+  };
+}
+
+export function markPushNotificationOsPromptRequested(): MarkPushNotificationOsPromptRequestedAction {
+  return {
+    type: MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
   };
 }

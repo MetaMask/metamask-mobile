@@ -1,5 +1,7 @@
 import React, { memo } from 'react';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Icon,
   IconColor,
   IconName,
@@ -43,28 +45,28 @@ const PerpsOICapWarning: React.FC<PerpsOICapWarningProps> = memo(
       return null;
     }
 
-    const isBanner = variant === 'banner';
+    const message = strings('perps.order.validation.oi_cap_reached');
+
+    if (variant === 'banner') {
+      return (
+        <BannerAlert
+          severity={BannerAlertSeverity.Neutral}
+          description={message}
+          testID={testID}
+        />
+      );
+    }
 
     return (
-      <View
-        style={[
-          styles.container,
-          isBanner ? styles.bannerContainer : styles.inlineContainer,
-        ]}
-        testID={testID}
-      >
+      <View style={[styles.container, styles.inlineContainer]} testID={testID}>
         <Icon
           name={IconName.Warning}
           size={IconSize.Md}
           color={IconColor.IconDefault}
-          style={styles.icon}
         />
         <View style={styles.textContainer}>
-          <Text
-            variant={isBanner ? TextVariant.BodyMd : TextVariant.BodySm}
-            color={TextColor.TextDefault}
-          >
-            {strings('perps.order.validation.oi_cap_reached')}
+          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+            {message}
           </Text>
         </View>
       </View>

@@ -12,6 +12,42 @@ describe('parseWebViewMessage', () => {
     });
   });
 
+  it('parses VISIBLE_CANDLE_COUNT_CHANGED', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+        payload: { candleCount: 80 },
+      }),
+    ).toEqual({
+      type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+      payload: { candleCount: 80 },
+    });
+  });
+
+  it('parses CHART_INTERACTED zoom with candleCount', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'CHART_INTERACTED',
+        payload: { interaction_type: 'zoom', candleCount: 80 },
+      }),
+    ).toEqual({
+      type: 'CHART_INTERACTED',
+      payload: { interaction_type: 'zoom', candleCount: 80 },
+    });
+  });
+
+  it('omits candleCount from CHART_INTERACTED when it is not a finite number', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'CHART_INTERACTED',
+        payload: { interaction_type: 'pan', candleCount: 'nope' },
+      }),
+    ).toEqual({
+      type: 'CHART_INTERACTED',
+      payload: { interaction_type: 'pan' },
+    });
+  });
+
   describe('FETCH_OLDER_BARS_REQUEST', () => {
     const validPayload = {
       requestId: 'req-1',

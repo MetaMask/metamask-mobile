@@ -1,10 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -20,13 +22,13 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 type MoneyApyInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyApyInfoSheetParams {
-  apy: number;
+  apy?: number;
   variant?: MoneyApyInfoSheetVariant;
 }
 
 const MoneyApyInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
 
@@ -46,21 +48,21 @@ const MoneyApyInfoSheet = () => {
 
   const body =
     variant === 'deposit' ? (
-      <Text variant={TextVariant.BodyMd}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('money.apy_tooltip.deposit_body')}
       </Text>
     ) : (
       <>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_1', { percentage: apy })}
         </Text>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_2')}
         </Text>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_3')}
         </Text>
-        <Text variant={TextVariant.BodyMd}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_4')}
         </Text>
       </>

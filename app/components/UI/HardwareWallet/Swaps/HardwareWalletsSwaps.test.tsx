@@ -5,9 +5,9 @@ import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  __clearLastMockedMethods,
-  __getLastMockedMethods,
-} from '../../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../../__mocks__/rive-app-react-native';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
@@ -20,9 +20,15 @@ import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
+import type { BridgeToken } from '../../../../components/UI/Bridge/types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+type TransitionEndHandler = (event?: { data?: { closing?: boolean } }) => void;
+const mockAddListener = jest.fn<() => void, [string, TransitionEndHandler]>(
+  () => jest.fn(),
+);
+let mockIsFocused = true;
 const mockRouteParams: Record<string, any> = {};
 
 jest.mock('@react-navigation/native', () => ({
@@ -30,12 +36,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: mockAddListener,
   }),
   useRoute: () => ({ params: mockRouteParams }),
+  useIsFocused: () => mockIsFocused,
 }));
 
-jest.mock('rive-react-native', () =>
-  jest.requireActual('../../../../__mocks__/rive-react-native'),
+jest.mock('@rive-app/react-native', () =>
+  jest.requireActual('../../../../__mocks__/rive-app-react-native'),
 );
 
 jest.mock(
@@ -106,6 +114,7 @@ jest.mock('../../../../core/HardwareWallet/helpers', () => ({
   getDeviceIdForAddress: jest.fn().mockResolvedValue('ledger-device-id'),
   // Re-export anything else the component tree might import from helpers
   getHardwareWalletTypeForAddress: jest.fn().mockReturnValue('ledger'),
+  getHardwareWalletTypeName: jest.fn().mockReturnValue('Ledger'),
 }));
 
 jest.mock('../../../../core/Ledger/Ledger', () => ({
@@ -121,6 +130,7 @@ jest.mock('../../../../core/Engine', () => ({
     unsubscribe: jest.fn(),
   },
   acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
+  context: { BridgeController: { resetState: jest.fn() } },
 }));
 const mockAccept = (
   jest.requireMock('../../../../core/Engine') as {
@@ -221,11 +231,100 @@ const renderScreen = (
     },
   });
 
+const DEST_AMOUNT = '95.5';
+const DEST_TOKEN_SYMBOL = 'ETH';
+const SOURCE_TOKEN: BridgeToken = {
+  address: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+  symbol: SOURCE_TOKEN_SYMBOL,
+  decimals: 6,
+  chainId: '0x1',
+};
+const DEST_TOKEN: BridgeToken = {
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: DEST_TOKEN_SYMBOL,
+  decimals: 18,
+  chainId: '0x1',
+};
+
+// Parametrized store for the swap-title tests; overrides select the store
+// shape (same-chain swap, cross-chain bridge, or locked-quote).
+type BridgeStoreOverrides = Partial<
+  Record<'sourceAmount' | 'destAmount', string | undefined> &
+    Record<'sourceToken' | 'destToken', BridgeToken>
+>;
+
+const renderWithDestToken = (
+  hw: Partial<HardwareWalletsSwapsState>,
+  overrides: BridgeStoreOverrides = {},
+) =>
+  renderWithProvider(<HardwareWalletsSwaps />, {
+    state: {
+      bridge: {
+        sourceAmount: SOURCE_AMOUNT,
+        sourceToken: SOURCE_TOKEN,
+        destAmount: DEST_AMOUNT,
+        destToken: DEST_TOKEN,
+        ...overrides,
+        hardwareWalletsSwaps: {
+          ...defaultBridgeState,
+          ...hw,
+        },
+      },
+    },
+  });
+
+// Same-chain swap store: dest token on the SAME chainId as the source token.
+const renderSwapScreen = (hw: Partial<HardwareWalletsSwapsState>) =>
+  renderWithDestToken(hw);
+
+// Cross-chain bridge store: dest token on a DIFFERENT chainId than the source.
+const renderCrossChainScreen = (hw: Partial<HardwareWalletsSwapsState>) =>
+  renderWithDestToken(hw, { destToken: { ...DEST_TOKEN, chainId: '0x89' } });
+
 const MOCK_SUBMISSION_PARAMS = {
   quoteResponse: { quote: { srcChainId: 1 } } as any,
   location: undefined,
   transactionActiveAbTests: undefined,
 };
+
+// Confirm-time-locked dest data, mirroring useBridgeConfirm's route params:
+// postTradeModalParams carries the locked quote amounts/tokens to the HW screen.
+const LOCKED_SOURCE_AMOUNT = '10';
+const LOCKED_DEST_AMOUNT = '9.9';
+const LOCKED_SOURCE_TOKEN: BridgeToken = {
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  symbol: 'USDC',
+  decimals: 6,
+  chainId: '0x1',
+};
+const LOCKED_DEST_TOKEN: BridgeToken = {
+  address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  symbol: 'USDT',
+  decimals: 6,
+  chainId: '0x1',
+};
+
+function mockRouteSubmissionParamsWithLockedDest() {
+  mockRouteParams.submissionParams = {
+    ...MOCK_SUBMISSION_PARAMS,
+    postTradeModalParams: {
+      sourceAmount: LOCKED_SOURCE_AMOUNT,
+      destAmount: LOCKED_DEST_AMOUNT,
+      sourceToken: LOCKED_SOURCE_TOKEN,
+      destToken: LOCKED_DEST_TOKEN,
+    },
+  };
+}
+
+// Production store shape: destToken IS set, but state.destAmount is never
+// populated (only PostTradeBottomSheet resets it to undefined).
+const renderLockedQuoteScreen = (hw: Partial<HardwareWalletsSwapsState>) =>
+  renderWithDestToken(hw, {
+    sourceAmount: LOCKED_SOURCE_AMOUNT,
+    sourceToken: LOCKED_SOURCE_TOKEN,
+    destAmount: undefined,
+    destToken: LOCKED_DEST_TOKEN,
+  });
 
 function mockRouteSubmissionParams(
   value: typeof MOCK_SUBMISSION_PARAMS | null = MOCK_SUBMISSION_PARAMS,
@@ -402,14 +501,16 @@ function renderSendScreen(state: Partial<HardwareWalletsSwapsState>) {
 describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
+    __resetRiveMocks();
     mockHardwareWalletState.walletType = null;
     mockHardwareWalletState.pendingScanRequest = null;
+    mockIsFocused = true;
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
+    Object.keys(mockRouteParams).forEach((key) => delete mockRouteParams[key]);
     mockRouteSubmissionParams();
     mockEnsureDeviceReady.mockResolvedValue(true);
     mockGetDeviceId.mockResolvedValue('ledger-device-id');
-    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    mockSubmitBridgeTx.mockReturnValue(new Promise(() => undefined));
     mockConnectionState.status = 'disconnected';
   });
 
@@ -592,8 +693,7 @@ describe('HardwareWalletsSwaps', () => {
       (progressState) => {
         renderScreen(progressState);
 
-        expect(__getLastMockedMethods()?.fireState).toHaveBeenCalledWith(
-          'wallet_states',
+        expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
           progressState.expectedTrigger,
         );
       },
@@ -607,7 +707,7 @@ describe('HardwareWalletsSwaps', () => {
       });
 
       expect(
-        getByText(`Approving ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
+        getByText(`Approve ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
       ).toBeDefined();
       expect(
         getByText(`Sent ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
@@ -626,6 +726,63 @@ describe('HardwareWalletsSwaps', () => {
       expect(
         getByText(`Send ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
       ).toBeDefined();
+    });
+
+    it('renders swap titles when dest token is on the SAME chainId (same-chain swap wiring)', () => {
+      const { getByText, queryByText } = renderSwapScreen({
+        currentStep: 1,
+        steps: [step(Approval, Signed), step(Transaction, StepWaiting)],
+      });
+
+      expect(
+        getByText(`Approved ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
+      ).toBeDefined();
+      expect(
+        getByText(
+          `Swap ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL} for ${DEST_AMOUNT} ${DEST_TOKEN_SYMBOL}`,
+        ),
+      ).toBeDefined();
+      expect(queryByText(/Send /)).toBeNull();
+    });
+
+    it('renders swap titles from the confirm-time-locked route dest data when store destAmount is unset (production repro)', () => {
+      mockRouteSubmissionParamsWithLockedDest();
+
+      const { getByText, queryByText } = renderLockedQuoteScreen({
+        currentStep: 1,
+        steps: [step(Approval, Signed), step(Transaction, StepWaiting)],
+      });
+
+      expect(
+        getByText(
+          `Swap ${LOCKED_SOURCE_AMOUNT} USDC for ${LOCKED_DEST_AMOUNT} USDT`,
+        ),
+      ).toBeDefined();
+      expect(queryByText(/Send /)).toBeNull();
+    });
+
+    it('renders swapped title for a signed transaction step on a same-chain swap', () => {
+      const { getByText } = renderSwapScreen({
+        steps: [step(Approval, StepWaiting), step(Transaction, Signed)],
+      });
+
+      expect(
+        getByText(
+          `Swapped ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL} for ${DEST_AMOUNT} ${DEST_TOKEN_SYMBOL}`,
+        ),
+      ).toBeDefined();
+    });
+
+    it('keeps send titles when dest token is on a DIFFERENT chainId (bridge, not swap)', () => {
+      const { getByText, queryByText } = renderCrossChainScreen({
+        currentStep: 1,
+        steps: [step(Approval, Signed), step(Transaction, StepWaiting)],
+      });
+
+      expect(
+        getByText(`Send ${SOURCE_AMOUNT} ${SOURCE_TOKEN_SYMBOL}`),
+      ).toBeDefined();
+      expect(queryByText(/Swap /)).toBeNull();
     });
 
     it('renders rejected description on rejected step', () => {
@@ -653,12 +810,9 @@ describe('HardwareWalletsSwaps', () => {
         ],
       });
 
-      expect(
-        getByText('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
-      ).toBeDefined();
-      expect(
-        getByText('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
-      ).toBeDefined();
+      // Descriptions render shortened addresses with extension copy.
+      expect(getByText('Spender: 0x3c44C...C6cDc')).toBeDefined();
+      expect(getByText('To: 0x70997...c79C8')).toBeDefined();
     });
 
     it('hides description when no address is provided', () => {
@@ -677,7 +831,11 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.BRIDGE_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
   });
 
@@ -689,7 +847,11 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.TRANSACTIONS_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
 
     it('resets hardware wallet swaps state', () => {
@@ -708,7 +870,11 @@ describe('HardwareWalletsSwaps', () => {
       fireEvent.press(UNSAFE_getByProps({ iconName: IconName.Close }));
 
       expect(mockCancelCurrentBatch).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.TRANSACTIONS_VIEW,
+        undefined,
+        { pop: true },
+      );
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Idle);
     });
   });
@@ -745,7 +911,7 @@ describe('HardwareWalletsSwaps', () => {
       const { getByTestId, store } = renderScreen({});
 
       await flushPromises();
-      dispatchRejection(store);
+      await act(async () => dispatchRejection(store));
       await flushPromises();
 
       await act(async () => {
@@ -800,7 +966,50 @@ describe('HardwareWalletsSwaps', () => {
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
       });
-      expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
+      // Bridge flow now wires the DMK session before submitting, mirroring
+      // submitSendFlow. ensureDeviceReady must run AND must happen before
+      // submitBridgeTx so the keyring has a live session when it signs.
+      expect(mockEnsureDeviceReady).toHaveBeenCalledTimes(1);
+      const [ensureCallOrder] = mockEnsureDeviceReady.mock.invocationCallOrder;
+      const [submitCallOrder] = mockSubmitBridgeTx.mock.invocationCallOrder;
+      expect(submitCallOrder).toBeGreaterThan(ensureCallOrder);
+    });
+
+    it('awaits ensureDeviceReady before calling submitBridgeTx', async () => {
+      // Block ensureDeviceReady until we release it, so we can prove
+      // submitBridgeTx is gated on its resolution rather than racing.
+      let releaseDeviceReady: () => void = () => undefined;
+      mockEnsureDeviceReady.mockImplementationOnce(
+        () =>
+          new Promise<boolean>((resolve) => {
+            releaseDeviceReady = () => resolve(true);
+          }),
+      );
+
+      renderScreen({});
+
+      // ensureDeviceReady has been invoked but is still pending; submitBridgeTx
+      // must not have fired yet.
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledTimes(1);
+      });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+
+      releaseDeviceReady();
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
+      });
+    });
+
+    it('dispatches TRANSACTION_FAILED and skips submitBridgeTx when ensureDeviceReady returns false', async () => {
+      mockEnsureDeviceReady.mockResolvedValueOnce(false);
+
+      const { store } = renderScreen({});
+
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
+      });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
     it('does not resubmit after initial submission', async () => {
@@ -814,6 +1023,19 @@ describe('HardwareWalletsSwaps', () => {
       await flushPromises();
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('does not resubmit a remounted flow with signed steps', async () => {
+      renderScreen({ steps: signedSteps });
+      await flushPromises();
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      // No mount-local settlement metadata: preserve toast + Activity.
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.TRANSACTIONS_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
 
     it.each([
@@ -855,21 +1077,58 @@ describe('HardwareWalletsSwaps', () => {
   });
 
   describe('auto-navigation', () => {
-    it('auto-navigates to transactions when Submitted and submission completes', async () => {
+    it('opens post-trade after signing and submission complete', async () => {
+      let resolveSubmit!: (value: { id: string; hash: string }) => void;
+      mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+      mockIsFocused = false;
+      mockSubmitBridgeTx.mockReturnValue(
+        new Promise((resolve) => {
+          resolveSubmit = resolve;
+        }),
+      );
       const { store } = renderScreen({});
 
       await flushPromises();
-      signAllSteps(store);
-      await flushPromises();
+      mockIsFocused = true;
+      await act(async () => signAllSteps(store));
+      expect(mockNavigate).not.toHaveBeenCalled();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      await act(async () => {
+        resolveSubmit({ id: 'tx-id', hash: '0xabc' });
+        await Promise.resolve();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      const transitionEndCall = mockAddListener.mock.calls.find(
+        ([event]) => event === 'transitionEnd',
+      );
+      const transitionEnd = transitionEndCall?.[1] as
+        | TransitionEndHandler
+        | undefined;
+      act(() => transitionEnd?.({ data: { closing: false } }));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.BRIDGE_VIEW,
+        undefined,
+        { pop: true },
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: expect.objectContaining({
+          transactionMetaId: 'tx-id',
+          transactionHash: '0xabc',
+        }),
+      });
     });
 
-    it('navigates to transactions after retry flow signs all txs', async () => {
+    it('opens post-trade after retry signs all txs', async () => {
+      mockSubmitBridgeTx
+        .mockReturnValueOnce(new Promise(() => undefined))
+        .mockResolvedValueOnce({ id: 'tx-id', hash: '0xabc' });
       const { getByTestId, store } = renderScreen({});
 
       await flushPromises();
-      dispatchRejection(store);
+      await act(async () => dispatchRejection(store));
       await flushPromises();
 
       await act(async () => {
@@ -883,7 +1142,10 @@ describe('HardwareWalletsSwaps', () => {
         await Promise.resolve();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: expect.objectContaining({ transactionMetaId: 'tx-id' }),
+      });
     });
 
     it('does not auto-navigate for non-Submitted states', () => {
@@ -936,7 +1198,7 @@ describe('HardwareWalletsSwaps', () => {
       mockApprovalRequestValue = MOCK_APPROVAL_REQUEST;
     });
 
-    it('renders the sendbundle steps [FeeTransfer, Transaction] with paying-network-fee copy', () => {
+    it('renders the sendbundle steps [Transaction, FeeTransfer] with paying-network-fee copy', () => {
       setSendRouteParams({ withGasToken: true, withApproval: true });
 
       const { getByText } = renderSendScreen({
@@ -1008,9 +1270,11 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.AMOUNT,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SEND.DEFAULT,
+        { screen: Routes.SEND.AMOUNT },
+        { pop: true },
+      );
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
     });
 

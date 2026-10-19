@@ -13,6 +13,7 @@ import {
   setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
@@ -65,7 +66,7 @@ export enum MultichainAccountPermissionsScreens {
 export const MultichainAccountPermissions = (
   props: MultichainAccountPermissionsProps,
 ) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { hostInfo } = props.route.params;
   const [screen, setScreen] = useState<MultichainAccountPermissionsScreens>(

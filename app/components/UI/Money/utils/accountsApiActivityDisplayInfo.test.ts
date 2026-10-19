@@ -1,7 +1,25 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
+import {
+  CardTransactionStatus,
+  CardTransactionType,
+  type CardTransaction,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { accountsApiActivityDisplayInfo } from './accountsApiActivityDisplayInfo';
 import type { AccountsApiActivity } from '../types/moneyActivity';
+
+jest.mock('../../Card/utils/cardTransactionAmount', () => ({
+  formatCardAmount: (
+    amount: { value: string; currency: string },
+    isDebit?: boolean,
+  ) => {
+    const sign = isDebit === undefined ? '' : isDebit ? '-' : '+';
+    if (amount.currency === 'BRL') {
+      return `${sign}R$${amount.value}`;
+    }
+    return `${sign}$${amount.value}`;
+  },
+}));
 
 const token = {
   address: '0x754704bc059f8c67012fed69bc8a327a5aafb603' as Hex,
@@ -15,7 +33,7 @@ const card: AccountsApiActivity = {
   time: 1780574031000,
   chainId: '0x8f',
   token,
-  amount: '5381986', // 5.381986
+  amount: '5381986',
   paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
 };
 
@@ -25,7 +43,7 @@ const cashback: AccountsApiActivity = {
   time: 1780574031000,
   chainId: '0x8f',
   token,
-  amount: '300000', // 0.30
+  amount: '300000',
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
@@ -35,7 +53,7 @@ const refund: AccountsApiActivity = {
   time: 1780574031000,
   chainId: '0x8f',
   token,
-  amount: '10000000', // 10.00
+  amount: '10000000',
   receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
 };
 
@@ -51,7 +69,38 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.fiatAmount).toBe('-$5.38');
   });
 
-  it('renders a cashback credit as an incoming row (positive)', () => {
+  it('converts vmUSD shares with the historical rate using integer floor arithmetic', () => {
+    // Arrange: 5,381,986 shares * 1.25 -> 6,727,482 base units after floor.
+    const activity: AccountsApiActivity = {
+      ...(card as Extract<AccountsApiActivity, { kind: 'card' }>),
+      isVaultShare: true,
+      historicalRate: '1250000000000000000',
+    };
+
+    // Act
+    const info = accountsApiActivityDisplayInfo(activity);
+
+    // Assert
+    expect(info.primaryAmount).toBe('-6.73 mUSD');
+    expect(info.fiatAmount).toBe('-$6.73');
+  });
+
+  it('does not label vmUSD shares as mUSD when no historical rate is available', () => {
+    // Arrange
+    const activity: AccountsApiActivity = {
+      ...(card as Extract<AccountsApiActivity, { kind: 'card' }>),
+      isVaultShare: true,
+    };
+
+    // Act
+    const info = accountsApiActivityDisplayInfo(activity);
+
+    // Assert
+    expect(info.primaryAmount).toBe('Amount unavailable');
+    expect(info.fiatAmount).toBe('Amount unavailable');
+  });
+
+  it('renders a cashback credit as an incoming amount', () => {
     const info = accountsApiActivityDisplayInfo(cashback);
 
     expect(info.isIncoming).toBe(true);
@@ -62,7 +111,7 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.fiatAmount).toBe('+$0.30');
   });
 
-  it('renders a refund as an incoming row (positive, Card icon)', () => {
+  it('renders a refund as an incoming amount', () => {
     const info = accountsApiActivityDisplayInfo(refund);
 
     expect(info.isIncoming).toBe(true);
@@ -73,11 +122,25 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.fiatAmount).toBe('+$10.00');
   });
 
-  it('always shows the fiat amount in USD, regardless of preferred currency', () => {
-    // mUSD is USD-pegged; the fiat line is dollars with proper $ formatting.
-    const info = accountsApiActivityDisplayInfo(cashback);
+  it('keeps Purchase label and Card icon when enrichment is present', () => {
+    const enrichment: CardTransaction = {
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      originalAmount: { value: '27.50', currency: 'BRL' },
+      merchant: { name: 'Coffee Shop' },
+      fundingSources: [],
+    };
 
-    expect(info.primaryAmount).toBe('+0.30 mUSD');
-    expect(info.fiatAmount).toBe('+$0.30');
+    const info = accountsApiActivityDisplayInfo(card, enrichment);
+
+    expect(info.label).toBe('Purchase');
+    expect(info.icon).toBe(IconName.Card);
+    expect(info.description).toBe('Coffee Shop');
+    expect(info.fiatAmount).toBe('-R$27.50');
   });
 });

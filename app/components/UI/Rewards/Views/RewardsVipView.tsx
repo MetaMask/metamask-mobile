@@ -38,6 +38,7 @@ import VipFeeTile, {
   VIP_FEE_TILE_WIDTH,
 } from '../components/Vip/VipFeeTile';
 import VipPointsSection from '../components/Vip/VipPointsSection';
+import VipEquityMultiplierSection from '../components/Vip/VipEquityMultiplierSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
 import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
@@ -57,6 +58,7 @@ import {
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
   INVITE_BUTTON: 'rewards-vip-view-invite-button',
+  TRANSACTIONS_BUTTON: 'rewards-vip-view-transactions-button',
   SCROLL: 'rewards-vip-view-scroll',
   SKELETON: 'rewards-vip-view-skeleton',
   ERROR: 'rewards-vip-view-error',
@@ -157,6 +159,13 @@ const RewardsVipViewContent: React.FC = () => {
       ),
     });
   })();
+  const maintainSubline = (() => {
+    const maintainPoints = currentTierDetails?.maintainPointsRequirement;
+    if (maintainPoints == null || maintainPoints === 0) return undefined;
+    return strings('rewards.vip.maintain_this_tier', {
+      points: formatCompactValue(maintainPoints),
+    });
+  })();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -175,6 +184,14 @@ const RewardsVipViewContent: React.FC = () => {
               onPress: () =>
                 navigation.navigate(Routes.REFERRAL_REWARDS_VIEW as never),
               testID: REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON,
+            },
+            {
+              iconName: IconName.Activity,
+              onPress: () =>
+                navigation.navigate(
+                  Routes.REWARDS_VIP_TRANSACTIONS_VIEW as never,
+                ),
+              testID: REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON,
             },
           ]}
         />
@@ -319,7 +336,9 @@ const RewardsVipViewContent: React.FC = () => {
                   currentTier={dashboard.currentTier}
                   programName={dashboard.program.name}
                   progress={dashboard.progress}
+                  currentPoints={dashboard.volume.points}
                   subline={progressSubline}
+                  maintainSubline={maintainSubline}
                   memberIdTitle={dashboard.localizedText.memberIdTitle}
                   memberId={referralCode ?? ''}
                 />
@@ -436,6 +455,17 @@ const RewardsVipViewContent: React.FC = () => {
                 }
                 equityUnlockedDescription={
                   dashboard.localizedText.equityUnlockedDescription
+                }
+                equityLifetimePointsDescription={
+                  dashboard.localizedText.equityLifetimePointsDescription
+                }
+              />
+              <VipEquityMultiplierSection
+                failedTitle={
+                  dashboard.localizedText.equityMultiplierFailedTitle
+                }
+                failedDescription={
+                  dashboard.localizedText.equityMultiplierFailedDescription
                 }
               />
             </>

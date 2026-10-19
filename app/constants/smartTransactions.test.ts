@@ -29,6 +29,7 @@ describe('smartTransactions', () => {
         NETWORKS_CHAIN_ID.BSC,
         NETWORKS_CHAIN_ID.ARBITRUM,
         NETWORKS_CHAIN_ID.POLYGON,
+        NETWORKS_CHAIN_ID.ROBINHOOD,
       ]);
     });
 
@@ -42,6 +43,7 @@ describe('smartTransactions', () => {
         NETWORKS_CHAIN_ID.BSC,
         NETWORKS_CHAIN_ID.ARBITRUM,
         NETWORKS_CHAIN_ID.POLYGON,
+        NETWORKS_CHAIN_ID.ROBINHOOD,
       ]);
     });
   });

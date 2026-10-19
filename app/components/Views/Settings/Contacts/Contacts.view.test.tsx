@@ -1,5 +1,5 @@
 import '../../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import {
@@ -56,15 +56,43 @@ describeForPlatforms('Contacts component views', () => {
 
     fireEvent.press(await findByText(SYNCED_CONTACT.name));
 
-    const nameInput = await findByTestId(AddContactViewSelectorsIDs.NAME_INPUT);
-    const addressInput = await findByTestId(
-      AddContactViewSelectorsIDs.ADDRESS_INPUT,
+    const contactForm = await findByTestId(
+      AddContactViewSelectorsIDs.CONTAINER,
     );
 
-    await waitFor(() => {
-      expect(nameInput).toHaveProp('value', SYNCED_CONTACT.name);
-      expect(addressInput).toHaveProp('value', SYNCED_CONTACT.address);
+    expect(
+      within(contactForm).getByText(SYNCED_CONTACT.name),
+    ).toBeOnTheScreen();
+    expect(
+      within(contactForm).getByText(SYNCED_CONTACT.address),
+    ).toBeOnTheScreen();
+    expect(
+      within(contactForm).getByTestId(AddContactViewSelectorsIDs.COPY_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('deletes an existing contact from the contacts list', async () => {
+    const deleteContactSpy = jest.spyOn(
+      Engine.context.AddressBookController,
+      'delete',
+    );
+    const { findByText } = renderContactsWithRoutes({
+      stateOptions: {
+        addressBook: syncedContactAddressBook,
+      },
     });
+
+    fireEvent(await findByText(SYNCED_CONTACT.name), 'onLongPress');
+    fireEvent.press(await findByText(strings('address_book.delete')));
+
+    await waitFor(() => {
+      expect(deleteContactSpy).toHaveBeenCalledWith(
+        SYNCED_CONTACT.chainId,
+        SYNCED_CONTACT.address,
+      );
+    });
+
+    deleteContactSpy.mockRestore();
   });
 
   it('shows the duplicate contact error for an already saved address', async () => {
@@ -128,7 +156,7 @@ describeForPlatforms('Contacts component views', () => {
     expect(await findByTestId(NETWORK_LIST_BOTTOM_SHEET)).toBeOnTheScreen();
   });
 
-  // --- Migrated from addressbook-ens.spec.ts ---
+  // --- Address validation and ENS resolution ---
 
   it('shows an error for an invalid address format', async () => {
     const { findByTestId, findByText } = renderContactForm();
@@ -205,7 +233,7 @@ describeForPlatforms('Contacts component views', () => {
     ensLookupSpy.mockRestore();
   });
 
-  // --- Migrated from addressbook-send-add-contact.spec.ts ---
+  // --- Contact delete ---
 
   it('deletes a contact through the address book controller', async () => {
     const deleteContactSpy = jest.spyOn(
@@ -227,7 +255,7 @@ describeForPlatforms('Contacts component views', () => {
       },
     });
 
-    // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
+    // Edit mode opens read-only; tap the bottom Edit button to enable save/delete.
     fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
 
     const deleteButton = await findByTestId(

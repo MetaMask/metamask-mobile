@@ -8,6 +8,7 @@ import {
 import PerpsFlipPositionConfirmSheet from './PerpsFlipPositionConfirmSheet';
 import { type Position } from '@metamask/perps-controller';
 import { usePerpsOrderFees } from '../../hooks';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
@@ -19,6 +20,7 @@ jest.mock('../../../../../util/theme', () => {
     useTheme: jest.fn(() => mockTheme),
   };
 });
+jest.mock('../../../../../util/haptics');
 
 jest.mock('./PerpsFlipPositionConfirmSheet.styles', () => () => ({
   contentContainer: {},
@@ -53,6 +55,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../hooks', () => ({
+  useMinimumOrderAmount: () => ({
+    minimumOrderAmount: 10,
+    isLoading: false,
+    error: null,
+  }),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0.5,
     undiscountedTotalFee: 0.5,
@@ -96,14 +103,16 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
-  PERPS_EVENT_VALUE: {
-    SOURCE: {
-      POSITION_SCREEN: 'position_screen',
-    },
-  },
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    ...actual,
+    getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  };
+});
 
 jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');
@@ -141,93 +150,12 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-// Mock BottomSheet components
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ReactModule.forwardRef(
-        ({ children }: { children: React.ReactNode }, _ref: unknown) =>
-          ReactModule.createElement(View, { testID: 'bottom-sheet' }, children),
-      ),
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return function MockBottomSheetHeader({
-      children,
-    }: {
-      children: React.ReactNode;
-    }) {
-      return ReactModule.createElement(
-        View,
-        { testID: 'bottom-sheet-header' },
-        children,
-      );
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const ReactModule = jest.requireActual('react');
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      ButtonsAlignment: { Horizontal: 'Horizontal' },
-      default: function MockBottomSheetFooter({
-        buttonPropsArray,
-      }: {
-        buttonPropsArray: {
-          label: string;
-          onPress: () => void;
-          disabled?: boolean;
-        }[];
-      }) {
-        return ReactModule.createElement(
-          View,
-          { testID: 'bottom-sheet-footer' },
-          buttonPropsArray.map(
-            (
-              button: {
-                label: string;
-                onPress: () => void;
-                disabled?: boolean;
-              },
-              index: number,
-            ) =>
-              ReactModule.createElement(
-                TouchableOpacity,
-                {
-                  key: index,
-                  onPress: button.onPress,
-                  disabled: button.disabled,
-                  testID: `footer-button-${index}`,
-                },
-                ReactModule.createElement(Text, null, button.label),
-              ),
-          ),
-        );
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  __esModule: true,
-  default: () => null,
-  IconName: { ArrowRight: 'ArrowRight' },
-  IconSize: { Md: 'Md' },
-  IconColor: { Default: 'Default' },
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+    navigate: jest.fn(),
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -240,11 +168,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactModule.createElement(View, { accessibilityLabel: name }),
   };
 });
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  ButtonSize: { Lg: 'Lg' },
-  ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
-}));
 
 describe('PerpsFlipPositionConfirmSheet', () => {
   const mockLongPosition: Position = {
@@ -339,6 +262,24 @@ describe('PerpsFlipPositionConfirmSheet', () => {
         }),
       );
     });
+    expect(playImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays PrimaryCTA once for an opted-in flip confirmation', async () => {
+    render(
+      <PerpsFlipPositionConfirmSheet
+        position={mockLongPosition}
+        enableHaptics
+      />,
+    );
+
+    fireEvent.press(screen.getByText('Flip'));
+
+    await waitFor(() => {
+      expect(mockHandleFlipPosition).toHaveBeenCalled();
+    });
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('calls onClose when cancel button is pressed', () => {

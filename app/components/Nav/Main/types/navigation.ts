@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import type {
   AssetLoaderParams,
   AssetViewParams,
@@ -43,6 +44,7 @@ export type AssetStackParamList = {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
   };
+  ContractSecurity: { token: TokenDetailsRouteParams };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
 };
@@ -79,11 +81,14 @@ export type SettingsStackParamList = {
   AccountsMenuView: undefined;
   Settings: undefined;
   GeneralSettings: undefined;
-  AdvancedSettings: { scrollToBottom?: boolean } | undefined;
+  AdvancedSettings:
+    | { scrollToBottom?: boolean; isFullScreenModal?: boolean }
+    | undefined;
   NetworksManagement: undefined;
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
   SecuritySettings: undefined;
+  MfaSettings: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;
@@ -102,20 +107,11 @@ export type SettingsStackParamList = {
   ManualBackupStep2: ManualBackupStep2Params | undefined;
   ManualBackupStep3: ManualBackupStep3Params;
   EnterPasswordSimple: undefined;
-  NotificationsSettings: undefined;
+  NotificationsSettings: { section?: string } | undefined;
   NotificationSettingsSection: NotificationSettingsSectionProps['route']['params'];
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   SnapsSettingsList: undefined;
-};
-
-/**
- * Param list for screens inside `ExploreHome` (`TrendingView` tab).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type TrendingViewStackParamList = {
-  TrendingFeed: ExploreFeedRouteParams | undefined;
 };
 
 /**
@@ -170,7 +166,7 @@ export type ImportPrivateKeyStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyTabStackParamList = {
-  MoneyHome: undefined;
+  MoneyHome: NavigationAnalyticsRouteParams | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
@@ -210,7 +206,7 @@ export type RewardsHomeParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
-  TrendingView: NavigatorScreenParams<TrendingViewStackParamList> | undefined;
+  TrendingView: ExploreFeedRouteParams | undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>
@@ -232,14 +228,4 @@ export type HomeTabsParamList = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MainStackParamList = {
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
-};
-
-/**
- * Param list for `MainFlow` (`Routes.MAIN_FLOW` / `Main` on the root stack).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type MainFlowParamList = {
-  Main: NavigatorScreenParams<MainStackParamList> | undefined;
-  ReviewModal: undefined;
 };

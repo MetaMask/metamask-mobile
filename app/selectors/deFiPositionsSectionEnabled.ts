@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { selectAssetsDefiPositionsEnabled } from './featureFlagController/assetsDefiPositions';
+import { selectDefiControllerV2Enabled } from './featureFlagController/defiControllerV2';
 import { selectBasicFunctionalityEnabled } from './settings';
 
 /**
@@ -11,7 +12,14 @@ import { selectBasicFunctionalityEnabled } from './settings';
  */
 export const selectDeFiPositionsSectionEnabled = createSelector(
   selectAssetsDefiPositionsEnabled,
+  selectDefiControllerV2Enabled,
   selectBasicFunctionalityEnabled,
-  (assetsDefiPositionsEnabled, basicFunctionalityEnabled) =>
-    assetsDefiPositionsEnabled && basicFunctionalityEnabled,
+  (
+    assetsDefiPositionsEnabled,
+    defiControllerV2Enabled,
+    basicFunctionalityEnabled,
+  ) =>
+    assetsDefiPositionsEnabled &&
+    basicFunctionalityEnabled &&
+    !defiControllerV2Enabled,
 );

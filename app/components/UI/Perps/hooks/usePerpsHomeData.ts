@@ -27,6 +27,7 @@ import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
 import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
+import { filterMarketsByCategory } from '../utils/marketCategoryMapping';
 import { isRecentlyListed } from '../utils/time';
 import { useNowOnScreenFocus } from './useNowOnScreenFocus';
 
@@ -66,6 +67,10 @@ interface UsePerpsHomeDataReturn {
     activity: boolean;
   };
   refresh: () => Promise<void>;
+  ordersError?: Error | null;
+  retryOrders: () => void;
+  activityError?: Error | null;
+  retryActivity: () => void;
 }
 
 /**
@@ -90,19 +95,27 @@ export const usePerpsHomeData = ({
     });
 
   // Fetch orders via WebSocket (excluding TP/SL orders)
-  const { orders: allOrders, isInitialLoading: isOrdersLoading } =
-    usePerpsLiveOrders({
-      throttleMs: 1000,
-      hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
-      // Reduce-only orders (e.g. limit closes) are shown so they appear in the
-      // "Your orders" section, matching the portfolio "Perpetuals" section.
-    });
+  const {
+    orders: allOrders,
+    isInitialLoading: isOrdersLoading,
+    error: ordersError,
+    retry: retryOrders,
+  } = usePerpsLiveOrders({
+    throttleMs: 1000,
+    hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
+    // Reduce-only orders (e.g. limit closes) are shown so they appear in the
+    // "Your orders" section, matching the portfolio "Perpetuals" section.
+  });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)
-  const { fills: liveFills, isInitialLoading: isFillsLoading } =
-    usePerpsLiveFills({
-      throttleMs: 0, // No throttle for instant activity updates
-    });
+  const {
+    fills: liveFills,
+    isInitialLoading: isFillsLoading,
+    error: activityError,
+    retry: retryActivity,
+  } = usePerpsLiveFills({
+    throttleMs: 0, // No throttle for instant activity updates
+  });
 
   // REST API fills state - WebSocket snapshot only contains recent fills,
   // so we need to fetch complete history via REST API
@@ -194,7 +207,10 @@ export const usePerpsHomeData = ({
   const perpsMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
+        markets: filterMarketsByCategory(
+          allMarkets,
+          MarketCategory.CryptoCurrency,
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -364,7 +380,10 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return perpsMarkets;
     }
-    return filteredData.markets.filter((m) => !m.marketType && !m.isHip3);
+    return filterMarketsByCategory(
+      filteredData.markets,
+      MarketCategory.CryptoCurrency,
+    );
   }, [searchQuery, perpsMarkets, filteredData.markets]);
 
   const searchedStocksMarkets = useMemo(() => {
@@ -406,6 +425,10 @@ export const usePerpsHomeData = ({
   }, [searchQuery, forexMarkets, filteredData.markets]);
 
   return {
+    ordersError,
+    retryOrders,
+    activityError,
+    retryActivity,
     positions: limitedPositions,
     orders: limitedOrders,
     watchlistMarkets: limitedWatchlistMarkets,
@@ -428,7 +451,7 @@ export const usePerpsHomeData = ({
       positions: isPositionsLoading,
       orders: isOrdersLoading,
       markets: isMarketsLoading,
-      activity: isFillsLoading || isConnecting,
+      activity: !activityError && (isFillsLoading || isConnecting),
     },
     refresh,
   };

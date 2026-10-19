@@ -55,6 +55,6 @@ export const QuoteViewSelectorIDs = {
   NO_QUOTES_BANNER: 'bridge-no-quotes',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
-  BACK_BUTTON: 'button-icon',
+  BACK_BUTTON: 'bridge-back-button',
   PRICE_IMPACT_INFO_BUTTON: 'price-impact-info-button',
 };

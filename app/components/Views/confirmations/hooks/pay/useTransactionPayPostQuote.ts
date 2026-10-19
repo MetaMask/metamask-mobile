@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import { createProjectLogger, type Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
-import { hasTransactionType } from '../../utils/transaction';
 import { usePredictAccountState } from '../../../../UI/Predict/hooks/usePredictAccountState';
 
 const log = createProjectLogger('transaction-pay-post-quote');
@@ -58,20 +60,28 @@ export function useTransactionPayPostQuote(): void {
       return;
     }
 
+    const from = transactionMeta?.txParams?.from as Hex | undefined;
+
+    // txParams.from is the Money Account. Wait until it is present so the
+    // Relay quote can name it as the refund target.
+    if (isMoneyAccountWithdraw && !from) {
+      return;
+    }
+
     try {
       const { TransactionPayController } = Engine.context;
-      const from = transactionMeta?.txParams?.from as Hex | undefined;
 
-      // Predict withdrawals refund to the Safe proxy address.
-      // Perps and money-account withdrawals don't use refundTo -- funds land
-      // on the user's address directly (HyperCore -> Relay for perps; vault
-      // teller -> user for money account).
-      const refundTo =
-        isPerpsWithdraw || isMoneyAccountWithdraw || isDepositWalletWithdraw
-          ? undefined
-          : from
-            ? computeProxyAddress(from)
-            : undefined;
+      // Predict Safe withdrawals refund to the proxy.
+      // Money Account withdrawals refund to the Money Account in txParams.from.
+      // Relay funds the bridge from the EOA after the unvault transfer, so the
+      // quote must send a failed fill's mUSD back to the Money Account.
+      // Perps and Polymarket deposit-wallet withdrawals leave refundTo unset.
+      let refundTo: Hex | undefined;
+      if (isMoneyAccountWithdraw) {
+        refundTo = from;
+      } else if (!isPerpsWithdraw && !isDepositWalletWithdraw && from) {
+        refundTo = computeProxyAddress(from);
+      }
 
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isPostQuote = true;

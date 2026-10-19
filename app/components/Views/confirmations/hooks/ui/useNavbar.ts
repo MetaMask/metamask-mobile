@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useEffect } from 'react';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -6,20 +7,23 @@ import {
   getNavbar,
   NavbarOverrides,
 } from '../../components/UI/navbar/navbar';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ConfirmationParams } from '../../components/confirm/confirm-component';
 
 const useNavbar = (
   title: string,
   addBackButton = true,
   overrides?: NavbarOverrides,
 ) => {
-  const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { onReject } = useConfirmReject();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
+  const { sheetPresentation } = useParams<ConfirmationParams>({});
 
   useEffect(() => {
     if (isFullScreenConfirmation) {
@@ -31,6 +35,7 @@ const useNavbar = (
           theme,
           overrides,
           mmPayRequestInProgressNavHandler,
+          sheetPresentation,
         }),
       );
     }
@@ -41,15 +46,16 @@ const useNavbar = (
     navigation,
     onReject,
     overrides,
+    sheetPresentation,
     theme,
     title,
   ]);
 };
 
 export function useModalNavbar() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
-  const { onReject } = useConfirmActions();
+  const { onReject } = useConfirmReject();
 
   useEffect(() => {
     navigation.setOptions(getModalNavigationOptions());

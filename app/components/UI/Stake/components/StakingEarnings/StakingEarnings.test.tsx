@@ -1,10 +1,12 @@
 import React from 'react';
-import StakingEarnings from '.';
+import StakingEarnings, { STAKING_EARNINGS_TEST_IDS } from '.';
+import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 
@@ -54,9 +56,11 @@ jest.mock('../../../../../selectors/earnController', () => ({
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(true),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
-  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
-    .fn()
-    .mockReturnValue(false),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(),
 }));
 
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -120,10 +124,17 @@ const render = (state = STATE_MOCK) =>
   );
 
 describe('Staking Earnings', () => {
-  it('should render correctly', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(false);
+  });
+
+  it('renders pooled-staking earnings', () => {
     const { getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.staking'))).toBeOnTheScreen();
     expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
     expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
     expect(
@@ -139,19 +150,56 @@ describe('Staking Earnings', () => {
     ).toBeNull();
   });
 
-  it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
-    (
-      selectPooledStakingServiceInterruptionBannerEnabledFlag as jest.MockedFunction<
-        typeof selectPooledStakingServiceInterruptionBannerEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    const { getByText } = render();
+  it('displays pooled-staking earnings values when privacy mode is disabled', () => {
+    const { getByTestId } = render();
 
     expect(
-      getByText(
-        strings('earn.service_interruption_banner.maintenance_message'),
-      ),
-    ).toBeOnTheScreen();
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT),
+    ).toHaveTextContent('$5000');
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN),
+    ).toHaveTextContent('2.5 ETH');
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent('$5000');
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent('2.5 ETH');
+  });
+
+  it('masks pooled-staking earnings values in privacy mode', () => {
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(true);
+
+    const { getByTestId, queryByText } = render();
+
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(queryByText('$5000')).not.toBeOnTheScreen();
+    expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
+  });
+
+  it('navigates to the pooled-staking learn more modal when annual rate is pressed', () => {
+    const { getByTestId } = render();
+
+    fireEvent.press(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ANNUAL_RATE_PRESSABLE),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+      screen: Routes.STAKING.MODALS.LEARN_MORE,
+      params: { chainId: '0x1' },
+    });
   });
 });

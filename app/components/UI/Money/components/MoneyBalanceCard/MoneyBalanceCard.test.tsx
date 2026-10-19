@@ -2,11 +2,13 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 import MoneyBalanceCard from './MoneyBalanceCard';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
@@ -16,6 +18,7 @@ import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
+  BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
@@ -24,6 +27,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
@@ -33,6 +37,19 @@ const mockTrackTooltipClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
+
+jest.mock('../../../../../../locales/i18n', () => {
+  const actual = jest.requireActual('../../../../../../locales/i18n') as {
+    strings: (name: string, params?: Record<string, unknown>) => string;
+  };
+
+  return {
+    ...actual,
+    strings: jest.fn((name: string, params = {}) =>
+      actual.strings(name, params),
+    ),
+  };
+});
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -49,6 +66,10 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -91,12 +112,18 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(),
 }));
 
+jest.mock('../../selectors/eligibility', () => ({
+  __esModule: true,
+  selectIsMoneyAccountGeoEligible: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
 const mockSelectHasWalletFundingPrimaryCta = jest.mocked(
@@ -106,6 +133,9 @@ const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
   selectMoneyOnboardingStepperAnimationEnabled,
 );
 const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
+const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
+  selectIsMoneyAccountGeoEligible,
+);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
@@ -125,13 +155,6 @@ const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
     isBalanceLoading: false,
     isBalanceFetchError: false,
     refetchBalance: jest.fn(),
-    apyDecimal: 0.04,
-    apyPercent: 4,
-    apyPercentFormatted: '4%',
-    vaultApyQuery: {
-      data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
-      isLoading: false,
-    },
     ...overrides,
     moneyBalanceQuery: {
       data: {
@@ -144,6 +167,20 @@ const createBalanceMock = (overrides: BalanceMockOverrides = {}) =>
       ...overrides.moneyBalanceQuery,
     },
   }) as ReturnType<typeof useMoneyAccountBalance>;
+
+const createApyMock = (
+  overrides: Partial<ReturnType<typeof useMoneyVaultApy>> = {},
+) =>
+  ({
+    apyDecimal: 0.04,
+    apyPercent: 4,
+    apyPercentFormatted: '4%',
+    vaultApyQuery: {
+      data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
+      isLoading: false,
+    },
+    ...overrides,
+  }) as ReturnType<typeof useMoneyVaultApy>;
 
 const createInfoMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountInfo>> = {},
@@ -160,12 +197,15 @@ describe('MoneyBalanceCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
+    mockUseMoneyVaultApy.mockReturnValue(createApyMock());
     mockUseMoneyAccountInfo.mockReturnValue(createInfoMock());
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
     mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
     mockSelectPrivacyMode.mockReturnValue(false);
+    mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
     mockUseMoneyNavigation.mockReturnValue({
+      isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
@@ -446,12 +486,82 @@ describe('MoneyBalanceCard', () => {
       ).toHaveTextContent(/• mUSD/);
     });
 
+    it('keeps the currency suffix, info control, and add CTA on screen for a long translated label', () => {
+      const actualStrings = jest.requireActual('../../../../../../locales/i18n')
+        .strings as typeof strings;
+      const mockedStrings = strings as jest.MockedFunction<typeof strings>;
+
+      mockedStrings.mockImplementation((name, params) => {
+        if (name === 'money.balance_card.label') {
+          return 'Υπόλοιπο χρημάτων';
+        }
+        if (name === 'money.balance_card.add') {
+          return 'Προσθήκη';
+        }
+        return actualStrings(name, params);
+      });
+
+      try {
+        const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(getByTestId(MoneyBalanceCardTestIds.LABEL)).toHaveTextContent(
+          'Υπόλοιπο χρημάτων',
+        );
+        expect(
+          getByTestId(MoneyBalanceCardTestIds.CURRENCY_SUFFIX),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyBalanceCardTestIds.INFO_BUTTON),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON),
+        ).toHaveTextContent('Προσθήκη');
+      } finally {
+        mockedStrings.mockImplementation(actualStrings);
+      }
+    });
+
     it('does not render the mUSD currency suffix inside the APY tag', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       expect(
         getByTestId(MoneyBalanceCardTestIds.APY_TAG),
       ).not.toHaveTextContent(/• mUSD/);
+    });
+  });
+
+  describe('geo-ineligible visibility', () => {
+    beforeEach(() => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+    });
+
+    it('hides the card when the Money balance is zero', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: '0',
+          totalFiatFormatted: '$0.00',
+        }),
+      );
+
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.EMPTY_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.APY_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the funded card with its APY', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toHaveTextContent(
+        /4% APY/,
+      );
     });
   });
 
@@ -541,12 +651,36 @@ describe('MoneyBalanceCard', () => {
       expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
 
+    it('opens the geo-block sheet when the card body is pressed by a geo-ineligible user', () => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
+      expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    });
+
     it('routes add money when Add is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
 
       fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
 
       expect(mockInitiateDeposit).toHaveBeenCalled();
+    });
+
+    it('opens the geo-block sheet when Add is pressed by a geo-ineligible user', () => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+      });
+      expect(mockInitiateDeposit).not.toHaveBeenCalled();
     });
 
     it('opens the Money balance info sheet when the info icon is pressed', () => {
@@ -595,12 +729,12 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders APY skeleton when APY is loading', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({
+      mockUseMoneyVaultApy.mockReturnValue(
+        createApyMock({
           vaultApyQuery: {
             data: undefined,
             isLoading: true,
-          } as ReturnType<typeof useMoneyAccountBalance>['vaultApyQuery'],
+          } as ReturnType<typeof useMoneyVaultApy>['vaultApyQuery'],
         }),
       );
 
@@ -632,8 +766,8 @@ describe('MoneyBalanceCard', () => {
     });
 
     it('renders the APY tag with 0 when apyPercent is undefined', () => {
-      mockUseMoneyAccountBalance.mockReturnValue(
-        createBalanceMock({ apyPercent: undefined }),
+      mockUseMoneyVaultApy.mockReturnValue(
+        createApyMock({ apyPercent: undefined }),
       );
 
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
@@ -664,12 +798,17 @@ describe('MoneyBalanceCard', () => {
   });
 
   describe('CTA variant follows the presence of another primary CTA on Home', () => {
+    // Secondary renders through ButtonGlass, so read the variant off the
+    // design-system Button underneath rather than the first match.
     const getVariant = (
-      UNSAFE_getByProps: ReturnType<
+      UNSAFE_getAllByProps: ReturnType<
         typeof renderWithProvider
-      >['UNSAFE_getByProps'],
+      >['UNSAFE_getAllByProps'],
       testID: string,
-    ) => UNSAFE_getByProps({ testID }).props.variant;
+    ) =>
+      UNSAFE_getAllByProps({ testID }).find(
+        (node) => node.props.variant !== undefined,
+      )?.props.variant;
 
     describe('empty balance, onboarding seen', () => {
       beforeEach(() => {
@@ -685,20 +824,24 @@ describe('MoneyBalanceCard', () => {
       it('renders Add as Secondary when another primary CTA is present on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
 
       it('renders Add as Primary when no other primary CTA is on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
     });
@@ -707,20 +850,24 @@ describe('MoneyBalanceCard', () => {
       it('renders Add as Primary when no other primary CTA is on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
 
       it('renders Add as Secondary when another primary CTA is present on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
     });
@@ -739,20 +886,24 @@ describe('MoneyBalanceCard', () => {
       it('renders Add as Primary when no other primary CTA is on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Primary);
       });
 
       it('renders Add as Secondary when another primary CTA is present on Home', () => {
         mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
 
-        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+        const { UNSAFE_getAllByProps } = renderWithProvider(
+          <MoneyBalanceCard />,
+        );
 
         expect(
-          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+          getVariant(UNSAFE_getAllByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
         ).toBe(ButtonVariant.Secondary);
       });
     });
@@ -934,6 +1085,20 @@ describe('MoneyBalanceCard', () => {
       expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
     });
 
+    it('does not track a hidden zero-balance card for a geo-ineligible user', () => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          totalFiatRaw: '0',
+          totalFiatFormatted: '$0.00',
+        }),
+      );
+
+      renderWithProvider(<MoneyBalanceCard />);
+
+      expect(mockTrackComponentViewed).not.toHaveBeenCalled();
+    });
+
     it('does not call trackComponentViewed again on re-render', () => {
       const { rerender } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -949,6 +1114,17 @@ describe('MoneyBalanceCard', () => {
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         redirect_target: SCREEN_NAMES.MONEY_HOME,
+      });
+    });
+
+    it('tracks the geo-block sheet redirect when a geo-ineligible user presses the card body', () => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
       });
     });
 
@@ -976,6 +1152,20 @@ describe('MoneyBalanceCard', () => {
         button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
         label_key: 'money.balance_card.add',
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
+    it('tracks the geo-block sheet redirect when a geo-ineligible user presses Add', () => {
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+        label_key: 'money.balance_card.add',
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET,
       });
     });
 
@@ -1026,6 +1216,55 @@ describe('MoneyBalanceCard', () => {
         tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
         tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
       });
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the opaque card by default', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the card on an interactive glass surface', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.GLASS_SURFACE).props.isInteractive,
+      ).toBe(true);
+      expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('draws a secondary Add on glass too', () => {
+      mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MoneyBalanceCard isGlass />,
+      );
+
+      // One sheen for the card, one for the Add button.
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+    });
+
+    it('keeps a primary Add solid on the glass card', () => {
+      mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+
+      const { getAllByTestId } = renderWithProvider(
+        <MoneyBalanceCard isGlass />,
+      );
+
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+    });
+
+    it('still opens Money home when the glass card is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.FUNDED_CONTAINER));
+
+      expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
     });
   });
 });

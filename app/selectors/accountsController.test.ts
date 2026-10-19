@@ -137,6 +137,24 @@ describe('Accounts Controller Selectors', () => {
         errorMessage,
       );
     });
+
+    it('does not throw an error if the selected account ID is empty', () => {
+      const result = selectSelectedInternalAccount({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: '',
+              },
+            },
+          },
+        },
+      } as RootState);
+      expect(result).toBeUndefined();
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
   });
   describe('selectInternalAccounts', () => {
     it(`returns internal accounts of the accounts controller sorted by the keyring controller's accounts`, () => {

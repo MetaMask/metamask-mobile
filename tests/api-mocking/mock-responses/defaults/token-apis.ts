@@ -13,6 +13,12 @@ const tokenListRegex =
 const tokenAssetsRegex =
   /^https:\/\/token\.api\.cx\.metamask\.io\/assets\?assetIds=.*&includeTokenSecurityData=true$/;
 
+// Matches the /assets endpoint variant used by the Watchlist getTokens helper
+// which requests market data and RWA data instead of token security data.
+// e.g. https://token.api.cx.metamask.io/assets?assetIds=eip155:1/erc20:0x...&includeMarketData=true&includeRwaData=true
+const tokenAssetsMarketDataRegex =
+  /^https:\/\/token\.api\.cx\.metamask\.io\/assets\?assetIds=.*&includeMarketData=true&includeRwaData=true$/;
+
 // Matches the v3 assets endpoint used by useERC20Tokens to fetch token metadata
 // e.g. https://tokens.api.cx.metamask.io/v3/assets?assetIds=eip155:1/erc20:0x...&includeIconUrl=true
 const tokenV3AssetsRegex =
@@ -68,6 +74,11 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint: tokenAssetsRegex,
+      responseCode: 200,
+      response: [],
+    },
+    {
+      urlEndpoint: tokenAssetsMarketDataRegex,
       responseCode: 200,
       response: [],
     },

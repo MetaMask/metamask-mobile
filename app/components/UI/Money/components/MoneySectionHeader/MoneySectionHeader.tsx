@@ -17,6 +17,10 @@ import { MoneySectionHeaderTestIds } from './MoneySectionHeader.testIds';
 
 interface MoneySectionHeaderProps {
   /**
+   * Optional test identifier for the interactive header target.
+   */
+  testID?: string;
+  /**
    * Section title text (should be a localized string)
    */
   title: string;
@@ -41,6 +45,7 @@ interface MoneySectionHeaderProps {
 }
 
 const MoneySectionHeader = ({
+  testID,
   title,
   onPress,
   onInfoPress,
@@ -85,7 +90,11 @@ const MoneySectionHeader = ({
   );
 
   if (onPress) {
-    return <TouchableOpacity onPress={handlePress}>{content}</TouchableOpacity>;
+    return (
+      <TouchableOpacity testID={testID} onPress={handlePress}>
+        {content}
+      </TouchableOpacity>
+    );
   }
 
   return content;

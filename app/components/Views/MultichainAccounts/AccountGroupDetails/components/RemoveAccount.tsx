@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Box,
@@ -27,7 +28,7 @@ export interface RemoveAccountProps {
 
 export const RemoveAccount = ({ account }: RemoveAccountProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleRemoveAccountClick = useCallback(() => {
     navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {

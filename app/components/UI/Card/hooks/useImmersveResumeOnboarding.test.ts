@@ -5,7 +5,11 @@ import type { CardSpendingPrerequisite } from '../../../../core/Engine/controlle
 const mockSetSelectedCountry = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
+const mockGetResumeCardInfo = jest.fn();
 const mockGetSpendingPrerequisites = jest.fn();
+const mockPatchContactDetails = jest.fn();
+const mockRecordProviderOnboardingStarted = jest.fn();
+const mockRecordCardActivated = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -14,14 +18,22 @@ jest.mock('../../../../core/Engine', () => ({
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
+      getResumeCardInfo: (...args: unknown[]) => mockGetResumeCardInfo(...args),
       getSpendingPrerequisites: (...args: unknown[]) =>
         mockGetSpendingPrerequisites(...args),
+      patchContactDetails: (...args: unknown[]) =>
+        mockPatchContactDetails(...args),
+      recordProviderOnboardingStarted: (...args: unknown[]) =>
+        mockRecordProviderOnboardingStarted(...args),
+      recordCardActivated: (...args: unknown[]) =>
+        mockRecordCardActivated(...args),
     },
   },
 }));
 
 const mockSignIn = jest.fn();
 jest.mock('./useImmersveSiweAuth', () => ({
+  ...jest.requireActual('./useImmersveSiweAuth'),
   useImmersveSiweAuth: () => ({
     signIn: mockSignIn,
     isAuthenticating: false,
@@ -35,12 +47,10 @@ jest.mock('./useImmersveOnboardingRouter', () => ({
 }));
 
 const mockDispatch = jest.fn();
-let mockCardFeatureFlag: unknown = {
-  immersve: { fundingChannelId: 'base-channel' },
-};
+let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: () => mockCardFeatureFlag,
+  useSelector: () => mockImmersveConfig,
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
@@ -50,7 +60,21 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   }),
 }));
 
-const PARAMS = { country: 'GB', address: '0xabc', email: 'user@example.com' };
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+    })),
+  }),
+}));
+
+const PARAMS = {
+  country: 'GB',
+  address: '0xabc',
+  email: 'user@example.com',
+  phone: '+447911123456',
+};
 
 const contactPrereqs: CardSpendingPrerequisite[] = [
   {
@@ -63,17 +87,108 @@ const contactPrereqs: CardSpendingPrerequisite[] = [
 describe('useImmersveResumeOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCardFeatureFlag = { immersve: { fundingChannelId: 'base-channel' } };
+    mockRecordProviderOnboardingStarted.mockResolvedValue(undefined);
+    mockRecordCardActivated.mockResolvedValue(undefined);
+    mockImmersveConfig = { fundingChannelId: 'base-channel' };
     mockSignIn.mockResolvedValue({ done: true });
+    mockGetResumeCardInfo.mockResolvedValue(null);
     mockGetFundingSources.mockResolvedValue([]);
     mockCreateFundingSource.mockResolvedValue({ id: 'fs-new' });
     mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
   });
 
-  it('sets the provider country, signs in, then resolves + routes for a new user (empty funding list)', async () => {
-    mockGetSpendingPrerequisites.mockResolvedValue({
-      prerequisites: contactPrereqs,
+  describe('card link write', () => {
+    it('records onboarding started for the SIWE account after sign-in succeeds', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledTimes(1);
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
     });
+
+    it('does not record onboarding started when the user is already authenticated', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current({ ...PARAMS, alreadyAuthenticated: true });
+      });
+
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
+    it('records active, not onboarding, when a fresh SIWE finds an existing card', async () => {
+      mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordCardActivated).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+
+    it('records the card as active for a returning user with an existing card', async () => {
+      mockGetResumeCardInfo.mockResolvedValue({ fundingSourceIds: ['fs-1'] });
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current({ ...PARAMS, alreadyAuthenticated: true });
+      });
+
+      expect(mockRecordCardActivated).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
+    });
+
+    it('does not record activation for a user without a card', async () => {
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await result.current(PARAMS);
+      });
+
+      expect(mockRecordCardActivated).not.toHaveBeenCalled();
+    });
+
+    it('does not record onboarding started when sign-in fails', async () => {
+      mockSignIn.mockRejectedValue(new Error('siwe failed'));
+      const { result } = renderHook(() => useImmersveResumeOnboarding());
+
+      await act(async () => {
+        await expect(result.current(PARAMS)).rejects.toThrow('siwe failed');
+      });
+
+      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+    });
+  });
+
+  it('sets the provider country, signs in, patches contact, then routes for a new user', async () => {
+    mockGetSpendingPrerequisites
+      .mockResolvedValueOnce({
+        prerequisites: contactPrereqs,
+      })
+      .mockResolvedValueOnce({
+        prerequisites: [
+          {
+            stage: 'kyc',
+            status: 'action-required',
+            actionType: 'follow_kyc_url',
+            params: { kycUrl: 'https://kyc' },
+          },
+        ],
+      });
+    mockPatchContactDetails.mockResolvedValue(undefined);
     const { result } = renderHook(() => useImmersveResumeOnboarding());
 
     await act(async () => {
@@ -91,13 +206,42 @@ describe('useImmersveResumeOnboarding', () => {
       type: 'card/setImmersveFundingSourceId',
       payload: 'fs-new',
     });
-    expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith('fs-new', {
-      kycRegion: 'GB',
-      kycRedirectUrl: 'https://metamask.io/card/kyc-complete',
+    expect(mockPatchContactDetails).toHaveBeenCalledWith({
+      email: 'user@example.com',
+      phone: '+447911123456',
     });
+    expect(mockGetSpendingPrerequisites).toHaveBeenCalledTimes(2);
     expect(mockRoute).toHaveBeenCalledWith(
-      { type: 'contact', needsEmail: true, needsPhone: false },
-      { email: 'user@example.com', countryKey: 'GB' },
+      { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
+    );
+  });
+
+  it('does not patch contact when prerequisites are already satisfied', async () => {
+    mockGetFundingSources.mockResolvedValue([
+      { id: 'fs-existing', fundingChannelId: 'base-channel' },
+    ]);
+    mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockPatchContactDetails).not.toHaveBeenCalled();
+    expect(mockRoute).toHaveBeenCalledWith(
+      { type: 'active' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
@@ -208,11 +352,16 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'active' },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
-  it('routes to `funding` when a smart_contract_write prerequisite is outstanding', async () => {
+  it('routes to `funding` with hasExistingCard false when there is no card', async () => {
     mockGetFundingSources.mockResolvedValue([
       { id: 'fs-existing', fundingChannelId: 'base-channel' },
     ]);
@@ -240,7 +389,50 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'funding', write },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
+    );
+  });
+
+  it('routes to `funding` with hasExistingCard true when the user already has a card', async () => {
+    mockGetResumeCardInfo.mockResolvedValue({
+      cardProgramId: 'program-1',
+      fundingSourceIds: ['fs-existing'],
+    });
+    const write = {
+      abi: [],
+      contractAddress: '0xusdc',
+      method: 'approve',
+      params: { _spender: '0xspender', _value: '1' },
+    };
+    mockGetSpendingPrerequisites.mockResolvedValue({
+      prerequisites: [
+        {
+          stage: 'funding',
+          status: 'action-required',
+          actionType: 'smart_contract_write',
+          params: write,
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockRoute).toHaveBeenCalledWith(
+      { type: 'funding', write },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: true,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
@@ -259,7 +451,12 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockRoute).toHaveBeenCalledWith(
       { type: 'rejected', retryUrl: undefined },
-      { email: 'user@example.com', countryKey: 'GB' },
+      {
+        email: 'user@example.com',
+        countryKey: 'GB',
+        hasExistingCard: false,
+        fundingAddress: '0xabc',
+      },
     );
   });
 
@@ -276,5 +473,46 @@ describe('useImmersveResumeOnboarding', () => {
 
     expect(mockGetFundingSources).not.toHaveBeenCalled();
     expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('uses the existing funding source when present', async () => {
+    mockGetResumeCardInfo.mockResolvedValue({
+      cardProgramId: 'program-arbitrum',
+      fundingSourceIds: ['fs-arbitrum'],
+    });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockGetFundingSources).not.toHaveBeenCalled();
+    expect(mockCreateFundingSource).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'card/setImmersveFundingSourceId',
+      payload: 'fs-arbitrum',
+    });
+    expect(mockGetSpendingPrerequisites).toHaveBeenCalledWith(
+      'fs-arbitrum',
+      expect.any(Object),
+    );
+  });
+
+  it('falls back to the configured funding channel when there is no existing card', async () => {
+    mockGetResumeCardInfo.mockResolvedValue(null);
+    mockGetFundingSources.mockResolvedValue([
+      { id: 'fs-base', fundingChannelId: 'base-channel' },
+    ]);
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockGetFundingSources).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'card/setImmersveFundingSourceId',
+      payload: 'fs-base',
+    });
   });
 });

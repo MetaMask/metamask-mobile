@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import PerpsOHLCVBar from './PerpsOHLCVBar';
 import {
   formatPerpsFiat,
-  formatVolume,
+  formatCoinVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { PerpsOHLCVBarSelectorsIDs } from '../../Perps.testIds';
@@ -23,7 +23,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn(),
-  formatVolume: jest.fn(),
+  formatCoinVolume: jest.fn(),
   PRICE_RANGES_UNIVERSAL: [],
 }));
 
@@ -31,14 +31,14 @@ describe('PerpsOHLCVBar', () => {
   const mockFormatPerpsFiat = formatPerpsFiat as jest.MockedFunction<
     typeof formatPerpsFiat
   >;
-  const mockFormatVolume = formatVolume as jest.MockedFunction<
-    typeof formatVolume
+  const mockFormatCoinVolume = formatCoinVolume as jest.MockedFunction<
+    typeof formatCoinVolume
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockFormatPerpsFiat.mockReturnValue('$1000.00');
-    mockFormatVolume.mockReturnValue('1.2M');
+    mockFormatCoinVolume.mockReturnValue('1.2M');
   });
 
   afterEach(() => {
@@ -121,7 +121,7 @@ describe('PerpsOHLCVBar', () => {
       });
     });
 
-    it('calls formatVolume when volume is provided', () => {
+    it('calls formatCoinVolume when volume is provided', () => {
       render(
         <PerpsOHLCVBar
           open="1000.00"
@@ -133,10 +133,10 @@ describe('PerpsOHLCVBar', () => {
         />,
       );
 
-      expect(mockFormatVolume).toHaveBeenCalledWith('1234567.89');
+      expect(mockFormatCoinVolume).toHaveBeenCalledWith('1234567.89');
     });
 
-    it('does not call formatVolume when volume is not provided', () => {
+    it('does not call formatCoinVolume when volume is not provided', () => {
       render(
         <PerpsOHLCVBar
           open="1000.00"
@@ -147,7 +147,26 @@ describe('PerpsOHLCVBar', () => {
         />,
       );
 
-      expect(mockFormatVolume).not.toHaveBeenCalled();
+      expect(mockFormatCoinVolume).not.toHaveBeenCalled();
+    });
+
+    it('renders coin volume without a USD prefix', () => {
+      mockFormatCoinVolume.mockReturnValue('0.33');
+
+      const { getByTestId } = render(
+        <PerpsOHLCVBar
+          open="77479"
+          high="77662"
+          low="77413"
+          close="77595"
+          volume="0.33"
+          testID={PerpsOHLCVBarSelectorsIDs.CONTAINER}
+        />,
+      );
+
+      expect(
+        getByTestId(PerpsOHLCVBarSelectorsIDs.VOLUME_VALUE),
+      ).toHaveTextContent('0.33');
     });
   });
 
@@ -181,7 +200,7 @@ describe('PerpsOHLCVBar', () => {
 
       expect(getByTestId(PerpsOHLCVBarSelectorsIDs.CONTAINER)).toBeDefined();
       expect(mockFormatPerpsFiat).toHaveBeenCalledTimes(4);
-      expect(mockFormatVolume).toHaveBeenCalledWith('999999999999');
+      expect(mockFormatCoinVolume).toHaveBeenCalledWith('999999999999');
     });
 
     it('handles high decimal precision', () => {

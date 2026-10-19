@@ -1,16 +1,16 @@
 import TimerStore from './TimerStore';
+import { THRESHOLD_MARGIN } from './quality-gates/thresholdMargin';
 import {
+  clampInfraSubtractionMs,
   startOverheadTracking,
   stopOverheadTracking,
-} from './PlaywrightUtilities';
+} from './AppiumUtilities';
 
 /** Platform-specific threshold values in milliseconds. */
 export interface PlatformThreshold {
   ios: number;
   android: number;
 }
-
-const THRESHOLD_MARGIN = 0.1; // 10% margin
 
 /**
  * Helper class that wraps a TimerStore timer with threshold-based
@@ -21,10 +21,12 @@ class TimerHelper {
   private _baseThreshold: number | null;
   private readonly _platform?: 'android' | 'ios';
 
+  includeInTotal = true;
+
   /**
    * Creates a new TimerHelper and registers a timer in the store.
    * @param id - Timer description/identifier
-   * @param threshold - Platform-specific thresholds in ms (effective threshold = base + 10%)
+   * @param threshold - Platform-specific thresholds in ms (effective threshold = base + THRESHOLD_MARGIN_PERCENT)
    * @param currentPlatform - The current platform of the device being tested
    */
   constructor(
@@ -104,6 +106,19 @@ class TimerHelper {
   }
 
   /**
+   * Records an externally measured duration (e.g. in-app Sentry-equivalent TTC)
+   * without using wall-clock start/stop.
+   */
+  recordDuration(durationMs: number): void {
+    const timer = TimerStore.getTimer(this.id);
+    const safeDuration = Math.max(0, durationMs);
+    const end = Date.now();
+    timer.start = end - safeDuration;
+    timer.end = end;
+    timer.duration = safeDuration;
+  }
+
+  /**
    * Renames this timer to a new identifier.
    * @param newName - The new identifier for this timer
    */
@@ -124,7 +139,7 @@ class TimerHelper {
 
   /**
    * Measures the execution time of an async action and subtracts Appium
-   * infrastructure overhead (findElement / isExisting / probes) on both
+   * infrastructure overhead (poll RTTs capped to the post-detect probe) on both
    * Android and iOS. See {@link measureWithOverhead}.
    *
    * Use {@link measureRaw} if you need wall-clock without overhead subtraction.
@@ -139,6 +154,9 @@ class TimerHelper {
   /**
    * Measurement path that subtracts Appium overhead from the recorded duration.
    *
+   * Infra is capped so poll sleeps (and at least 1ms) remain in app time —
+   * timers must not collapse to 0ms after a real wait.
+   *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
    */
@@ -151,9 +169,8 @@ class TimerHelper {
       this.stop();
     }
     const wallClockMs = this.getDuration() ?? 0;
-    const rawInfraMs = stopOverheadTracking();
-    // Never subtract more than wall-clock (avoids false 0ms from over-counting).
-    const infraMs = Math.min(rawInfraMs, wallClockMs);
+    const { infraMs: rawInfraMs, sleepMs } = stopOverheadTracking();
+    const infraMs = clampInfraSubtractionMs(wallClockMs, rawInfraMs, sleepMs);
     if (infraMs > 0) {
       this.subtractOverhead(infraMs);
     }
@@ -187,7 +204,7 @@ class TimerHelper {
     return this._baseThreshold;
   }
 
-  /** Returns the effective threshold (base + 10% margin). */
+  /** Returns the effective threshold (base + THRESHOLD_MARGIN_PERCENT margin). */
   get threshold(): number | null {
     if (this._baseThreshold === null) {
       return null;

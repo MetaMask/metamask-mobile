@@ -225,7 +225,7 @@ export function renderMultichainAccountsIntroModal(
       { name: Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO },
       [
         { name: Routes.BROWSER.HOME, Component: BrowserRouteProbe },
-        { name: Routes.SHEET.ACCOUNT_SELECTOR },
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
       ],
       { state: fixture.state },
     ),

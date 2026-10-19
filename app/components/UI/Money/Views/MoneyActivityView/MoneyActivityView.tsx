@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
@@ -36,7 +37,7 @@ import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
-import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
@@ -80,7 +81,6 @@ interface ActivitySection {
   isPending?: boolean;
 }
 
-/** True for an in-flight on-chain row. Card spends are never pending. */
 function isPendingItem(item: MoneyActivityItem): boolean {
   return (
     item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
@@ -140,7 +140,7 @@ function buildSections(items: MoneyActivityItem[]): ActivitySection[] {
 }
 
 const MoneyActivityView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -164,7 +164,7 @@ const MoneyActivityView = () => {
     error,
     refetch,
     moneyAddress,
-    mockDataEnabled,
+    cardEnrichmentByHash,
   } = useMoneyActivityItems({
     // Auto-fill the active tab's bucket to a screenful; switching tabs
     // re-evaluates for the new bucket.
@@ -229,7 +229,7 @@ const MoneyActivityView = () => {
     </Box>
   );
 
-  const isRowPressEnabled = !mockDataEnabled && activityDetailsEnabled;
+  const isRowPressEnabled = activityDetailsEnabled;
 
   const renderItem = useCallback(
     ({ item }: { item: MoneyActivityItem }) => (
@@ -238,9 +238,16 @@ const MoneyActivityView = () => {
         moneyAddress={moneyAddress}
         onPress={isRowPressEnabled ? handleItemPress : undefined}
         privacyMode={privacyMode}
+        cardEnrichmentByHash={cardEnrichmentByHash}
       />
     ),
-    [moneyAddress, isRowPressEnabled, handleItemPress, privacyMode],
+    [
+      moneyAddress,
+      isRowPressEnabled,
+      handleItemPress,
+      privacyMode,
+      cardEnrichmentByHash,
+    ],
   );
 
   // Pages are shared across all three tabs (one cursor stream), so reaching the

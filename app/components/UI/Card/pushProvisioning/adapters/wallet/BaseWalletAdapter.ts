@@ -6,6 +6,7 @@
  */
 
 import { Platform, PlatformOSType } from 'react-native';
+import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import {
   WalletType,
   WalletEligibility,
@@ -37,7 +38,14 @@ export abstract class BaseWalletAdapter {
 
   protected abstract getAdapterName(): string;
   protected abstract getExpectedPlatform(): PlatformOSType;
-  protected abstract handleNativeActivationEvent(data: unknown): void;
+
+  protected handleNativeActivationEvent(data: onCardActivatedPayload): void {
+    const event: CardActivationEvent = {
+      tokenId: data.tokenId,
+      status: data.status,
+    };
+    this.notifyActivationListeners(event);
+  }
 
   protected async initializeWalletModule(): Promise<void> {
     if (Platform.OS !== this.getExpectedPlatform()) {
@@ -131,7 +139,10 @@ export abstract class BaseWalletAdapter {
     }
   }
 
-  async getEligibility(lastFourDigits?: string): Promise<WalletEligibility> {
+  async getEligibility(
+    lastFourDigits?: string,
+    _primaryAccountIdentifier?: string,
+  ): Promise<WalletEligibility> {
     const isAvailable = await this.checkAvailability();
 
     if (!isAvailable) {
@@ -146,11 +157,9 @@ export abstract class BaseWalletAdapter {
       };
     }
 
-    let existingCardStatus: CardTokenStatus | undefined;
-
-    if (lastFourDigits) {
-      existingCardStatus = await this.getCardStatus(lastFourDigits);
-    }
+    const existingCardStatus = lastFourDigits
+      ? await this.getCardStatus(lastFourDigits)
+      : undefined;
 
     const additionalInfo = await this.getAdditionalEligibilityInfo(
       lastFourDigits,
@@ -194,8 +203,8 @@ export abstract class BaseWalletAdapter {
 
       case 'requires_activation':
         return {
-          canAddCard: true,
-          recommendedAction: 'add_card',
+          canAddCard: false,
+          recommendedAction: 'none',
         };
 
       case 'active':
@@ -271,7 +280,7 @@ export abstract class BaseWalletAdapter {
 
       this.listenerSubscription = wallet.addListener(
         'onCardActivated',
-        (data: unknown) => {
+        (data) => {
           Logger.log(`${this.getAdapterName()}: onCardActivated`, data);
           this.handleNativeActivationEvent(data);
         },

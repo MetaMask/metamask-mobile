@@ -1,9 +1,9 @@
-import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
-import { usePredictWorldCupMarkets } from '../../../../../UI/Predict/hooks/usePredictWorldCup';
-import type { UsePredictMarketDataResult } from '../../../../../UI/Predict/hooks/usePredictMarketData';
-import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../../UI/Predict/constants/worldCupTabs';
-import { selectPredictWorldCupConfig } from '../../../../../UI/Predict/selectors/featureFlags';
+import {
+  usePredictMarketData,
+  type UsePredictMarketDataResult,
+} from '../../../../../UI/Predict/hooks/usePredictMarketData';
+import type { PredictMarket } from '../../../../../UI/Predict/types';
 import { getPolymarketEndpoints } from '../../../../../UI/Predict/providers/polymarket/utils';
 
 interface UseHomepagePredictWorldCupMarketsArgs {
@@ -18,6 +18,44 @@ interface UseHomepagePredictWorldCupEventCountResult {
 
 const HOMEPAGE_PREDICT_WORLD_CUP_EVENT_COUNT_LIMIT = 1;
 const HOMEPAGE_PREDICT_WORLD_CUP_EVENT_COUNT_STALE_TIME = 10_000;
+const HOMEPAGE_PREDICT_WORLD_CUP_TAG_SLUG = 'fifa-world-cup';
+const HOMEPAGE_PREDICT_WORLD_CUP_GAMES_TAG_ID = '100639';
+
+const buildHomepagePredictWorldCupMarketsQuery = ({
+  live = false,
+}: {
+  live?: boolean;
+} = {}): string => {
+  const queryParams = new URLSearchParams({
+    active: 'true',
+    archived: 'false',
+    closed: 'false',
+    tag_slug: HOMEPAGE_PREDICT_WORLD_CUP_TAG_SLUG,
+  });
+
+  if (live) {
+    queryParams.set('tag_id', HOMEPAGE_PREDICT_WORLD_CUP_GAMES_TAG_ID);
+    queryParams.set('live', 'true');
+    queryParams.set('order', 'startDate');
+  } else {
+    queryParams.set('order', 'volume24hr');
+    queryParams.set('ascending', 'false');
+  }
+
+  return queryParams.toString();
+};
+
+const normalizeHomepageWorldCupMarkets = (
+  markets: PredictMarket[],
+): PredictMarket[] =>
+  markets.map((market) =>
+    market.category === 'sports' ? market : { ...market, category: 'sports' },
+  );
+
+const HOMEPAGE_PREDICT_WORLD_CUP_MARKETS_QUERY =
+  buildHomepagePredictWorldCupMarketsQuery();
+const HOMEPAGE_PREDICT_LIVE_WORLD_CUP_MARKETS_QUERY =
+  buildHomepagePredictWorldCupMarketsQuery({ live: true });
 
 const homepagePredictWorldCupEventCountKeys = {
   all: (queryParams: string) =>
@@ -74,9 +112,8 @@ const fetchHomepagePredictWorldCupEventCount = async (
 export function useHomepagePredictWorldCupEventCount({
   enabled,
 }: UseHomepagePredictWorldCupMarketsArgs): UseHomepagePredictWorldCupEventCountResult {
-  const config = useSelector(selectPredictWorldCupConfig);
   const eventCountQueryParams = buildHomepagePredictWorldCupEventCountQuery(
-    config.tagSlug,
+    HOMEPAGE_PREDICT_WORLD_CUP_TAG_SLUG,
   );
   const eventCountQuery = useQuery({
     queryKey: homepagePredictWorldCupEventCountKeys.all(eventCountQueryParams),
@@ -97,33 +134,31 @@ export function useHomepagePredictWorldCupEventCount({
 }
 
 /**
- * Homepage discovery: loads World Cup markets using the same ALL-tab query path
- * as the dedicated World Cup screen.
+ * Homepage-owned World Cup discovery query. It deliberately uses the legacy
+ * exact-query path so the temporary dedicated Predict screen can be retired
+ * without changing this homepage surface.
  */
 export function useHomepagePredictWorldCupMarkets({
   enabled,
 }: UseHomepagePredictWorldCupMarketsArgs): UseHomepagePredictWorldCupMarketsResult {
-  const config = useSelector(selectPredictWorldCupConfig);
-
-  return usePredictWorldCupMarkets({
-    tabKey: PREDICT_WORLD_CUP_TAB_KEYS.ALL,
-    config,
+  return usePredictMarketData({
+    category: 'hot',
+    customQueryParams: HOMEPAGE_PREDICT_WORLD_CUP_MARKETS_QUERY,
+    refine: normalizeHomepageWorldCupMarkets,
     enabled,
   });
 }
 
 /**
- * Homepage discovery: loads live World Cup games using the same LIVE-tab query
- * path as the dedicated World Cup screen.
+ * Homepage-owned live World Cup discovery query.
  */
 export function useHomepagePredictLiveWorldCupMarkets({
   enabled,
 }: UseHomepagePredictWorldCupMarketsArgs): UseHomepagePredictWorldCupMarketsResult {
-  const config = useSelector(selectPredictWorldCupConfig);
-
-  return usePredictWorldCupMarkets({
-    tabKey: PREDICT_WORLD_CUP_TAB_KEYS.LIVE,
-    config,
+  return usePredictMarketData({
+    category: 'hot',
+    customQueryParams: HOMEPAGE_PREDICT_LIVE_WORLD_CUP_MARKETS_QUERY,
+    refine: normalizeHomepageWorldCupMarkets,
     enabled,
   });
 }

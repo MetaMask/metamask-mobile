@@ -8,8 +8,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import useBalance from './useBalance';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
-import { hexToBN } from '../../../../../util/number';
-import { TokenBalancesControllerState } from '@metamask/assets-controllers';
+import { hexToBigInt } from '../../../../../util/number/bigint';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
 
@@ -34,6 +33,10 @@ const MOCK_ACCOUNT_ID_1 =
 const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
 const USDC_ASSET_ID =
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+const BNB_NATIVE_ASSET_ID = 'eip155:56/slip44:60';
+const POLYGON_NATIVE_ASSET_ID = 'eip155:137/slip44:966';
+const POLYGON_USDC_ASSET_ID =
+  'eip155:137/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -49,56 +52,6 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      AccountTrackerController: {
-        accountsByChainId: {
-          '0x1': {
-            [MOCK_ADDRESS_1]: {
-              balance: toHex('12345000000000000000'),
-            },
-          },
-          '0x2': {
-            [MOCK_ADDRESS_1]: {
-              balance: toHex('223456789098765432100'),
-            },
-          },
-          // BNB Smart Chain native balance: 2 BNB
-          '0x38': {
-            [MOCK_ADDRESS_1]: {
-              balance: toHex('2000000000000000000'),
-            },
-          },
-        },
-      },
-      TokenRatesController: {
-        marketData: {
-          '0x1': {
-            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
-              price: 0.0005,
-            },
-          },
-          // Same token address priced differently on Polygon
-          '0x89': {
-            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
-              price: 0.002,
-            },
-          },
-        },
-      },
-      TokenBalancesController: {
-        ...backgroundState.TokenBalancesController,
-        tokenBalances: {
-          [MOCK_ADDRESS_1]: {
-            '0x1': {
-              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
-                hexToBN('0x14fb180'),
-            },
-            '0x89': {
-              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
-                hexToBN('0x14fb180'),
-            },
-          },
-        } as unknown as TokenBalancesControllerState,
-      },
       MultichainNetworkController: {
         isEvmSelected: true,
         selectedMultichainNetowrkChainId:
@@ -111,20 +64,6 @@ const initialState = {
               amount: '5.5',
               unit: 'SOL',
             },
-          },
-        },
-      },
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        currencyRates: {
-          ETH: {
-            conversionRate: 2000,
-          },
-          BNB: {
-            conversionRate: 600,
-          },
-          POL: {
-            conversionRate: 10,
           },
         },
       },
@@ -143,11 +82,33 @@ const initialState = {
             name: 'USD Coin',
             decimals: 6,
           },
+          [BNB_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'BNB',
+            name: 'BNB',
+            decimals: 18,
+          },
+          [POLYGON_USDC_ASSET_ID]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+          [POLYGON_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'POL',
+            name: 'POL',
+            decimals: 18,
+          },
         },
         assetsBalance: {
           [MOCK_ACCOUNT_ID_1]: {
             [MAINNET_NATIVE_ASSET_ID]: { amount: '12.345' },
             [USDC_ASSET_ID]: { amount: '22' },
+            // BNB Smart Chain native balance: 2 BNB
+            [BNB_NATIVE_ASSET_ID]: { amount: '2' },
+            // Same token address, held on Polygon
+            [POLYGON_USDC_ASSET_ID]: { amount: '22' },
           },
         },
         assetsPrice: {
@@ -163,6 +124,27 @@ const initialState = {
             usdPrice: 1,
             lastUpdated: 1717334400000,
           },
+          [BNB_NATIVE_ASSET_ID]: {
+            assetPriceType: 'fungible' as const,
+            price: 600,
+            usdPrice: 600,
+            lastUpdated: 1717334400000,
+          },
+          // Priced (in fiat) such that dividing by the POL native rate (10)
+          // reproduces the native-denominated exchange rate of 0.002 used by
+          // the assertion below (regression test for TRAM-3464).
+          [POLYGON_USDC_ASSET_ID]: {
+            assetPriceType: 'fungible' as const,
+            price: 0.02,
+            usdPrice: 0.02,
+            lastUpdated: 1717334400000,
+          },
+          [POLYGON_NATIVE_ASSET_ID]: {
+            assetPriceType: 'fungible' as const,
+            price: 10,
+            usdPrice: 10,
+            lastUpdated: 1717334400000,
+          },
         },
       },
     },
@@ -170,6 +152,12 @@ const initialState = {
 };
 
 describe('useBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSelectSelectedInternalAccountByScope.mockReset();
+    mockSelectMultichainBalances.mockReset();
+  });
+
   it('returns default if not asset is provided', async () => {
     const { result } = renderHookWithProvider(() => useBalance(), {
       state: initialState,
@@ -196,7 +184,7 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe('12.345');
     expect(result.current.balanceFiat).toBe('$24690.00');
     expect(result.current.balanceBN).toStrictEqual(
-      hexToBN(toHex('12345000000000000000')),
+      hexToBigInt(toHex('12345000000000000000')),
     );
   });
 
@@ -215,7 +203,9 @@ describe('useBalance', () => {
 
     expect(result.current.balance).toBe('22');
     expect(result.current.balanceFiat).toBe('$22.00');
-    expect(result.current.balanceBN).toStrictEqual(hexToBN(toHex('22000000')));
+    expect(result.current.balanceBN).toStrictEqual(
+      hexToBigInt(toHex('22000000')),
+    );
   });
 
   it('uses the asset chain native rate, not the globally selected network rate', async () => {
@@ -238,7 +228,7 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe('2');
     expect(result.current.balanceFiat).toBe('$1200.00');
     expect(result.current.balanceBN).toStrictEqual(
-      hexToBN(toHex('2000000000000000000')),
+      hexToBigInt(toHex('2000000000000000000')),
     );
   });
 

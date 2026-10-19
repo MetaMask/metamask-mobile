@@ -1,10 +1,17 @@
-import QuickCrypto from 'react-native-quick-crypto';
-import {
+import QuickCrypto, {
   CryptoKey,
   SubtleAlgorithm,
-} from 'react-native-quick-crypto/lib/typescript/src/keys';
+} from 'react-native-quick-crypto';
 import { toByteArray } from 'react-native-quick-base64'; // Import the Base64 decoding function
 import AppConstants from '../../AppConstants';
+
+const LINK_METAMASK_IO_ORIGIN = 'https://link.metamask.io';
+const LINK_TEST_METAMASK_IO_ORIGIN = 'https://link-test.metamask.io';
+
+const COM_TO_IO_SIGNING_ORIGINS: Readonly<Record<string, string>> = {
+  [AppConstants.MM_COM_UNIVERSAL_LINK_HOST]: LINK_METAMASK_IO_ORIGIN,
+  [AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST]: LINK_TEST_METAMASK_IO_ORIGIN,
+};
 
 function normalizeBase64(base64String: string): string {
   // Normalize URL-safe Base64
@@ -32,6 +39,7 @@ function getKeyData() {
 }
 
 function canonicalize(url: URL): string {
+  const signingOrigin = COM_TO_IO_SIGNING_ORIGINS[url.hostname] ?? url.origin;
   const sigParams = url.searchParams.get('sig_params');
 
   let params;
@@ -71,7 +79,7 @@ function canonicalize(url: URL): string {
     .join('&');
 
   const result =
-    url.origin + url.pathname + (queryString ? `?${queryString}` : '');
+    signingOrigin + url.pathname + (queryString ? `?${queryString}` : '');
   return result;
 }
 
@@ -98,7 +106,7 @@ async function lazyGetTools() {
     namedCurve: 'P-256',
   } as const;
 
-  const key = await QuickCrypto.webcrypto.subtle.importKey(
+  const key = await QuickCrypto.subtle.importKey(
     'jwk',
     getKeyData(),
     algorithm,
@@ -137,12 +145,7 @@ export const verifyDeeplinkSignature = async (
 
     const data = encoder.encode(canonicalUrl);
 
-    const ok = await QuickCrypto.webcrypto.subtle.verify(
-      algorithm,
-      key,
-      signature,
-      data,
-    );
+    const ok = await QuickCrypto.subtle.verify(algorithm, key, signature, data);
     return ok ? VALID : INVALID;
   } catch (error) {
     return INVALID;

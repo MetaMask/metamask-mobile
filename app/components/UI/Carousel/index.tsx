@@ -6,6 +6,7 @@ import Reanimated, {
 } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { CarouselProps, CarouselSlide } from './types';
 import { dismissBanner } from '../../../reducers/banners';
 import { StackCard } from './StackCard';
@@ -19,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { selectDismissedBanners } from '../../../selectors/banner';
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -175,7 +177,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
   const dispatch = useDispatch();
-  const { navigate } = useNavigation();
+  const appNavigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const dismissedBanners = useSelector(selectDismissedBanners);
   const isZeroBalance = !hasBalance;
@@ -374,14 +376,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       }
 
       if (navigation.type === 'function') {
-        return navigate(...navigation.navigate());
+        return navigateWithDetails(appNavigation, navigation.navigate());
       }
 
       if (navigation.type === 'route') {
-        return navigate(navigation.route);
+        return navigateWithDetails(appNavigation, [navigation.route]);
       }
     },
-    [trackEvent, createEventBuilder, navigate],
+    [trackEvent, createEventBuilder, appNavigation],
   );
 
   const handleTransitionToNextCard = useCallback(

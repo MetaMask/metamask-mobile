@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import { playWarningNotification } from '../../../../util/haptics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
@@ -37,7 +38,7 @@ export const AccessRestrictedProvider = ({
   children,
 }: AccessRestrictedProviderProps) => {
   const [isVisible, setIsVisible] = useState(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -98,4 +99,32 @@ export const useAccessRestrictedModal = (): AccessRestrictedContextType => {
     );
   }
   return context;
+};
+
+const NO_OP_ACCESS_RESTRICTED: AccessRestrictedContextType = {
+  showAccessRestrictedModal: () => undefined,
+  hideAccessRestrictedModal: () => undefined,
+  isAccessRestricted: false,
+};
+
+/**
+ * Feed cards call the compliance gate on every render. The app root already
+ * provides this context; surfaces rendered without it (unit tests, and any
+ * shell mounted outside the root) get a no-op so the card still paints.
+ * A blocked wallet still does not proceed — the gate returns before the action.
+ */
+export const EnsureAccessRestricted = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const existing = useContext(AccessRestrictedContext);
+  if (existing) {
+    return children;
+  }
+  return (
+    <AccessRestrictedContext.Provider value={NO_OP_ACCESS_RESTRICTED}>
+      {children}
+    </AccessRestrictedContext.Provider>
+  );
 };

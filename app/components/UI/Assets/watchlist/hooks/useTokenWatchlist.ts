@@ -9,6 +9,15 @@ import {
 } from './useTokenWatchlistMutations';
 import { tokenWatchlistQueryKeys } from './watchlist-query-keys';
 
+export const useTokenWatchlistAssetIds = (): string[] => {
+  const { data: blob } = useQuery<WatchlistBlob>({
+    queryKey: tokenWatchlistQueryKeys.blob,
+    queryFn: readFromTokenWatchList,
+    staleTime: Infinity,
+  });
+  return blob?.assets ?? [];
+};
+
 export interface UseTokenWatchlistResult {
   isWatched: boolean;
   isLoading: boolean;
@@ -33,17 +42,11 @@ export function useTokenWatchlist(
   const addMutation = useTokenWatchlistAddItemMutation();
   const removeMutation = useTokenWatchlistRemoveItemMutation();
 
-  const { data: blob } = useQuery<WatchlistBlob>({
-    queryKey: tokenWatchlistQueryKeys.blob,
-    queryFn: readFromTokenWatchList,
-    staleTime: Infinity,
-  });
-
+  const watchlistAssetIds = useTokenWatchlistAssetIds();
   const assetIdStr = assetId ? String(assetId) : null;
   const normalizedAssetId = assetIdStr?.toLowerCase() ?? null;
   const isWatched = normalizedAssetId
-    ? (blob?.assets.some((id) => id.toLowerCase() === normalizedAssetId) ??
-      false)
+    ? watchlistAssetIds.some((id) => id.toLowerCase() === normalizedAssetId)
     : false;
 
   const isLoading = addMutation.isPending || removeMutation.isPending;

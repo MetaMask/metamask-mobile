@@ -27,6 +27,8 @@ let mockAvailableTokens: {
 
 let mockPredictBalance = 0;
 let mockQuotes: unknown[] = [];
+let mockIsPaySubmitReady = false;
+let mockTransactionMeta: { id: string } | undefined;
 const mockResetSelectedPaymentToken = jest.fn();
 const mockNavigationListeners: Record<string, Set<() => void>> = {};
 const mockAddListener = jest.fn((eventName: string, callback: () => void) => {
@@ -92,8 +94,16 @@ jest.mock(
     useTransactionPayTotals: () => mockPayTotals,
     useIsTransactionPayLoading: () => mockIsPayTotalsLoading,
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
+    useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
     useTransactionPayRequiredTokens: () => mockRequiredTokens,
     useTransactionPayQuotes: () => mockQuotes,
+  }),
+);
+
+jest.mock(
+  '../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: () => mockTransactionMeta,
   }),
 );
 
@@ -141,6 +151,8 @@ describe('usePredictBuyConditions', () => {
     mockAvailableTokens = [];
     mockPredictBalance = 0;
     mockQuotes = [];
+    mockIsPaySubmitReady = false;
+    mockTransactionMeta = undefined;
   });
 
   afterEach(() => {
@@ -431,6 +443,54 @@ describe('usePredictBuyConditions', () => {
 
       expect(result.current.canPlaceBet).toBe(false);
     });
+
+    it('returns false when the pay deposit transaction is not submit-ready', () => {
+      mockIsPredictBalanceSelected = false;
+      mockTransactionMeta = { id: 'tx-1' };
+      mockIsPaySubmitReady = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
+    it('returns true when the pay deposit transaction is submit-ready', () => {
+      mockIsPredictBalanceSelected = false;
+      mockTransactionMeta = { id: 'tx-1' };
+      mockIsPaySubmitReady = true;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('does not block when paying from Predict balance, even if not submit-ready', () => {
+      mockIsPredictBalanceSelected = true;
+      mockTransactionMeta = { id: 'tx-1' };
+      mockIsPaySubmitReady = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(true);
+    });
+
+    it('does not block when no pay deposit transaction exists', () => {
+      mockIsPredictBalanceSelected = false;
+      mockTransactionMeta = undefined;
+      mockIsPaySubmitReady = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.canPlaceBet).toBe(true);
+    });
   });
 
   describe('isPayFeesLoading', () => {
@@ -626,122 +686,6 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.isCurrentTokenInsufficient).toBe(true);
-    });
-  });
-
-  describe('isPayRouteUnavailable', () => {
-    it('is true once an ERC20 pay token settles with no quotes, blocking the bet', () => {
-      mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
-      mockIsPayQuoteLoading = true;
-      mockIsPayTotalsLoading = true;
-      mockQuotes = [];
-
-      const { result, rerender } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
-      );
-
-      // While the quote cycle is still in flight the guard must not fire yet.
-      expect(result.current.isPayRouteUnavailable).toBe(false);
-
-      act(() => {
-        mockIsPayQuoteLoading = false;
-        mockIsPayTotalsLoading = false;
-        mockQuotes = [];
-      });
-      rerender({});
-
-      expect(result.current.isPaySystemSettling).toBe(false);
-      expect(result.current.isPayRouteUnavailable).toBe(true);
-      expect(result.current.canPlaceBet).toBe(false);
-      expect(result.current.isCurrentTokenInsufficient).toBe(true);
-    });
-
-    it('is false once quotes arrive after settling (a usable route exists)', () => {
-      mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
-      mockIsPayQuoteLoading = true;
-      mockIsPayTotalsLoading = true;
-      mockQuotes = [];
-
-      const { result, rerender } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
-      );
-
-      act(() => {
-        mockIsPayQuoteLoading = false;
-        mockIsPayTotalsLoading = false;
-        mockQuotes = [{ id: 'q1' }];
-      });
-      rerender({});
-
-      expect(result.current.isPaySystemSettling).toBe(false);
-      expect(result.current.isPayRouteUnavailable).toBe(false);
-      expect(result.current.canPlaceBet).toBe(true);
-    });
-
-    it('is false when the Predict balance is selected', () => {
-      mockIsPredictBalanceSelected = true;
-      mockQuotes = [];
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
-      );
-
-      expect(result.current.isPayRouteUnavailable).toBe(false);
-    });
-
-    it('is false while the pay system is still settling', () => {
-      mockIsPredictBalanceSelected = false;
-      mockSelectedPaymentToken = { address: '0xDAI', chainId: '1' };
-      mockQuotes = [];
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
-      );
-
-      expect(result.current.isPaySystemSettling).toBe(true);
-      expect(result.current.isPayRouteUnavailable).toBe(false);
-    });
-
-    it('is false while pay fees are loading', () => {
-      mockIsPredictBalanceSelected = false;
-      mockIsPayTotalsLoading = true;
-      mockQuotes = [];
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 10 }),
-      );
-
-      expect(result.current.isPayFeesLoading).toBe(true);
-      expect(result.current.isPayRouteUnavailable).toBe(false);
-    });
-
-    it('is false when the amount is zero', () => {
-      mockIsPredictBalanceSelected = false;
-      mockQuotes = [];
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          currentValue: 0,
-          totalPayForPredictBalance: 0,
-        }),
-      );
-
-      expect(result.current.isPayRouteUnavailable).toBe(false);
-    });
-
-    it('is false when the amount is below the minimum bet', () => {
-      mockIsPredictBalanceSelected = false;
-      mockQuotes = [];
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, currentValue: 0.5 }),
-      );
-
-      expect(result.current.isBelowMinimum).toBe(true);
-      expect(result.current.isPayRouteUnavailable).toBe(false);
     });
   });
 

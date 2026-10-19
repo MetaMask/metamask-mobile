@@ -5,109 +5,102 @@ import {
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { waitFor } from 'detox';
-import type {
-  IndexableNativeElement,
-  NativeElement,
-  IndexableSystemElement,
-} from 'detox/detox';
-import { EncapsulatedElementType } from '../../framework';
-type DetoxElement = Promise<
-  IndexableNativeElement | NativeElement | IndexableSystemElement
->;
+import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import { type AppiumElement } from '../../framework';
 
 class ConnectedAccountsModal {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
   }
 
-  get permissionsButton(): EncapsulatedElementType {
+  get permissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
 
-  get networkPicker(): EncapsulatedElementType {
+  get networkPicker(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
     );
   }
 
-  get disconnectAllButton(): EncapsulatedElementType {
+  get disconnectAllButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
 
-  get disconnectButton(): EncapsulatedElementType {
+  get disconnectButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
 
-  get disconnectAllAccountsAndNetworksButton(): EncapsulatedElementType {
+  get disconnectAllAccountsAndNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
     );
   }
 
-  get navigateToEditAccountsPermissionsButton(): EncapsulatedElementType {
+  get navigateToEditAccountsPermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
     );
   }
 
-  get navigateToEditNetworksPermissionsButton(): EncapsulatedElementType {
+  get navigateToEditNetworksPermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
     );
   }
 
-  get connectAccountsButton(): EncapsulatedElementType {
+  get connectAccountsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
     );
   }
 
-  get managePermissionsButton(): EncapsulatedElementType {
+  get managePermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
-  get permissionsSummaryTab(): EncapsulatedElementType {
+  get permissionsSummaryTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
     );
   }
 
-  get accountsSummaryTab(): EncapsulatedElementType {
+  get accountsSummaryTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
     );
   }
 
-  get accountListBottomSheet(): EncapsulatedElementType {
+  get accountListBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
     );
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
 
-  get selectAllNetworksButton(): EncapsulatedElementType {
+  get selectAllNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.SELECT_ALL,
     );
   }
 
-  get disconnectNetworksButton(): EncapsulatedElementType {
+  get disconnectNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
     );
   }
 
-  get confirmDisconnectNetworksButton(): EncapsulatedElementType {
+  get confirmDisconnectNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
     );
@@ -156,6 +149,54 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Wait until the connected-accounts sheet is interactive and the accounts
+   * summary is showing. Prefer this before asserting account-name text —
+   * Appium can open the sheet while account cells are still mounting (iOS).
+   *
+   * `accounts-connected-modal-container` is declared but never assigned in
+   * the UI. The accounts tab mounts Edit accounts and Disconnect all.
+   */
+  async waitForAccountsSummaryReady(timeout: number = 20_000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.accountListBottomSheet, {
+      timeout,
+      description: 'Edit accounts control on the connected accounts sheet',
+    });
+    await Assertions.expectElementToBeVisible(
+      this.disconnectAllAccountsAndNetworksButton,
+      {
+        timeout,
+        description: 'Disconnect all accounts and networks control',
+      },
+    );
+  }
+
+  async expectConnectedAccountDisplayed(
+    accountName: string,
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.expectConnectedAccountsDisplayed([accountName], options);
+  }
+
+  /**
+   * Wait once for the accounts summary, then assert each connected account name.
+   * Prefer this after Connect returns — bare `expectTextDisplayed` on Account 2/3
+   * races the newly connected cells while Account 1 is already in the tree.
+   */
+  async expectConnectedAccountsDisplayed(
+    accountNames: string[],
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.waitForAccountsSummaryReady();
+    const timeout = options.timeout ?? 30_000;
+    for (const accountName of accountNames) {
+      await Assertions.expectTextDisplayed(accountName, {
+        timeout,
+        description: `"${accountName}" in connected accounts summary`,
+      });
+    }
+  }
+
   async tapDisconnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectButton, {
       elemDescription: 'Disconnect button',
@@ -198,21 +239,27 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Confirm disconnect-all. Wait for the confirm control and the connected
+   * sheet's disconnect_all control to leave the tree — iOS can still show the
+   * sheet while the next specs already assert the browser chrome.
+   */
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
+      waitForElementToDisappear: true,
     });
+    await Utilities.waitForElementToDisappear(
+      this.disconnectAllAccountsAndNetworksButton,
+      15_000,
+    );
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(
-      this.title as Promise<IndexableNativeElement>,
-      'down',
-      {
-        speed: 'fast',
-        elemDescription: 'Scroll to bottom of modal',
-      },
-    );
+    await Gestures.swipe(this.title, 'down', {
+      speed: 'fast',
+      elemDescription: 'Scroll to bottom of modal',
+    });
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
@@ -222,11 +269,15 @@ class ConnectedAccountsModal {
   }
 
   async getNetworkName(): Promise<string> {
-    const networkNameElement = this.navigateToEditNetworksPermissionsButton;
-    const elem = await networkNameElement;
-    // Type assertion to access label property which exists on Detox elements
-    const attributes = await (elem as IndexableNativeElement).getAttributes();
-    return (attributes as { label: string }).label;
+    const elem = (await this
+      .navigateToEditNetworksPermissionsButton) as AppiumElement;
+    const label =
+      (await elem.getAttribute('label')) ??
+      (await elem.getAttribute('name')) ??
+      (await elem.getAttribute('content-desc')) ??
+      (await elem.textContent()) ??
+      '';
+    return label;
   }
 
   async getDisplayedAccountNames(): Promise<string[]> {
@@ -244,12 +295,12 @@ class ConnectedAccountsModal {
 
     for (const accountName of possibleAccountNames) {
       try {
-        const textElement = (await Matchers.getElementByText(
-          accountName,
-        )) as Detox.NativeElement;
-        await waitFor(textElement).toBeVisible().withTimeout(1000);
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByText(accountName),
+          { timeout: 1000 },
+        );
         displayedAccounts.push(accountName);
-      } catch (e) {
+      } catch {
         // Account not displayed, continue
       }
     }

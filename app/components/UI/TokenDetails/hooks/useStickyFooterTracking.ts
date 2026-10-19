@@ -5,7 +5,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getUsdAmountRange } from '../../../../util/analytics/usdAmountRange';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 
-export type StickyFooterButtonAction = 'swap' | 'buy' | 'quick_buy';
+export type StickyFooterButtonAction =
+  | 'swap'
+  | 'buy'
+  | 'quick_buy'
+  | 'quick_sell'
+  | 'money_deposit';
 
 interface TrackStickyBottomCtaClickedParams {
   ctaType: StickyFooterButtonAction;

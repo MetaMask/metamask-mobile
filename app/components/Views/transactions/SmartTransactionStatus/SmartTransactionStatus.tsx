@@ -16,8 +16,10 @@ import {
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import TransactionBackgroundTop from '../../../../images/transaction-background-top.svg';
 import TransactionBackgroundBottom from '../../../../images/transaction-background-bottom.svg';
 import LoopingScrollAnimation from './LoopingScrollAnimation';
@@ -26,6 +28,10 @@ import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
 import { selectSmartTransactionsForCurrentChain } from '../../../../selectors/smartTransactionsController';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -270,7 +276,7 @@ const SmartTransactionStatus = ({
 
   const chainId = useSelector(selectEvmChainId);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -293,14 +299,19 @@ const SmartTransactionStatus = ({
     onConfirm();
   };
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'ActivityDetails',
+    location: SwapBridgeNavigationLocation.TransactionDetails,
+  });
   const createNewSwap = () => {
     onConfirm();
-    navigation.navigate(Routes.BRIDGE.ROOT);
+    goToSwaps();
   };
 
   const createNewSend = () => {
     onConfirm();
-    navigation.navigate('SendFlowView');
+    // Legacy runtime route name not in RootStackParamList.
+    navigateWithDetails(navigation, ['SendFlowView']);
   };
 
   const {

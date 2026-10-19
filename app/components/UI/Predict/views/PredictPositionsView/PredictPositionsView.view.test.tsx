@@ -109,7 +109,10 @@ const mockPredictData = ({
   positions?: PredictPosition[];
 }) => {
   (Engine.context.PredictController.getActivity as jest.Mock).mockResolvedValue(
-    activity,
+    {
+      activities: activity,
+      nextCursor: undefined,
+    },
   );
   (Engine.context.PredictController.getBalance as jest.Mock).mockResolvedValue(
     balance,
@@ -225,6 +228,23 @@ describe('PredictPositionsView component view', () => {
 
     fireEvent.press(
       await findByTestId(PredictPositionsEmptySelectorsIDs.BROWSE_MARKETS_CTA),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.PREDICT.MARKET_LIST)),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to the Predict market list when the user presses back from the root positions screen', async () => {
+    mockPredictData({});
+    const { findByTestId } = renderPredictPositionsViewWithRoutes({
+      extraRoutes: [{ name: Routes.PREDICT.MARKET_LIST }],
+    });
+
+    await findByTestId(PredictPositionsViewSelectorsIDs.CONTAINER);
+
+    fireEvent.press(
+      await findByTestId(PredictPositionsViewSelectorsIDs.BACK_BUTTON),
     );
 
     expect(

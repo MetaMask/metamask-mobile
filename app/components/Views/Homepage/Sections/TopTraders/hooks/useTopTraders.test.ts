@@ -5,6 +5,7 @@ import { addBreadcrumb } from '@sentry/react-native';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { resetFollowToggleSharedStateForTests } from '../../../../../hooks/useFollowToggle';
 import { useTopTraders } from './useTopTraders';
 
 jest.mock('react-redux', () => ({
@@ -13,6 +14,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+}));
+
+jest.mock('../../../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
 }));
 
 jest.mock('../../../../../../selectors/socialController', () => ({
@@ -41,6 +46,7 @@ const mockTraders = [
     pnl7d: 963146.8,
     roiPercent7d: 43,
     pnlPerChain: { base: 963146.8 },
+    followerCount: 48707,
   },
   {
     rank: 2,
@@ -51,6 +57,7 @@ const mockTraders = [
     pnl7d: 474751.45,
     roiPercent7d: 359,
     pnlPerChain: { ethereum: 474751.45 },
+    followerCount: 21999,
   },
   {
     rank: 3,
@@ -61,6 +68,7 @@ const mockTraders = [
     pnl7d: 374735.16,
     roiPercent7d: 617,
     pnlPerChain: { solana: 374735.16 },
+    followerCount: 11772,
   },
 ];
 
@@ -85,6 +93,7 @@ const makeQueryResult = (
     data: undefined,
     isLoading: false,
     isFetching: false,
+    isFetched: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -93,6 +102,7 @@ const makeQueryResult = (
 describe('useTopTraders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetFollowToggleSharedStateForTests();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {
@@ -137,9 +147,21 @@ describe('useTopTraders', () => {
         avatarUri: first.imageUrl,
         percentageChange: first.roiPercent7d,
         pnlValue: first.pnl7d,
+        pnl30d: null,
+        winRatePercent: null,
         pnlPerChain: first.pnlPerChain ?? {},
+        followerCount: first.followerCount,
         isFollowing: false,
       });
+    });
+
+    it('converts the API win-rate fraction to a whole percent', () => {
+      const entry = { ...mockTraders[0], winRate7d: 0.92 };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.traders[0].winRatePercent).toBe(92);
     });
 
     it('defaults percentageChange to 0 when roiPercent7d is null', () => {
@@ -177,6 +199,53 @@ describe('useTopTraders', () => {
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.traders[0].pnlPerChain).toEqual({});
     });
+
+    it('reports the 30-day window when that timeframe is requested', () => {
+      const entry = {
+        ...mockTraders[0],
+        pnl30d: 1000,
+        roiPercent30d: 12,
+        winRate30d: 0.5,
+      };
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: { traders: [entry] } as never }),
+      );
+
+      const { result } = renderHook(() => useTopTraders({ timeframe: '30d' }));
+
+      expect(result.current.traders[0].pnlValue).toBe(1000);
+      expect(result.current.traders[0].percentageChange).toBe(12);
+      expect(result.current.traders[0].winRatePercent).toBe(50);
+    });
+  });
+
+  describe('query options', () => {
+    it('forwards the ranking metric to the leaderboard query key', () => {
+      renderHook(() => useTopTraders({ limit: 50, sort: 'winRate' }));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchLeaderboard',
+            { limit: 50, sort: 'winRate' },
+          ],
+        }),
+      );
+    });
+
+    it('leaves the query key untouched when the timeframe changes', () => {
+      const { rerender } = renderHook(
+        ({ timeframe }: { timeframe: '7d' | '30d' }) =>
+          useTopTraders({ limit: 50, timeframe }),
+        { initialProps: { timeframe: '7d' as '7d' | '30d' } },
+      );
+
+      const initialKey = mockUseQuery.mock.calls.at(-1)?.[0].queryKey;
+
+      rerender({ timeframe: '30d' });
+
+      expect(mockUseQuery.mock.calls.at(-1)?.[0].queryKey).toEqual(initialKey);
+    });
   });
 
   describe('loading and error states', () => {
@@ -184,6 +253,12 @@ describe('useTopTraders', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.isLoading).toBe(true);
+    });
+
+    it('exposes whether the query has fetched', () => {
+      mockUseQuery.mockReturnValue(makeQueryResult({ isFetched: true }));
+      const { result } = renderHook(() => useTopTraders());
+      expect(result.current.hasFetched).toBe(true);
     });
 
     it('returns the error message for an Error object', () => {
@@ -485,7 +560,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders());
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
 
@@ -497,7 +576,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: false }),
+        expect.objectContaining({
+          enabled: false,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
 
@@ -513,7 +596,11 @@ describe('useTopTraders', () => {
       renderHook(() => useTopTraders({ enabled: true }));
 
       expect(mockUseQuery).toHaveBeenCalledWith(
-        expect.objectContaining({ enabled: true }),
+        expect.objectContaining({
+          enabled: true,
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
       );
     });
   });

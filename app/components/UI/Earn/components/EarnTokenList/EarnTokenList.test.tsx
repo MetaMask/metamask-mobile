@@ -216,7 +216,7 @@ describe('EarnTokenList', () => {
     // Token List
     // Ethereum
     expect(getAllByText('Ethereum').length).toBe(1);
-    expect(getAllByText('2.29% APR').length).toBe(1);
+    expect(getAllByText('2.3% APR').length).toBe(1);
 
     // USDC
     expect(getByText('USDC')).toBeOnTheScreen();
@@ -224,6 +224,44 @@ describe('EarnTokenList', () => {
 
     expect(useEarnTokensSpy).toHaveBeenCalled();
     expect(useEarnNetworkPollingSpy).toHaveBeenCalled();
+  });
+
+  it('rounds highest APR in upsell banner when tokens have no balance', () => {
+    const noBalanceEarnTokens = mockEarnTokens.map((token) => ({
+      ...token,
+      balanceMinimalUnit: '0',
+      experience:
+        token.symbol === 'USDC'
+          ? { ...token.experience, apr: '4.25' }
+          : token.experience,
+    }));
+
+    useEarnTokensSpy.mockReturnValue({
+      earnTokens: noBalanceEarnTokens,
+      earnOutputTokens: [],
+      earnableTotalFiatFormatted: '$0.00',
+      earnableTotalFiatNumber: 0,
+      earnTokensByChainIdAndAddress: {},
+      earnOutputTokensByChainIdAndAddress: {},
+      earnTokenPairsByChainIdAndAddress: {},
+      earnOutputTokenPairsByChainIdAndAddress: {},
+      getEarnToken: jest.fn(),
+      getOutputToken: jest.fn(),
+      getPairedEarnTokens: jest.fn(),
+      getEarnExperience: jest.fn(),
+      getEstimatedAnnualRewardsForAmount: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByText('4.3%')).toBeOnTheScreen();
   });
 
   it('calls useEarnNetworkPolling when component mounts', () => {

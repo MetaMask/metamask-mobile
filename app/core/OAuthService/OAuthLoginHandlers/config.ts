@@ -21,15 +21,17 @@ interface OAUTH_CONFIG_TYPE {
   IOS_TELEGRAM_AUTH_CONNECTION_ID: string;
 }
 
-enum BUILD_TYPE {
-  development = 'development',
-  main_prod = 'main_prod',
-  main_uat = 'main_uat',
-  main_dev = 'main_dev',
-  flask_prod = 'flask_prod',
-  flask_uat = 'flask_uat',
-  flask_dev = 'flask_dev',
-}
+export const BUILD_TYPE = {
+  development: 'development',
+  main_prod: 'main_prod',
+  main_uat: 'main_uat',
+  main_dev: 'main_dev',
+  flask_prod: 'flask_prod',
+  flask_uat: 'flask_uat',
+  flask_dev: 'flask_dev',
+} as const;
+
+export type BUILD_TYPE = (typeof BUILD_TYPE)[keyof typeof BUILD_TYPE];
 
 export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
   development: {
@@ -44,18 +46,18 @@ export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
     ANDROID_APPLE_CLIENT_ID: 'io.metamask.appleloginclient.dev',
     TELEGRAM_CLIENT_ID: '8648706996',
 
-    GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
-    APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
-    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-seedless-onboarding',
+    GOOGLE_GROUPED_AUTH_CONNECTION_ID: 'mm-google-dev',
+    APPLE_GROUPED_AUTH_CONNECTION_ID: 'mm-apple-dev',
+    TELEGRAM_GROUPED_AUTH_CONNECTION_ID: 'mm-telegram-auth-dev',
     AUTH_SERVER_URL: 'https://auth-service.dev-api.cx.metamask.io',
     WEB3AUTH_NETWORK: 'sapphire_devnet',
 
-    ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'byoa-server',
-    ANDROID_APPLE_AUTH_CONNECTION_ID: 'byoa-server',
-    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'byoa-server',
-    IOS_GOOGLE_AUTH_CONNECTION_ID: 'byoa-server',
-    IOS_APPLE_AUTH_CONNECTION_ID: 'byoa-server',
-    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'byoa-server',
+    ANDROID_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-android',
+    ANDROID_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
+    ANDROID_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-auth-dev-common',
+    IOS_GOOGLE_AUTH_CONNECTION_ID: 'mm-google-dev-ios',
+    IOS_APPLE_AUTH_CONNECTION_ID: 'mm-apple-dev-common',
+    IOS_TELEGRAM_AUTH_CONNECTION_ID: 'mm-telegram-auth-dev-common',
   },
   main_prod: {
     IOS_GOOGLE_CLIENT_ID:

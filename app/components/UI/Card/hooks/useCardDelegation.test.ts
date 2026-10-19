@@ -767,6 +767,7 @@ describe('useCardDelegation', () => {
         MetaMetricsEvents.CARD_DELEGATION_PROCESS_STARTED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         token_symbol: params.currency,
         token_chain_id: params.network,
         delegation_type: 'limited',

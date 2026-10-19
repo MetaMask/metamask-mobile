@@ -101,13 +101,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => mockTw,
 }));
 
-jest.mock('react-native-gesture-handler', () => {
-  const RN = jest.requireActual('react-native');
-  return {
-    ...jest.requireActual('react-native-gesture-handler'),
-    FlatList: RN.FlatList,
-  };
-});
+jest.mock('@shopify/flash-list', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('../../../../../util/test/mockFlashList').flashListMock(),
+);
 
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
@@ -115,6 +112,7 @@ import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
+import { AssetSelectionBottomSheetTestIds } from './AssetSelectionBottomSheet.testIds';
 import {
   FundingStatus,
   CardFundingToken,
@@ -296,12 +294,14 @@ describe('AssetSelectionBottomSheet', () => {
       expect(getByText('Select token and network')).toBeOnTheScreen();
     });
 
-    it('displays loading indicator when delegation settings is null', () => {
-      const { UNSAFE_getByType, queryByText } = setupComponent({
+    it('displays loading spinner when delegation settings is null', () => {
+      const { getByTestId, queryByText } = setupComponent({
         delegationSettings: null,
       });
 
-      expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
+      expect(
+        getByTestId(AssetSelectionBottomSheetTestIds.LOADING_SPINNER),
+      ).toBeOnTheScreen();
       expect(queryByText('No tokens available')).not.toBeOnTheScreen();
     });
 

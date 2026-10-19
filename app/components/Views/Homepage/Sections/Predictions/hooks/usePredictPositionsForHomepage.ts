@@ -1,14 +1,9 @@
 import { useMemo } from 'react';
 import { usePredictPositions } from '../../../../../UI/Predict/hooks/usePredictPositions';
-import {
-  PredictPositionStatus,
-  type PredictPosition,
-} from '../../../../../UI/Predict/types';
+import type { PredictPosition } from '../../../../../UI/Predict/types';
 
 export interface UsePredictPositionsForHomepageResult {
   positions: PredictPosition[];
-  /** Sum of currentValue across won, positive-value claimable positions. */
-  totalClaimableValue: number;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<unknown>;
@@ -16,13 +11,12 @@ export interface UsePredictPositionsForHomepageResult {
 
 interface UsePredictPositionsForHomepageOptions {
   maxPositions?: number;
-  claimable?: boolean;
   enabled?: boolean;
 }
 
 /**
  * Lightweight wrapper around the Predict team's usePredictPositions hook,
- * adapted for homepage display with optional slicing and claimable value sum.
+ * adapted for homepage display with optional slicing.
  *
  * Pass `enabled: false` when the Predict feature flag is off so the parent can
  * keep `PredictionsSection` mounted without subscribing to positions queries.
@@ -30,12 +24,12 @@ interface UsePredictPositionsForHomepageOptions {
 export const usePredictPositionsForHomepage = (
   options: UsePredictPositionsForHomepageOptions = {},
 ): UsePredictPositionsForHomepageResult => {
-  const { maxPositions, claimable = false, enabled = true } = options;
+  const { maxPositions, enabled = true } = options;
 
   const { data, isLoading, error, refetch } = usePredictPositions({
-    claimable,
+    claimable: false,
     enabled,
-    livePriceUpdates: !claimable,
+    livePriceUpdates: true,
   });
 
   const allPositions = useMemo(() => data ?? [], [data]);
@@ -48,24 +42,8 @@ export const usePredictPositionsForHomepage = (
     [allPositions, maxPositions],
   );
 
-  const totalClaimableValue = useMemo(
-    () =>
-      claimable
-        ? allPositions.reduce(
-            (sum, position) =>
-              position.status === PredictPositionStatus.WON &&
-              (position.currentValue ?? 0) > 0
-                ? sum + (position.currentValue ?? 0)
-                : sum,
-            0,
-          )
-        : 0,
-    [claimable, allPositions],
-  );
-
   return {
     positions,
-    totalClaimableValue,
     isLoading,
     error: error
       ? error instanceof Error

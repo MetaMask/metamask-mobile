@@ -5,6 +5,7 @@ import {
   ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
+  CryptoPriceSubscriptionOptions,
   GameUpdateCallback,
   GeoBlockResponse,
   GetActivityParams,
@@ -22,7 +23,7 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
-  PredictActivity,
+  PredictActivityPage,
   PredictFees,
   PredictFilterOption,
   PredictFilterOptionsParams,
@@ -31,6 +32,7 @@ import {
   PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -65,6 +67,7 @@ export type {
   PredictFilterOptionsParams,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -199,7 +202,7 @@ export interface PredictProvider {
   ): Promise<PredictPosition[]>;
   getActivity(
     params: GetActivityParams & { address: string },
-  ): Promise<PredictActivity[]>;
+  ): Promise<PredictActivityPage>;
   getUnrealizedPnL(params: { address: string }): Promise<UnrealizedPnL>;
 
   previewOrder(
@@ -207,6 +210,11 @@ export interface PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview>;
+  previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<OrderPreview | null>;
   placeOrder(
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult>;
@@ -247,6 +255,7 @@ export interface PredictProvider {
   subscribeToCryptoPrices?(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void;
 
   getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;

@@ -6,14 +6,8 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    hitSlop: {
-      top: 15,
-      bottom: 15,
-      left: 15,
-      right: 15,
-    },
     earningsContainer: {
-      paddingTop: 16,
+      paddingTop: 24,
     },
     title: {
       paddingBottom: 8,
@@ -22,11 +16,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       paddingVertical: 8,
-    },
-    keyValuePrimaryTextWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 2,
     },
     keyValuePrimaryTextWrapperCentered: {
       flexDirection: 'row',
@@ -37,6 +26,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     keyValueSecondaryText: {
       alignItems: 'flex-end',
+    },
+    earningsHistory: {
+      marginTop: 16,
+      paddingBottom: 24,
     },
   });
 };

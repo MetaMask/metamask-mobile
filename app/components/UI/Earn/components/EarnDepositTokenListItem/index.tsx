@@ -1,23 +1,28 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useSelector } from 'react-redux';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { EarnTokenListItemProps } from './EarnDepositTokenListItem.types';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
 import styleSheet from './EarnDepositTokenListItem.styles';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+
+const resolveTextTypography = (
+  text: EarnTokenListItemProps['secondaryText'],
+  defaultVariant: TextVariant,
+) => ({
+  variant: text?.variant ?? defaultVariant,
+  fontWeight:
+    text?.fontWeight ?? (text?.variant ? undefined : FontWeight.Medium),
+});
 
 const EarnDepositTokenListItem = ({
   token,
@@ -27,8 +32,6 @@ const EarnDepositTokenListItem = ({
 }: EarnTokenListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const networkName = useSelector(selectNetworkName);
-
   return (
     <TouchableOpacity
       style={styles.container}
@@ -37,16 +40,15 @@ const EarnDepositTokenListItem = ({
     >
       <View style={styles.left}>
         <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              name={networkName}
-              imageSource={getNetworkImageSource({
-                chainId: token.chainId ?? '',
-              })}
-              isScaled={false}
-              size={AvatarSize.Xs}
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
+            <BadgeNetwork
+              twClassName="h-4 w-4 rounded bg-default"
+              src={
+                getNetworkImageSource({
+                  chainId: token.chainId ?? '',
+                }) as React.ComponentProps<typeof BadgeNetwork>['src']
+              }
             />
           }
         >
@@ -54,7 +56,8 @@ const EarnDepositTokenListItem = ({
         </BadgeWrapper>
         <Text
           numberOfLines={1}
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           ellipsizeMode="tail"
           style={styles.assetName}
         >
@@ -63,15 +66,15 @@ const EarnDepositTokenListItem = ({
       </View>
       <View style={styles.right}>
         <Text
-          variant={primaryText?.variant ?? TextVariant.BodyMDMedium}
+          {...resolveTextTypography(primaryText, TextVariant.BodyMd)}
           color={primaryText?.color}
         >
           {primaryText.value}
         </Text>
         {secondaryText?.value && (
           <Text
-            variant={secondaryText?.variant ?? TextVariant.BodySMMedium}
-            color={secondaryText?.color ?? TextColor.Alternative}
+            {...resolveTextTypography(secondaryText, TextVariant.BodySm)}
+            color={secondaryText?.color ?? TextColor.TextAlternative}
           >
             {secondaryText.value}
           </Text>

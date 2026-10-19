@@ -2,9 +2,9 @@ import React from 'react';
 import { Image, View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './smart-contract-with-logo.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const foxImage = require('../../../../../images/branding/fox.png');

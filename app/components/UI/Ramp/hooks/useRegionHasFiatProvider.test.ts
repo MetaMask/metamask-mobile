@@ -196,4 +196,59 @@ describe('useRegionHasFiatProvider', () => {
 
     expect(result.current).toBe(false);
   });
+
+  describe('during the cold provider fetch (loading window)', () => {
+    it('stays available while widening is on and providers are still loading', () => {
+      // Region switch cleared the list to []; the fetch is in flight. The gate
+      // must not hide the deposit entry during this window (the NY report).
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
+      mockUseRampsProviders.mockReturnValue({ providers: [], isLoading: true });
+
+      const { result } = renderHook(() => useRegionHasFiatProvider(ASSET_ID));
+
+      expect(result.current).toBe(true);
+    });
+
+    it('does not change the native-only default: stays hidden while loading when widening is off', () => {
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(false);
+      mockUseRampsProviders.mockReturnValue({ providers: [], isLoading: true });
+
+      const { result } = renderHook(() => useRegionHasFiatProvider(ASSET_ID));
+
+      expect(result.current).toBe(false);
+    });
+
+    it('resolves to the real answer once loading finishes with no serving provider', () => {
+      // Loading done, region genuinely has nothing serving the asset: the
+      // deposit entry is correctly hidden (not masked by the loading tolerance).
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
+      mockUseRampsProviders.mockReturnValue({
+        providers: [],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() => useRegionHasFiatProvider(ASSET_ID));
+
+      expect(result.current).toBe(false);
+    });
+
+    it('resolves via the asset check once some providers arrive, even if still loading', () => {
+      // Data has begun arriving (length > 0) so the loading tolerance no longer
+      // applies; a non-serving provider still resolves to false.
+      mockUseHeadlessAllProvidersEnabled.mockReturnValue(true);
+      mockUseRampsProviders.mockReturnValue({
+        providers: [
+          {
+            type: 'aggregator',
+            supportedCryptoCurrencies: nonServingCryptoCurrencies,
+          },
+        ],
+        isLoading: true,
+      });
+
+      const { result } = renderHook(() => useRegionHasFiatProvider(ASSET_ID));
+
+      expect(result.current).toBe(false);
+    });
+  });
 });

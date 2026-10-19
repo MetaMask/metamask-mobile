@@ -5,6 +5,7 @@ import { useTransactionCustomAmount } from '../../../../../../Views/confirmation
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
+import { useIsMoneyAccountPaymentOverride } from '../../../../../../Views/confirmations/hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { MINIMUM_BET } from '../../../../constants/transactions';
 import { OrderPreview } from '../../../../types';
@@ -55,6 +56,7 @@ function PredictPayWithAnyTokenInfoInner({
 
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
+  const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
   const { setPayToken, payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount: updateTokenAmountCallback } =
@@ -164,7 +166,15 @@ function PredictPayWithAnyTokenInfoInner({
   ]);
 
   useEffect(() => {
-    if (!transactionMeta || isPredictBalanceSelected || !selectedPaymentToken) {
+    // While paying from the Money Account the pay token is mUSD on Monad, which
+    // deliberately diverges from PredictController's selected payment token.
+    // Re-applying that token here would switch funding back to the EOA.
+    if (
+      !transactionMeta ||
+      isMoneyAccountSelected ||
+      isPredictBalanceSelected ||
+      !selectedPaymentToken
+    ) {
       return;
     }
 
@@ -188,6 +198,7 @@ function PredictPayWithAnyTokenInfoInner({
     }
   }, [
     transactionMeta,
+    isMoneyAccountSelected,
     isPredictBalanceSelected,
     selectedPaymentToken,
     payToken?.address,

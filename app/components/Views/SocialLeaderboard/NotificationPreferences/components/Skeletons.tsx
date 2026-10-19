@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { SkeletonShell } from '../../TraderProfileView/components/Skeletons';
+import { SkeletonShell } from '../../components/SkeletonShell';
 import { NotificationPreferencesSelectorsIDs } from '../NotificationPreferences.testIds';
 
 const SKELETON_ROW_COUNT = 3;

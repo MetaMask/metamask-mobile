@@ -1,4 +1,3 @@
-import { ApprovalType } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -6,31 +5,17 @@ import {
 } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 
-import { selectTransactionMetadataById } from '../../../../../selectors/transactionController';
 import type { RootState } from '../../../../../reducers';
 import { useGasFeeModalTransaction } from '../../context/gas-fee-modal-transaction';
-import useApprovalRequest from '../useApprovalRequest';
+import { selectCurrentTransaction } from '../../../../../selectors/transactionController';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 
 export function useTransactionMetadataRequest() {
   const { transactionId: overrideTransactionId } = useGasFeeModalTransaction();
-  const { approvalRequest } = useApprovalRequest();
 
-  const effectiveId = overrideTransactionId ?? (approvalRequest?.id as string);
-
-  const transactionMetadata = useSelector((state: RootState) =>
-    selectTransactionMetadataById(state, effectiveId),
+  return useSelector((state: RootState) =>
+    selectCurrentTransaction(state, overrideTransactionId),
   );
-
-  if (
-    !overrideTransactionId &&
-    approvalRequest?.type === ApprovalType.Transaction &&
-    !transactionMetadata
-  ) {
-    return undefined;
-  }
-
-  return transactionMetadata as TransactionMeta;
 }
 
 export function useTransactionMetadataOrThrow(): TransactionMeta {

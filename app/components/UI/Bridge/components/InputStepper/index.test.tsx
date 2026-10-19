@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Platform, StyleSheet } from 'react-native';
 import { InputStepper } from './index';
-import { InputStepperDescriptionType } from './constants';
+import { INPUT_CARET_WIDTH, InputStepperDescriptionType } from './constants';
 import {
   IconColor,
   IconName,
@@ -78,10 +78,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(40);
     });
 
@@ -91,10 +88,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(35);
     });
 
@@ -104,10 +98,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(30);
     });
 
@@ -117,10 +108,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(25);
     });
 
@@ -130,10 +118,7 @@ describe('InputStepper', () => {
       );
 
       const input = getByTestId('input-stepper-input');
-      const fontSize = Array.isArray(input.props.style)
-        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
-            ?.fontSize
-        : input.props.style?.fontSize;
+      const { fontSize } = StyleSheet.flatten(input.props.style);
       expect(fontSize).toBe(20);
     });
 
@@ -163,6 +148,46 @@ describe('InputStepper', () => {
       expect(inputStyle.textAlignVertical).toBe('center');
       expect(inputStyle.paddingVertical).toBe(0);
       expect(inputStyle.paddingTop).toBe(1);
+    });
+
+    it('sizes the input to the measured glyph width plus the caret allowance', () => {
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} value="2" />,
+      );
+
+      fireEvent(getByTestId('input-stepper-measured-text'), 'layout', {
+        nativeEvent: { layout: { width: 24 } },
+      });
+
+      const inputStyle = StyleSheet.flatten(
+        getByTestId('input-stepper-input').props.style,
+      );
+
+      expect(inputStyle.width).toBe(24 + INPUT_CARET_WIDTH);
+      // `width` is a border-box measurement, so any horizontal padding would
+      // shrink the content box back below the measured glyph width.
+      expect(inputStyle.paddingHorizontal).toBe(0);
+    });
+
+    it('measures the glyph width with the same horizontal padding as the input', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} value="2" />,
+      );
+
+      const inputStyle = StyleSheet.flatten(
+        getByTestId('input-stepper-input').props.style,
+      );
+      const measuredTextStyle = StyleSheet.flatten(
+        getByTestId('input-stepper-measured-text').props.style,
+      );
+
+      expect(inputStyle.paddingHorizontal).toBe(0);
+      expect(measuredTextStyle.paddingHorizontal).toBe(0);
     });
   });
 

@@ -1,8 +1,9 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -28,15 +29,13 @@ import {
   JustifyContent,
 } from '../../../../components/UI/Box/box.types';
 import { AccountCellIds } from './AccountCell.testIds';
-import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
-import { formatWithThreshold } from '../../../../util/assets';
-import I18n from '../../../../../locales/i18n';
+import { selectInternalAccountByAccountGroupAndScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
-  selectIconSeedAddressByAccountGroupId,
-  selectInternalAccountByAccountGroupAndScope,
-} from '../../../../selectors/multichainAccounts/accounts';
-import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+  useAccountGroupBalance,
+  useAccountGroupIconSeedAddress,
+} from '../useAccountGroupDisplay';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { renderShortAddress } from '../../../../util/address';
@@ -69,46 +68,32 @@ const BalanceEndContainer = ({
   networkImageSource,
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
+  const { balanceLabel, isBalanceHidden } = useAccountGroupBalance(
+    accountGroup.id,
+    { includeAccountListBalance: true },
+  );
 
   const handleMenuPress = useCallback(() => {
-    navigate(...createAccountGroupDetailsNavigationDetails({ accountGroup }));
+    navigateWithDetails(
+      { navigate },
+      createAccountGroupDetailsNavigationDetails({ accountGroup }),
+    );
   }, [navigate, accountGroup]);
-
-  const selectBalanceForGroup = useMemo(
-    () => selectBalanceByAccountGroup(accountGroup.id),
-    [accountGroup.id],
-  );
-  const groupBalance = useSelector(selectBalanceForGroup);
-  const totalBalance = groupBalance?.totalBalanceInUserCurrency;
-  const userCurrency = groupBalance?.userCurrency;
-  const privacyMode = useSelector(selectPrivacyMode);
-
-  const displayBalance = useMemo(() => {
-    if (totalBalance == null || !userCurrency) {
-      return undefined;
-    }
-    return formatWithThreshold(totalBalance, 0.01, I18n.locale, {
-      style: 'currency',
-      currency: userCurrency.toUpperCase(),
-    });
-  }, [totalBalance, userCurrency]);
 
   return (
     <>
-      <TouchableOpacity onPress={onSelectAccount}>
+      <Pressable onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
           <SensitiveText
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Medium}
             length={SensitiveTextLength.Long}
-            isHidden={
-              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
-            }
+            isHidden={isBalanceHidden}
             testID={AccountCellIds.BALANCE}
           >
-            {totalBalance ? displayBalance : null}
+            {balanceLabel ?? null}
           </SensitiveText>
           {networkImageSource && (
             <AvatarNetwork
@@ -118,9 +103,9 @@ const BalanceEndContainer = ({
             />
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       {!hideMenu && (
-        <TouchableOpacity
+        <Pressable
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -130,9 +115,52 @@ const BalanceEndContainer = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
+  );
+};
+
+// The network-specific address sub-row is only shown when a chainId is
+// provided. Isolating it in its own component means the deep-equal
+// `selectInternalAccountByAccountGroupAndScope` subscription only exists on that
+// path — not on every cell of the (chainId-less) account list.
+const AccountNetworkAddressRow = ({
+  accountGroupId,
+  chainId,
+}: {
+  accountGroupId: string;
+  chainId: string;
+}) => {
+  const { styles } = useStyles(styleSheet, {});
+  const getInternalAccountByAccountGroupAndScope = useSelector(
+    selectInternalAccountByAccountGroupAndScope,
+  );
+
+  const caipChainId = formatChainIdToCaip(chainId);
+  const internalAccount = getInternalAccountByAccountGroupAndScope(
+    caipChainId,
+    accountGroupId,
+  );
+  const networkAccountAddress = internalAccount?.address
+    ? renderShortAddress(internalAccount.address, 4)
+    : undefined;
+
+  if (!networkAccountAddress) {
+    return null;
+  }
+
+  return (
+    <View style={styles.accountSubRow}>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        numberOfLines={1}
+        style={styles.accountSubText}
+      >
+        {networkAccountAddress}
+      </Text>
+    </View>
   );
 };
 
@@ -148,27 +176,12 @@ const AccountCell = ({
   const { styles } = useStyles(styleSheet, {});
   const avatarAccountVariant = getAvatarAccountVariant(avatarAccountType);
 
-  const selectEvmAddress = useMemo(
-    () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
-    [accountGroup.id],
-  );
-  const evmAddress = useSelector(selectEvmAddress);
+  const evmAddress = useAccountGroupIconSeedAddress(accountGroup.id);
 
-  // Determine which account address and network avatar to display based on the chainId
-  let networkAccountAddress;
-  let networkImageSource;
-  const getInternalAccountByAccountGroupAndScope = useSelector(
-    selectInternalAccountByAccountGroupAndScope,
-  );
-  if (chainId) {
-    const caipChainId = formatChainIdToCaip(chainId);
-    const internalAccountFromAccountGroupForChainId =
-      getInternalAccountByAccountGroupAndScope(caipChainId, accountGroup.id);
-    networkAccountAddress = internalAccountFromAccountGroupForChainId?.address
-      ? renderShortAddress(internalAccountFromAccountGroupForChainId.address, 4)
-      : undefined;
-    networkImageSource = getNetworkImageSource({ chainId });
-  }
+  // Network avatar derives purely from chainId — no store subscription needed.
+  const networkImageSource = chainId
+    ? getNetworkImageSource({ chainId })
+    : undefined;
 
   return (
     <Box
@@ -178,14 +191,14 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={onSelectAccount}
         style={styles.mainTouchable}
         testID={AccountCellIds.SELECT}
       >
         {startAccessory}
         <AvatarAccount
-          address={evmAddress ?? ''}
+          address={evmAddress}
           variant={avatarAccountVariant}
           size={AvatarAccountSize.Md}
           testID={AccountCellIds.AVATAR}
@@ -203,20 +216,14 @@ const AccountCell = ({
               {accountGroup.metadata.name}
             </Text>
           </View>
-          {networkAccountAddress && (
-            <View style={styles.accountSubRow}>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                style={styles.accountSubText}
-              >
-                {networkAccountAddress}
-              </Text>
-            </View>
-          )}
+          {chainId ? (
+            <AccountNetworkAddressRow
+              accountGroupId={accountGroup.id}
+              chainId={chainId}
+            />
+          ) : null}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer

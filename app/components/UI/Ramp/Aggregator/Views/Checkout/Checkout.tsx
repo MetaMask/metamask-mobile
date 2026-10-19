@@ -42,6 +42,7 @@ import styleSheet from './Checkout.styles';
 import { useTheme } from '../../../../../../util/theme';
 import { AppThemeKey } from '../../../../../../util/theme/models';
 import { getProviderWebviewColors } from '../../../utils/getProviderWebviewColors';
+import { needsLegacyApplePay } from '../../../utils/needsLegacyApplePay';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
@@ -296,9 +297,15 @@ const CheckoutWebView = () => {
             }
           }}
           allowsInlineMediaPlayback
-          enableApplePay
+          enableApplePay={needsLegacyApplePay()}
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
+          originWhitelist={[
+            'https://*',
+            'http://*', // NOSONAR - RN WebView default; omitting it sends HTTP redirects to the system browser
+            'about:blank',
+            'about:srcdoc',
+          ]}
           onNavigationStateChange={handleNavigationStateChange}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}

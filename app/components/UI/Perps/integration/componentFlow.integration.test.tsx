@@ -11,7 +11,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { type Position } from '@metamask/perps-controller';
 import React from 'react';
 
-import { buildPerpsComponentHarness } from '../../../../../tests/integration/harnesses/perps-component';
+import { buildPerpsComponentHarness } from '../../../../../tests/integration/harnesses/perps/perps-component';
 import {
   PerpsFlipPositionConfirmSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,

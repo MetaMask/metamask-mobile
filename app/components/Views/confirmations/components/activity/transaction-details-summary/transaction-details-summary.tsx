@@ -14,8 +14,8 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
@@ -63,8 +63,9 @@ export function TransactionDetailsSummary() {
 
   const transactions = allTransactions.filter(
     (transaction) =>
-      !isSkippedTransaction(transaction, transactionMeta) ||
-      transaction.id === transactionId,
+      (!isSkippedTransaction(transaction, transactionMeta) ||
+        transaction.id === transactionId) &&
+      !isDuplicateMoneyAccountDepositHash(transaction, transactionMeta),
   );
 
   const hasDepositTransactions =
@@ -107,7 +108,10 @@ export function TransactionDetailsSummary() {
       {heading ? (
         <Text color={TextColor.TextAlternative}>{heading}</Text>
       ) : null}
-      <ProgressList showConnectors={false}>
+      <ProgressList
+        showConnectors={false}
+        variant={isMoneyContext ? 'dot' : 'status-icon'}
+      >
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
@@ -173,4 +177,45 @@ function isSkippedTransaction(
     hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
     !hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)
   );
+}
+
+/**
+ * Money Account deposit publish copies the vault/relay hash onto the parent.
+ * The child is a separate transaction with that same hash and no step label,
+ * so it shows up as a second "Transaction" link to the same on-chain tx.
+ */
+function isDuplicateMoneyAccountDepositHash(
+  transaction: TransactionMeta,
+  parentTransaction: TransactionMeta,
+): boolean {
+  if (transaction.id === parentTransaction.id) {
+    return false;
+  }
+
+  if (
+    !hasTransactionType(parentTransaction, [
+      TransactionType.moneyAccountDeposit,
+    ])
+  ) {
+    return false;
+  }
+
+  const parentHash = getLinkableTransactionHash(parentTransaction.hash);
+  const transactionHash = getLinkableTransactionHash(transaction.hash);
+
+  return (
+    parentHash !== undefined &&
+    transactionHash !== undefined &&
+    parentHash === transactionHash
+  );
+}
+
+function getLinkableTransactionHash(
+  hash: string | undefined,
+): string | undefined {
+  if (!hash || hash === '0x' || hash === '0x0') {
+    return undefined;
+  }
+
+  return hash.toLowerCase();
 }

@@ -1,10 +1,10 @@
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { AutoLockModalSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/AutoLockModal.selectors';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class AutoLockModal {
-  get autoLockImmediate(): EncapsulatedElementType {
+  get autoLockImmediate(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       AutoLockModalSelectorsText.AUTO_LOCK_IMMEDIATE,
     );

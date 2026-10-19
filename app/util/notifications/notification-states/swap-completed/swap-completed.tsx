@@ -25,10 +25,7 @@ const state: NotificationState<SwapCompletedNotification> = {
       !!getNetworkDetailsFromNotifPayload(notification.payload.network),
   ],
   createMenuItem: (notification) => ({
-    title: strings(`notifications.menu_item_title.${notification.type}`, {
-      symbolIn: notification.payload.data.token_in.symbol,
-      symbolOut: notification.payload.data.token_out.symbol,
-    }),
+    title: notification.template?.title ?? '',
 
     description: {
       start: notification.payload.data.token_out.symbol,
@@ -56,10 +53,7 @@ const state: NotificationState<SwapCompletedNotification> = {
     );
 
     return {
-      title: strings('notifications.modal.title_swapped', {
-        symbolIn: notification.payload.data.token_in.symbol,
-        symbolOut: notification.payload.data.token_out.symbol,
-      }),
+      title: notification.template?.title ?? '',
       createdAt: notification.createdAt.toString(),
       fields: [
         {

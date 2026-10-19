@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
-import { readFromTokenWatchList } from '../storage';
+import { readFromTokenWatchList, type WatchlistBlob } from '../storage';
 import {
   addBalanceToTokens,
   buildAssetsByAssetId,
@@ -44,6 +48,8 @@ export const useTokenWatchlistQuery = (
     [assetsByChain],
   );
 
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: suggestedTokens
       ? tokenWatchlistQueryKeys.suggested(suggestedIncludeSpaceX)
@@ -58,7 +64,28 @@ export const useTokenWatchlistQuery = (
       if (!blob.assets.length) {
         return [];
       }
-      return getTokens(blob.assets);
+      const tokens = await getTokens(blob.assets);
+
+      // Reconcile against the latest optimistic blob (preferred) or storage.
+      // A slow getTokens started by add can otherwise finish after remove and
+      // resurrect a token the user already unwatched.
+      const cachedBlob = queryClient.getQueryData<WatchlistBlob>(
+        tokenWatchlistQueryKeys.blob,
+      );
+      const latestAssets =
+        cachedBlob?.assets ?? (await readFromTokenWatchList()).assets;
+      if (!latestAssets.length) {
+        return [];
+      }
+
+      const byId = new Map(
+        tokens.map((token) => [String(token.assetId).toLowerCase(), token]),
+      );
+      return latestAssets
+        .map((id) => byId.get(id.toLowerCase()))
+        .filter(
+          (token): token is WatchlistTokenMetadata => token !== undefined,
+        );
     },
     select: (tokens: WatchlistTokenMetadata[]) =>
       addBalanceToTokens(tokens, assetsByAssetId),

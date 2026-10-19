@@ -1,21 +1,27 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -29,10 +35,21 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    openAsOnlyOnboardingRoute: jest.fn(),
+  }),
+);
+
+const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockInitiateDeposit = jest.fn(() => Promise.resolve());
+
+let mockRouteParams: object | undefined;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -42,6 +59,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
@@ -72,6 +90,21 @@ jest.mock('../../../../../selectors/tokenBalancesController', () => ({
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectHasUnapprovedTransactions: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/moneyAccount',
+    ),
+    selectMoneyMovementNeobank: jest.fn(),
+  }),
+);
+
+jest.mock('../../../../../selectors/geolocationController', () => ({
+  ...jest.requireActual('../../../../../selectors/geolocationController'),
+  selectGeolocationLocation: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -110,6 +143,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
 
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
@@ -133,6 +167,12 @@ describe('MoneyAddMoneySheet', () => {
       true,
     );
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      regions: ['BR'],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
+    delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
 
   it('renders all options', () => {
@@ -146,8 +186,9 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('mUSD')).toBeOnTheScreen();
     expect(getByText('Bank account')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
-    // Bank account and External address are both coming soon.
-    expect(getAllByText('Coming soon')).toHaveLength(2);
+    // Only External address is coming soon; Bank account is live with a "New" badge.
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+    expect(getByText('New')).toBeOnTheScreen();
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW),
     ).toBeOnTheScreen();
@@ -172,14 +213,119 @@ describe('MoneyAddMoneySheet', () => {
     }
   });
 
-  it('renders the Bank account row as a coming-soon, non-pressable option', () => {
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+  it('renders the Bank account row enabled with a "New" badge when moneyMovementNeobank allows Brazil', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
 
     const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
     expect(bankRow).toBeOnTheScreen();
+    expect(getByText('New')).toBeOnTheScreen();
 
+    // It is a standalone VBA screen, not part of the crypto deposit flow.
+    // Opening shows the loading screen before onboarding status is known.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      VbaOnboardingRoutes.LOADING,
+    );
+  });
+
+  it('keeps the Bank account row as a coming-soon, non-pressable option when moneyMovementNeobank is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+
+    const { getByTestId, getAllByText, queryByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    // Bank account and External address are both coming soon again.
+    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(queryByText('New')).toBeNull();
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+
+    const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeNull();
+    expect(queryByText('Bank account')).toBeNull();
+    expect(queryByText('New')).toBeNull();
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+  });
+
+  it('hides the Bank account row when the flag is on and geolocation is unknown', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+      UNKNOWN_LOCATION,
+    );
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeNull();
+  });
+
+  it('enables the Bank account row for a listed US region', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      regions: ['US'],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+      'US-NY',
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('enables the Bank account row outside the listed regions when the dev geo bypass is on', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+    process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
+    expect(bankRow).toBeOnTheScreen();
+    expect(getByText('New')).toBeOnTheScreen();
+
+    fireEvent.press(bankRow);
+    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      VbaOnboardingRoutes.LOADING,
+    );
+  });
+
+  it('keeps the coming-soon Bank account row when the flag is off even if the geo bypass is on', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+    process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
+
+    const { getAllByText, queryByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(queryByText('New')).toBeNull();
   });
 
   it('renders the "Add funds" title', () => {
@@ -307,6 +453,33 @@ describe('MoneyAddMoneySheet', () => {
       intent: 'card',
     });
   });
+
+  it.each([
+    [
+      'Convert crypto',
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      { intent: 'convert' },
+    ],
+    [
+      'Deposit funds',
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      { autoSelectFiatPayment: true, intent: 'card' },
+    ],
+  ])(
+    'forwards the launch source of the caller that opened the sheet when %s is pressed',
+    (_label, testID, expectedOptions) => {
+      mockRouteParams = { launchedFrom: ConfirmationLaunchSource.Rewards };
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(testID));
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        ...expectedOptions,
+        launchedFrom: ConfirmationLaunchSource.Rewards,
+      });
+    },
+  );
 
   it('initiates a deposit when Convert crypto is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -448,12 +621,12 @@ describe('MoneyAddMoneySheet', () => {
     });
   });
 
-  it('keeps Debit card or Apple Pay active, with only Bank account and External address coming soon', () => {
+  it('keeps Debit card or Apple Pay active, with only External address coming soon', () => {
     const { getByTestId, getAllByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
 
-    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(getAllByText('Coming soon')).toHaveLength(1);
 
     fireEvent.press(
       getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
@@ -470,12 +643,13 @@ describe('MoneyAddMoneySheet', () => {
   // dedupe to first occurrence (which preserves render order).
   const getOptionOrder = (
     root: ReturnType<typeof renderWithProvider>['UNSAFE_root'],
-  ): string[] => {
-    const optionTestIds: string[] = [
+    optionTestIds: string[] = [
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-    ];
+    ],
+  ): string[] => {
     const seen = new Set<string>();
     return root
       .findAll((node) => optionTestIds.includes(node.props.testID))
@@ -489,11 +663,12 @@ describe('MoneyAddMoneySheet', () => {
       });
   };
 
-  it('keeps the original order when all options are enabled', () => {
+  it('keeps the original order, with Bank account first, when all options are enabled', () => {
     const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
     const order = getOptionOrder(UNSAFE_root);
 
     expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
@@ -509,9 +684,39 @@ describe('MoneyAddMoneySheet', () => {
     const order = getOptionOrder(UNSAFE_root);
 
     expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
       MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+    ]);
+  });
+
+  it('keeps the coming-soon Bank account row in its pre-flag position when moneyMovementNeobank is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+    // Empty wallet: Convert crypto is disabled too, so the disabled rows'
+    // relative order must still match prod (Convert crypto above Bank account).
+    (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+    const order = getOptionOrder(UNSAFE_root, [
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
+    ]);
+
+    expect(order).toEqual([
+      MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+      MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
     ]);
   });
 
@@ -576,6 +781,17 @@ describe('MoneyAddMoneySheet', () => {
       renderWithProvider(<MoneyAddMoneySheet />);
 
       expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with BANK_ACCOUNT component when "Bank account" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+      });
     });
 
     it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {

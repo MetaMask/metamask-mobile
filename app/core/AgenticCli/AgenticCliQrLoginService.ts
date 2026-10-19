@@ -8,6 +8,7 @@ import { maybePromptPushPermissionAfterCliLogin } from './promptPushNotification
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import { Connection } from '../SDKConnectV2/services/connection';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
+import { sendPairingCancelledToClient } from './sendPairingCancelled';
 import { sendAuthTokenToClient } from './sendAuthToken';
 import {
   ENGINE_READY_POLL_MS,
@@ -96,6 +97,8 @@ export async function handleAgenticCliQrLogin({
   setStage,
   cleanupConnection,
 }: HandleAgenticCliQrLoginParams): Promise<void> {
+  let authTokenSent = false;
+
   try {
     // --- Hydra bearer token ---
     setStage('get-hydra-token');
@@ -137,21 +140,36 @@ export async function handleAgenticCliQrLogin({
     // --- Send token to CLI ---
     setStage('send-auth-token-to-cli');
     await sendAuthTokenToClient(conn.client, conn.id, authToken);
+    authTokenSent = true;
     store.dispatch(
       showSimpleNotification({
         id: `${conn.id}-cli-link-success`,
         autodismiss: 3000,
         title: strings('sdk_connect_v2.show_cli_link_success.title'),
+        description: '',
         status: 'success',
-        description: strings(
-          'sdk_connect_v2.show_cli_link_success.description',
-        ),
       }),
     );
 
     // Nudge push permission so post-login transaction notifications reach the
     // user (MMAI-925). Fire-and-forget: never rejects, never blocks login.
     void maybePromptPushPermissionAfterCliLogin();
+  } catch (error) {
+    // Mobile Cancel / WebView close / other failures never send auth-token.
+    // Notify CLI before disconnect so it can abort instead of hanging (MMAI-979).
+    // Payload matches CLI PAIRING_CANCELLED_TYPE from the browser cancel path.
+    if (!authTokenSent) {
+      try {
+        await sendPairingCancelledToClient(conn.client, conn.id);
+      } catch (cancelError) {
+        logger.error(
+          'Failed to send pairing-cancelled to CLI:',
+          conn.id,
+          cancelError,
+        );
+      }
+    }
+    throw error;
   } finally {
     try {
       await cleanupConnection(conn);

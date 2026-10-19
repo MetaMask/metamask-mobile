@@ -14,19 +14,24 @@ import PredictHome from '../../../app/components/UI/Predict/views/PredictHome';
 import PredictMarketListRoute from '../../../app/components/UI/Predict/routes/PredictMarketListRoute';
 import { PredictPreviewSheetProvider } from '../../../app/components/UI/Predict/contexts';
 import { initialStatePredict } from '../presets/predict';
+import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
 
 interface RenderPredictHomeOptions {
   overrides?: DeepPartial<RootState>;
+  initialParams?: PredictMarketListRouteParams;
+  setParams?: (params: PredictMarketListRouteParams) => void;
 }
 
-function createNavigationContextValue() {
+function createNavigationContextValue(
+  setParams: (params: PredictMarketListRouteParams) => void = () => undefined,
+) {
   return {
     navigate: () => undefined,
     goBack: () => undefined,
     canGoBack: () => false,
     dispatch: () => undefined,
     reset: () => undefined,
-    setParams: () => undefined,
+    setParams,
     setOptions: () => undefined,
     isFocused: () => true,
     addListener: () => () => undefined,
@@ -46,7 +51,7 @@ function createWrappedPredictComponent(
   Component: React.ComponentType<Record<string, unknown>>,
 ): React.ComponentType {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
 
   return function WrappedPredictComponent(props: Record<string, unknown>) {
@@ -72,7 +77,7 @@ function renderWrappedAtMarketList(
   Component: React.ComponentType<Record<string, unknown>>,
   options: RenderPredictHomeOptions,
 ): ReturnType<typeof renderWithProvider> {
-  const { overrides } = options;
+  const { overrides, initialParams, setParams } = options;
 
   const builder = initialStatePredict();
   if (overrides) {
@@ -83,11 +88,13 @@ function renderWrappedAtMarketList(
   const route = {
     key: Routes.PREDICT.MARKET_LIST,
     name: Routes.PREDICT.MARKET_LIST,
-    params: {},
+    params: initialParams ?? {},
   };
 
   return renderWithProvider(
-    <NavigationContext.Provider value={createNavigationContextValue() as never}>
+    <NavigationContext.Provider
+      value={createNavigationContextValue(setParams) as never}
+    >
       <NavigationRouteContext.Provider value={route as never}>
         <Wrapped />
       </NavigationRouteContext.Provider>

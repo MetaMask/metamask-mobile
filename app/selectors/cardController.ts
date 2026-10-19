@@ -1,19 +1,26 @@
-import { createSelector } from 'reselect';
+import { createSelector, createSelectorCreator, lruMemoize } from 'reselect';
+import { deepEqual } from 'fast-equals';
 import {
   parseCaipAccountId,
   isCaipAccountId,
   type CaipChainId,
 } from '@metamask/utils';
 import { RootState } from '../reducers';
+import { latestByUpdatedAt } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
   type CardControllerState,
+  type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardLink,
+  type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
   type CardHomeData,
+  type CardProviderId,
+  type CardSignInLink,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import {
   CardType,
@@ -43,12 +50,28 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
-import { selectCardFeatureFlag } from './featureFlagController/card';
+import {
+  selectCardFeatureFlag,
+  selectCardLinkApiEnabled,
+} from './featureFlagController/card';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
   isCardResidencyInBlockedRegions,
 } from '../components/UI/Card/util/residency';
+
+/**
+ * Selector creator that keeps the previous result reference when the new
+ * result is deep-equal. Cheap for small card token lists; avoids cascading
+ * re-renders when `cardHomeData` is reassigned with an identical payload.
+ */
+const createStableListSelector = createSelectorCreator(lruMemoize, {
+  resultEqualityCheck: deepEqual,
+});
+
+const EMPTY_CARDHOLDER_ACCOUNTS: string[] = [];
+const EMPTY_EXTERNAL_WALLET_PRIORITY: CardWalletExternalPriorityResponse[] = [];
+const EMPTY_CARD_FUNDING_TOKENS: CardFundingToken[] = [];
 
 const FUNDING_STATUS_ORDER: Record<FundingStatus, number> = {
   [FundingStatus.Enabled]: 0,
@@ -99,6 +122,28 @@ export const selectIsCardAuthenticated = createSelector(
     cardState?.isAuthenticated ?? false,
 );
 
+export const selectCardSignInLink = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardSignInLink | null =>
+    (cardState?.signInLink as unknown as CardSignInLink | null) ?? null,
+);
+
+export const selectHasCardSignInLink = createSelector(
+  selectCardSignInLink,
+  (link) => link !== null,
+);
+
+export const selectHasCompletedCardMigration = createSelector(
+  selectCardSignInLink,
+  (link) => link?.status === 'completed',
+);
+
+export const selectCardProviderUserId = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    cardState?.providerUserId ?? null,
+);
+
 export const selectCardLastUnauthenticatedReason = createSelector(
   selectCardControllerState,
   (
@@ -113,10 +158,16 @@ export const selectIsMoneyAccountCardLinkInProgress = createSelector(
     cardState?.moneyAccountCardLinkInProgress ?? false,
 );
 
+export const selectCardRedeemWithdrawal = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined) =>
+    (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
+);
+
 export const selectCardholderAccounts = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
-    cardState?.cardholderAccounts ?? [],
+    cardState?.cardholderAccounts ?? EMPTY_CARDHOLDER_ACCOUNTS,
 );
 
 export const selectHasCardholderAccounts = createSelector(
@@ -142,6 +193,37 @@ export const selectIsCardholder = createSelector(
       }
     });
   },
+);
+
+/** `null` while card links are off (flag, or a 403 from Card API), so routing stays legacy. */
+export const selectCardLinks = createSelector(
+  selectCardControllerState,
+  selectCardLinkApiEnabled,
+  (
+    cardState: CardControllerState | undefined,
+    cardLinkApiEnabled,
+  ): CardLink[] | null =>
+    cardLinkApiEnabled && !cardState?.cardLinkApiBlocked
+      ? (cardState?.cardLinks ?? null)
+      : null,
+);
+
+/** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
+const selectRoutableCardLink = createSelector(
+  selectCardLinks,
+  (links): CardLink | null =>
+    latestByUpdatedAt(links?.filter((l) => l.status === 'active') ?? []) ??
+    latestByUpdatedAt(links?.filter((l) => l.status === 'onboarding') ?? []),
+);
+
+export const selectHasLinkedCard = createSelector(
+  selectRoutableCardLink,
+  (link) => link !== null,
+);
+
+export const selectLinkedCardProvider = createSelector(
+  selectRoutableCardLink,
+  (link): CardProviderId | null => link?.provider ?? null,
 );
 
 export const selectCardUserLocation = createSelector(
@@ -175,6 +257,30 @@ export const selectCardHomeDataStatus = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined): CardHomeDataStatus =>
     cardState?.cardHomeDataStatus ?? 'idle',
+);
+
+export const selectCardHomeDataError = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeDataError | null =>
+    (cardState?.cardHomeDataError as CardHomeDataError | null) ?? null,
+);
+
+export const selectCardHomeDataFetchedThisSession = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): boolean =>
+    cardState?.cardHomeDataFetchedThisSession ?? false,
+);
+
+export const selectIsCardStateResolved = createSelector(
+  selectCardHomeDataStatus,
+  selectCardHomeData,
+  selectCardVerificationStatus,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
+    ((status === 'success' || cardHomeData !== null) &&
+      (!isAuthenticated || verificationStatus !== null)) ||
+    (!isAuthenticated && !isCardholder),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
@@ -235,7 +341,7 @@ export const selectHasMetalCard = createSelector(
   (data): boolean => data?.card?.type === CardType.METAL,
 );
 
-export const selectCardPrimaryToken = createSelector(
+export const selectCardPrimaryToken = createStableListSelector(
   selectCardHomeData,
   selectMoneyAccountVedaTokenConfig,
   (data, vedaConfig): CardFundingToken | null =>
@@ -249,7 +355,7 @@ export const selectCardPrimaryToken = createSelector(
  * account. Inactive placeholders are synthesized at projection time from
  * `delegationSettings`, which is why account switches do not require a refetch.
  */
-export const selectCardAvailableTokens = createSelector(
+export const selectCardAvailableTokens = createStableListSelector(
   selectCardHomeData,
   selectSelectedEvmAccount,
   selectCardFeatureFlag,
@@ -283,7 +389,9 @@ export const selectCardAvailableTokens = createSelector(
       })
       .map((asset) => toFundingTokenWithVedaContext(asset, vedaConfig));
 
-    if (!currentAddress) return realEntries;
+    if (!currentAddress) {
+      return realEntries.length === 0 ? EMPTY_CARD_FUNDING_TOKENS : realEntries;
+    }
 
     const currentWalletTokenKeys = new Set(
       realEntries
@@ -319,23 +427,32 @@ export const selectCardAvailableTokens = createSelector(
           !isResidencyBlocked || !placeholder.isMoneyAccountEntry,
       );
 
-    return sortCardFundingTokens([...realEntries, ...placeholders]);
+    const combined = [...realEntries, ...placeholders];
+    if (combined.length === 0) {
+      return EMPTY_CARD_FUNDING_TOKENS;
+    }
+    return sortCardFundingTokens(combined);
   },
 );
 
-export const selectCardFundingTokens = createSelector(
+export const selectCardFundingTokens = createStableListSelector(
   selectCardHomeData,
   selectMoneyAccountVedaTokenConfig,
-  (data, vedaConfig): CardFundingToken[] =>
-    (data?.fundingAssets ?? []).map((asset) =>
+  (data, vedaConfig): CardFundingToken[] => {
+    const assets = data?.fundingAssets ?? [];
+    if (assets.length === 0) {
+      return EMPTY_CARD_FUNDING_TOKENS;
+    }
+    return assets.map((asset) =>
       toFundingTokenWithVedaContext(asset, vedaConfig),
-    ),
+    );
+  },
 );
 
 export const selectCardExternalWalletPriority = createSelector(
   selectCardHomeData,
   (data): CardWalletExternalPriorityResponse[] =>
-    data?.externalWalletPriority ?? [],
+    data?.externalWalletPriority ?? EMPTY_EXTERNAL_WALLET_PRIORITY,
 );
 
 export const selectCardDelegationSettings = createSelector(

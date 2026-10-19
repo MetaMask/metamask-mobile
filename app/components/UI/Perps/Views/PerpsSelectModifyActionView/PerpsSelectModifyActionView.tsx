@@ -26,6 +26,7 @@ interface PerpsSelectModifyActionViewProps {
   onClose?: () => void;
   onReversePosition?: (position: Position) => void;
   testID?: string;
+  useBottomSheet?: boolean;
 }
 
 const PerpsSelectModifyActionView: React.FC<
@@ -36,6 +37,7 @@ const PerpsSelectModifyActionView: React.FC<
   onClose: onExternalClose,
   onReversePosition,
   testID,
+  useBottomSheet: useBottomSheetProp,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -44,6 +46,8 @@ const PerpsSelectModifyActionView: React.FC<
 
   // Support both props and route params
   const position = positionProp || route.params?.position;
+  const useBottomSheet =
+    useBottomSheetProp ?? route.params?.useBottomSheet ?? false;
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToOrder, navigateToClosePosition } = usePerpsNavigation();
@@ -101,9 +105,13 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction,
               asset: position.symbol,
+              ...(position.providerId
+                ? { providerId: position.providerId }
+                : {}),
               existingPosition: position, // Pass position to maintain leverage consistency
               hideTPSL: true, // Hide TP/SL when adding to existing position
               source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
             });
           }
           break;
@@ -134,9 +142,13 @@ const PerpsSelectModifyActionView: React.FC<
             navigateToOrder({
               direction: oppositeDirection,
               asset: position.symbol,
+              ...(position.providerId
+                ? { providerId: position.providerId }
+                : {}),
               amount: positionSize.toString(),
               leverage: positionLeverage,
               source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
             });
           }
           break;
@@ -154,6 +166,7 @@ const PerpsSelectModifyActionView: React.FC<
       handleClose,
       trackEvent,
       createEventBuilder,
+      useBottomSheet,
     ],
   );
 

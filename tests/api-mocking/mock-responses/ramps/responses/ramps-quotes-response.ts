@@ -55,7 +55,7 @@ export const createRampsQuoteResponse = (
         paymentMethod: '/payments/debit-credit-card',
         cryptoTranslation: 'ETHethereum',
         buyURL:
-          'https://on-ramp.uat-api.cx.metamask.io/v2/providers/transak-staging/buy',
+          'https://on-ramp.api.cx.metamask.io/v2/providers/transak-staging/buy',
       },
       nativeApplePay: {},
       providerInfo: {

@@ -6,7 +6,11 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol, type Order } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  type Order,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import {
   formatOrderLabel,
@@ -52,7 +56,9 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
       ? formatPerpsFiat(priceValue, {
           ranges: PRICE_RANGES_UNIVERSAL,
         })
-      : strings('perps.order.market');
+      : labelKey === 'perps.order.market_price'
+        ? strings('perps.order.market')
+        : PERPS_CONSTANTS.FallbackPriceDisplay;
 
   const orderTypeLabel = strings(labelKey);
 

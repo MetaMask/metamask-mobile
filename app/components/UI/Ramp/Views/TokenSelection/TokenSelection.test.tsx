@@ -7,7 +7,6 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MOCK_CRYPTOCURRENCIES } from '../../testUtils';
 import { useRampsController } from '../../hooks/useRampsController';
-import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockHeaderGoBack = jest.fn();
@@ -147,6 +146,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -204,6 +204,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -236,66 +237,6 @@ describe('TokenSelection Component', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('displays empty state when no tokens match search', async () => {
-    (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-    const { getByPlaceholderText, getByText } =
-      renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'Nonexistent Token');
-
-    await waitFor(() => {
-      expect(
-        getByText('No tokens match "Nonexistent Token"'),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  it('filters tokens by search string', async () => {
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'USDC');
-
-    await waitFor(() => {
-      expect(useSearchTokenResults).toHaveBeenCalledWith(
-        expect.objectContaining({
-          searchString: 'USDC',
-        }),
-      );
-    });
-  });
-
-  it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed ', () => {
-    const mockSetSelectedToken = jest.fn();
-    mockUseRampsController.mockReturnValue({
-      ...mockUseRampsController(),
-      setSelectedToken: mockSetSelectedToken,
-    });
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
-    fireEvent.press(firstToken);
-
-    expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockGoToBuy).not.toHaveBeenCalled();
-    expect(mockSetSelectedToken).toHaveBeenCalledWith(mockTokens[0].assetId);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.AMOUNT_INPUT, {
-      assetId: mockTokens[0].assetId,
-    });
-  });
-
-  it('navigates to unsupported token modal when info button is pressed', () => {
-    const { getAllByTestId } = renderWithProvider(TokenSelection);
-
-    const infoButtons = getAllByTestId('token-unsupported-info-button');
-    fireEvent.press(infoButtons[0]);
-
-    expect(mockNavigate).toHaveBeenCalledWith('RampModals', {
-      screen: 'RampUnsupportedTokenModal',
-    });
-  });
-
   it('displays loading indicator while fetching tokens', () => {
     mockUseRampsController.mockReturnValue({
       tokens: null,
@@ -307,6 +248,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -349,6 +291,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -391,6 +334,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -437,6 +381,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -487,6 +432,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -543,6 +489,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,
@@ -604,6 +551,7 @@ describe('TokenSelection Component', () => {
       setUserRegion: jest.fn(),
       selectedProvider: null,
       setSelectedProvider: jest.fn(),
+      setSelectedProviderForAsset: jest.fn(),
       providers: [],
       providersLoading: false,
       providersError: null,

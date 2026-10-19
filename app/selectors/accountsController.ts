@@ -118,13 +118,14 @@ export const selectSelectedInternalAccount = createSelector(
     const account = accounts[selectedAccountId];
 
     if (!account) {
-      const err = new Error(
-        `selectSelectedInternalAccount: Account with ID ${selectedAccountId} not found.`,
-      );
-      captureException(err);
-      return undefined;
+      if (selectedAccountId !== '') {
+        const err = new Error(
+          `selectSelectedInternalAccount: Account with ID ${selectedAccountId} not found.`,
+        );
+        captureException(err);
+      }
     }
-    return account;
+    return account ?? undefined;
   },
 );
 

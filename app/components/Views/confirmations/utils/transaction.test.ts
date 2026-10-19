@@ -11,7 +11,6 @@ import {
   getSeverity,
   hasGasFeeTokenSelected,
   getTransactionType,
-  hasTransactionType,
   isRevokeDelegationTransaction,
   isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
@@ -157,17 +156,24 @@ describe('parseStandardTokenTransactionData', () => {
       const mockValidateRequest = jest
         .spyOn(ppomUtil, 'validateRequest')
         .mockImplementation(() => Promise.resolve());
-      const transactionMeta = await addMMOriginatedTransaction(
+      const transactionResult = await addMMOriginatedTransaction(
         upgradeAccountConfirmation.txParams,
         {
           networkClientId: 'sepolia',
+          requireApproval: false,
           type: TransactionType.batch,
         },
       );
-      expect(transactionMeta.id).toBe('123');
+      expect(transactionResult.transactionMeta.id).toBe('123');
       expect(
         Engine.context.TransactionController.addTransaction,
       ).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledWith(
+        upgradeAccountConfirmation.txParams,
+        expect.objectContaining({ requireApproval: false }),
+      );
       expect(mockValidateRequest).toHaveBeenCalledTimes(1);
     });
   });
@@ -232,49 +238,6 @@ describe('getTransactionType', () => {
     } as unknown as TransactionMeta;
 
     expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
-  });
-});
-
-describe('hasTransactionType', () => {
-  it('returns true if transaction type matches', () => {
-    const txMeta = {
-      type: TransactionType.simpleSend,
-    } as TransactionMeta;
-
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.bridge,
-        TransactionType.simpleSend,
-      ]),
-    ).toBe(true);
-  });
-
-  it('returns true if nested transaction type matches', () => {
-    const txMeta = {
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.simpleSend }],
-    } as TransactionMeta;
-
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.bridge,
-        TransactionType.simpleSend,
-      ]),
-    ).toBe(true);
-  });
-
-  it('returns false if neither transaction type nor nested transaction types match', () => {
-    const txMeta = {
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.bridge }],
-    } as TransactionMeta;
-
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.simpleSend,
-        TransactionType.cancel,
-      ]),
-    ).toBe(false);
   });
 });
 

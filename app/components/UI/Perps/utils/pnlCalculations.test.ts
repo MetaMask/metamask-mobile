@@ -7,6 +7,7 @@ import {
   calculatePnLPercentage,
   calculatePnLWithPercentage,
   calculatePnLPercentageFromUnrealized,
+  calculatePositionAggregateTotals,
   calculateTotalPnL,
   calculateTotalPnLPercentage,
   type PnLCalculationParams,
@@ -480,6 +481,75 @@ describe('pnlCalculations', () => {
       const params: TotalPnLParams = { positions };
       const result = calculateTotalPnLPercentage(params);
       expect(result).toBe(0); // Should handle empty strings gracefully
+    });
+  });
+
+  describe('calculatePositionAggregateTotals', () => {
+    const basePosition = {
+      size: '1',
+      entryPrice: '100',
+      positionValue: '100',
+      leverage: { type: 'cross' as const, value: 2 },
+      liquidationPrice: '50',
+      maxLeverage: 50,
+      cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+      takeProfitCount: 0,
+      stopLossCount: 0,
+    };
+
+    it('returns zeros for an empty position list', () => {
+      expect(calculatePositionAggregateTotals([])).toEqual({
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      });
+    });
+
+    it('margin-weights supplied position ROE (protocol decimal) into a percentage', () => {
+      // Position A: ROE 10% (0.10), margin 1000 → contribution 100
+      // Position B: ROE 20% (0.20), margin 500 → contribution 100
+      // Weighted ROE % = (200 / 1500) * 100 = 13.333...
+      const positions: Position[] = [
+        {
+          ...basePosition,
+          symbol: 'BTC',
+          unrealizedPnl: '50',
+          marginUsed: '1000',
+          returnOnEquity: '0.10',
+        },
+        {
+          ...basePosition,
+          symbol: 'ETH',
+          unrealizedPnl: '200',
+          marginUsed: '500',
+          returnOnEquity: '0.20',
+        },
+      ];
+
+      const result = calculatePositionAggregateTotals(positions);
+
+      expect(result.unrealizedPnl).toBe('250');
+      expect(result.returnOnEquity).toBe(
+        ((0.1 * 1000 + 0.2 * 500) / 1500) * 100 + '',
+      );
+    });
+
+    it('differs from Σpnl / Σmargin when supplied ROE is not pnl / margin', () => {
+      // Supplied ROE (0.05) ≠ pnl/margin (100/1000 = 0.10)
+      const positions: Position[] = [
+        {
+          ...basePosition,
+          symbol: 'BTC',
+          unrealizedPnl: '100',
+          marginUsed: '1000',
+          returnOnEquity: '0.05',
+        },
+      ];
+
+      const result = calculatePositionAggregateTotals(positions);
+
+      expect(result.unrealizedPnl).toBe('100');
+      expect(result.returnOnEquity).toBe('5');
+      expect(result.returnOnEquity).not.toBe('10');
     });
   });
 });

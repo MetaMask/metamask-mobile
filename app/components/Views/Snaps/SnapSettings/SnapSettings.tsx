@@ -21,6 +21,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { Snap } from '@metamask/snaps-utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SnapDetails } from '../components/SnapDetails';
 import { SnapDescription } from '../components/SnapDescription';
 import { SnapPermissions } from '../components/SnapPermissions';
@@ -53,7 +54,7 @@ export const createSnapSettingsNavDetails =
 const SnapSettings = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
 
   const { snap } = useParams<SnapSettingsProps>();

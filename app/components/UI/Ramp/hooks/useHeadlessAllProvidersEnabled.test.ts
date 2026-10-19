@@ -46,18 +46,38 @@ describe('useHeadlessAllProvidersEnabled', () => {
     expect(result.current).toBe(false);
   });
 
-  it.each([['true'], [1], [{ enabled: true }], ['all']])(
-    'returns false when the flag value is the non-boolean %p',
-    (value) => {
-      mockControllerState = {
-        remoteFeatureFlags: { [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: value },
-      };
+  it.each([
+    ['true'],
+    [1],
+    [{ enabled: false }],
+    [{ enabled: 'true' }],
+    [{ providerIds: ['/providers/moonpay'] }],
+    ['all'],
+  ])('returns false when the flag value is the non-enabling %p', (value) => {
+    mockControllerState = {
+      remoteFeatureFlags: { [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: value },
+    };
 
-      const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
 
-      expect(result.current).toBe(false);
-    },
-  );
+    expect(result.current).toBe(false);
+  });
+
+  it('returns true for an object payload whose enabled is the literal true', () => {
+    mockControllerState = {
+      remoteFeatureFlags: {
+        [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: {
+          enabled: true,
+          featureVersion: '1',
+          providerIds: ['/providers/moonpay'],
+        },
+      },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(result.current).toBe(true);
+  });
 
   it('honors a Settings localOverrides true value over a remote false value', () => {
     mockControllerState = {
@@ -68,6 +88,18 @@ describe('useHeadlessAllProvidersEnabled', () => {
     const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
 
     expect(result.current).toBe(true);
+  });
+
+  it('returns false for an enabled payload without the current featureVersion', () => {
+    mockControllerState = {
+      remoteFeatureFlags: {
+        [MONEY_HEADLESS_ALL_PROVIDERS_FLAG_KEY]: { enabled: true },
+      },
+    };
+
+    const { result } = renderHook(() => useHeadlessAllProvidersEnabled());
+
+    expect(result.current).toBe(false);
   });
 
   it('honors a Settings localOverrides false value over a remote true value', () => {

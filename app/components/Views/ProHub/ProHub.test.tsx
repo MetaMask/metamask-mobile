@@ -1,0 +1,539 @@
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react-native';
+import { IconColor } from '@metamask/design-system-react-native';
+import { Provider } from 'react-redux';
+import {
+  PRODUCT_TYPES,
+  SUBSCRIPTION_STATUSES,
+  type Subscription,
+} from '@metamask/subscription-controller';
+import type { RootState } from '../../../reducers';
+import configureStore from '../../../util/test/configureStore';
+import ProHub from './ProHub';
+import { ProHubTestIds } from './ProHub.testIds';
+import {
+  ALSO_INCLUDED_ITEMS,
+  MOCK_PRO_HUB_STATS,
+  MOCK_TRADE_ALLOWANCES,
+  TRADE_ALLOWANCE_IDS,
+} from './ProHub.constants';
+import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
+import {
+  getMembershipBannerModel,
+  MembershipStatusKind,
+} from './components/MembershipBanner/MembershipBanner.utils';
+import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
+import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
+import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import {
+  MoneyAccountPlusBenefitsStatus,
+  useMoneyAccountPlusBenefits,
+} from './hooks/useMoneyAccountPlusBenefits';
+
+// ─── Navigation ───────────────────────────────────────────────────────────────
+
+let mockGoBack: jest.Mock;
+let mockNavigate: jest.Mock;
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  };
+});
+
+// ─── Tailwind ─────────────────────────────────────────────────────────────────
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: (..._args: unknown[]) => ({}),
+  }),
+}));
+
+// ─── Plus access ──────────────────────────────────────────────────────────────
+
+const mockUseMoneyAccountPlusAccess = jest.fn();
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccess: () => mockUseMoneyAccountPlusAccess(),
+}));
+
+const mockUseMoneyAccountPlusBenefits = jest.mocked(
+  useMoneyAccountPlusBenefits,
+);
+jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('./hooks/useMoneyAccountPlusBenefits'),
+  useMoneyAccountPlusBenefits: jest.fn(),
+}));
+
+const mockUseMembershipBannerModel = jest.mocked(useMembershipBannerModel);
+jest.mock('./hooks/useMembershipBannerModel', () => ({
+  useMembershipBannerModel: jest.fn(),
+}));
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const createPlusSubscription = (status: Subscription['status']): Subscription =>
+  ({
+    id: 'sub-plus',
+    products: [{ name: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS }],
+    status,
+  }) as Subscription;
+
+const createState = (isTrialing: boolean): RootState =>
+  ({
+    engine: {
+      backgroundState: {
+        SubscriptionController: {
+          subscriptions: [
+            createPlusSubscription(
+              isTrialing
+                ? SUBSCRIPTION_STATUSES.trialing
+                : SUBSCRIPTION_STATUSES.active,
+            ),
+          ],
+          trialedProducts: isTrialing ? [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS] : [],
+        },
+      },
+    },
+  }) as unknown as RootState;
+
+const renderProHub = ({ isTrialing = false } = {}) =>
+  render(
+    <Provider store={configureStore(createState(isTrialing))}>
+      <ProHub />
+    </Provider>,
+  );
+
+/**
+ * Escapes all regex special characters so a plain string can be used
+ * as a partial-match pattern inside toHaveTextContent().
+ */
+const toRegex = (s: string) =>
+  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
+
+const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel(
+  createPlusSubscription(SUBSCRIPTION_STATUSES.active),
+);
+
+// Earnings are still mock data. Access and benefits still depend on the
+// subscriptions query, so this screen test mocks those hooks. The banner
+// model and the displayed-subscription selector have their own unit tests.
+
+// ─── Suite ────────────────────────────────────────────────────────────────────
+
+describe('ProHub', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGoBack = jest.fn();
+    mockNavigate = jest.fn();
+    mockUseMoneyAccountPlusAccess.mockReturnValue(
+      MoneyAccountPlusAccess.Subscriber,
+    );
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+    });
+    mockUseMembershipBannerModel.mockReturnValue({
+      model: ACTIVE_MEMBERSHIP_BANNER,
+      subscription: undefined,
+    });
+  });
+
+  // ── Access guard ───────────────────────────────────────────────────────────
+
+  describe('Access guard', () => {
+    it.each([
+      ['disabled', MoneyAccountPlusAccess.Disabled],
+      ['eligible but not entitled', MoneyAccountPlusAccess.Eligible],
+    ])('navigates back when Pro access is %s', (_label, access) => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(access);
+
+      renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open while Plus access is unresolved', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Unknown,
+      );
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('stays open for an entitled subscriber', () => {
+      renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('leaves when only a cached plan remains after access lapses', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('leaves when Pro is disabled even if a plan is still displayed', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('does not render subscriber content without access', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+
+      const { queryByTestId } = renderProHub();
+
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+  });
+
+  // ── Rendering ──────────────────────────────────────────────────────────────
+
+  describe('Rendering', () => {
+    it('renders the pro hub container', () => {
+      const { getByTestId } = renderProHub();
+
+      const container = getByTestId(ProHubTestIds.CONTAINER);
+
+      expect(container).toBeOnTheScreen();
+    });
+
+    it('renders the title from i18n', () => {
+      const { getByTestId } = renderProHub();
+
+      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
+
+      expect(header).toHaveTextContent(strings('pro_hub.title'));
+    });
+
+    it('renders the header bar', () => {
+      const { getByTestId } = renderProHub();
+
+      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
+
+      expect(header).toBeOnTheScreen();
+    });
+
+    it('renders the back button in the header', () => {
+      const { getByTestId } = renderProHub();
+
+      const backButton = getByTestId(ProHubTestIds.BACK_BUTTON);
+
+      expect(backButton).toBeOnTheScreen();
+    });
+
+    it('renders the manage plans icon button', () => {
+      const { getByTestId } = renderProHub();
+
+      const managePlansButton = getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON);
+
+      expect(managePlansButton).toBeOnTheScreen();
+    });
+
+    it('renders membership card, lifetime earnings, and stat rows', () => {
+      const { getByTestId, queryByTestId } = renderProHub();
+
+      const membershipBanner = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
+
+      expect(membershipBanner).toHaveTextContent(
+        toRegex(strings('pro_hub.title')),
+      );
+      expect(membershipBanner).toHaveTextContent(
+        toRegex(strings('pro_hub.membership_status.active')),
+      );
+      expect(lifetimeEarningsSection).toHaveTextContent(
+        toRegex(strings('pro_hub.lifetime_earnings')),
+      );
+      expect(moneyBalanceRow).toHaveTextContent(
+        toRegex(
+          strings('pro_hub.money_balance', {
+            apy: `${MOCK_PRO_HUB_STATS.moneyBalanceApy}%`,
+          }),
+        ),
+      );
+      expect(musdBackRow).toHaveTextContent(
+        toRegex(
+          strings('pro_hub.musd_back', {
+            rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+          }),
+        ),
+      );
+      expect(musdBackRow).toHaveTextContent(
+        toRegex(MOCK_PRO_HUB_STATS.musdBack),
+      );
+      expect(queryByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`)).toBeNull();
+    });
+
+    it('shows a lock instead of the mUSD back amount during a free trial', () => {
+      const { getByTestId, queryByText } = renderProHub({ isTrialing: true });
+
+      const musdBackRow = getByTestId(ProHubTestIds.MUSD_BACK_ROW);
+      const lock = getByTestId(`${ProHubTestIds.MUSD_BACK_ROW}-lock`);
+
+      expect(lock).toBeOnTheScreen();
+      expect(musdBackRow).toContainElement(lock);
+      expect(queryByText(MOCK_PRO_HUB_STATS.musdBack)).toBeNull();
+    });
+
+    it('renders an active plan without a membership alert', () => {
+      const { queryByTestId } = renderProHub();
+
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Overdue),
+        ),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(
+            MembershipStatusKind.Deactivated,
+          ),
+        ),
+      ).toBeNull();
+    });
+
+    it('opens add money when the overdue alert action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Overdue,
+          statusKey: 'pro_hub.membership_status.overdue',
+          iconColor: IconColor.ErrorDefault,
+          alert: {
+            severity: 'danger' as const,
+            titleKey: 'pro_hub.membership_alert.payment_failed.title',
+            descriptionKey:
+              'pro_hub.membership_alert.payment_failed.description',
+            actionKey: 'pro_hub.membership_alert.payment_failed.action',
+            action: 'addFunds' as const,
+          },
+        },
+        subscription: undefined,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('opens the subscription flow when the renew action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+          alert: {
+            severity: 'warning' as const,
+            titleKey: 'pro_hub.membership_alert.cancelled.title',
+            descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+            actionKey: 'pro_hub.membership_alert.cancelled.action',
+            action: 'renew' as const,
+          },
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Cancelled),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT);
+    });
+
+    it('renders the physical card banner with title and description', () => {
+      const { getByTestId } = renderProHub();
+
+      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
+      const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
+      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
+
+      expect(banner).toBeOnTheScreen();
+      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
+      expect(description).toHaveTextContent(
+        strings('pro_hub.physical_card.description'),
+      );
+      expect(banner).toHaveProp(
+        'accessibilityLabel',
+        `${strings('pro_hub.physical_card.title')}. ${strings('pro_hub.physical_card.description')}`,
+      );
+    });
+
+    it('renders the member pricing section title', () => {
+      const { getByTestId } = renderProHub();
+
+      const section = getByTestId(MemberPricingOnTradesTestIds.SECTION);
+      const title = getByTestId(MemberPricingOnTradesTestIds.TITLE);
+
+      expect(section).toBeOnTheScreen();
+      expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
+
+      TRADE_ALLOWANCE_ID_LIST.forEach((id) => {
+        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
+        const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
+
+        expect(row).toBeOnTheScreen();
+        expect(progress).toBeOnTheScreen();
+        expect(row).toHaveTextContent(
+          toRegex(strings(`pro_hub.member_pricing.${id}.label`)),
+        );
+      });
+    });
+
+    it('renders next payment text and manage plan button', () => {
+      const { getByTestId } = renderProHub();
+
+      expect(
+        getByTestId(ProHubTestIds.ALSO_INCLUDED_SECTION),
+      ).toBeOnTheScreen();
+
+      ALSO_INCLUDED_ITEMS.forEach((item) => {
+        const row = getByTestId(ProHubTestIds.ALSO_INCLUDED_ROW(item.id));
+
+        expect(row).toBeOnTheScreen();
+        expect(row).toHaveTextContent(toRegex(strings(item.titleKey)));
+        expect(row).toHaveTextContent(toRegex(strings(item.subtitleKey)));
+
+        if (item.badgeKey) {
+          expect(row).toHaveTextContent(toRegex(strings(item.badgeKey)));
+        }
+      });
+
+      expect(getByTestId(ProHubTestIds.DISCLAIMER_TEXT)).toHaveTextContent(
+        strings('pro_hub.also_included.disclaimer'),
+      );
+      expect(getByTestId(ProHubTestIds.MANAGE_BUTTON)).toHaveTextContent(
+        strings('pro_hub.manage_membership'),
+      );
+    });
+  });
+
+  // ── Back button ───────────────────────────────────────────────────────────
+
+  describe('back button', () => {
+    it('calls navigation.goBack when pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call navigation.goBack on initial render', () => {
+      renderProHub();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Navigation ───────────────────────────────────────────────────────────
+
+  describe('navigation', () => {
+    it('navigates to Membership when manage membership is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
+    });
+
+    it('navigates to Membership when manage plans icon is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
+    });
+
+    it('navigates to Card when physical card banner is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    });
+
+    it('shows unlock copy and does not navigate when the banner is pressed during a free trial', () => {
+      const { getByTestId } = renderProHub({ isTrialing: true });
+
+      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
+
+      expect(getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE)).toHaveTextContent(
+        strings('pro_hub.physical_card.trial_title', {
+          rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+        }),
+      );
+      expect(
+        getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION),
+      ).toHaveTextContent(strings('pro_hub.physical_card.trial_description'));
+      expect(banner).toHaveProp(
+        'accessibilityLabel',
+        `${strings('pro_hub.physical_card.trial_title', {
+          rate: `${MOCK_PRO_HUB_STATS.musdBackRate}%`,
+        })}. ${strings('pro_hub.physical_card.trial_description')}`,
+      );
+      expect(banner).not.toHaveProp('onPress');
+
+      fireEvent.press(banner);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate on initial render', () => {
+      renderProHub();
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+});

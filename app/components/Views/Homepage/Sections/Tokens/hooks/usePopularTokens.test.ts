@@ -2,6 +2,8 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { handleFetch } from '@metamask/controller-utils';
 import { usePopularTokens } from './usePopularTokens';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { selectMoneyHubEnabledFlag } from '../../../../../UI/Money/selectors/featureFlags';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -18,41 +20,36 @@ jest.mock('../../../../../../selectors/currencyRateController', () => ({
 
 // Mock musd constants to avoid deep import chain issues
 jest.mock('../../../../../UI/Earn/constants/musd', () => ({
-  MUSD_CONVERSION_APY: 3,
   MUSD_TOKEN_ADDRESS: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
   isMusdToken: (address?: string) =>
     address?.toLowerCase() === '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-}));
-
-// Mock locales to avoid deep import chain issues
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: { percentage?: number }) =>
-    key === 'earn.musd_conversion.get_a_percentage_musd_bonus'
-      ? `Get ${params?.percentage}% mUSD bonus`
-      : key,
-  ),
-}));
-
-const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
-jest.mock('../../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
-}));
-
-jest.mock('../../../../../UI/Earn/selectors/featureFlags', () => ({
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyHubEnabledFlag: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
+
+const arrangeSelectors = ({
+  isMoneyHubEnabled = false,
+}: { isMoneyHubEnabled?: boolean } = {}) => {
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectCurrentCurrency) {
+      return 'usd';
+    }
+    if (selector === selectMoneyHubEnabledFlag) {
+      return isMoneyHubEnabled;
+    }
+    return undefined;
+  });
+};
 
 describe('usePopularTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue('usd');
+    arrangeSelectors();
   });
 
   it('returns isInitialLoading true on first fetch', () => {
@@ -188,16 +185,9 @@ describe('usePopularTokens', () => {
     expect(mockHandleFetch).toHaveBeenCalledTimes(2);
   });
 
-  it('excludes mUSD from tokens when Cash section is enabled', async () => {
+  it('excludes mUSD from tokens when the Money hub is enabled', async () => {
     mockHandleFetch.mockResolvedValue({});
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-    // Selector call order: selectCurrentCurrency → 'usd', selectIsMusdConversionFlowEnabledFlag → true,
-    // selectMoneyHubEnabledFlag → true. Later calls (re-renders) keep Cash enabled so mUSD stays filtered.
-    mockUseSelector
-      .mockReturnValueOnce('usd')
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(true)
-      .mockReturnValue(true);
+    arrangeSelectors({ isMoneyHubEnabled: true });
 
     const { result } = renderHook(() => usePopularTokens());
 

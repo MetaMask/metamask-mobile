@@ -1,6 +1,8 @@
 // Third party dependencies.
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import {
+  BottomTabBarProps,
+  BottomTabNavigationOptions,
+} from '@react-navigation/bottom-tabs';
 import { TabNavigationState, ParamListBase } from '@react-navigation/native';
 
 // External dependencies.
@@ -19,6 +21,7 @@ export enum TabBarIconKey {
   Rewards = 'Rewards',
   Trending = 'Trending',
   Money = 'Money',
+  Social = 'Social',
 }
 
 /**

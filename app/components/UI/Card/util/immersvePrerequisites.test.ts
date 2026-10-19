@@ -111,13 +111,52 @@ describe('deriveNextImmersveAction', () => {
     );
   });
 
-  it('returns funding with the smart_contract_write params', () => {
-    const result = deriveNextImmersveAction([funding, amlPending]);
+  it('returns funding with the smart_contract_write params once identity is ok', () => {
+    const result = deriveNextImmersveAction([funding, ok('kyc'), ok('aml')]);
     expect(result.type).toBe('funding');
     if (result.type === 'funding') {
       expect(result.write.method).toBe('approve');
       expect(result.write.params._spender).toBe('0xSpender');
     }
+  });
+
+  it('holds on pending while KYC is outstanding even if funding is ready', () => {
+    expect(
+      deriveNextImmersveAction([
+        funding,
+        { stage: 'kyc', status: 'pending' },
+        ok('aml'),
+      ]).type,
+    ).toBe('pending');
+  });
+
+  it('holds on pending while AML is outstanding even if funding is ready', () => {
+    expect(
+      deriveNextImmersveAction([funding, amlPending, ok('kyc')]).type,
+    ).toBe('pending');
+  });
+
+  it('returns rejected over funding when KYC is blocked', () => {
+    expect(
+      deriveNextImmersveAction([funding, { stage: 'kyc', status: 'blocked' }])
+        .type,
+    ).toBe('rejected');
+  });
+
+  it('returns rejected over funding when the KYC check failed', () => {
+    expect(
+      deriveNextImmersveAction([
+        funding,
+        {
+          stage: 'kyc',
+          status: 'kyc_check_failed',
+          params: { kycUrl: 'https://verify.immersve.com/retry' },
+        },
+      ]),
+    ).toStrictEqual({
+      type: 'rejected',
+      retryUrl: 'https://verify.immersve.com/retry',
+    });
   });
 
   it('returns pending when only pending stages remain', () => {

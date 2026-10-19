@@ -19,7 +19,6 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 const createMockState = ({
   notificationsEnabled = false,
   socialLeaderboardEnabled = false,
-  priceAlertsEnabled = false,
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -39,10 +38,6 @@ const createMockState = ({
           ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
           aiSocialLeaderboardEnabled: {
             enabled: socialLeaderboardEnabled,
-            minimumVersion: '0.0.1',
-          },
-          priceAlertsEnabled: {
-            enabled: priceAlertsEnabled,
             minimumVersion: '0.0.1',
           },
         },
@@ -172,10 +167,9 @@ describe('NotificationsSettings', () => {
     expect(queryByText(socialAISectionTitle)).toBeNull();
   });
 
-  it('renders price alerts section when price alerts feature flag is enabled', () => {
+  it('renders price alerts section when notifications are enabled', () => {
     const state = createMockState({
       notificationsEnabled: true,
-      priceAlertsEnabled: true,
     });
 
     const { getByText } = renderNotificationsSettings(state);
@@ -183,10 +177,9 @@ describe('NotificationsSettings', () => {
     expect(getByText(priceAlertsSectionTitle)).toBeOnTheScreen();
   });
 
-  it('hides price alerts section when price alerts feature flag is disabled', () => {
+  it('hides price alerts section when notifications are disabled', () => {
     const state = createMockState({
-      notificationsEnabled: true,
-      priceAlertsEnabled: false,
+      notificationsEnabled: false,
     });
 
     const { queryByText } = renderNotificationsSettings(state);

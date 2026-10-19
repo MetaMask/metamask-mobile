@@ -15,6 +15,7 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   EARN_BUTTON: 'wallet-earn-action',
   PERPS_BUTTON: 'wallet-perps-action',
   PREDICT_BUTTON: 'wallet-predict-action',
+  EARN_RATE_TAG: 'wallet-earn-rate-tag',
 };
 
 export const WalletActionsBottomSheetSelectorsText = {

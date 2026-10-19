@@ -28,12 +28,12 @@ import { useHomepageDiscoveryPillsNavigation } from './useHomepageDiscoveryPills
 
 const PILL_LABEL_KEYS: Record<
   HomepageDiscoveryPillId,
-  | 'homepage.sections.perpetuals'
+  | 'homepage.sections.perps'
   | 'homepage.sections.predictions'
   | 'trending.stocks'
   | 'trending.crypto'
 > = {
-  perpetuals: 'homepage.sections.perpetuals',
+  perpetuals: 'homepage.sections.perps',
   predictions: 'homepage.sections.predictions',
   stocks: 'trending.stocks',
   crypto: 'trending.crypto',

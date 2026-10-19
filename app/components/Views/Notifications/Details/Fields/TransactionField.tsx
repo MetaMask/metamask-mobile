@@ -57,7 +57,9 @@ function TransactionField(props: TransactionFieldProps) {
         <Pressable
           onPress={() => {
             trackEvent(
-              createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+              createEventBuilder(
+                MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED,
+              )
                 .addProperties({
                   ...notificationAnalyticsProperties(notification),
                   clicked_item: 'tx_id',

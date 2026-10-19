@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import Routes from '../../../../constants/navigation/Routes';
@@ -58,6 +59,9 @@ const mockToken: TokenDetailsRouteParams = {
   ticker: 'ETH',
   isETH: true,
 } as unknown as TokenDetailsRouteParams;
+
+/** Caller-provided title accessory, as the meme page passes its age chip. */
+const ageChipOverride = <Text testID="age-chip">3d</Text>;
 
 const createMockSecurityData = (
   resultType: TokenSecurityData['resultType'],
@@ -149,6 +153,49 @@ describe('TokenDetailsInlineHeader', () => {
     });
   });
 
+  describe('titleEndAccessory override', () => {
+    it('renders the provided accessory in place of the default badges', () => {
+      const { getByTestId, queryByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        titleEndAccessory: ageChipOverride,
+      });
+
+      expect(getByTestId('age-chip')).toBeOnTheScreen();
+      expect(queryByTestId('security-badge-verified')).toBeNull();
+    });
+
+    it('suppresses the stock badge when an override is provided', () => {
+      mockIsStockToken.mockReturnValue(true);
+      const { queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          name: 'Apple Inc',
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+        titleEndAccessory: ageChipOverride,
+      });
+
+      expect(queryByTestId('stock-badge')).toBeNull();
+    });
+
+    it('renders the default badges when no override is provided', () => {
+      mockIsStockToken.mockReturnValue(true);
+      const { getByTestId } = renderHeader({
+        securityData: createMockSecurityData('Verified'),
+        token: {
+          ...mockToken,
+          name: 'Apple Inc',
+          ticker: 'AAPL',
+          symbol: 'AAPL',
+        },
+      });
+
+      expect(getByTestId('security-badge-verified')).toBeOnTheScreen();
+      expect(getByTestId('stock-badge')).toBeOnTheScreen();
+    });
+  });
+
   describe('stock badge', () => {
     it('renders stock badge for named stock tokens', () => {
       mockIsStockToken.mockReturnValue(true);
@@ -235,6 +282,22 @@ describe('TokenDetailsInlineHeader', () => {
       expect(queryByText('0x00000...short')).toBeNull();
     });
 
+    it('replaces the contract address when a description is provided', () => {
+      const { Text } = jest.requireActual('react-native');
+      const { getByText, queryByText, queryByTestId } = renderHeader({
+        token: {
+          ...mockToken,
+          isETH: false,
+          isNative: false,
+        },
+        description: <Text>$0.000012</Text>,
+      });
+
+      expect(getByText('$0.000012')).toBeOnTheScreen();
+      expect(queryByText('0x00000...short')).toBeNull();
+      expect(queryByTestId('copy-contract-address-button')).toBeNull();
+    });
+
     it('renders short contract address in description for non-native tokens', () => {
       const { getByText } = renderHeader({
         token: {
@@ -301,6 +364,28 @@ describe('TokenDetailsInlineHeader', () => {
       const { queryByTestId } = renderHeader();
 
       expect(queryByTestId('share-button')).toBeNull();
+    });
+
+    it('renders end-accessory icons left-to-right as watchlist, price alert, then share', () => {
+      const { Text } = jest.requireActual('react-native');
+      const { toJSON, getByTestId } = renderHeader({
+        starButton: <Text testID="watchlist-star-button">★</Text>,
+        onPriceAlertPress: jest.fn(),
+        onSharePress: jest.fn(),
+      });
+
+      expect(getByTestId('watchlist-star-button')).toBeOnTheScreen();
+      expect(getByTestId('token-price-alert-button')).toBeOnTheScreen();
+      expect(getByTestId('share-button')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      const starIndex = serialized.indexOf('watchlist-star-button');
+      const alertIndex = serialized.indexOf('token-price-alert-button');
+      const shareIndex = serialized.indexOf('share-button');
+
+      expect(starIndex).toBeGreaterThanOrEqual(0);
+      expect(alertIndex).toBeGreaterThan(starIndex);
+      expect(shareIndex).toBeGreaterThan(alertIndex);
     });
   });
 });

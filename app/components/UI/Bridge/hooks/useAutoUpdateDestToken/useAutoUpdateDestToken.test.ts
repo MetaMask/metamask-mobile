@@ -12,6 +12,7 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-namespace
 import * as tokenUtils from '../../utils/tokenUtils';
+import { ARC_HEX_CHAIN_ID } from '../../../../../enablement/assets/arc';
 
 describe('useAutoUpdateDestToken', () => {
   const mockEthToken: BridgeToken = {
@@ -56,6 +57,10 @@ describe('useAutoUpdateDestToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('when source chain changes and dest was not manually set', () => {
@@ -275,6 +280,54 @@ describe('useAutoUpdateDestToken', () => {
         expect.objectContaining({
           symbol: 'ETH',
           chainId: ethChainId,
+          address: '0x0000000000000000000000000000000000000000',
+        }),
+      );
+    });
+
+    it('updates the Arc destination to native USDC when source matches the default destination', () => {
+      const setDestTokenSpy = jest.spyOn(bridgeSlice, 'setDestToken');
+
+      // Current dest is the default EURC
+      const eurcTokenOnArc: BridgeToken = {
+        address: '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1',
+        symbol: 'EURC',
+        name: 'EURC',
+        decimals: 6,
+        chainId: ARC_HEX_CHAIN_ID,
+      };
+
+      // New source is also EURC (conflicts with dest)
+      const eurcTokenOnArcSource: BridgeToken = {
+        address: '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1',
+        symbol: 'EURC',
+        name: 'EURC',
+        decimals: 6,
+        chainId: ARC_HEX_CHAIN_ID,
+      };
+
+      const { result } = renderHookWithProvider(
+        () => useAutoUpdateDestToken(),
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              destToken: eurcTokenOnArc,
+              isDestTokenManuallySet: false,
+            },
+          },
+        },
+      );
+
+      // Change source to EURC (same as current dest)
+      result.current.autoUpdateDestToken(eurcTokenOnArcSource);
+
+      // Dest should update to native USDC since source now conflicts with the default.
+      expect(setDestTokenSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'USDC',
+          chainId: ARC_HEX_CHAIN_ID,
           address: '0x0000000000000000000000000000000000000000',
         }),
       );

@@ -189,6 +189,43 @@ describe('useOHLCVRealtime', () => {
     expect(result.current.latestBar).toEqual(bar);
   });
 
+  it('keeps the same latestBar reference when an identical bar arrives twice', async () => {
+    const { result } = renderHook(() =>
+      useOHLCVRealtime(arrangeDefaultOptions()),
+    );
+
+    const barUpdatedHandler = mockSubscribe.mock.calls.find(
+      (call) => call[0] === 'OHLCVService:barUpdated',
+    )?.[1];
+
+    const bar = {
+      timestamp: 1700000000,
+      open: 100,
+      high: 105,
+      low: 99,
+      close: 103,
+      volume: 5000,
+    };
+    const channel =
+      'market-data.v1.eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913.15m.usd';
+
+    await act(async () => {
+      barUpdatedHandler({ channel, bar });
+    });
+
+    const firstBarReference = result.current.latestBar;
+    expect(firstBarReference).toEqual(bar);
+
+    await act(async () => {
+      // New object, but field-for-field identical to the previous bar.
+      barUpdatedHandler({ channel, bar: { ...bar } });
+    });
+
+    // areBarsEqual should detect the duplicate and skip the state update,
+    // so the reference stays the original bar object (no re-render triggered).
+    expect(result.current.latestBar).toBe(firstBarReference);
+  });
+
   it('ignores barUpdated events for different channels', async () => {
     const { result } = renderHook(() =>
       useOHLCVRealtime(arrangeDefaultOptions()),

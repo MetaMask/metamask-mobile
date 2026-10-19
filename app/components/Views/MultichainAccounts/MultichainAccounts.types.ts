@@ -4,6 +4,8 @@
 
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { Transaction } from '@metamask/keyring-api';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
+import type { AccountWalletId } from '@metamask/account-api';
 import type { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
 
 export interface AccountParams {
@@ -26,7 +28,9 @@ export interface MultichainTransactionDetailsParams {
 export interface MultichainAccountActionsParams extends AccountParams {}
 
 /** Edit account name parameters */
-export interface EditAccountNameParams extends AccountParams {}
+export interface EditAccountNameParams extends AccountParams {
+  accountGroup?: AccountGroupObject;
+}
 
 /** Edit wallet name parameters */
 export interface EditWalletNameParams extends AccountParams {}
@@ -40,6 +44,11 @@ export type { ShareAddressQRParams } from './sheets/ShareAddressQR/ShareAddressQ
 /** Delete account parameters */
 export interface DeleteAccountParams extends AccountParams {}
 
+/** Remove account parameters */
+export interface RemoveAccountParams extends AccountParams {
+  accountGroup?: AccountGroupObject;
+}
+
 /** Smart account parameters */
 export interface SmartAccountParams extends AccountParams {}
 
@@ -49,10 +58,16 @@ export interface MultichainAccountDetailsParams extends AccountParams {}
 /** Multichain account group details parameters */
 export interface MultichainAccountGroupDetailsParams {
   groupId?: string;
+  accountGroup?: AccountGroupObject;
+  // Some entry points navigate here and forward a nested screen/params (e.g. to
+  // open the edit-name sheet immediately).
+  screen?: string;
+  params?: object;
 }
 
 /** Multichain wallet details parameters */
 export interface MultichainWalletDetailsParams {
+  walletId?: AccountWalletId;
   keyringId?: string;
 }
 

@@ -82,7 +82,7 @@ jest.mock('../../../component-library/hooks/index.ts', () => ({
       networkList: {},
       centeredNetworkCell: { alignItems: 'center' },
       noNetworkFeeContainer: { alignSelf: 'center' },
-      networkNameText: { flex: 1, minWidth: 0 },
+      networkNameText: { flexGrow: 0, flexShrink: 1, minWidth: 0 },
     },
   })),
 }));
@@ -678,7 +678,8 @@ describe('NetworkMultiSelectorList', () => {
       );
       expect(nameText.props.numberOfLines).toBe(1);
       expect(StyleSheet.flatten(nameText.props.style)).toMatchObject({
-        flex: 1,
+        flexGrow: 0,
+        flexShrink: 1,
         minWidth: 0,
       });
     });

@@ -1,4 +1,13 @@
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
+
+// ESM-only package. This suite needs the origin constant and Jest does not
+// transform the package.
+jest.mock('@metamask/approval-controller', () => ({
+  ORIGIN_METAMASK: 'metamask',
+}));
 import { merge } from 'lodash';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
@@ -14,9 +23,71 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from './metrics';
 import { TransactionEventHandlerRequest } from '../types';
-import { enabledSmartTransactionsState } from '../data-helpers';
 import { selectIsPna25Acknowledged } from '../../../../../selectors/legalNotices';
 import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  beginUnclaimedPrewarmTransaction,
+  endUnclaimedPrewarmTransaction,
+  isUnclaimedPrewarmTransaction,
+  resetUnclaimedPrewarmTransactionMetricsForTesting,
+  trackStashedPrewarmTransactionAdded,
+} from '../../../../../components/UI/Perps/utils/unclaimedPrewarmTransactionMetrics';
+
+const enabledSmartTransactionsState = {
+  engine: {
+    backgroundState: {
+      SmartTransactionsController: {
+        enabled: true,
+        smartTransactionsState: {
+          liveness: true,
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: 'account1',
+          accounts: {
+            account1: {
+              address: '0x123',
+            },
+          },
+        },
+      },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'infura',
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+      PreferencesController: {
+        smartTransactionsOptInStatus: true,
+      },
+    },
+  },
+  swaps: {
+    featureFlags: {
+      smart_transactions: {
+        mobile_active: true,
+      },
+      smartTransactions: {
+        mobileActive: true,
+      },
+    },
+  },
+  selectedAccount: {
+    address: '0x1234567890123456789012345678901234567890',
+  },
+};
 
 jest.mock('../../../../../util/smart-transactions', () => {
   const actual = jest.requireActual('../../../../../util/smart-transactions');
@@ -121,6 +192,7 @@ describe('Transaction Metric Event Handlers', () => {
   } as unknown as ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>;
 
   beforeEach(() => {
+    resetUnclaimedPrewarmTransactionMetricsForTesting();
     jest.clearAllMocks();
 
     jest
@@ -487,6 +559,74 @@ describe('Transaction Metric Event Handlers', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('unclaimed deposit prewarm', () => {
+    const prewarmTransaction = {
+      id: 'prewarm-tx',
+      chainId: '0x1',
+      type: TransactionType.perpsDepositAndOrder,
+      networkClientId: 'test-network',
+      time: 1234567890,
+      txParams: {},
+    } as unknown as TransactionMeta;
+
+    it('does not track Transaction Added until the prewarm is claimed', async () => {
+      const generation = beginUnclaimedPrewarmTransaction();
+
+      await handleTransactionAddedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockInitMessengerCall).not.toHaveBeenCalled();
+
+      endUnclaimedPrewarmTransaction(generation);
+      await trackStashedPrewarmTransactionAdded('prewarm-tx');
+
+      expect(mockInitMessengerCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.any(Object),
+      );
+    });
+
+    it('does not track Transaction Rejected for an unclaimed prewarm', async () => {
+      beginUnclaimedPrewarmTransaction();
+      await handleTransactionAddedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+      mockInitMessengerCall.mockClear();
+
+      await handleTransactionRejectedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockInitMessengerCall).not.toHaveBeenCalled();
+      expect(isUnclaimedPrewarmTransaction('prewarm-tx')).toBe(false);
+    });
+
+    it('tracks Transaction Rejected after the prewarm was claimed', async () => {
+      const generation = beginUnclaimedPrewarmTransaction();
+      await handleTransactionAddedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+      endUnclaimedPrewarmTransaction(generation);
+      await trackStashedPrewarmTransactionAdded('prewarm-tx');
+      mockInitMessengerCall.mockClear();
+
+      await handleTransactionRejectedEventForMetrics(
+        prewarmTransaction,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockInitMessengerCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.any(Object),
+      );
     });
   });
 });

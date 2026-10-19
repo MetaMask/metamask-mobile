@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 
 interface PriceChartContextType {
   isChartBeingTouched: boolean;
@@ -24,10 +24,15 @@ export const PriceChartProvider = ({ children }: PriceChartProviderProps) => {
   const [isChartBeingTouched, setIsChartBeingTouched] =
     useState<boolean>(false);
 
+  // Keeps the context value identity stable so consumers only re-render when
+  // the touch flag actually flips, not on every provider re-render.
+  const value = useMemo(
+    () => ({ isChartBeingTouched, setIsChartBeingTouched }),
+    [isChartBeingTouched],
+  );
+
   return (
-    <PriceChartContext.Provider
-      value={{ isChartBeingTouched, setIsChartBeingTouched }}
-    >
+    <PriceChartContext.Provider value={value}>
       {children}
     </PriceChartContext.Provider>
   );

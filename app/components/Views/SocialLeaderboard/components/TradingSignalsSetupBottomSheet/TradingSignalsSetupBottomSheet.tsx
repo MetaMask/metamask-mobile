@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
@@ -28,12 +29,12 @@ export interface TradingSignalsSetupParams {
 
 export const createTradingSignalsSetupNavigationDetails =
   createNavigationDetails<TradingSignalsSetupParams>(
-    Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+    Routes.SOCIAL.TRADING_SIGNALS_SETUP,
   );
 
 const TradingSignalsSetupBottomSheet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { onSetupComplete } = useParams<TradingSignalsSetupParams>();
 

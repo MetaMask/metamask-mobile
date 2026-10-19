@@ -9,6 +9,7 @@ jest.mock('../transactions/useTransactionConfirm');
 jest.mock('./useTransactionPayData');
 
 describe('useTransactionPayAutoFiatSubmission', () => {
+  const navigateOnConfirmMock = jest.fn();
   const onConfirmMock = jest.fn().mockResolvedValue(undefined);
   const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
   const useTransactionPayFiatPaymentMock = jest.mocked(
@@ -18,7 +19,10 @@ describe('useTransactionPayAutoFiatSubmission', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     onConfirmMock.mockResolvedValue(undefined);
-    useTransactionConfirmMock.mockReturnValue({ onConfirm: onConfirmMock });
+    useTransactionConfirmMock.mockReturnValue({
+      navigateOnConfirm: navigateOnConfirmMock,
+      onConfirm: onConfirmMock,
+    });
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
   });
 
@@ -125,7 +129,10 @@ describe('useTransactionPayAutoFiatSubmission', () => {
 
     // Simulate a dep change (new onConfirm reference) to re-trigger effect
     const freshOnConfirm = jest.fn().mockResolvedValue(undefined);
-    useTransactionConfirmMock.mockReturnValue({ onConfirm: freshOnConfirm });
+    useTransactionConfirmMock.mockReturnValue({
+      navigateOnConfirm: navigateOnConfirmMock,
+      onConfirm: freshOnConfirm,
+    });
     rerender();
 
     await act(async () => {

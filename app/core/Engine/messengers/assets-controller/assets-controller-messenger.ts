@@ -6,15 +6,16 @@ import {
 } from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import { RootMessenger } from '../../types';
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   // core#9388: RPC balance refresh on account-group switch / tree updates
   'AccountTreeController:selectedAccountGroupChange',
-  // core#9478: use exported :stateChange (not local :stateChanged aliases)
-  'AccountTreeController:stateChange',
+  // core#9892: start asset tracking only after the account tree is fully built
+  'AccountTreeController:initialized',
+  // Stop asset tracking when the account tree is cleared
+  'AccountTreeController:uninitialized',
   // core#9388: RPC balance refresh when enabling custom RPC networks (e.g. DXC)
   // StakedBalanceDataSource also listens to this
   'NetworkEnablementController:stateChange',
@@ -28,16 +29,20 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'NetworkController:networkRemoved',
   // RpcDataSource + StakedBalanceDataSource
   'NetworkController:stateChange',
-  // Snap + WS + tx + preferences
-  'BackendWebSocketService:connectionStateChanged',
+  // Snap + tx + preferences
   'AccountsController:accountBalancesUpdated',
   'PermissionController:stateChange',
   'SnapController:snapInstalled',
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
+  // core#10585: Snap keyring confirmations refresh balances when AccountActivity is down
+  'MultichainTransactionsController:transactionConfirmed',
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
+  'AccountActivityService:statusChanged',
+  // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
+  'RemoteFeatureFlagController:stateChange',
 ] as const;
 
 /**
@@ -62,19 +67,19 @@ export function getAssetsControllerMessenger(
     actions: [
       // Account group + network context for RpcDataSource (core#9388)
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'NetworkEnablementController:getState',
       'NetworkController:getState',
       'NetworkController:getNetworkClientById',
       'AccountsController:getSelectedAccount',
-      'BackendWebSocketService:subscribe',
-      'BackendWebSocketService:getConnectionInfo',
-      'BackendWebSocketService:findSubscriptionsByChannelPrefix',
-      'BackendWebSocketService:addChannelCallback',
-      'BackendWebSocketService:removeChannelCallback',
       'SnapController:handleRequest',
       'SnapController:getRunnableSnaps',
       'PermissionController:getPermissions',
       'PhishingController:bulkScanTokens',
+      'RemoteFeatureFlagController:getState',
+      'AccountTreeController:isInitialized',
+      'ClientController:getState',
+      'KeyringController:isUnlocked',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
@@ -86,7 +91,6 @@ export function getAssetsControllerMessenger(
 type AssetsControllerInitMessengerActions =
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
   | PreferencesControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction
   | AnalyticsControllerActions;
 
 export type AssetsControllerInitMessenger = Messenger<
@@ -117,7 +121,6 @@ export function getAssetsControllerInitMessenger(
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',
-      'RemoteFeatureFlagController:getState',
       'AnalyticsController:trackEvent',
     ],
     events: [],

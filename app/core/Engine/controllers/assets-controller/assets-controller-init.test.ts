@@ -12,12 +12,9 @@ import {
   AssetsControllerMessenger,
 } from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import {
-  ASSETS_UNIFY_STATE_FLAG,
-  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-} from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { store } from '../../../../store';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
+import { createApiPlatformClient } from '@metamask/core-backend';
 
 jest.mock('@metamask/assets-controller');
 jest.mock('@metamask/core-backend', () => ({
@@ -34,13 +31,7 @@ jest.mock('../../../../store', () => ({
 
 const mockRemoteFeatureFlagController = {
   state: {
-    remoteFeatureFlags: {
-      [ASSETS_UNIFY_STATE_FLAG]: {
-        enabled: true,
-        featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
-        minimumVersion: '1.0.0',
-      },
-    },
+    remoteFeatureFlags: {},
   },
 };
 
@@ -51,6 +42,7 @@ interface RemoteFeatureFlagState {
       enabled: boolean;
       featureVersion: string | null;
       minimumVersion: string | null;
+      tracesEnabled?: boolean;
     }
   >;
 }
@@ -138,6 +130,46 @@ function getInitRequestMock(overrides?: {
     >
   >;
 }
+
+describe('API platform client bearer token retrieval', () => {
+  // Placed before the `assetsControllerInit` suite so the module-level
+  // `apiClient` singleton is created with this block's init messenger, which
+  // resolves a known bearer token via its registered action handler.
+  const BEARER_TOKEN = 'mock-bearer-token';
+  const ORIGINAL_DISABLE_AUTH = process.env.MM_BACKEND_DISABLE_AUTH;
+
+  let getBearerToken: () => Promise<string | undefined>;
+
+  beforeAll(() => {
+    assetsControllerInit(getInitRequestMock());
+    getBearerToken = jest.mocked(createApiPlatformClient).mock.calls[0][0]
+      .getBearerToken as () => Promise<string | undefined>;
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_DISABLE_AUTH === undefined) {
+      delete process.env.MM_BACKEND_DISABLE_AUTH;
+    } else {
+      process.env.MM_BACKEND_DISABLE_AUTH = ORIGINAL_DISABLE_AUTH;
+    }
+  });
+
+  describe('when backend auth is enabled', () => {
+    it('returns the AuthenticationController bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'false';
+
+      await expect(getBearerToken()).resolves.toBe(BEARER_TOKEN);
+    });
+  });
+
+  describe('when backend auth is disabled', () => {
+    it('omits the bearer token', async () => {
+      process.env.MM_BACKEND_DISABLE_AUTH = 'true';
+
+      await expect(getBearerToken()).resolves.toBeUndefined();
+    });
+  });
+});
 
 describe('assetsControllerInit', () => {
   beforeEach(() => {
@@ -232,62 +264,7 @@ describe('assetsControllerInit', () => {
   });
 
   describe('isEnabled callback', () => {
-    it('returns true when feature flag is enabled with correct version', () => {
-      const requestMock = getInitRequestMock();
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(true);
-    });
-
-    it('returns false when feature flag is disabled', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagState: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: false,
-              featureVersion: null,
-              minimumVersion: null,
-            },
-          },
-        },
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
-    });
-
-    it('returns true when feature version does not match while hardcoded on for development', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagState: {
-          remoteFeatureFlags: {
-            [ASSETS_UNIFY_STATE_FLAG]: {
-              enabled: true,
-              featureVersion: '99',
-              minimumVersion: '1.0.0',
-            },
-          },
-        },
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
-    });
-
-    it('returns false when the keyring is locked, regardless of feature flag', () => {
+    it('returns false when the keyring is locked', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
         onboarding: { completedOnboarding: false },
@@ -308,7 +285,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns true when keyring is unlocked and feature flag is enabled', () => {
+    it('returns true when the keyring is unlocked', () => {
       jest.mocked(store.getState).mockReturnValue({
         settings: { basicFunctionalityEnabled: true },
         onboarding: { completedOnboarding: false },
@@ -327,34 +304,6 @@ describe('assetsControllerInit', () => {
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
       expect(isEnabled()).toBe(true);
-    });
-
-    it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagGetStateThrows: true,
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
-    });
-
-    it('returns true when feature flag is undefined while hardcoded on for development', () => {
-      const requestMock = getInitRequestMock({
-        remoteFeatureFlagState: { remoteFeatureFlags: {} },
-      });
-
-      assetsControllerInit(requestMock);
-
-      const controllerMock = jest.mocked(AssetsController);
-      const constructorCall = controllerMock.mock.calls[0][0];
-      const isEnabled = constructorCall.isEnabled as () => boolean;
-
-      expect(isEnabled()).toBe(false);
     });
   });
 
@@ -545,6 +494,16 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isBasicFunctionality).toBeDefined();
       expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('trace callback', () => {
+    it('does not pass a trace callback (tracing is disabled)', () => {
+      assetsControllerInit(getInitRequestMock());
+
+      const constructorCall = jest.mocked(AssetsController).mock.calls[0][0];
+
+      expect(constructorCall.trace).toBeUndefined();
     });
   });
 });

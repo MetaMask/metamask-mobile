@@ -21,6 +21,17 @@ jest.mock('../../api', () => ({
     mockUseSubmitPriceAlert(editingAlert),
 }));
 
+const mockPerpSubmit = jest.fn();
+const mockUseSubmitPerpAlert = jest.fn((_editingAlert?: unknown) => ({
+  submit: mockPerpSubmit,
+  isSubmitting: false,
+}));
+
+jest.mock('../../perpApi', () => ({
+  useSubmitPerpAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPerpAlert(editingAlert),
+}));
+
 const baseProps: React.ComponentProps<typeof AbsolutePriceAlertForm> = {
   assetId: 'eip155:1/slip44:60',
   displayTicker: 'ETH',
@@ -59,7 +70,14 @@ const renderForm = (
   overrides: Partial<React.ComponentProps<typeof AbsolutePriceAlertForm>> = {},
 ) => render(<AbsolutePriceAlertForm {...baseProps} {...overrides} />);
 
+const clearKeypad = (getByTestId: ReturnType<typeof render>['getByTestId']) => {
+  for (let i = 0; i < 10; i++) {
+    fireEvent.press(getByTestId('keypad-delete-button'));
+  }
+};
+
 const enter1500 = (getByTestId: ReturnType<typeof render>['getByTestId']) => {
+  clearKeypad(getByTestId);
   fireEvent.press(getByTestId('keypad-key-1'));
   fireEvent.press(getByTestId('keypad-key-5'));
   fireEvent.press(getByTestId('keypad-key-0'));
@@ -98,7 +116,7 @@ describe('AbsolutePriceAlertForm', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders percentage pickers and a disabled Set button before input', () => {
+  it('renders percentage pickers and an enabled Set button with pre-filled current price', () => {
     const screen = renderForm();
 
     expect(
@@ -108,7 +126,7 @@ describe('AbsolutePriceAlertForm', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-    ).toBeDisabled();
+    ).not.toBeDisabled();
   });
 
   it('keeps percentage pickers visible and enables saving after digit input', () => {
@@ -124,22 +142,6 @@ describe('AbsolutePriceAlertForm', () => {
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).not.toBeDisabled();
-  });
-
-  it('keeps saving disabled for zero-valued decimal input', () => {
-    const screen = renderForm();
-
-    fireEvent.press(screen.getByTestId('keypad-key-dot'));
-
-    expect(screen.getByText('$0.')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(
-        `${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-    ).toBeDisabled();
   });
 
   it('enables saving after a quick-percentage selection', () => {
@@ -168,9 +170,27 @@ describe('AbsolutePriceAlertForm', () => {
     expect(screen.getByText('$1322.18')).toBeOnTheScreen();
   });
 
-  it('displays raw digits without forced decimals while typing', () => {
+  it('displays pre-filled current price with $ prefix', () => {
     const screen = renderForm();
 
+    expect(screen.getByText('$1201.98')).toBeOnTheScreen();
+  });
+
+  it('shows only the $ sign with no digits after fully clearing the input', () => {
+    const screen = renderForm();
+
+    clearKeypad(screen.getByTestId);
+
+    expect(screen.getByText('$')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('displays raw digits without forced decimals after clearing and typing', () => {
+    const screen = renderForm();
+
+    clearKeypad(screen.getByTestId);
     fireEvent.press(screen.getByTestId('keypad-key-1'));
 
     expect(screen.getByText('$1')).toBeOnTheScreen();
@@ -202,6 +222,7 @@ describe('AbsolutePriceAlertForm', () => {
   it('displays negative percentage and below wording for a lower target', () => {
     const screen = renderForm();
 
+    clearKeypad(screen.getByTestId);
     fireEvent.press(screen.getByTestId('keypad-key-1'));
     fireEvent.press(screen.getByTestId('keypad-key-0'));
     fireEvent.press(screen.getByTestId('keypad-key-0'));
@@ -320,6 +341,7 @@ describe('AbsolutePriceAlertForm', () => {
         existingAbsoluteAlerts: [absoluteAlertAt(1500)],
       });
 
+      clearKeypad(screen.getByTestId);
       fireEvent.press(screen.getByTestId('keypad-key-2'));
       fireEvent.press(screen.getByTestId('keypad-key-0'));
       fireEvent.press(screen.getByTestId('keypad-key-0'));
@@ -392,6 +414,7 @@ describe('AbsolutePriceAlertForm', () => {
         currentPrice: 0.00001234,
       });
 
+      clearKeypad(screen.getByTestId);
       for (const key of [
         '0',
         'dot',
@@ -420,6 +443,7 @@ describe('AbsolutePriceAlertForm', () => {
         displayTicker: 'SHIB',
         currentPrice: 0.0000000001,
       });
+      clearKeypad(screen.getByTestId);
       fireEvent.press(screen.getByTestId('keypad-key-dot'));
       for (let index = 0; index < 15; index++) {
         fireEvent.press(screen.getByTestId('keypad-key-1'));
@@ -591,6 +615,7 @@ describe('AbsolutePriceAlertForm', () => {
         'valueChange',
         false,
       );
+      clearKeypad(screen.getByTestId);
       fireEvent.press(screen.getByTestId('keypad-key-2'));
 
       await act(async () => {
@@ -637,5 +662,30 @@ describe('AbsolutePriceAlertForm', () => {
         }),
       );
     });
+  });
+
+  it('pre-fills BTC with integer keypad precision when szDecimals is 5', () => {
+    const screen = renderForm({
+      currentPrice: 83714,
+      szDecimals: 5,
+      displayTicker: 'BTC',
+      marketId: 'btc-hyperliquid-mainnet',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$83,714');
+  });
+
+  it('allows 6 keypad decimal places when szDecimals is 0', () => {
+    const screen = renderForm({
+      currentPrice: 0.008764,
+      szDecimals: 0,
+      displayTicker: 'kPEPE',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$0.008764');
   });
 });

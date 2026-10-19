@@ -44,6 +44,10 @@ jest.mock('./deepLinkAnalytics', () => {
 });
 
 describe('deepLinkAnalytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('determineAppInstallationStatus', () => {
     it('detects deferred deep link when user installs app via Branch link', () => {
       const params = {
@@ -493,6 +497,16 @@ describe('deepLinkAnalytics', () => {
       const result = mapSupportedActionToRoute(ACTIONS.MONEY);
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
+
+    it('maps PRIVACY action to PRIVACY route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.PRIVACY);
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
+
+    it('maps NOTIFICATIONS_SETTINGS action to NOTIFICATIONS_SETTINGS route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.NOTIFICATIONS_SETTINGS);
+      expect(result).toBe(DeepLinkRoute.NOTIFICATIONS_SETTINGS);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -590,6 +604,20 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.MONEY);
     });
 
+    it('extract privacy route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/privacy?setting=metametrics',
+      );
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
+
+    it('extract notifications-settings route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/notifications-settings?section=price-alerts',
+      );
+      expect(result).toBe(DeepLinkRoute.NOTIFICATIONS_SETTINGS);
+    });
+
     it('return INVALID for unknown routes', () => {
       const result = extractRouteFromUrl(
         'https://link.metamask.io/unknown-route',
@@ -666,6 +694,24 @@ describe('deepLinkAnalytics', () => {
         amount: '100',
         slippage: '0.5',
       });
+    });
+
+    it('includes referral code for rewards route', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/rewards?referral=ABC123',
+        route: DeepLinkRoute.REWARDS,
+        urlParams: { referral: 'ABC123' },
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const result = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(result.properties.referral).toBe('ABC123');
+      expect(result.sensitiveProperties).toEqual({});
     });
 
     it('creates event for invalid route with target URL', async () => {

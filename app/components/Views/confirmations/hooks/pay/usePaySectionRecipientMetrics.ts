@@ -1,9 +1,9 @@
-import { TransactionType } from '@metamask/transaction-controller';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
+  TransactionType,
   hasTransactionType,
-  isTransactionPayWithdraw,
-} from '../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { PayWithSectionId } from '../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useSectionTracking } from './useSectionTracking';
 

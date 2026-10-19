@@ -39,6 +39,10 @@ export const selectIsMetaMaskPushNotificationsEnabled = createSelector(
   (state: NotificationServicesPushControllerState) =>
     Boolean(state.isPushEnabled),
 );
+export const selectMetaMaskPushNotificationToken = createSelector(
+  selectNotificationServicesPushControllerState,
+  (state: NotificationServicesPushControllerState) => state.fcmToken,
+);
 export const selectIsMetaMaskPushNotificationsLoading = createSelector(
   selectNotificationServicesPushControllerState,
   (state: NotificationServicesPushControllerState) => state.isUpdatingFCMToken,

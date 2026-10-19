@@ -6,6 +6,7 @@ import {
   getActiveRouteNameFromNavigationState,
   exitRewardsFlow,
   navigateToRewardsRoute,
+  getBetaSupportUrl,
 } from './utils';
 import Routes from '../../../constants/navigation/Routes';
 import { parseCaipChainId, toCaipAccountId } from '@metamask/utils';
@@ -302,11 +303,21 @@ describe('Rewards Utils', () => {
     });
   });
 
+  describe('getBetaSupportUrl', () => {
+    it('returns a string', () => {
+      // The `///: ONLY_INCLUDE_IF(beta)` fence is stripped by Metro at build
+      // time only, so under Jest this always resolves to the beta URL; the
+      // empty-string (non-beta) branch is exercised via call-site mocking in
+      // the components that consume this helper.
+      expect(typeof getBetaSupportUrl()).toBe('string');
+    });
+  });
+
   describe('SOLANA_SIGNUP_NOT_SUPPORTED constant', () => {
     it('exports the correct message for Solana signup not supported', () => {
       // Arrange & Act & Assert
       expect(SOLANA_SIGNUP_NOT_SUPPORTED).toBe(
-        'Signing in to Rewards with Solana accounts is not supported yet. Please use an Ethereum account instead.',
+        'Signing in to Rewards with Solana accounts is not supported yet. Use an Ethereum account instead.',
       );
     });
   });
@@ -321,7 +332,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message for string error', () => {
@@ -332,7 +343,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message for number error', () => {
@@ -343,7 +354,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message for boolean error', () => {
@@ -354,7 +365,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
     });
 
@@ -367,7 +378,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message when both data.message and message are undefined', () => {
@@ -378,7 +389,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
 
       it('returns default error message when data.message is empty string', () => {
@@ -389,7 +400,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe('Something went wrong. Please try again shortly.');
+        expect(result).toBe('Something went wrong. Try again shortly.');
       });
     });
 
@@ -405,7 +416,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'This account is already registered with another Rewards profile. Please switch account to continue.',
+          'This account is already registered with another Rewards profile. Switch account to continue.',
         );
       });
 
@@ -418,7 +429,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'This account is already registered with another Rewards profile. Please switch account to continue.',
+          'This account is already registered with another Rewards profile. Switch account to continue.',
         );
       });
     });
@@ -485,7 +496,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'Service is not available at the moment. Please try again shortly.',
+          'Service is not available at the moment. Try again shortly.',
         );
       });
 
@@ -498,7 +509,7 @@ describe('Rewards Utils', () => {
 
         // Assert
         expect(result).toBe(
-          'Service is not available at the moment. Please try again shortly.',
+          'Service is not available at the moment. Try again shortly.',
         );
       });
     });
@@ -512,9 +523,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe(
-          'Invalid referral code. Please check and try again.',
-        );
+        expect(result).toBe('Invalid referral code. Check and try again.');
       });
 
       it('returns invalid referral code message case-insensitively', () => {
@@ -525,9 +534,7 @@ describe('Rewards Utils', () => {
         const result = handleRewardsErrorMessage(error);
 
         // Assert
-        expect(result).toBe(
-          'Invalid referral code. Please check and try again.',
-        );
+        expect(result).toBe('Invalid referral code. Check and try again.');
       });
 
       it('returns already referred message for "Already referred by another user"', () => {

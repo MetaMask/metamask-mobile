@@ -209,7 +209,7 @@ describe('NftOptions', () => {
       'mainnet-client',
     );
     expect(Alert.alert).toHaveBeenCalledWith(
-      'Collectible removed!',
+      'Collectible removed',
       expect.any(String),
     );
   });

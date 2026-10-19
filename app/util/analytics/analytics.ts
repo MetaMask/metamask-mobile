@@ -16,7 +16,10 @@ import Logger from '../Logger';
 import {
   enrichWithABTests,
   getRemoteFeatureFlagsFromState,
+  getFeatureFlagThresholdGroupsFromState,
 } from './enrichWithABTests';
+import { enrichWithPerpsMode } from './enrichWithPerpsMode';
+import { enrichWithNavigationAttribution } from './navigationAnalyticsAttribution';
 
 /**
  * Analytics helper interface
@@ -27,6 +30,10 @@ export interface AnalyticsHelper {
   identify: (traits?: AnalyticsUserTraits) => void;
   optIn: () => Promise<void>;
   optOut: () => Promise<void>;
+  optInToMarketing: () => Promise<void>;
+  optOutOfMarketing: () => Promise<void>;
+  resetMarketingConsentDecision: () => Promise<void>;
+  setDataCollectionForMarketing: (enabled: boolean) => Promise<void>;
   getAnalyticsId: () => Promise<string>;
   isEnabled: () => boolean;
   isOptedIn: () => Promise<boolean>;
@@ -54,15 +61,23 @@ const queueManager = createAnalyticsQueueManager({
  * @param event - AnalyticsTrackingEvent to track
  */
 const trackEvent = (event: AnalyticsTrackingEvent): void => {
-  let enrichedEvent: AnalyticsTrackingEvent;
+  let enrichedEvent = event;
 
   try {
+    enrichedEvent = enrichWithNavigationAttribution(enrichWithPerpsMode(event));
+  } catch {
+    // Best-effort shared enrichment — never block event emission.
+  }
+
+  try {
+    const state = store.getState();
     enrichedEvent = enrichWithABTests(
-      event,
-      getRemoteFeatureFlagsFromState(store.getState()),
+      enrichedEvent,
+      getRemoteFeatureFlagsFromState(state),
+      getFeatureFlagThresholdGroupsFromState(state),
     );
   } catch {
-    enrichedEvent = event;
+    // Best-effort A/B enrichment — retain successful shared enrichment.
   }
 
   queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
@@ -124,6 +139,42 @@ const optOut = async (): Promise<void> => {
     Logger.log('Analytics: Unhandled error in optOut', error);
   }
 };
+
+const queueMarketingConsent = async (
+  action:
+    | 'optInToMarketing'
+    | 'optOutOfMarketing'
+    | 'resetMarketingConsentDecision',
+): Promise<void> => {
+  await queueManager.queueOperation(action);
+  // Match product opt-in: yield so controller state is visible to the next read.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+};
+
+/**
+ * Queue the marketing opt-in controller action and yield once so the next read sees the updated consent.
+ */
+const optInToMarketing = (): Promise<void> =>
+  queueMarketingConsent('optInToMarketing');
+
+/**
+ * Queue the marketing opt-out controller action and yield once so the next read sees the updated consent.
+ */
+const optOutOfMarketing = (): Promise<void> =>
+  queueMarketingConsent('optOutOfMarketing');
+
+/**
+ * Queue the marketing-consent reset controller action and yield once so the next read sees the updated consent.
+ */
+const resetMarketingConsentDecision = (): Promise<void> =>
+  queueMarketingConsent('resetMarketingConsentDecision');
+
+/**
+ * Map the Redux marketing preference onto the controller's independent consent.
+ * True records an opt-in. False records an opt-out. Both mark the decision made.
+ */
+const setDataCollectionForMarketing = (enabled: boolean): Promise<void> =>
+  enabled ? optInToMarketing() : optOutOfMarketing();
 
 /**
  * Get the analytics ID
@@ -191,6 +242,10 @@ export const analytics: AnalyticsHelper = {
   identify,
   optIn,
   optOut,
+  optInToMarketing,
+  optOutOfMarketing,
+  resetMarketingConsentDecision,
+  setDataCollectionForMarketing,
   getAnalyticsId,
   isEnabled,
   isOptedIn,

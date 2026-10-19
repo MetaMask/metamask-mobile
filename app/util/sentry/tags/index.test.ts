@@ -171,20 +171,64 @@ describe('Tags Utils', () => {
     });
 
     it('includes token count', () => {
+      const tokenAccountId = 'sentry-token-account';
+      const tokenAccount = {
+        id: tokenAccountId,
+        address: '0x1234567890123456789012345678901234567890',
+        type: 'eip155:eoa' as const,
+        metadata: {
+          name: 'Sentry Account',
+          keyring: { type: 'HD Key Tree' },
+        },
+      };
+      const erc20Tokens = {
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001': {
+          type: 'erc20' as const,
+          symbol: 'A',
+          name: 'A',
+          decimals: 18,
+        },
+        'eip155:1/erc20:0x0000000000000000000000000000000000000002': {
+          type: 'erc20' as const,
+          symbol: 'B',
+          name: 'B',
+          decimals: 18,
+        },
+        'eip155:1/erc20:0x0000000000000000000000000000000000000003': {
+          type: 'erc20' as const,
+          symbol: 'C',
+          name: 'C',
+          decimals: 18,
+        },
+        'eip155:2/erc20:0x0000000000000000000000000000000000000004': {
+          type: 'erc20' as const,
+          symbol: 'D',
+          name: 'D',
+          decimals: 18,
+        },
+      };
+
       const state = {
         ...initialRootState,
         engine: {
           backgroundState: {
             ...backgroundState,
-            TokensController: {
-              allTokens: {
-                '0x1': {
-                  '0x1234': [{}, {}],
-                  '0x4321': [{}],
-                },
-                '0x2': {
-                  '0x5678': [{}],
-                },
+            AccountsController: {
+              internalAccounts: {
+                accounts: { [tokenAccountId]: tokenAccount },
+                selectedAccount: tokenAccountId,
+              },
+            },
+            AssetsController: {
+              ...backgroundState.AssetsController,
+              assetsInfo: erc20Tokens,
+              assetsBalance: {
+                [tokenAccountId]: Object.fromEntries(
+                  Object.keys(erc20Tokens).map((assetId) => [
+                    assetId,
+                    { amount: '1' },
+                  ]),
+                ),
               },
             },
           },
@@ -272,11 +316,41 @@ describe('Tags Utils', () => {
               get accounts() {
                 throw new Error('Test error');
               },
+              internalAccounts: {
+                accounts: {
+                  'working-account': {
+                    id: 'working-account',
+                    address: '0x1234567890123456789012345678901234567890',
+                    type: 'eip155:eoa' as const,
+                    metadata: {
+                      name: 'Working Account',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                },
+                selectedAccount: 'working-account',
+              },
             },
-            TokensController: {
-              allTokens: {
-                '0x1': {
-                  '0x1234': [{}, {}],
+            KeyringController: {
+              get keyrings() {
+                throw new Error('Test error');
+              },
+            },
+            AssetsController: {
+              ...backgroundState.AssetsController,
+              assetsInfo: {
+                'eip155:1/erc20:0x0000000000000000000000000000000000000001': {
+                  type: 'erc20' as const,
+                  symbol: 'A',
+                  name: 'A',
+                  decimals: 18,
+                },
+              },
+              assetsBalance: {
+                'working-account': {
+                  'eip155:1/erc20:0x0000000000000000000000000000000000000001': {
+                    amount: '1',
+                  },
                 },
               },
             },

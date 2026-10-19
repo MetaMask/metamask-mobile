@@ -49,18 +49,18 @@ describe('PerpsProviderSelectorBadge', () => {
 
     const { getByText } = render(<PerpsProviderSelectorBadge testID="badge" />);
 
-    expect(getByText('HyperLiquid')).toBeTruthy();
+    expect(getByText('HyperLiquid')).toBeOnTheScreen();
   });
 
-  it('shows MYX when activeProvider is myx', () => {
+  it('shows Lighter when activeProvider is lighter', () => {
     mockUsePerpsProvider.mockReturnValue({
-      activeProvider: 'myx',
+      activeProvider: 'lighter',
       isMultiProviderEnabled: true,
     });
 
     const { getByText } = render(<PerpsProviderSelectorBadge testID="badge" />);
 
-    expect(getByText('MYX')).toBeTruthy();
+    expect(getByText('Lighter')).toBeOnTheScreen();
   });
 
   it('shows All Providers when activeProvider is aggregated', () => {
@@ -93,7 +93,7 @@ describe('PerpsProviderSelectorBadge', () => {
 
   it('has correct accessibility attributes', () => {
     mockUsePerpsProvider.mockReturnValue({
-      activeProvider: 'myx',
+      activeProvider: 'lighter',
       isMultiProviderEnabled: true,
     });
 
@@ -103,7 +103,7 @@ describe('PerpsProviderSelectorBadge', () => {
 
     const badge = getByTestId('badge');
     expect(badge.props.accessibilityRole).toBe('button');
-    expect(badge.props.accessibilityLabel).toContain('MYX');
+    expect(badge.props.accessibilityLabel).toContain('Lighter');
     expect(badge.props.accessibilityLabel).toContain('Mainnet');
   });
 

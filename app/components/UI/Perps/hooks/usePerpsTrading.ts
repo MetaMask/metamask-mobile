@@ -1,6 +1,14 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { getSelectedEvmAccountFromMessenger } from '@metamask/perps-controller/utils/accountUtils';
 import Engine from '../../../../core/Engine';
+import {
+  beginPerpsUiSubmission,
+  settlePerpsUiSubmission,
+  beginPerpsUiCancellation,
+  settlePerpsUiCancellation,
+  type PerpsUiScope,
+} from '../utils/perpsUiObservations';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
@@ -8,6 +16,7 @@ import {
   type CancelOrderParams,
   type CancelOrderResult,
   type ClosePositionParams,
+  type EditOrderParams,
   type FeeCalculationParams,
   type FeeCalculationResult,
   type FlipPositionParams,
@@ -27,6 +36,8 @@ import {
   type OrderParams,
   type OrderResult,
   type Position,
+  type PositionModifyPreviewParams,
+  type PositionModifyPreviewResult,
   type SubscribeOrderFillsParams,
   type SubscribePricesParams,
   type SubscribePositionsParams,
@@ -41,6 +52,7 @@ import {
   endPerpsCufTrace,
   endPerpsCufRequestAfter,
   watchPerpsCufOrderAbsent,
+  watchPerpsCufOrderPriceUpdated,
   acceptPerpsCufRequest,
 } from '../utils/perpsCufTrace';
 import {
@@ -59,6 +71,31 @@ import {
  */
 export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
 
+type MobileCancelOrderParams = CancelOrderParams & {
+  skipCufConfirmationTrace?: boolean;
+};
+
+/** Read public issuing identity synchronously inside the diagnostic capture guard. */
+function getIssuingPerpsUiScope(
+  controller: typeof Engine.context.PerpsController,
+  params: Pick<CancelOrderParams, 'symbol' | 'providerId'>,
+): PerpsUiScope {
+  return {
+    account:
+      getSelectedEvmAccountFromMessenger(
+        Engine.controllerMessenger,
+      )?.address.toLowerCase() ?? null,
+    provider: params.providerId ?? controller.state?.activeProvider ?? null,
+    network:
+      controller.state?.isTestnet === undefined
+        ? null
+        : controller.state.isTestnet
+          ? 'testnet'
+          : 'mainnet',
+    market: params.symbol,
+  };
+}
+
 /**
  * Hook for trading operations
  * Provides methods for placing, canceling, and closing trading positions
@@ -70,14 +107,51 @@ export function usePerpsTrading() {
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.placeOrder(params);
+      const requestId = __DEV__
+        ? beginPerpsUiSubmission(
+            () => getIssuingPerpsUiScope(controller, params),
+            params,
+          )
+        : undefined;
+      try {
+        const result = await controller.placeOrder(params);
+        settlePerpsUiSubmission(requestId, result);
+        return result;
+      } catch (error) {
+        settlePerpsUiSubmission(requestId);
+        throw error;
+      }
     },
     [],
   );
 
   const cancelOrder = useCallback(
-    async (params: CancelOrderParams): Promise<CancelOrderResult> => {
+    async ({
+      skipCufConfirmationTrace,
+      ...params
+    }: MobileCancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
+      const requestId = __DEV__
+        ? beginPerpsUiCancellation(
+            () => getIssuingPerpsUiScope(controller, params),
+            params,
+          )
+        : undefined;
+      const dispatch = async (): Promise<CancelOrderResult> => {
+        let result: CancelOrderResult;
+        try {
+          result = await controller.cancelOrder(params);
+        } catch (error) {
+          settlePerpsUiCancellation(requestId);
+          throw error;
+        }
+        // Diagnostic sanitization is nonthrowing and cannot change this outcome.
+        settlePerpsUiCancellation(requestId, result);
+        return result;
+      };
+      if (skipCufConfirmationTrace) {
+        return dispatch();
+      }
       // Confirmation CUF: every cancel UI path funnels through here; the span
       // ends when the stream no longer lists the order.
       const cancelCufOpId = startPerpsCufTrace({
@@ -91,7 +165,7 @@ export function usePerpsTrading() {
         PERPS_CUF_STREAM_TIMEOUT_MS,
       );
       try {
-        const result = await controller.cancelOrder(params);
+        const result = await dispatch();
         controllerSettled = true;
         if (!result?.success) {
           endPerpsCufTrace({
@@ -112,6 +186,73 @@ export function usePerpsTrading() {
       } catch (error) {
         endPerpsCufTrace({
           id: cancelCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const editOrder = useCallback(
+    async (
+      params: EditOrderParams & {
+        /**
+         * When true (default if `newOrder.price` is set), arm an
+         * ORDER_PRICE_UPDATED stream watcher. Pass false for size-only edits
+         * that still send an unchanged limit price to the venue.
+         */
+        watchPriceUpdate?: boolean;
+      },
+    ): Promise<OrderResult> => {
+      const { watchPriceUpdate, ...controllerParams } = params;
+      const controller = Engine.context.PerpsController;
+      const editCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsEditOrder,
+      });
+      const expectedPrice = controllerParams.newOrder.price;
+      const shouldWatchPriceUpdate = watchPriceUpdate ?? Boolean(expectedPrice);
+      if (expectedPrice && shouldWatchPriceUpdate) {
+        watchPerpsCufOrderPriceUpdated(
+          editCufOpId,
+          String(controllerParams.orderId),
+          expectedPrice,
+        );
+      }
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        editCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+      try {
+        const result = await controller.editOrder(controllerParams);
+        controllerSettled = true;
+        if (!result?.success) {
+          endPerpsCufTrace({
+            id: editCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+        } else if (expectedPrice && shouldWatchPriceUpdate) {
+          acceptPerpsCufRequest(editCufOpId);
+        } else {
+          endPerpsCufTrace({
+            id: editCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: true,
+            },
+          });
+        }
+        return result;
+      } catch (error) {
+        endPerpsCufTrace({
+          id: editCufOpId,
           data: {
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
@@ -224,6 +365,16 @@ export function usePerpsTrading() {
     [],
   );
 
+  const previewPositionModify = useCallback(
+    async (
+      params: PositionModifyPreviewParams,
+    ): Promise<PositionModifyPreviewResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.previewPositionModify(params);
+    },
+    [],
+  );
+
   const calculateMaintenanceMargin = useCallback(
     async (params: MaintenanceMarginParams): Promise<number> => {
       const controller = Engine.context.PerpsController;
@@ -326,6 +477,7 @@ export function usePerpsTrading() {
   return {
     placeOrder,
     cancelOrder,
+    editOrder,
     closePosition,
     getMarkets,
     getPositions,
@@ -338,6 +490,7 @@ export function usePerpsTrading() {
     clearDepositResult,
     withdraw,
     calculateLiquidationPrice,
+    previewPositionModify,
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,

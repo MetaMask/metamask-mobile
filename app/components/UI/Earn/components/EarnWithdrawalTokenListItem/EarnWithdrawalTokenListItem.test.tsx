@@ -4,10 +4,10 @@ import EarnWithdrawalTokenListItem from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getMockUseEarnTokens } from '../../__mocks__/earnMockData';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
+import { formatEarnRatePercentage } from '../../utils';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -15,14 +15,10 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('EarnWithdrawalTokenListItem', () => {
-  const mockNetworkName = 'Ethereum Mainnet';
   const mockOnPress = jest.fn();
 
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectNetworkName) return mockNetworkName;
-      return undefined;
-    });
+    (useSelector as jest.Mock).mockImplementation(() => undefined);
     jest.clearAllMocks();
   });
 
@@ -83,9 +79,9 @@ describe('EarnWithdrawalTokenListItem', () => {
     expect(getByText(mockToken.name)).toBeDefined();
     expect(
       getByText(
-        `${strings('earn.earning')} ${parseFloat(
-          mockToken.experience?.apr,
-        ).toFixed(1)}%`,
+        `${strings('earn.earning')} ${formatEarnRatePercentage(
+          mockToken.experience?.apr ?? '0',
+        )}%`,
       ),
     ).toBeDefined();
     expect(getByText(mockToken.balanceFormatted)).toBeDefined();
@@ -146,9 +142,9 @@ describe('EarnWithdrawalTokenListItem', () => {
     expect(getByText(mockToken.name)).toBeDefined();
     expect(
       getByText(
-        `${strings('earn.earning')} ${parseFloat(
-          mockToken.experience?.apr,
-        ).toFixed(1)}%`,
+        `${strings('earn.earning')} ${formatEarnRatePercentage(
+          mockToken.experience?.apr ?? '0',
+        )}%`,
       ),
     ).toBeDefined();
     expect(getByText(mockToken.balanceFormatted)).toBeDefined();
@@ -226,7 +222,7 @@ describe('EarnWithdrawalTokenListItem', () => {
       />,
     );
 
-    expect(getByText(`${strings('earn.earning')} 0.0%`)).toBeDefined();
+    expect(getByText(`${strings('earn.earning')} 0%`)).toBeDefined();
   });
 
   it('does not render when earnToken is null', () => {

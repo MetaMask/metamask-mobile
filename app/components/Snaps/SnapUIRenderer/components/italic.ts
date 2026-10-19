@@ -1,9 +1,9 @@
 import { ItalicElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
+import { TextVariant } from '@metamask/design-system-react-native';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 
 export const italic: UIComponentFactory<ItalicElement> = ({
   element: e,
@@ -15,7 +15,7 @@ export const italic: UIComponentFactory<ItalicElement> = ({
     params,
   ),
   props: {
-    variant: TextVariant.BodyMD,
+    variant: TextVariant.BodyMd,
     color: params.textColor,
     numberOfLines: 0,
     flexWrap: 'wrap',

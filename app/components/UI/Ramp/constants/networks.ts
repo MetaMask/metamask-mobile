@@ -29,6 +29,10 @@ export const ARC_MAINNET: DepositNetwork = {
   chainId: 'eip155:5042',
   name: 'Arc',
 };
+export const STELLAR_MAINNET: DepositNetwork = {
+  chainId: 'stellar:pubnet',
+  name: 'Stellar',
+};
 
 export const DEPOSIT_NETWORKS_BY_CHAIN_ID: Record<CaipChainId, DepositNetwork> =
   {
@@ -38,4 +42,5 @@ export const DEPOSIT_NETWORKS_BY_CHAIN_ID: Record<CaipChainId, DepositNetwork> =
     [SOLANA_MAINNET.chainId]: SOLANA_MAINNET,
     [BSC_MAINNET.chainId]: BSC_MAINNET,
     [ARC_MAINNET.chainId]: ARC_MAINNET,
+    [STELLAR_MAINNET.chainId]: STELLAR_MAINNET,
   };

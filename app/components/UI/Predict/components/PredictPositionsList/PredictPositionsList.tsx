@@ -12,6 +12,7 @@ import { PredictPositionsListSelectorsIDs } from '../../Predict.testIds';
 import { PredictPositionStatus, type PredictPosition } from '../../types';
 import PredictPositionItem from '../PredictPosition/PredictPosition';
 import PredictPositionsEmpty from '../PredictPositionsEmpty';
+import PredictOffline from '../PredictOffline';
 
 const SKELETON_ROW_COUNT = 3;
 
@@ -72,6 +73,10 @@ const PredictPositionsList = ({
 
   if (portfolio.isOpenPositionsLoading && !hasPositions) {
     return <PredictPositionsListSkeleton />;
+  }
+
+  if (portfolio.openPositionsError && !hasPositions) {
+    return <PredictOffline onRetry={portfolio.refetch} />;
   }
 
   if (!hasPositions) {

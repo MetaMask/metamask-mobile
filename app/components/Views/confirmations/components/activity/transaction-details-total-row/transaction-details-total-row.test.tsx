@@ -1,5 +1,7 @@
 import React from 'react';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
   TransactionMeta,
@@ -7,6 +9,7 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionDetailsTotalRow } from './transaction-details-total-row';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
+import { RootState } from '../../../../../../reducers';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/useTokenAmount');
@@ -14,12 +17,16 @@ jest.mock('../../../hooks/useTokenAmount');
 const PAY_TOTAL = '123.45';
 const TOKEN_TOTAL = '234.56';
 
-const MOCK_STATE = {
+const MOCK_STATE: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
-      CurrencyRateController: {
-        currentCurrency: 'usd',
-        currencyRates: {},
+      AssetsController: {
+        assetsInfo: {},
+        assetsBalance: {},
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
       },
     },
   },

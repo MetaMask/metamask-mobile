@@ -7,6 +7,9 @@ import {
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
@@ -20,22 +23,28 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
+  const isCardholder = useSelector(selectIsCardholder);
+  const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
+  const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
-  // Safety net: if the controller hasn't started a fetch yet (e.g. deep link
-  // before KeyringController:unlock fires), kick one off on mount.
-  // The controller deduplicates concurrent calls so this is safe to call
-  // even when a fetch is already in-flight.
+  // Money Home mounts this for every visitor, but a user with no card has
+  // nothing to fetch — `MoneyMetaMaskCard` only reads it in 'manage' mode.
+  const hasCard = isCardholder || isCardAuthenticated;
+
+  // A cold start restores 'success' and would otherwise never refetch;
+  // `fetchedThisSession` is not persisted, so it flags data that came off disk.
   useEffect(() => {
-    if (status === 'idle') {
+    if (
+      hasCard &&
+      (status === 'idle' || status === 'error' || !fetchedThisSession)
+    ) {
       Engine.context.CardController.fetchCardHomeData();
     }
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hasCard, status, fetchedThisSession]);
 
   const refetch = useCallback(
-    () => Engine.context.CardController.fetchCardHomeData(),
+    () => Engine.context.CardController.fetchCardHomeData({ force: true }),
     [],
   );
 

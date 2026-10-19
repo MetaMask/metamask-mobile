@@ -9,14 +9,14 @@ import {
   TextMatch,
   TextMatchOptions,
 } from '@testing-library/react-native/build/matches';
-import { AccountTrackerControllerState } from '@metamask/assets-controllers';
+import { AssetsControllerState } from '@metamask/assets-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_1,
-  MOCK_ADDRESS_2,
   expectedUuid,
+  internalAccount1,
+  internalAccount2,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import {
@@ -162,19 +162,27 @@ jest.mock('../core/Engine', () => ({
         selectedAccount: '30786334-3936-4663-b064-363539643939',
       },
     } as unknown as Partial<AccountsControllerState>,
-    AccountTrackerController: {
-      accountsByChainId: {
-        '0x1': {
-          '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': { balance: '0x11' },
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-            balance: '0x33',
-          },
+    // `AccountTrackerController` no longer exists in `EngineState`; the
+    // `getAccountTrackerControllerAccountsByChainId` compat selector now
+    // derives `accountsByChainId` from `AssetsController.assetsBalance` /
+    // `assetsInfo` (see app/selectors/assets/assets-migration.ts). Native ETH
+    // uses decimals: 0 here so the balance amounts map 1:1 to the original
+    // hex balances (17 -> 0x11, 34 -> 0x22, 51 -> 0x33).
+    AssetsController: {
+      assetsInfo: {
+        'eip155:1/slip44:60': { type: 'native', decimals: 0, symbol: 'ETH' },
+        'eip155:2/slip44:60': { type: 'native', decimals: 0, symbol: 'TST' },
+      },
+      assetsBalance: {
+        '30786334-3935-4563-b064-363339643939': {
+          'eip155:1/slip44:60': { amount: '51' },
         },
-        '0x2': {
-          '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': { balance: '0x22' },
+        '30786334-3936-4663-b064-363539643939': {
+          'eip155:1/slip44:60': { amount: '17' },
+          'eip155:2/slip44:60': { amount: '34' },
         },
       },
-    } as Partial<AccountTrackerControllerState>,
+    } as unknown as Partial<AssetsControllerState>,
   } as EngineState,
 }));
 
@@ -248,17 +256,42 @@ describe('selectAccountBalanceByChainId', () => {
             multichainNetworkConfigurationsByChainId: {},
           } as Partial<MultichainNetworkController['state']>,
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [MOCK_CHAIN_ID]: {
-                [MOCK_ADDRESS_1]: { balance: MOCK_BALANCE_3 },
-                [MOCK_ADDRESS_2]: { balance: MOCK_BALANCE },
+          // Equivalent to the legacy `AccountTrackerController.accountsByChainId`
+          // shape above, expressed as `AssetsController` state (see
+          // app/selectors/assets/assets-migration.ts). Account 1 has address
+          // MOCK_ADDRESS_1 (balance MOCK_BALANCE_3 on chain 1); Account 2
+          // (selected) has address MOCK_ADDRESS_2 (balance MOCK_BALANCE on
+          // chain 1, MOCK_BALANCE_2 on chain 2). decimals: 0 keeps the amounts
+          // numerically identical to the original hex balances.
+          AssetsController: {
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                decimals: 0,
+                symbol: 'ETH',
               },
-              [MOCK_CHAIN_ID_2]: {
-                [MOCK_ADDRESS_2]: { balance: MOCK_BALANCE_2 },
+              'eip155:2/slip44:60': {
+                type: 'native',
+                decimals: 0,
+                symbol: 'TST',
               },
             },
-          } as Partial<AccountTrackerControllerState>,
+            assetsBalance: {
+              [internalAccount1.id]: {
+                'eip155:1/slip44:60': {
+                  amount: String(parseInt(MOCK_BALANCE_3, 16)),
+                },
+              },
+              [internalAccount2.id]: {
+                'eip155:1/slip44:60': {
+                  amount: String(parseInt(MOCK_BALANCE, 16)),
+                },
+                'eip155:2/slip44:60': {
+                  amount: String(parseInt(MOCK_BALANCE_2, 16)),
+                },
+              },
+            },
+          } as unknown as Partial<AssetsControllerState>,
         } as EngineState,
       },
     } as RootState;
@@ -300,12 +333,22 @@ describe('selectAccountBalanceByChainId', () => {
       },
     });
 
-    initialState.engine.backgroundState.AccountTrackerController.accountsByChainId =
-      {
-        '0x99': {
-          [MOCK_ADDRESS_2]: { balance: MOCK_BALANCE },
+    // Replace the balances entirely with an unrelated chain (0x99 -> decimal
+    // 153) so the selected chain (0x1) has no balance entry, equivalent to
+    // the legacy `accountsByChainId = { '0x99': {...} }` reassignment.
+    initialState.engine.backgroundState.AssetsController = {
+      ...initialState.engine.backgroundState.AssetsController,
+      assetsInfo: {
+        'eip155:153/slip44:60': { type: 'native', decimals: 0, symbol: 'X' },
+      },
+      assetsBalance: {
+        [internalAccount2.id]: {
+          'eip155:153/slip44:60': {
+            amount: String(parseInt(MOCK_BALANCE, 16)),
+          },
         },
-      };
+      },
+    } as unknown as AssetsControllerState;
     const result = selectAccountBalanceByChainId(initialState);
     expect(result).toBeUndefined();
   });
@@ -363,19 +406,18 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE}`)).toBeDefined();
       mockRenderCall.mockReset();
 
-      const originalBalance =
-        Engine.state.AccountTrackerController.accountsByChainId[MOCK_CHAIN_ID][
-          MOCK_ADDRESS_2
-        ].balance;
-      Engine.state.AccountTrackerController.accountsByChainId[MOCK_CHAIN_ID][
-        MOCK_ADDRESS_2
-      ].balance = MOCK_BALANCE_2;
+      const nativeAssetBalance =
+        Engine.state.AssetsController.assetsBalance[
+          '30786334-3936-4663-b064-363539643939'
+        ]['eip155:1/slip44:60'];
+      const originalBalance = nativeAssetBalance.amount;
+      nativeAssetBalance.amount = String(parseInt(MOCK_BALANCE_2, 16));
 
       act(() => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'AccountTrackerController',
+            key: 'AssetsController',
           },
         });
       });
@@ -384,9 +426,7 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE_2}`)).toBeDefined();
 
       // Reset balance
-      Engine.state.AccountTrackerController.accountsByChainId[MOCK_CHAIN_ID][
-        MOCK_ADDRESS_2
-      ].balance = originalBalance;
+      nativeAssetBalance.amount = originalBalance;
     });
 
     it('re-renders balance when account is updated', () => {
@@ -452,19 +492,11 @@ describe('selectAccountBalanceByChainId', () => {
       expect(getByText(`Balance ${MOCK_BALANCE}`)).toBeDefined();
       mockRenderCall.mockReset();
 
-      const originalBalance =
-        Engine.state.AccountTrackerController.accountsByChainId[MOCK_CHAIN_ID][
-          MOCK_ADDRESS_2
-        ].balance;
-      Engine.state.AccountTrackerController.accountsByChainId[MOCK_CHAIN_ID][
-        MOCK_ADDRESS_2
-      ].balance = originalBalance;
-
       act(() => {
         store.dispatch({
           type: 'UPDATE_BG_STATE',
           payload: {
-            key: 'AccountTrackerController',
+            key: 'AssetsController',
           },
         });
       });

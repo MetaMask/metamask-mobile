@@ -6,7 +6,9 @@
  * Usage:
  * - In your feature's setup (e.g. setupXxxApiMock): call nock.cleanAll() and
  * nock.disableNetConnect() before defining interceptors, then nock('<origin>').get(...).reply(...).persist().
- * - In afterEach: call clearAllNockMocks() (or your feature's clearXxxMocks() which should call this).
+ * - In afterEach: call teardownNock() (or your feature's clearXxxMocks() which
+ * should call it) so disableNetConnect does not leak to later suites in the
+ * same Jest worker.
  *
  * @see tests/component-view/api-mocking/ (e.g. trending.ts) and references/navigation-mocking.md
  */
@@ -25,25 +27,33 @@ export function clearAllNockMocks(): void {
 }
 
 /**
+ * Restores nock to a clean state: removes all interceptors, re-enables net
+ * connect, and cycles restore/activate so @mswjs/interceptors (nock v14) does
+ * not leave half-open TLS sockets that break later suites (e.g. ChoosePassword
+ * `read EINVAL` after Ramp Quotes).
+ */
+export function teardownNock(): void {
+  nock.cleanAll();
+  nock.enableNetConnect();
+  if (nock.isActive()) {
+    nock.restore();
+  }
+  nock.activate();
+}
+
+/**
  * Disables real network connections for the current test run. Call at the
  * start of your feature's setup (e.g. in setupXxxApiMock) so unmocked requests
  * fail fast instead of hitting the network.
  */
 export function disableNetConnect(): void {
+  if (!nock.isActive()) {
+    nock.activate();
+  }
   nock.disableNetConnect();
   // In nock v14, each enableNetConnect(string) call overwrites the previous
   // allowlist matcher (single assignment). Both patterns must be combined into
-  // one regex so neither is lost.
-  nock.enableNetConnect(/127\.0\.0\.1|localhost/);
-}
-
-/**
- * Restores nock to a clean state: removes all interceptors and re-enables
- * net connect. Use in afterEach if you need to fully reset nock (e.g. when
- * switching between test suites that use different mock strategies).
- * Most tests only need clearAllNockMocks().
- */
-export function teardownNock(): void {
-  nock.cleanAll();
-  nock.enableNetConnect();
+  // one regex so neither is lost. Include bs-local.com for BrowserStack Local
+  // agents that may poll during local / CI component-view runs.
+  nock.enableNetConnect(/127\.0\.0\.1|localhost|bs-local\.com/);
 }

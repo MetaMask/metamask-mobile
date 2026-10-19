@@ -77,7 +77,7 @@ const createStyles = (
       zIndex: 2,
     },
     backgroundShapes: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 1,
       justifyContent: 'center',
       alignItems: 'center',

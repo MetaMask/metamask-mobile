@@ -6,7 +6,7 @@
 
 - `babel-plugin-react-compiler` + `react-compiler-runtime` + the ESLint plugin are installed.
 - ESLint: `react-compiler/react-compiler` runs as a **warning**.
-- `babel.config.js`: `target: '18'`, the plugin runs **first**, and `react-native-reanimated/plugin` runs **last** (required for `'worklet'`).
+- `babel.config.js`: `target: '18'`, the plugin runs **first**, and `react-native-worklets/plugin` runs **last** (required for `'worklet'`; reanimated 4 moved the babel plugin into react-native-worklets).
 - Opted-in paths so far live in the plugin's `sources` `pathsToInclude` list.
 
 ```js

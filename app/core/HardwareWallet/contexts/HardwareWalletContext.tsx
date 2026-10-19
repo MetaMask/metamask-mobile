@@ -41,6 +41,13 @@ export interface HardwareWalletContextValue {
   setPendingOperationAddress: (address: string | null) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
+  /**
+   * Cancel any in-flight connection flow: settles the pending readiness
+   * promise with `false`, transitions to Disconnected (closing the bottom
+   * sheet) and clears the target wallet type. Flow screens should call this
+   * on unmount so a stranded error sheet cannot re-appear over the app.
+   */
+  cancelConnectionFlow: () => void;
   /** Register a retry handler for QR scan errors outside the provider-managed flows. */
   setQrScanRetryHandler?: (handler: (() => void) | null) => void;
   /** Show "awaiting confirmation" bottom sheet. */

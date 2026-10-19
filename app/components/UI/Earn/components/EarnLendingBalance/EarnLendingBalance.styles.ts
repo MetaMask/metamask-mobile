@@ -39,10 +39,11 @@ const styleSheet = (params: {
       paddingTop: 16,
       paddingBottom: userHasLendingPositions ? 8 : 0,
     },
-    EarnEmptyStateCta: {
-      paddingTop: 16,
-    },
     earnings: {
+      paddingHorizontal: 16,
+    },
+    maintenanceBanner: {
+      paddingHorizontal: 16,
       paddingTop: 16,
     },
   });

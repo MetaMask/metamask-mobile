@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { isEmpty } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -30,7 +31,11 @@ import { TokenI } from '../../../Tokens/types';
 import useEarnToken from '../../hooks/useEarnToken';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EARN_LENDING_ACTIONS } from '../../types/lending.types';
-import { parseFloatSafe, doesTokenRequireAllowanceReset } from '../../utils';
+import {
+  parseFloatSafe,
+  doesTokenRequireAllowanceReset,
+  registerLendingOutputToken,
+} from '../../utils';
 import ConfirmationFooter from './components/ConfirmationFooter';
 import DepositInfoSection from './components/DepositInfoSection';
 import DepositReceiveSection from './components/DepositReceiveSection';
@@ -88,7 +93,7 @@ const EarnLendingDepositConfirmationView = () => {
     allowanceMinimalTokenUnit,
   } = params;
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const headerTitle = useMemo(() => {
@@ -427,27 +432,12 @@ const EarnLendingDepositConfirmationView = () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
           endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
-          if (!outputToken) {
-            try {
-              const networkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId,
-              }).catch(console.error);
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  earnToken?.symbol || earnToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
+          if (!outputToken && selectedAccount?.id) {
+            registerLendingOutputToken(
+              selectedAccount.id,
+              tokenSnapshot,
+              earnToken?.symbol || earnToken?.ticker || '',
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -462,7 +452,14 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
+    [
+      emitTxMetaMetric,
+      navigation,
+      outputToken,
+      earnToken,
+      tokenSnapshot,
+      selectedAccount,
+    ],
   );
 
   const createTransactionEventListeners = useCallback(

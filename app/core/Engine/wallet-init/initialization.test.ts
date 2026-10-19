@@ -3,12 +3,15 @@ import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
-import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
+import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
+import { unrestrictedMethods } from '../../Permissions/specifications';
+import { getLedgerDmkMode, initializeLedgerDmkMode } from '../../Ledger/dmk';
+import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
 jest.mock('@metamask/wallet', () => ({
@@ -31,8 +34,37 @@ jest.mock('./instance-options/connectivity-controller', () => ({
     () => 'connectivity-options',
   ),
 }));
+jest.mock('./instance-options/gas-fee-controller', () => ({
+  getGasFeeControllerInstanceOptions: jest.fn(() => 'gas-fee-options'),
+}));
+jest.mock('./instance-options/seedless-onboarding-controller', () => ({
+  getSeedlessOnboardingControllerInstanceOptions: jest.fn(
+    () => 'seedless-options',
+  ),
+}));
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
+}));
+jest.mock('./instance-options/subscription-service', () => ({
+  getSubscriptionServiceInstanceOptions: jest.fn(
+    () => 'subscription-service-options',
+  ),
+}));
+jest.mock('./instance-options/shield-api-service', () => ({
+  getShieldApiServiceInstanceOptions: jest.fn(
+    () => 'shield-api-service-options',
+  ),
+}));
+jest.mock('./instance-options/claims-service', () => ({
+  getClaimsServiceInstanceOptions: jest.fn(() => 'claims-service-options'),
+}));
+jest.mock('./instance-options/config-registry-api-service', () => ({
+  getConfigRegistryApiServiceInstanceOptions: jest.fn(
+    () => 'config-registry-api-service-options',
+  ),
+}));
+jest.mock('./instance-options/network-controller', () => ({
+  getNetworkControllerInstanceOptions: jest.fn(() => 'network-options'),
 }));
 jest.mock('./instance-options/transaction-controller', () => ({
   getTransactionControllerInstanceOptions: jest.fn(() => 'transaction-options'),
@@ -47,6 +79,7 @@ describe('initializeWallet', () => {
   const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
   beforeEach(() => {
     jest.clearAllMocks();
+    initializeLedgerDmkMode({});
   });
 
   it('constructs a Wallet, wiring each builder output to its instanceOptions slot', () => {
@@ -60,8 +93,22 @@ describe('initializeWallet', () => {
         keyringController: 'keyring-options',
         remoteFeatureFlagController: 'rffc-options',
         connectivityController: 'connectivity-options',
+        gasFeeController: 'gas-fee-options',
+        seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
-        networkController: getNetworkControllerInstanceOptions(),
+        subscriptionService: 'subscription-service-options',
+        shieldApiService: 'shield-api-service-options',
+        claimsService: 'claims-service-options',
+        configRegistryApiService: 'config-registry-api-service-options',
+        networkController: 'network-options',
+        permissionController: {
+          caveatSpecifications: expect.any(Object),
+          permissionSpecifications: expect.any(Object),
+          unrestrictedMethods,
+        },
+        selectedNetworkController: {
+          domainProxyMap: new DomainProxyMap(),
+        },
         transactionController: 'transaction-options',
       },
     });
@@ -70,7 +117,10 @@ describe('initializeWallet', () => {
   it('threads the messenger and state through to the builders that need them', () => {
     initializeWallet({ messenger, state });
 
-    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      false,
+    );
     expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
       messenger,
       state,
@@ -89,5 +139,70 @@ describe('initializeWallet', () => {
     expect(setupTransactionControllerListeners).toHaveBeenCalledWith({
       messenger: 'tx-init-messenger',
     });
+  });
+
+  it('sets up TransactionController listeners before constructing the Wallet, so the TransactionController can emit events to the wallet messenger during initialization', () => {
+    initializeWallet({ messenger, state });
+
+    const setupListenersCallOrder = jest.mocked(
+      setupTransactionControllerListeners,
+    ).mock.invocationCallOrder[0];
+    const walletConstructorCallOrder =
+      jest.mocked(Wallet).mock.invocationCallOrder[0];
+
+    expect(setupListenersCallOrder).toBeLessThan(walletConstructorCallOrder);
+  });
+
+  it('seeds the process-lifetime Ledger transport mode from the persisted ledgerDmk flag and threads it to the keyring builders', () => {
+    const stateWithDmkEnabled = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: true },
+      },
+    };
+
+    initializeWallet({ messenger, state: stateWithDmkEnabled });
+
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      true,
+    );
+    // Adapter creation reads this same value.
+    expect(getLedgerDmkMode()).toBe(true);
+  });
+
+  it('lets localOverrides win over remoteFeatureFlags when seeding the Ledger transport mode', () => {
+    const stateWithConflictingFlags = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: true },
+        localOverrides: { [FeatureFlagNames.ledgerDmk]: false },
+      },
+    };
+
+    initializeWallet({ messenger, state: stateWithConflictingFlags });
+
+    expect(getLedgerDmkMode()).toBe(false);
+    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(
+      messenger,
+      false,
+    );
+  });
+
+  it('re-seeds the Ledger transport mode from fresh persisted state on a subsequent Engine initialization', () => {
+    const stateWithDmkEnabled = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: true },
+      },
+    };
+    const stateWithDmkDisabled = {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: { [FeatureFlagNames.ledgerDmk]: false },
+      },
+    };
+
+    initializeWallet({ messenger, state: stateWithDmkEnabled });
+    expect(getLedgerDmkMode()).toBe(true);
+
+    initializeWallet({ messenger, state: stateWithDmkDisabled });
+    expect(getLedgerDmkMode()).toBe(false);
   });
 });

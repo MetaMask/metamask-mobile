@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../../../../util/theme';
@@ -119,27 +119,56 @@ function ErrorView({
     ctaOnPress?.();
   }, [ctaOnPress]);
 
+  // Track each ErrorView instance once. Extra SDK fields can mutate after the
+  // error is shown; the ref guard keeps analytics from firing repeatedly when
+  // those values change.
+  const hasTrackedErrorRef = useRef(false);
+  // One-frame grace so selectedRegion / selectedAsset / fiat can hydrate after
+  // sdk/isBuy are ready before we permanently lock the analytics snapshot.
+  const [hydrationGraceElapsed, setHydrationGraceElapsed] = useState(false);
+
   useEffect(() => {
-    if (!sdk || isBuy === undefined) {
+    setHydrationGraceElapsed(true);
+  }, []);
+
+  useEffect(() => {
+    if (!sdk || isBuy === undefined || hasTrackedErrorRef.current) {
       return;
     }
+
+    const regionId = selectedRegion?.id;
+    const assetSymbol = selectedAsset?.symbol;
+    const fiatCurrencyId = selectedFiatCurrencyId;
+    const hasHydratedAnalyticsFields =
+      Boolean(regionId) && (Boolean(assetSymbol) || Boolean(fiatCurrencyId));
+
+    // Prefer a complete payload when selections hydrate shortly after mount.
+    // If they never arrive (pre-selection errors), track once the grace ends.
+    if (!hasHydratedAnalyticsFields && !hydrationGraceElapsed) {
+      return;
+    }
+
+    hasTrackedErrorRef.current = true;
     trackEvent(isBuy ? 'ONRAMP_ERROR' : 'OFFRAMP_ERROR', {
       location,
       message: description,
       payment_method_id: selectedPaymentMethodId as string,
-      region: selectedRegion?.id,
-      currency_source: isBuy
-        ? (selectedFiatCurrencyId as string)
-        : selectedAsset?.symbol,
-      currency_destination: isBuy
-        ? selectedAsset?.symbol
-        : (selectedFiatCurrencyId as string),
+      region: regionId,
+      currency_source: isBuy ? (fiatCurrencyId as string) : assetSymbol,
+      currency_destination: isBuy ? assetSymbol : (fiatCurrencyId as string),
     });
-    // Dependency array does not include extra data since it can mutate after the error
-    // is displayed. This is a safe guard to prevent the error from being tracked multiple
-    // times.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [description, location, trackEvent]);
+  }, [
+    sdk,
+    isBuy,
+    description,
+    location,
+    trackEvent,
+    selectedPaymentMethodId,
+    selectedRegion?.id,
+    selectedFiatCurrencyId,
+    selectedAsset?.symbol,
+    hydrationGraceElapsed,
+  ]);
 
   return (
     <View style={styles.screen}>

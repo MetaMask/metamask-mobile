@@ -54,39 +54,45 @@ describeForPlatforms('MarketInsightsView (token flow)', () => {
       overrides: {
         engine: {
           backgroundState: {
-            TokensController: {
-              allTokens: {
-                '0x1': {
-                  '0x0000000000000000000000000000000000000001': [
-                    {
-                      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                      decimals: 6,
-                      symbol: 'USDC',
-                      name: 'USD Coin',
-                      image: '',
-                    },
-                  ],
+            // Gives the selected account a positive-fiat-balance ERC20
+            // (USDC) so selectHasEligibleSwapSource resolves true and the
+            // sticky footer renders the Swap button.
+            AssetsController: {
+              assetsInfo: {
+                // Native ETH price is required so the compat selectors can
+                // derive a currency conversion rate for the USDC fiat value.
+                'eip155:1/slip44:60': {
+                  type: 'native',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  decimals: 18,
+                },
+                'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+                  type: 'erc20',
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  decimals: 6,
                 },
               },
-              allIgnoredTokens: {},
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0x0000000000000000000000000000000000000001': {
-                  '0x1': {
-                    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': '0x3b9aca00',
+              assetsBalance: {
+                'acc-1': {
+                  'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+                    amount: '1000',
                   },
                 },
               },
-            },
-            TokenRatesController: {
-              marketData: {
-                '0x1': {
-                  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
-                    tokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                    currency: 'ETH',
-                    price: 0.0005,
-                  },
+              assetsPrice: {
+                'eip155:1/slip44:60': {
+                  assetPriceType: 'fungible',
+                  price: 2000,
+                  usdPrice: 2000,
+                  lastUpdated: Date.now(),
+                },
+                'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
+                  assetPriceType: 'fungible',
+                  price: 0.0005,
+                  usdPrice: 0.0005,
+                  lastUpdated: Date.now(),
                 },
               },
             },

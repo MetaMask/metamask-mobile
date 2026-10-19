@@ -580,7 +580,9 @@ describe('RewardsBottomSheetModal', () => {
       <RewardsBottomSheetModal route={routeWithCrossIcon} />,
     );
 
-    expect(getByTestId('button-icon')).toBeOnTheScreen();
+    expect(
+      getByTestId('rewards-bottom-sheet-modal-close-button'),
+    ).toBeOnTheScreen();
   });
 
   it('should call onCancel when close button is pressed with top-right-cross-icon mode', () => {
@@ -599,7 +601,7 @@ describe('RewardsBottomSheetModal', () => {
       <RewardsBottomSheetModal route={routeWithCrossIcon} />,
     );
 
-    const closeButton = getByTestId('button-icon');
+    const closeButton = getByTestId('rewards-bottom-sheet-modal-close-button');
     fireEvent.press(closeButton);
 
     expect(mockOnCancel).toHaveBeenCalled();

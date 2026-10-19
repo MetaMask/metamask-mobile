@@ -36,6 +36,10 @@ export const E2E_EMAILS = {
   APPLE_NEW_USER: 'apple.newuser+e2e@web3auth.io',
   APPLE_EXISTING_USER: 'apple.existinguser+e2e@web3auth.io',
 
+  // Telegram Login
+  TELEGRAM_NEW_USER: 'telegram.newuser+e2e@web3auth.io',
+  TELEGRAM_EXISTING_USER: 'telegram.existinguser+e2e@web3auth.io',
+
   // Error scenarios
   ERROR_TIMEOUT: 'error.timeout+e2e@web3auth.io',
   ERROR_INVALID_TOKEN: 'error.invalid+e2e@web3auth.io',
@@ -62,6 +66,7 @@ export enum E2EScenario {
 export enum E2ELoginProvider {
   GOOGLE = 'google',
   APPLE = 'apple',
+  TELEGRAM = 'telegram',
 }
 
 /**

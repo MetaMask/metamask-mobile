@@ -13,7 +13,8 @@ export interface AddPrecreatedOrderParams {
   orderId: string;
   providerCode: string;
   walletAddress: string;
-  chainId?: string;
+  /** Non-empty chain id (decimal, hex, or CAIP-2). Required by RampsController. */
+  chainId: string;
 }
 
 export interface UseRampsOrdersResult {

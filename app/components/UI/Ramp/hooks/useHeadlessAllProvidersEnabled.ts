@@ -4,17 +4,21 @@ import { selectRemoteFeatureFlagControllerState } from '../../../../selectors/fe
 
 /**
  * Whether the Headless Buy all-providers remote feature flag
- * (`moneyHeadlessAllProviders`) is enabled.
+ * (`moneyHeadlessAllProviders`) is enabled for this app version.
  *
  * Thin Redux binding over the core-exported `isHeadlessAllProvidersEnabled`
- * helper, which owns the flag key lookup, the `localOverrides` merge (so the
+ * helper, which owns the flag key lookup, `localOverrides` merge (so the
  * Settings > Feature flag override screen works as a dev override), and
- * boolean coercion (only the literal `true` enables). `RampsController`
- * resolves the same helper against the same controller state for its quote
- * widening, so this UI gate and the controller cannot disagree.
+ * payload coercion: an enabled object payload must carry `featureVersion: '1'`,
+ * and only the literal boolean `true` enables the boolean form.
+ * `RampsController` resolves the same helper against the same controller state
+ * for its quote widening, so this UI gate and the controller cannot disagree.
+ *
+ * App-version gating is owned entirely by the LaunchDarkly `versions` wrapper,
+ * processed by `RemoteFeatureFlagController` before the flag reaches this hook.
  *
  * @returns Whether all provider classes are enabled for the headless fiat
- * flow. `false` or a missing flag keeps the native-only default.
+ * flow. A missing flag or a stale `featureVersion` keeps the native-only default.
  */
 export function useHeadlessAllProvidersEnabled(): boolean {
   const remoteFeatureFlagControllerState = useSelector(

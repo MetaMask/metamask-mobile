@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
   Icon,
@@ -201,7 +202,7 @@ const SocialLinked = ({
 
 const WalletRecovery = () => {
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
   const userEmail = useSelector(selectSeedlessOnboardingUserEmail);
   const seedlessOnboardingUserId = useSelector(selectSeedlessOnboardingUserId);

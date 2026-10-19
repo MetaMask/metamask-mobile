@@ -34,6 +34,7 @@ const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
 const mockSetAccountName = jest.fn();
 const mockSnapControllerHandleRequest = jest.fn();
+const mockSnapControllerGetSnap = jest.fn();
 const mockListMultichainAccounts = jest.fn();
 
 const mockFlowId = '123';
@@ -134,6 +135,14 @@ const createControllerMessenger = ({
         return mockSetAccountName.mockReturnValue(null)(params);
       case 'AccountsController:listMultichainAccounts':
         return mockListMultichainAccounts.mockReturnValue([])();
+      case 'SnapController:getSnap':
+        return mockSnapControllerGetSnap.mockReturnValue({
+          id: mockSnapId,
+          manifest: {
+            proposedName: mockSnapName,
+            initialPermissions: {},
+          },
+        })(params);
       case 'SnapController:handleRequest':
         return mockSnapControllerHandleRequest(params);
       default:

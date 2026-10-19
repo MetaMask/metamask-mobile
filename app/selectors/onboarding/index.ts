@@ -11,7 +11,7 @@ export const selectCompletedOnboarding = createSelector(
 
 export const selectOnboardingAccountType = createSelector(
   selectOnboarding,
-  (onboardingState) => onboardingState.accountType,
+  (onboardingState) => onboardingState?.accountType,
 );
 
 export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
@@ -43,6 +43,12 @@ export const selectWalletHomeOnboardingSteps = createSelector(
   (onboardingState) =>
     onboardingState?.walletHomeOnboardingSteps ??
     WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+);
+
+export const selectPushNotificationOsPromptRequested = createSelector(
+  selectOnboarding,
+  (onboardingState) =>
+    onboardingState?.pushNotificationOsPromptRequested === true,
 );
 
 export const selectShouldShowWalletHomeOnboardingSteps = createSelector(

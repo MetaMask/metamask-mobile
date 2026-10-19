@@ -1,5 +1,8 @@
 import React from 'react';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 import SettingsModal from './SettingsModal';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -125,6 +128,7 @@ jest.mock('../../../hooks/useRampsProviders', () => ({
   useRampsProviders: () => ({
     selectedProvider: mockSelectedProvider,
     setSelectedProvider: mockSetSelectedProvider,
+    setSelectedProviderForAsset: jest.fn(),
   }),
 }));
 
@@ -285,7 +289,7 @@ describe('SettingsModal', () => {
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
-        iconName: 'CheckBold',
+        iconName: IconName.Confirmation,
         iconColor: IconColor.Success,
         hasNoTimeout: false,
       });

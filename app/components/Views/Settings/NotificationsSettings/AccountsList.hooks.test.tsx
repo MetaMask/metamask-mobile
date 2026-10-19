@@ -36,6 +36,10 @@ jest.mock(
   }),
 );
 
+beforeEach(() => jest.clearAllMocks());
+// Un-spy the notification hook modules between tests (clearAllMocks does not).
+afterEach(() => jest.restoreAllMocks());
+
 const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
 const EVM_ADDRESSES = [
   '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
@@ -236,8 +240,6 @@ describe('useNotificationAccountListProps', () => {
     return { mocks, hook };
   };
 
-  beforeEach(() => jest.clearAllMocks());
-
   it('returns correct loading state', async () => {
     const addresses = ['0x123', '0x456'];
     const { hook } = arrange(addresses);
@@ -358,6 +360,33 @@ describe('useNotificationAccountListProps', () => {
       expect(mocks.mockUpdate).toHaveBeenCalledWith(addresses);
     });
   });
+
+  it('surfaces a failed read with no settings to show', async () => {
+    const { hook } = arrange(['0x123', '0x456'], (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        error: 'Failed to get account settings',
+      });
+    });
+
+    expect(hook.result.current.accountSettingsError).toBe(
+      'Failed to get account settings',
+    );
+    expect(hook.result.current.shouldDisableSwitches).toBe(true);
+  });
+
+  it('keeps switches interactive when a failed read has earlier settings to show', async () => {
+    const { hook } = arrange(['0x123', '0x456'], (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        data: { '0x123': true },
+        error: 'Failed to get account settings',
+      });
+    });
+
+    expect(hook.result.current.accountSettingsError).toBeNull();
+    expect(hook.result.current.shouldDisableSwitches).toBe(false);
+  });
 });
 
 describe('useNotificationWalletAccountGroups', () => {
@@ -477,8 +506,6 @@ describe('useWalletActivityAccountSelection', () => {
       mockUpdate,
     };
   };
-
-  beforeEach(() => jest.clearAllMocks());
 
   it('deselects all visible EVM accounts when any account is enabled', async () => {
     const mocks = arrangeMocks({

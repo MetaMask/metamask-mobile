@@ -104,6 +104,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onCrosshairMove,
       onTradeMarkerPress,
       onChartInteracted,
+      onVisibleCandleCountChange,
       onChartTradingViewClicked,
       isLoading = false,
       subPaneHeightRatio,
@@ -567,6 +568,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onChartInteracted?.(message.payload);
             break;
 
+          case 'VISIBLE_CANDLE_COUNT_CHANGED':
+            onVisibleCandleCountChange?.(message.payload.candleCount);
+            break;
+
           case 'CHART_TRADINGVIEW_CLICKED': {
             const bridgeUrl = message.payload?.url;
             if (typeof bridgeUrl === 'string' && bridgeUrl.length > 0) {
@@ -636,6 +641,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onCrosshairMove,
         onTradeMarkerPress,
         onChartInteracted,
+        onVisibleCandleCountChange,
         handleTradingViewOpen,
         postMessage,
       ],

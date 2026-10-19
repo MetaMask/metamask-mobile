@@ -2,6 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createLogger } from '../framework/logger';
+import { THRESHOLD_MARGIN_PERCENT } from '../framework/quality-gates/thresholdMargin';
 import {
   QualityGatesValidator,
   QualityGatesReportFormatter,
@@ -10,6 +11,7 @@ import {
 import { getTeamInfoFromTags } from '../framework/utils/teams';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
+import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
@@ -22,6 +24,7 @@ import type {
   DeviceInfo,
   ReportData,
   ReportSummary,
+  RetryInfo,
 } from './types';
 
 const logger = createLogger({ name: 'PerformanceReporter' });
@@ -42,7 +45,47 @@ interface PlaywrightTestResult {
   duration: number;
   attachments: { name: string; body?: Buffer }[];
   annotations?: { type: string; description?: string }[];
+  retry?: number;
+  error?: { message?: string };
+  errors?: { message?: string }[];
 }
+
+const isTestFailureStatus = (status: string): boolean =>
+  status === 'failed' || status === 'timedOut' || status === 'interrupted';
+
+export const SESSION_CREATION_FAILED = 'session_creation_failed';
+
+// Built from the char code: a literal ESC in a regex trips no-control-regex.
+const ANSI_ESCAPE = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
+const MAX_FAILURE_MESSAGE_LENGTH = 300;
+
+/** First line of the Playwright error, without ANSI colors or the `Error:` prefix. */
+export const summarizeFailureMessage = (
+  result: PlaywrightTestResult,
+): string | null => {
+  const raw = result.error?.message ?? result.errors?.[0]?.message;
+  if (!raw) {
+    return null;
+  }
+  const firstLine = raw
+    .replace(ANSI_ESCAPE, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .find((line) => line.length > 0);
+  if (!firstLine) {
+    return null;
+  }
+  return firstLine
+    .replace(/^Error:\s*/, '')
+    .slice(0, MAX_FAILURE_MESSAGE_LENGTH);
+};
+
+const hasSessionId = (result: PlaywrightTestResult): boolean => {
+  const sessionId = result.annotations?.find(
+    (a) => a.type === 'sessionId',
+  )?.description;
+  return Boolean(sessionId) && sessionId !== 'no-session';
+};
 
 /**
  * Main Playwright reporter for performance test runs.
@@ -77,9 +120,9 @@ class PerformanceReporter {
     const testId = `${test.title}-${projectName}`;
 
     if (this.processedTests.has(testId)) {
-      // If this retry passed, update the existing failed entry to reflect final success
+      // If this retry passed, replace the failed attempt's data with this one
       if (result.status === 'passed') {
-        this.resolveRetrySuccess(test, projectName);
+        this.replaceWithPassingRetry(test, result, projectName);
       } else {
         logger.warn(
           `Test already processed, skipping: ${test.title} (${projectName})`,
@@ -89,6 +132,14 @@ class PerformanceReporter {
     }
     this.processedTests.add(testId);
 
+    this.processAttempt(test, result, projectName);
+  }
+
+  private processAttempt(
+    test: PlaywrightTestCase,
+    result: PlaywrightTestResult,
+    projectName: string,
+  ): void {
     // Get team info from test tags
     let testTags: string[] = test.tags || [];
     if (!Array.isArray(testTags)) {
@@ -104,7 +155,7 @@ class PerformanceReporter {
       `Tags: ${testTags.length > 0 ? testTags.join(', ') : 'none (using default team)'}`,
     );
 
-    this.processSessionData(test, result, testFilePath, teamInfo);
+    this.processSessionData(test, result, testFilePath, teamInfo, projectName);
     this.trackFailedTest(
       test,
       result,
@@ -128,6 +179,11 @@ class PerformanceReporter {
 
     const summary = this.calculateSummary();
     const isBrowserStackRun = this.detectBrowserStackRun();
+    const isTestMuRun = this.detectTestMuRun();
+
+    if (this.sessions.length > 0 && isTestMuRun) {
+      await this.enrichSessionsWithTestMuData();
+    }
 
     if (this.sessions.length > 0 && isBrowserStackRun) {
       await this.enrichSessionsWithProviderData();
@@ -135,9 +191,12 @@ class PerformanceReporter {
     }
 
     // Clean up leftover environment variables
-    delete process.env.TEMP_SESSION_ID;
-    delete process.env.TEMP_TEST_TITLE;
-    delete process.env.TEMP_PROJECT_NAME;
+    // Avoid direct process.env property access here: Babel's environment
+    // inlining plugin rewrites unset variables to `undefined`, which would
+    // produce the invalid syntax `delete undefined`.
+    Reflect.deleteProperty(process.env, 'TEMP_SESSION_ID');
+    Reflect.deleteProperty(process.env, 'TEMP_TEST_TITLE');
+    Reflect.deleteProperty(process.env, 'TEMP_PROJECT_NAME');
 
     // If we have no metrics, nothing to report
     if (this.metrics.length === 0) {
@@ -155,6 +214,7 @@ class PerformanceReporter {
     result: PlaywrightTestResult,
     testFilePath: string,
     teamInfo: TeamInfo,
+    projectName: string,
   ): void {
     const sessionAttachment = result.attachments.find(
       (att) => att.name === 'session-data',
@@ -192,13 +252,14 @@ class PerformanceReporter {
             sessionId,
             testTitle: test.title,
             testFilePath,
+            projectName,
             testStatus: result.status,
             testDuration: result.duration,
             timestamp: new Date().toISOString(),
             team: teamInfo,
           });
           logger.info(
-            `[Pipeline] Session from annotations (no projectName): sessionId=${sessionId}, testTitle=${test.title}`,
+            `[Pipeline] Session from annotations: sessionId=${sessionId}, projectName=${projectName}, testTitle=${test.title}`,
           );
         }
       }
@@ -213,8 +274,7 @@ class PerformanceReporter {
     testTags: string[],
     projectName: string,
   ): void {
-    const isActualFailure =
-      result.status === 'failed' || result.status === 'timedOut';
+    const isActualFailure = isTestFailureStatus(result.status);
     if (!isActualFailure) return;
 
     const teamId = teamInfo.teamId;
@@ -238,6 +298,7 @@ class PerformanceReporter {
       sessionId: sessionIdFromAnnotation || null,
       qualityGates: null,
       failureReason: null,
+      failureMessage: summarizeFailureMessage(result),
     });
   }
 
@@ -275,9 +336,10 @@ class PerformanceReporter {
         };
 
         // Mark actual failures
-        if (result.status === 'failed' || result.status === 'timedOut') {
+        if (isTestFailureStatus(result.status)) {
           metricsEntry.testFailed = true;
           metricsEntry.failureReason = result.status;
+          metricsEntry.failureMessage = summarizeFailureMessage(result);
         }
 
         // Ensure consistent device info
@@ -287,6 +349,36 @@ class PerformanceReporter {
         // Ensure team info is included
         if (!metricsEntry.team) {
           metricsEntry.team = teamInfo;
+        }
+
+        if (!metricsEntry.steps || metricsEntry.steps.length === 0) {
+          metricsEntry.testFailed = true;
+          metricsEntry.failureReason = 'no_performance_metrics';
+          metricsEntry.failureMessage = summarizeFailureMessage(result);
+
+          const teamId = teamInfo.teamId;
+          if (!this.failedTestsByTeam[teamId]) {
+            this.failedTestsByTeam[teamId] = { team: teamInfo, tests: [] };
+          }
+          const alreadyTracked = this.failedTestsByTeam[teamId].tests.find(
+            (t) => t.testName === test.title && t.projectName === projectName,
+          );
+          if (!alreadyTracked) {
+            this.failedTestsByTeam[teamId].tests.push({
+              testName: test.title,
+              testFilePath,
+              tags: testTags,
+              status: 'failed',
+              duration: result.duration,
+              projectName,
+              sessionId:
+                result.annotations?.find((a) => a.type === 'sessionId')
+                  ?.description ?? null,
+              qualityGates: null,
+              failureReason: 'no_performance_metrics',
+              failureMessage: summarizeFailureMessage(result),
+            });
+          }
         }
 
         // For fallback metrics, ensure proper structure
@@ -325,6 +417,7 @@ class PerformanceReporter {
           if (qualityGatesResult.hasThresholds && !qualityGatesResult.passed) {
             metricsEntry.testFailed = true;
             metricsEntry.failureReason = 'quality_gates_exceeded';
+            metricsEntry.failureMessage = null;
 
             // Ensure the test is tracked in failedTestsByTeam even when
             // trackFailedTest() was skipped because result.status was not
@@ -350,6 +443,7 @@ class PerformanceReporter {
                 sessionId: sessionIdFromAnnotation,
                 qualityGates: qualityGatesResult,
                 failureReason: 'quality_gates_exceeded',
+                failureMessage: null,
               });
             }
           }
@@ -364,6 +458,7 @@ class PerformanceReporter {
               !qualityGatesResult.passed
             ) {
               updates.failureReason = 'quality_gates_exceeded';
+              updates.failureMessage = null;
               updates.qualityGatesViolations = qualityGatesResult.violations;
             } else {
               updates.failureReason =
@@ -382,11 +477,16 @@ class PerformanceReporter {
       } catch (error) {
         logger.error(`Error processing metrics: ${error}`);
       }
-    } else if (result.status === 'failed' || result.status === 'timedOut') {
+    } else if (isTestFailureStatus(result.status)) {
       // For actual failed tests without metrics, create a basic entry
       logger.warn('Test failed without metrics, creating basic entry');
 
       const deviceInfo: DeviceInfo = DeviceInfoExtractor.extract(test);
+      // No metrics and no session id: the driver fixture never got a session.
+      const failureReason = hasSessionId(result)
+        ? result.status
+        : SESSION_CREATION_FAILED;
+      const failureMessage = summarizeFailureMessage(result);
 
       const basicEntry: MetricsEntry = {
         testName: test.title,
@@ -397,7 +497,8 @@ class PerformanceReporter {
         device: deviceInfo,
         steps: [],
         testFailed: true,
-        failureReason: result.status,
+        failureReason,
+        failureMessage,
         note: 'Test failed - no performance metrics collected',
         team: teamInfo,
       };
@@ -405,7 +506,8 @@ class PerformanceReporter {
       this.metrics.push(basicEntry);
 
       this.updateFailedTestEntry(teamInfo.teamId, test.title, projectName, {
-        failureReason: result.status,
+        failureReason,
+        failureMessage,
       });
     }
   }
@@ -467,6 +569,31 @@ class PerformanceReporter {
       );
     }
     return isBrowserStackRun;
+  }
+
+  private detectTestMuRun(): boolean {
+    return this.sessions.some((session) =>
+      (session.projectName ?? '').toLowerCase().includes('testmu'),
+    );
+  }
+
+  private async enrichSessionsWithTestMuData(): Promise<void> {
+    logger.info(
+      `Fetching TestMu AI video URLs and app metrics for ${this.sessions.length} sessions`,
+    );
+
+    const enricher = new TestMuAIEnricher();
+
+    for (const session of this.sessions) {
+      if (!enricher.canHandle(session.projectName ?? '')) {
+        continue;
+      }
+      try {
+        await enricher.enrichSession(session);
+      } catch (error) {
+        logger.error(`Error enriching TestMu session for ${session.testTitle}`);
+      }
+    }
   }
 
   private async enrichSessionsWithProviderData(): Promise<void> {
@@ -548,6 +675,8 @@ class PerformanceReporter {
     const testName = (this.metrics[0]?.testName ?? 'Unknown')
       .replace(/[^a-zA-Z0-9]/g, '_')
       .substring(0, 30);
+    const providerSuffix =
+      this.metrics[0]?.device?.provider === 'testmu' ? '-testmu' : '';
     const timestamp = new Date()
       .toISOString()
       .replace(/:/g, '-')
@@ -579,7 +708,7 @@ class PerformanceReporter {
       const html = htmlGenerator.generate(reportData);
       const reportPath = path.join(
         reportsDir,
-        `performance-report-${testName}-${timestamp}.html`,
+        `performance-report-${testName}${providerSuffix}-${timestamp}.html`,
       );
       fs.writeFileSync(reportPath, html);
       logger.info(`Performance report generated: ${reportPath}`);
@@ -589,7 +718,7 @@ class PerformanceReporter {
       const csv = csvGenerator.generate(reportData);
       const csvPath = path.join(
         reportsDir,
-        `performance-report-${testName}-${timestamp}.csv`,
+        `performance-report-${testName}${providerSuffix}-${timestamp}.csv`,
       );
       fs.writeFileSync(csvPath, csv);
       logger.info(`Performance CSV report saved: ${csvPath}`);
@@ -641,7 +770,8 @@ class PerformanceReporter {
           metrics: {
             steps: metric.steps || [],
             timestamp: metric.timestamp || new Date().toISOString(),
-            thresholdMarginPercent: metric.thresholdMarginPercent ?? 10,
+            thresholdMarginPercent:
+              metric.thresholdMarginPercent ?? THRESHOLD_MARGIN_PERCENT,
             team: metric.team ?? null,
             total: metric.total || 0,
             totalThreshold: metric.totalThreshold ?? null,
@@ -702,28 +832,42 @@ class PerformanceReporter {
     });
   }
 
-  private resolveRetrySuccess(
+  /**
+   * A retry passed after a failed first attempt. Drop the failed attempt's
+   * entry (it has no session, video or steps when the session never started)
+   * and record the passing attempt instead, keeping why the first one failed.
+   */
+  private replaceWithPassingRetry(
     test: PlaywrightTestCase,
+    result: PlaywrightTestResult,
     projectName: string,
   ): void {
-    const testTags: string[] = Array.isArray(test.tags) ? test.tags : [];
-    const teamInfo: TeamInfo = getTeamInfoFromTags(testTags) as TeamInfo;
-
     logger.info(
-      `Test passed on retry, updating result: ${test.title} (${projectName})`,
+      `Test passed on retry, replacing failed attempt: ${test.title} (${projectName})`,
     );
 
-    // Mark the existing metric entry as passed (scoped to this Playwright project)
-    const metric = this.metrics.find(
-      (m) => m.testName === test.title && m.projectName === projectName,
-    );
-    if (metric) {
-      metric.testFailed = false;
-      metric.failureReason = null;
-    }
+    const isSameTest = (m: { testName: string; projectName?: string }) =>
+      m.testName === test.title && m.projectName === projectName;
+    const previous = this.metrics.find(isSameTest);
+    const retryInfo: RetryInfo = {
+      attempts: (result.retry ?? 1) + 1,
+      firstFailureReason: previous?.failureReason ?? null,
+      firstFailureMessage: previous?.failureMessage ?? null,
+      firstFailureDurationSec: previous?.total ?? null,
+    };
 
-    // Remove only this project's failed entry; same title in other projects stays
-    const teamId = teamInfo.teamId;
+    this.metrics = this.metrics.filter((m) => !isSameTest(m));
+    this.sessions = this.sessions.filter(
+      (s) =>
+        !(
+          s.testTitle === test.title &&
+          (s.projectName === projectName || !s.projectName)
+        ),
+    );
+
+    const teamId = (
+      getTeamInfoFromTags(Array.isArray(test.tags) ? test.tags : []) as TeamInfo
+    ).teamId;
     if (this.failedTestsByTeam[teamId]) {
       this.failedTestsByTeam[teamId].tests = this.failedTestsByTeam[
         teamId
@@ -733,6 +877,23 @@ class PerformanceReporter {
       if (this.failedTestsByTeam[teamId].tests.length === 0) {
         delete this.failedTestsByTeam[teamId];
       }
+    }
+
+    this.processAttempt(test, result, projectName);
+
+    const current = this.metrics.find(isSameTest);
+    if (current) {
+      current.testFailed = current.testFailed ?? false;
+      current.failureReason = current.testFailed ? current.failureReason : null;
+      current.retryInfo = retryInfo;
+    } else if (previous) {
+      // The passing attempt produced no metrics; keep the old entry as passed.
+      this.metrics.push({
+        ...previous,
+        testFailed: false,
+        failureReason: null,
+        retryInfo,
+      });
     }
   }
 }

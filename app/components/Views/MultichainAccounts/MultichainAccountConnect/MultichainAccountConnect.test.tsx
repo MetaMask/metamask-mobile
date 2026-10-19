@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
   Caip25EndowmentPermissionName,
   Caip25CaveatType,
@@ -813,7 +813,7 @@ describe('MultichainAccountConnect', () => {
         ...createMockState(),
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'mock-wc2-id' },
+          wc2Metadata: { id: mockChannelId },
         },
       };
 
@@ -1858,6 +1858,86 @@ describe('MultichainAccountConnect', () => {
 
       expect(ethereumSelected).toBeTruthy();
     });
+
+    it('attaches accounts for namespaces added via the network editor (regression WPN-1704)', async () => {
+      // Simulates the WalletConnect eip155+tron repro: the permission request
+      // arrives with only a non-EVM chain scope, the user manually checks an
+      // EVM network on the edit-networks screen, and the granted permission
+      // must contain accounts for the newly added eip155 scope. Before the
+      // fix, selectedCaipAccountIds was not recomputed on network selection,
+      // so the eip155 scope was persisted with an empty accounts array.
+      const mockAcceptPermissions = jest.fn().mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptPermissions;
+      // No pre-existing permission for the origin.
+      (
+        Engine.context.PermissionController.getCaveat as jest.Mock
+      ).mockImplementation(() => {
+        throw new PermissionDoesNotExistError(
+          'Permission does not exist',
+          Caip25EndowmentPermissionName,
+        );
+      });
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  // Non-EVM chain scope only, as produced by the WC session
+                  // proposal handler when only an adapter namespace seeded
+                  // the caveat value.
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-network-editor-accounts-sync',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      // Open the edit networks screen.
+      fireEvent.press(
+        getByTestId(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+        ),
+      );
+
+      // Ethereum Mainnet is not pre-selected: only the requested non-EVM
+      // chain is.
+      const ethereumRow = await findByTestId('Ethereum Mainnet-not-selected');
+      fireEvent.press(within(ethereumRow).getByText('Ethereum Mainnet'));
+
+      // Confirm the network selection.
+      fireEvent.press(
+        await findByTestId('multiconnect-connect-network-button'),
+      );
+
+      // Approve the connection.
+      fireEvent.press(await findByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAcceptPermissions).toHaveBeenCalledTimes(1);
+      });
+
+      const caveatValue =
+        mockAcceptPermissions.mock.calls[0][0].permissions[
+          Caip25EndowmentPermissionName
+        ].caveats[0].value;
+
+      // The manually added eip155 scope must have accounts attached.
+      expect(caveatValue.optionalScopes['eip155:1']).toEqual({
+        accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+      });
+    });
   });
 
   describe('handleAccountGroupsSelected function tests', () => {
@@ -2194,7 +2274,7 @@ describe('MultichainAccountConnect', () => {
         ...state,
         sdk: {
           wc2Metadata: {
-            id: 'mock-wc2-id',
+            id: 'wc-channel-id',
             url: 'https://malicious-dapp.com',
             name: 'Malicious Dapp',
             icon: '',
@@ -2492,7 +2572,7 @@ describe('MultichainAccountConnect', () => {
       const { getByTestId } = renderForReferrer(channelId, {
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'wc-id', url: wcUrl },
+          wc2Metadata: { id: channelId, url: wcUrl },
         },
       });
 
@@ -2501,6 +2581,28 @@ describe('MultichainAccountConnect', () => {
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith(
           expect.objectContaining({ referrer: wcUrl }),
+        );
+      });
+    });
+
+    it('ignores stale wc2 metadata for in-app browser origins', async () => {
+      const origin = 'https://app.uniswap.org';
+
+      const { getByTestId } = renderForReferrer(origin, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: {
+            id: 'stale-pairing-topic',
+            url: 'https://chikn.farm',
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: origin }),
         );
       });
     });

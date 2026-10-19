@@ -7,6 +7,7 @@ import {
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignsFetching,
 } from '../../../../reducers/rewards';
 import {
   selectCampaigns,
@@ -37,6 +38,7 @@ jest.mock('../../../../reducers/rewards', () => ({
   setCampaigns: jest.fn(),
   setCampaignsLoading: jest.fn(),
   setCampaignsError: jest.fn(),
+  setCampaignsFetching: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
@@ -114,6 +116,9 @@ describe('useRewardCampaigns', () => {
   const mockSetCampaignsError = setCampaignsError as jest.MockedFunction<
     typeof setCampaignsError
   >;
+  const mockSetCampaignsFetching = setCampaignsFetching as jest.MockedFunction<
+    typeof setCampaignsFetching
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -128,6 +133,10 @@ describe('useRewardCampaigns', () => {
     });
     mockSetCampaignsError.mockReturnValue({
       type: 'rewards/setCampaignsError',
+      payload: false,
+    });
+    mockSetCampaignsFetching.mockReturnValue({
+      type: 'rewards/setCampaignsFetching',
       payload: false,
     });
     mockUseFocusEffect.mockClear();
@@ -289,6 +298,35 @@ describe('useRewardCampaigns', () => {
       expect(mockSetCampaignsLoading).not.toHaveBeenCalledWith(true);
     });
 
+    it('dispatches setCampaignsFetching(true) even when campaigns were already loaded', async () => {
+      // setCampaignsLoading(true) is suppressed once campaigns exist, so the
+      // fetching flag is the only signal that a refresh is in flight.
+      setupSelectorMocks({ hasLoaded: true });
+      mockEngineCall.mockResolvedValueOnce([]);
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      expect(mockSetCampaignsFetching).toHaveBeenCalledWith(true);
+      expect(mockSetCampaignsFetching).toHaveBeenCalledWith(false);
+    });
+
+    it('clears setCampaignsFetching when the fetch fails', async () => {
+      setupSelectorMocks({ hasLoaded: true });
+      mockEngineCall.mockRejectedValueOnce(new Error('network'));
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      expect(mockSetCampaignsFetching).toHaveBeenLastCalledWith(false);
+    });
+
     it('does not fetch when subscriptionId is null', async () => {
       setupSelectorMocks({ subscriptionId: null });
 
@@ -302,6 +340,7 @@ describe('useRewardCampaigns', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaigns([]));
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsError(false));
+      expect(mockSetCampaignsFetching).toHaveBeenCalledWith(false);
     });
   });
 

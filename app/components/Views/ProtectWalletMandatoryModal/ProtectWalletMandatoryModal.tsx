@@ -20,7 +20,7 @@ import { selectAllNfts } from '../../../selectors/nftController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 
 import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
@@ -40,7 +40,7 @@ const ProtectWalletMandatoryModal = () => {
     selectSeedlessOnboardingLoginFlow,
   );
 
-  const { navigate, getState } = useNavigation();
+  const { navigate, getState } = useNavigation<AppNavigationProp>();
 
   const passwordSet = useSelector(selectPasswordSet);
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
@@ -62,7 +62,6 @@ const ProtectWalletMandatoryModal = () => {
           'ManualBackupStep2',
           'ManualBackupStep3',
           'Webview',
-          Routes.LOCK_SCREEN,
         ].includes(route)
       ) {
         setShowProtectWalletModal(false);

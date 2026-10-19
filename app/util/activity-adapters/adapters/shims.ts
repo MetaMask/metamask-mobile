@@ -47,13 +47,6 @@ export const TransactionGroupStatus = {
 export const NATIVE_TOKEN_ADDRESS = '0x0'.padEnd(42, '0');
 
 // ---------------------------------------------------------------------------
-// ERC-20 Transfer log topic hash (Extension: shared/lib/transactions-controller-utils.ts)
-// ---------------------------------------------------------------------------
-
-export const TOKEN_TRANSFER_LOG_TOPIC_HASH =
-  '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
-
-// ---------------------------------------------------------------------------
 // Small dependency shims for Extension shared utilities.
 // Keep Mobile-specific imports centralized here so adapter files remain close to
 // the future shared package surface.
@@ -62,23 +55,6 @@ export const TOKEN_TRANSFER_LOG_TOPIC_HASH =
 export const equalsIgnoreCase = mobileEqualsIgnoreCase;
 export const parseStandardTokenTransactionData =
   mobileParseStandardTokenTransactionData;
-
-// ---------------------------------------------------------------------------
-// Wrapped-token addresses per EVM chain (Extension: shared/constants/swaps.ts)
-// Only chains where wrap/unwrap detection is needed.
-// ---------------------------------------------------------------------------
-
-export const SWAPS_WRAPPED_TOKENS_ADDRESSES: Record<string, string> = {
-  '0x1': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH (mainnet)
-  '0x38': '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', // WBNB (BSC)
-  '0x89': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270', // WMATIC (Polygon)
-  '0xa': '0x4200000000000000000000000000000000000006', // WETH (Optimism)
-  '0xa4b1': '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', // WETH (Arbitrum)
-  '0x2105': '0x4200000000000000000000000000000000000006', // WETH (Base)
-  '0xe708': '0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34', // WETH (Linea)
-  '0xa86a': '0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7', // WAVAX (Avalanche)
-  '0x144': '0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91', // WETH (zkSync Era)
-};
 
 // ---------------------------------------------------------------------------
 // Known token metadata (Extension: shared/constants/tokens.ts STATIC_MAINNET_TOKEN_LIST)

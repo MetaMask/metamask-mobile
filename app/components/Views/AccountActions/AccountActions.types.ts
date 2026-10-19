@@ -32,6 +32,8 @@ export interface RevokeAllAccountPermissionsParams {
 /** Connection details parameters */
 export interface ConnectionDetailsParams {
   connectionDateTime?: number;
+  // Forwarded by some callers for context; the sheet only reads connectionDateTime.
+  hostInfo?: { metadata: { origin: string } };
 }
 
 /** Add account parameters */

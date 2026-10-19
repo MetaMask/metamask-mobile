@@ -1,8 +1,5 @@
 import BigNumber from 'bignumber.js';
-import {
-  normalizeToDotDecimal,
-  toTokenMinimalUnit,
-} from '../../../../util/number';
+import { toTokenMinimalUnit } from '../../../../util/number';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { EARN_EXPERIENCES } from '../constants/experiences';
@@ -12,6 +9,8 @@ import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
+import { normalizeToDotDecimal } from '../../../../util/number/bigint';
+import { FUNGIBLE_ASSET_TYPES } from '../../../../core/Assets/accountGroupAssetLoader';
 import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
@@ -71,12 +70,19 @@ export const buildTronEarnTokenIfEligible = (
   ).toString();
 
   const experiences = [
-    { type: EARN_EXPERIENCES.POOLED_STAKING, apr: '0' as const },
+    { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' as const },
   ];
+
+  const parsedBalanceFiat = Number.parseFloat(
+    normalizeToDotDecimal(token.balanceFiat ?? ''),
+  );
+  const isBalanceFiatAvailable = Number.isFinite(parsedBalanceFiat);
 
   return {
     ...token,
     isETH: false,
+    balanceFiatNumber: isBalanceFiatAvailable ? parsedBalanceFiat : 0,
+    isBalanceFiatAvailable,
     balanceMinimalUnit,
     balanceFormatted:
       stakedBalanceOverride !== undefined
@@ -150,15 +156,23 @@ export const handleTronStakingNavigationResult = (
     // Refreshes the multichain balance after successful stake/unstake
     // to make sure that the asset overview displays the updated staked balance right away
     if (accountId) {
-      const { MultichainBalancesController } = Engine.context;
-      MultichainBalancesController.updateBalance(accountId).catch(
-        (error: Error) => {
+      const { AccountsController, AssetsController } = Engine.context;
+      const account = AccountsController.getAccount(accountId);
+
+      if (account) {
+        AssetsController.getAssets([account], {
+          forceUpdate: true,
+          assetTypes: FUNGIBLE_ASSET_TYPES,
+          // The stake/unstake just confirmed, so the Accounts API's cached
+          // snapshot is known stale — bypass it to show the new balance.
+          bypassServerCache: true,
+        }).catch((error: Error) => {
           Logger.error(
             error,
             `[Tron ${action}] Failed to refresh multichain balance`,
           );
-        },
-      );
+        });
+      }
     }
 
     navigation.goBack();

@@ -41,7 +41,13 @@ export function snapKeyringV2AdaptedAsV1Builder(
 ): KeyringBuilder {
   const SnapKeyringV2AdaptedAsV1BuilderV2 = () => {
     const v2 = new SnapKeyringV2({
-      messenger,
+      // The app and `@metamask/eth-snap-keyring` resolve to separate copies
+      // of `@metamask/messenger`, so TypeScript treats their `Messenger`
+      // `#private` brands as distinct types even though they are the same
+      // version. The messengers are structurally identical.
+      messenger: messenger as unknown as ConstructorParameters<
+        typeof SnapKeyringV2
+      >[0]['messenger'],
       callbacks: new SnapKeyringV2Impl(messenger),
       // Enables generic account creation for new chain integration. We keep
       // it on under e2e to match the v1 keyring's behaviour in this codebase.

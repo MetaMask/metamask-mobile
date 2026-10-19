@@ -1,9 +1,13 @@
-import React, { ReactNode, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View } from 'react-native';
+import React, { ReactNode, useCallback, useRef, useState } from 'react';
+import { Modal, TouchableOpacity, View } from 'react-native';
+import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
+  Box,
+} from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import BottomModal from '../bottom-modal';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
 
@@ -31,7 +35,16 @@ const Expandable = ({
   copyText,
 }: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [expanded, setExpanded] = useState(false);
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setExpanded(false);
+  }, []);
 
   return (
     <>
@@ -46,25 +59,38 @@ const Expandable = ({
         {collapsedContent}
       </TouchableOpacity>
       {expanded && (
-        <BottomModal onClose={() => setExpanded(false)}>
-          <View style={styles.modalContent}>
-            <HeaderStandard
-              title={expandedContentTitle}
-              onClose={() => setExpanded(false)}
+        <Modal
+          visible
+          animationType="none"
+          transparent
+          presentationStyle="overFullScreen"
+          onRequestClose={handleRequestClose}
+        >
+          <BottomSheet
+            ref={bottomSheetRef}
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
+          >
+            <BottomSheetHeader
+              onClose={handleRequestClose}
               closeButtonProps={{
                 testID: collapseButtonTestID ?? 'collapseButtonTestID',
               }}
-            />
-            <View style={styles.modalExpandedContent}>
-              {copyText && (
-                <View style={styles.copyButtonContainer}>
-                  <CopyButton copyText={copyText} />
-                </View>
-              )}
-              {expandedContent}
-            </View>
-          </View>
-        </BottomModal>
+            >
+              {expandedContentTitle}
+            </BottomSheetHeader>
+            <Box twClassName="flex flex-col">
+              <View style={styles.modalExpandedContent}>
+                {copyText && (
+                  <View style={styles.copyButtonContainer}>
+                    <CopyButton copyText={copyText} />
+                  </View>
+                )}
+                {expandedContent}
+              </View>
+            </Box>
+          </BottomSheet>
+        </Modal>
       )}
     </>
   );

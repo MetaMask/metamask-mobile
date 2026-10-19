@@ -2,9 +2,10 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
 import { Theme } from '../../../../../util/theme/models';
 import { getNavbar } from '../../components/UI/navbar/navbar';
-import { useConfirmActions } from '../useConfirmActions';
+import { useConfirmReject } from '../useConfirmReject';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import useNavbar from './useNavbar';
 
 // Mock dependencies
@@ -16,8 +17,8 @@ jest.mock('../../components/UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
 }));
 
-jest.mock('../useConfirmActions', () => ({
-  useConfirmActions: jest.fn(),
+jest.mock('../useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
 }));
 
 jest.mock('./useFullScreenConfirmation', () => ({
@@ -28,7 +29,12 @@ jest.mock('../../context/confirmation-context', () => ({
   useConfirmationContext: jest.fn(),
 }));
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+}));
+
 const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+const mockUseParams = jest.mocked(useParams);
 
 describe('useNavbar', () => {
   const mockSetOptions = jest.fn();
@@ -43,7 +49,7 @@ describe('useNavbar', () => {
       setOptions: mockSetOptions,
     });
 
-    (useConfirmActions as jest.Mock).mockReturnValue({
+    (useConfirmReject as jest.Mock).mockReturnValue({
       onReject: mockOnReject,
     });
 
@@ -60,6 +66,8 @@ describe('useNavbar', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: mockMmPayRef,
     } as unknown as ReturnType<typeof useConfirmationContext>);
+
+    mockUseParams.mockReturnValue({});
   });
 
   it('calls setOptions with the correct navbar configuration for full screen confirmations', () => {
@@ -70,7 +78,7 @@ describe('useNavbar', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
-    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useConfirmReject).toHaveBeenCalled();
     expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
       title: mockTitle,
@@ -79,6 +87,7 @@ describe('useNavbar', () => {
       theme: expect.any(Object),
       overrides: undefined,
       mmPayRequestInProgressNavHandler: mockMmPayRef,
+      sheetPresentation: undefined,
     });
     expect(mockSetOptions).toHaveBeenCalled();
   });
@@ -91,7 +100,7 @@ describe('useNavbar', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
-    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useConfirmReject).toHaveBeenCalled();
     expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(mockSetOptions).not.toHaveBeenCalled();
     expect(getNavbar).not.toHaveBeenCalled();
@@ -105,7 +114,7 @@ describe('useNavbar', () => {
     renderHook(() => useNavbar(mockTitle));
 
     expect(useNavigation).toHaveBeenCalled();
-    expect(useConfirmActions).toHaveBeenCalled();
+    expect(useConfirmReject).toHaveBeenCalled();
     expect(useFullScreenConfirmation).toHaveBeenCalled();
     expect(mockSetOptions).not.toHaveBeenCalled();
     expect(getNavbar).not.toHaveBeenCalled();
@@ -132,12 +141,13 @@ describe('useNavbar', () => {
       theme: expect.any(Object),
       overrides: undefined,
       mmPayRequestInProgressNavHandler: mockMmPayRef,
+      sheetPresentation: undefined,
     });
   });
 
   it('updates navigation options when onReject changes for full screen confirmations', () => {
     const newOnReject = jest.fn();
-    (useConfirmActions as jest.Mock).mockReturnValue({
+    (useConfirmReject as jest.Mock).mockReturnValue({
       onReject: newOnReject,
     });
     (useFullScreenConfirmation as jest.Mock).mockReturnValue({
@@ -153,7 +163,18 @@ describe('useNavbar', () => {
       theme: expect.any(Object),
       overrides: undefined,
       mmPayRequestInProgressNavHandler: mockMmPayRef,
+      sheetPresentation: undefined,
     });
+  });
+
+  it('forwards sheetPresentation from the route params to getNavbar', () => {
+    mockUseParams.mockReturnValue({ sheetPresentation: true });
+
+    renderHook(() => useNavbar(mockTitle));
+
+    expect(getNavbar).toHaveBeenCalledWith(
+      expect.objectContaining({ sheetPresentation: true }),
+    );
   });
 
   describe('overrides parameter', () => {
@@ -178,6 +199,7 @@ describe('useNavbar', () => {
         theme: expect.any(Object),
         overrides,
         mmPayRequestInProgressNavHandler: mockMmPayRef,
+        sheetPresentation: undefined,
       });
     });
 
@@ -195,6 +217,7 @@ describe('useNavbar', () => {
         theme: expect.any(Object),
         overrides: undefined,
         mmPayRequestInProgressNavHandler: mockMmPayRef,
+        sheetPresentation: undefined,
       });
     });
   });

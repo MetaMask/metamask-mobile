@@ -13,8 +13,7 @@ import { TextColor } from '../../../../component-library/components/Texts/Text/T
 
 import TransactionDetails from '../TransactionDetails';
 import { toDateFormat } from '../../../../util/date';
-import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import { RootState } from '../../../../reducers';
+import { makeSelectTransactionMetadataById } from '../../../../selectors/transactionController';
 
 interface TransactionDetailsSheetParams {
   tx: {
@@ -58,9 +57,11 @@ const TransactionDetailsSheet: React.FC = () => {
 
   const { tx, transactionElement, transactionDetails } = route.params;
 
-  const liveTransaction = useSelector((state: RootState) =>
-    selectTransactionMetadataById(state, tx.id),
+  const selectLiveTransaction = useMemo(
+    () => makeSelectTransactionMetadataById(tx.id),
+    [tx.id],
   );
+  const liveTransaction = useSelector(selectLiveTransaction);
   const currentTx = useMemo(
     () =>
       liveTransaction

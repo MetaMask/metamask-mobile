@@ -17,7 +17,6 @@ import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
-import { normalizeAssetIdForApi } from '../../utils/normalizeAssetIdForApi';
 import { useProviderLimits } from '../../hooks/useProviderLimits';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
@@ -41,10 +40,14 @@ import styleSheet from './BuildQuote.styles';
 import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  normalizeRampsAssetId,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
+import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
@@ -64,6 +67,11 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -156,6 +164,7 @@ function BuildQuote() {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     selectedToken,
     paymentMethods,
     paymentMethodsLoading,
@@ -273,14 +282,26 @@ function BuildQuote() {
       return;
     }
 
+    // Keep providers in deps: ensures the effect re-runs when the provider
+    // list loads or refreshes, giving the controller a chance to find a
+    // compatible provider even if it was called too early.
+    if (providers.length === 0) return;
+
     if (effectiveAssetId) {
-      const supportingProvider = providers.find(
+      const switched = setSelectedProviderForAsset(effectiveAssetId);
+      if (switched) return;
+
+      // Controller no-ops when the current provider already lists the asset in
+      // supportedCryptoCurrencies. Empty payment methods can still mark the
+      // token unavailable for that provider, so try a different supporting
+      // provider before showing the modal (parity with pre-delegation UI).
+      const otherSupporting = providers.find(
         (p) =>
           p.id !== selectedProvider?.id &&
           providerSupportsAsset(p, effectiveAssetId),
       );
-      if (supportingProvider) {
-        setSelectedProvider(supportingProvider, { autoSelected: true });
+      if (otherSupporting) {
+        setSelectedProvider(otherSupporting, { autoSelected: true });
         return;
       }
     }
@@ -310,6 +331,7 @@ function BuildQuote() {
     focusTrigger,
     providers,
     setSelectedProvider,
+    setSelectedProviderForAsset,
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';
@@ -405,7 +427,7 @@ function BuildQuote() {
       selectedPaymentMethod &&
       selectedProvider
         ? {
-            assetId: normalizeAssetIdForApi(selectedToken.assetId),
+            assetId: normalizeRampsAssetId(selectedToken.assetId),
             amount: debouncedPollingAmount,
             walletAddress,
             redirectUrl: getRampCallbackBaseUrl(),
@@ -635,6 +657,16 @@ function BuildQuote() {
     !selectedQuoteLoading &&
     selectedQuote !== null;
 
+  // A provider's embedded checkout can replace the Continue button on
+  // eligible quotes; while it is anything but inactive, Continue stays out
+  // of reach so the user is not sent to the browser checkout instead.
+  const embeddedCheckout = useEmbeddedCheckout(
+    hasSettledQuoteAmount ? selectedQuote : null,
+    debouncedPollingAmount,
+  );
+  const isEmbeddedCheckoutVisible = embeddedCheckout.phase === 'ready';
+  const isEmbeddedCheckoutActive = embeddedCheckout.phase !== 'inactive';
+
   const hasNoQuotes =
     hasAmount &&
     hasSettledQuoteAmount &&
@@ -650,11 +682,28 @@ function BuildQuote() {
   }, [hasNoQuotes, quotesResponse?.error]);
 
   const inlineQuoteError =
-    displayedAmountLimitError ?? providerQuoteError ?? null;
+    displayedAmountLimitError ??
+    providerQuoteError ??
+    embeddedCheckout.error ??
+    null;
   const hasGenericNoQuotes = hasNoQuotes && !providerQuoteError;
   const amountInputHasError = Boolean(
     rampsError || quoteFetchError || inlineQuoteError || hasGenericNoQuotes,
   );
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.AMOUNT_INPUT,
+    contentReady:
+      Boolean(selectedToken) &&
+      tokenStateIsSettled &&
+      !paymentMethodsLoading &&
+      !paymentMethodsFetching &&
+      (paymentMethodsStatus === 'success' || paymentMethodsStatus === 'error'),
+    contentState:
+      amountInputHasError || paymentMethodsStatus === 'error'
+        ? RAMP_SCREEN_CONTENT_STATE.ERROR
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const noQuotesErrorMessage = selectedProvider
     ? strings('fiat_on_ramp.no_quotes_error', {
@@ -695,6 +744,12 @@ function BuildQuote() {
           amount={amountAsNumber}
         />
       );
+    }
+    // The embedded checkout takes this slot and already names the provider,
+    // so the attribution would only repeat it. Until then the ordinary
+    // Continue button is showing and the attribution stays.
+    if (isEmbeddedCheckoutVisible) {
+      return null;
     }
     if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
       return (
@@ -811,22 +866,35 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {actionSectionMessage}
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
-                  isFullWidth
-                  isDisabled={!canContinue}
-                  isLoading={
-                    selectedQuoteLoading ||
-                    isContinueLoading ||
-                    isTokenUnavailable ||
-                    !tokenStateIsSettled
-                  }
-                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                >
-                  {strings('fiat_on_ramp.continue')}
-                </Button>
+                {embeddedCheckout.renderOverlay?.({
+                  interactive: canContinue,
+                })}
+                {isEmbeddedCheckoutVisible ? null : (
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleContinuePress}
+                    isFullWidth
+                    isDisabled={!canContinue || isEmbeddedCheckoutActive}
+                    isLoading={
+                      selectedQuoteLoading ||
+                      isContinueLoading ||
+                      isTokenUnavailable ||
+                      !tokenStateIsSettled ||
+                      isEmbeddedCheckoutActive
+                    }
+                    loadingText={
+                      embeddedCheckout.phase === 'settling'
+                        ? strings(
+                            'fiat_on_ramp_aggregator.order_status_processing',
+                          )
+                        : undefined
+                    }
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp.continue')}
+                  </Button>
+                )}
               </>
             ) : (
               quickAmounts.length > 0 && (

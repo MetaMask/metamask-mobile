@@ -8,60 +8,60 @@ import {
   AlertTypeIDs,
 } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class AlertSystem {
-  get securityAlertBanner(): EncapsulatedElementType {
+  get securityAlertBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
     );
   }
 
-  get securityAlertResponseFailedBanner(): EncapsulatedElementType {
+  get securityAlertResponseFailedBanner(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE,
     );
   }
 
-  get securityAlertResponseMaliciousBanner(): EncapsulatedElementType {
+  get securityAlertResponseMaliciousBanner(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE,
     );
   }
 
-  get inlineAlert(): EncapsulatedElementType {
+  get inlineAlert(): Promise<AppiumElement> {
     return Matchers.getElementByID(AlertTypeIDs.INLINE_ALERT);
   }
 
-  get alertMismatchTitle(): EncapsulatedElementType {
+  get alertMismatchTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE,
     );
   }
 
-  get acknowledgeAlertModal(): EncapsulatedElementType {
+  get acknowledgeAlertModal(): Promise<AppiumElement> {
     return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
   }
 
-  get acknowledgeAlertModalButton(): EncapsulatedElementType {
+  get acknowledgeAlertModalButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AlertModalSelectorsIDs.ALERT_MODAL_ACKNOWLEDGE_BUTTON,
     );
   }
 
-  get confirmAlertModal(): EncapsulatedElementType {
+  get confirmAlertModal(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL,
     );
   }
 
-  get confirmAlertModalButton(): EncapsulatedElementType {
+  get confirmAlertModalButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON,
     );
   }
 
-  get acknowledgeConfirmAlertModal(): EncapsulatedElementType {
+  get acknowledgeConfirmAlertModal(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX,
     );

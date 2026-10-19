@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Image, StyleSheet, Pressable, View } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -26,10 +32,22 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsCompetitionBannerEnabledFlag } from '../../selectors/featureFlags';
 import StorageWrapper from '../../../../../store/storage-wrapper';
-import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/storage';
+import { perpsCompetitionBannerDismissedKey } from '../../../../../constants/storage';
 import { setPendingDeeplink } from '../../../../../reducers/rewards';
+import { selectCampaigns } from '../../../../../reducers/rewards/selectors';
+import { getLatestActiveOrUpcomingCampaignOfType } from '../../../Rewards/components/Campaigns/CampaignTile.utils';
+import { CampaignType } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types';
+
+// Rewards campaigns are only in Redux once the Rewards tab has been opened, so
+// the banner can render before the campaign is known. Dismissals in that window
+// are keyed separately rather than against a real campaign id, so they can never
+// suppress the banner for a later campaign.
+const UNRESOLVED_CAMPAIGN_KEY = 'unknown';
+const UNRESOLVED_STORAGE_KEY = perpsCompetitionBannerDismissedKey(
+  UNRESOLVED_CAMPAIGN_KEY,
+);
 
 // Pending addition to PERPS_EVENT_VALUE.BUTTON_CLICKED in @metamask/perps-controller
 const COMPETITION_BANNER_BUTTON = {
@@ -77,20 +95,61 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   const dispatch = useDispatch();
   const { track } = usePerpsEventTracking();
   const [isDismissed, setIsDismissed] = useState<boolean | null>(null);
+  // The storage key a dismissal was made against this session, not a bare
+  // boolean: a dismissal must not carry across to a different campaign.
+  const dismissedKeyRef = useRef<string | null>(null);
+  const campaigns = useSelector(selectCampaigns);
+
+  const dismissedStorageKey = useMemo(() => {
+    const campaign = getLatestActiveOrUpcomingCampaignOfType(
+      campaigns,
+      CampaignType.PERPS_TRADING,
+    );
+    return perpsCompetitionBannerDismissedKey(
+      campaign?.id ?? UNRESOLVED_CAMPAIGN_KEY,
+    );
+  }, [campaigns]);
 
   useEffect(() => {
+    // A dismissal made before the campaign was known was aimed at whatever the
+    // banner was advertising, so it carries forward once the id resolves —
+    // otherwise the banner would reappear the moment campaigns land. A
+    // dismissal made against a real campaign id applies only to that campaign,
+    // so a second campaign still gets its own banner.
+    const dismissedKey = dismissedKeyRef.current;
+    if (dismissedKey === dismissedStorageKey) {
+      return;
+    }
+    if (dismissedKey === UNRESOLVED_STORAGE_KEY) {
+      // Carry forward only to the first resolved campaign, then anchor to it so
+      // a later swap to another campaign reads its own dismissal flag.
+      dismissedKeyRef.current = dismissedStorageKey;
+      return;
+    }
+    // The key changes under this effect when campaigns land in Redux, leaving
+    // two storage reads racing. Storage gives no ordering guarantee, so without
+    // this guard a late read under the previous key can overwrite the newer
+    // key's result and hide a banner the user never dismissed.
+    let cancelled = false;
     const checkDismissed = async () => {
       try {
-        const value = await StorageWrapper.getItem(
-          PERPS_COMPETITION_BANNER_DISMISSED,
-        );
+        const value = await StorageWrapper.getItem(dismissedStorageKey);
+        if (cancelled) {
+          return;
+        }
         setIsDismissed(value === 'true');
       } catch {
+        if (cancelled) {
+          return;
+        }
         setIsDismissed(false);
       }
     };
     checkDismissed();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [dismissedStorageKey]);
 
   const handleDismiss = useCallback(async () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -100,13 +159,14 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
       [PERPS_EVENT_PROPERTY.LOCATION]:
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
+    dismissedKeyRef.current = dismissedStorageKey;
     setIsDismissed(true);
     try {
-      await StorageWrapper.setItem(PERPS_COMPETITION_BANNER_DISMISSED, 'true');
+      await StorageWrapper.setItem(dismissedStorageKey, 'true');
     } catch {
       // Dismiss is best-effort; banner stays hidden for this session
     }
-  }, [track]);
+  }, [track, dismissedStorageKey]);
 
   const handlePress = useCallback(() => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {

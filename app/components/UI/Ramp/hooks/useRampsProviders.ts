@@ -41,6 +41,18 @@ export interface UseRampsProvidersResult {
     options?: { autoSelected?: boolean },
   ) => void;
   /**
+   * Switches providers.selected to the first provider that serves the given
+   * CAIP-19 asset, when the currently selected provider does not.
+   * No-op when providers are not loaded, the current provider already serves
+   * the asset, or no alternative does. Returns true if a switch was made.
+   *
+   * Delegates to RampsController:setSelectedProviderForAsset (MetaMask/core#9759).
+   */
+  setSelectedProviderForAsset: (
+    assetId: string,
+    options?: { autoSelected?: boolean },
+  ) => boolean;
+  /**
    * Whether the providers request is currently loading.
    */
   isLoading: boolean;
@@ -109,9 +121,11 @@ export function useRampsProviders(options?: {
   // React Query is authoritative when present; fallback to controller state
   // keeps initial renders and test mocks resilient.
   const providers = useMemo(
-    () => providersQuery?.data ?? providersStateData ?? [],
-    [providersQuery?.data, providersStateData],
+    () => providersQuery?.data?.providers ?? providersStateData ?? [],
+    [providersQuery?.data?.providers, providersStateData],
   );
+  const backendDefaultProviderId =
+    providersQuery?.data?.sorted?.[0]?.ids[0] ?? providers[0]?.id;
 
   const legacyOrders = useSelector(getOrders);
   const controllerOrders = useSelector(
@@ -135,6 +149,15 @@ export function useRampsProviders(options?: {
     [],
   );
 
+  const setSelectedProviderForAsset = useCallback(
+    (assetId: string, setOptions?: { autoSelected?: boolean }): boolean =>
+      Engine.context.RampsController.setSelectedProviderForAsset(
+        assetId,
+        setOptions,
+      ),
+    [],
+  );
+
   useEffect(() => {
     if (
       enableSideEffects &&
@@ -142,7 +165,11 @@ export function useRampsProviders(options?: {
       providers.length > 0 &&
       !selectedProvider
     ) {
-      const result = determinePreferredProvider(completedOrders, providers);
+      const result = determinePreferredProvider(
+        completedOrders,
+        providers,
+        backendDefaultProviderId,
+      );
       if (result) {
         (
           Engine.context.RampsController as {
@@ -156,7 +183,13 @@ export function useRampsProviders(options?: {
         });
       }
     }
-  }, [enableSideEffects, providers, selectedProvider, completedOrders]);
+  }, [
+    enableSideEffects,
+    providers,
+    selectedProvider,
+    completedOrders,
+    backendDefaultProviderId,
+  ]);
 
   let error: string | null = null;
 
@@ -176,6 +209,7 @@ export function useRampsProviders(options?: {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
     error,
   };

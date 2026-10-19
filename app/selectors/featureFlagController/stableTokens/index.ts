@@ -3,7 +3,7 @@ import { selectRemoteFeatureFlags } from '..';
 import type { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-export const STABLE_TOKENS_FLAG = 'stable-tokens' as const;
+export const STABLE_TOKENS_FLAG = 'stableTokens' as const;
 
 const DEFAULT_STABLECOINS: Record<Hex, Hex[]> = {
   [CHAIN_IDS.MAINNET]: [

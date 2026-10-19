@@ -11,6 +11,7 @@ import {
   CampaignType,
   type PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 
 const mockGoBack = jest.fn();
 const mockPerpsLeaderboard = jest.fn();
@@ -184,7 +185,6 @@ const mockCampaign = {
 
 const mockState = {
   rewards: {
-    referralCode: 'REFCODE99',
     campaigns: [mockCampaign],
   },
 };
@@ -192,9 +192,12 @@ const mockState = {
 describe('PerpsTradingCampaignLeaderboardView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
-      selector(mockState),
-    );
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) => {
+      if (selector === selectReferralCode) {
+        return 'REFCODE99';
+      }
+      return selector(mockState);
+    });
     mockUseGetParticipant.mockReturnValue({
       status: { optedIn: false, participantCount: 0 },
       isLoading: false,
@@ -337,51 +340,61 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
     );
   });
 
-  it('passes isCampaignComplete to the stats header and leaderboard when campaign ended', () => {
-    const completedCampaign = {
-      ...mockCampaign,
-      startDate: '2024-01-01T00:00:00Z',
-      endDate: '2025-01-01T00:00:00Z',
-    };
-    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
-      selector({
-        rewards: {
-          referralCode: 'REFCODE99',
-          campaigns: [completedCampaign],
+  describe('when campaign is complete', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('passes isCampaignComplete to the stats header and leaderboard when campaign ended', () => {
+      const completedCampaign = {
+        ...mockCampaign,
+        startDate: '2024-01-01T00:00:00Z',
+        endDate: '2025-01-01T00:00:00Z',
+      };
+      mockUseSelector.mockImplementation(
+        (selector: (s: unknown) => unknown) => {
+          if (selector === selectReferralCode) {
+            return 'REFCODE99';
+          }
+          return selector({
+            rewards: {
+              campaigns: [completedCampaign],
+            },
+          });
         },
-      }),
-    );
-    mockUseGetParticipant.mockReturnValue({
-      status: { optedIn: true, participantCount: 10 },
-      isLoading: false,
-      hasError: false,
-      refetch: jest.fn(),
+      );
+      mockUseGetParticipant.mockReturnValue({
+        status: { optedIn: true, participantCount: 10 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetPosition.mockReturnValue({
+        position: basePosition,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: jest.fn(),
+      });
+
+      render(<PerpsTradingCampaignLeaderboardView />);
+
+      expect(mockPerpsStatsHeader).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCampaignComplete: true,
+        }),
+      );
+      expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isCampaignComplete: true,
+        }),
+      );
     });
-    mockUseGetPosition.mockReturnValue({
-      position: basePosition,
-      isLoading: false,
-      hasError: false,
-      hasFetched: true,
-      refetch: jest.fn(),
-    });
-
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
-
-    render(<PerpsTradingCampaignLeaderboardView />);
-
-    expect(mockPerpsStatsHeader).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isCampaignComplete: true,
-      }),
-    );
-    expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isCampaignComplete: true,
-      }),
-    );
-
-    jest.useRealTimers();
   });
 
   it('passes leaderboard data and user position to PerpsTradingCampaignLeaderboard', () => {

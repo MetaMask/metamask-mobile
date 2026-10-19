@@ -134,6 +134,7 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
               userPosition={leaderboardUserPosition}
               campaignId={campaignId}
               isCampaignComplete={isCampaignComplete}
+              numberOfWinners={leaderboard?.numberOfWinners}
             />
           </Box>
         </ScrollView>

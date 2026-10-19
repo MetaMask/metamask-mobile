@@ -1,60 +1,66 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
   ALERT_PERIODS,
   AlertPeriod,
   CreatePriceAlertTestIds,
+  PERP_ALERT_PERIODS,
 } from '../constants';
 import SlidingPillToggle from './SlidingPillToggle';
 
 interface AlertPeriodToggleProps {
   value: AlertPeriod;
   onChange: (value: AlertPeriod) => void;
+  includeFiveMinutes?: boolean;
 }
 
-const periodTestId = (period: AlertPeriod) =>
-  period === '24h'
-    ? CreatePriceAlertTestIds.PERIOD_SEGMENT_24H
-    : CreatePriceAlertTestIds.PERIOD_SEGMENT_1H;
+const PERIOD_TEST_IDS = {
+  '5m': CreatePriceAlertTestIds.PERIOD_SEGMENT_5M,
+  '1h': CreatePriceAlertTestIds.PERIOD_SEGMENT_1H,
+  '24h': CreatePriceAlertTestIds.PERIOD_SEGMENT_24H,
+} as const;
+
+const createOption = (period: AlertPeriod) => ({
+  value: period,
+  label: strings(`price_alerts.period_${period}`),
+  testID: PERIOD_TEST_IDS[period],
+});
+
+const spotOptions = ALERT_PERIODS.map(createOption) as [
+  ReturnType<typeof createOption>,
+  ReturnType<typeof createOption>,
+];
+const perpOptions = PERP_ALERT_PERIODS.map(createOption) as [
+  ReturnType<typeof createOption>,
+  ReturnType<typeof createOption>,
+  ...ReturnType<typeof createOption>[],
+];
 
 /**
  * Small animated sliding-pill toggle for the percent-change rolling window
- * (24hr / 1hr).
+ * (24hr / 1hr, plus 5min for perpetuals).
  */
 const AlertPeriodToggle: React.FC<AlertPeriodToggleProps> = ({
   value,
   onChange,
+  includeFiveMinutes = false,
 }) => {
   const { colors } = useTheme();
-  const [firstPeriod, secondPeriod] = ALERT_PERIODS;
-  const options = useMemo(
-    () =>
-      [
-        {
-          value: firstPeriod,
-          label: strings(`price_alerts.period_${firstPeriod}`),
-          testID: periodTestId(firstPeriod),
-        },
-        {
-          value: secondPeriod,
-          label: strings(`price_alerts.period_${secondPeriod}`),
-          testID: periodTestId(secondPeriod),
-        },
-      ] as const,
-    [firstPeriod, secondPeriod],
-  );
 
   return (
     <SlidingPillToggle
       value={value}
-      options={options}
+      options={includeFiveMinutes ? perpOptions : spotOptions}
       onChange={onChange}
       testID={CreatePriceAlertTestIds.PERIOD_SEGMENT}
-      containerTwClassName="border border-muted rounded-full p-1 self-center"
-      pillTwClassName="rounded-full px-3 py-0.5"
+      inset={4}
+      containerBorderRadius={999}
+      pillBorderRadius={999}
+      containerBorderColor={colors.border.muted}
       sliderBackgroundColor={colors.background.defaultPressed}
-      sliderBorderRadius={999}
+      pillPaddingHorizontal={12}
+      pillPaddingVertical={2}
     />
   );
 };

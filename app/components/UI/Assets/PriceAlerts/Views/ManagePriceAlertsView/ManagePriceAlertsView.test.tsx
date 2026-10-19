@@ -2,6 +2,7 @@ import React from 'react';
 import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import ManagePriceAlertsView from './ManagePriceAlertsView';
 import {
   ManagePriceAlertsTestIds,
@@ -10,7 +11,6 @@ import {
   type PercentChangeAlert,
 } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
@@ -31,26 +31,43 @@ const createWrapper = () => {
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
 const mockNavigate = jest.fn();
-const mockShowToast = jest.fn();
+const mockFeatureGate = jest.fn((_props: unknown) => null);
 
-function WithToast({ children }: { children: React.ReactNode }) {
-  const ref = React.useRef({ showToast: mockShowToast, closeToast: jest.fn() });
-  return (
-    <ToastContext.Provider value={{ toastRef: ref }}>
-      {children}
-    </ToastContext.Provider>
-  );
-}
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
+
+jest.mock(
+  '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate',
+  () => ({
+    FeatureNotificationsGate: (props: unknown) => mockFeatureGate(props),
+  }),
+);
 
 const renderView = () => {
   const { Wrapper } = createWrapper();
   return render(
     <Wrapper>
-      <WithToast>
-        <ManagePriceAlertsView />
-      </WithToast>
+      <ManagePriceAlertsView />
     </Wrapper>,
   );
+};
+
+// Default route params (spot mode). Override per-test to exercise perps mode.
+// Must be declared before the jest.mock call below (which ESLint analyses
+// statically, even though jest.mock is Babel-hoisted at runtime).
+let mockRouteParams: Record<string, unknown> = {
+  symbol: 'ETH',
+  ticker: 'ETH',
+  currentPrice: 2500,
+  currentCurrency: 'USD',
+  assetId: 'eip155:1/slip44:60',
 };
 
 jest.mock('@react-navigation/native', () => ({
@@ -61,13 +78,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
   useRoute: () => ({
-    params: {
-      symbol: 'ETH',
-      ticker: 'ETH',
-      currentPrice: 2500,
-      currentCurrency: 'USD',
-      assetId: 'eip155:1/slip44:60',
-    },
+    params: mockRouteParams,
   }),
 }));
 
@@ -79,6 +90,36 @@ jest.mock('../../api', () => ({
   deleteAlertByType: (...args: unknown[]) => mockDeleteAlert(...args),
   updateAlertByType: (...args: unknown[]) => mockUpdateAlert(...args),
   priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
+}));
+
+const mockFetchPerpAlerts = jest.fn();
+const mockDeletePerpAlert = jest.fn();
+const mockUpdatePerpAlert = jest.fn();
+jest.mock('../../perpApi', () => ({
+  fetchPerpAlerts: (...args: unknown[]) => mockFetchPerpAlerts(...args),
+  deletePerpAlertByType: (...args: unknown[]) => mockDeletePerpAlert(...args),
+  updatePerpAlertByType: (...args: unknown[]) => mockUpdatePerpAlert(...args),
+  perpAlertsQueryKey: (marketId: string) => ['perpAlerts', marketId],
+  normalizePerpAlerts: (
+    alerts: {
+      marketId: string;
+      type: 'perp_absolute_price' | 'perp_percent_change';
+      [key: string]: unknown;
+    }[],
+  ) =>
+    alerts.map(({ marketId, type, ...responseFields }) => ({
+      ...responseFields,
+      asset: marketId,
+      type:
+        type === 'perp_percent_change' ? 'percent_change' : 'absolute_price',
+    })),
+}));
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+let mockNetworkTier: 'WIFI' | 'NONE' = 'WIFI';
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 const makeAlert = (
@@ -139,6 +180,15 @@ const makeErrorResponse = (status = 500) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Reset to spot mode defaults between tests.
+  mockRouteParams = {
+    symbol: 'ETH',
+    ticker: 'ETH',
+    currentPrice: 2500,
+    currentCurrency: 'USD',
+    assetId: 'eip155:1/slip44:60',
+  };
+  mockNetworkTier = 'WIFI';
   mockDeleteAlert.mockResolvedValue(makeOkResponse(204));
   mockUpdateAlert.mockResolvedValue(makeOkResponse(200));
 });
@@ -207,6 +257,15 @@ describe('ManagePriceAlertsView', () => {
           `${ManagePriceAlertsTestIds.ALERT_ITEM_PREFIX}-alert-2`,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('renders the price alerts notifications gate', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(mockFeatureGate).toHaveBeenCalledWith(
+        expect.objectContaining({ feature: 'priceAlerts' }),
+      );
     });
 
     it('shows the formatted threshold in each row', async () => {
@@ -540,14 +599,11 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
+        expect(toast).toHaveBeenCalledWith(
           expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Price alert deleted.',
-              }),
-            ]),
+            title: 'Price alert deleted.',
             hasNoTimeout: false,
+            showCloseButton: false,
           }),
         );
       });
@@ -833,6 +889,26 @@ describe('ManagePriceAlertsView', () => {
   });
 
   describe('redirect to CreatePriceAlert', () => {
+    it('shows loading without redirecting or fetching before the initial query can run offline', async () => {
+      mockNetworkTier = 'NONE';
+
+      const screen = renderView();
+
+      await act(async () => undefined);
+
+      expect(
+        screen.getByTestId(ManagePriceAlertsTestIds.LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ManagePriceAlertsTestIds.ALERT_LIST),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(mockFetchAlerts).not.toHaveBeenCalled();
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
     it('replaces the screen when the API returns an empty list', async () => {
       mockFetchAlerts.mockResolvedValue(makeFetchResponse([]));
       renderView();
@@ -860,16 +936,12 @@ describe('ManagePriceAlertsView', () => {
       renderView();
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to load price alerts. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to load price alerts. Try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
 
@@ -887,16 +959,12 @@ describe('ManagePriceAlertsView', () => {
       renderView();
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to load price alerts. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to load price alerts. Try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
   });
@@ -930,16 +998,12 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to delete price alert. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to delete price alert. Try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
 
@@ -957,16 +1021,12 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to update price alert. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to update price alert. Try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
   });
@@ -1013,6 +1073,7 @@ describe('ManagePriceAlertsView', () => {
         alert_value: 3000,
         alert_recurring: true,
         alert_active: true,
+        alert_market_type: 'spot',
       });
     });
 
@@ -1034,7 +1095,7 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalled();
+        expect(toast).toHaveBeenCalled();
       });
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
@@ -1082,6 +1143,7 @@ describe('ManagePriceAlertsView', () => {
         prev_alert_value: 3000,
         prev_alert_recurring: true,
         prev_alert_active: true,
+        alert_market_type: 'spot',
       });
     });
 
@@ -1102,7 +1164,7 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalled();
+        expect(toast).toHaveBeenCalled();
       });
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
@@ -1148,6 +1210,151 @@ describe('ManagePriceAlertsView', () => {
         prev_alert_value: 12.5,
         prev_alert_recurring: true,
         prev_alert_active: true,
+        alert_market_type: 'spot',
+      });
+    });
+  });
+
+  describe('perps mode', () => {
+    const MARKET_ID = 'btc-hyperliquid-mainnet';
+
+    const perpAlert = {
+      id: 'perp-alert-1',
+      userId: 'user-1',
+      marketId: MARKET_ID,
+      type: 'perp_absolute_price',
+      threshold: 95000,
+      recurring: false,
+      active: true,
+      createdAt: '2026-01-01T00:00:00Z',
+    };
+    const perpPercentAlert = {
+      id: 'perp-percent-alert-1',
+      userId: 'user-1',
+      marketId: MARKET_ID,
+      type: 'perp_percent_change',
+      threshold: 5,
+      period: '1h',
+      direction: 'up',
+      recurring: true,
+      active: true,
+      createdAt: '2026-01-01T00:00:00Z',
+    };
+
+    beforeEach(() => {
+      mockRouteParams = {
+        symbol: 'BTC',
+        ticker: 'BTC',
+        currentPrice: 95000,
+        currentCurrency: 'usd',
+        assetId: 'xyz:BTC',
+        mode: 'perps',
+        marketId: MARKET_ID,
+        szDecimals: 5,
+      };
+      mockFetchPerpAlerts.mockResolvedValue(
+        makeFetchResponse([perpAlert] as unknown as Alert[]),
+      );
+    });
+
+    it('passes existingAbsoluteAlerts with type normalised to CreatePriceAlertView when Add alert is tapped', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingAbsoluteAlerts: [
+            expect.objectContaining({
+              id: 'perp-alert-1',
+              type: 'absolute_price',
+              threshold: 95000,
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('passes an empty percent list when only threshold alerts are returned', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingPercentAlerts: [],
+        }),
+      );
+    });
+
+    it('formats absolute thresholds like the live market header', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $95,000')).toBeOnTheScreen();
+    });
+
+    it('includes szDecimals when navigating to CreatePriceAlertView', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          szDecimals: 5,
+        }),
+      );
+    });
+
+    it('renders and routes perps percent alerts by type', async () => {
+      mockFetchPerpAlerts.mockResolvedValue(
+        makeFetchResponse([perpAlert, perpPercentAlert] as unknown as Alert[]),
+      );
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Moves up 5%')).toBeOnTheScreen();
+      expect(screen.getByText('1h • Recurring')).toBeOnTheScreen();
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-${perpPercentAlert.id}`,
+        ),
+        'valueChange',
+        false,
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-${perpPercentAlert.id}`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockUpdatePerpAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: perpPercentAlert.id,
+            type: 'percent_change',
+          }),
+          { active: false },
+        );
+        expect(mockDeletePerpAlert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id: perpPercentAlert.id,
+            type: 'percent_change',
+          }),
+        );
       });
     });
   });

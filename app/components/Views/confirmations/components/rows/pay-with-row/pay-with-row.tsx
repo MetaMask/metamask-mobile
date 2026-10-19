@@ -1,5 +1,6 @@
-import React, { memo, useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -14,13 +15,8 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
-import { Box } from '../../../../../UI/Box/Box';
 import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../../../UI/Box/box.types';
-import {
+  Box,
   FontWeight,
   Icon,
   IconColor,
@@ -69,16 +65,11 @@ function PayWithRowComponent({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
+  const { payToken } = useTransactionPayToken();
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
   const { payWithOption } = useParams<ConfirmationParams>({});
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
-
-  // Once the controller has set a paymentOverride (even if later cleared by the
-  // user switching away), Redux is the source of truth and the flag-based
-  // default no longer applies.
-  const overrideApplied = useRef(false);
-  if (paymentOverride !== undefined) {
-    overrideApplied.current = true;
-  }
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {
@@ -90,8 +81,15 @@ function PayWithRowComponent({
     return <PayWithRowMoneyAccount />;
   }
 
-  // Flag-based default — step aside when results are ready so user can change.
-  if (isDefaultMoneyAccount && !overrideApplied.current && !isResultReady) {
+  // Flag default only before a token or fiat method is chosen. Clearing the
+  // money-account override leaves the selected pay token in place, and that
+  // token is what the row should show.
+  if (
+    isDefaultMoneyAccount &&
+    !payToken &&
+    !selectedFiatPaymentMethod &&
+    !isResultReady
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 
@@ -122,9 +120,7 @@ function PayWithRowLayout({
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
+        twClassName="flex-row items-center justify-between"
         style={styles.container}
       >
         <Text
@@ -133,11 +129,7 @@ function PayWithRowLayout({
         >
           {label}
         </Text>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={8}
-        >
+        <Box twClassName="flex-row items-center gap-2">
           {children}
           {showArrow && (
             <Icon
@@ -153,7 +145,7 @@ function PayWithRowLayout({
 }
 
 function PayWithRowInteractive() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -343,14 +335,14 @@ function PayWithRowEmpty({
         color={TextColor.TextAlternative}
         testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
       >
-        {strings('confirm.label.select_token')}
+        {strings('confirm.label.select_payment_method')}
       </Text>
     </PayWithRowLayout>
   );
 }
 
 function PayWithRowMoneyAccount() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isWithdraw } = useTransactionPayWithdraw();
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -394,19 +386,13 @@ export function PayWithRowSkeleton() {
   return (
     <Box
       testID="pay-with-row-skeleton"
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      justifyContent={JustifyContent.spaceBetween}
-      style={styles.skeletonContainer}
+      twClassName="flex-row items-center justify-between"
+      style={styles.container}
     >
-      <Skeleton height={18} width={60} style={styles.skeletonTop} />
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={8}
-      >
-        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
-        <Skeleton height={18} width={120} style={styles.skeletonTop} />
+      <Skeleton height={18} width={60} />
+      <Box twClassName="flex-row items-center gap-2">
+        <Skeleton height={20} width={20} style={styles.skeletonCircle} />
+        <Skeleton height={18} width={120} />
       </Box>
     </Box>
   );

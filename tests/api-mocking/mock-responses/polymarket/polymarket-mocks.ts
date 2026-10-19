@@ -57,7 +57,10 @@ import {
 import { createTransactionSentinelResponse } from './polymarket-transaction-sentinel-response.ts';
 import { GEO_BLOCKED_COUNTRIES } from '../../../../app/components/UI/Predict/constants/geoblock.ts';
 import { POLYMARKET_GEOBLOCK_ELIGIBLE } from '../defaults/polymarket-apis.ts';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map.ts';
 
 /**
  * Mock for Polymarket API returning 500 error
@@ -112,10 +115,195 @@ const PRIORITY = {
 function parseRedeemableParam(requestUrl: string): boolean | undefined {
   const proxiedUrl = new URL(requestUrl).searchParams.get('url');
   if (!proxiedUrl) return undefined;
-  const url = new URL(proxiedUrl);
+  const url = new URL(normalizeDataApiUrl(proxiedUrl));
   const value = url.searchParams.get('redeemable');
   if (value === null) return undefined;
   return value === 'true';
+}
+
+/**
+ * Normalizes a proxied Data API URL for mock matching and parameter parsing:
+ * Data API v2 paths and parameters (PRED-1346) are mapped onto their v1
+ * equivalents so a single set of matchers serves both API versions. The RAW
+ * proxied URL must still be passed to `dataApiJsonResponse`, which uses it to
+ * decide whether to wrap the fixture rows in the v2 envelope.
+ */
+export function normalizeDataApiUrl(proxiedUrl: string): string {
+  return proxiedUrl
+    .replace(
+      'data-api.polymarket.com/v2/positions',
+      'data-api.polymarket.com/positions',
+    )
+    .replace(
+      'data-api.polymarket.com/v2/activity',
+      'data-api.polymarket.com/activity',
+    )
+    .replace(
+      'data-api.polymarket.com/v2/user-pnl',
+      'data-api.polymarket.com/upnl',
+    )
+    .replace(/([?&])status=REDEEMABLE_LOST/gu, '$1redeemable=true')
+    .replace(/([?&])status=REDEEMABLE/gu, '$1redeemable=true')
+    .replace(/([?&])status=OPEN/gu, '$1redeemable=false')
+    .replace(/([?&])event_id=/gu, '$1eventId=');
+}
+
+/**
+ * Extracts and normalizes the proxied URL from a `/proxy` request so v1
+ * matchers and parameter parsing work for both Data API versions.
+ */
+export function getProxiedDataApiUrl(requestUrl: string): string | null {
+  const proxiedUrl = new URL(requestUrl).searchParams.get('url');
+  return proxiedUrl === null ? null : normalizeDataApiUrl(proxiedUrl);
+}
+
+/** v1 camelCase position fixture row (Data API v1 shape). */
+interface PolymarketPositionRowV1 {
+  conditionId?: string;
+  eventId?: string;
+  icon?: string;
+  title?: string;
+  slug?: string;
+  eventSlug?: string;
+  size?: number;
+  outcome?: string;
+  outcomeIndex?: number;
+  cashPnl?: number;
+  curPrice?: number;
+  currentValue?: number;
+  initialValue?: number;
+  avgPrice?: number;
+  redeemable?: boolean;
+  negativeRisk?: boolean;
+  realizedPnl?: number;
+  endDate?: string;
+  asset?: string;
+}
+
+/** v1 camelCase activity fixture row (Data API v1 shape). */
+interface PolymarketActivityRowV1 {
+  type?: string;
+  side?: string;
+  size?: number;
+  price?: number;
+  usdcSize?: number;
+  timestamp?: number;
+  transactionHash?: string;
+  conditionId?: string;
+  outcomeIndex?: number;
+  title?: string;
+  outcome?: string;
+  icon?: string;
+  slug?: string;
+  eventSlug?: string;
+}
+
+/** v1 unrealized P&L fixture row (Data API v1 shape). */
+interface PolymarketUpnlRowV1 {
+  user?: string;
+  cashUpnl?: number;
+  percentUpnl?: number;
+}
+
+/** Converts v1 position fixture rows to Data API v2 snake_case rows. */
+function toPolymarketPositionsV2Rows(rows: PolymarketPositionRowV1[]) {
+  return rows.map((row) => ({
+    condition_id: row.conditionId ?? '',
+    event_id: row.eventId ?? '',
+    icon: row.icon ?? '',
+    title: row.title ?? '',
+    slug: row.slug ?? '',
+    event_slug: row.eventSlug ?? '',
+    current_size: row.size ?? 0,
+    outcome: row.outcome ?? '',
+    outcome_index: row.outcomeIndex ?? 0,
+    unrealized_pnl: row.cashPnl ?? null,
+    current_price: row.curPrice ?? 0,
+    current_value: row.currentValue ?? 0,
+    entry_cost_usdc: row.initialValue ?? 0,
+    avg_price: row.avgPrice,
+    redeemable: row.redeemable,
+    negative_risk: row.negativeRisk,
+    realized_pnl: row.realizedPnl,
+    end_date: row.endDate,
+    token_id: row.asset,
+  }));
+}
+
+/** Converts v1 activity fixture rows to Data API v2 snake_case rows. */
+function toPolymarketActivityV2Rows(rows: PolymarketActivityRowV1[]) {
+  return rows.map((row) => ({
+    type: row.type ?? '',
+    side: row.side ?? '',
+    size: row.size ?? null,
+    price: row.price ?? 0,
+    usdc_size: row.usdcSize ?? 0,
+    timestamp: row.timestamp ?? 0,
+    transaction_hash: row.transactionHash ?? '',
+    condition_id: row.conditionId ?? '',
+    outcome_index: row.outcomeIndex ?? 0,
+    title: row.title ?? '',
+    outcome: row.outcome,
+    icon: row.icon ?? '',
+    slug: row.slug,
+    event_slug: row.eventSlug,
+  }));
+}
+
+/** Converts v1 unrealized P&L fixture rows to the Data API v2 envelope. */
+function toPolymarketUpnlV2Response(rows: PolymarketUpnlRowV1[]) {
+  const latest = rows[0];
+  return {
+    data: latest
+      ? {
+          proxy_wallet: latest.user ?? '',
+          interval: '1m',
+          fidelity: 1,
+          points: [
+            {
+              t: Math.floor(Date.now() / 1000),
+              unrealized_pnl: latest.cashUpnl ?? null,
+            },
+          ],
+        }
+      : null,
+  };
+}
+
+type DataApiJsonKind = 'positions' | 'activity' | 'upnl';
+
+/**
+ * Builds a mock response for a Data API request. Serves the v1 fixture rows
+ * as-is for v1 requests, and wraps them in the v2 envelope (rows converted to
+ * snake_case) for v2 requests, mirroring the Data API v2 migration (PRED-1346).
+ */
+export function dataApiJsonResponse(
+  requestUrl: string,
+  kind: DataApiJsonKind,
+  v1Rows: unknown,
+): { statusCode: number; json: unknown } {
+  const proxiedUrl = new URL(requestUrl).searchParams.get('url') ?? '';
+  if (!proxiedUrl.includes('data-api.polymarket.com/v2/')) {
+    return { statusCode: 200, json: v1Rows };
+  }
+  const pagination = { next_cursor: null };
+  const json =
+    kind === 'positions'
+      ? {
+          data: toPolymarketPositionsV2Rows(
+            v1Rows as PolymarketPositionRowV1[],
+          ),
+          pagination,
+        }
+      : kind === 'activity'
+        ? {
+            data: toPolymarketActivityV2Rows(
+              v1Rows as PolymarketActivityRowV1[],
+            ),
+            pagination,
+          }
+        : toPolymarketUpnlV2Response(v1Rows as PolymarketUpnlRowV1[]);
+  return { statusCode: 200, json };
 }
 
 export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
@@ -202,6 +390,25 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
+ * Mock for Polymarket geoblock endpoint returning a failed / incomplete check.
+ * Used to exercise degraded-access UI that must not be described as a
+ * geo-restriction. Registered at priority 1000 so it wins over the eligible
+ * geoblock mock that POLYMARKET_COMPLETE_MOCKS registers at the default 999.
+ */
+export const POLYMARKET_GEO_UNAVAILABLE_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: 'https://polymarket.com/api/geoblock',
+      responseCode: 500,
+      response: { error: 'geoblock unavailable' },
+    },
+    1000,
+  );
+};
+
+/**
  * Mock for Polymarket geoblock endpoint returning eligible region.
  * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
  */
@@ -222,7 +429,7 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       // Match only /events/{numericId}, NOT /events/pagination or
       // /events?parent_event_id=... — those have their own dedicated mocks.
       return Boolean(
@@ -231,7 +438,7 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const eventIdMatch = url?.match(/\/events\/([0-9]+)$/);
       const eventId = eventIdMatch ? eventIdMatch[1] : '60362';
 
@@ -276,7 +483,7 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -286,7 +493,7 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const redeemable = parseRedeemableParam(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
@@ -317,10 +524,7 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
     });
 };
 
@@ -344,7 +548,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -354,7 +558,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
     })
     .asPriority(priority)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const redeemable = parseRedeemableParam(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
@@ -374,16 +578,24 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         }));
       }
 
+      // Keep test-only active winnings inside the homepage display limit,
+      // including when the request omits the redeemable parameter.
+      const activePositions = showWinningsAsActive
+        ? [...winnings, ...POLYMARKET_CURRENT_POSITIONS_RESPONSE]
+        : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
       const allPositions =
         redeemable === undefined
-          ? [
-              ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-              ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
-              ...winnings,
-            ]
-          : showWinningsAsActive
-            ? [...POLYMARKET_CURRENT_POSITIONS_RESPONSE, ...winnings]
-            : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
+          ? showWinningsAsActive
+            ? [
+                ...activePositions,
+                ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
+              ]
+            : [
+                ...activePositions,
+                ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
+                ...winnings,
+              ]
+          : activePositions;
 
       let filteredPositions = allPositions;
       if (eventId) {
@@ -397,17 +609,14 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
     });
 
   // Mock for resolved markets (redeemable=true) - overrides POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -417,7 +626,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -449,10 +658,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         })),
       ];
 
-      return {
-        statusCode: 200,
-        json: resolvedPositions,
-      };
+      return dataApiJsonResponse(request.url, 'positions', resolvedPositions);
     });
 };
 
@@ -470,7 +676,7 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -480,7 +686,7 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
     })
     .asPriority(PRIORITY.CLAIMABLE_POSITIONS_OVERRIDE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : undefined;
       const eventIdMatch = url?.match(/eventId=([0-9]+)/);
@@ -501,10 +707,7 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
           }))
         : filteredPositions;
 
-      return {
-        statusCode: 200,
-        json: response,
-      };
+      return dataApiJsonResponse(request.url, 'positions', response);
     });
 }
 
@@ -528,7 +731,7 @@ export const POLYMARKET_CLOB_AUTH_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(url?.includes('clob.polymarket.com/auth/api-key'));
     })
     .asPriority(PRIORITY.BASE)
@@ -542,7 +745,7 @@ export const POLYMARKET_CLOB_AUTH_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(url?.includes('clob.polymarket.com/auth/derive-api-key'));
     })
     .asPriority(PRIORITY.BASE)
@@ -561,7 +764,7 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
+      const urlParam = getProxiedDataApiUrl(request.url);
       if (!urlParam?.includes('clob.polymarket.com/prices')) {
         return false;
       }
@@ -660,7 +863,7 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('clob.polymarket.com/fee-rate') &&
@@ -712,7 +915,7 @@ export const POLYMARKET_PRICES_HISTORY_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(url?.includes('clob.polymarket.com/prices-history'));
     })
     .asPriority(PRIORITY.BASE)
@@ -930,12 +1133,12 @@ export const POLYMARKET_TEAMS_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(url?.includes('gamma-api.polymarket.com/teams'));
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const proxiedUrlParam = new URL(request.url).searchParams.get('url');
+      const proxiedUrlParam = getProxiedDataApiUrl(request.url);
       let league = '';
       try {
         const polymarketUrl = new URL(proxiedUrlParam ?? '');
@@ -959,7 +1162,7 @@ export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('clob.polymarket.com/book') &&
@@ -968,7 +1171,7 @@ export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const tokenIdMatch = url?.match(/token_id=(\d+)/);
       const tokenId = tokenIdMatch ? tokenIdMatch[1] : '';
 
@@ -1045,7 +1248,7 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const matches = Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -1055,7 +1258,7 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -1076,10 +1279,7 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
     });
 };
 
@@ -1091,7 +1291,7 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/activity') &&
@@ -1100,7 +1300,7 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -1109,10 +1309,7 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'activity', dynamicResponse);
     });
 };
 
@@ -1124,7 +1321,7 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/upnl') &&
@@ -1133,7 +1330,7 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -1143,10 +1340,7 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
         user: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'upnl', dynamicResponse);
     });
 };
 
@@ -1207,7 +1401,7 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
+      const urlParam = getProxiedDataApiUrl(request.url);
       const isPolygonRPC = Boolean(urlParam?.includes('polygon'));
       const isEthereumRPC = Boolean(
         urlParam?.includes('mainnet') || urlParam?.includes('ethereum'),
@@ -1405,7 +1599,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url?.includes('gamma-api.polymarket.com/events/pagination') ||
           url?.includes('gamma-api.polymarket.com/events/keyset'),
@@ -1413,7 +1607,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
 
       // Parse the actual Polymarket API URL to get query parameters
       const polymarketUrl = new URL(url || '');
@@ -1467,11 +1661,19 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
       };
     });
 
+  // PredictHome Popular Today / feed chips fetch related tags for slug "all".
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/gamma-api\.polymarket\.com\/tags\/slug\/[^/]+\/related-tags\/tags/,
+    responseCode: 200,
+    response: [],
+  });
+
   // Also mock the search endpoint for market feeds
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(url?.includes('gamma-api.polymarket.com/public-search'));
     })
     .asPriority(PRIORITY.BASE)
@@ -1488,7 +1690,7 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
 const POLYGON_RELAY_TX_E2E_UUID = 'predict-e2e-withdraw-relay-uuid';
 
 /**
- * Overrides TX Sentinel `/networks` so Polygon (137) advertises transaction relay.
+ * Overrides TX Sentinel `/networks` and `/network` so Polygon (137) advertises transaction relay.
  * Required for Delegation7702PublishHook: default mocks set relayTransactions=false for 137,
  * so submitRelayTransaction cannot run and predict withdraw confirmation fails.
  *
@@ -1508,13 +1710,11 @@ export const POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS = async (
     },
   };
 
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(PRIORITY.HOMEPAGE_POSITIONS_OVERRIDE)
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: withPolygonRelay,
-    }));
+  await mockTxSentinelNetworks(
+    mockServer,
+    withPolygonRelay,
+    PRIORITY.HOMEPAGE_POSITIONS_OVERRIDE,
+  );
 };
 
 /**
@@ -1572,8 +1772,13 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
           };
         }
 
-        const transactions = body?.params?.[0]?.transactions || [];
-        const firstTx = transactions[0] || {};
+        const requestedTransactions = body?.params?.[0]?.transactions;
+        const txList =
+          Array.isArray(requestedTransactions) &&
+          requestedTransactions.length > 0
+            ? requestedTransactions
+            : [{}];
+        const firstTx = txList[0] || {};
         const fromAddress =
           firstTx.from?.toLowerCase() || USER_WALLET_ADDRESS.toLowerCase();
 
@@ -1581,7 +1786,21 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
         // The response includes gas estimates and state diffs
         return {
           statusCode: 200,
-          json: createTransactionSentinelResponse(fromAddress),
+          json: {
+            jsonrpc: '2.0',
+            result: {
+              transactions: txList.map(
+                (tx: Record<string, unknown>) =>
+                  createTransactionSentinelResponse(
+                    ((tx.from as string) || fromAddress) as string,
+                    ((tx.data as string) || '0x') as string,
+                  ).result.transactions[0],
+              ),
+              blockNumber: '0x4a9637e',
+              id: 'd1574ab9-ecba-4e33-bf48-b04388a25589',
+            },
+            id: '7',
+          },
         };
       } catch (error) {
         // Return a basic success response if parsing fails
@@ -1626,7 +1845,7 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -1636,7 +1855,7 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base positions mock
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const redeemable = parseRedeemableParam(request.url);
       const eventIdMatch = url?.match(/eventId=([0-9]+)/);
       const eventId = eventIdMatch ? eventIdMatch[1] : null;
@@ -1650,10 +1869,7 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
       if (eventId === '79682') {
         if (!celticsOrderSubmittedForProxy) {
           // Return empty array if order hasn't been submitted yet
-          return {
-            statusCode: 200,
-            json: [],
-          };
+          return dataApiJsonResponse(request.url, 'positions', []);
         }
 
         // Return Celtics vs Nets position with PROXY_WALLET_ADDRESS
@@ -1665,10 +1881,7 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
             }),
           );
 
-        return {
-          statusCode: 200,
-          json: dynamicResponse,
-        };
+        return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
       }
 
       // For main positions list (no eventId filter), combine existing positions with Celtics position
@@ -1701,10 +1914,7 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
         proxyWallet: PROXY_WALLET_ADDRESS,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
     });
 };
 
@@ -1719,7 +1929,7 @@ export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/activity') &&
@@ -1728,7 +1938,7 @@ export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the base activity mock
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -1753,10 +1963,7 @@ export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'activity', dynamicResponse);
     });
 };
 
@@ -1792,7 +1999,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
+      const urlParam = getProxiedDataApiUrl(request.url);
 
       if (!urlParam?.includes('polygon') && !urlParam?.includes('infura')) {
         return false;
@@ -1854,7 +2061,7 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
     .forPost('/proxy')
     .matching(async (request) => {
       try {
-        const urlParam = new URL(request.url).searchParams.get('url');
+        const urlParam = getProxiedDataApiUrl(request.url);
         if (
           !urlParam ||
           !urlParam.includes('predict.') ||
@@ -1920,11 +2127,16 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
 
   // Mock CLOB API for cash-out order submission (fallback for direct CLOB calls)
   // Response uses decimal string format (not wei)
+  // Excludes /auth/ so POLYMARKET_CLOB_AUTH_MOCKS still issues API credentials;
+  // an order-shaped reply there leaves the HMAC secret empty.
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
-      return Boolean(urlParam?.includes('clob.polymarket.com'));
+      const urlParam = getProxiedDataApiUrl(request.url);
+      return Boolean(
+        urlParam?.includes('clob.polymarket.com') &&
+          !urlParam.includes('/auth/'),
+      );
     })
     .asPriority(PRIORITY.API_OVERRIDE)
     .thenCallback(() => ({
@@ -1977,7 +2189,7 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
     .forPost('/proxy')
     .matching(async (request) => {
       try {
-        const urlParam = new URL(request.url).searchParams.get('url');
+        const urlParam = getProxiedDataApiUrl(request.url);
         if (
           !urlParam ||
           !urlParam.includes('predict.') ||
@@ -2105,7 +2317,7 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
+      const urlParam = getProxiedDataApiUrl(request.url);
       return Boolean(
         urlParam &&
           (urlParam.includes('clob.polymarket.com/order') ||
@@ -2199,7 +2411,7 @@ export const POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS = async (
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
+      const urlParam = getProxiedDataApiUrl(request.url);
       const isPolygonRPC = Boolean(
         urlParam?.includes('polygon') || urlParam?.includes('infura'),
       );
@@ -2249,7 +2461,7 @@ export const POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS = async (
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
-      const urlParam = new URL(request.url).searchParams.get('url');
+      const urlParam = getProxiedDataApiUrl(request.url);
       const isPolygonRPC = Boolean(
         urlParam?.includes('polygon') || urlParam?.includes('infura'),
       );
@@ -2298,7 +2510,7 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -2307,16 +2519,14 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
       );
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original redeemable positions mock
-    .thenCallback(() => ({
-      // Return empty array - all resolved market positions (including winning positions) are removed after claiming
-      statusCode: 200,
-      json: [],
-    }));
+    .thenCallback((request) =>
+      dataApiJsonResponse(request.url, 'positions', []),
+    );
 
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -2327,7 +2537,7 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE)
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -2346,10 +2556,7 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
     });
 };
 
@@ -2365,7 +2572,7 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/activity') &&
@@ -2374,7 +2581,7 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -2399,10 +2606,7 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
         ...existingActivityWithUserAddress,
       ];
 
-      return {
-        statusCode: 200,
-        json: activityWithClaims,
-      };
+      return dataApiJsonResponse(request.url, 'activity', activityWithClaims);
     });
 };
 
@@ -2420,7 +2624,7 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/positions') &&
@@ -2430,7 +2634,7 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original positions mock
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const redeemable = parseRedeemableParam(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
@@ -2468,17 +2672,14 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'positions', dynamicResponse);
     });
 
   // Override the activity mock to include a SELL transaction for Spurs vs. Pelicans
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       return Boolean(
         url &&
           url.includes('data-api.polymarket.com/activity') &&
@@ -2487,7 +2688,7 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
     })
     .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to override the original activity mock
     .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
+      const url = getProxiedDataApiUrl(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
@@ -2531,10 +2732,7 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
         proxyWallet: userAddress,
       }));
 
-      return {
-        statusCode: 200,
-        json: dynamicResponse,
-      };
+      return dataApiJsonResponse(request.url, 'activity', dynamicResponse);
     });
 };
 

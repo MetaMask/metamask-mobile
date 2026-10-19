@@ -1,4 +1,5 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +38,7 @@ const NftOptions = () => {
   const { collectible } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const modalRef = useRef<ReusableModalRef>(null);
   const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
@@ -119,7 +120,7 @@ const NftOptions = () => {
               style={styles.optionButton}
               onPress={gotToOpensea}
             >
-              <Icon name={IconName.Export} style={styles.iconOs} />
+              <Icon name={IconName.ArrowSquareOut} style={styles.iconOs} />
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('nft_details.options.view_on_os')}
               </Text>

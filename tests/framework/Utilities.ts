@@ -1,18 +1,14 @@
-import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
-import {
-  asPlaywrightElement,
-  type EncapsulatedElementType,
-} from './EncapsulatedElement.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
-import PlaywrightAssertions from './PlaywrightAssertions.ts';
-import PlaywrightGestures from './PlaywrightGestures.ts';
+import type { AppiumElement } from './AppiumElement.ts';
+import AppiumAssertions from './AppiumAssertions.ts';
+import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
 import { resolveE2EWaitTimeoutMs } from './Constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
+import { Json } from '@metamask/utils';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: resolveE2EWaitTimeoutMs(15000),
@@ -26,6 +22,18 @@ const logger = createLogger({ name: 'Utilities' });
 
 export const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+export function stripJsonKeys(value: Json, excludedKeys: string[]): Json {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const next = { ...(value as Record<string, Json>) };
+  for (const key of excludedKeys) {
+    delete next[key];
+  }
+  return next;
+}
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
@@ -49,29 +57,10 @@ export default class Utilities {
    * Check if element is enabled (non-retry version)
    */
   static async checkElementEnabled(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      const el = await asPlaywrightElement(elem);
-      if (!(await el.isEnabled())) {
-        throw new Error(
-          [
-            '🚫 Element is not enabled.',
-            '',
-            '💡 If this element might be disabled in some situations,',
-            '   consider using the {checkEnabled: false} option.',
-            '',
-            '📝 Example:',
-            '   await Gestures.waitAndTap(element, {checkEnabled: false})',
-          ].join('\n'),
-        );
-      }
-      return;
-    }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-    if (!('enabled' in attributes) || !attributes.enabled) {
+    const el = await elem;
+    if (!(await el.isEnabled())) {
       throw new Error(
         [
           '🚫 Element is not enabled.',
@@ -84,23 +73,29 @@ export default class Utilities {
         ].join('\n'),
       );
     }
+    return;
   }
 
   static async checkElementDisabled(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
   ): Promise<void> {
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-    if (!('enabled' in attributes) || attributes.enabled) {
-      throw new Error('🚫 Element is enabled, but should be disabled.');
+    const el = await elem;
+    if (!(await el.isEnabled())) {
+      return;
     }
+    // RN may report isEnabled=true while native enabled="false".
+    const enabledAttr = await el.getAttribute('enabled');
+    if (enabledAttr === 'false') {
+      return;
+    }
+    throw new Error('🚫 Element is enabled, but should be disabled.');
   }
 
   /**
    * Wait for element to be enabled with retry mechanism
    */
   static async waitForElementToBeEnabled(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
@@ -112,40 +107,58 @@ export default class Utilities {
   }
 
   /**
+   * Wait for element to be disabled with retry mechanism
+   */
+  static async waitForElementToBeDisabled(
+    elem: Promise<AppiumElement>,
+    timeout = 3500,
+    interval = 100,
+  ): Promise<void> {
+    return this.executeWithRetry(() => this.checkElementDisabled(elem), {
+      timeout,
+      interval,
+      description: 'Element to be disabled',
+    });
+  }
+
+  /**
+   * Read text content from an element.
+   */
+  static async getElementText(elem: Promise<AppiumElement>): Promise<string> {
+    const appiumElement = await elem;
+    return appiumElement.textContent();
+  }
+
+  /**
    * Check if element is actually tappable (not obscured by other elements)
    * Android-specific check for element obscuration
    */
   static async checkElementNotObscured(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
   ): Promise<void> {
     try {
-      const el = (await elem) as Detox.IndexableNativeElement;
-      const attributes = await el.getAttributes();
+      const el = await elem;
+      const raw = el.unwrap();
+      const location = await raw.getLocation();
+      const size = await raw.getSize();
 
-      // Check if element has proper frame/bounds
-      if (!('frame' in attributes) || !attributes.frame) {
+      if (
+        typeof location.x !== 'number' ||
+        typeof location.y !== 'number' ||
+        typeof size.width !== 'number' ||
+        typeof size.height !== 'number'
+      ) {
         throw new Error(
           '🚫 Element does not have valid frame bounds - may be obscured',
         );
       }
 
-      // Additional Android-specific checks could be added here
-      // For now, we rely on the basic frame check and visibility
-      try {
-        // Try to get element center point to ensure it's accessible
-        const centerX = attributes.frame.x + attributes.frame.width / 2;
-        const centerY = attributes.frame.y + attributes.frame.height / 2;
+      const centerX = location.x + size.width / 2;
+      const centerY = location.y + size.height / 2;
 
-        if (centerX <= 0 || centerY <= 0) {
-          throw new Error(
-            '🚫 Element center point is not accessible - may be obscured',
-          );
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+      if (centerX <= 0 || centerY <= 0) {
         throw new Error(
-          `🚫 Element appears to be obscured or not tappable: ${errorMessage}`,
+          '🚫 Element center point is not accessible - may be obscured',
         );
       }
     } catch (error) {
@@ -169,7 +182,7 @@ export default class Utilities {
    * Check if element is stable (non-retry version)
    */
   static async checkElementStable(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 2000, interval = 200, stableCount = 3 } = options;
@@ -178,16 +191,12 @@ export default class Utilities {
     const fallBackTimeout = 2000;
     const start = Date.now();
 
-    const getPosition = async (el: Detox.IndexableNativeElement) => {
+    const getPosition = async () => {
       try {
-        const attributes = await el.getAttributes();
-        if (
-          'frame' in attributes &&
-          attributes.frame &&
-          typeof attributes.frame.x === 'number' &&
-          typeof attributes.frame.y === 'number'
-        ) {
-          return { x: attributes.frame.x, y: attributes.frame.y };
+        const el = await elem;
+        const location = await el.unwrap().getLocation();
+        if (typeof location.x === 'number' && typeof location.y === 'number') {
+          return { x: location.x, y: location.y };
         }
         return null;
       } catch {
@@ -196,15 +205,14 @@ export default class Utilities {
     };
 
     while (Date.now() - start < timeout) {
-      const el = (await elem) as Detox.IndexableNativeElement;
-      const position = await getPosition(el);
+      const position = await getPosition();
 
       if (!position) {
         await new Promise((resolve) =>
           // eslint-disable-next-line no-restricted-syntax
           setTimeout(resolve, fallBackTimeout),
         );
-        return; // Return early if position is not available
+        return;
       }
 
       if (
@@ -230,7 +238,7 @@ export default class Utilities {
    * Waits for an element to become stable (not moving) by checking its position multiple times.
    */
   static async waitForElementToStopMoving(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 5000 } = options;
@@ -244,14 +252,14 @@ export default class Utilities {
    * Check element ready state (non-retry version)
    */
   static async checkElementReadyState(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: {
       timeout?: number;
       checkStability?: boolean;
       checkVisibility?: boolean;
       checkEnabled?: boolean;
     } = {},
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     const {
       timeout,
       checkStability = false,
@@ -259,7 +267,6 @@ export default class Utilities {
       checkEnabled = true,
     } = options;
 
-    const el = (await elem) as Detox.IndexableNativeElement;
     /**
      * IMPORTANT: Default timeout behavior
      *
@@ -275,75 +282,46 @@ export default class Utilities {
      * - Stability check: 2000ms (allows time for UI to settle)
      */
 
-    if (FrameworkDetector.isAppium()) {
-      const playwrightElem = asPlaywrightElement(elem);
-
-      if (checkVisibility) {
-        const visibilityTimeout = timeout || 100;
-        await PlaywrightAssertions.expectElementToBeVisible(playwrightElem, {
-          timeout: visibilityTimeout,
-        });
-      }
-
-      if (checkEnabled && PlatformDetector.isAndroid()) {
-        const pwEl = await playwrightElem;
-        if (!(await pwEl.isEnabled())) {
-          throw new Error('Element is not enabled');
-        }
-      }
-
-      if (checkStability) {
-        const stabilityTimeout = timeout || 2000;
-        const stabilityCheckInterval = timeout ? timeout / 10 : 200;
-        await PlaywrightGestures.waitForElementStable(await playwrightElem, {
-          timeout: stabilityTimeout,
-          interval: stabilityCheckInterval,
-        });
-      }
-
-      return el;
-    }
+    const playwrightElem = elem;
 
     if (checkVisibility) {
-      const visibilityTimeout = timeout || 100; // If no timeout is provided, default to 100ms
-      if (device.getPlatform() === 'ios') {
-        await waitFor(el).toExist().withTimeout(visibilityTimeout);
-      } else {
-        await waitFor(el).toBeVisible().withTimeout(visibilityTimeout);
-        await this.checkElementNotObscured(Promise.resolve(el)); // Ensure element is not obscured
-      }
+      const visibilityTimeout = timeout || 100;
+      await AppiumAssertions.expectElementToBeVisible(playwrightElem, {
+        timeout: visibilityTimeout,
+      });
     }
 
-    if (checkEnabled && device.getPlatform() === 'android') {
-      // checkEnabled is only relevant for Android
-      // iOS elements often fail on enabled checks even when they are tappable
-      await this.checkElementEnabled(Promise.resolve(el));
+    if (checkEnabled && PlatformDetector.isAndroid()) {
+      const pwEl = await playwrightElem;
+      if (!(await pwEl.isEnabled())) {
+        throw new Error('Element is not enabled');
+      }
     }
 
     if (checkStability) {
-      const stabilityTimeout = timeout || 2000; // If no timeout is provided, default to 2000ms
-      const stabilityCheckInterval = timeout ? timeout / 10 : 200; // Default to 200ms if no timeout is provided
-      await this.checkElementStable(Promise.resolve(el), {
+      const stabilityTimeout = timeout || 2000;
+      const stabilityCheckInterval = timeout ? timeout / 10 : 200;
+      await AppiumGestures.waitForElementStable(await playwrightElem, {
         timeout: stabilityTimeout,
         interval: stabilityCheckInterval,
       });
     }
 
-    return el;
+    return playwrightElem;
   }
 
   /**
    * Wait for element to be in a ready state (visible, enabled, stable)
    */
   static async waitForReadyState(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: {
       timeout?: number;
       checkStability?: boolean;
       skipVisibilityCheck?: boolean;
       elemDescription?: string;
     } = {},
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     const { timeout = TEST_CONFIG_DEFAULTS.timeout, elemDescription } = options;
 
     return this.executeWithRetry(
@@ -360,53 +338,22 @@ export default class Utilities {
    * Wait for element to be visible and throw on failure
    */
   static async waitForElementToBeVisible(
-    elem: DetoxMatcher | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout: number = 2000,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
-        { timeout },
-      );
-      return;
-    }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
-
-    if (isWebElement) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).toExist();
-    } else {
-      await waitFor(el).toBeVisible().withTimeout(timeout);
-    }
+    await AppiumAssertions.expectElementToBeVisible(elem, { timeout });
+    return;
   }
 
   /**
    * Wait for element to be not visible and throw on failure
    */
   static async waitForElementToDisappear(
-    elem: DetoxMatcher | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout: number = 2000,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      await PlaywrightAssertions.expectElementToNotBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
-        { timeout },
-      );
-      return;
-    }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
-    if (isWebElement) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).not.toExist();
-    } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).not.toExist().withTimeout(timeout);
-    } else {
-      await waitFor(el).not.toBeVisible().withTimeout(timeout);
-    }
+    await AppiumAssertions.expectElementToNotBeVisible(elem, { timeout });
+    return;
   }
 
   /**
@@ -414,7 +361,7 @@ export default class Utilities {
    * Returns true if element is visible, false if not visible or doesn't exist
    */
   static async isElementVisible(
-    elem: DetoxMatcher | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout: number = 2000,
   ): Promise<boolean> {
     try {
@@ -426,7 +373,7 @@ export default class Utilities {
   }
 
   /**
-   * Check if an element is a WebElement
+   * Check if an element is a Playwright/WebdriverIO web element facade.
    */
   static isWebElement(el: unknown): boolean {
     if (!el || typeof el !== 'object') {
@@ -436,12 +383,9 @@ export default class Utilities {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webEl = el as any;
     return !!(
-      webEl?.webViewElement ||
-      typeof webEl?.runScript === 'function' ||
-      (webEl?.constructor?.name &&
-        (webEl.constructor.name.includes('IndexableWebElement') ||
-          webEl.constructor.name.includes('SecuredWebElementFacade') ||
-          webEl.constructor.name.includes('WebElement')))
+      typeof webEl?.scrollToView === 'function' ||
+      typeof webEl?.fill === 'function' ||
+      typeof webEl?.unwrap === 'function'
     );
   }
 

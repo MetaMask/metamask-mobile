@@ -10,7 +10,10 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import {
   selectIsSignedIn,
   selectNeedsProfilePairing,
+  selectNeedsSocialPairing,
 } from '../../../../selectors/identity';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { requestProfilePairing } from '../../../../actions/identity';
 
@@ -21,7 +24,9 @@ import { requestProfilePairing } from '../../../../actions/identity';
  * `requestProfilePairing()` so the controller's `needsProfilePairing` flag
  * flips to `true`. That, in turn, re-arms the gate below and triggers a
  * forced `performSignIn` (`signIn(true)`) which re-runs the pairing logic
- * inside the controller.
+ * inside the controller. The same forced sign-in path is used for social
+ * identifier pairing when a social-login user still needs pairing and the
+ * Basic Functionality consolidation experience is on.
  *
  * @returns An object containing:
  * - `autoSignIn`: A function to automatically sign in the user if necessary.
@@ -44,6 +49,15 @@ export function useAutoSignIn(): {
   const completedOnboarding = useSelector(selectCompletedOnboarding);
   const isSignedIn = useSelector(selectIsSignedIn);
   const needsProfilePairing = useSelector(selectNeedsProfilePairing);
+  const needsSocialPairing = useSelector(selectNeedsSocialPairing);
+  const isSeedlessLoginFlow = Boolean(
+    useSelector(selectSeedlessOnboardingLoginFlow),
+  );
+  const isBftConsolidationEnabled = useSelector(
+    selectIsBasicFunctionalityConsolidationEnabled,
+  );
+  const shouldSocialPair =
+    needsSocialPairing && isSeedlessLoginFlow && isBftConsolidationEnabled;
 
   const keyrings = useSelector(selectKeyrings);
   const previousKeyringsLength = useRef(keyrings.length);
@@ -63,7 +77,10 @@ export function useAutoSignIn(): {
 
   const shouldAutoSignIn = useMemo(
     () =>
-      (!isSignedIn || hasNewKeyrings || needsProfilePairing) &&
+      (!isSignedIn ||
+        hasNewKeyrings ||
+        needsProfilePairing ||
+        shouldSocialPair) &&
       isUnlocked &&
       isBasicFunctionalityEnabled &&
       completedOnboarding,
@@ -74,6 +91,7 @@ export function useAutoSignIn(): {
       completedOnboarding,
       hasNewKeyrings,
       needsProfilePairing,
+      shouldSocialPair,
     ],
   );
 
@@ -83,14 +101,20 @@ export function useAutoSignIn(): {
       // keyring) or pairing has not yet succeeded for the current SRP set.
       // `signIn()` (no force) is the steady-state initial-sign-in path used
       // when the user is simply not signed in yet.
-      if (hasNewKeyrings || needsProfilePairing) {
+      if (hasNewKeyrings || needsProfilePairing || shouldSocialPair) {
         await signIn(true);
         setHasNewKeyrings(false);
       } else {
         await signIn();
       }
     }
-  }, [shouldAutoSignIn, signIn, hasNewKeyrings, needsProfilePairing]);
+  }, [
+    shouldAutoSignIn,
+    signIn,
+    hasNewKeyrings,
+    needsProfilePairing,
+    shouldSocialPair,
+  ]);
 
   return {
     autoSignIn,

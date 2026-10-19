@@ -84,7 +84,9 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
       order_count: 2,
     });
     expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
-    expect(goToBuy).toHaveBeenCalledWith(undefined);
+    expect(goToBuy).toHaveBeenCalledWith(undefined, {
+      surface: 'home',
+    });
   });
 
   it('passes resolved ramp intent to goToBuy when available', () => {
@@ -101,8 +103,11 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
       result.current();
     });
 
-    expect(goToBuy).toHaveBeenCalledWith({
-      assetId: MAINNET_MUSD_RAMP_ASSET_ID,
-    });
+    expect(goToBuy).toHaveBeenCalledWith(
+      {
+        assetId: MAINNET_MUSD_RAMP_ASSET_ID,
+      },
+      { surface: 'home' },
+    );
   });
 });

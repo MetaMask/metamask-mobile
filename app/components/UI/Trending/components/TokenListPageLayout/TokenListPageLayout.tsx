@@ -16,6 +16,7 @@ import { TrendingTokensData } from '../../Views/TrendingTokensFullView/TrendingT
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { TokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 export interface TokenListPageLayoutProps {
   /** Page title displayed in the header */
@@ -46,6 +47,8 @@ export interface TokenListPageLayoutProps {
   onQuickTrade?: (token: TrendingAsset) => void;
   /** Overlay node (e.g. TrendingQuickBuy sheet) rendered outside the scroll area. */
   quickBuyNode?: React.ReactNode;
+  /** Token Details analytics source for row taps. */
+  tokenDetailsSource?: TokenDetailsSource;
 }
 
 /**
@@ -71,6 +74,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
   isLoadingMore,
   onQuickTrade,
   quickBuyNode,
+  tokenDetailsSource,
 }) => {
   const tw = useTailwind();
   const theme = useAppThemeFromContext();
@@ -119,6 +123,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         onLoadMore={onLoadMore}
         isLoadingMore={isLoadingMore}
         onQuickTrade={onQuickTrade}
+        tokenDetailsSource={tokenDetailsSource}
       />
 
       <TrendingTokenNetworkBottomSheet

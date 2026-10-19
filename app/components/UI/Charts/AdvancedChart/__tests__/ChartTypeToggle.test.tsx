@@ -108,21 +108,6 @@ describe('ChartTypeToggle', () => {
     expect(onChartTypeSelect).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the default container classes when containerTwClassName is omitted', () => {
-    const { UNSAFE_getByType } = render(
-      <ChartTypeToggle
-        chartType={ChartType.Line}
-        onChartTypeSelect={jest.fn()}
-      />,
-    );
-
-    const container = UNSAFE_getByType(Box);
-
-    expect(container.props.twClassName).toBe(
-      'ml-2 rounded-lg border border-border-muted p-0.5',
-    );
-  });
-
   it('applies custom container classes when containerTwClassName is provided', () => {
     const customClass = 'shrink-0 rounded-lg border border-border-muted p-0.5';
     const { UNSAFE_getByType } = render(

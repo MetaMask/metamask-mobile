@@ -72,39 +72,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
-  IconName: {
-    Close: 'Close',
-    Expand: 'Expand',
-  },
-  IconColor: {
-    Default: 'Default',
-  },
-}));
-
-jest.mock(
-  '../../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    __esModule: true,
-    default: jest.fn(
-      ({ onPress, testID }: { onPress: () => void; testID: string }) => {
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-        const { TouchableOpacity } = require('react-native');
-        return (
-          <TouchableOpacity onPress={onPress} testID={testID}>
-            Close Button
-          </TouchableOpacity>
-        );
-      },
-    ),
-    ButtonIconSizes: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
-  }),
-);
-
 jest.mock('../TradingViewChart', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const ReactMock = require('react');
@@ -161,8 +128,9 @@ jest.mock('../PerpsAdvancedChart/PerpsAdvancedChart', () => {
 
 jest.mock(
   '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector',
-  () =>
-    jest.fn(
+  () => ({
+    __esModule: true,
+    default: jest.fn(
       ({
         onIntervalChange,
         testID,
@@ -182,6 +150,7 @@ jest.mock(
         );
       },
     ),
+  }),
 );
 
 jest.mock('../PerpsOHLCVBar', () =>
@@ -531,6 +500,8 @@ describe('PerpsChartFullscreenModal', () => {
         stopLossPrice: '90',
       };
 
+      const mockFallbackFetchMoreHistory = jest.fn();
+
       const { getByTestId } = render(
         <PerpsChartFullscreenModal
           {...defaultProps}
@@ -541,6 +512,7 @@ describe('PerpsChartFullscreenModal', () => {
           tpslLines={mockTpslLines}
           positionSize="0.5"
           szDecimals={2}
+          fallbackFetchMoreHistory={mockFallbackFetchMoreHistory}
         />,
       );
 
@@ -555,6 +527,7 @@ describe('PerpsChartFullscreenModal', () => {
           szDecimals: 2,
           surface: 'full_screen_chart',
           fallbackCandleData: mockCandleData,
+          fallbackFetchMoreHistory: mockFallbackFetchMoreHistory,
         }),
       );
       expect(mockTradingViewChart).not.toHaveBeenCalled();

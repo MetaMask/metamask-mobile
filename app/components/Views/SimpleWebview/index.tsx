@@ -8,6 +8,7 @@ import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // TODO: This will be replaced with the actual route params type once navigation is refactored
 type RouteParams = {
@@ -19,7 +20,7 @@ type RouteParams = {
 
 const SimpleWebView = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RouteParams, 'SimpleWebView'>>();
   const url = route.params.url;
   const title = (route.params as { title?: string })?.title ?? '';

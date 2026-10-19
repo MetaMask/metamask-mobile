@@ -94,6 +94,25 @@ describe('PerpsProducts', () => {
     expect(toJSON()).toBeNull();
   });
 
+  it('renders the local sentiment-satisfied glyph on the memecoin pill', () => {
+    mockCategories = [
+      { id: 'crypto', label: 'Crypto' },
+      { id: 'memecoin', label: 'Memecoins' },
+    ];
+
+    const { getByTestId } = render(<PerpsProducts />);
+
+    expect(getByTestId('perps-sentiment-satisfied-icon')).toBeOnTheScreen();
+  });
+
+  it('does not render the local glyph when no memecoin category exists', () => {
+    mockCategories = [{ id: 'crypto', label: 'Crypto' }];
+
+    const { queryByTestId } = render(<PerpsProducts />);
+
+    expect(queryByTestId('perps-sentiment-satisfied-icon')).toBeNull();
+  });
+
   it('renders pills for available categories', () => {
     mockCategories = [
       { id: 'crypto', label: 'Crypto' },
@@ -209,7 +228,7 @@ describe('PerpsProducts', () => {
     // Excludes the outer list/row container testIDs (e.g. "perps-products-list",
     // "perps-products-list-row-0"), which also start with "perps-products-".
     const pillTestIds = getAllByTestId(/^perps-products-(?!list)/).map(
-      (element) => element.props.testID,
+      (node) => node.props.testID,
     );
 
     expect(pillTestIds).toEqual([

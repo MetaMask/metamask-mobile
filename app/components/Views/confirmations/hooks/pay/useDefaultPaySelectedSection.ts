@@ -8,19 +8,26 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../utils/transaction-pay';
 
-export function useDefaultPaySelectedSection() {
+/**
+ * @param options - Hook options.
+ * @param options.disable - Set `true` when the caller has a better default of
+ * its own. Only suppresses the flag preference; an explicit `payWithOption`
+ * nav-param still wins, since that is the user's own choice.
+ */
+export function useDefaultPaySelectedSection({
+  disable = false,
+}: { disable?: boolean } = {}) {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
-  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const appliedRef = useRef<string | undefined>(undefined);
 
   const isMoneyAccount =
-    payWithOption === PayWithOption.MoneyAccount || isDefaultMoneyAccount;
+    payWithOption === PayWithOption.MoneyAccount ||
+    (isDefaultMoneyAccount && !disable);
   const transactionId = transactionMeta?.id;
 
   useEffect(() => {
@@ -34,6 +41,10 @@ export function useDefaultPaySelectedSection() {
 
     appliedRef.current = transactionId;
 
-    applyMoneyAccountOverride(transactionId, moneyAccount?.address, isWithdraw);
-  }, [isMoneyAccount, isWithdraw, transactionId, moneyAccount?.address]);
+    applyMoneyAccountOverride(
+      transactionId,
+      moneyAccount?.address,
+      transactionMeta,
+    );
+  }, [isMoneyAccount, transactionId, transactionMeta, moneyAccount?.address]);
 }

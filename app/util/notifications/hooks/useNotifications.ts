@@ -27,6 +27,13 @@ import type { RootState } from '../../../reducers';
 const selectHasMarketingConsent = (state: RootState) =>
   Boolean(state.security.dataCollectionForMarketing);
 
+interface UseEnableNotificationsProps {
+  nudgeEnablePush?: boolean;
+  throwOnError?: boolean;
+}
+
+const DEFAULT_ENABLE_NOTIFICATIONS_PROPS: UseEnableNotificationsProps = {};
+
 /**
  * Custom hook to fetch and update the list of notifications.
  * Manages loading and error states internally.
@@ -104,9 +111,11 @@ export function useContiguousLoading(
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(props = { nudgeEnablePush: true }) {
+export function useEnableNotifications(props?: UseEnableNotificationsProps) {
+  const { nudgeEnablePush = true, throwOnError = false } =
+    props ?? DEFAULT_ENABLE_NOTIFICATIONS_PROPS;
   const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle(props);
+    usePushNotificationsToggle({ nudgeEnablePush });
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -121,17 +130,26 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
-    await enableNotificationsHelper({
-      hasMarketingConsent,
-      productAnnouncementEnabled,
-      registerPushNotifications: Boolean(props.nudgeEnablePush),
-    }).catch((e) => setError(e));
+    try {
+      await enableNotificationsHelper({
+        hasMarketingConsent,
+        productAnnouncementEnabled,
+        // Push registration is performed once, below, after shared notification
+        // setup and the OS-permission check.
+        registerPushNotifications: false,
+      });
+    } catch (enableError) {
+      setError(enableError);
+      if (throwOnError) {
+        throw enableError;
+      }
+    }
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
   }, [
-    props.nudgeEnablePush,
+    throwOnError,
     hasMarketingConsent,
     productAnnouncementEnabled,
     togglePushNotification,
@@ -156,26 +174,28 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
 export function useDisableNotifications() {
-  const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle();
-
   const data = useSelector(selectIsMetamaskNotificationsEnabled);
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<string | undefined>(undefined);
   const disableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(undefined);
-    await togglePushNotification(false);
-    await disableNotificationsHelper().catch((e) => {
-      Logger.error(e);
-      setError(`Failed to disable push notifications`);
-    });
+
+    try {
+      await disableNotificationsHelper();
+    } catch (e) {
+      Logger.error(e instanceof Error ? e : new Error(String(e)));
+      setError('Failed to disable notifications');
+      return false;
+    }
+
     await setUserHasTurnedOffNotificationsOnce();
-  }, [togglePushNotification]);
+    return true;
+  }, []);
 
   return {
     disableNotifications,
-    loading: loading && pushLoading,
+    loading,
     // This will be fixed in a separate PR to converge the types correctly
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: error as any,

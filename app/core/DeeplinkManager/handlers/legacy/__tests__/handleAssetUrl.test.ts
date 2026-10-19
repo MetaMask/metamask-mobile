@@ -5,6 +5,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import * as UseAssetMetadataModule from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { Hex } from '@metamask/utils';
 import { analytics } from '../../../../../util/analytics/analytics';
+import { PriceAlertAnalytics } from '../../../../../components/UI/Assets/PriceAlerts/constants';
 import { EVENT_NAME } from '../../../../Analytics';
 
 jest.mock('../../../../NavigationService', () => ({
@@ -48,6 +49,10 @@ describe('handleAssetUrl', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('navigates to Asset view for ERC20 asset metadata', async () => {
@@ -140,13 +145,12 @@ describe('handleAssetUrl', () => {
           properties: expect.objectContaining({
             token_symbol: 'TEST',
             alert_type: 'threshold',
+            alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
             price_at_trigger: 1234.5,
             time_to_open: 10,
           }),
         }),
       );
-
-      nowSpy.mockRestore();
     });
 
     it('does not track the event for other navigation sources', async () => {

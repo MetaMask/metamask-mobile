@@ -20,15 +20,17 @@ import { BridgeToken } from '../../types';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import {
   FIAT_INPUT_DECIMALS,
+  FIAT_KEYPAD_CURRENCY,
   formatFiatInputAmount,
   formatSecondaryTokenAmount,
   formatTokenInputAmountFromFiat,
 } from '../../utils/sourceAmountInputMode';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
+import { playSelection } from '../../../../../util/haptics';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
-const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
 
@@ -37,11 +39,13 @@ const getFiatToggleEventProperties = ({
   nextPrimaryDenomination,
   sourceToken,
   destToken,
+  featureId,
 }: {
   previousPrimaryDenomination: InputPrimaryDenomination;
   nextPrimaryDenomination: InputPrimaryDenomination;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  featureId: FeatureId;
 }) => {
   const srcChainId = sourceToken?.chainId
     ? getDecimalChainId(sourceToken.chainId)
@@ -70,7 +74,7 @@ const getFiatToggleEventProperties = ({
     new_primary_denomination: nextPrimaryDenomination,
     token_symbol_source: sourceToken?.symbol ?? '',
     token_symbol_destination: destToken?.symbol ?? null,
-    feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+    feature_id: featureId,
   };
 };
 
@@ -78,18 +82,22 @@ export const useSourceAmountInput = ({
   isFiatToggleEnabled,
   sourceAmount,
   sourceToken,
+  tokenFiatRate,
   onSourceAmountChange,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
+  tokenFiatRate?: number;
   onSourceAmountChange: (value: string | undefined) => void;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
+  const featureId = useSwapsFeatureId();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const destToken = useSelector(selectDestToken);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const fiatRate = useTokenFiatRate(sourceToken);
+  const polledFiatRate = useTokenFiatRate(sourceToken);
+  const fiatRate = tokenFiatRate ?? polledFiatRate;
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
@@ -129,11 +137,12 @@ export const useSourceAmountInput = ({
             nextPrimaryDenomination,
             sourceToken,
             destToken,
+            featureId,
           }),
         );
       }
     },
-    [activeInputPrimaryDenomination, destToken, sourceToken],
+    [activeInputPrimaryDenomination, destToken, sourceToken, featureId],
   );
 
   const handleAmountChange = useCallback(
@@ -230,6 +239,8 @@ export const useSourceAmountInput = ({
     if (!canToggle) {
       return;
     }
+
+    playSelection().catch(() => undefined);
 
     if (isFiatMode) {
       setSourceAmountCursorPositionToEnd(sourceAmount);

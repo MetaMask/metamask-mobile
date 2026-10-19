@@ -1,6 +1,11 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import { Connection } from '../Connection';
+import {
+  getOriginProvenance,
+  removeOriginProvenance,
+  RemoteTransport,
+} from '../../OriginProvenance';
 import DevLogger from '../utils/DevLogger';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import setupBridge from './setupBridge';
@@ -105,6 +110,41 @@ describe('setupBridge', () => {
         getRpcMethodMiddleware: expect.any(Function),
       }),
     );
+  });
+
+  describe('origin provenance', () => {
+    afterEach(() => {
+      removeOriginProvenance('sdk-channel-1');
+    });
+
+    it('stamps the connection provenance keyed by the unspoofable channel id', () => {
+      connection.backgroundBridge = undefined;
+      (connection as { channelId?: string }).channelId = 'sdk-channel-1';
+
+      setupBridge({ originatorInfo, connection });
+
+      expect(getOriginProvenance('sdk-channel-1')).toStrictEqual({
+        connectionId: 'sdk-channel-1',
+        transport: RemoteTransport.SDKv1,
+        isVerified: false,
+        selfReported: {
+          url: 'https://example.com',
+          name: 'Test Title',
+          icon: undefined,
+        },
+      });
+    });
+
+    it('does not stamp provenance when the connection is rejected', () => {
+      connection.backgroundBridge = undefined;
+      (connection as { channelId?: string }).channelId = 'sdk-channel-1';
+      originatorInfo.url = 'metamask';
+
+      expect(() => setupBridge({ originatorInfo, connection })).toThrow(
+        'Connections from metamask origin are not allowed',
+      );
+      expect(getOriginProvenance('sdk-channel-1')).toBeUndefined();
+    });
   });
 
   it('should setup backgroundBridge with correct params', () => {

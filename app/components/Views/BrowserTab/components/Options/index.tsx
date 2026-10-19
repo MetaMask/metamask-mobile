@@ -18,6 +18,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SessionENSNames } from '../../types';
 import { useDispatch, useSelector } from 'react-redux';
 import SearchApi from '@metamask/react-native-search-api';
@@ -54,7 +55,7 @@ const Options = ({
   favicon,
   icon,
 }: OptionsProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const dispatch = useDispatch();
@@ -96,36 +97,33 @@ const Options = ({
   const navigateToAddBookmark = () => {
     toggleOptionsIfNeeded();
     navigation.navigate('AddBookmarkView', {
-      screen: 'AddBookmark',
-      params: {
-        title: title.current || '',
-        url: getMaskedUrl(activeUrl, sessionENSNames),
-        onAddBookmark: async ({
-          name,
-          url: urlToAdd,
-        }: {
-          name: string;
-          url: string;
-        }) => {
-          dispatch(addBookmark({ name, url: urlToAdd }));
-          if (Device.isIos()) {
-            const item = {
-              uniqueIdentifier: activeUrl,
-              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
-              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [name.split(' '), urlToAdd, 'dapp'],
-              thumbnail: {
-                uri: icon.current || favicon,
-              },
-            };
-            try {
-              SearchApi.indexSpotlightItem(item);
-            } catch (e: unknown) {
-              const searchApiError = e as Error;
-              Logger.error(searchApiError, 'Error adding to spotlight');
-            }
+      title: title.current || '',
+      url: getMaskedUrl(activeUrl, sessionENSNames),
+      onAddBookmark: async ({
+        name,
+        url: urlToAdd,
+      }: {
+        name: string;
+        url: string;
+      }) => {
+        dispatch(addBookmark({ name, url: urlToAdd }));
+        if (Device.isIos()) {
+          const item = {
+            uniqueIdentifier: activeUrl,
+            title: name || getMaskedUrl(urlToAdd, sessionENSNames),
+            contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+            keywords: [name.split(' '), urlToAdd, 'dapp'],
+            thumbnail: {
+              uri: icon.current || favicon,
+            },
+          };
+          try {
+            SearchApi.indexSpotlightItem(item);
+          } catch (e: unknown) {
+            const searchApiError = e as Error;
+            Logger.error(searchApiError, 'Error adding to spotlight');
           }
-        },
+        }
       },
     });
     trackAddToFavoritesEvent();

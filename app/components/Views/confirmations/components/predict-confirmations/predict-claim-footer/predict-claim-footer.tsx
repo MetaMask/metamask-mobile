@@ -7,10 +7,6 @@ import Avatar, {
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
@@ -21,7 +17,13 @@ import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { ButtonBaseSize } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { RootState } from '../../../../../../reducers';
@@ -100,8 +102,8 @@ export function PredictClaimFooter({
         {strings('confirm.predict_claim.button_label')}
       </ButtonHero>
       <Text
-        variant={TextVariant.BodyXS}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
         style={styles.bottom}
       >
         {strings('confirm.predict_claim.footer_bottom')}
@@ -134,12 +136,17 @@ function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
         size={AvatarSize.Lg}
       />
       <Box flexDirection={FlexDirection.Column} style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
           {position.title}
         </Text>
         <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
         >
           {amountFormatted} on {position.outcome}
@@ -163,7 +170,7 @@ function MultipleWinnings({
 
   return (
     <Box style={styles.top}>
-      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {strings('confirm.predict_claim.footer_top', {
           count: wonPositions.length,
         })}

@@ -8,6 +8,10 @@ import {
 } from '@consensys/on-ramp-sdk';
 
 import { renderAggregatorQuotesView } from '../../../../../../../tests/component-view/renderers/ramps';
+import {
+  clearRampSdkApiMocks,
+  setupRampSdkApiMock,
+} from '../../../../../../../tests/component-view/api-mocking/ramp';
 import { RampType } from '../../types';
 
 const ETH = {
@@ -105,6 +109,16 @@ function buildBuyQuote(overrides: Partial<QuoteResponse> = {}): QuoteResponse {
 }
 
 describe('Aggregator Quotes screen', () => {
+  beforeEach(() => {
+    // Block incidental Ramp HTTP (regions/countries) left over from prior suites
+    // so Quotes cannot open real TLS through nock's interceptor.
+    setupRampSdkApiMock();
+  });
+
+  afterEach(() => {
+    clearRampSdkApiMocks();
+  });
+
   it('loads sell quotes via getSellQuotes and renders the recommended provider', async () => {
     const sellQuote = buildSellQuote();
     const getSellQuotes = jest.fn().mockResolvedValue({

@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (exp, beta, rc)'
+        description: 'Build environment / track (dev, exp, beta, rc)'
         required: true
         type: string
       testflight_group:
@@ -23,11 +23,30 @@ on:
         required: false
         type: boolean
         default: true
-      runner_provider:
-        description: Runner provider forwarded from the caller
+      build_attribution:
+        description: >-
+          Optional analytics build attribution forwarded to build.yml as METAMASK_BUILD_ATTRIBUTION.
+          Nightly jobs pass 'nightly'. Empty or unofficial rc builds report `-rc-unofficial`.
         required: false
         type: string
-        default: current
+        default: ''
+      runner_provider:
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
+        required: false
+        type: string
+        default: ''
+    outputs:
+      built_commit_sha:
+        description: 'Resolved commit SHA at source_branch after the iOS build succeeded; from build.yml built_commit_sha output'
+        value: ${{ jobs.build.outputs.built_commit_sha }}
+      semantic_version:
+        description: 'package.json version at the built commit; from build.yml semantic_version output'
+        value: ${{ jobs.build.outputs.semantic_version }}
+      ios_version_code:
+        description: 'ios/MetaMask.xcodeproj/project.pbxproj CURRENT_PROJECT_VERSION at the built commit; from build.yml ios_version_code output'
+        value: ${{ jobs.build.outputs.ios_version_code }}
   workflow_dispatch:
     inputs:
       source_branch:
@@ -40,6 +59,7 @@ on:
         required: true
         type: choice
         options:
+          - dev
           - exp
           - beta
           - rc
@@ -53,48 +73,69 @@ on:
           - 'MetaMask BETA & Release Candidates'
           - 'MM Card Team'
           - 'Ramp Provider Testing'
+          - 'FIME Apple Pay Cert'
       distribute_external:
         description: 'Whether to distribute to external testers (default: true)'
         required: false
         type: boolean
         default: true
-      runner_provider:
-        description: Runner provider for this manual trial run
+      build_attribution:
+        description: "Analytics build attribution. Use 'nightly' for -rc-nightly / -exp-nightly. Unofficial rc builds report `-rc-unofficial`. Official RC attribution is not available here."
         required: false
         type: choice
         options:
-          - current
+          - unofficial
+          - nightly
+        default: unofficial
+      runner_provider:
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
+        type: choice
+        options:
+          - inherit
           - namespace
-        default: current
+          - current
+        default: inherit
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   generate-build-version:
+    permissions:
+      id-token: write # AWS OIDC for the build number service in generate-build-version.yml
     uses: ./.github/workflows/generate-build-version.yml
 
   build:
     name: Build iOS (${{ inputs.environment }})
     needs: [generate-build-version]
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-${{ inputs.environment }}
+      # dev maps to main-dev-testflight rather than main-dev: same app config, but signed
+      # with the RC certificate, since TestFlight rejects main-dev's dev/ad-hoc signing.
+      # Must stay in sync with upload-ios-testflight's build_name (artifact ios-ipa-{build_name}).
+      build_name: ${{ inputs.environment == 'dev' && 'main-dev-testflight' || format('main-{0}', inputs.environment) }}
       platform: ios
       source_branch: ${{ inputs.source_branch }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
+      build_attribution: ${{ inputs.build_attribution }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   upload-ios-testflight:
     needs: [build]
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for the TestFlight upload in upload-to-testflight.yml
     uses: ./.github/workflows/upload-to-testflight.yml
     with:
       environment: ${{ inputs.environment }}
       testflight_group: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
       source_branch: ${{ inputs.source_branch }}
-      build_name: main-${{ inputs.environment }}
+      build_name: ${{ inputs.environment == 'dev' && 'main-dev-testflight' || format('main-{0}', inputs.environment) }}
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}

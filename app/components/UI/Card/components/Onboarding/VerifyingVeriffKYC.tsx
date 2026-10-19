@@ -6,7 +6,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
@@ -32,9 +33,11 @@ const VerifyingVeriffKYC = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.VERIFYING_VERIFF_KYC,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.VERIFYING_VERIFF_KYC,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);

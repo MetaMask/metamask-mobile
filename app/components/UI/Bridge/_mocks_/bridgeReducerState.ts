@@ -1,6 +1,7 @@
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
 import { initialHardwareWalletsSwapsState } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { BridgeViewMode } from '../types';
+import { initialRecurringState } from '../utils/recurringSchedule';
 
 export const mockBridgeReducerState: BridgeState = {
   sourceAmount: '1000000000000000000',
@@ -33,6 +34,7 @@ export const mockBridgeReducerState: BridgeState = {
   isSubmittingTx: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
+  isNativeGasIncludedSupported: false,
   bridgeViewMode: BridgeViewMode.Bridge,
   isSelectingRecipient: false,
   isSelectingToken: false,
@@ -42,8 +44,20 @@ export const mockBridgeReducerState: BridgeState = {
   selectedQuoteRequestId: undefined,
   balanceRefreshKey: 0,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
+
+  // Batch Sell
   batchSellSourceTokens: [],
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+
+  // Recurring
+  recurring: initialRecurringState,
+
+  // Limit orders
+  limitOrderCostTolerance: undefined,
+  limitOrderMarketComparison: undefined,
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: undefined,
 };

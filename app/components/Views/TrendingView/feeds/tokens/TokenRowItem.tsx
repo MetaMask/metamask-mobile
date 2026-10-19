@@ -33,7 +33,9 @@ export const TokenRowItem: React.FC<TokenRowItemProps> = ({
     filterContext={DEFAULT_TOKENS_FILTER_CONTEXT}
     tokenDetailsSource={tokenDetailsSource}
     onCardPress={onCardPress}
-    onQuickTrade={onQuickTrade}
+    endAction={
+      onQuickTrade ? { type: 'quick-trade', onPress: onQuickTrade } : undefined
+    }
   />
 );
 
@@ -49,7 +51,10 @@ export const TokenSearchRowItem: React.FC<TokenRowItemProps> = ({
     position={index}
     filterContext={SEARCH_TOKENS_FILTER_CONTEXT}
     tokenDetailsSource={tokenDetailsSource}
-    onQuickTrade={onQuickTrade}
+    subtitle="search"
+    endAction={
+      onQuickTrade ? { type: 'quick-trade', onPress: onQuickTrade } : undefined
+    }
   />
 );
 

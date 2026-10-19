@@ -2,6 +2,7 @@ import {
   setDestToken,
   selectBridgeViewMode,
   selectDestToken,
+  selectSourceToken,
   selectBip44DefaultPair,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,8 +13,7 @@ import {
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import usePrevious from '../../../../hooks/usePrevious';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
@@ -25,27 +25,47 @@ export const useInitialDestToken = (
   const selectedChainId = useSelector(selectChainId);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const destToken = useSelector(selectDestToken);
+  const sourceToken = useSelector(selectSourceToken);
   const bip44DefaultPair = useSelector(selectBip44DefaultPair);
+  const hasInitializedRef = useRef(false);
 
   const isSwap =
     bridgeViewMode === BridgeViewMode.Swap ||
     bridgeViewMode === BridgeViewMode.Unified;
 
-  const prevInitialDestToken = usePrevious(initialDestToken);
-
   useEffect(() => {
-    // If dest token is already set in Redux (pre-populated before navigation), skip initialization
-    if (destToken && !initialDestToken) {
+    if (hasInitializedRef.current) {
       return;
     }
 
-    if (initialDestToken && prevInitialDestToken !== initialDestToken) {
+    if (initialDestToken) {
+      hasInitializedRef.current = true;
       dispatch(setDestToken(initialDestToken));
       return;
     }
 
-    // Entering Swaps NOT from asset details page or deeplink
-    if (!initialDestToken && !initialSourceToken) {
+    if (bridgeViewMode === undefined) {
+      return;
+    }
+
+    hasInitializedRef.current = true;
+
+    // If dest token is already set in Redux (pre-populated before navigation), skip initialization
+    if (destToken) {
+      return;
+    }
+
+    // The default dest belongs to the source token's network. Prefer the token
+    // coming in on the route (which useInitialSourceToken is about to apply)
+    // and fall back to the one already in Redux, e.g. when this view remounts
+    // after a sibling Bridge tab anchored the source to a different chain.
+    const effectiveSourceToken = initialSourceToken ?? sourceToken;
+
+    // Entering Swaps NOT from asset details page or deeplink. The pair's dest
+    // asset sits on a fixed chain, so it's only a valid destination while
+    // useInitialSourceToken is going to apply the pair's source asset too,
+    // which it only does when no source token is anchored anywhere yet.
+    if (!initialDestToken && !effectiveSourceToken) {
       if (isSwap && bip44DefaultPair && !destToken) {
         dispatch(setDestToken(bip44DefaultPair.destAsset));
         return;
@@ -53,7 +73,7 @@ export const useInitialDestToken = (
     }
 
     // Use BIP44 default pair for Bitcoin source token (i.e. entered Swaps from Bitcoin Asset Details page)
-    if (initialSourceToken && initialSourceToken.chainId === BtcScope.Mainnet) {
+    if (effectiveSourceToken?.chainId === BtcScope.Mainnet) {
       if (bip44DefaultPair && !destToken) {
         dispatch(setDestToken(bip44DefaultPair.destAsset));
         return;
@@ -61,19 +81,19 @@ export const useInitialDestToken = (
     }
 
     const destTokenTargetChainId =
-      initialSourceToken?.chainId ?? selectedChainId;
+      effectiveSourceToken?.chainId ?? selectedChainId;
     let defaultDestToken = getDefaultDestToken(destTokenTargetChainId);
 
-    // If the initial source token is the same as the default dest token, set the default dest token to the native token
+    // If the source token is the same as the default dest token, set the default dest token to the native token
     if (
       destTokenTargetChainId === SolScope.Mainnet &&
-      initialSourceToken?.address === defaultDestToken?.address
+      effectiveSourceToken?.address === defaultDestToken?.address
     ) {
       // Solana addresses are case sensitive
       defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
     } else if (
       destTokenTargetChainId !== SolScope.Mainnet &&
-      initialSourceToken?.address?.toLowerCase() ===
+      effectiveSourceToken?.address?.toLowerCase() ===
         defaultDestToken?.address?.toLowerCase()
     ) {
       // EVM addresses are NOT case sensitive
@@ -84,19 +104,19 @@ export const useInitialDestToken = (
       isSwap &&
       !destToken &&
       defaultDestToken &&
-      initialSourceToken?.address !== defaultDestToken.address
+      effectiveSourceToken?.address !== defaultDestToken.address
     ) {
       dispatch(setDestToken(defaultDestToken));
     }
   }, [
+    bridgeViewMode,
     initialDestToken,
-    prevInitialDestToken,
     dispatch,
     initialSourceToken,
+    sourceToken,
     selectedChainId,
     destToken,
     isSwap,
-    initialSourceToken?.address,
     bip44DefaultPair,
   ]);
 };

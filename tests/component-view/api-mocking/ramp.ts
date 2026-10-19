@@ -1,7 +1,7 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import { SDK } from '../../../app/components/UI/Ramp/Aggregator/sdk';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import { disableNetConnect, teardownNock } from './nockHelpers';
 
 /** Staging (UAT) and production hosts — mock both so tests stay offline regardless of getSdkEnvironment(). */
 const RAMP_REGIONS_ORIGINS = [
@@ -224,7 +224,7 @@ function registerRampSdkNockInterceptors(): void {
  * Call in beforeEach.
  */
 export function setupRampSdkApiMock(): void {
-  clearAllNockMocks();
+  teardownNock();
   resetRampAggregatorSdkForTests();
   disableNetConnect();
   registerRampSdkNockInterceptors();
@@ -237,5 +237,5 @@ export function setupRampSdkApiMock(): void {
 export function clearRampSdkApiMocks(): void {
   jest.clearAllMocks();
   resetRampAggregatorSdkForTests();
-  clearAllNockMocks();
+  teardownNock();
 }

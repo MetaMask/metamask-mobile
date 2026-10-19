@@ -7,8 +7,8 @@ import { getPriceImpactViewData } from './getPriceImpactViewData';
 
 const DEFAULT_THRESHOLD = { warning: 0.05, error: 0.25 };
 
-const ALTERNATIVE = {
-  textColor: TextColor.TextAlternative,
+const SAFE = {
+  textColor: TextColor.TextDefault,
   icon: undefined,
   title: 'bridge.price_impact_info_title',
   description: 'bridge.price_impact_info_description',
@@ -29,39 +29,39 @@ const DANGER = {
 };
 
 describe('getPriceImpactViewData', () => {
-  describe('returns alternative when priceImpactValue is absent or non-numeric', () => {
+  describe('returns default color when priceImpactValue is absent or non-numeric', () => {
     it.each([
       { priceImpactValue: undefined },
       { priceImpactValue: '' },
       { priceImpactValue: 'invalid' },
       { priceImpactValue: 'NaN%' },
     ])(
-      'returns alternative for priceImpactValue=$priceImpactValue',
+      'returns default color for priceImpactValue=$priceImpactValue',
       ({ priceImpactValue }) => {
         expect(
           getPriceImpactViewData({
             priceImpactValue,
             threshold: DEFAULT_THRESHOLD,
           }),
-        ).toEqual(ALTERNATIVE);
+        ).toEqual(SAFE);
       },
     );
   });
 
-  describe('returns alternative when priceImpact is below the warning threshold', () => {
+  describe('returns default color when priceImpact is below the warning threshold', () => {
     it.each([
       { priceImpactValue: '-0.0006' },
       { priceImpactValue: '0' },
       { priceImpactValue: '0.0499' },
     ])(
-      'returns alternative for priceImpactValue=$priceImpactValue',
+      'returns default color for priceImpactValue=$priceImpactValue',
       ({ priceImpactValue }) => {
         expect(
           getPriceImpactViewData({
             priceImpactValue,
             threshold: DEFAULT_THRESHOLD,
           }),
-        ).toEqual(ALTERNATIVE);
+        ).toEqual(SAFE);
       },
     );
   });
@@ -106,13 +106,13 @@ describe('getPriceImpactViewData', () => {
     it('uses the provided warning threshold', () => {
       const customThreshold = { warning: 0.1, error: 0.5 };
 
-      // below custom warning → alternative
+      // below custom warning → default color
       expect(
         getPriceImpactViewData({
           priceImpactValue: '0.0999',
           threshold: customThreshold,
         }),
-      ).toEqual(ALTERNATIVE);
+      ).toEqual(SAFE);
 
       // at custom warning → warning
       expect(

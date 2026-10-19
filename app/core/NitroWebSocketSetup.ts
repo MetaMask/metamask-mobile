@@ -270,53 +270,155 @@ class NitroWebSocketAdapter {
   }
 }
 
-export function installProductionNitroWebSocket(): void {
-  global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
+/**
+ * Hosts that must use React Native's built-in WebSocket instead of Nitro.
+ *
+ * The Android native layer of react-native-nitro-websockets
+ * (WebSocketConnection.cpp `connect()`) requests a `nitro-ws` subprotocol
+ * (libwebsockets transmits `lws_client_connect_info.protocol` as the
+ * `Sec-WebSocket-Protocol` request header) on every connection whose caller
+ * asked for no subprotocol, and unconditionally sends an `Origin` header set
+ * to the server's own host. Strict servers reject that handshake. The
+ * WalletConnect relay is one of them: the socket never opens,
+ * `pairing.pair()` never settles, and every WalletConnect connection hangs on
+ * the loading sheet (WAPI-1574, regression shipped in 8.3.0 via #32472).
+ * Lenient endpoints (e.g. HyperLiquid feeds) ignore the extra headers, which
+ * is why other websocket features work.
+ *
+ * Route these hosts through the built-in WebSocket until the native layer
+ * stops fabricating those headers.
+ */
+const NITRO_INCOMPATIBLE_HOSTS = new Set([
+  'relay.walletconnect.org',
+  'relay.walletconnect.com',
+]);
+
+// Dependency-free hostname extraction (mirrors the native parseUrl). This
+// runs on every WebSocket construction, so keep it allocation-light and
+// independent of the URL polyfill and its import order.
+function getWsHostname(url: string): string {
+  const schemeEnd = url.indexOf('://');
+  if (schemeEnd === -1) return '';
+  const hostPort = url.slice(schemeEnd + 3).split(/[/?#]/)[0];
+  // Strip userinfo (user:pass@host) so credentials are never mistaken for
+  // the hostname.
+  const host = hostPort.split('@').pop() ?? '';
+  return host.split(':')[0].toLowerCase();
 }
 
-// Dev builds route by scheme: ws:// → RN built-in (Metro HMR, LogBox), wss:// → Nitro.
-// Metro's HMRClient uses global.WebSocket after startup, so a blanket replacement breaks hot reload.
-export function installDevNitroWebSocket(): void {
-  const OriginalWebSocket = global.WebSocket;
+function isNitroIncompatibleUrl(url: string): boolean {
+  return NITRO_INCOMPATIBLE_HOSTS.has(getWsHostname(url));
+}
 
-  if (!OriginalWebSocket) {
-    installProductionNitroWebSocket();
-    return;
-  }
+type RNWebSocketConstructor = new (
+  url: string,
+  protocols?: string | string[],
+  options?: unknown,
+) => WebSocket;
 
-  type RNWebSocketConstructor = new (
-    url: string,
-    protocols?: string | string[],
-    options?: unknown,
-  ) => WebSocket;
+// Marks installed routing constructors so repeated installs (Fast Refresh of
+// this module, direct calls in tests) don't nest wrapper inside wrapper.
+const NITRO_ROUTING_INSTALLED = Symbol.for('metamask.nitroWebSocketRouting');
 
-  function SchemeRoutingWebSocket(
+function isNitroWebSocketInstalled(ctor: unknown): boolean {
+  return (
+    ctor === (NitroWebSocketAdapter as unknown) ||
+    Boolean(
+      (ctor as Record<symbol, unknown> | undefined)?.[NITRO_ROUTING_INSTALLED],
+    )
+  );
+}
+
+// Builds a WebSocket constructor that sends matching URLs to the Nitro
+// adapter and everything else to the built-in implementation.
+//
+// Note: instances are created by the delegated constructors, so nothing is
+// `instanceof global.WebSocket`, subclassing the global is unsupported, and
+// patches to `WebSocket.prototype` will not reach instances. No shipped
+// consumer relies on those patterns today (checked the app and bundled
+// dependencies); revisit if a dependency bump introduces one.
+function createRoutingWebSocket(
+  BuiltInWebSocket: RNWebSocketConstructor,
+  // Not a React Hook — the `use` prefix confuses rules-of-hooks linting
+  // inside the uppercase RoutingWebSocket function, hence `shouldUseNitro`.
+  shouldUseNitro: (url: string) => boolean,
+): typeof WebSocket {
+  function RoutingWebSocket(
     url: string,
     protocols?: string | string[],
     optionsOrHeaders?: unknown,
   ) {
-    if (typeof url === 'string' && /^wss:/i.test(url)) {
+    if (typeof url === 'string' && shouldUseNitro(url)) {
       return new NitroWebSocketAdapter(
         url,
         protocols,
         optionsOrHeaders as Record<string, string> | undefined,
       );
     }
-    // ws:// (Metro HMR, LogBox) keeps RN's built-in WebSocket.
-    return new (OriginalWebSocket as unknown as RNWebSocketConstructor)(
-      url,
-      protocols,
-      optionsOrHeaders,
-    );
+    return new BuiltInWebSocket(url, protocols, optionsOrHeaders);
   }
-  Object.assign(SchemeRoutingWebSocket, {
+  Object.assign(RoutingWebSocket, {
     CONNECTING: 0,
     OPEN: 1,
     CLOSING: 2,
     CLOSED: 3,
+    [NITRO_ROUTING_INSTALLED]: true,
   });
+  return RoutingWebSocket as unknown as typeof WebSocket;
+}
 
-  global.WebSocket = SchemeRoutingWebSocket as unknown as typeof WebSocket;
+export function installProductionNitroWebSocket(): void {
+  const BuiltInWebSocket = global.WebSocket as unknown as
+    | RNWebSocketConstructor
+    | undefined;
+
+  if (isNitroWebSocketInstalled(BuiltInWebSocket)) {
+    return;
+  }
+
+  if (!BuiltInWebSocket) {
+    // Unreachable in production: RN's InitializeCore defines global.WebSocket
+    // before the entry module runs. Warn so a regression of that invariant is
+    // visible — the bare adapter reintroduces the relay hang (WAPI-1574).
+    console.warn(
+      '[NitroWebSocketSetup] no built-in WebSocket found; installing the ' +
+        'Nitro adapter without relay routing',
+    );
+    global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
+    return;
+  }
+
+  global.WebSocket = createRoutingWebSocket(
+    BuiltInWebSocket,
+    (url) => !isNitroIncompatibleUrl(url),
+  );
+}
+
+// Dev builds additionally route by scheme: ws:// → RN built-in (Metro HMR,
+// LogBox), wss:// → Nitro. Metro's HMRClient uses global.WebSocket after
+// startup, so a blanket replacement breaks hot reload.
+export function installDevNitroWebSocket(): void {
+  const BuiltInWebSocket = global.WebSocket as unknown as
+    | RNWebSocketConstructor
+    | undefined;
+
+  if (isNitroWebSocketInstalled(BuiltInWebSocket)) {
+    return;
+  }
+
+  if (!BuiltInWebSocket) {
+    console.warn(
+      '[NitroWebSocketSetup] no built-in WebSocket found; installing the ' +
+        'Nitro adapter without relay routing',
+    );
+    global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
+    return;
+  }
+
+  global.WebSocket = createRoutingWebSocket(
+    BuiltInWebSocket,
+    (url) => /^wss:/i.test(url) && !isNitroIncompatibleUrl(url),
+  );
 }
 
 if (!hasTestOverrides) {

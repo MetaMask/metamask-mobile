@@ -25,6 +25,7 @@ import {
   ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -60,7 +61,7 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
 const SecurityTrustScreen: React.FC = () => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -272,7 +273,7 @@ const SecurityTrustScreen: React.FC = () => {
           <Text
             variant={TextVariant.HeadingMd}
             color={resultTextColor}
-            fontWeight={'600' as FontWeight}
+            fontWeight={FontWeight.Bold}
           >
             {resultLabel}
           </Text>
@@ -479,7 +480,7 @@ const SecurityTrustScreen: React.FC = () => {
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 gap={1}
-                twClassName="bg-success-muted rounded px-1.5 min-w-[22px] self-start"
+                twClassName="bg-success-muted rounded-md px-1.5 py-0.5 min-w-[22px] self-start"
               >
                 <Icon
                   name={IconName.SecurityTick}

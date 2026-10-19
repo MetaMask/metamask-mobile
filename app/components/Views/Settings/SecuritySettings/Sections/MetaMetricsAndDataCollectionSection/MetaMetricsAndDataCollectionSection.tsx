@@ -29,6 +29,7 @@ import { analytics } from '../../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
@@ -44,11 +45,20 @@ import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
   analyticsLocation?: 'settings' | 'onboarding_default_settings';
+  /** Ref to the MetaMetrics sub-section, used as a scroll target. */
+  metaMetricsRef?: React.Ref<View>;
+  /** Ref to the marketing data collection sub-section, used as a scroll target. */
+  dataCollectionRef?: React.Ref<View>;
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
+> = ({
+  hideMarketingSection = false,
+  analyticsLocation = 'settings',
+  metaMetricsRef,
+  dataCollectionRef,
+}) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -58,7 +68,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.dataCollectionForMarketing,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { autoSignIn } = useAutoSignIn();
 
   const isBasicFunctionalityEnabled = useSelector(
@@ -227,7 +237,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   };
 
   const renderMetaMetricsSection = () => (
-    <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
+    <View
+      ref={metaMetricsRef}
+      style={styles.halfSetting}
+      testID={META_METRICS_SECTION}
+    >
       <View style={styles.titleContainer}>
         <Text
           variant={TextVariant.BodyMd}
@@ -272,6 +286,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const renderDataCollectionSection = () => (
     <View
+      ref={dataCollectionRef}
       style={styles.halfSetting}
       testID={META_METRICS_DATA_MARKETING_SECTION}
     >

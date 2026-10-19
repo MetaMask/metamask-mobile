@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Platform } from 'react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   ProvisioningStatus,
@@ -19,18 +19,29 @@ import {
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
+import { getWalletTypeForPlatform } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { CardActions } from '../../util/metrics';
+import { CardActions, withCardProvider } from '../../util/metrics';
 import {
   selectIsCardAuthenticated,
-  selectCardUserLocation,
+  selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
-import {
-  selectGalileoAppleWalletProvisioningEnabled,
-  selectGalileoGoogleWalletProvisioningEnabled,
-} from '../../../../../selectors/featureFlagController/card';
+import { selectPushProvisioningEnabled } from '../../../../../selectors/featureFlagController/card';
+import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { strings } from '../../../../../../locales/i18n';
+
+function canAddAgain(result: WalletEligibility): boolean {
+  if (!result.canAddCard) {
+    return false;
+  }
+  // Google sets canAddCard to resume a yellow-path pass that is still in the
+  // wallet. Apple only reports add_card here when another device can take it.
+  return !(
+    result.existingCardStatus === 'requires_activation' &&
+    result.recommendedAction !== 'add_card'
+  );
+}
 
 /**
  * Hook for push provisioning cards to mobile wallets
@@ -62,9 +73,9 @@ export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
   const {
-    cardDetails,
+    cardId,
+    walletProvisioning,
     userAddress,
-    provisioningEligible,
     onSuccess,
     onError,
     onCancel,
@@ -76,31 +87,23 @@ export function usePushProvisioning(
 
   // Track current status in ref for use in activation listener
   const statusRef = useRef<ProvisioningStatus>(status);
-  statusRef.current = status;
 
-  const userCardLocation = useSelector(selectCardUserLocation);
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
-
-  // Get feature flags for push provisioning
-  const isAppleWalletProvisioningEnabled = useSelector(
-    selectGalileoAppleWalletProvisioningEnabled,
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const capabilities = useCardCapabilities();
+  const walletType = getWalletTypeForPlatform();
+  const isPushProvisioningFeatureEnabled = useSelector(
+    (state: Parameters<typeof selectPushProvisioningEnabled>[0]) =>
+      selectPushProvisioningEnabled(state, activeProviderId, walletType),
   );
-  const isGoogleWalletProvisioningEnabled = useSelector(
-    selectGalileoGoogleWalletProvisioningEnabled,
-  );
 
-  // Determine if provisioning is enabled for current platform
-  const isPushProvisioningFeatureEnabled =
-    Platform.OS === 'ios'
-      ? isAppleWalletProvisioningEnabled
-      : Platform.OS === 'android'
-        ? isGoogleWalletProvisioningEnabled
-        : false;
-
-  // Create the adapters based on user location and platform
   const cardAdapter = useMemo(
-    () => getCardProvider(userCardLocation),
-    [userCardLocation],
+    () => getCardProvider(capabilities, walletType),
+    [capabilities, walletType],
   );
 
   const walletAdapter = useMemo(() => getWalletProvider(), []);
@@ -112,57 +115,112 @@ export function usePushProvisioning(
   const [isEligibilityCheckLoading, setIsEligibilityCheckLoading] =
     useState(true);
 
-  const lastFourDigits = cardDetails?.panLast4;
+  const lastFourDigits = walletProvisioning?.lastFour;
+  const primaryAccountIdentifier = walletProvisioning?.primaryAccountIdentifier;
+  const eligibilityRequestIdRef = useRef(0);
 
-  useEffect(() => {
-    let isMounted = true;
+  const refreshEligibility = useCallback(
+    async ({ silent }: { silent: boolean }) => {
+      const requestId = ++eligibilityRequestIdRef.current;
 
-    const checkEligibility = async () => {
-      setIsEligibilityCheckLoading(true);
+      if (!silent) {
+        setIsEligibilityCheckLoading(true);
+      }
+
+      const isCurrentRequest = () =>
+        requestId === eligibilityRequestIdRef.current;
 
       if (!walletAdapter || !lastFourDigits) {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: false,
-            canAddCard: false,
-            ineligibilityReason: 'Wallet provider not available',
-          });
-          setIsEligibilityCheckLoading(false);
+        if (!isCurrentRequest()) {
+          return;
         }
+        setEligibility({
+          isAvailable: false,
+          canAddCard: false,
+          ineligibilityReason: 'Wallet provider not available',
+        });
+        setIsEligibilityCheckLoading(false);
         return;
       }
 
       try {
-        const result = await walletAdapter.getEligibility(lastFourDigits);
-        if (isMounted) {
-          setEligibility(result);
-          setIsEligibilityCheckLoading(false);
+        const result = await walletAdapter.getEligibility(
+          lastFourDigits,
+          primaryAccountIdentifier,
+        );
+        if (!isCurrentRequest()) {
+          return;
+        }
+        setEligibility(result);
+        setIsEligibilityCheckLoading(false);
+        if (silent && statusRef.current === 'success' && canAddAgain(result)) {
+          setStatus('idle');
         }
       } catch {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: false,
-            canAddCard: false,
-            ineligibilityReason: 'Failed to check eligibility',
-          });
-          setIsEligibilityCheckLoading(false);
+        if (!isCurrentRequest()) {
+          return;
         }
+        setEligibility({
+          isAvailable: false,
+          canAddCard: false,
+          ineligibilityReason: 'Failed to check eligibility',
+        });
+        setIsEligibilityCheckLoading(false);
       }
-    };
+    },
+    [walletAdapter, lastFourDigits, primaryAccountIdentifier],
+  );
 
-    checkEligibility();
+  const openInWallet = useCallback(async () => {
+    if (!walletAdapter?.openCardInWallet || !lastFourDigits) {
+      return;
+    }
+
+    const opened = await walletAdapter.openCardInWallet(lastFourDigits);
+    if (!opened) {
+      await refreshEligibility({ silent: true });
+    }
+  }, [walletAdapter, lastFourDigits, refreshEligibility]);
+
+  useEffect(() => {
+    void refreshEligibility({ silent: false });
 
     return () => {
-      isMounted = false;
+      eligibilityRequestIdRef.current += 1;
     };
-  }, [walletAdapter, lastFourDigits]);
+  }, [refreshEligibility]);
+
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextState: AppStateStatus) => {
+        const previousState = appStateRef.current;
+        appStateRef.current = nextState;
+
+        if (previousState !== 'background' || nextState !== 'active') {
+          return;
+        }
+        if (statusRef.current === 'provisioning') {
+          return;
+        }
+
+        void refreshEligibility({ silent: true });
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refreshEligibility]);
 
   useEffect(() => {
     if (status !== 'success') {
       return;
     }
 
-    let isMounted = true;
+    const requestId = ++eligibilityRequestIdRef.current;
 
     const recheckEligibility = async () => {
       if (!walletAdapter || !lastFourDigits) {
@@ -170,27 +228,40 @@ export function usePushProvisioning(
       }
 
       try {
-        const result = await walletAdapter.getEligibility(lastFourDigits);
-        if (isMounted) {
-          setEligibility(result);
+        const result = await walletAdapter.getEligibility(
+          lastFourDigits,
+          primaryAccountIdentifier,
+        );
+        if (requestId !== eligibilityRequestIdRef.current) {
+          return;
+        }
+        setEligibility(result);
+        // The card is already on one device and another paired device can
+        // still take it. Drop the success gate so Add comes back.
+        const cardIsOnADevice =
+          result.existingCardStatus !== undefined &&
+          result.existingCardStatus !== 'not_found';
+        if (
+          result.canAddCard &&
+          cardIsOnADevice &&
+          statusRef.current === 'success'
+        ) {
+          setStatus('idle');
         }
       } catch {
-        if (isMounted) {
-          setEligibility({
-            isAvailable: true,
-            canAddCard: false,
-            ineligibilityReason: 'Card already added to wallet',
-          });
+        if (requestId !== eligibilityRequestIdRef.current) {
+          return;
         }
+        setEligibility({
+          isAvailable: true,
+          canAddCard: false,
+          ineligibilityReason: 'Card already added to wallet',
+        });
       }
     };
 
     recheckEligibility();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [status, walletAdapter, lastFourDigits]);
+  }, [status, walletAdapter, lastFourDigits, primaryAccountIdentifier]);
 
   // Create service with adapters
   const service = useMemo(
@@ -249,11 +320,13 @@ export function usePushProvisioning(
             trackEventRef.current(
               createEventBuilderRef
                 .current(MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED)
-                .addProperties({
-                  card_provider_id: cardAdapterProviderIdRef.current,
-                  wallet_type: walletAdapterTypeRef.current,
-                  token_id: event.tokenId,
-                })
+                .addProperties(
+                  withCardProvider(cardAdapterProviderIdRef.current, {
+                    card_provider_id: cardAdapterProviderIdRef.current,
+                    wallet_type: walletAdapterTypeRef.current,
+                    token_id: event.tokenId,
+                  }),
+                )
                 .build(),
             );
           } catch {
@@ -282,12 +355,14 @@ export function usePushProvisioning(
             trackEventRef.current(
               createEventBuilderRef
                 .current(MetaMetricsEvents.CARD_PUSH_PROVISIONING_FAILED)
-                .addProperties({
-                  card_provider_id: cardAdapterProviderIdRef.current,
-                  wallet_type: walletAdapterTypeRef.current,
-                  error_code: activationError.code,
-                  source: 'activation_listener',
-                })
+                .addProperties(
+                  withCardProvider(cardAdapterProviderIdRef.current, {
+                    card_provider_id: cardAdapterProviderIdRef.current,
+                    wallet_type: walletAdapterTypeRef.current,
+                    error_code: activationError.code,
+                    source: 'activation_listener',
+                  }),
+                )
                 .build(),
             );
           } catch {
@@ -313,11 +388,13 @@ export function usePushProvisioning(
       try {
         trackEvent(
           createEventBuilder(event)
-            .addProperties({
-              card_provider_id: cardAdapter?.providerId,
-              wallet_type: walletAdapter?.walletType,
-              ...properties,
-            })
+            .addProperties(
+              withCardProvider(cardAdapter?.providerId, {
+                card_provider_id: cardAdapter?.providerId,
+                wallet_type: walletAdapter?.walletType,
+                ...properties,
+              }),
+            )
             .build(),
         );
       } catch {
@@ -342,7 +419,7 @@ export function usePushProvisioning(
    */
   const initiateProvisioning =
     useCallback(async (): Promise<ProvisioningResult> => {
-      setStatus('checking_eligibility');
+      setStatus('provisioning');
       setError(null);
 
       trackAnalyticsEvent(MetaMetricsEvents.CARD_BUTTON_CLICKED, {
@@ -350,30 +427,25 @@ export function usePushProvisioning(
       });
       trackAnalyticsEvent(MetaMetricsEvents.CARD_PUSH_PROVISIONING_STARTED);
 
-      if (!cardDetails) {
-        setStatus('error');
-        setError(
-          new ProvisioningError(
-            ProvisioningErrorCode.INVALID_CARD_DATA,
-            strings('card.push_provisioning.error_invalid_card_data'),
-          ),
+      if (!cardId || !walletProvisioning) {
+        const invalidCard = new ProvisioningError(
+          ProvisioningErrorCode.INVALID_CARD_DATA,
+          strings('card.push_provisioning.error_invalid_card_data'),
         );
+        setStatus('error');
+        setError(invalidCard);
         return {
           status: 'error',
-          error: new ProvisioningError(
-            ProvisioningErrorCode.INVALID_CARD_DATA,
-            strings('card.push_provisioning.error_invalid_card_data'),
-          ),
+          error: invalidCard,
         };
       }
 
       try {
         const provisioningOptions: ProvisioningOptions = {
-          cardDetails,
+          cardId,
+          walletProvisioning,
           userAddress,
         };
-
-        setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
         // Handle all result statuses from the service
@@ -435,7 +507,7 @@ export function usePushProvisioning(
           error: provisioningError,
         };
       }
-    }, [cardDetails, userAddress, trackAnalyticsEvent, service]);
+    }, [cardId, walletProvisioning, userAddress, trackAnalyticsEvent, service]);
 
   /**
    * Reset status to idle
@@ -447,32 +519,45 @@ export function usePushProvisioning(
 
   const isLoading = isEligibilityCheckLoading;
 
-  // Check if card is eligible (status must be 'ACTIVE')
-  const isCardEligible = cardDetails?.status === 'ACTIVE';
-
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
     isAuthenticated &&
-    provisioningEligible &&
+    walletProvisioning?.eligible === true &&
     !isLoading &&
-    !!cardDetails &&
-    isCardEligible &&
     !!cardAdapter &&
     !!walletAdapter &&
     eligibility?.isAvailable === true &&
     eligibility?.canAddCard === true &&
     status !== 'success';
 
+  const existingCardStatus = eligibility?.existingCardStatus;
+  // Google Wallet resumes a yellow-path token, so that pass is not "in the
+  // wallet" for the Add button. On Apple the same status means the pass is
+  // already on the device and waiting for issuer verification.
+  const resumesYellowPath =
+    existingCardStatus === 'requires_activation' &&
+    eligibility?.recommendedAction === 'resume';
+  const isCardInWallet =
+    status === 'success' ||
+    (existingCardStatus !== undefined &&
+      existingCardStatus !== 'not_found' &&
+      !resumesYellowPath);
+
   return {
     status,
     error,
     initiateProvisioning,
     resetStatus,
-    isProvisioning:
-      status === 'provisioning' || status === 'checking_eligibility',
+    isProvisioning: status === 'provisioning',
     isSuccess: status === 'success',
     isError: status === 'error',
     isLoading,
     canAddToWallet,
+    isCardInWallet,
+    pendingVerificationDevices: eligibility?.pendingVerificationDevices ?? [],
+    canOpenInWallet:
+      Boolean(eligibility?.devices?.phone) &&
+      Boolean(walletAdapter?.openCardInWallet),
+    openInWallet,
   };
 }

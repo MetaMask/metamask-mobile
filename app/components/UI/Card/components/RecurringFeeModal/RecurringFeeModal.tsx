@@ -16,7 +16,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { RecurringFeeModalSelectors } from './RecurringFeeModal.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const RecurringFeeModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -29,10 +30,12 @@ const RecurringFeeModal = () => {
   const handleGotIt = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.RECURRING_FEE_GOT_IT,
-          screen: CardScreens.REVIEW_ORDER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.RECURRING_FEE_GOT_IT,
+            screen: CardScreens.REVIEW_ORDER,
+          }),
+        )
         .build(),
     );
     sheetRef.current?.onCloseBottomSheet();

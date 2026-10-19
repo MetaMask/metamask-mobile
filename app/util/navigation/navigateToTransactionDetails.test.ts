@@ -67,6 +67,37 @@ describe('navigateToTransactionDetails', () => {
     );
   });
 
+  it('opens the redesigned details screen when the redesign is enabled', () => {
+    const navigation = createNavigation();
+
+    navigateToTransactionDetails(navigation, {
+      transactionId: 'tx-meta-id',
+      initialTypeFilter: ActivityTypeFilter.Predictions,
+      chainId: 'eip155:137',
+    });
+
+    expect(navigation.navigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.ACTIVITY_DETAILS,
+      { chainId: 'eip155:137', txIdentifier: 'tx-meta-id' },
+    );
+    expect(navigation.navigate).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to the legacy details screen when the redesign is enabled without a chainId', () => {
+    const navigation = createNavigation();
+
+    navigateToTransactionDetails(navigation, {
+      transactionId: 'tx-meta-id',
+    });
+
+    expect(navigation.navigate).toHaveBeenNthCalledWith(
+      2,
+      Routes.TRANSACTION_DETAILS,
+      { transactionId: 'tx-meta-id' },
+    );
+  });
+
   it('opens only the activity list when no transactionId is given', () => {
     const navigation = createNavigation();
 

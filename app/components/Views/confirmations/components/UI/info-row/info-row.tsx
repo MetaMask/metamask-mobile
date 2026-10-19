@@ -5,15 +5,17 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip/Tooltip';
 import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export enum InfoRowVariant {
   Default = 'default',
@@ -34,6 +36,7 @@ export interface InfoRowProps {
   testID?: string;
   variant?: TextColor;
   copyText?: string;
+  copyIconColor?: IconColor;
   valueOnNewLine?: boolean;
   withIcon?: {
     color: IconColor;
@@ -55,8 +58,9 @@ const InfoRow = ({
   tooltipColor,
   tooltipDisabled,
   testID,
-  variant = TextColor.Alternative,
+  variant = TextColor.TextAlternative,
   copyText,
+  copyIconColor = IconColor.Muted,
   valueOnNewLine = false,
   withIcon,
   rowVariant = InfoRowVariant.Default,
@@ -71,10 +75,9 @@ const InfoRow = ({
       <>{children}</>
     );
 
-  const labelVariant =
-    rowVariant === InfoRowVariant.Small
-      ? TextVariant.BodyMD
-      : TextVariant.BodyMDMedium;
+  const labelVariant = TextVariant.BodyMd;
+  const labelFontWeight =
+    rowVariant === InfoRowVariant.Small ? undefined : FontWeight.Medium;
 
   return (
     <>
@@ -84,7 +87,12 @@ const InfoRow = ({
       >
         {Boolean(label) && (
           <View style={styles.labelContainer}>
-            <Text variant={labelVariant} color={variant} onPress={onLabelClick}>
+            <Text
+              variant={labelVariant}
+              fontWeight={labelFontWeight}
+              color={variant}
+              onPress={onLabelClick}
+            >
               {label}
             </Text>
             {labelChildren}
@@ -111,7 +119,7 @@ const InfoRow = ({
         )}
         {valueOnNewLine ? null : ValueComponent}
         {copyText && (
-          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.Muted} />
+          <CopyIcon textToCopy={copyText ?? ''} color={copyIconColor} />
         )}
         {withIcon && (
           <Icon

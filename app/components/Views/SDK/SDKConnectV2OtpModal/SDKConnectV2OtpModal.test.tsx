@@ -106,14 +106,13 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'sdk_connect_v2.show_otp.modal_title': 'Link MetaMask Agent CLI',
+      'sdk_connect_v2.show_otp.modal_title': 'Link MetaMask Agent wallet',
       'sdk_connect_v2.show_otp.modal_description':
-        'Pair MetaMask Mobile with your MetaMask Agent CLI.',
-      'sdk_connect_v2.show_otp.code_label': 'ENTER THIS CODE IN THE CLI',
+        'Pair MetaMask Mobile with your MetaMask Agent wallet.',
+      'sdk_connect_v2.show_otp.code_label': 'ENTER CODE IN TERMINAL',
       'sdk_connect_v2.show_otp.expires_in': `Expires in ${params?.time}`,
       'sdk_connect_v2.show_otp.expired': 'Code expired',
-      'sdk_connect_v2.show_otp.security_notice':
-        "Securing the connection first. You'll authorize CLI access in the next step",
+      'sdk_connect_v2.show_otp.security_notice': 'Securing the connection',
     };
     return translations[key] ?? key;
   },
@@ -143,7 +142,9 @@ describe('SDKConnectV2OtpModal', () => {
     expect(
       getByTestId(SDKConnectV2OtpModalSelectors.CONTAINER),
     ).toBeOnTheScreen();
-    expect(getByText('Link MetaMask Agent CLI')).toBeOnTheScreen();
+    expect(getByText('Link MetaMask Agent wallet')).toBeOnTheScreen();
+    expect(getByText('ENTER CODE IN TERMINAL')).toBeOnTheScreen();
+    expect(getByText('Securing the connection')).toBeOnTheScreen();
     expect(
       getByTestId(SDKConnectV2OtpModalSelectors.OTP_CODE),
     ).toHaveTextContent('4892–AKJ7');

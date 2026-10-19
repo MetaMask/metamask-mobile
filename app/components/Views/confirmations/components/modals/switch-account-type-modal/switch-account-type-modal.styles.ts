@@ -20,11 +20,6 @@ const styleSheet = () =>
       marginBottom: -8,
       marginTop: 8,
     },
-    backIcon: {
-      left: 28,
-      position: 'absolute',
-      top: 18,
-    },
   });
 
 export default styleSheet;

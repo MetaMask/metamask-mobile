@@ -46,6 +46,14 @@ import {
   weiToFiatNumber,
 } from './bigint';
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+});
+
 describe('Number utils :: bigIntToHex', () => {
   it('bigIntToHex', () => {
     expect(bigIntToHex(BigInt('1337'))).toEqual('0x539');
@@ -780,7 +788,7 @@ describe('Number utils :: addCurrencySymbol with useSubscriptNotation', () => {
   });
 
   it('formats very small amount for non-symbol currency', () => {
-    expect(addCurrencySymbol(0.00000614, 'xyz' as never, false, true)).toEqual(
+    expect(addCurrencySymbol(0.00000614, 'xyz', false, true)).toEqual(
       '0.0₅614 xyz',
     );
   });
@@ -830,13 +838,7 @@ describe('Number utils :: renderFiatAddition', () => {
     expect(renderFiatAddition(1.123456, 0, 'usd', 3)).toEqual('$1.123');
   });
   it('falls back to currency code suffix for unknown currencies', () => {
-    expect(
-      renderFiatAddition(
-        10,
-        5,
-        'xyz' as Parameters<typeof renderFiatAddition>[2],
-      ),
-    ).toEqual('15 xyz');
+    expect(renderFiatAddition(10, 5, 'xyz')).toEqual('15 xyz');
   });
   it('handles zero values', () => {
     expect(renderFiatAddition(0, 0, 'usd')).toEqual('$0');

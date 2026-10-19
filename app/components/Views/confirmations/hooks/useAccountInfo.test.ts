@@ -23,20 +23,36 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
 
+const MOCK_ACCOUNT_ID =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount;
+
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
-      AccountTrackerController: {
-        accountsByChainId: {
-          '0x1': {
-            [MOCK_ADDRESS]: {
-              balance: '0x5',
+      AssetsController: {
+        selectedCurrency: 'usd' as const,
+        assetsInfo: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID]: {
+            // hex 0x5 @ 18 decimals
+            [MAINNET_NATIVE_ASSET_ID]: {
+              amount: '0.000000000000000005',
             },
           },
         },
+        assetsPrice: {},
       },
     },
   },
@@ -297,11 +313,12 @@ describe('useAccountInfo', () => {
     const stateWithDifferentBalance = merge({}, mockInitialState, {
       engine: {
         backgroundState: {
-          AccountTrackerController: {
-            accountsByChainId: {
-              '0x1': {
-                [MOCK_ADDRESS]: {
-                  balance: '0x1bc16d674ec80000',
+          AssetsController: {
+            assetsBalance: {
+              [MOCK_ACCOUNT_ID]: {
+                // hex 0x1bc16d674ec80000 @ 18 decimals
+                [MAINNET_NATIVE_ASSET_ID]: {
+                  amount: '2',
                 },
               },
             },

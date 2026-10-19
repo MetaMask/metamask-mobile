@@ -1,0 +1,1 @@
+export const MEMBERSHIP_UNAVAILABLE_VALUE = '--';

@@ -6,6 +6,15 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmPhoneNumber from './ConfirmPhoneNumber';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardActions, CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -128,6 +137,31 @@ jest.mock('@metamask/design-system-react-native', () => {
       Md: 'Md',
       Lg: 'Lg',
     },
+    TextField: ({
+      value,
+      onChangeText,
+      onBlur,
+      onFocus,
+      inputRef,
+      inputProps,
+    }: {
+      value?: string;
+      onChangeText?: (text: string) => void;
+      onBlur?: () => void;
+      onFocus?: () => void;
+      inputRef?: React.Ref<unknown>;
+      inputProps?: Record<string, unknown>;
+    }) => {
+      const { TextInput } = jest.requireActual('react-native');
+      return React.createElement(TextInput, {
+        value,
+        onChangeText,
+        onBlur,
+        onFocus,
+        ref: inputRef,
+        ...inputProps,
+      });
+    },
   };
 });
 
@@ -180,50 +214,11 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-// Mock TextField component
-jest.mock('../../../../../component-library/components/Form/TextField', () => {
-  const React = jest.requireActual('react');
-  const { View, TextInput } = jest.requireActual('react-native');
-
-  const MockTextField = ({
-    value,
-    onChangeText,
-    testID,
-    isError,
-    size,
-    ...props
-  }: {
-    value: string;
-    onChangeText?: (text: string) => void;
-    testID?: string;
-    isError?: boolean;
-    size?: string;
-    [key: string]: unknown;
-  }) =>
-    React.createElement(
-      View,
-      { testID: 'textfield', accessible: true },
-      React.createElement(
-        View,
-        null,
-        React.createElement(TextInput, {
-          testID: testID || 'textfield-input',
-          value,
-          onChangeText,
-          editable: true,
-          ...props,
-        }),
-      ),
-    );
-
-  return {
-    __esModule: true,
-    default: MockTextField,
-  };
-});
-
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 // Mock i18n strings
@@ -333,23 +328,12 @@ describe('ConfirmPhoneNumber Component', () => {
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
+      isFocused: () => true,
+      addListener: jest.fn(() => jest.fn()),
     } as never);
     mockUseParams.mockReturnValue({
       phoneCountryCode: '1',
       phoneNumber: '1234567890',
-    });
-
-    // Set up useAnalytics mock
-    const { useAnalytics } = jest.requireMock(
-      '../../../../hooks/useAnalytics/useAnalytics',
-    );
-    useAnalytics.mockReturnValue({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn(() => ({
-          build: jest.fn(() => ({})),
-        })),
-      })),
     });
 
     // Set up default mock returns for hooks
@@ -381,6 +365,51 @@ describe('ConfirmPhoneNumber Component', () => {
       jest.runOnlyPendingTimers();
     });
     jest.useRealTimers();
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with CONFIRM_PHONE_NUMBER screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: CardScreens.CONFIRM_PHONE_NUMBER,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with CONFIRM_PHONE_NUMBER_BUTTON when code is submitted', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      const codeFieldInput = getByTestId('confirm-phone-number-code-field');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Component Rendering', () => {
@@ -426,7 +455,12 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       const codeField = getByTestId('confirm-phone-number-code-field');
-      expect(codeField).toBeTruthy();
+      expect(codeField.props.autoFocus).not.toBe(true);
+      expect(codeField.props.keyboardType).toBe('number-pad');
+      expect(codeField.props.textContentType).toBe('oneTimeCode');
+      expect(['one-time-code', 'sms-otp']).toContain(
+        codeField.props.autoComplete,
+      );
     });
 
     it('renders code field input element', () => {

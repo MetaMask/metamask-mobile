@@ -1,8 +1,11 @@
 import React, { useMemo, type ReactElement } from 'react';
-import { Image, type ImageSourcePropType } from 'react-native';
+import { Image } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { chunk } from 'lodash';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -10,15 +13,10 @@ import {
   FontWeight,
   Text,
   TextVariant,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Badge from '../../../../component-library/components/Badges/Badge';
 import metamaskFoxLogo from '../../../../images/branding/fox.png';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenI } from '../../Tokens/types';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
@@ -53,7 +51,7 @@ export interface ShareTokenCardProps {
   shareUrl: string;
   priceChangePercent: number;
   statTiles: ShareTokenStatTile[];
-  networkBadgeSource?: ImageSourcePropType;
+  networkBadgeSource?: ImageOrSvgSrc;
   networkName?: string;
 }
 
@@ -210,14 +208,13 @@ const ShareTokenCard = ({
           twClassName="flex-1 mr-2"
         >
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
               networkBadgeSource ? (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
+                <BadgeNetwork
+                  src={networkBadgeSource}
                   name={networkName}
-                  size={AvatarSize.Xs}
+                  twClassName="h-5 w-5"
                 />
               ) : undefined
             }

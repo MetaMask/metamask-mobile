@@ -10,6 +10,7 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 
+import { MM_PAY_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -130,6 +131,53 @@ describe('TransactionController wallet instance options', () => {
 
     expect(isSimulationEnabled?.()).toBe(true);
   });
+
+  it('determines if simulation is enabled using preferences for non-MM Pay transactions', () => {
+    const isSimulationEnabled = testConstructorOption('isSimulationEnabled', {
+      preferencesState: {
+        useTransactionSimulations: true,
+      },
+    });
+
+    expect(
+      isSimulationEnabled?.({
+        id: '1',
+        type: TransactionType.contractInteraction,
+        chainId: CHAIN_ID_MOCK,
+        networkClientId: 'test-network',
+        status: TransactionStatus.unapproved,
+        time: Date.now(),
+        txParams: {
+          from: '0x0000000000000000000000000000000000000000',
+        },
+      }),
+    ).toBe(true);
+  });
+
+  it.each(MM_PAY_TRANSACTION_TYPES)(
+    'disables simulation for MM Pay transaction type %s even when preferences enable it',
+    (type) => {
+      const isSimulationEnabled = testConstructorOption('isSimulationEnabled', {
+        preferencesState: {
+          useTransactionSimulations: true,
+        },
+      });
+
+      expect(
+        isSimulationEnabled?.({
+          id: '1',
+          type,
+          chainId: CHAIN_ID_MOCK,
+          networkClientId: 'test-network',
+          status: TransactionStatus.unapproved,
+          time: Date.now(),
+          txParams: {
+            from: '0x0000000000000000000000000000000000000000',
+          },
+        }),
+      ).toBe(false);
+    },
+  );
 
   describe('isAutomaticGasFeeUpdateEnabled', () => {
     function buildTransactionMeta(

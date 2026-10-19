@@ -16,12 +16,16 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { RankMedal, isTopRank } from '../topRank';
-import type { TopTrader } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+import type { TraderRowProps } from '../types';
+
+import { formatSignedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
-import TraderAvatar from './TraderAvatar';
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import {
+  getTraderRowMuteChipTestId,
+  getTraderRowTestId,
+} from './TraderRow.testIds';
 
 const MUTE_CHIP_DIAMETER = 40;
 
@@ -30,35 +34,15 @@ const AVATAR_SIZE = 40;
 // drifting due to font-scale or button-size differences.
 export const TRADER_ROW_HEIGHT = 71;
 
-export interface TraderRowProps {
-  trader: TopTrader;
-  onFollowPress: (traderId: string) => void;
-  onTraderPress?: (
-    traderId: string,
-    traderName: string,
-    /* Used downstream for podium decoration */
-    overallRank: number,
-  ) => void;
-  /** Whether this trader's alerts are paused. Only used when muting is shown. */
-  isMuted?: boolean;
-  /**
-   * When true (and the trader is followed), render the inline mute chip beside
-   * the Follow button. Gated by the caller on push-notification availability.
-   */
-  showMute?: boolean;
-  /** Toggles the muted state for this trader. */
-  onMuteToggle?: (traderId: string) => void;
-  testID?: string;
-}
-
 /**
  * TraderRow -- a single row in the Top Traders leaderboard.
  *
  * Displays the trader's avatar (with a podium medal badge for ranks 1–3),
- * username, 30D PnL, and a Follow / Following toggle button.
+ * username, the ranked metric, and a Follow / Following toggle button.
  */
 const TraderRow: React.FC<TraderRowProps> = ({
   trader,
+  metric,
   onFollowPress,
   onTraderPress,
   isMuted = false,
@@ -68,8 +52,8 @@ const TraderRow: React.FC<TraderRowProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const pnlText = formatSignedUsd(trader.pnlValue);
-  const isPnlPositive = trader.pnlValue >= 0;
+  const metricText = metric?.label ?? formatSignedUsd(trader.pnlValue);
+  const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
   const showMedal = isTopRank(trader.rank);
   const canShowMuteChip = showMute && Boolean(onMuteToggle);
 
@@ -84,7 +68,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
       justifyContent={BoxJustifyContent.Between}
       twClassName="px-4"
       style={{ height: TRADER_ROW_HEIGHT }}
-      testID={testID ?? `trader-row-${trader.id}`}
+      testID={testID ?? getTraderRowTestId(trader.id)}
     >
       <TouchableOpacity
         activeOpacity={onTraderPress ? 0.7 : 1}
@@ -132,10 +116,10 @@ const TraderRow: React.FC<TraderRowProps> = ({
               fontWeight={FontWeight.Medium}
               numberOfLines={1}
               twClassName={
-                isPnlPositive ? 'text-success-default' : 'text-error-default'
+                isMetricPositive ? 'text-success-default' : 'text-error-default'
               }
             >
-              {pnlText}
+              {metricText}
             </Text>
           </Box>
         </Box>
@@ -164,7 +148,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             onPress={handleMutePress}
             diameter={MUTE_CHIP_DIAMETER}
             traderName={trader.username}
-            testID={`trader-row-mute-chip-${trader.id}`}
+            testID={getTraderRowMuteChipTestId(trader.id)}
           />
         )}
       </Box>

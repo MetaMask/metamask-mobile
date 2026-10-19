@@ -1,3 +1,9 @@
+import React from 'react';
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
+import { merge } from 'lodash';
 import { initialState } from '../../_mocks_/initialState';
 import {
   renderScreen,
@@ -10,7 +16,6 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -31,6 +36,7 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import Engine from '../../../../../core/Engine';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { SwapDiscoveryFeedTestIds } from '../../components/SwapDiscoveryFeed/SwapDiscoveryFeed.testIds';
 import {
@@ -40,6 +46,9 @@ import {
 import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { BridgeTabKey } from './BridgeView.constants';
+import BridgeViewContent from '.';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -104,7 +113,9 @@ jest.mock('../../../../../core/Engine', () => {
   );
   return {
     controllerMessenger: {
-      call: jest.fn(),
+      // Messenger actions the tabs call are async, e.g. the limit tab's
+      // OHLCV subscribe, so this has to hand back a promise.
+      call: jest.fn().mockResolvedValue(undefined),
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
     },
@@ -196,7 +207,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   }),
 }));
 
-// Mock useSubmitBridgeTx hook (needed because SwapsConfirmButton imports it)
+// Mock useSubmitBridgeTx hook (needed because SwapsMarketOrderConfirmButton imports it)
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({
@@ -235,6 +246,7 @@ jest.mock(
 
 const mockNavigate = jest.fn();
 const mockSetParams = jest.fn();
+const mockGoBack = jest.fn();
 const mockFocusEffects: (() => void | (() => void))[] = [];
 const mockRoute = {
   params: {
@@ -253,6 +265,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setParams: mockSetParams,
       setOptions: jest.fn(),
+      goBack: mockGoBack,
     }),
     useRoute: () => mockRoute,
   };
@@ -277,6 +290,37 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest
     .fn()
     .mockImplementation(() => mockUseBridgeQuoteData),
+}));
+
+jest.mock('../../hooks/useRecurringOrders', () => ({
+  useRecurringOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useLimitOrders', () => ({
+  useLimitOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(() => ({
+    isValid: true,
+    retry: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
@@ -331,8 +375,8 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
-jest.mock('../../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
-  useTokenListSecurityBadgeQuery: jest.fn(() => ({ data: null })),
+jest.mock('../../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: jest.fn(() => ({ data: null })),
 }));
 
 const mockUseABTest = jest.mocked(useABTest);
@@ -398,6 +442,12 @@ jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
     mockUseIsGasIncluded7702Supported(chainId),
 }));
 
+const BridgeView = () => (
+  <BridgeSessionProvider>
+    <BridgeViewContent />
+  </BridgeSessionProvider>
+);
+
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
@@ -430,6 +480,73 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('renders the slippage settings button without an active quote', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementationOnce(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the swap slippage modal from the settings button', () => {
+    const testState = createBridgeTestState();
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: testState.bridge.sourceToken?.chainId,
+        destChainId: testState.bridge.destToken?.chainId,
+      },
+    });
+  });
+
+  it('resets slippage and controller quote state when leaving the screen', () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        slippage: '3.5',
+        isSlippageUserOverride: true,
+      },
+    });
+    const { store, unmount } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    unmount();
+
+    expect(store.getState().bridge.slippage).toBeUndefined();
+    expect(store.getState().bridge.isSlippageUserOverride).toBe(false);
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
   });
 
   it('scrolls to top and clears the route param when requested on focus', () => {
@@ -865,7 +982,7 @@ describe('BridgeView', () => {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -913,7 +1030,7 @@ describe('BridgeView', () => {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
+          quotes: [mockQuote],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -962,7 +1079,7 @@ describe('BridgeView', () => {
               insufficientBal: false,
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuote as unknown as QuoteResponse],
+            quotes: [mockQuote],
           },
           bridgeReducerOverrides: {
             sourceAmount: '1.0',
@@ -1188,7 +1305,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.LOADING,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: now,
         },
         bridgeReducerOverrides: {
@@ -1201,7 +1318,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: true,
-          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+          activeQuote: mockQuoteWithMetadata,
         }));
 
       const { getByTestId, queryByTestId } = renderScreen(
@@ -1227,7 +1344,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: now,
         },
         bridgeReducerOverrides: {
@@ -1240,7 +1357,7 @@ describe('BridgeView', () => {
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isLoading: false,
-          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+          activeQuote: mockQuoteWithMetadata,
         }));
 
       const { getByTestId, queryByTestId } = renderScreen(
@@ -1679,18 +1796,14 @@ describe('BridgeView', () => {
   });
 
   describe('location forwarding', () => {
-    it('forwards route.params.location to SwapsConfirmButton via price impact modal navigation', async () => {
+    it('forwards route.params.location to SwapsMarketOrderConfirmButton via price impact modal navigation', async () => {
       mockRoute.params = {
         sourcePage: 'test',
         location: MetaMetricsSwapsEventSource.MainView,
       } as BridgeRouteParams;
 
-      // A priceImpact above the error threshold causes handleContinue to
-      // navigate to the PriceImpactModal — the location value is embedded in
-      // the navigation params, making this the easiest observable side-effect
-      // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact (raw decimal),
-      // so we must override it alongside the formatted display string.
+      // shouldShowPriceImpactError causes handleContinue to navigate to the
+      // PriceImpactModal. The location value is embedded in the navigation params.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1699,20 +1812,21 @@ describe('BridgeView', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const testState = createBridgeTestState(
         {
           bridgeControllerOverrides: {
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+            quotes: [mockQuoteWithMetadata],
             quotesLastFetched: Date.now(),
           },
           bridgeReducerOverrides: {
@@ -1794,7 +1908,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
+          quotes: [mockQuote],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -1892,7 +2006,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotes: [mockQuoteWithMetadata],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -2087,7 +2201,7 @@ describe('BridgeView', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
+          quotes: [mockQuote],
           quotesLastFetched: Date.now(),
         },
         bridgeReducerOverrides: {
@@ -2443,6 +2557,149 @@ describe('BridgeView', () => {
       expect(
         getByText(strings('swaps.market_price_unavailable')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Tab swipe navigation', () => {
+    const stateWithTabsEnabled = () =>
+      merge({}, mockState, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                swapsLimitOrder: { enabled: true },
+                swapsRecurringBuy: { enabled: true },
+              },
+            },
+          },
+        },
+      }) as DeepPartial<RootState>;
+
+    const swipe = async (translationX: number, velocityX = 0) => {
+      await act(async () => {
+        fireGestureHandler(
+          getByGestureTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE),
+          [{ translationX, velocityX }],
+        );
+        await Promise.resolve();
+      });
+    };
+
+    it('opens the initial tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Recurring,
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
+
+    it('navigates to the next tab on a left swipe', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeNull();
+
+      await swipe(-80, -600);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('navigates to the previous tab on a right swipe', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      await swipe(80, 600);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeNull();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('navigates back when swiping right on the first tab', async () => {
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await swipe(80, 600);
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+    });
+
+    it('does not swipe past the last tab', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      await swipe(-80, -600);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('navigates back on a right swipe over the tab content when the tabs bar is hidden', async () => {
+      renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: mockState },
+      );
+
+      await swipe(80, 600);
+
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });

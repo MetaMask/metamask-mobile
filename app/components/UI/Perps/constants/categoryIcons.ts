@@ -1,11 +1,19 @@
 import { IconName } from '@metamask/design-system-react-native';
 
+/** Category whose icon is rendered locally rather than via `IconName`. */
+export const MEMECOIN_CATEGORY_ID = 'memecoin';
+
 /**
  * Maps perps market category IDs to their corresponding design system icons.
  * Used by PerpsProducts pills and PerpsMarketCategoryBadges filter chips.
  *
  * Category IDs match `MarketTypeFilter` values from `@metamask/perps-controller`
  * (e.g. `"stock"`, `"commodity"`, `"index"`).
+ *
+ * `'memecoin'` is intentionally absent: it uses the MMDS `sentiment-satisfied`
+ * glyph, which the design system has not published yet. Those call sites render
+ * `PerpsSentimentSatisfiedIcon` instead — add the entry here and drop that
+ * component once `IconName.SentimentSatisfied` exists.
  */
 export const BADGE_CATEGORY_ICON_MAP: Record<string, IconName> = {
   crypto: IconName.Ethereum,

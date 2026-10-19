@@ -12,13 +12,21 @@ import { MMM_ORIGIN } from '../../Views/confirmations/constants/confirmations';
 import { useAlerts } from '../../Views/confirmations/context/alert-system-context';
 import { useSecurityAlertResponse } from '../../Views/confirmations/hooks/alerts/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useSelector } from 'react-redux';
+import { SCAM_QUESTIONNAIRE_FLAG_KEY } from './scam-questionnaire.constants';
+import { selectFeatureFlagThresholdGroups } from '../../../selectors/featureFlagController';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('../../Views/confirmations/context/alert-system-context');
 jest.mock('../../Views/confirmations/hooks/alerts/useSecurityAlertResponse');
 jest.mock(
   '../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
 
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseSecurityAlertResponse = jest.mocked(useSecurityAlertResponse);
 const mockUseTransactionMetadataRequest = jest.mocked(
@@ -31,11 +39,24 @@ function setup({
   transactionType = TransactionType.simpleSend,
   origin = MMM_ORIGIN,
   resultType = ResultType.Malicious,
+  flagEnabled = true,
+  thresholdGroup,
 }: {
   transactionType?: TransactionType;
   origin?: string;
   resultType?: ResultType;
+  flagEnabled?: boolean;
+  thresholdGroup?: string;
 } = {}) {
+  const flags = flagEnabled
+    ? { [SCAM_QUESTIONNAIRE_FLAG_KEY]: { name: 'treatment' } }
+    : {};
+  const thresholdGroups = thresholdGroup
+    ? { [SCAM_QUESTIONNAIRE_FLAG_KEY]: thresholdGroup }
+    : {};
+  mockUseSelector.mockImplementation((selector) =>
+    selector === selectFeatureFlagThresholdGroups ? thresholdGroups : flags,
+  );
   mockUseAlerts.mockReturnValue({ setAlertConfirmed } as never);
   mockUseSecurityAlertResponse.mockReturnValue({
     securityAlertResponse: { result_type: resultType } as never,
@@ -74,6 +95,31 @@ describe('useSendScamQuestionnaire', () => {
     it('is false for a non-transfer transaction type', () => {
       const { result } = setup({
         transactionType: TransactionType.contractInteraction,
+      });
+      expect(result.current.isScamQuestionnaireRequired).toBe(false);
+    });
+
+    it('is false when the LaunchDarkly flag resolves to control', () => {
+      const { result } = setup({ flagEnabled: false });
+      expect(result.current.isScamQuestionnaireRequired).toBe(false);
+    });
+
+    it('is true when the variant comes from the feature flag threshold group', () => {
+      // remote-feature-flag-controller v5: the flag value carries no variant
+      // name and the selected group lives in featureFlagThresholdGroups.
+      const { result } = setup({
+        flagEnabled: false,
+        thresholdGroup: 'treatment',
+      });
+      expect(result.current.isScamQuestionnaireRequired).toBe(true);
+    });
+
+    it('is false when the flag is off, even for a malicious MetaMask send', () => {
+      const { result } = setup({
+        flagEnabled: false,
+        origin: MMM_ORIGIN,
+        transactionType: TransactionType.simpleSend,
+        resultType: ResultType.Malicious,
       });
       expect(result.current.isScamQuestionnaireRequired).toBe(false);
     });

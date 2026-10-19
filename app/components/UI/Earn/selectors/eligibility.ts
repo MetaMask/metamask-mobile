@@ -7,8 +7,15 @@
  */
 
 import { createSelector } from 'reselect';
-import { selectMusdConversionBlockedCountries } from './featureFlags';
+import {
+  selectMusdConversionBlockedCountries,
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from './featureFlags';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
+import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
+import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 
 export const selectIsMusdConversionGeoEligible = createSelector(
   selectMusdConversionBlockedCountries,
@@ -23,4 +30,26 @@ export const selectIsMusdConversionGeoEligible = createSelector(
       (blocked) => !userCountry.startsWith(blocked.toUpperCase()),
     );
   },
+);
+
+export const selectIsEarnSectionEligible = createSelector(
+  [
+    pooledStakingSelectors.selectEligibility,
+    selectIsMoneyAccountVisible,
+    selectPooledStakingEnabledFlag,
+    selectStablecoinLendingEnabledFlag,
+    selectTrxStakingEnabled,
+  ],
+  (
+    isEarnEligible,
+    isMoneyAccountVisible,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
+    isTrxStakingEnabled,
+  ) =>
+    isMoneyAccountVisible ||
+    (isEarnEligible &&
+      (isPooledStakingEnabled ||
+        isStablecoinLendingEnabled ||
+        isTrxStakingEnabled)),
 );

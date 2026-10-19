@@ -363,6 +363,8 @@ describe('PerpsNotificationTooltip', () => {
 
       const { rerender } = renderWithProvider(
         <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+        undefined,
+        false,
       );
 
       // Verify first timeout was created
@@ -480,6 +482,8 @@ describe('PerpsNotificationTooltip', () => {
 
       const { rerender } = renderWithProvider(
         <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+        undefined,
+        false,
       );
 
       // Verify timeout was created once

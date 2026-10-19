@@ -1,9 +1,16 @@
 import '../../../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { renderExploreSearchScreenWithRoutes } from '../../../../../../tests/component-view/renderers/trending';
+import {
+  HeaderNavBarVariant,
+  renderExploreSearchScreenWithBackStack,
+  renderExploreSearchScreenWithRoutes,
+} from '../../../../../../tests/component-view/renderers/trending';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   setupTrendingApiFetchMock,
   clearTrendingApiMocks,
+  mockRwaTokensData,
   mockTrendingTokensData,
 } from '../../../../../../tests/component-view/api-mocking/trending';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,6 +23,16 @@ import {
 import { ReactTestInstance } from 'react-test-renderer';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+
+const mockAppleSearchResult = {
+  assetId: 'eip155:1/erc20:0xa11e000000000000000000000000000000000000',
+  name: 'Apple Token',
+  symbol: 'APPLE',
+  decimals: 18,
+  price: '1.00',
+};
 
 /**
  * Prefer userEvent.press for better event simulation; fall back to fireEvent.press
@@ -29,31 +46,249 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
+const waitForExploreSearchTransitionSettled = async (
+  findByTestId: (testId: string) => Promise<ReactTestInstance>,
+) => {
+  await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+};
+
 describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   beforeEach(() => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
+  });
+
+  it('shows the basic functionality empty state when basic functionality is disabled', async () => {
+    const { findByText, findByTestId, queryByTestId } =
+      renderExploreSearchScreenWithRoutes({
+        overrides: {
+          settings: {
+            basicFunctionalityEnabled: false,
+          },
+        },
+      });
+
+    expect(
+      await findByText(strings('trending.basic_functionality_disabled_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST),
+    ).not.toBeOnTheScreen();
   });
 
   afterEach(() => {
     clearTrendingApiMocks();
   });
 
-  it('prefills the search input when initialQuery route param is provided', async () => {
-    const { findByTestId, getByDisplayValue } =
+  it('runs search from the deeplink initial query', async () => {
+    clearTrendingApiMocks();
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      mockRwaTokensData,
+      [mockAppleSearchResult],
+    );
+    const { findByTestId, findByText, getByDisplayValue } =
       renderExploreSearchScreenWithRoutes({
-        initialParams: { initialQuery: 'ethereum' },
+        initialParams: {
+          initialQuery: 'Apple',
+          entryPoint: 'deeplink',
+        },
       });
 
-    expect(getByDisplayValue('ethereum')).toBeOnTheScreen();
+    expect(getByDisplayValue('Apple')).toBeOnTheScreen();
 
-    const allPill = await findByTestId(
-      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
+    expect(
+      await findByText('Apple Token', {}, { timeout: 10000 }),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the token symbol and market cap on a deeplink search result', async () => {
+    clearTrendingApiMocks();
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      mockRwaTokensData,
+      [
+        {
+          ...mockAppleSearchResult,
+          marketCap: 76000000000,
+          aggregatedUsdVolume: 974248822.2,
+        },
+      ],
     );
-    expect(allPill).toBeOnTheScreen();
+    const { findByText, queryByText } = renderExploreSearchScreenWithRoutes({
+      initialParams: {
+        initialQuery: 'Apple',
+        entryPoint: 'deeplink',
+      },
+    });
+
+    expect(
+      await findByText('Apple Token', {}, { timeout: 10000 }),
+    ).toBeOnTheScreen();
+    expect(await findByText('APPLE · $76B cap')).toBeOnTheScreen();
+    expect(queryByText('$974.2M vol')).toBeNull();
+    expect(queryByText(/cap •/)).toBeNull();
+  });
+
+  it('redacts a clipboard-prefilled query from the searched event', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderExploreSearchScreenWithRoutes({
+        initialParams: {
+          entryPoint: 'home',
+          initialQuery: 'clipboard-secret',
+          initialQuerySource: 'clipboard',
+        },
+      });
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'searched',
+              search_query: '',
+            }),
+          }),
+        );
+      });
+
+      expect(trackEventSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            search_query: 'clipboard-secret',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('redacts a clipboard-prefilled query from the abandoned event', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId } = renderExploreSearchScreenWithBackStack({
+        initialParams: {
+          entryPoint: 'home',
+          initialQuery: 'clipboard-secret',
+          initialQuerySource: 'clipboard',
+        },
+      });
+
+      await actButtonPress(
+        await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'abandoned',
+              search_query: '',
+              query_length: 16,
+            }),
+          }),
+        );
+      });
+      expect(trackEventSpy).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            search_query: 'clipboard-secret',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('cancels the homepage search handoff and returns to the previous route', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderExploreSearchScreenWithBackStack({
+        initialParams: {
+          entryPoint: 'home',
+          searchOrigin: { x: 48, y: 48, width: 220, height: 48 },
+        },
+      });
+
+    expect(
+      await findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+    ).toBeOnTheScreen();
+
+    await actButtonPress(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('attributes a deeplink search open to the deeplink entry point', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      renderExploreSearchScreenWithRoutes({
+        initialParams: {
+          initialQuery: 'Apple',
+          entryPoint: 'deeplink',
+        },
+      });
+
+      await waitFor(() => {
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+            properties: expect.objectContaining({
+              interaction_type: 'opened',
+              search_query: '',
+              entry_point: 'deeplink',
+            }),
+          }),
+        );
+      });
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('allows changing a deeplink initial query', async () => {
+    const { getByDisplayValue, getByTestId } =
+      renderExploreSearchScreenWithRoutes({
+        initialParams: {
+          initialQuery: 'Apple',
+          entryPoint: 'deeplink',
+        },
+      });
+    const searchInput = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+    );
+
+    await actButtonPress(
+      getByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_CLEAR_BUTTON),
+    );
+    await userEvent.type(searchInput, 'Microsoft');
+
+    expect(getByDisplayValue('Microsoft')).toBeOnTheScreen();
   });
 
   it('pill row is visible after typing a search query', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
+
+    await waitForExploreSearchTransitionSettled(findByTestId);
 
     // The search input is auto-focused on mount; find it by placeholder
     const searchInput = getByTestId(
@@ -167,7 +402,9 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     });
 
     // Clear the search query via the clear button
-    const clearButton = getByTestId('explore-search-clear-button');
+    const clearButton = getByTestId(
+      ExploreSearchScreenSelectorsIDs.SEARCH_CLEAR_BUTTON,
+    );
     await actButtonPress(clearButton);
 
     // After clearing, the Crypto pill should remain selected — clearing the
@@ -215,15 +452,243 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     );
   });
 
-  it('"All" pill is selected by default and pill row is present on mount', async () => {
-    const { getByTestId } = renderExploreSearchScreenWithRoutes();
+  it('holds back the keyboard and the results subtree until the screen transition settles', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately — it does not require
-    // a search query. The "All" pill must be selected (active) by default.
-    await waitFor(() => {
-      const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
-      expect(allPill).toBeOnTheScreen();
-      expect(allPill.props.accessibilityState?.selected).toBe(true);
+    const searchInput = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+    );
+
+    expect(searchInput.props.autoFocus).toBe(false);
+    expect(queryByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL)).toBeNull();
+
+    // Once settled, the input takes focus and the results mount.
+    await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT).props
+        .autoFocus,
+    ).toBe(true);
+  });
+
+  it('renders the inline back button instead of a cancel button on a treatment arm', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+      },
+    );
+
+    expect(
+      await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the cancel button on the control arm', async () => {
+    const { findByTestId, queryByTestId } =
+      renderExploreSearchScreenWithRoutes();
+
+    expect(
+      await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the open-tabs button when no browser tabs are open', async () => {
+    const { findByTestId, queryByTestId } =
+      renderExploreSearchScreenWithRoutes();
+
+    await findByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT);
+
+    expect(
+      queryByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the open-tabs count and opens the browser when tabs are open', async () => {
+    const { findByTestId, getByText } = renderExploreSearchScreenWithRoutes({
+      headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+      overrides: {
+        browser: {
+          tabs: [
+            { id: 1, url: 'https://app.uniswap.org' },
+            { id: 2, url: 'https://metamask.io' },
+          ],
+        },
+      },
     });
+
+    const tabsButton = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON,
+    );
+    expect(getByText('2')).toBeOnTheScreen();
+
+    await actButtonPress(tabsButton);
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the open-tabs button on the control arm even with tabs open', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        overrides: {
+          browser: {
+            tabs: [
+              { id: 1, url: 'https://app.uniswap.org' },
+              { id: 2, url: 'https://metamask.io' },
+            ],
+          },
+        },
+      },
+    );
+
+    await findByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT);
+
+    expect(
+      queryByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('tracks exactly one footer result_clicked and opens the browser when the search footer is pressed', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } =
+        renderExploreSearchScreenWithRoutes();
+
+      await waitForExploreSearchTransitionSettled(findByTestId);
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      const footerLink = await findByTestId(
+        'trending-search-footer-search-link',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(footerLink);
+
+      const resultClickedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'result_clicked',
+      );
+      expect(resultClickedEvents).toHaveLength(1);
+      expect(resultClickedEvents[0][0]).toEqual(
+        expect.objectContaining({
+          name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+          properties: expect.objectContaining({
+            search_query: 'eth',
+            section_name: 'search_footer',
+            item_clicked: 'engine_search',
+            tab_name: 'all',
+          }),
+        }),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('tracks abandoned once with navigate_away when leaving through the browser tabs button', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        {
+          headerNavBarVariant: HeaderNavBarVariant.SearchFocused,
+          initialParams: { entryPoint: 'deeplink' },
+          overrides: {
+            browser: {
+              tabs: [{ id: 1, url: 'https://app.uniswap.org' }],
+            },
+          },
+        },
+      );
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      trackEventSpy.mockClear();
+
+      await actButtonPress(
+        await findByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+
+      const abandonedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'abandoned',
+      );
+      expect(abandonedEvents).toHaveLength(1);
+      expect(abandonedEvents[0][0]).toEqual(
+        expect.objectContaining({
+          name: MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED.category,
+          properties: expect.objectContaining({
+            search_query: 'eth',
+            query_length: 3,
+            abandon_reason: 'navigate_away',
+            entry_point: 'deeplink',
+          }),
+        }),
+      );
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('does not track abandoned when the user leaves through a footer result click', async () => {
+    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+
+    try {
+      const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes(
+        { initialParams: { entryPoint: 'deeplink' } },
+      );
+
+      await waitForExploreSearchTransitionSettled(findByTestId);
+
+      await userEvent.type(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'eth',
+      );
+      await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
+      trackEventSpy.mockClear();
+
+      await actButtonPress(
+        await findByTestId('trending-search-footer-search-link'),
+      );
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
+      ).toBeOnTheScreen();
+
+      const abandonedEvents = trackEventSpy.mock.calls.filter(
+        ([event]) => event.properties?.interaction_type === 'abandoned',
+      );
+      expect(abandonedEvents).toHaveLength(0);
+    } finally {
+      trackEventSpy.mockRestore();
+    }
+  });
+
+  it('"All" pill is selected by default and pill row is present on mount', async () => {
+    const { findByTestId } = renderExploreSearchScreenWithRoutes();
+
+    // Pill row mounts after the screen transition settles (see transition test).
+    await waitForExploreSearchTransitionSettled(findByTestId);
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+    expect(allPill.props.accessibilityState?.selected).toBe(true);
   });
 });

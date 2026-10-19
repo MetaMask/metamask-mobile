@@ -2,7 +2,7 @@ import type { ActivityListItem } from '../types';
 import { mergeActivityItems } from './dedup';
 
 const makeItem = (
-  source: string,
+  _source: string,
   timestamp: number,
   hash?: string,
 ): ActivityListItem =>
@@ -13,7 +13,6 @@ const makeItem = (
     timestamp,
     hash,
     data: {},
-    raw: { type: source, data: {} },
   }) as unknown as ActivityListItem;
 
 describe('mergeActivityItems', () => {
@@ -76,5 +75,18 @@ describe('mergeActivityItems', () => {
     expect(
       mergeActivityItems([localCopy], [confirmedCopy], [], [], [], [rampCopy]),
     ).toEqual([rampCopy]);
+  });
+
+  it('keeps two ramp items that share a placeholder 0x hash from collapsing', () => {
+    // Placeholder provider hashes must not be used as Activity keys — see
+    // isPlausibleRampTxHash. After that filter, rows fall back to distinct
+    // order ids, so mergeActivityItems must keep both.
+    const first = makeItem('rampOrder', 2, 'coinbase-m/orders/order-a');
+    const second = makeItem('rampOrder', 1, 'coinbase-m/orders/order-b');
+
+    expect(mergeActivityItems([], [], [], [], [], [first, second])).toEqual([
+      first,
+      second,
+    ]);
   });
 });

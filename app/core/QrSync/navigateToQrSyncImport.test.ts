@@ -21,6 +21,7 @@ describe('navigateToQrSyncImport', () => {
         initialStep: 1,
         qrSyncImport: true,
       },
+      { pop: true },
     );
   });
 });

@@ -157,11 +157,11 @@ describe('qrSyncTelemetry', () => {
     it('sets feature:qr-sync tags and scrubs injected secrets from extras', () => {
       const options = buildQrSyncLoggerErrorOptions({
         surface: QrSyncSurfaces.IMPORT,
-        operation: QrSyncOperations.EXISTING_USER_MNEMONIC_IMPORT,
+        operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
         error: new Error('vault import failed'),
         errorCode: 'SYNC_FAILED',
         phase: 'reviewing-import',
-        source: QrSyncTelemetrySources.COMPLETE_EXISTING_USER_IMPORT,
+        source: QrSyncTelemetrySources.FINISH_EXISTING_USER_WITHOUT_MNEMONIC,
         extras: {
           mnemonic: TEST_MNEMONIC,
           otp: TEST_OTP,
@@ -174,7 +174,7 @@ describe('qrSyncTelemetry', () => {
         expect.objectContaining({
           feature: QR_SYNC_SENTRY_FEATURE,
           surface: QrSyncSurfaces.IMPORT,
-          operation: QrSyncOperations.EXISTING_USER_MNEMONIC_IMPORT,
+          operation: QrSyncOperations.IMPORT_REMAINING_SECRETS,
           errorCode: 'SYNC_FAILED',
         }),
       );
@@ -193,7 +193,7 @@ describe('qrSyncTelemetry', () => {
       reportQrSyncFailure(new Error('scan submit failed'), {
         surface: QrSyncSurfaces.SCANNER,
         operation: QrSyncOperations.SUBMIT_SCANNED_PAYLOAD,
-        source: QrSyncTelemetrySources.ADD_DEVICE_ON_SCAN_SUCCESS,
+        source: QrSyncTelemetrySources.QR_TAB_SWITCHER_ADD_DEVICE_SCAN,
         extras: { qrPayload: TEST_MWP_DEEPLINK },
       });
 

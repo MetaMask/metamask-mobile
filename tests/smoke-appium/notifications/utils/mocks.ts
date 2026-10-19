@@ -1,5 +1,4 @@
 import type { Mockttp } from 'mockttp';
-import type { ContentfulResult } from '@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.d.cts';
 import {
   getMockFeatureAnnouncementResponse,
   getMockListNotificationsResponse,
@@ -30,7 +29,10 @@ import { getDecodedProxiedURL } from './helpers';
 import { MockttpNotificationTriggerServer } from './mock-notification-trigger-server';
 import { mockAuthServices } from '../../../smoke/identity/utils/mocks';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
 import { createLogger } from '../../../framework/logger';
+import type { Asset, Entry } from 'contentful';
+import type { TypeFeatureAnnouncement } from '@metamask/notification-services-controller/notification-services';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 const mockNotifications = [
@@ -62,6 +64,16 @@ const logger = createLogger({
   name: 'MockNotificationServices',
 });
 
+// TODO: Export this type from `@metamask/notification-services-controller` and
+// remove these duplicates.
+interface ContentfulResult {
+  includes?: {
+    Entry?: Entry[];
+    Asset?: Asset[];
+  };
+  items?: TypeFeatureAnnouncement[];
+}
+
 const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
 const mockFeatureAnnouncementContentfulResponse =
   mockFeatureAnnouncementResponse.response as ContentfulResult;
@@ -90,8 +102,12 @@ export function getMockFeatureAnnouncementItemId() {
  */
 export async function mockNotificationServices(server: Mockttp) {
   await mockAuthServices(server);
-  // Trigger Config
-  await new MockttpNotificationTriggerServer().setupServer(server);
+  // Trigger Config. Wallet-activity addresses come from the keyring and the
+  // per-address enabled bit from the Trigger API, so the fixture account must
+  // be reported as subscribed for wallet notifications to be fetched.
+  const triggerServer = new MockttpNotificationTriggerServer();
+  triggerServer.setNotificationConfig(DEFAULT_FIXTURE_ACCOUNT_CHECKSUM, true);
+  await triggerServer.setupServer(server);
 
   const contentfulUrlRegex =
     /^https:\/\/cdn\.contentful\.com:443\/spaces\/[a-zA-Z0-9]+\/environments\/[a-zA-Z0-9]+\/entries\?.*$/;

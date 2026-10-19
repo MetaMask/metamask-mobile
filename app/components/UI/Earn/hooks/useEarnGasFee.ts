@@ -46,16 +46,15 @@ const useEarnDepositGasFee = (
 
   const getEstimatedEarnGasFee = useCallback(
     async (amountMinimalUnit: BN4) => {
-      const isPooledStaking =
-        earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
-      const isStablecoinLending =
-        earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
+      if (earnExperience.type === EARN_EXPERIENCES.TRX_STAKING) {
+        return new BN4(0);
+      }
 
       const { GasFeeController } = Engine.context;
       const result = await GasFeeController.fetchGasFeeEstimates();
 
       let depositGasLimit = DEFAULT_GAS_LIMIT;
-      if (isPooledStaking) {
+      if (earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING) {
         depositGasLimit = amountMinimalUnit.eq(new BN4(0))
           ? DEFAULT_GAS_LIMIT
           : (await stakingContract?.estimateDepositGas(
@@ -63,7 +62,7 @@ const useEarnDepositGasFee = (
               selectedAddress,
               ZERO_ADDRESS,
             )) || DEFAULT_GAS_LIMIT;
-      } else if (isStablecoinLending) {
+      } else if (earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
         // do nothing for now as we need to have allowance to guarantee supply success
       }
 
@@ -96,17 +95,18 @@ const useEarnDepositGasFee = (
     setIsLoadingEarnGasFee(true);
     setIsEarnGasFeeError(false);
 
-    const isPooledStaking =
-      earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
-    const isStablecoinLending =
-      earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
-
-    if (isPooledStaking && !stakingContract) {
+    if (
+      earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING &&
+      !stakingContract
+    ) {
       setIsEarnGasFeeError(true);
       setIsLoadingEarnGasFee(false);
       return;
     }
-    if (isStablecoinLending && !lendingContracts) {
+    if (
+      earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING &&
+      !lendingContracts
+    ) {
       setIsEarnGasFeeError(true);
       setIsLoadingEarnGasFee(false);
       return;

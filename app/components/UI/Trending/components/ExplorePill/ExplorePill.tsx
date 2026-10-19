@@ -1,18 +1,20 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
+  type ButtonProps,
 } from '@metamask/design-system-react-native';
 
-export interface ExplorePillProps {
+export interface ExplorePillProps
+  extends Pick<ButtonProps, 'accessibilityState' | 'twClassName'> {
   onPress: () => void;
   testID: string;
   /** Icon or logo on the left (e.g. token logo, with or without a network badge wrapper). */
@@ -20,6 +22,8 @@ export interface ExplorePillProps {
   title: string;
   changeLabel?: string;
   changeTextColor?: TextColor;
+  /** Accessory after the label (e.g. a check on the active filter). */
+  trailing?: React.ReactNode;
 }
 
 /**
@@ -33,29 +37,28 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   title,
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
+  trailing,
+  ...props
 }) => {
-  const tw = useTailwind();
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
 
   return (
-    <Pressable
+    <Button
       onPress={onPress}
       testID={testID}
-      accessibilityRole="button"
-      style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
+      size={ButtonSize.Md}
+      variant={ButtonVariant.Secondary}
+      startAccessory={leading}
+      endAccessory={trailing}
+      {...props}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        paddingHorizontal={2}
-        paddingVertical={2}
-        twClassName="rounded-full"
       >
-        {leading}
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
@@ -64,7 +67,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
         </Text>
         {showChange ? (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={changeTextColor}
             numberOfLines={1}
@@ -73,7 +76,7 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
           </Text>
         ) : null}
       </Box>
-    </Pressable>
+    </Button>
   );
 };
 

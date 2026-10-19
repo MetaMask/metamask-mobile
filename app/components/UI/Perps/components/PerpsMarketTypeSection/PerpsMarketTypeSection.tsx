@@ -98,7 +98,12 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
 
   return (
     <Box style={style} testID={testID}>
-      <SectionHeader title={title} isInteractive onPress={handleViewAll} />
+      <SectionHeader
+        title={title}
+        isInteractive
+        onPress={handleViewAll}
+        testID={testID ? `${testID}-header` : undefined}
+      />
       <View style={contentContainerStyle}>
         {isLoading ? (
           <PerpsRowSkeleton count={5} />
@@ -108,6 +113,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
             sortBy={sortBy}
             onMarketPress={handleMarketPress}
             showBadge={false}
+            testID={testID ? `${testID}-list` : undefined}
           />
         )}
       </View>

@@ -8,7 +8,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Contacts from './';
 import { strings } from '../../../../../locales/i18n';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { ContactsViewSelectorIDs } from './ContactsView.testIds';
+import {
+  ContactsViewSelectorIDs,
+  ContactsViewSelectorsText,
+} from './ContactsView.testIds';
 
 const initialState = {
   engine: {
@@ -57,6 +60,54 @@ describe('Contacts', () => {
     );
     expect(getByTestId(ContactsViewSelectorIDs.HEADER)).toBeOnTheScreen();
     expect(getByText(strings('app_settings.contacts_title'))).toBeOnTheScreen();
+  });
+
+  it('renders the empty state when the address book has no contacts', () => {
+    const { getByTestId, getByText } = renderScreen(
+      Contacts,
+      { name: 'ContactsSettings', options: { headerShown: false } },
+      { state: initialState },
+    );
+
+    expect(getByTestId(ContactsViewSelectorIDs.EMPTY_STATE)).toBeOnTheScreen();
+    expect(getByText(strings('address_book.no_contacts'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('address_book.no_contacts_desc')),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the empty state when the address book has contacts', () => {
+    const { queryByTestId } = renderScreen(
+      Contacts,
+      { name: 'ContactsSettings', options: { headerShown: false } },
+      {
+        state: {
+          ...initialState,
+          engine: {
+            backgroundState: {
+              ...backgroundState,
+              AddressBookController: {
+                addressBook: {
+                  '0x1': {
+                    '0x0000000000000000000000000000000000000001': {
+                      address: '0x0000000000000000000000000000000000000001',
+                      chainId: '0x1',
+                      isEns: false,
+                      memo: '',
+                      name: ContactsViewSelectorsText.MYTH_CONTACT,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      queryByTestId(ContactsViewSelectorIDs.EMPTY_STATE),
+    ).not.toBeOnTheScreen();
   });
 
   it('navigates back when header back button is pressed', () => {

@@ -52,8 +52,8 @@ describe('NewUserSheet', () => {
   });
 
   it('renders title, body and buttons when visible', () => {
-    const { getByTestId } = renderWithProvider(
-      <NewUserSheet {...defaultProps} />,
+    const { getByTestId, getByText } = renderWithProvider(
+      <NewUserSheet {...defaultProps} yesLabel="Turn on notifications" />,
     );
     expect(getByTestId(NewUserSheetSelectorsIDs.TITLE)).toBeOnTheScreen();
     expect(getByTestId(NewUserSheetSelectorsIDs.BODY)).toBeOnTheScreen();
@@ -61,6 +61,34 @@ describe('NewUserSheet', () => {
     expect(
       getByTestId(NewUserSheetSelectorsIDs.BUTTON_NOT_NOW),
     ).toBeOnTheScreen();
+    expect(getByText('Turn on notifications')).toBeOnTheScreen();
+  });
+
+  it('renders custom notification-preview content', () => {
+    const { getByText } = renderWithProvider(
+      <NewUserSheet
+        {...defaultProps}
+        previewTitle="Transaction request"
+        previewMessage="Your agent needs approval on a new limit."
+        previewTimestamp="now"
+      />,
+    );
+
+    expect(getByText('Transaction request')).toBeOnTheScreen();
+    expect(
+      getByText('Your agent needs approval on a new limit.'),
+    ).toBeOnTheScreen();
+    expect(getByText('now')).toBeOnTheScreen();
+  });
+
+  it('closes when the close button is pressed', () => {
+    const { getAllByRole } = renderWithProvider(
+      <NewUserSheet {...defaultProps} />,
+    );
+
+    fireEvent.press(getAllByRole('button')[0]);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
   it('closes the sheet before calling onYes when Yes is pressed', () => {

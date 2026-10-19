@@ -29,7 +29,7 @@ describe('BasicFunctionalityEmptyState', () => {
         "We can't fetch the required metadata when basic functionality is disabled.",
       ),
     ).toBeOnTheScreen();
-    expect(getByText('Enable basic functionality')).toBeOnTheScreen();
+    expect(getByText('Turn on basic functionality')).toBeOnTheScreen();
     expect(
       queryByTestId('basic-functionality-empty-state-icon-container'),
     ).toBeNull();
@@ -57,7 +57,7 @@ describe('BasicFunctionalityEmptyState', () => {
   it('navigates to basic functionality settings when button is pressed', () => {
     const { getByText } = render(<BasicFunctionalityEmptyState />);
 
-    const enableButton = getByText('Enable basic functionality');
+    const enableButton = getByText('Turn on basic functionality');
 
     fireEvent.press(enableButton);
 

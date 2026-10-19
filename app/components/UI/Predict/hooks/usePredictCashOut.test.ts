@@ -12,6 +12,7 @@ import {
 } from '../types';
 import { PredictEventValues } from '../constants/eventNames';
 import { usePredictCashOut } from './usePredictCashOut';
+import { mockTheme } from '../../../../util/theme';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 
@@ -224,6 +225,7 @@ describe('usePredictCashOut', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: ToastVariants.Icon,
+        iconColor: mockTheme.colors.error.default,
         hasNoTimeout: false,
         labelOptions: expect.arrayContaining([
           expect.objectContaining({ isBold: true }),

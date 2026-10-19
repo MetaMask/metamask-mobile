@@ -1,5 +1,11 @@
 import { CaipChainId } from '@metamask/utils';
-import { BtcScope, EthScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  EthScope,
+  SolScope,
+  TrxScope,
+  XlmScope,
+} from '@metamask/keyring-api';
 import { getDefaultMultichainNetworkControllerState } from '@metamask/multichain-network-controller';
 import {
   selectMultichainNetworkControllerState,
@@ -202,6 +208,8 @@ describe('getActiveNetworksByScopes', () => {
   const MOCK_SOL_ACCOUNT = 'SoLaNaToTheMoonKopQixMzG9SMnKuCZQzQ9ujeZuvC5';
   const MOCK_BTC_ACCOUNT = '1BitcoinSatoshiNakamoto123456789';
   const MOCK_TRON_ACCOUNT = 'T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb';
+  const MOCK_STELLAR_ACCOUNT =
+    'GCEZWKCA5VNDSIX4BFMFNTGJTYZ4ZAQ7AN2K6QKWGAPMHUM7VHL53GI';
   const MOCK_ETH_ACCOUNT_NO_ACTIVITY =
     '0xNoActivityAccount1234567890123456789012';
   const baseState = {
@@ -287,6 +295,19 @@ describe('getActiveNetworksByScopes', () => {
       ]);
     },
   );
+
+  it('returns correct network for Stellar pubnet', () => {
+    const account = {
+      address: MOCK_STELLAR_ACCOUNT,
+      scopes: [XlmScope.Pubnet],
+    };
+    const result = getActiveNetworksByScopes(baseState, account);
+    expect(result).toEqual([
+      {
+        caipChainId: XlmScope.Pubnet,
+      },
+    ]);
+  });
 
   it('returns an empty array if account has no scopes', () => {
     const account = {

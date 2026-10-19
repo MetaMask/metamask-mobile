@@ -19,7 +19,17 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
 
-export const MainNotificationToggle = () => {
+export interface MainNotificationToggleProps {
+  /** When false, hides the settings description copy. Defaults to true. */
+  showDescription?: boolean;
+  /** Disables the switch (in addition to the updating state). */
+  disabled?: boolean;
+}
+
+export const MainNotificationToggle = ({
+  showDescription = true,
+  disabled = false,
+}: MainNotificationToggleProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -39,9 +49,11 @@ export const MainNotificationToggle = () => {
 
   return (
     <>
-      <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
-        {strings('app_settings.allow_notifications_desc')}
-      </Text>
+      {showDescription ? (
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
+          {strings('app_settings.allow_notifications_desc')}
+        </Text>
+      ) : null}
       <View
         style={styles.switchElement}
         testID={MAIN_NOTIFICATION_TOGGLE_TEST_ID}
@@ -55,7 +67,7 @@ export const MainNotificationToggle = () => {
         </Text>
         <Switch
           value={value}
-          disabled={isUpdating}
+          disabled={disabled || isUpdating}
           onValueChange={(newValue) => {
             trackNotificationToggleEvent();
             onToggle(newValue);

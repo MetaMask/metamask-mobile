@@ -1,4 +1,17 @@
+import type { VipTransactionType } from '../../core/Engine/controllers/rewards-controller/types';
+
 export type CampaignOutcomeToastVariant = 'winner' | 'non_winner';
+
+/**
+ * Composite key for season-scoped subscription data in the rewards Redux slice
+ * (`seasonId:subscriptionId`), matching RewardsController season caches.
+ */
+export function buildSeasonSubscriptionCompositeKey(
+  seasonId: string,
+  subscriptionId: string,
+): string {
+  return `${seasonId}:${subscriptionId}`;
+}
 
 /**
  * Composite key for subscription-scoped campaign data in the rewards Redux slice
@@ -9,6 +22,17 @@ export function buildSubscriptionCampaignCompositeKey(
   campaignId: string,
 ): string {
   return `${subscriptionId}:${campaignId}`;
+}
+
+/**
+ * Composite key for subscription-scoped VIP transactions in the rewards Redux
+ * slice (`subscriptionId:type`).
+ */
+export function buildSubscriptionVipTransactionCompositeKey(
+  subscriptionId: string,
+  type: VipTransactionType,
+): string {
+  return `${subscriptionId}:${type}`;
 }
 
 /**

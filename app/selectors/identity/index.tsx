@@ -4,6 +4,8 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+import { selectPrimaryHDKeyring } from '../keyringController';
+import { createDeepEqualSelector } from '../util';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
@@ -25,22 +27,82 @@ export const selectIsSignedIn = createSelector(
 );
 
 /**
- * Selector that exposes the canonical profile ID from the active
- * AuthenticationController session.
+ * Selector that exposes the canonical profile ID of the session belonging to
+ * the wallet's primary SRP.
  *
- * The canonical profile ID is the unified identifier across all paired SRPs,
- * so any single session profile suffices. Reads the first available session
- * entry — before pairing there is only one, and after pairing every session
- * shares the same canonical id (the controller propagates it to all cached
- * sessions on `refreshCanonicalProfileId`).
+ * `srpSessionData` is persisted, keyed by keyring `metadata.id`, and is never
+ * pruned when a keyring goes away, so its first entry can outlive the wallet
+ * it was created for (e.g. after a wallet reset). Keying by the primary HD
+ * keyring — the same key the AuthenticationController itself uses — instead of
+ * the first map entry guarantees the resolved identity belongs to the live
+ * wallet and not a reset-away one.
  *
- * Returns `undefined` when there is no session profile (e.g. signed out).
+ * Returns `undefined` when the identity is not knowable yet: signed out, no
+ * session for the primary SRP, or the wallet is locked (`keyrings` is
+ * `persist: false` and emptied by `setLocked()`).
  */
 export const selectCanonicalProfileId = createSelector(
   selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    Object.entries(authenticationControllerState.srpSessionData ?? {})?.[0]?.[1]
-      ?.profile?.canonicalProfileId,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string | undefined => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return undefined;
+    }
+    return (
+      authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
+        ?.profile?.canonicalProfileId || undefined
+    );
+  },
+);
+
+/**
+ * Selector that returns the entropy source IDs of the SRPs that belong to the
+ * wallet's profile: the primary SRP (the one carrying `canonicalProfileId`)
+ * first, followed by every SRP paired to it.
+ *
+ * A secondary SRP is paired when its session `identifierId` appears in the
+ * primary session's `pairedIdentifierIds`. `canonicalProfileId` is not used
+ * for this: the AuthenticationController propagates it to every session,
+ * including SRPs the server skipped while pairing.
+ *
+ * Falls back to the primary SRP alone when it has no session yet (signed out
+ * or not paired). Returns an empty array when the wallet is locked, because
+ * the primary HD keyring is unknown.
+ */
+export const selectProfileEntropySourceIds = createDeepEqualSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string[] => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return [];
+    }
+
+    const srpSessionData = authenticationControllerState.srpSessionData ?? {};
+    const pairedIdentifierIds = new Set(
+      (
+        srpSessionData[primaryEntropySourceId]?.profile?.pairedIdentifierIds ??
+        []
+      ).map((identifier) => identifier.id),
+    );
+
+    const pairedEntropySourceIds = Object.entries(srpSessionData)
+      .filter(
+        ([entropySourceId, session]) =>
+          entropySourceId !== primaryEntropySourceId &&
+          pairedIdentifierIds.has(session?.profile?.identifierId),
+      )
+      .map(([entropySourceId]) => entropySourceId);
+
+    return [primaryEntropySourceId, ...pairedEntropySourceIds];
+  },
 );
 
 /**
@@ -61,6 +123,34 @@ export const selectNeedsProfilePairing = createSelector(
   selectAuthenticationControllerState,
   (authenticationControllerState: AuthenticationState) =>
     authenticationControllerState.needsProfilePairing ?? true,
+);
+
+/**
+ * Selector that exposes the `needsSocialPairing` flag from the
+ * `AuthenticationController` state.
+ *
+ * Used by `useAutoSignIn` to force a sign-in when a social-login wallet
+ * still needs its social identifier paired to the SRP profile.
+ *
+ * Defaults to `true` when the field is absent from state — this mirrors the
+ * controller's `defaultState` and matches `selectNeedsProfilePairing`.
+ */
+export const selectNeedsSocialPairing = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.needsSocialPairing ?? true,
+);
+
+/**
+ * Selector that exposes the MFA credentials cached by the
+ * `AuthenticationController`. The cache is only filled by
+ * `refreshEnrolledCredentials()` and after an enrollment, so callers that need
+ * fresh data refresh first.
+ */
+export const selectEnrolledCredentials = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.enrolledCredentials ?? [],
 );
 
 // User Storage

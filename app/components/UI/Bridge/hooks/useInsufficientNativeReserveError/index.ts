@@ -5,7 +5,7 @@ import {
   isBitcoinChainId,
   isNativeAddress,
   isNonEvmChainId,
-  type QuoteMetadata,
+  sumAmounts,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
@@ -16,9 +16,10 @@ import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isArcUsdcForBridge } from '../../../../../enablement/assets/arc';
 
 type ChainIdHexOrCaip = Hex | CaipChainId;
-type ActiveQuote = (QuoteResponse & QuoteMetadata) | null | undefined;
+type ActiveQuote = QuoteResponse | null | undefined;
 
 const BTC_MAINNET_CHAIN_ID = formatChainIdToCaip(ChainId.BTC);
 
@@ -32,10 +33,16 @@ const MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN: {
 const getMinimumReserveBalanceForTokenChainAndAddress = ({
   chainId,
   tokenAddress,
+  token,
 }: {
   chainId: ChainIdHexOrCaip;
   tokenAddress: string;
+  token: BridgeToken;
 }): string => {
+  if (isArcUsdcForBridge(token)) {
+    return MINIMUM_NATIVE_RESERVE_BALANCE_PER_CHAIN[chainId] ?? '0';
+  }
+
   if (!tokenAddress || !isNativeAddress(tokenAddress)) {
     return '0';
   }
@@ -114,11 +121,13 @@ export const useInsufficientNativeReserveError = ({
       isGasFeesSponsoredNetworkEnabled(chainIdHex),
   );
 
+  const isArcUSDCReserveToken = isArcUsdcForBridge(token);
   const minimumNativeBalanceToBeKeptInAccount =
-    isNetworkGasSponsored || isBitcoinReserveChain
+    isNetworkGasSponsored || isBitcoinReserveChain || isArcUSDCReserveToken
       ? getMinimumReserveBalanceForTokenChainAndAddress({
           chainId: chainIdWithNativeReserve,
           tokenAddress: token.address,
+          token,
         })
       : '0';
 
@@ -137,8 +146,11 @@ export const useInsufficientNativeReserveError = ({
   let btcQuoteNetworkFeeBaseUnits = BigNumberJS(0);
   let btcQuoteSourceOverheadBaseUnits = BigNumberJS(0);
   if (isBitcoinReserveChain && activeQuote) {
-    const networkFeeAmount = activeQuote.totalNetworkFee?.amount;
-    const sentAmount = activeQuote.sentAmount?.amount;
+    const networkFeeAmount = sumAmounts(
+      activeQuote.quote.feeData.network,
+      activeQuote.quote.feeData.relayer,
+    )?.normalizedAmount;
+    const sentAmount = activeQuote.quote.src?.normalizedAmount;
     const networkFeeBaseUnits = networkFeeAmount
       ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
       : undefined;

@@ -21,6 +21,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Card being provisioned',
       'card.card_home.messages.card_provisioning.description':
         'Your card is being automatically provisioned. This may take a few moments.',
+      'card.card_home.warnings.pending_verification.title':
+        'Finish setting up your card',
+      'card.card_home.warnings.pending_verification.description':
+        'You have pending verification steps to complete before your card can be enabled.',
+      'card.card_home.warnings.pending_verification.confirm_button_label':
+        'Continue verification',
       'card.card_spending_limit.dismiss': 'Dismiss',
       'card.card_authentication.auth_prompt_info':
         'Log in to your card account to access this feature.',
@@ -39,6 +45,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.credit_banner.description':
         'Spend it or move it to your Money account to keep earning on your balance.',
       'card.credit_banner.confirm_button_label': 'Move funds',
+      'card.uk_migration_soft.title': 'Update your MetaMask Card',
+      'card.uk_migration_soft.description':
+        'Set up by {{deadline}} to avoid interruptions.',
+      'card.uk_migration_soft.description_no_deadline':
+        'Set up your card to avoid interruptions.',
+      'card.uk_migration_soft.confirm_button_label': 'Set up card',
+      'card.uk_migration_required.title': 'Update required to continue',
+      'card.uk_migration_required.description':
+        'Complete your MetaMask Card update to keep using your card.',
+      'card.uk_migration_required.confirm_button_label': 'Update now',
+      'card.push_provisioning.verification_pending_title':
+        'Verification pending',
+      'card.push_provisioning.verification_pending_description':
+        'Open the card in Apple Wallet to verify it on {{devices}}.',
+      'card.push_provisioning.open_in_apple_wallet': 'Open in Apple Wallet',
     };
     let value = mockStrings[key] || key;
     if (params) {
@@ -285,6 +306,36 @@ describe('CardMessageBox', () => {
         <CardMessageBox
           messageType={CardMessageBoxType.CreditAvailable}
           values={{ amount: '$10.86' }}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('WalletVerificationPending warning', () => {
+    it('interpolates the devices into the description', () => {
+      const { getByText, queryByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
+        />
+      ));
+
+      expect(getByText('Verification pending')).toBeOnTheScreen();
+      expect(
+        getByText('Open the card in Apple Wallet to verify it on iPhone.'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('confirm-button')).not.toBeOnTheScreen();
+    });
+
+    it('renders Open in Apple Wallet when onConfirm is provided', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.WalletVerificationPending}
+          values={{ devices: 'iPhone' }}
           onConfirm={mockOnConfirm}
         />
       ));

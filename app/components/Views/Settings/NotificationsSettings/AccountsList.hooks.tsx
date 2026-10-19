@@ -14,11 +14,19 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 export function useNotificationAccountListProps() {
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const accountsMap = useSelector(selectInternalAccountsById);
-  const { update, initialLoading, accountsBeingUpdated, data } =
+  const { update, initialLoading, accountsBeingUpdated, data, error } =
     useFetchAccountNotifications(accountAddresses);
 
-  // Only disable switches during initial data loading, not when individual accounts are updating
-  const shouldDisableSwitches = initialLoading;
+  // Account settings live in the Trigger API, which reports an unreadable
+  // config as a failure rather than "every account disabled". Surface that
+  // failure instead of showing switches in the wrong position — but only when
+  // there is no earlier successful read to fall back on.
+  const hasAccountSettings = Object.keys(data).length > 0;
+  const accountSettingsError = hasAccountSettings ? null : error;
+
+  // Only disable switches during initial data loading or when a failed read
+  // left us with no settings to show, not when individual accounts are updating
+  const shouldDisableSwitches = initialLoading || Boolean(accountSettingsError);
 
   const refetchAccountSettings = useCallback(async () => {
     await update(accountAddresses);
@@ -80,6 +88,7 @@ export function useNotificationAccountListProps() {
   return {
     shouldDisableSwitches,
     isAnyAccountUpdating,
+    accountSettingsError,
     refetchAccountSettings,
     isAccountLoading,
     isAccountEnabled,

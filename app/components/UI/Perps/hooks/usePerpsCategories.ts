@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
-import { type MarketTypeFilter } from '@metamask/perps-controller';
+import {
+  MarketCategory,
+  type MarketTypeFilter,
+} from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   CATEGORY_DISPLAY_ORDER,
   isHip3Filter,
+  isMemecoinMarket,
   normalizeFilterKey,
 } from '../utils/marketCategoryMapping';
 
@@ -26,7 +30,9 @@ export const NEW_CATEGORY: PerpsCategory = {
 
 /**
  * Derives unique market categories with localised labels from the current
- * markets list.  Non-HIP-3 markets are bucketed under `'crypto'`.
+ * markets list.  Non-HIP-3 markets are bucketed under `'crypto'`; non-HIP-3
+ * markets that also carry the `'memecoin'` tag additionally surface the
+ * `'memecoin'` pill (overlapping with `'crypto'` by design).
  *
  * IDs use the `MarketTypeFilter` form (e.g. `"stock"`, `"commodity"`) so
  * they can be passed directly to navigation params, filter state, and
@@ -39,6 +45,15 @@ export const usePerpsCategories = (): PerpsCategory[] => {
     const seen = new Set<Exclude<MarketTypeFilter, 'all'>>();
     const result: PerpsCategory[] = [];
 
+    const pushCategory = (id: Exclude<MarketTypeFilter, 'all'>) => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      result.push({
+        id,
+        label: strings(`perps.home.tabs.${normalizeFilterKey(id)}`),
+      });
+    };
+
     for (const market of markets) {
       const id: Exclude<MarketTypeFilter, 'all'> | undefined = !market.isHip3
         ? 'crypto'
@@ -46,13 +61,13 @@ export const usePerpsCategories = (): PerpsCategory[] => {
           ? market.marketType
           : undefined;
 
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
+      if (id) pushCategory(id);
 
-      result.push({
-        id,
-        label: strings(`perps.home.tabs.${normalizeFilterKey(id)}`),
-      });
+      // Memecoin is a derived category. Surface the pill in addition to
+      // 'crypto' so users can drill into it independently.
+      if (isMemecoinMarket(market)) {
+        pushCategory(MarketCategory.Memecoin);
+      }
     }
 
     const orderIndex = new Map(

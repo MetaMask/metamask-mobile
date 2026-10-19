@@ -455,6 +455,7 @@ sequenceDiagram
 - **UI**: Account changed → Lifecycle hook calls reconnect
 - **Provider (React)**: Delegates to Manager
 - **Manager**: Waits for pending operations, then reinitializes
+- **Manager**: Clears only user-scoped positions/orders/account/fills caches; global market and price channels remain visible
 - **Controller**: Disconnects old provider (old account), creates new one
 - **Provider (Exchange)**: Closes WebSocket, establishes new connection with new account context
 
@@ -469,7 +470,7 @@ sequenceDiagram
     UI->>RP: Account changed
     RP->>M: reconnectWithNewContext()
     M->>M: Wait for pending operations
-    M->>M: Clear stream caches
+    M->>M: Clear user-scoped caches; preserve global market data
     M->>C: initializeProviders()
     C->>P: disconnect old provider
     C->>C: create new provider

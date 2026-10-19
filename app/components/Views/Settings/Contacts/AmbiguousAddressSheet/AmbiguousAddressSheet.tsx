@@ -1,30 +1,21 @@
-// Third party dependencies.
 import React, { useRef } from 'react';
-import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-// External dependencies.
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../Base/Text';
-import { useTheme } from '../../../../../util/theme';
 import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Text,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-
-// Internal dependencies
-import createStyles from './AmbiguousAddressSheet.styles';
 
 /**
  * AmbiguousAddressSheet Component.
  *
  */
 const AmbiguousAddressSheet = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const onCancelPress = () => {
@@ -32,26 +23,22 @@ const AmbiguousAddressSheet = () => {
   };
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <View style={styles.container}>
-        <Text style={styles.heading}>{strings('duplicate_address.title')}</Text>
-        <Text style={styles.body}>
-          <Text>{strings('duplicate_address.body')}</Text>
-        </Text>
-        <View style={styles.buttonContainer}>
-          <Button
-            variant={ButtonVariant.Primary}
-            isFullWidth
-            size={ButtonSize.Lg}
-            style={styles.button}
-            accessibilityRole={'button'}
-            accessible
-            onPress={onCancelPress}
-          >
-            {strings('duplicate_address.button')}
-          </Button>
-        </View>
-      </View>
+    <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
+      <BottomSheetHeader
+        onClose={onCancelPress}
+        closeButtonProps={{ testID: 'ambiguous-address-sheet-close' }}
+      >
+        {strings('duplicate_address.title')}
+      </BottomSheetHeader>
+
+      <Text twClassName="px-4 mb-4">{strings('duplicate_address.body')}</Text>
+
+      <BottomSheetFooter
+        primaryButtonProps={{
+          children: strings('duplicate_address.button'),
+          onPress: onCancelPress,
+        }}
+      />
     </BottomSheet>
   );
 };

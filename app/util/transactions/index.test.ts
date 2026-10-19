@@ -147,6 +147,15 @@ jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
   query: jest.fn(),
 }));
+// `@metamask/bridge-controller` is ESM-only; Babel compiles its re-exports to
+// non-configurable getters that `jest.spyOn` cannot redefine. Re-exporting the
+// real module through a plain object restores spy-able properties.
+jest.mock('@metamask/bridge-controller', () => ({
+  // `__esModule` keeps Babel's interop from wrapping this object in a copy,
+  // so the namespace the spy patches is the one consumers read from.
+  __esModule: true,
+  ...jest.requireActual('@metamask/bridge-controller'),
+}));
 jest.mock('../../core/Engine');
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

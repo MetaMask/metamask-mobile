@@ -5,7 +5,9 @@ import type { RootMessenger } from '../../types';
 
 jest.mock('../../../Encryptor', () => ({
   Encryptor: jest.fn().mockImplementation(() => ({ name: 'mock-encryptor' })),
-  LEGACY_DERIVATION_OPTIONS: { algorithm: 'legacy' },
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023: {
+    algorithm: 'pbkdf2-owasp-2023-minimum',
+  },
 }));
 
 jest.mock('../keyrings', () => ({
@@ -21,12 +23,12 @@ describe('getKeyringControllerInstanceOptions', () => {
   });
 
   it('builds options with the encryptor and V1/V2 keyring builders', () => {
-    const options = getKeyringControllerInstanceOptions(messenger);
+    const options = getKeyringControllerInstanceOptions(messenger, false);
 
     expect(Encryptor).toHaveBeenCalledWith({
-      keyDerivationOptions: { algorithm: 'legacy' },
+      keyDerivationOptions: { algorithm: 'pbkdf2-owasp-2023-minimum' },
     });
-    expect(getKeyringBuilders).toHaveBeenCalledWith(messenger);
+    expect(getKeyringBuilders).toHaveBeenCalledWith(messenger, false);
     expect(getKeyringV2Builders).toHaveBeenCalled();
     expect(options).toEqual({
       encryptor: { name: 'mock-encryptor' },

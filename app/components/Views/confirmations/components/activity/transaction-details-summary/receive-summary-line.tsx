@@ -3,10 +3,10 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
-import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { getTokenDisplaySymbol } from '../../../../../UI/Earn/constants/musd';

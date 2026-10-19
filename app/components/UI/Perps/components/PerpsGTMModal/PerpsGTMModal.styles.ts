@@ -95,8 +95,8 @@ const createStyles = (
         ? Platform.OS === 'ios'
           ? 'System'
           : 'Roboto'
-        : 'Geist-Regular',
-      fontWeight: '500',
+        : 'Inter-Regular',
+      fontWeight: '400',
     },
     footerContainer: {
       display: 'flex',
@@ -105,7 +105,6 @@ const createStyles = (
       paddingBottom: scaleVertical(12),
     },
     tryNowButton: {
-      borderRadius: scaleSize(12),
       backgroundColor: isDarkMode
         ? importedColors.white
         : importedColors.btnBlack,

@@ -593,9 +593,7 @@ export function BatchSellTokenSelect() {
   ]);
 
   const handleExploreTokensPress = useCallback(() => {
-    navigation.navigate(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-    });
+    navigation.navigate(Routes.TRENDING_VIEW);
   }, [navigation]);
 
   const handleTokenSortToggle = useCallback(() => {
@@ -641,7 +639,7 @@ export function BatchSellTokenSelect() {
         onPress={() => handleChainSelect(chainId)}
         isDisabled={isDisabled}
         size={ButtonToggleSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
+        style={tw.style('rounded-full py-2 px-4')}
         testID={`${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`}
       />
     ),

@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Transaction } from '@metamask/keyring-api';
 import { capitalize } from 'lodash';
 
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
 });
 
 const MultichainTransactionDetailsSheet: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<MultichainTransactionDetailsSheetRouteProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -160,7 +161,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
               {formatAddress(value, 'short')}
             </Text>
             <Icon
-              name={IconName.Export}
+              name={IconName.ArrowSquareOut}
               size={IconSize.Sm}
               color={IconColor.Primary}
             />
@@ -226,7 +227,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
               strings('networks.view_details'),
             )
           }
-          endIconName={IconName.Export}
+          endIconName={IconName.ArrowSquareOut}
         />
       </Box>
     </BottomSheet>

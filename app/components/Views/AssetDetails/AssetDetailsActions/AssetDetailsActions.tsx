@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
@@ -20,12 +21,15 @@ import {
   ActionLocation,
   ActionPosition,
 } from '../../../../util/analytics/actionButtonTracking';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   onBuy?: () => void;
-  goToSwaps: () => void;
   onSend: () => void;
   onReceive: () => void;
   // Asset context for fund flow
@@ -40,6 +44,7 @@ export interface AssetDetailsActionsProps {
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
   containerTestID?: string;
+  isGlass?: boolean;
 }
 
 // TODO: Delete when TokenDetailsV2Buttons flag is fully rolled out
@@ -47,7 +52,6 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displayBuyButton,
   displaySwapsButton,
   onBuy,
-  goToSwaps,
   onSend,
   onReceive,
   asset,
@@ -56,15 +60,21 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
   containerTestID,
+  isGlass = false,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
   const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.MainView,
+    sourcePage: 'MainView',
+  });
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
   const navigationLockRef = useRef(false);
@@ -154,6 +164,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isBuyingAvailable}
           testID={buyButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
         />
       )}
       {displaySwapsButton && (
@@ -164,15 +175,17 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           isDisabled={!isSwapsEnabled}
           testID={swapButtonActionID}
           containerStyle={styles.buttonContainer}
+          isGlass={isGlass}
         />
       )}
       <MainActionButton
-        iconName={IconName.Send}
+        iconName={IconName.Arrow2UpRight}
         label={strings('asset_overview.send_button')}
         onPress={handleSendPress}
         isDisabled={!canSignTransactions}
         testID={sendButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
       />
       <MainActionButton
         iconName={IconName.Received}
@@ -181,6 +194,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         isDisabled={false}
         testID={receiveButtonActionID}
         containerStyle={styles.buttonContainer}
+        isGlass={isGlass}
       />
     </View>
   );

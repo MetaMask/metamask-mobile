@@ -1,4 +1,6 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -28,7 +30,7 @@ export type ConfirmNavigateOptions = {
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactions = useSelector(selectTransactions);
   const [pendingParams, setPendingParams] = useState<ConfirmNavigateOptions>();
   const [transactionsToRemove, setTransactionsToRemove] = useState<string[]>();
@@ -63,11 +65,16 @@ export function useConfirmNavigation() {
         return;
       }
 
-      const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
+      const isForceBottomSheet = params.forceBottomSheet === true;
+      const route = isForceBottomSheet
+        ? Routes.CONFIRMATION_REQUEST_MODAL
+        : headerShown === false
+          ? ROUTE_NO_HEADER
+          : ROUTE;
 
       log('Navigating', { route, params, stack });
 
-      if (stack) {
+      if (stack && !isForceBottomSheet) {
         if (replace) {
           navigation.dispatch(
             StackActions.replace(stack, { screen: route, params }),
@@ -75,7 +82,9 @@ export function useConfirmNavigation() {
           return;
         }
 
-        navigation.navigate(stack, { screen: route, params });
+        // `stack` is a runtime string (a caller-provided parent navigator id),
+        // so the route name can't be validated at compile time.
+        navigateWithDetails(navigation, [stack, { screen: route, params }]);
         return;
       }
 

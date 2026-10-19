@@ -4,8 +4,17 @@ import {
   selectDefaultGrouping,
   aggregateOrderBookLevels,
   calculateAggregationParams,
+  groupOrderBook,
+  getDepthRatio,
+  getDepthWidth,
+  formatSpreadPercent,
+  formatColumnValue,
+  formatOrderBookPrice,
+  getOrderBookPriceFormat,
+  getOrderBookPriceValue,
 } from './orderBookGrouping';
 import type { OrderBookLevel } from '../hooks/stream/usePerpsLiveOrderBook';
+import type { OrderBookData } from '@metamask/perps-controller';
 
 describe('orderBookGrouping', () => {
   describe('calculateGroupingOptions', () => {
@@ -304,6 +313,451 @@ describe('orderBookGrouping', () => {
         expect(result.nSigFigs).toBe(5);
         expect(result.mantissa).toBe(5);
       });
+    });
+  });
+
+  describe('groupOrderBook', () => {
+    const book: OrderBookData = {
+      bids: [
+        {
+          price: '100',
+          size: '1',
+          total: '1',
+          notional: '100',
+          totalNotional: '100',
+        },
+        {
+          price: '99',
+          size: '2',
+          total: '3',
+          notional: '198',
+          totalNotional: '298',
+        },
+      ],
+      asks: [
+        {
+          price: '101',
+          size: '1.5',
+          total: '1.5',
+          notional: '151.5',
+          totalNotional: '151.5',
+        },
+      ],
+      spread: '1',
+      spreadPercentage: '1',
+      midPrice: '100.5',
+      lastUpdated: 0,
+      maxTotal: '3',
+    };
+
+    it('trims without re-bucketing when grouping is null', () => {
+      const result = groupOrderBook(book, null, 1);
+      expect(result.bids).toHaveLength(1);
+      expect(result.asks).toHaveLength(1);
+      expect(result.maxTotal).toBe(1.5);
+    });
+
+    // TAT-3966: the size ladder needs its own denominator, not the cumulative one.
+    it('reports the largest single level size across the trimmed ladder', () => {
+      // Trimmed to one level a side: bid size 1, ask size 1.5.
+      expect(groupOrderBook(book, null, 1).maxSize).toBe(1.5);
+      // Untrimmed, the deeper bid (size 2) is the largest single level, even
+      // though the largest cumulative total is 3.
+      const full = groupOrderBook(book, null, 10);
+      expect(full.maxSize).toBe(2);
+      expect(full.maxTotal).toBe(3);
+    });
+  });
+
+  describe('getDepthRatio / getDepthWidth / formatters', () => {
+    it('computes buy/sell depth percentages', () => {
+      const bids: OrderBookLevel[] = [
+        {
+          price: '1',
+          size: '1',
+          total: '3',
+          notional: '1',
+          totalNotional: '3',
+        },
+      ];
+      const asks: OrderBookLevel[] = [
+        {
+          price: '2',
+          size: '1',
+          total: '1',
+          notional: '2',
+          totalNotional: '2',
+        },
+      ];
+      expect(getDepthRatio(bids, asks)).toEqual({
+        buyPercent: 75,
+        sellPercent: 25,
+      });
+    });
+
+    it('scales depth bar width against maxTotal', () => {
+      expect(
+        getDepthWidth(
+          {
+            price: '1',
+            size: '1',
+            total: '50',
+            notional: '1',
+            totalNotional: '1',
+          },
+          100,
+          'total',
+        ),
+      ).toBe(50);
+    });
+
+    // TAT-3966: the bar has to measure whatever the ladder says it is listing
+    // by, otherwise a tiny level sitting deep in the book renders as a near-full
+    // bar just because everything in front of it is included.
+    it('scales the depth bar against the level size when listing by size', () => {
+      const level: OrderBookLevel = {
+        price: '1',
+        size: '2',
+        total: '50',
+        notional: '2',
+        totalNotional: '50',
+      };
+
+      expect(getDepthWidth(level, 8, 'size')).toBe(25);
+    });
+
+    it('keeps scaling against the cumulative total when listing by total', () => {
+      const level: OrderBookLevel = {
+        price: '1',
+        size: '2',
+        total: '50',
+        notional: '2',
+        totalNotional: '50',
+      };
+
+      expect(getDepthWidth(level, 100, 'total')).toBe(50);
+    });
+
+    it('gives the smallest level a smaller bar than the largest when listing by size', () => {
+      const shallow: OrderBookLevel = {
+        price: '1',
+        size: '0.5',
+        total: '49',
+        notional: '0.5',
+        totalNotional: '49',
+      };
+      const deep: OrderBookLevel = {
+        price: '2',
+        size: '10',
+        total: '10',
+        notional: '20',
+        totalNotional: '20',
+      };
+
+      // Cumulatively the shallow level dwarfs the deep one; per tick it must not.
+      expect(getDepthWidth(shallow, 49, 'total')).toBeGreaterThan(
+        getDepthWidth(deep, 49, 'total'),
+      );
+      expect(getDepthWidth(shallow, 10, 'size')).toBeLessThan(
+        getDepthWidth(deep, 10, 'size'),
+      );
+    });
+
+    it('formats spread percent and column values', () => {
+      expect(formatSpreadPercent(0.0027)).toBe('0.003%');
+      expect(
+        formatColumnValue(
+          {
+            price: '100',
+            size: '1.5',
+            total: '3',
+            notional: '150',
+            totalNotional: '300',
+          },
+          'usd',
+          'total',
+        ),
+      ).toContain('300');
+    });
+  });
+
+  describe('formatColumnValue compact notation', () => {
+    const level = (overrides: Partial<OrderBookLevel>): OrderBookLevel => ({
+      price: '1',
+      size: '1',
+      total: '1',
+      notional: '1',
+      totalNotional: '1',
+      ...overrides,
+    });
+
+    it.each([
+      ['95', '$95'],
+      ['999.4', '$999.4'],
+      // Reported case: 2097 used to render as "$2,097".
+      ['2097', '$2.1K'],
+      ['121000', '$121.0K'],
+      ['604930', '$604.9K'],
+      ['1234567', '$1.2M'],
+      ['2500000000', '$2.5B'],
+    ])('abbreviates USD size %s as %s', (notional, expected) => {
+      expect(formatColumnValue(level({ notional }), 'usd', 'size')).toBe(
+        expected,
+      );
+    });
+
+    it.each([
+      // Low-priced assets (PUMP, PEPE) trade in millions of base units.
+      ['2097000', '2.1M'],
+      ['604930000', '604.9M'],
+    ])('abbreviates base size %s as %s', (size, expected) => {
+      expect(formatColumnValue(level({ size }), 'base', 'size', 0)).toBe(
+        expected,
+      );
+    });
+
+    it('leaves sub-threshold base sizes at the asset precision', () => {
+      expect(formatColumnValue(level({ size: '1.5' }), 'base', 'size', 4)).toBe(
+        '1.5',
+      );
+      expect(formatColumnValue(level({ size: '999' }), 'base', 'size', 4)).toBe(
+        '999',
+      );
+    });
+
+    it('abbreviates the cumulative total the same way as per-level size', () => {
+      expect(
+        formatColumnValue(level({ totalNotional: '2097' }), 'usd', 'total'),
+      ).toBe('$2.1K');
+    });
+  });
+
+  describe('getOrderBookPriceFormat', () => {
+    it.each([
+      // [grouping, midPrice, szDecimals, expected decimals]
+      [0.01, 33.45, 2, 2],
+      [0.002, 0.5, 0, 3],
+      [0.000001, 0.002097, 0, 6],
+    ])(
+      'matches the grouping step below the abbreviation threshold (grouping %p)',
+      (grouping, midPrice, szDecimals, expected) => {
+        expect(getOrderBookPriceFormat(grouping, midPrice, szDecimals)).toEqual(
+          { divisor: 1, suffix: '', decimals: expected },
+        );
+      },
+    );
+
+    it('caps at the asset price precision Hyperliquid allows (6 - szDecimals)', () => {
+      expect(getOrderBookPriceFormat(0.0000001, 0.5, 0)?.decimals).toBe(6);
+      expect(getOrderBookPriceFormat(0.001, 0.5, 5)?.decimals).toBe(1);
+    });
+
+    it('caps at 6 decimals when szDecimals is unknown', () => {
+      expect(getOrderBookPriceFormat(0.0000001, 0.5)?.decimals).toBe(6);
+    });
+
+    it.each([
+      // [grouping, midPrice, expected]
+      [1000, 64500, { divisor: 1000, suffix: 'K', decimals: 0 }],
+      [100, 64500, { divisor: 1000, suffix: 'K', decimals: 1 }],
+      [10, 61470, { divisor: 1000, suffix: 'K', decimals: 2 }],
+      [10000, 5000000, { divisor: 1000000, suffix: 'M', decimals: 2 }],
+      [100000, 52000000, { divisor: 1000000, suffix: 'M', decimals: 1 }],
+    ])(
+      'scales up while the grouping step still fits (grouping %p, mid %p)',
+      (grouping, midPrice, expected) => {
+        expect(getOrderBookPriceFormat(grouping, midPrice, 5)).toEqual(
+          expected,
+        );
+      },
+    );
+
+    it.each([
+      // [grouping, midPrice] — the default grouping at each of these mids.
+      [1000, 5000000],
+      [1000, 1250000],
+    ])(
+      'never drops to a smaller scale than the mid price warrants (grouping %p, mid %p)',
+      (grouping, midPrice) => {
+        // Falling through from M to K produced "$5,000K": thousand separators
+        // inside an abbreviation, and a suffix understating the magnitude.
+        const format = getOrderBookPriceFormat(grouping, midPrice, 2);
+
+        expect(format?.suffix).toBe('M');
+        expect(formatOrderBookPrice(midPrice, format)).not.toContain(',');
+      },
+    );
+
+    it('spends a third decimal when it keeps the honest scale and still saves width', () => {
+      expect(getOrderBookPriceFormat(1000, 5000000, 2)).toEqual({
+        divisor: 1000000,
+        suffix: 'M',
+        decimals: 3,
+      });
+    });
+
+    it('stays unabbreviated when the suffix would cost more width than it saves', () => {
+      // "$61.470K" is longer than "$61,470" and no clearer.
+      expect(getOrderBookPriceFormat(1, 61470, 5)).toEqual({
+        divisor: 1,
+        suffix: '',
+        decimals: 0,
+      });
+    });
+
+    it('stays unabbreviated when the mantissa would need unreadable precision', () => {
+      // "$3.4521K" saves nothing over "$3,452.1" and reads worse.
+      expect(getOrderBookPriceFormat(0.1, 3452, 4)).toEqual({
+        divisor: 1,
+        suffix: '',
+        decimals: 1,
+      });
+    });
+
+    it('never abbreviates assets priced below the smallest scale', () => {
+      expect(getOrderBookPriceFormat(0.1, 999, 4)?.suffix).toBe('');
+    });
+
+    it('ignores the mid price when it is unusable', () => {
+      expect(getOrderBookPriceFormat(1000, null, 5)).toEqual({
+        divisor: 1,
+        suffix: '',
+        decimals: 0,
+      });
+    });
+
+    it.each([[null], [0], [-1], [Number.NaN]])(
+      'returns null for unusable grouping %p',
+      (grouping) => {
+        expect(getOrderBookPriceFormat(grouping, 64500, 0)).toBeNull();
+      },
+    );
+  });
+
+  describe('formatOrderBookPrice', () => {
+    it('abbreviates a BTC ladder grouped in thousands', () => {
+      const format = getOrderBookPriceFormat(1000, 64500, 5);
+
+      // Every level ended in ",000", so three characters per row were padding.
+      expect(
+        [69000, 68000, 67000, 60000].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$69K', '$68K', '$67K', '$60K']);
+    });
+
+    it('keeps the grouping step visible inside the abbreviation', () => {
+      const format = getOrderBookPriceFormat(10, 61470, 5);
+
+      expect(
+        [61470, 61460, 61450].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$61.47K', '$61.46K', '$61.45K']);
+    });
+
+    it('abbreviates a million-dollar ladder at its true magnitude', () => {
+      const format = getOrderBookPriceFormat(1000, 5000000, 2);
+
+      expect(
+        [5000000, 4999000, 4998000].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$5.000M', '$4.999M', '$4.998M']);
+    });
+
+    it('renders every level of a PUMP ladder at the same precision', () => {
+      const format = getOrderBookPriceFormat(0.000001, 0.0021, 0);
+
+      // Trailing-zero stripping previously produced "$0.0021" between
+      // "$0.002099" and "$0.002101", so the column never lined up.
+      expect(
+        ['0.002099', '0.0021', '0.002101'].map((price) =>
+          formatOrderBookPrice(price, format),
+        ),
+      ).toEqual(['$0.002099', '$0.002100', '$0.002101']);
+    });
+
+    it('keeps neighbouring low-priced levels distinguishable', () => {
+      const format = getOrderBookPriceFormat(0.000001, 0.0098, 0);
+      const prices = ['0.0098', '0.009801', '0.009802'].map((price) =>
+        formatOrderBookPrice(price, format),
+      );
+
+      // Magnitude-based formatting collapsed all three into one string.
+      expect(new Set(prices).size).toBe(3);
+    });
+
+    it('drops decimals entirely for coarse groupings', () => {
+      const format = getOrderBookPriceFormat(1, 61470, 5);
+
+      expect(formatOrderBookPrice('61470', format)).toBe('$61,470');
+    });
+
+    it('falls back to magnitude-based formatting when precision is unknown', () => {
+      expect(formatOrderBookPrice('0.002097', null)).toBe('$0.002097');
+    });
+
+    it('returns the fallback display for unparseable prices', () => {
+      expect(
+        formatOrderBookPrice('not-a-number', {
+          divisor: 1,
+          suffix: '',
+          decimals: 2,
+        }),
+      ).toBe('—');
+    });
+  });
+
+  describe('getOrderBookPriceValue', () => {
+    it('drops a decimal the BTC ladder never displayed', () => {
+      // "$64,123" is what the row reads, so tapping it must not fill 64123.4.
+      const format = getOrderBookPriceFormat(1, 64123, 5);
+
+      expect(formatOrderBookPrice('64123.4', format)).toBe('$64,123');
+      expect(getOrderBookPriceValue('64123.4', format)).toBe('64123');
+    });
+
+    it('keeps the precision an ETH ladder does display', () => {
+      const format = getOrderBookPriceFormat(0.1, 3452, 4);
+
+      expect(getOrderBookPriceValue('3452.1', format)).toBe('3452.1');
+    });
+
+    it('resolves an abbreviated row to the price it stands for', () => {
+      const format = getOrderBookPriceFormat(10, 61470, 5);
+
+      expect(formatOrderBookPrice('61470', format)).toBe('$61.47K');
+      expect(getOrderBookPriceValue('61470', format)).toBe('61470');
+    });
+
+    it('keeps sub-cent prices in plain decimal notation', () => {
+      const format = getOrderBookPriceFormat(0.000001, 0.0021, 0);
+
+      expect(getOrderBookPriceValue('0.002100999', format)).toBe('0.002101');
+    });
+
+    it('leaves the venue price untouched when the format is unknown', () => {
+      expect(getOrderBookPriceValue('0.0682341', null)).toBe('0.0682341');
+    });
+
+    it('leaves the venue price untouched rather than rounding it away', () => {
+      // A stale mid can set a grouping magnitudes coarser than the ladder that
+      // arrives for the next asset; filling 0 would be worse than filling
+      // more precision than the row showed.
+      const format = getOrderBookPriceFormat(10, 90000, 5);
+
+      expect(getOrderBookPriceValue('0.0682341', format)).toBe('0.0682341');
+    });
+
+    it('leaves unparseable prices untouched', () => {
+      expect(
+        getOrderBookPriceValue('not-a-number', {
+          divisor: 1,
+          suffix: '',
+          decimals: 2,
+        }),
+      ).toBe('not-a-number');
     });
   });
 });

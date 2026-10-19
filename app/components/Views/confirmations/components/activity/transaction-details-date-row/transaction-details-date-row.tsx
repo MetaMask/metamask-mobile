@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import I18n, { strings } from '../../../../../../../locales/i18n';
+import { Text } from '@metamask/design-system-react-native';
 
 export function TransactionDetailsDateRow() {
   const { transactionMeta } = useTransactionDetails();

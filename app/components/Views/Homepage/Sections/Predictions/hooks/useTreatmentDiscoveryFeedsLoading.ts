@@ -7,10 +7,10 @@ import { useLayoutEffect, useRef, useState } from 'react';
  */
 export function useTreatmentDiscoveryFeedsLoading({
   isTreatmentDiscovery,
-  isWorldCupFetching,
+  isDiscoveryFetching,
 }: {
   isTreatmentDiscovery: boolean;
-  isWorldCupFetching: boolean;
+  isDiscoveryFetching: boolean;
 }): boolean {
   const [hasDiscoveryFeedsSettled, setHasDiscoveryFeedsSettled] =
     useState(false);
@@ -28,10 +28,10 @@ export function useTreatmentDiscoveryFeedsLoading({
       wasTreatmentDiscoveryRef.current = true;
     }
 
-    if (!isWorldCupFetching) {
+    if (!isDiscoveryFetching) {
       setHasDiscoveryFeedsSettled(true);
     }
-  }, [isTreatmentDiscovery, isWorldCupFetching]);
+  }, [isDiscoveryFetching, isTreatmentDiscovery]);
 
   return isTreatmentDiscovery && !hasDiscoveryFeedsSettled;
 }

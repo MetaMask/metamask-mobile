@@ -1,42 +1,23 @@
 import { Platform } from 'react-native';
+import { getBundleId } from 'react-native-device-info';
 import { MessengerClientInitFunction } from '../../types';
 import {
   TransakService,
   TransakServiceMessenger,
   TransakEnvironment,
 } from '@metamask/ramps-controller';
+import { ApiEnv, getApiEnv } from '../../../apiEnv';
+import { getRampsClientIdentity } from './ramps-service-init';
 
-/**
- * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is true and RAMPS_ENVIRONMENT
- * is set (set by builds.yml), uses RAMPS_ENVIRONMENT directly.
- * Otherwise falls back to METAMASK_ENVIRONMENT — including the builds path
- * when RAMPS_ENVIRONMENT is unset, so Transak stays aligned with
- * getRampsEnvironment().
- */
+const TRANSAK_ENVIRONMENT_BY_API_ENV: Record<ApiEnv, TransakEnvironment> = {
+  [ApiEnv.Dev]: TransakEnvironment.Development,
+  [ApiEnv.Uat]: TransakEnvironment.Staging,
+  [ApiEnv.Prod]: TransakEnvironment.Production,
+};
+
+/** Same cluster as `getRampsEnvironment()`, in Transak's enum. */
 export function getTransakEnvironment(): TransakEnvironment {
-  if (process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true') {
-    const rampsEnv = process.env.RAMPS_ENVIRONMENT;
-    if (rampsEnv) {
-      return rampsEnv === 'production'
-        ? TransakEnvironment.Production
-        : TransakEnvironment.Staging;
-    }
-  }
-
-  const metamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  switch (metamaskEnvironment) {
-    case 'production':
-    case 'beta':
-    case 'rc':
-      return TransakEnvironment.Production;
-
-    case 'dev':
-    case 'exp':
-    case 'test':
-    case 'e2e':
-    default:
-      return TransakEnvironment.Staging;
-  }
+  return TRANSAK_ENVIRONMENT_BY_API_ENV[getApiEnv()];
 }
 
 function getTransakContext(): string {
@@ -52,6 +33,8 @@ export const transakServiceInit: MessengerClientInitFunction<
     environment: getTransakEnvironment(),
     context: getTransakContext(),
     fetch,
+    referrerDomain: getBundleId(),
+    ...getRampsClientIdentity(),
   });
 
   return {

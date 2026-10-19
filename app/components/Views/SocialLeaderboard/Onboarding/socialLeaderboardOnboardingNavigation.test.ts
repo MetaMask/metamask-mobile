@@ -4,9 +4,13 @@ import type { RootState } from '../../../../reducers';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { resolveABTestAssignment } from '../../../../util/abTest';
 import {
+  getFollowTradingHomeRoute,
   hasSeenSocialLeaderboardOnboarding,
+  isSocialV1Treatment,
   navigateToSocialLeaderboard,
+  navigateToSocialTab,
   resetSocialLeaderboardOnboardingSeen,
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
@@ -28,6 +32,19 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../selectors/featureFlagController', () => ({
+  selectRemoteFeatureFlags: jest.fn(() => ({})),
+  selectFeatureFlagThresholdGroups: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../util/abTest', () => ({
+  resolveABTestAssignment: jest.fn(() => ({
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
+
+const mockResolveABTestAssignment = jest.mocked(resolveABTestAssignment);
 const mockGetState = jest.mocked(ReduxService.store.getState);
 const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
 const mockRemoveItem = jest.mocked(StorageWrapper.removeItem);
@@ -41,6 +58,10 @@ describe('socialLeaderboardOnboardingNavigation', () => {
     mockGetState.mockReturnValue({} as unknown as RootState);
     mockOnboardingEnabled.mockReturnValue(true);
     mockGetItemSync.mockReturnValue(null);
+    mockResolveABTestAssignment.mockReturnValue({
+      variantName: 'control',
+      isActive: false,
+    });
   });
 
   describe('shouldShowSocialLeaderboardOnboarding', () => {
@@ -72,9 +93,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
 
       expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.ONBOARDING,
-      );
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
     });
 
     it('navigates to the leaderboard with the source when onboarding is not due', () => {
@@ -84,7 +103,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
 
       expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW, {
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, {
         source: 'home_carousel',
       });
     });
@@ -95,10 +114,88 @@ describe('socialLeaderboardOnboardingNavigation', () => {
 
       navigateToSocialLeaderboard(navigate);
 
-      expect(navigate).toHaveBeenCalledWith(
-        Routes.SOCIAL_LEADERBOARD.VIEW,
-        undefined,
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined);
+    });
+
+    it('navigates to the Social V1 route for the TSA-1122 treatment', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, {
+        source: 'home_carousel',
+        landingTab: 'feed',
+        landingFeedAudience: 'all',
+      });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
+        source: 'home_carousel',
+      });
+    });
+  });
+
+  describe('navigateToSocialTab', () => {
+    it('navigates to the onboarding for a first-time user', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
+    });
+
+    it('selects the Social tab with the source when onboarding is not due', () => {
+      mockGetItemSync.mockReturnValue('true');
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB, {
+        source: 'nav_tab',
+      });
+    });
+
+    it('does not push the stack V0 or V1 home routes', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB, {
+        source: 'nav_tab',
+      });
+      expect(navigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL.V1,
+        expect.anything(),
       );
+      expect(navigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL.V0,
+        expect.anything(),
+      );
+    });
+  });
+  describe('getFollowTradingHomeRoute', () => {
+    it('returns the legacy home route for control', () => {
+      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V0);
+    });
+
+    it('returns the v1 home route for treatment', () => {
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+
+      expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V1);
+      expect(isSocialV1Treatment()).toBe(true);
     });
   });
 

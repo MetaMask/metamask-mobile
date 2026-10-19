@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Theme,
@@ -13,6 +14,7 @@ import ActivityEmptyDarkIcon from '../../../../../images/activity-empty-dark.svg
 import ActivityEmptyLightIcon from '../../../../../images/activity-empty-light.svg';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { ActivityTypeFilter } from '../../types';
@@ -20,6 +22,10 @@ import {
   ActivityEmptyStateAction,
   getActivityEmptyState,
 } from './empty-states';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
@@ -37,7 +43,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   perpsSubFilterActive = false,
 }) => {
   const designSystemTheme = useDesignSystemTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const hasFunds = useSelector(selectAddressHasTokenBalances);
 
@@ -52,15 +58,17 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
     perpsSubFilterActive,
   });
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'ActivityEmptyState',
+    location: SwapBridgeNavigationLocation.MainView,
+  });
   const handleAction = useCallback(() => {
     switch (emptyState.action) {
       case ActivityEmptyStateAction.Swap:
-        navigation.navigate(Routes.BRIDGE.ROOT, {
-          screen: Routes.BRIDGE.BRIDGE_VIEW,
-        });
+        goToSwaps();
         return;
       case ActivityEmptyStateAction.AddFunds:
-        goToBuy();
+        goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.EMPTY_STATE });
         return;
       case ActivityEmptyStateAction.MakePrediction:
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -70,6 +78,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       case ActivityEmptyStateAction.BrowsePerpsMarkets:
         navigation.navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.MARKET_LIST,
+          params: {},
         });
         return;
       case ActivityEmptyStateAction.OpenMetamaskCard:
@@ -78,7 +87,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       default:
         return;
     }
-  }, [emptyState.action, navigation, goToBuy]);
+  }, [emptyState.action, navigation, goToBuy, goToSwaps]);
 
   return (
     <Box

@@ -14,8 +14,6 @@
 name: Nightly System Tests
 
 on:
-  schedule:
-    - cron: '0 5 * * *' # 5 AM UTC daily
   workflow_dispatch:
     inputs:
       browserstack_app_url_android:
@@ -36,8 +34,7 @@ on:
         type: string
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: system-tests-${{ github.ref }}
@@ -46,6 +43,11 @@ concurrency:
 jobs:
   trigger-android-dual-versions:
     name: Build Android (BrowserStack)
+    permissions:
+      contents: read
+      actions: read
+      statuses: read
+      id-token: write # AWS OIDC for signing and keystores in build-android-upload-to-browserstack.yml
     uses: ./.github/workflows/build-android-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
@@ -60,6 +62,9 @@ jobs:
 
   trigger-ios-dual-versions:
     name: Build iOS (BrowserStack)
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build-ios-upload-to-browserstack.yml
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     if: >-
       github.event_name != 'workflow_dispatch'
@@ -84,10 +89,10 @@ jobs:
       BROWSERSTACK_ANDROID_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -98,13 +103,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -113,7 +118,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -165,7 +170,7 @@ jobs:
         run: yarn run-system-tests:android-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-android-login
@@ -174,7 +179,7 @@ jobs:
           retention-days: 7
 
       - name: Upload visual regression artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: visual-regression-android-login
@@ -194,10 +199,10 @@ jobs:
       BROWSERSTACK_ANDROID_CLEAN_APP_URL: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_android }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -208,13 +213,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -223,7 +228,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -273,7 +278,7 @@ jobs:
         run: yarn run-system-tests:android-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-android-onboarding
@@ -293,10 +298,10 @@ jobs:
       BROWSERSTACK_IOS_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -307,13 +312,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -322,7 +327,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -374,7 +379,7 @@ jobs:
         run: yarn run-system-tests:ios-login
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-ios-login
@@ -383,7 +388,7 @@ jobs:
           retention-days: 7
 
       - name: Upload visual regression artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: visual-regression-ios-login
@@ -403,10 +408,10 @@ jobs:
       BROWSERSTACK_IOS_CLEAN_APP_URL: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_clean_app_url_ios }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             node_modules
@@ -417,13 +422,13 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
       - name: Install dependencies
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 10
           max_attempts: 3
@@ -432,7 +437,7 @@ jobs:
 
       - name: Restore .metamask folder
         id: restore-metamask
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .metamask
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -482,7 +487,7 @@ jobs:
         run: yarn run-system-tests:ios-onboarding
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: system-test-report-ios-onboarding
@@ -501,7 +506,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all test reports
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: system-test-report-*
           path: all-reports
@@ -535,7 +540,7 @@ jobs:
             echo "| iOS Onboarding | $(format_status "$STATUS_IOS_ONBOARDING") |"
             echo ""
             echo "**Trigger:** ${{ github.event_name }}"
-            echo "**Branch:** ${{ github.ref_name }}"
+            echo "**Branch:** ${GITHUB_REF_NAME}"
             echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> "$GITHUB_STEP_SUMMARY"
 

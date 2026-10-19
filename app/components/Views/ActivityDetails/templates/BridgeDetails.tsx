@@ -16,10 +16,14 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
+import { useLocalTransactionMeta } from '../hooks/useLocalTransactionMeta';
+import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
+  getBridgeExplorerSheetTx,
   getBridgeHistoryItem,
+  getKeyringTransactionByHash,
 } from './bridgeDetailsUtils';
 
 export function BridgeDetails({
@@ -28,11 +32,27 @@ export function BridgeDetails({
   item: Extract<ActivityListItem, { type: 'bridge' }>;
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const bridgeHistoryItem = getBridgeHistoryItem(item, bridgeHistory);
+  const transactionMeta = useLocalTransactionMeta(item.hash);
+  const nonEvmTransactions = useSelector(
+    selectNonEvmTransactionsForSelectedAccountGroup,
+  );
+  const keyringTransaction = getKeyringTransactionByHash(
+    nonEvmTransactions?.transactions,
+    item.hash,
+  );
+  const bridgeHistoryItem = getBridgeHistoryItem(
+    item,
+    bridgeHistory,
+    transactionMeta,
+  );
   const destinationChainId = getBridgeDestinationCaipChainId(
     item.data.destinationToken,
   );
   const destinationHash = getBridgeDestinationTxHash(bridgeHistoryItem);
+  const explorerSheetTx = getBridgeExplorerSheetTx(
+    transactionMeta,
+    keyringTransaction,
+  );
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,
@@ -44,18 +64,18 @@ export function BridgeDetails({
   );
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1 gap-2">
       <ActivityDetailsDualAmountHeader
         sentToken={item.data.sourceToken}
         receivedToken={item.data.destinationToken}
       />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsBridgeMetadata
         item={item}
         bridgeHistoryItem={bridgeHistoryItem}
         destinationChainId={destinationChainId}
       />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={0} />
       <ActivityDetailsFeesAndTotal item={item} token={item.data.sourceToken} />
       <Box twClassName="mt-auto pt-4">
         <ActivityDetailsFooter>
@@ -64,6 +84,7 @@ export function BridgeDetails({
             sourceHash={item.hash}
             destChainId={destinationChainId}
             destHash={destinationHash}
+            {...explorerSheetTx}
           />
           {canDoItAgain ? (
             <ActivityDetailsDoItAgainButton

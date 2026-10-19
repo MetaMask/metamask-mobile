@@ -1,13 +1,9 @@
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
-import {
-  isCaipChainId,
-  parseCaipChainId,
-  toCaipChainId,
-  type CaipChainId,
-} from '@metamask/utils';
-import { getDecimalChainId } from '../../../util/networks';
+import type { CaipChainId } from '@metamask/utils';
 import type { Status, TokenAmount } from '../types';
 import {
+  caipChainIdFromAssetId,
+  isPlausibleRampTxHash,
   toRampOrderCaipChainId,
   type RampActivityKind,
 } from './ramp-order-helpers';
@@ -66,41 +62,50 @@ export function getRampsOrderCreatedAt(order: RampsOrder): number {
 }
 
 /**
- * Resolves CAIP-2 chain id from `network` (object or decimal/CAIP string) or
- * `cryptoCurrency.chainId`.
+ * Resolves CAIP-2 chain id for a RampsController order.
+ *
+ * Tries each source in order and falls through when a value is present but
+ * unparseable (e.g. Coinbase's network name string `"ethereum"`). Generic
+ * providers often return a free-form network name while still attaching a
+ * real CAIP `cryptoCurrency.chainId` / `assetId`.
+ *
+ * Precedence:
+ * 1. `network.chainId` when `network` is an object
+ * 2. `network` when it is a decimal or CAIP string
+ * 3. `cryptoCurrency.chainId`
+ * 4. chain segment of `cryptoCurrency.assetId`
  */
 export function toRampsOrderCaipChainId(order: RampsOrder): CaipChainId | null {
   const network = order.network as RampsOrder['network'] | string | null;
-  if (network && typeof network === 'object' && network.chainId) {
-    return toRampOrderCaipChainId(network.chainId);
-  }
-  if (typeof network === 'string' && network) {
-    return toRampOrderCaipChainId(network);
-  }
 
-  const cryptoChainId = order.cryptoCurrency?.chainId;
-  if (cryptoChainId) {
-    try {
-      if (isCaipChainId(cryptoChainId)) {
-        const { namespace, reference } = parseCaipChainId(cryptoChainId);
-        return toCaipChainId(namespace, reference);
-      }
-      const chainReference = getDecimalChainId(cryptoChainId);
-      if (chainReference && !Number.isNaN(Number(chainReference))) {
-        return toCaipChainId('eip155', chainReference);
-      }
-    } catch {
-      return null;
+  if (network && typeof network === 'object' && network.chainId) {
+    const fromObject = toRampOrderCaipChainId(network.chainId);
+    if (fromObject) {
+      return fromObject;
     }
   }
 
-  return null;
+  if (typeof network === 'string' && network) {
+    const fromString = toRampOrderCaipChainId(network);
+    if (fromString) {
+      return fromString;
+    }
+  }
+
+  if (order.cryptoCurrency?.chainId) {
+    const fromCrypto = toRampOrderCaipChainId(order.cryptoCurrency.chainId);
+    if (fromCrypto) {
+      return fromCrypto;
+    }
+  }
+
+  return caipChainIdFromAssetId(order.cryptoCurrency?.assetId);
 }
 
 export function getRampsOrderTransactionHash(
   order: RampsOrder,
 ): string | undefined {
-  return order.txHash || undefined;
+  return isPlausibleRampTxHash(order.txHash) ? order.txHash : undefined;
 }
 
 export function toRampsOrderToken(

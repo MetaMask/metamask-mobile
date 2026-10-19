@@ -1,4 +1,4 @@
-import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import { type Position } from '@metamask/perps-controller';
 
 export interface PerpsFlipPositionConfirmSheetProps {
@@ -6,4 +6,5 @@ export interface PerpsFlipPositionConfirmSheetProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
   onConfirm?: () => void;
+  enableHaptics?: boolean;
 }

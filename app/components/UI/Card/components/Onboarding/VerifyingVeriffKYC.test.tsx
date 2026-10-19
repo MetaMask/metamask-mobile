@@ -45,6 +45,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 // Mock metrics util
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardScreens: {
     VERIFYING_VERIFF_KYC: 'VERIFYING_VERIFF_KYC',
   },
@@ -479,6 +480,7 @@ describe('VerifyingVeriffKYC', () => {
       const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
 
       expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: 'VERIFYING_VERIFF_KYC',
       });
     });

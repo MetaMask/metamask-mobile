@@ -13,6 +13,7 @@ import type {
 
 const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/v1/alerts`;
 const PERCENT_ALERTS_URL = `${ALERTS_URL}/percent-change`;
+const WATCHLIST_URL = `${ALERTS_URL}/watchlist`;
 
 export const priceAlertsQueryKey = (assetId: string) =>
   ['priceAlerts', assetId] as const;
@@ -42,6 +43,33 @@ export const fetchSupportedChains = (): Promise<Response> =>
     credentials: 'omit',
   });
 
+/**
+ * Mirrors real-watchlist adds into Price Alerts.
+ * Body: `{ assetIds: string[] }`. Response 200 includes processed/unprocessed.
+ */
+export const addWatchlistAlerts = (assetIds: string[]): Promise<Response> =>
+  authenticatedFetch(WATCHLIST_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assetIds }),
+  });
+
+/**
+ * Mirrors real-watchlist removes into Price Alerts.
+ * Same JSON body as POST (not query params). Idempotent when already absent.
+ */
+export const removeWatchlistAlerts = (assetIds: string[]): Promise<Response> =>
+  authenticatedFetch(WATCHLIST_URL, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ assetIds }),
+  });
+
+/** 200 response body from POST/DELETE `/v1/alerts/watchlist`. */
+export interface WatchlistAlertsResult {
+  processedAssetIds: string[];
+  unprocessedAssetIds: string[];
+}
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
     method: 'POST',

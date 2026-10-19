@@ -111,6 +111,7 @@ export interface CurrencyRateControllerState {
 
 export interface AccountBalance {
   balance: string;
+  stakedBalance?: string;
 }
 
 export interface AccountTrackerControllerState {
@@ -165,7 +166,6 @@ export interface UserState {
   backUpSeedphraseVisible: boolean;
   passwordSet: boolean;
   importTime?: number;
-  musdConversionEducationSeen?: boolean;
   [key: string]: unknown;
 }
 

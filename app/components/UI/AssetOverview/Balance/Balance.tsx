@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { type ReactNode, useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import {
   CaipAssetId,
@@ -39,25 +39,24 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
-import EarnBalance from '../../Earn/components/EarnBalance';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-import Tag from '../../../../component-library/components/Tags/Tag';
-import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 
-export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
-
 interface BalanceProps {
   asset: TokenI;
+  balanceCta?: ReactNode;
+  balanceDescription?: ReactNode;
   mainBalance: string;
   secondaryBalance?: string;
+  priceChangeOverride?: string;
+  priceChangeOverrideColor?: TextColor;
   hideTitleHeading?: boolean;
   hidePercentageChange?: boolean;
 }
@@ -100,8 +99,12 @@ export const NetworkBadgeSource = (chainId: Hex) => {
 
 const Balance = ({
   asset,
+  balanceCta,
+  balanceDescription,
   mainBalance,
   secondaryBalance,
+  priceChangeOverride,
+  priceChangeOverrideColor,
   hideTitleHeading,
   hidePercentageChange,
 }: BalanceProps) => {
@@ -191,10 +194,6 @@ const Balance = ({
     [asset.chainId, asset.isNative],
   );
 
-  const label = asset.accountType
-    ? ACCOUNT_TYPE_LABELS[asset.accountType]
-    : undefined;
-
   return (
     <View style={styles.wrapper}>
       {!hideTitleHeading && (
@@ -202,13 +201,20 @@ const Balance = ({
           {strings('asset_overview.your_balance')}
         </Text>
       )}
+      {balanceDescription}
       <AssetElement
         disabled={isDisabled}
         asset={asset}
         balance={mainBalance}
-        secondaryBalance={hidePercentageChange ? undefined : percentageText}
+        secondaryBalance={
+          hidePercentageChange
+            ? undefined
+            : (priceChangeOverride ?? percentageText)
+        }
         secondaryBalanceColor={
-          hidePercentageChange ? undefined : percentageColor
+          hidePercentageChange
+            ? undefined
+            : (priceChangeOverrideColor ?? percentageColor)
         }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}
@@ -232,7 +238,6 @@ const Balance = ({
             <Text variant={TextVariant.BodyMD}>
               {asset.name || asset.symbol}
             </Text>
-            {label && <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />}
           </View>
 
           <View style={styles.balanceRow}>
@@ -253,7 +258,7 @@ const Balance = ({
           </View>
         </View>
       </AssetElement>
-      <EarnBalance asset={asset} />
+      {balanceCta}
     </View>
   );
 };

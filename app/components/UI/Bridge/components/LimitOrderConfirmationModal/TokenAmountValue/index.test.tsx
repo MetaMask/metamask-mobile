@@ -1,0 +1,129 @@
+import React from 'react';
+import { FontWeight } from '@metamask/design-system-react-native';
+import { render } from '@testing-library/react-native';
+import { createMockTokenWithBalance } from '../../../testUtils';
+import { TokenAvatarSelectorsIDs } from '../TokenAvatar/testIds';
+import { TokenAmountValue } from '.';
+import { TokenAmountValueSelectorsIDs } from './testIds';
+
+jest.mock('../../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../../util/networks'),
+  getNetworkImageSource: jest.fn(() => ({ uri: 'https://network.icon' })),
+}));
+
+jest.mock('../../../utils', () => ({
+  ...jest.requireActual('../../../utils'),
+  getTokenImageSource: jest.fn(() => ({ uri: 'https://token.icon' })),
+}));
+
+const mockToken = createMockTokenWithBalance({
+  symbol: 'ETH',
+  name: 'Ether',
+});
+
+describe('TokenAmountValue', () => {
+  it('renders the amount', () => {
+    const { getByTestId } = render(<TokenAmountValue amount="0.1 ETH" />);
+
+    expect(
+      getByTestId(TokenAmountValueSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
+      '0.1 ETH',
+    );
+  });
+
+  it('uses the requested font weight for the amount and symbol', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue
+        amount="0.1"
+        token={mockToken}
+        showTokenSymbol
+        fontWeight={FontWeight.Medium}
+      />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
+    expect(getByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
+  });
+
+  it('renders the token avatar when a token is provided', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue amount="0.1 ETH" token={mockToken} />,
+    );
+
+    expect(getByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeOnTheScreen();
+  });
+
+  it('hides the token avatar when no token is provided', () => {
+    const { queryByTestId } = render(<TokenAmountValue amount="0.1 ETH" />);
+
+    expect(queryByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeNull();
+  });
+
+  it('does not render the token symbol by default', () => {
+    const { queryByTestId } = render(
+      <TokenAmountValue amount="$1.69" token={mockToken} />,
+    );
+
+    expect(queryByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toBeNull();
+  });
+
+  it('renders the amount, avatar and token symbol when showTokenSymbol is true', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue amount="$1.69" token={mockToken} showTokenSymbol />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
+      '$1.69',
+    );
+    expect(getByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeOnTheScreen();
+    expect(getByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toHaveTextContent(
+      'ETH',
+    );
+  });
+
+  it('renders the prefix as its own text, raised onto the amount center line', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue amount="2200 USDC" prefix="@" token={mockToken} />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
+      '@',
+    );
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveStyle({
+      top: -1.5,
+    });
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
+      '2200 USDC',
+    );
+  });
+
+  it('does not render a prefix by default', () => {
+    const { queryByTestId } = render(<TokenAmountValue amount="2200 USDC" />);
+
+    expect(queryByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toBeNull();
+  });
+
+  it('does not render the token symbol without a token', () => {
+    const { queryByTestId } = render(
+      <TokenAmountValue amount="--" showTokenSymbol />,
+    );
+
+    expect(queryByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toBeNull();
+  });
+
+  it('renders a network badge on the avatar when withNetworkBadge is true', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue amount="$1.69" token={mockToken} withNetworkBadge />,
+    );
+
+    expect(
+      getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE),
+    ).toBeOnTheScreen();
+  });
+});

@@ -50,3 +50,51 @@ index ca53e5dd6c55c831d71ba9d09bb6d58e73a61249..bcc9f9ab75d4c1bdff816be3aaa9b1a7
  
  import com.facebook.react.bridge.Arguments;
  import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/src/sensors.js b/src/sensors.js
+index c38400728e7c97d9d9f8332842ab6f3a3ec34a20..f37ee8160b404cf3ae5f6e38ca0777daad06d5c3 100644
+--- a/src/sensors.js
++++ b/src/sensors.js
+@@ -13,8 +13,23 @@ const listenerKeys = new Map([
+ function createSensorObservable(sensorType) {
+   return Observable.create(function subscribe(observer) {
+     this.isSensorAvailable = false;
++    this.isUnsubscribed = false;
++    this.listenerSubscription = null;
+ 
+     this.unsubscribeCallback = () => {
++      this.isUnsubscribed = true;
++
++      // Detach the emitter listener, whether or not the sensor ever became
++      // available. refCount() below resubscribes to this source every time the
++      // consumer count goes 0 -> 1, and publish() multicasts through a single
++      // Subject created once at module load. A listener left attached keeps
++      // pushing into that same live Subject, so after N subscribe cycles every
++      // native sample is delivered to every consumer N times.
++      if (this.listenerSubscription) {
++        this.listenerSubscription.remove();
++        this.listenerSubscription = null;
++      }
++
+       if (!this.isSensorAvailable) return;
+       // stop the sensor
+       RNSensors.stop(sensorType);
+@@ -22,9 +37,16 @@ function createSensorObservable(sensorType) {
+ 
+     RNSensors.isAvailable(sensorType).then(
+       () => {
+-        DeviceEventEmitter.addListener(listenerKeys.get(sensorType), data => {
+-          observer.next(data);
+-        });
++        // The availability check is async, so the consumer may already have
++        // unsubscribed. Attaching now would outlive the subscription.
++        if (this.isUnsubscribed) return;
++
++        this.listenerSubscription = DeviceEventEmitter.addListener(
++          listenerKeys.get(sensorType),
++          data => {
++            observer.next(data);
++          }
++        );
+ 
+         this.isSensorAvailable = true;
+ 

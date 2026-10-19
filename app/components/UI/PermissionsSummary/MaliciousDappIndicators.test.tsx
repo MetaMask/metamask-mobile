@@ -2,15 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import {
   MaliciousDappUrlIcon,
-  DangerConnectButtonContent,
+  getConnectButtonContent,
 } from './MaliciousDappIndicators';
-
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
 
 describe('MaliciousDappIndicators', () => {
   describe('MaliciousDappUrlIcon', () => {
@@ -21,24 +14,17 @@ describe('MaliciousDappIndicators', () => {
     });
   });
 
-  describe('DangerConnectButtonContent', () => {
-    it('renders the Connect label', () => {
-      const { getByText } = render(<DangerConnectButtonContent />);
-      expect(getByText('Connect')).toBeDefined();
+  describe('getConnectButtonContent', () => {
+    it('returns the Connect label for a standard connection', () => {
+      expect(getConnectButtonContent(false, false)).toBe('Connect');
     });
 
-    it('renders a Danger icon alongside the label', () => {
-      const { toJSON } = render(<DangerConnectButtonContent />);
-      const tree = JSON.stringify(toJSON());
-      expect(tree).toContain('Danger');
-      expect(tree).toContain('Connect');
+    it('returns the Confirm label for a network switch', () => {
+      expect(getConnectButtonContent(false, true)).toBe('Confirm');
     });
 
-    it('renders with a row layout', () => {
-      const { toJSON } = render(<DangerConnectButtonContent />);
-      const root = toJSON();
-      const node = Array.isArray(root) ? root[0] : root;
-      expect(node?.props?.style?.flexDirection).toBe('row');
+    it('returns the Connect label for a malicious dapp connection', () => {
+      expect(getConnectButtonContent(true, false)).toBe('Connect');
     });
   });
 });

@@ -27,22 +27,10 @@ export function getQrSyncProvisioningServiceMessenger(
     messenger,
     actions: [
       'QrSyncController:getState',
-      'QrSyncController:enrichProvisioningEntry',
       'QrSyncController:markProvisioningFailed',
       'QrSyncController:completeProvisioning',
-      'MultichainAccountService:createMultichainAccountGroup',
-      'MultichainAccountService:createMultichainAccountGroups',
-      'MultichainAccountService:createMultichainAccountWallet',
-      'MultichainAccountService:alignWallet',
-      'KeyringController:withKeyringV2',
-      'KeyringController:importAccountWithStrategy',
-      'AccountTreeController:getAccountWalletObjects',
+      'AccountTreeController:importState',
       'AccountTreeController:syncWithUserStorage',
-      'AccountTreeController:setAccountWalletName',
-      'AccountTreeController:setAccountGroupName',
-      'AccountTreeController:setAccountGroupPinned',
-      'AccountTreeController:setAccountGroupHidden',
-      'AccountsController:getAccountByAddress',
     ],
   });
 

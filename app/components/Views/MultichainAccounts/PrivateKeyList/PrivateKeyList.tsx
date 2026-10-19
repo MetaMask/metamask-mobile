@@ -8,6 +8,7 @@ import React, {
 import { TextInput, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -68,7 +69,7 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
  * @returns {JSX.Element} The rendered component.
  */
 export const PrivateKeyList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { groupId, title } = useParams<PrivateKeyListParams>();
   const tw = useTailwind();
   const theme = useTheme();
@@ -318,7 +319,7 @@ export const PrivateKeyList = () => {
         severity={BannerAlertSeverity.Danger}
         title={strings('multichain_accounts.private_key_list.warning_title')}
         description={privateKeyBannerDescription}
-        twClassName="mx-[10px]"
+        twClassName="mx-[10px] mt-2"
         testID={PrivateKeyListIds.BANNER}
       />
 

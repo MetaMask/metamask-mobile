@@ -13,8 +13,14 @@ import {
   formatChainIdToCaip,
   isNativeAddress,
   isNonEvmChainId,
+  type FeatureId,
 } from '@metamask/bridge-controller';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
 
@@ -75,15 +81,19 @@ const getTokenIdentity = (token?: {
  * @param token.decimals - The token decimals.
  * @param token.chainId - The chain ID to be used for fetching the balance.
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
+ * @param featureId - The feature requesting the latest balance. If this changes, balance will be re-fetched.
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
-export const useLatestBalance = (token: {
-  address?: string;
-  decimals?: number;
-  chainId?: Hex | CaipChainId;
-  balance?: string;
-  refreshKey?: string | number;
-}) => {
+export const useLatestBalance = (
+  token: {
+    address?: string;
+    decimals?: number;
+    chainId?: Hex | CaipChainId;
+    balance?: string;
+    refreshKey?: string | number;
+  },
+  featureId?: FeatureId,
+) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -119,17 +129,19 @@ export const useLatestBalance = (token: {
   const handleFetchEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
-      token.decimals &&
+      token.decimals !== undefined &&
       chainId &&
       !isCaipChainId(chainId) &&
       selectedAddress &&
       isEthAddress(selectedAddress)
     ) {
-      // Create a unique UUID for this trace to prevent collisions
       const traceId = uuidv4();
+      let traceResult: 'success' | 'error' = 'success';
+
       try {
         trace({
           name: TraceName.BridgeBalancesUpdated,
+          op: TraceOperation.BridgeDataFetch,
           id: traceId,
           data: {
             srcChainId: chainId,
@@ -144,17 +156,21 @@ export const useLatestBalance = (token: {
           token.address,
           chainId,
         );
-        if (atomicBalance && token.decimals) {
+        if (atomicBalance && token.decimals !== undefined) {
           setBalanceIfChanged({
             displayBalance: formatUnits(atomicBalance, token.decimals),
             atomicBalance,
           });
         }
+      } catch (error) {
+        traceResult = 'error';
+        console.error('Error fetching EVM token balance:', error);
       } finally {
         endTrace({
           name: TraceName.BridgeBalancesUpdated,
           id: traceId,
           timestamp: Date.now(),
+          data: { result: traceResult },
         });
       }
     }
@@ -171,7 +187,7 @@ export const useLatestBalance = (token: {
   const handleNonEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
-      token.decimals &&
+      token.decimals !== undefined &&
       chainId &&
       isNonEvmChainId(chainId) &&
       selectedAddress
@@ -182,7 +198,7 @@ export const useLatestBalance = (token: {
           nonEvmToken.chainId === chainId,
       )?.balance;
 
-      if (displayBalance && token.decimals) {
+      if (displayBalance && token.decimals !== undefined) {
         setBalanceIfChanged({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
@@ -219,7 +235,7 @@ export const useLatestBalance = (token: {
     }
 
     handleFetchEvmAtomicBalance();
-  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey]);
+  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey, featureId]);
 
   useEffect(() => {
     if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
@@ -227,7 +243,7 @@ export const useLatestBalance = (token: {
     }
 
     handleNonEvmAtomicBalance();
-  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey]);
+  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey, featureId]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;
@@ -245,7 +261,7 @@ export const useLatestBalance = (token: {
   }, [token.balance, token.decimals]);
 
   const latestBalance = useMemo(() => {
-    if (!token.address || !token.decimals) {
+    if (!token.address || token.decimals === undefined) {
       return undefined;
     }
 

@@ -1,0 +1,28 @@
+export const ProHubTestIds = {
+  CONTAINER: 'pro-hub-container',
+  BACK_BUTTON: 'pro-hub-back-button',
+  HEADER_ROOT: 'pro-hub-header-root',
+  MANAGE_PLANS_BUTTON: 'pro-hub-manage-plans-button',
+  MEMBERSHIP_BANNER: 'pro-hub-membership-banner',
+  MEMBERSHIP_STATUS_LABEL: 'pro-hub-membership-status-label',
+  MEMBERSHIP_STATUS_ICON: 'pro-hub-membership-status-icon',
+  MEMBERSHIP_STATUS_TAG: 'pro-hub-membership-status-tag',
+  MEMBERSHIP_STATUS_DETAIL: 'pro-hub-membership-status-detail',
+  MEMBERSHIP_ALERT_BANNER: (kind: string) =>
+    `pro-hub-membership-alert-banner-${kind}`,
+  MEMBERSHIP_ALERT_ACTION: (kind: string) =>
+    `pro-hub-membership-alert-action-${kind}`,
+  LIFETIME_EARNINGS_SECTION: 'pro-hub-lifetime-earnings-section',
+  MONEY_BALANCE_ROW: 'pro-hub-money-balance-row',
+  MUSD_BACK_ROW: 'pro-hub-musd-back-row',
+  PHYSICAL_CARD_BANNER: 'pro-hub-physical-card-banner',
+  PHYSICAL_CARD_TITLE: 'pro-hub-physical-card-title',
+  PHYSICAL_CARD_DESCRIPTION: 'pro-hub-physical-card-description',
+  GET_CARD_BUTTON: 'pro-hub-get-card-button',
+  ALSO_INCLUDED_SECTION: 'pro-hub-also-included-section',
+  ALSO_INCLUDED_ROW: (id: string) => `pro-hub-also-included-row-${id}`,
+  MEMBERSHIP_SECTION: 'pro-hub-membership-section',
+  NEXT_PAYMENT_TEXT: 'pro-hub-next-payment-text',
+  MANAGE_BUTTON: 'pro-hub-manage-button',
+  DISCLAIMER_TEXT: 'pro-hub-disclaimer-text',
+} as const;

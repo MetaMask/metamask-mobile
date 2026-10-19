@@ -1,0 +1,116 @@
+import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
+import { SmokePerps } from '../../tags.js';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
+import {
+  navigateToPerpsOrderEntry,
+  navigateToPerpsProEntry,
+} from '../../flows/perps.flow.js';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
+import PerpsProMarketView from '../../page-objects/Perps/PerpsProMarketView.js';
+import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
+import { TestSuiteParams } from '../../framework/index.js';
+import {
+  beginPerpsSmokeTestPlaywright,
+  buildPerpsSmokeFixture,
+  PERPS_SMOKE_MARKET_SYMBOL,
+  PERPS_SMOKE_PERMISSIONS,
+  setupPerpsSmokeMocks,
+} from '../../helpers/perps/perps-smoke-helpers.js';
+
+appiumTest.describe(SmokePerps('Perps Position Stop Loss'), () => {
+  appiumTest(
+    'opens a long with stop loss and closes when mark crosses the SL trigger',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildPerpsSmokeFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          permissions: PERPS_SMOKE_PERMISSIONS,
+          testSpecificMock: setupPerpsSmokeMocks,
+          useCommandQueueServer: true,
+        },
+        async ({ commandQueueServer }: TestSuiteParams) => {
+          if (!commandQueueServer) {
+            throw new Error('Command queue server not found');
+          }
+
+          await beginPerpsSmokeTestPlaywright();
+
+          await navigateToPerpsOrderEntry(PERPS_SMOKE_MARKET_SYMBOL, 'long');
+
+          await PerpsOrderView.tapTakeProfitButton();
+          await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
+          await PerpsOrderView.tapPlaceOrderButton();
+
+          await PerpsMarketDetailsView.waitForScreenReady();
+          await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+
+          await PerpsE2EModifiers.waitForCloseAfterPricePush(
+            commandQueueServer,
+            PERPS_SMOKE_MARKET_SYMBOL,
+            '2250.00',
+            () => PerpsMarketDetailsView.expectClosePositionButtonNotVisible(),
+            {
+              description:
+                'wait for Close position to disappear after stop loss trigger',
+            },
+          );
+        },
+      );
+    },
+  );
+});
+
+appiumTest.describe(SmokePerps('Perps Pro - Position stop loss'), () => {
+  appiumTest(
+    'closes a long in Pro mode when mark price crosses the stop loss trigger',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: buildPerpsSmokeFixture(),
+          restartDevice: true,
+          currentDeviceDetails,
+          permissions: PERPS_SMOKE_PERMISSIONS,
+          testSpecificMock: setupPerpsSmokeMocks,
+          useCommandQueueServer: true,
+        },
+        async ({ commandQueueServer }: TestSuiteParams) => {
+          if (!commandQueueServer) {
+            throw new Error('Command queue server not found');
+          }
+
+          await beginPerpsSmokeTestPlaywright();
+
+          await navigateToPerpsProEntry(PERPS_SMOKE_MARKET_SYMBOL);
+
+          await PerpsProMarketView.selectDirection('long');
+          await PerpsProMarketView.enterSize('500');
+          await PerpsProMarketView.tapTpslSection();
+          await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
+          await PerpsProMarketView.waitForFeesReady();
+          await PerpsProMarketView.tapPlaceOrderButton();
+
+          await PerpsProMarketView.waitForPositionRow(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
+
+          await PerpsE2EModifiers.waitForCloseAfterPricePush(
+            commandQueueServer,
+            PERPS_SMOKE_MARKET_SYMBOL,
+            '2250.00',
+            () =>
+              PerpsProMarketView.expectPositionRowNotVisible(
+                PERPS_SMOKE_MARKET_SYMBOL,
+              ),
+            {
+              description:
+                'wait for Pro long position to close after stop loss trigger',
+            },
+          );
+        },
+      );
+    },
+  );
+});

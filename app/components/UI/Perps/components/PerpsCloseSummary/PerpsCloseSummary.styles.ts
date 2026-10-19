@@ -8,13 +8,11 @@ const styleSheet = (_params: { theme: Theme }) =>
       paddingBottom: 16,
       gap: 4,
     },
-    paddingHorizontal: {
-      paddingHorizontal: 16,
-    },
     summaryRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'flex-start',
+      paddingHorizontal: 16,
       paddingVertical: 4,
     },
     summaryLabel: {

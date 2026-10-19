@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -9,15 +10,22 @@ import {
 import { HardwareWalletsSwapsEventType } from './HardwareWalletsSwaps.state';
 import { Flow } from './flowStrategy';
 import { isHardwareAccount } from '../../../../util/address';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { useSelectedGasFeeToken } from '../../../Views/confirmations/hooks/gas/useGasFeeToken';
 import { useTokenAmount } from '../../../Views/confirmations/hooks/useTokenAmount';
 import { useTokenAsset } from '../../../Views/confirmations/hooks/useTokenAsset';
+
+// txParams.to is the token contract for token transfers; decode the real recipient from calldata
+const getTransactionDataRecipient = (data?: string): string | undefined => {
+  const { args } = parseStandardTokenTransactionData(data) ?? {};
+  return args?._to || args?.to;
+};
 
 /**
  * Handles HW-send confirmation by routing to the HW signing-progress screen.
@@ -33,7 +41,7 @@ import { useTokenAsset } from '../../../Views/confirmations/hooks/useTokenAsset'
  */
 export function useHandleHwSend() {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { approvalRequest } = useApprovalRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { amount: displayAmount } = useTokenAmount();
@@ -65,6 +73,12 @@ export function useHandleHwSend() {
       const sendbundleGasTokenAddress =
         totalSteps > 1 ? gasTokenAddress : undefined;
 
+      // For token transfers `txParams.to` is the token contract; the real
+      // recipient must be decoded from the transfer calldata.
+      const sendRecipient =
+        getTransactionDataRecipient(transactionMetadata.txParams?.data) ??
+        transactionMetadata.txParams.to;
+
       dispatch(resetHardwareWalletsSwaps());
       dispatch(
         updateHardwareWalletsSwaps({
@@ -72,7 +86,7 @@ export function useHandleHwSend() {
           payload: {
             flow: Flow.Send,
             totalSteps,
-            recipientAddress: transactionMetadata.txParams.to,
+            recipientAddress: sendRecipient,
             gasTokenAddress: sendbundleGasTokenAddress,
           },
         }),
@@ -87,7 +101,7 @@ export function useHandleHwSend() {
           amount: displayAmount,
           tokenSymbol: displayTokenSymbol,
           gasTokenSymbol: selectedGasFeeToken?.symbol,
-          recipient: transactionMetadata.txParams.to,
+          recipient: sendRecipient,
         },
       });
     },

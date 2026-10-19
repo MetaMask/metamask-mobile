@@ -12,6 +12,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -36,8 +37,10 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import BrowserTabsButton from './components/BrowserTabsButton/BrowserTabsButton';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
+import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
 import RwasTab from './tabs/RwasTab';
@@ -47,6 +50,7 @@ import DappsTab from './tabs/DappsTab';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   trackExploreInteracted,
+  trackExploreSearchOpened,
   type ExploreTabName,
 } from './search/analytics';
 import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
@@ -82,7 +86,7 @@ const useExploreTabNavigationEffect = (opts: {
   } = opts;
   const route =
     useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
-  const { setParams } = useNavigation();
+  const { setParams } = useNavigation<AppNavigationProp>();
   const initialTabIndex = Object.values(EXPLORE_TAB_INDEX).find(
     (tab) => tab === route.params?.initialTab,
   );
@@ -196,7 +200,7 @@ const ExploreTabs: React.FC<ExploreTabsProps> = ({
 
 export const ExploreFeed: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
   const tabsListRef = useRef<TabsListRef>(null);
@@ -228,6 +232,7 @@ export const ExploreFeed: React.FC = () => {
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
+  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -255,6 +260,7 @@ export const ExploreFeed: React.FC = () => {
   }, [navigation, portfolioUrl.href, browserTabsCount]);
 
   const handleSearchPress = useCallback(() => {
+    trackExploreSearchOpened('explore');
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
@@ -328,18 +334,26 @@ export const ExploreFeed: React.FC = () => {
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
 
-          <TouchableOpacity
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          >
-            {browserTabsCount > 0 ? (
-              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
-              </Box>
-            ) : (
-              <Icon name={IconName.Explore} size={IconSize.Xl} />
-            )}
-          </TouchableOpacity>
+          {isHeaderRefreshEnabled && browserTabsCount > 0 ? (
+            <BrowserTabsButton
+              tabCount={browserTabsCount}
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+            />
+          ) : (
+            <TouchableOpacity
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+            >
+              {browserTabsCount > 0 ? (
+                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+                </Box>
+              ) : (
+                <Icon name={IconName.Explore} size={IconSize.Xl} />
+              )}
+            </TouchableOpacity>
+          )}
         </Box>
 
         {!isBasicFunctionalityEnabled ? (

@@ -9,18 +9,27 @@ import {
   formatPercentage,
   formatLargeNumber,
   formatVolume,
+  formatCoinVolume,
   formatPositionSize,
   formatLeverage,
+  formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
+  formatProOrderCardTimestamp,
   formatDateSection,
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatLimitPriceInput,
   formatPerpsPrice,
+  formatPositionTriggerSummary,
+  getUniversalPriceFractionDigits,
+  formatPerpsInput,
+  getPerpsFormattedInputSelection,
+  normalizePerpsNumericInput,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -44,14 +53,20 @@ jest.mock('../../../../util/assets', () => ({
 
 // Mock the strings function
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  __esModule: true,
+  default: { locale: 'en-US' },
+  strings: (key: string, params?: { count?: number }) => {
     const mockStrings: Record<string, string> = {
       today: 'Today',
+      'perps.position.card.tpsl_count_multiple': '{{count}} orders',
       'notifications.yesterday': 'Yesterday',
       'perps.today': 'Today',
       'perps.yesterday': 'Yesterday',
     };
-    return mockStrings[key] || key;
+    const template = mockStrings[key] || key;
+    return params?.count === undefined
+      ? template
+      : template.replace('{{count}}', String(params.count));
   },
 }));
 
@@ -180,15 +195,12 @@ describe('formatUtils', () => {
       expect(result).toBe('');
     });
 
-    it('displays zero display value when value rounds to zero', () => {
-      // Given a value that rounds to zero with 4 decimals
-      const value = 0.000000001; // Would round to 0.0000%
+    it('displays threshold when positive value is below display precision', () => {
+      const value = 0.000000001;
 
-      // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe('<0.0001%');
     });
 
     it('handles number precision edge cases correctly', () => {
@@ -480,6 +492,630 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('locale-aware input formatting', () => {
+    it('preserves locale decimal separators and trailing zeros', () => {
+      expect(formatPerpsInput('1200.50', 'en-US')).toBe('1,200.50');
+      expect(formatPerpsInput('1200.50', 'de-DE')).toBe('1.200,50');
+      expect(formatPerpsInput('1200.50', 'fr-FR')).toBe('1\u202f200,50');
+    });
+
+    it('uses primary and secondary locale grouping widths', () => {
+      const value = '1234567890123.125';
+
+      const formattedValue = formatPerpsInput(value, 'hi-IN');
+
+      expect(formattedValue).toBe('12,34,56,78,90,123.125');
+    });
+
+    it('localizes integer digits for Arabic locales', () => {
+      const value = '1200.50';
+      const locale = 'ar-EG';
+      const numberFormatter = new Intl.NumberFormat(locale, {
+        useGrouping: true,
+        maximumFractionDigits: 0,
+      });
+      const decimalFormatter = new Intl.NumberFormat(locale, {
+        useGrouping: false,
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+      const decimalSeparator = Array.from(decimalFormatter.format(1.1))
+        .slice(1, -1)
+        .join('');
+
+      const formattedValue = formatPerpsInput(value, locale);
+
+      expect(formattedValue).toBe(
+        `${numberFormatter.format(1200)}${decimalSeparator}50`,
+      );
+    });
+
+    it('normalizes localized Arabic digits from editable input', () => {
+      const formattedValue = formatPerpsInput('1200.50', 'ar-EG');
+
+      expect(normalizePerpsNumericInput(formattedValue, 'ar-EG')).toBe(
+        '1200.50',
+      );
+    });
+
+    it('preserves integer digits beyond the safe integer range', () => {
+      expect(formatPerpsInput('9007199254740993.125', 'en-US')).toBe(
+        '9,007,199,254,740,993.125',
+      );
+      expect(formatPerpsInput('9007199254740993.125', 'de-DE')).toBe(
+        '9.007.199.254.740.993,125',
+      );
+    });
+
+    it('formats editable values without BigInt support', () => {
+      const bigIntDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        'BigInt',
+      );
+      Object.defineProperty(globalThis, 'BigInt', {
+        configurable: true,
+        value: undefined,
+      });
+      let formattedValue = '';
+
+      try {
+        formattedValue = formatPerpsInput('9007199254740993.125', 'en-US');
+      } finally {
+        if (bigIntDescriptor) {
+          Object.defineProperty(globalThis, 'BigInt', bigIntDescriptor);
+        } else {
+          Reflect.deleteProperty(globalThis, 'BigInt');
+        }
+      }
+
+      expect(formattedValue).toBe('9,007,199,254,740,993.125');
+    });
+
+    it('formats and normalizes input without formatToParts support', () => {
+      const numberFormatPrototype = Intl.NumberFormat.prototype;
+      const formatToPartsDescriptor = Object.getOwnPropertyDescriptor(
+        numberFormatPrototype,
+        'formatToParts',
+      );
+
+      Object.defineProperty(numberFormatPrototype, 'formatToParts', {
+        configurable: true,
+        value: undefined,
+      });
+
+      try {
+        const formattedEnglishInput = formatPerpsInput('1200.50', 'en-US');
+        const formattedGermanInput = formatPerpsInput('1200.50', 'de-DE');
+        const formattedFrenchInput = formatPerpsInput('1200.50', 'fr-FR');
+        const normalizedGermanInput = normalizePerpsNumericInput(
+          formattedGermanInput,
+          'de-DE',
+        );
+        const formattedPartialInput = formatPerpsInput('1000.', 'en-US');
+
+        expect(formattedEnglishInput).toBe('1,200.50');
+        expect(formattedGermanInput).toBe('1.200,50');
+        expect(formattedFrenchInput).toBe('1\u202f200,50');
+        expect(normalizedGermanInput).toBe('1200.50');
+        expect(formattedPartialInput).toBe('1,000.');
+      } finally {
+        if (formatToPartsDescriptor) {
+          Object.defineProperty(
+            numberFormatPrototype,
+            'formatToParts',
+            formatToPartsDescriptor,
+          );
+        } else {
+          Reflect.deleteProperty(numberFormatPrototype, 'formatToParts');
+        }
+      }
+    });
+
+    it('normalizes grouped values to canonical decimal input', () => {
+      expect(normalizePerpsNumericInput('1,200.50', 'en-US')).toBe('1200.50');
+      expect(normalizePerpsNumericInput('1.200,50', 'de-DE')).toBe('1200.50');
+      expect(normalizePerpsNumericInput('1200,50', 'de-DE')).toBe('1200.50');
+      expect(normalizePerpsNumericInput('1200,', 'de-DE')).toBe('1200.');
+      expect(normalizePerpsNumericInput('$1,200.50', 'de-DE')).toBe('1200.50');
+      expect(normalizePerpsNumericInput('1\u202f200,50', 'fr-FR')).toBe(
+        '1200.50',
+      );
+    });
+
+    it.each([
+      ['en-US', '1,200', '1200'],
+      ['en-US', '1.200', '1.200'],
+      ['de-DE', '1,200', '1.200'],
+      ['de-DE', '1.200', '1200'],
+      ['de-DE', '1.5', '1.5'],
+      ['fr-FR', '1,200', '1.200'],
+      ['fr-FR', '1.5', '1.5'],
+      ['fr-FR', '1\u202f200', '1200'],
+    ])('normalizes %s input "%s" to "%s"', (locale, input, expected) => {
+      expect(normalizePerpsNumericInput(input, locale)).toBe(expected);
+    });
+
+    it.each([
+      ['appending', '1.2000', '12000'],
+      ['backspacing', '1.20', '120'],
+    ])(
+      'preserves a German grouping period while %s a live-formatted integer',
+      (_operation, nextValue, expected) => {
+        const context = {
+          previousDisplayValue: '1.200',
+          previousSelection: { start: 5, end: 5 },
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          nextValue,
+          'de-DE',
+          context,
+        );
+
+        expect(normalizedValue).toBe(expected);
+      },
+    );
+
+    it.each([
+      ['appending', '1.2000', '12000'],
+      ['backspacing', '1.20', '120'],
+    ])(
+      'infers an end edit when %s a German grouped integer without selection context',
+      (_operation, nextValue, expected) => {
+        const context = {
+          previousDisplayValue: '1.200',
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          nextValue,
+          'de-DE',
+          context,
+        );
+
+        expect(normalizedValue).toBe(expected);
+      },
+    );
+
+    it('parses a whole German replacement independently when selection context is missing', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.567',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234567');
+    });
+
+    it('falls back to standalone parsing when the reported selection cannot explain the edit', () => {
+      const nextValue = '1.234.50';
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 0, end: 0 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        nextValue,
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe(
+        normalizePerpsNumericInput(nextValue, 'de-DE'),
+      );
+      expect(normalizedValue).toBe('1.23450');
+    });
+
+    it('treats a selected German grouped value replaced with a period as decimal input', () => {
+      const context = {
+        previousDisplayValue: '1.200',
+        previousSelection: { start: 0, end: 5 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.5',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1.5');
+    });
+
+    it('treats a new period after a German grouped integer as a decimal', () => {
+      const context = {
+        previousDisplayValue: '1.000',
+        previousSelection: { start: 5, end: 5 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.000.',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1000.');
+    });
+
+    it.each([
+      ['backspacing', { start: 6, end: 6 }],
+      ['forward deleting', { start: 5, end: 5 }],
+    ])(
+      'preserves German grouping when %s a decimal separator',
+      (_operation, previousSelection) => {
+        const context = {
+          previousDisplayValue: '1.234,50',
+          previousSelection,
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          '1.23450',
+          'de-DE',
+          context,
+        );
+
+        expect(normalizedValue).toBe('123450');
+      },
+    );
+
+    it('treats a period replacing a German decimal separator as decimal input', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 5, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.50',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234.50');
+    });
+
+    it('preserves a German grouped integer that replaces the full decimal value', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 0, end: 8 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.567',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234567');
+    });
+
+    it('preserves remaining German grouping after deleting a selected decimal span', () => {
+      const context = {
+        previousDisplayValue: '1.234.567,89',
+        previousSelection: { start: 5, end: 11 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.2349',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('12349');
+    });
+
+    it('concatenates digits when a selection removes a German decimal and adjacent digit', () => {
+      const context = {
+        previousDisplayValue: '1.234,50',
+        previousSelection: { start: 5, end: 7 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.2340',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('12340');
+    });
+
+    it('keeps a replacement period as decimal when the result resembles grouping', () => {
+      const context = {
+        previousDisplayValue: '1.234,500',
+        previousSelection: { start: 5, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234.500',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234.500');
+    });
+
+    it('keeps grouping when a selected separator is replaced with itself', () => {
+      const context = {
+        previousDisplayValue: '1.234',
+        previousSelection: { start: 1, end: 2 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1.234',
+        'de-DE',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1234');
+    });
+
+    it.each([
+      ['en-US', '1.5', '1.5,'],
+      ['de-DE', '1,5', '1,5.'],
+    ])(
+      'ignores an alternate repeated decimal separator in %s',
+      (locale, previousDisplayValue, nextValue) => {
+        const context = {
+          previousDisplayValue,
+          previousSelection: {
+            start: previousDisplayValue.length,
+            end: previousDisplayValue.length,
+          },
+        };
+
+        const normalizedValue = normalizePerpsNumericInput(
+          nextValue,
+          locale,
+          context,
+        );
+
+        expect(normalizedValue).toBe('1.5');
+      },
+    );
+
+    it('treats an inserted comma as a decimal key in an English input', () => {
+      const context = {
+        previousDisplayValue: '1',
+        previousSelection: { start: 1, end: 1 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1,',
+        'en-US',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1.');
+    });
+
+    it('applies contextual edits to localized Arabic digits', () => {
+      const previousDisplayValue = formatPerpsInput('1200.5', 'ar-EG');
+      const localizedZero = formatPerpsInput('0', 'ar-EG');
+      const context = {
+        previousDisplayValue,
+        previousSelection: {
+          start: previousDisplayValue.length,
+          end: previousDisplayValue.length,
+        },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        `${previousDisplayValue}${localizedZero}`,
+        'ar-EG',
+        context,
+      );
+
+      expect(normalizedValue).toBe('1200.50');
+    });
+
+    it('applies and maps an appended digit with Indian grouping', () => {
+      const previousDisplayValue = formatPerpsInput('1234567', 'hi-IN');
+      const nextDisplayValue = `${previousDisplayValue}8`;
+      const context = {
+        previousDisplayValue,
+        previousSelection: {
+          start: previousDisplayValue.length,
+          end: previousDisplayValue.length,
+        },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        nextDisplayValue,
+        'hi-IN',
+        context,
+      );
+      const formattedValue = formatPerpsInput(normalizedValue, 'hi-IN');
+      const selection = getPerpsFormattedInputSelection({
+        ...context,
+        nextDisplayValue,
+        nextFormattedValue: formattedValue,
+        locale: 'hi-IN',
+      });
+
+      expect(normalizedValue).toBe('12345678');
+      expect(formattedValue).toBe('1,23,45,678');
+      expect(selection).toEqual({
+        start: formattedValue.length,
+        end: formattedValue.length,
+      });
+    });
+
+    it('preserves French grouping when deleting a decimal separator', () => {
+      const context = {
+        previousDisplayValue: '1\u202f234,50',
+        previousSelection: { start: 6, end: 6 },
+      };
+
+      const normalizedValue = normalizePerpsNumericInput(
+        '1\u202f23450',
+        'fr-FR',
+        context,
+      );
+
+      expect(normalizedValue).toBe('123450');
+    });
+
+    it.each([
+      ['en-US', '1.5.', '1.5'],
+      ['de-DE', '1,5,', '1.5'],
+      ['en-US', '1,200.5.', '1200.5'],
+      ['de-DE', '1.200,5,', '1200.5'],
+    ])(
+      'ignores a repeated decimal separator in %s input "%s"',
+      (locale, input, expected) => {
+        const normalizedValue = normalizePerpsNumericInput(input, locale);
+
+        expect(normalizedValue).toBe(expected);
+      },
+    );
+
+    it('preserves partial decimal input', () => {
+      expect(normalizePerpsNumericInput('1000.', 'en-US')).toBe('1000.');
+      expect(normalizePerpsNumericInput('1000,', 'de-DE')).toBe('1000.');
+      expect(normalizePerpsNumericInput('1000.', 'de-DE')).toBe('1000.');
+      expect(formatPerpsInput('1000.', 'en-US')).toBe('1,000.');
+      expect(formatPerpsInput('1000.', 'de-DE')).toBe('1.000,');
+    });
+
+    it('returns non-numeric input unchanged', () => {
+      expect(normalizePerpsNumericInput('12abc.3', 'en-US')).toBe('12abc.3');
+      expect(formatPerpsInput('12abc.3', 'en-US')).toBe('12abc.3');
+    });
+
+    it('keeps the cursor at the end when live grouping inserts a separator', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '7,600',
+          nextDisplayValue: '7,6000',
+          nextFormattedValue: '76,000',
+          previousSelection: { start: 5, end: 5 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 6, end: 6 });
+    });
+
+    it('keeps the cursor at the end when live grouping removes a separator', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '76,000',
+          nextDisplayValue: '76,00',
+          nextFormattedValue: '7,600',
+          previousSelection: { start: 6, end: 6 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 5, end: 5 });
+    });
+
+    it('preserves the cursor when editing before a grouping separator', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '76,000',
+          nextDisplayValue: '765,000',
+          nextFormattedValue: '765,000',
+          previousSelection: { start: 2, end: 2 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 3, end: 3 });
+    });
+
+    it('preserves the cursor when inserting within repeated digits', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '111',
+          nextDisplayValue: '1111',
+          nextFormattedValue: '1,111',
+          previousSelection: { start: 1, end: 1 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 3, end: 3 });
+    });
+
+    it('preserves the cursor when backspacing within repeated digits', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '1,111',
+          nextDisplayValue: '1,11',
+          nextFormattedValue: '111',
+          previousSelection: { start: 3, end: 3 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 1, end: 1 });
+    });
+
+    it('maps selected text replacement to the formatted cursor position', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '76,000',
+          nextDisplayValue: '1200',
+          nextFormattedValue: '1,200',
+          previousSelection: { start: 0, end: 6 },
+          locale: 'en-US',
+        }),
+      ).toEqual({ start: 5, end: 5 });
+    });
+
+    it('maps a German grouped replacement cursor to the end of the field', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '1.234,50',
+          nextDisplayValue: '1.234.567',
+          nextFormattedValue: '1.234.567',
+          previousSelection: { start: 0, end: 8 },
+          locale: 'de-DE',
+        }),
+      ).toEqual({ start: 9, end: 9 });
+    });
+
+    it('maps the cursor after deleting a selected German decimal span', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '1.234.567,89',
+          nextDisplayValue: '1.2349',
+          nextFormattedValue: '12.349',
+          previousSelection: { start: 5, end: 11 },
+          locale: 'de-DE',
+        }),
+      ).toEqual({ start: 5, end: 5 });
+    });
+
+    it('uses locale-specific grouping when mapping live cursor position', () => {
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue: '7.600',
+          nextDisplayValue: '7.6000',
+          nextFormattedValue: '76.000',
+          previousSelection: { start: 5, end: 5 },
+          locale: 'de-DE',
+        }),
+      ).toEqual({ start: 6, end: 6 });
+    });
+
+    it('maps the cursor across localized Arabic digits', () => {
+      const locale = 'ar-EG';
+      const previousDisplayValue = formatPerpsInput('1200.5', locale);
+      const localizedZero = formatPerpsInput('0', locale);
+      const nextDisplayValue = `${previousDisplayValue}${localizedZero}`;
+      const nextFormattedValue = formatPerpsInput('1200.50', locale);
+
+      expect(
+        getPerpsFormattedInputSelection({
+          previousDisplayValue,
+          nextDisplayValue,
+          nextFormattedValue,
+          previousSelection: {
+            start: previousDisplayValue.length,
+            end: previousDisplayValue.length,
+          },
+          locale,
+        }),
+      ).toEqual({
+        start: nextFormattedValue.length,
+        end: nextFormattedValue.length,
+      });
+    });
+  });
+
   describe('formatPerpsFiat with PRICE_RANGES_UNIVERSAL', () => {
     it('should format large whole numbers (trailing zeros stripped by default)', () => {
       expect(formatPerpsFiat(123456, { ranges: PRICE_RANGES_UNIVERSAL })).toBe(
@@ -628,6 +1264,68 @@ describe('formatUtils', () => {
         expect(pos).toBe('$0.001234');
         expect(neg).toBe('-$0.001234');
       });
+    });
+  });
+
+  describe('getUniversalPriceFractionDigits', () => {
+    it('matches the decimals shown for a mid-range price like HYPE', () => {
+      expect(getUniversalPriceFractionDigits(84.491)).toBe(3);
+    });
+
+    it('matches the decimals shown for a hundreds price like ZEC', () => {
+      expect(getUniversalPriceFractionDigits(983.81)).toBe(2);
+    });
+
+    it('uses 1 decimal for prices between $1k and $10k', () => {
+      expect(getUniversalPriceFractionDigits(3000)).toBe(1);
+    });
+
+    it('uses 0 decimals for prices above $10k', () => {
+      expect(getUniversalPriceFractionDigits(123456)).toBe(0);
+    });
+
+    it('returns 0 for zero and non-finite prices', () => {
+      expect(getUniversalPriceFractionDigits(0)).toBe(0);
+      expect(getUniversalPriceFractionDigits(Number.NaN)).toBe(0);
+      expect(getUniversalPriceFractionDigits(Number.POSITIVE_INFINITY)).toBe(0);
+    });
+
+    it('returns 2 when no universal price range matches', () => {
+      const originalRanges = [...PRICE_RANGES_UNIVERSAL];
+      PRICE_RANGES_UNIVERSAL.splice(0, PRICE_RANGES_UNIVERSAL.length, {
+        condition: () => false,
+        minimumDecimals: 0,
+        maximumDecimals: 4,
+      });
+
+      try {
+        expect(getUniversalPriceFractionDigits(12.34)).toBe(2);
+      } finally {
+        PRICE_RANGES_UNIVERSAL.splice(
+          0,
+          PRICE_RANGES_UNIVERSAL.length,
+          ...originalRanges,
+        );
+      }
+    });
+
+    it('uses maximum decimals when the matching range has no significant digits', () => {
+      const originalRanges = [...PRICE_RANGES_UNIVERSAL];
+      PRICE_RANGES_UNIVERSAL.splice(0, PRICE_RANGES_UNIVERSAL.length, {
+        condition: () => true,
+        minimumDecimals: 0,
+        maximumDecimals: 4,
+      });
+
+      try {
+        expect(getUniversalPriceFractionDigits(12.34)).toBe(4);
+      } finally {
+        PRICE_RANGES_UNIVERSAL.splice(
+          0,
+          PRICE_RANGES_UNIVERSAL.length,
+          ...originalRanges,
+        );
+      }
     });
   });
 
@@ -802,6 +1500,32 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatCoinVolume', () => {
+    it('formats candle volume without a USD prefix', () => {
+      const volume = 0.33;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('0.33');
+    });
+
+    it('keeps magnitude suffixes without a dollar sign', () => {
+      const volume = 123456;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('123K');
+    });
+
+    it('keeps the minus sign in front of negative coin volume', () => {
+      const volume = -1000000;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('-1.00M');
+    });
+  });
+
   describe('formatPositionSize', () => {
     it('should format very small numbers without trailing zeros', () => {
       expect(formatPositionSize(0.001)).toBe('0.001');
@@ -887,6 +1611,23 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('formatLiquidationDistance', () => {
+    it('formats the distance from entry to liquidation as a percentage', () => {
+      expect(formatLiquidationDistance(100, 70)).toBe('30.00%');
+      expect(formatLiquidationDistance(100, 130)).toBe('30.00%');
+      expect(formatLiquidationDistance('103.02', '70.45')).toBe('31.62%');
+    });
+
+    it('returns undefined when either price is unusable', () => {
+      expect(formatLiquidationDistance(100, undefined)).toBeUndefined();
+      expect(formatLiquidationDistance(null, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, '0')).toBeUndefined();
+      expect(formatLiquidationDistance(0, 70)).toBeUndefined();
+      expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
+      expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
+    });
+  });
+
   describe('formatLeverage', () => {
     it('should format leverage with x suffix', () => {
       expect(formatLeverage(2)).toBe('2.0x');
@@ -941,6 +1682,22 @@ describe('formatUtils', () => {
       expect(parseCurrencyString(null as any)).toBe(0);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+
+    // A dust balance below 1e-6 serializes to exponential notation, whose
+    // exponent sign was being read as a negative amount.
+    it('reads exponential dust balances as small positives, not negatives', () => {
+      expect(parseCurrencyString('1.1e-7')).toBe(1.1e-7);
+      expect(parseCurrencyString('1e-7')).toBe(1e-7);
+      expect(parseCurrencyString('2.5e-8')).toBe(2.5e-8);
+    });
+
+    it('keeps a genuinely negative exponential negative', () => {
+      expect(parseCurrencyString('-1.1e-7')).toBe(-1.1e-7);
+    });
+
+    it('formats an exponential dust balance as zero rather than a negative', () => {
+      expect(formatPerpsBalance('1.1e-7')).toBe('$0');
     });
   });
 
@@ -1061,6 +1818,20 @@ describe('formatUtils', () => {
       expect(formatTransactionDate(zeroTimestamp)).toMatch(
         /January 1, 1970 at \d{1,2}:\d{2} (AM|PM)/,
       );
+    });
+  });
+
+  describe('formatProOrderCardTimestamp', () => {
+    it('formats order placement time in Figma pro-card style', () => {
+      // Local timezone-aware: construct from Date parts so the assertion is stable.
+      const date = new Date(2026, 3, 6, 19, 13, 54);
+      expect(formatProOrderCardTimestamp(date.getTime())).toBe(
+        '06 Apr 26 • 19:13:54',
+      );
+    });
+
+    it('returns empty string for invalid timestamps', () => {
+      expect(formatProOrderCardTimestamp(Number.NaN)).toBe('');
     });
   });
 
@@ -2059,6 +2830,66 @@ describe('formatUtils', () => {
 
         expect(result).toBe('12.34');
       });
+    });
+  });
+
+  describe('formatPositionTriggerSummary', () => {
+    it('names the order count when a side carries several trigger orders', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 3,
+        price: '2654.1',
+      });
+
+      expect(summary).toBe('3 orders');
+    });
+
+    it('keeps the trigger price when a side carries exactly one order', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 1,
+        price: '2312.8',
+      });
+
+      expect(summary).toBe('$2,312.8');
+    });
+
+    it('keeps the trigger price when the controller reports no count', () => {
+      const summary = formatPositionTriggerSummary({ price: '2312.8' });
+
+      expect(summary).toBe('$2,312.8');
+    });
+
+    it('applies market size decimals to the single order price', () => {
+      const summary = formatPositionTriggerSummary({
+        count: 1,
+        price: '2.1946',
+        szDecimals: 2,
+      });
+
+      expect(summary).toBe('$2.1946');
+    });
+
+    it('returns null when a side has neither a count nor a usable price', () => {
+      expect(formatPositionTriggerSummary({ count: 0 })).toBeNull();
+      expect(formatPositionTriggerSummary({ price: '0' })).toBeNull();
+    });
+  });
+
+  describe('formatLimitPriceInput', () => {
+    it('returns empty for absent or zero input', () => {
+      expect(formatLimitPriceInput('')).toBe('');
+      expect(formatLimitPriceInput('0')).toBe('');
+    });
+
+    it('preserves a trailing decimal point while typing', () => {
+      expect(formatLimitPriceInput('12.')).toBe('$12.');
+    });
+
+    it('preserves trailing zeros after the decimal while typing', () => {
+      expect(formatLimitPriceInput('12.50')).toBe('$12.50');
+    });
+
+    it('formats a complete number', () => {
+      expect(formatLimitPriceInput('3000')).toBe('$3,000');
     });
   });
 });

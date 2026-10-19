@@ -73,6 +73,12 @@ export interface MultichainAccountSelectorListProps
    * Optional boolean to hide the account cell menu
    */
   hideAccountCellMenu?: boolean;
+  /** Optional boolean to hide the search field (do not combine with `selectedExternalAddress`) */
+  hideSearch?: boolean;
+  /** Called when the search field takes focus. */
+  onSearchFocus?: () => void;
+  /** Called once a non-empty query has settled and the list reflects it. */
+  onSearchSettled?: (query: string) => void;
   /**
    * Optional boolean to show the external account on empty search
    */

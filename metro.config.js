@@ -57,6 +57,47 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
+// Escapes a filesystem path for safe embedding in a RegExp so local artifact
+// blockList entries only match paths anchored at the
+// worktree root, not the same substring appearing anywhere in node_modules.
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const artifactDirectoryPattern = (relativeDir) =>
+  new RegExp(
+    `^${escapeRegExp(path.resolve(__dirname, relativeDir))}(?:[/\\\\]|$)`,
+  );
+
+const additionalArtifactDirs = (
+  process.env.METRO_ADDITIONAL_ARTIFACT_DIRS ?? ''
+)
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean)
+  .map((relativeDir) => {
+    if (
+      path.isAbsolute(relativeDir) ||
+      relativeDir === '.' ||
+      relativeDir.split(/[\\/]/).includes('..') ||
+      path.resolve(__dirname, relativeDir) === __dirname
+    ) {
+      throw new Error(
+        'METRO_ADDITIONAL_ARTIFACT_DIRS accepts only non-root checkout-relative directories without `..`.',
+      );
+    }
+    return relativeDir;
+  });
+
+// Local runtime and visual-testing artifacts, anchored to this worktree root.
+// Anchoring prevents an unrelated dependency whose path merely *contains*
+// one of these names from being silently dropped from the bundle.
+const localArtifactBlockList = [
+  new RegExp(`^${escapeRegExp(path.join(__dirname, '.mm-daemon.log'))}$`),
+  artifactDirectoryPattern('.mm-server'),
+  artifactDirectoryPattern('test-artifacts'),
+  artifactDirectoryPattern('temp'),
+  ...additionalArtifactDirs.map(artifactDirectoryPattern),
+];
+
 // True when the module being resolved was requested from a file inside
 // @metamask/perps-controller. Normalizes separators first so this works on
 // Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
@@ -84,16 +125,19 @@ module.exports = function (baseConfig) {
         !isPerformanceTest && process.env.HAS_TEST_OVERRIDES === 'true';
 
       /**
-       * E2E Metro redirects under tests/module-mocking.
-       * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
-       * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
-       * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
-       * even though hasTestOverrides is false (preventing real OAuth calls to production).
+       * Seedless / OAuth Metro redirects under tests/module-mocking.
+       *
+       * Split intentionally:
+       * - E2E CI (`HAS_TEST_OVERRIDES`): mock SeedlessOnboardingController so TOPRF
+       *   stays mocked/offline in smoke tests (plus Mockttp TOPRF SSS mocks).
+       * - Performance (`E2E_MOCK_OAUTH` + `IS_PERFORMANCE_TEST`): mock only
+       *   OAuthLoginHandlers to skip native Google/Apple UI; keep the real
+       *   SeedlessOnboardingController so onboarding perf hits live UAT TOPRF.
        */
       const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-      const e2eAllowsSeedlessOAuthMetroMocks =
-        hasTestOverrides || isE2EMockOAuth;
+      const e2eMocksSeedlessController = hasTestOverrides;
+      const e2eMocksOAuthHandlers = hasTestOverrides || isE2EMockOAuth;
 
       // For less powerful machines, leave room to do other tasks. For instance,
       // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -112,9 +156,33 @@ module.exports = function (baseConfig) {
             ),
           );
 
+      // Isolate Metro transform cache between with-SRP and without-SRP dual
+      // repacks. Expo export:embed forces resetCache=false in CI, so babel
+      // inlines of PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first pack
+      // would otherwise be reused from /tmp/metro-cache by the second pack.
+      // Prefer an explicit METRO_TRANSFORM_PROFILE; fall back to presence-only
+      // detection (never put secret values into cacheVersion).
+      const metroTransformProfile =
+        process.env.METRO_TRANSFORM_PROFILE ||
+        (process.env.PREDEFINED_PASSWORD || process.env.ADDITIONAL_SRP_1
+          ? 'with-srp'
+          : 'without-srp');
+
       return wrapWithReanimatedMetroConfig(
         mergeConfig(defaultConfig, {
+          cacheVersion: `${defaultConfig.cacheVersion || '1.0'}:${metroTransformProfile}`,
           resolver: {
+            // Exclude local runtime artifacts from the file watcher so that
+            // log writes, state updates, and artifact captures don't
+            // trigger unnecessary Fast Refresh cycles during visual testing.
+            blockList: [
+              ...(Array.isArray(defaultConfig.resolver.blockList)
+                ? defaultConfig.resolver.blockList
+                : defaultConfig.resolver.blockList
+                  ? [defaultConfig.resolver.blockList]
+                  : []),
+              ...localArtifactBlockList,
+            ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
             sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
@@ -146,15 +214,35 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
-              // MYXProvider is intentionally excluded from @metamask/perps-controller's
-              // published dist (extension-only). The dynamic import() uses webpackIgnore
-              // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
-              // to resolve it statically. Return an empty module stub.
-              if (
-                moduleName === './providers/MYXProvider' &&
-                isPerpsControllerOrigin(context)
-              ) {
-                return { type: 'empty' };
+              // Bare package only: subpaths (e.g. jest/mock) must resolve to node_modules.
+              // Jest does not remap this package — mapping breaks jest/mock's requireActual().
+              if (moduleName === 'react-native-safe-area-context') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'app/shims/react-native-safe-area-context.tsx',
+                  ),
+                };
+              }
+              // reflect-metadata's only job is to add metadata APIs
+              // (Reflect.defineMetadata etc.) to the global Reflect object.
+              // getPolyfills above already runs it once at bundle startup,
+              // before lavamoat lockdown freezes Reflect — so the job is done.
+              //
+              // But Metro can't tell that polyfill and a require() from app
+              // code (Ledger DMK, inversify, on-ramp-sdk) are the same file,
+              // so it bundles it a second time. Running that second copy
+              // would re-define properties on the now-frozen Reflect object
+              // and crash with "TypeError: property is not configurable".
+              //
+              // Returning an empty module prevents the second run. Safe here
+              // because no importer uses the module's exports — the DMK
+              // closure only reads the global Reflect, patched at startup.
+              if (moduleName === 'reflect-metadata') {
+                return {
+                  type: 'empty',
+                };
               }
               // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
               // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
@@ -229,26 +317,36 @@ module.exports = function (baseConfig) {
                   };
                 }
               }
-              if (e2eAllowsSeedlessOAuthMetroMocks) {
-                if (
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller',
-                  ) ||
-                  moduleName.endsWith(
-                    'controllers/seedless-onboarding-controller/index',
-                  ) ||
-                  moduleName === './seedless-onboarding-controller' ||
-                  moduleName === '../seedless-onboarding-controller'
-                ) {
+              if (e2eMocksSeedlessController) {
+                // Wallet owns SeedlessOnboardingController construction, so E2E
+                // replaces the package class. Importers under
+                // tests/module-mocking/seedless still resolve the real package
+                // to avoid a circular mock.
+                if (moduleName === '@metamask/seedless-onboarding-controller') {
+                  const originModulePath = context.originModulePath || '';
+                  if (
+                    originModulePath.includes(
+                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
+                    )
+                  ) {
+                    return {
+                      type: 'sourceFile',
+                      filePath: require.resolve(
+                        '@metamask/seedless-onboarding-controller',
+                      ),
+                    };
+                  }
                   return {
                     type: 'sourceFile',
                     filePath: path.resolve(
                       __dirname,
-                      'tests/module-mocking/seedless/index.ts',
+                      'tests/module-mocking/seedless/package.ts',
                     ),
                   };
                 }
-                // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
+              }
+              if (e2eMocksOAuthHandlers) {
+                // Skips native Google/Apple UI; see module mock for token path.
                 if (
                   moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
                   moduleName.endsWith(

@@ -1,6 +1,7 @@
 import { RampType } from '../Aggregator/types';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
+import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 
 const RAMP_ACTIVITY = 'activity';
 
@@ -15,6 +16,7 @@ export default function handleRedirection(
         screen: Routes.TRANSACTIONS_VIEW,
         params: {
           redirectToOrders: true,
+          entryPoint: ActivityScreenEntryPoint.Deeplink,
         },
       });
       break;

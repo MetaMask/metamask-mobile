@@ -23,7 +23,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     style: () => ({}),
   }),
   useTheme: () => 'light',
-  usePureBlack: () => false,
   getThemeColors: () => ({
     'icon-default': 'rgb(0, 0, 0)',
     'icon-alternative': 'rgb(102, 102, 102)',

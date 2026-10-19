@@ -4,7 +4,7 @@ import type { JsonMap, MonetizedPrimitive } from '../../MetaMetrics.types';
 import { TransactionDetailLocation } from './constants';
 
 /**
- * Properties for the "Transaction Detail List Item Clicked" event.
+ * Properties for the "Activity Details Opened" event.
  *
  * @property transaction_type - TX type value from getTransactionTypeValue()
  * (e.g. 'simple_send', 'swap', 'bridge', 'contract_interaction').
@@ -17,7 +17,7 @@ import { TransactionDetailLocation } from './constants';
  * @property monetized_primitive - Only propagated when the transaction
  * involves a monetized primitive.
  */
-export interface TransactionDetailListItemClickedProperties extends JsonMap {
+export interface ActivityDetailsOpenedProperties extends JsonMap {
   transaction_type: string;
   transaction_status: TransactionStatus;
   location: TransactionDetailLocation;

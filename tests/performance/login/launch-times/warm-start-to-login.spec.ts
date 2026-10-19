@@ -1,10 +1,6 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
-import {
-  asPlaywrightElement,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-} from '../../../framework';
+import { AppiumAssertions, AppiumGestures } from '../../../framework';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import LoginView from '../../../page-objects/wallet/LoginView';
 import WalletView from '../../../page-objects/wallet/WalletView';
@@ -37,30 +33,21 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.accountIcon),
-          {
-            description:
-              'Wallet account icon should be visible before warm start',
-          },
-        );
 
+        // The vault lock now runs after foreground, so it is inside this clock.
         const timer1 = new TimerHelper(
           'Time since the user open the app again and the login screen appears',
-          { ios: 2500, android: 3000 },
+          { ios: 2500, android: 3500 },
           currentDeviceDetails.platform,
         );
 
-        await PlaywrightGestures.backgroundApp(35);
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await AppiumGestures.backgroundApp(40);
+        await AppiumGestures.activateApp(currentDeviceDetails);
 
         await timer1.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(LoginView.container),
-            {
-              description: 'Login title should be visible',
-            },
-          );
+          await AppiumAssertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login title should be visible',
+          });
         });
 
         performanceTracker.addTimers(timer1);

@@ -1,8 +1,6 @@
 /* eslint-disable no-restricted-syntax */
-import { waitFor } from 'detox';
 import { isCaipChainId } from '@metamask/utils';
 
-import TestHelpers from '../../helpers';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
@@ -10,7 +8,9 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
+import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
 import { createLogger } from '../../framework/logger';
+import { type AppiumElement } from '../../framework';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
 import Browser from './BrowserView';
@@ -18,6 +18,8 @@ import Browser from './BrowserView';
 const logger = createLogger({
   name: 'MMConnectBrowserPlaygroundDapp',
 });
+
+const mmConnectDappPageUrl = (): string => getDappUrl(0);
 
 /**
  * Mirror of `@metamask/playground-ui` `escapeTestId()`: lowercase, `:` → `-`,
@@ -42,7 +44,7 @@ function createTestId(...parts: string[]): string {
 
 /**
  * Page object for the `@metamask/browser-playground` MMConnect dapp loaded
- * inside MetaMask Mobile's in-app browser (BrowserTab WebView). Detox sibling
+ * inside MetaMask Mobile's in-app browser (BrowserTab WebView). Sibling
  * of `BrowserPlaygroundDapp.ts` (Playwright/Appium perf tests); both consume
  * the same selector constants. Static test IDs live in `MMConnectDappTestIds`;
  * dynamic IDs (scope cards, methods) are constructed via the local
@@ -52,70 +54,69 @@ function createTestId(...parts: string[]): string {
 class MMConnectBrowserPlaygroundDapp {
   /**
    * Get an in-WebView element by its `data-testid` attribute (the dapp sets
-   * `data-testid`, not `id`). Returns the framework's global `WebElement`
-   * (a Promise<IndexableWebElement>) so it composes directly with
-   * `Gestures.scrollToWebViewPort` / `Gestures.waitAndTap`.
+   * `data-testid`, not `id`).
    */
-  private getByDataTestId(testId: string): WebElement {
+  private getByDataTestId(testId: string): Promise<AppiumElement> {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       `[data-testid="${testId}"]`,
-    ) as WebElement;
+      mmConnectDappPageUrl(),
+    );
   }
 
   // App-level elements
 
-  get appContainer(): WebElement {
+  get appContainer(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.RM_APP_CONTAINER);
   }
 
-  get connectMultichainButton(): WebElement {
+  get connectMultichainButton(): Promise<AppiumElement> {
     // `app-btn-connect` with no variant suffix is the multichain entrypoint.
     return this.getByDataTestId(MMConnectDappTestIds.CONNECT_BUTTON);
   }
 
-  get connectLegacyButton(): WebElement {
+  get connectLegacyButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.CONNECT_BUTTON_LEGACY);
   }
 
-  get disconnectAllButton(): WebElement {
+  get disconnectAllButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.DISCONNECT_BUTTON);
   }
 
-  get scopesSection(): WebElement {
+  get scopesSection(): Promise<AppiumElement> {
     // Only rendered when the multichain session has at least one scope.
     return this.getByDataTestId('app-section-scopes');
   }
 
   // Legacy EVM card elements
 
-  get legacyEvmCard(): WebElement {
+  get legacyEvmCard(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
   }
 
-  get legacyEvmChainIdValue(): WebElement {
+  get legacyEvmChainIdValue(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
-  get legacyEvmPersonalSignButton(): WebElement {
+  get legacyEvmPersonalSignButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN,
     );
   }
 
-  get legacyEvmSendTransactionButton(): WebElement {
+  get legacyEvmSendTransactionButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
     );
   }
 
-  get legacyEvmSwitchToMainnetButton(): WebElement {
+  get legacyEvmSwitchToMainnetButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_MAINNET,
     );
   }
 
-  get legacyEvmResponseText(): WebElement {
+  get legacyEvmResponseText(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
@@ -135,21 +136,21 @@ class MMConnectBrowserPlaygroundDapp {
     return `eip155:${chainIdOrScope}`;
   }
 
-  scopeCard(chainIdOrScope: string): WebElement {
+  scopeCard(chainIdOrScope: string): Promise<AppiumElement> {
     const scope = this.toScope(chainIdOrScope);
     return this.getByDataTestId(
       createTestId(MMConnectDappTestIds.SCOPE_CARD, scope),
     );
   }
 
-  scopeCardMethodSelect(chainIdOrScope: string): WebElement {
+  scopeCardMethodSelect(chainIdOrScope: string): Promise<AppiumElement> {
     const scope = this.toScope(chainIdOrScope);
     return this.getByDataTestId(
       createTestId(MMConnectDappTestIds.SCOPE_CARD_METHOD_SELECT, scope),
     );
   }
 
-  scopeCardInvokeButton(chainIdOrScope: string): WebElement {
+  scopeCardInvokeButton(chainIdOrScope: string): Promise<AppiumElement> {
     const scope = this.toScope(chainIdOrScope);
     return this.getByDataTestId(
       createTestId(MMConnectDappTestIds.SCOPE_CARD_INVOKE_BTN, scope),
@@ -160,7 +161,7 @@ class MMConnectBrowserPlaygroundDapp {
     chainIdOrScope: string,
     method: string,
     index: number = 0,
-  ): WebElement {
+  ): Promise<AppiumElement> {
     const scope = this.toScope(chainIdOrScope);
     return this.getByDataTestId(
       createTestId(
@@ -184,9 +185,13 @@ class MMConnectBrowserPlaygroundDapp {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(getDappUrl(0));
 
-    await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
-      .toBeVisible()
-      .withTimeout(10000);
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+      {
+        timeout: 10000,
+        description: 'BrowserTab WebView should be visible',
+      },
+    );
   }
 
   /**
@@ -194,28 +199,24 @@ class MMConnectBrowserPlaygroundDapp {
    * the browser view, open the dapp, and confirm the dapp's root container
    * is mounted.
    *
-   * IMPORTANT: callers should NOT wrap this in `device.disableSynchronization()`.
-   * Login + browser-view navigation rely on Detox idle sync to settle the tab
-   * bar layout (the Explore tab sits inside the bottom safe area on
-   * iPhone 16 Pro / iOS 26; tapping it before layout settles trips the
-   * "View does not pass visibility percent threshold" check). Callers should
-   * disable synchronization *after* this method returns, around the WebView +
+   * IMPORTANT: callers should NOT wrap this in Detox idle-sync disable.
+   * Login + browser-view navigation rely on layout settling (the Explore tab
+   * sits inside the bottom safe area on iPhone 16 Pro / iOS 26; tapping it
+   * before layout settles trips visibility checks). Callers should disable
+   * synchronization *after* this method returns, around the WebView +
    * native bottom-sheet dance that actually needs it.
    */
   async setupAndNavigateToTestDapp({
     skipLogin = false,
   }: { skipLogin?: boolean } = {}): Promise<void> {
     if (!skipLogin) {
-      await TestHelpers.reverseServerPort();
       await loginToApp();
     }
     await navigateToBrowserView();
     await this.navigateToMMConnectDapp();
 
     await Assertions.expectElementToBeVisible(
-      Promise.resolve(
-        element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)),
-      ),
+      Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
       { description: 'BrowserTab WebView should be visible' },
     );
 
@@ -228,12 +229,9 @@ class MMConnectBrowserPlaygroundDapp {
   // Interactions
 
   /**
-   * Tap any in-WebView element, scrolling it into view first. Mirrors
-   * `SolanaTestDApp.tapButton` — `Gestures.scrollToWebViewPort` and
-   * `Gestures.waitAndTap` both await the WebElement promise internally, so
-   * we pass it through without resolving here.
+   * Tap any in-WebView element, scrolling it into view first.
    */
-  private async tapElement(elem: WebElement): Promise<void> {
+  private async tapElement(elem: Promise<AppiumElement>): Promise<void> {
     await Gestures.scrollToWebViewPort(elem);
     await Gestures.waitAndTap(elem);
   }
@@ -287,26 +285,28 @@ class MMConnectBrowserPlaygroundDapp {
   /**
    * Select a method in the per-scope ScopeCard `<select>`. The dapp listens
    * for the native `change` event, so we set `value` and dispatch `change`
-   * manually rather than tapping the option (Detox cannot reliably tap
-   * native-select options inside a WebView).
+   * via CDP rather than tapping the option (native-select options inside a
+   * WebView are unreliable).
    */
   async selectScopeCardMethod(
     chainIdOrScope: string,
     method: string,
   ): Promise<void> {
-    const select = (await this.scopeCardMethodSelect(
-      chainIdOrScope,
-    )) as unknown as Detox.IndexableWebElement;
-    await select.scrollToView();
-    // The dapp value is the method name verbatim (e.g. 'personal_sign').
-    // Escape single quotes defensively in case of future method names.
-    const escaped = method.replace(/'/g, "\\'");
-    await select.runScript(`(el) => {
-      el.value = '${escaped}';
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }`);
-    // Give React a tick to commit the selected-method state.
-    await TestHelpers.delay(500);
+    const scope = this.toScope(chainIdOrScope);
+    const testId = createTestId(
+      MMConnectDappTestIds.SCOPE_CARD_METHOD_SELECT,
+      scope,
+    );
+    await ChromeCdpHelpers.evaluateInWebView(
+      mmConnectDappPageUrl(),
+      `(function(){
+        const el = document.querySelector('[data-testid=${JSON.stringify(testId)}]');
+        if (!el) return false;
+        el.value = ${JSON.stringify(method)};
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        return true;
+      })()`,
+    );
   }
 
   /** Tap the per-scope "Invoke Method" button after selecting a method. */
@@ -348,27 +348,16 @@ class MMConnectBrowserPlaygroundDapp {
   }
 
   /**
-   * Poll a WebView element's `textContent` until it contains `expected`.
-   * Wraps Detox `runScript` in `Utilities.executeWithRetry` so the dapp's
-   * async response (signature, RPC result, etc.) has time to settle.
+   * Poll a WebView element's text until it contains `expected`.
    */
   private async expectWebElementTextToContain(
-    elemPromise: WebElement,
+    elemPromise: Promise<AppiumElement>,
     expected: string,
     description: string,
   ): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        const elem =
-          (await elemPromise) as unknown as Detox.IndexableWebElement;
-        await (elem.scrollToView() as unknown as Promise<void>).catch(() => {
-          // scrollToView throws on detached/not-yet-rendered nodes; the next
-          // runScript will surface a clearer error if the node never appears.
-        });
-        const text =
-          ((await elem.runScript(
-            '(el) => el.textContent || ""',
-          )) as unknown as string) ?? '';
+        const text = await Utilities.getElementText(elemPromise);
         if (!text.includes(expected)) {
           throw new Error(
             `Expected ${description} to contain "${expected}", got: "${text}"`,

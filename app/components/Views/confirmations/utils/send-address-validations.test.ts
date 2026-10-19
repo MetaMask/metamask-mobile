@@ -5,6 +5,7 @@ import {
   validateBitcoinAddress,
   validateHexAddress,
   validateSolanaAddress,
+  validateStellarAddress,
   validateTronAddress,
 } from './send-address-validations';
 jest.mock('./token', () => ({
@@ -20,7 +21,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 describe('validateHexAddress', () => {
-  it('returns error if address is burn address', async () => {
+  it('returns error if address is zero address', async () => {
     expect(
       await validateHexAddress(
         '0x0000000000000000000000000000000000000000',
@@ -29,13 +30,24 @@ describe('validateHexAddress', () => {
     ).toStrictEqual({
       error: 'Invalid address',
     });
+  });
+
+  it('returns warning if address is dead address', async () => {
     expect(
       await validateHexAddress(
         '0x000000000000000000000000000000000000dead',
         '0x1',
       ),
     ).toStrictEqual({
-      error: 'Invalid address',
+      warning: 'Invalid address',
+    });
+    expect(
+      await validateHexAddress(
+        '0x000000000000000000000000000000000000dEaD',
+        '0x1',
+      ),
+    ).toStrictEqual({
+      warning: 'Invalid address',
     });
   });
   it('does not return error for valid evm address', async () => {
@@ -97,6 +109,24 @@ describe('validateSolanaAddress', () => {
   it('does not returns error if address is solana address', () => {
     expect(
       validateSolanaAddress('14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5'),
+    ).toStrictEqual({});
+  });
+});
+
+describe('validateStellarAddress', () => {
+  it('returns error if address is not stellar address', () => {
+    expect(
+      validateStellarAddress('0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477'),
+    ).toStrictEqual({
+      error: 'Invalid address',
+    });
+  });
+
+  it('does not return error if address is stellar address', () => {
+    expect(
+      validateStellarAddress(
+        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+      ),
     ).toStrictEqual({});
   });
 });

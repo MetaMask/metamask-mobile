@@ -1,11 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
+import NavigationService from '../../../../../core/NavigationService';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import React, { useState } from 'react';
 import { Image, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonBase from '../../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -28,6 +28,8 @@ import {
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
 import {
+  ButtonBase,
+  ButtonBaseSize,
   FontWeight,
   Text,
   TextVariant,
@@ -88,7 +90,7 @@ const PerpsGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.WALLET.HOME);
+    navigate(Routes.HOME_TABS, { screen: Routes.WALLET.HOME }, { pop: true });
   };
 
   const tryPerpsNow = async () => {
@@ -105,7 +107,8 @@ const PerpsGTMModal = () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
-    navigate(Routes.PERPS.TUTORIAL, {
+    navigate(Routes.HOME_TABS, { screen: Routes.WALLET.HOME }, { pop: true });
+    NavigationService.navigation.navigate(Routes.PERPS.TUTORIAL, {
       isFromGTMModal: true,
     });
   };
@@ -143,20 +146,13 @@ const PerpsGTMModal = () => {
         <ButtonBase
           onPress={() => tryPerpsNow()}
           testID={PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          size={ButtonBaseSize.Lg}
+          isFullWidth
           style={styles.tryNowButton}
-          activeOpacity={0.6}
-          label={
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              style={styles.tryNowButtonText}
-            >
-              {strings('perps.gtm_content.try_now')}
-            </Text>
-          }
-        />
+          textProps={{ style: styles.tryNowButtonText }}
+        >
+          {strings('perps.gtm_content.try_now')}
+        </ButtonBase>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={() => handleClose()}

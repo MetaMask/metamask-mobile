@@ -97,7 +97,7 @@ describe('useGasEstimateFailedAlert', () => {
     );
 
     expect(result.current[0].message).toBe(
-      "We're unable to provide an accurate fee and this estimate might be high. We suggest you to input a custom gas limit, but there's a risk the transaction will still fail.",
+      "We're unable to provide an accurate fee and this estimate might be high. We suggest you input a custom gas limit, but there's a risk the transaction will still fail.",
     );
   });
 

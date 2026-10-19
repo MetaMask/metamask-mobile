@@ -1,4 +1,5 @@
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,6 +18,11 @@ import { selectTickerByChainId } from '../../../../selectors/networkController';
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  toast: jest.fn(),
 }));
 
 const mockDeposit = jest.fn();
@@ -194,6 +200,36 @@ describe('usePredictToastRegistrations', () => {
       });
     });
 
+    it('tracks to the redesigned details screen when deposit metadata includes chainId', () => {
+      jest
+        .mocked(selectTransactionMetadataById)
+        .mockReturnValue({ chainId: '0x89' } as unknown as ReturnType<
+          typeof selectTransactionMetadataById
+        >);
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'deposit',
+          status: 'approved',
+          transactionId: 'tx-1',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      showToast.mock.calls[0][0].closeButtonOptions.onPress();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+        chainId: 'eip155:137',
+        txIdentifier: 'tx-1',
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.TRANSACTION_DETAILS,
+        expect.anything(),
+      );
+    });
+
     it('shows success toast on confirmed status', () => {
       const handler = getHandler();
 
@@ -261,18 +297,20 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(showToast).toHaveBeenCalledWith(
+      expect(showToast).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          iconName: 'Error',
-          linkButtonOptions: expect.objectContaining({
-            onPress: expect.any(Function),
-          }),
+          title: 'predict.deposit.error_title',
+          description: 'predict.deposit.error_description',
+          severity: ToastSeverity.Danger,
+          actionButtonLabel: 'predict.deposit.try_again',
+          actionButtonOnPress: expect.any(Function),
         }),
       );
 
-      const onRetry = showToast.mock.calls[0][0].linkButtonOptions.onPress;
+      const onRetry = jest.mocked(toast).mock.calls[0][0].actionButtonOnPress;
       await act(async () => {
-        await onRetry();
+        await onRetry?.({} as never);
       });
 
       expect(mockDeposit).toHaveBeenCalledTimes(1);
@@ -290,9 +328,11 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(showToast).toHaveBeenCalledWith(
+      expect(showToast).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
         expect.not.objectContaining({
-          linkButtonOptions: expect.anything(),
+          actionButtonLabel: expect.anything(),
+          actionButtonOnPress: expect.anything(),
         }),
       );
     });
@@ -1050,6 +1090,68 @@ describe('usePredictToastRegistrations', () => {
           variant: 'Icon',
           iconName: 'Error',
           hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows a persistent balance message after a post-deposit order failure', () => {
+      mockBottomSheetEnabled = true;
+      mockProviderMounted = true;
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          amount: 25,
+          isPostDepositOrderFailure: true,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hasNoTimeout: true,
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.prediction_not_placed',
+            }),
+            expect.objectContaining({
+              label:
+                'predict.order.post_deposit_order_failed:{"amount":"$25.00"}',
+            }),
+          ]),
+        }),
+      );
+      expect(showToast).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          closeButtonOptions: expect.anything(),
+          linkButtonOptions: expect.anything(),
+        }),
+      );
+    });
+
+    it('shows the funds fallback when the deposited amount is unavailable', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+          isPostDepositOrderFailure: true,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'predict.order.post_deposit_order_failed_fallback',
+            }),
+          ]),
         }),
       );
     });

@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { Alert, TextInput, View, DimensionValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
@@ -17,7 +18,7 @@ import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { QRTabSwitcherScreens } from '../QRTabSwitcher';
+import { QRTabSwitcherScreens, type ScanSuccess } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
@@ -43,7 +44,7 @@ const ImportPrivateKey = () => {
   const [inputWidth, setInputWidth] = useState<DimensionValue | undefined>(
     Device.isAndroid() ? '99%' : undefined,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance, typography } = useAppTheme();
@@ -125,7 +126,7 @@ const ImportPrivateKey = () => {
     }
   };
 
-  const onScanSuccess = async (data: { private_key: string; seed: string }) => {
+  const onScanSuccess = async (data: ScanSuccess) => {
     if (data.private_key) {
       setPrivateKey(data.private_key);
       await goNext(data.private_key);

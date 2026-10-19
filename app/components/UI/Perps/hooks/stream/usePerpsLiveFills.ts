@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type OrderFill } from '@metamask/perps-controller';
@@ -16,6 +16,8 @@ export interface UsePerpsLiveFillsReturn {
   fills: OrderFill[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
+  error?: Error | null;
+  retry: () => void;
 }
 
 /**
@@ -30,11 +32,11 @@ export function usePerpsLiveFills(
 ): UsePerpsLiveFillsReturn {
   const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
+  const [error, setError] = useState<Error | null>(null);
   const [fills, setFills] = useState<OrderFill[]>(EMPTY_FILLS);
-  // FillStreamChannel.getCachedData() always returns [] (never null),
-  // so subscribe() will always call the callback synchronously in useEffect.
-  // Start with false to avoid a 1-frame skeleton flash.
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(
+    () => stream.fills.getSnapshot() === null,
+  );
   const lastFillsRef = useRef<OrderFill[]>(EMPTY_FILLS);
   const hasReceivedFirstUpdate = useRef(false);
 
@@ -45,10 +47,21 @@ export function usePerpsLiveFills(
     DevLogger.log(logMessage);
 
     const unsubscribe = stream.fills.subscribe({
+      onError: (failure) => {
+        setError(failure);
+        setIsInitialLoading(false);
+      },
       callback: (newFills) => {
-        // null/undefined means no cached data yet, keep loading state
-        if (newFills === null || newFills === undefined) {
-          // Keep isInitialLoading as true, fills as empty array
+        setError(stream.fills.getError());
+        if (
+          newFills === null ||
+          newFills === undefined ||
+          stream.fills.getSnapshot() === null
+        ) {
+          hasReceivedFirstUpdate.current = false;
+          setIsInitialLoading(true);
+          lastFillsRef.current = EMPTY_FILLS;
+          setFills(EMPTY_FILLS);
           return;
         }
 
@@ -87,7 +100,13 @@ export function usePerpsLiveFills(
     };
   }, [stream, throttleMs]);
 
+  const retry = useCallback(() => {
+    stream.retryOrderStreams();
+  }, [stream]);
+
   return {
+    error,
+    retry,
     fills,
     isInitialLoading,
   };

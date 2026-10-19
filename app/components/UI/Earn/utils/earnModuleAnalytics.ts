@@ -1,0 +1,64 @@
+import { EARN_MODULE_STRATEGY_TYPES } from '../constants/earnModuleEvents';
+import type { EarnAsset } from '../types/earnAssets';
+import type {
+  EarnModuleNavigationContext,
+  EarnModuleAssetProperties,
+  EarnModuleEventLocation,
+} from '../types/earnModuleEvents.types';
+import { formatChainIdForAnalytics } from './analytics';
+import { hasEarnAssetBalance } from './earnAssets';
+import { getEarnInputExperiences } from './earnAssets/earnExperience';
+import { formatEarnRatePercentage } from './earnRate';
+
+export const getEarnModuleAssetProperties = (
+  earnAsset: EarnAsset,
+  position?: number,
+  assetsInList?: number,
+): EarnModuleAssetProperties => {
+  const { metadata } = earnAsset;
+
+  const inputExperiences = getEarnInputExperiences(earnAsset.experiences);
+  const earnAssetSupportsSingleExperience = inputExperiences.length === 1;
+
+  return {
+    asset_symbol: metadata.ticker ?? metadata.symbol ?? metadata.name,
+    chain_id: formatChainIdForAnalytics(metadata.chainId),
+    ...(position === undefined ? {} : { asset_position: position }),
+    ...(assetsInList === undefined ? {} : { assets_in_list: assetsInList }),
+    eligible_strategy_count: inputExperiences.length,
+    eligible_strategy_types: inputExperiences.map(
+      ({ type }) => type.toLowerCase() as Lowercase<EARN_MODULE_STRATEGY_TYPES>,
+    ),
+    asset_has_balance: hasEarnAssetBalance(earnAsset),
+    // Only attach rate when we know the experience being used. We don't want an ambiguous rate property.
+    ...(earnAssetSupportsSingleExperience &&
+    inputExperiences[0]?.rate?.status === 'ready'
+      ? {
+          rate_percentage: Number(
+            formatEarnRatePercentage(inputExperiences[0].rate.percentage),
+          ),
+        }
+      : {}),
+    // Only attach when we know the experience being used. We don't want an ambiguous is_fee_subsidized property.
+    ...(earnAssetSupportsSingleExperience
+      ? {
+          is_fee_subsidized: inputExperiences.some(
+            ({ isFeeSubsidized }) => isFeeSubsidized,
+          ),
+        }
+      : {}),
+  };
+};
+
+export const buildEarnModuleNavigationContext = (
+  location: Pick<EarnModuleEventLocation, 'entry_point' | 'screen_name'>,
+  position?: number,
+  assetsInList?: number,
+): EarnModuleNavigationContext => ({
+  entry_point: location.entry_point,
+  ...(location.screen_name !== undefined
+    ? { screen_name: location.screen_name }
+    : {}),
+  ...(position === undefined ? {} : { asset_position: position }),
+  ...(assetsInList === undefined ? {} : { assets_in_list: assetsInList }),
+});

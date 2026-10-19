@@ -53,10 +53,12 @@ jest.mock('../PerpsMarketRowItem', () => {
     market,
     onPress,
     onAddPress,
+    displayMetric,
   }: {
     market: PerpsMarketData;
     onPress?: () => void;
     onAddPress?: (market: PerpsMarketData) => void;
+    displayMetric?: string;
   }) {
     return (
       <TouchableOpacity
@@ -65,6 +67,11 @@ jest.mock('../PerpsMarketRowItem', () => {
       >
         <Text>{market.symbol}</Text>
         <Text>{market.name}</Text>
+        {displayMetric ? (
+          <Text testID={`perps-market-row-${market.symbol}-metric`}>
+            {displayMetric}
+          </Text>
+        ) : null}
         {onAddPress && (
           <TouchableOpacity
             onPress={() => onAddPress(market)}
@@ -91,8 +98,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.home.watchlist': 'Watchlist',
       'perps.home.see_all': 'See all',
       'perps.watchlist.suggested': 'Suggested',
-      'perps.watchlist.empty_subtitle':
-        'Tap + to add a market to your watchlist.',
       'perps.watchlist.show_more': `Show ${params?.count} more`,
       'perps.watchlist.show_less': 'Show less',
     };
@@ -197,32 +202,19 @@ describe('PerpsWatchlistMarkets', () => {
   // -------------------------------------------------------------------------
 
   describe('Empty watchlist with suggested markets', () => {
-    it('renders the placeholder text when watchlist is empty', () => {
+    it('omits helper copy when the watchlist is empty', () => {
       render(
         <PerpsWatchlistMarkets
           markets={[]}
           suggestedMarkets={mockSuggestedMarkets}
         />,
       );
-      expect(
-        screen.getByText('Tap + to add a market to your watchlist.'),
-      ).toBeOnTheScreen();
-      expect(screen.queryByText('Suggested')).not.toBeOnTheScreen();
-    });
 
-    it('renders the "Suggested" sub-header when watchlist is empty', () => {
-      render(
-        <PerpsWatchlistMarkets
-          markets={[]}
-          suggestedMarkets={mockSuggestedMarkets}
-        />,
-      );
+      expect(screen.getByText('Watchlist')).toBeOnTheScreen();
+      expect(screen.queryByText('Suggested')).not.toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-watchlist-suggested-header'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText('Tap + to add a market to your watchlist.'),
-      ).toBeOnTheScreen();
+        screen.queryByTestId('perps-watchlist-suggested-header'),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders the suggested section wrapper testID', () => {
@@ -313,6 +305,19 @@ describe('PerpsWatchlistMarkets', () => {
         screen.queryByTestId('perps-market-row-BTC-add-button'),
       ).not.toBeOnTheScreen();
     });
+
+    it('passes displayMetric to watchlist market rows', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          displayMetric="priceChange"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('perps-market-row-BTC-metric'),
+      ).toHaveTextContent('priceChange');
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -353,9 +358,6 @@ describe('PerpsWatchlistMarkets', () => {
         />,
       );
       expect(screen.getByText('Suggested')).toBeOnTheScreen();
-      expect(
-        screen.queryByText('Tap + to add a market to your watchlist.'),
-      ).not.toBeOnTheScreen();
     });
   });
 
@@ -675,9 +677,6 @@ describe('PerpsWatchlistMarkets', () => {
       expect(
         screen.queryByTestId('perps-watchlist-suggested-section'),
       ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByText('Tap + to add a market to your watchlist.'),
-      ).not.toBeOnTheScreen();
     });
 
     it('shows skeleton during loading', () => {
@@ -776,16 +775,16 @@ describe('PerpsWatchlistMarkets', () => {
         />,
       );
       expect(
-        screen.getByText('Tap + to add a market to your watchlist.'),
+        screen.getByTestId('perps-watchlist-suggested-section'),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByText('Start with the most-traded markets'),
+        screen.queryByTestId('perps-watchlist-suggested-header'),
       ).not.toBeOnTheScreen();
 
       rerender(<PerpsWatchlistMarkets markets={mockMarkets} />);
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(
-        screen.queryByText('Tap + to add a market to your watchlist.'),
+        screen.queryByTestId('perps-watchlist-suggested-section'),
       ).not.toBeOnTheScreen();
     });
   });

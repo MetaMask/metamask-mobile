@@ -11,6 +11,12 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import Logger from '../../../../util/Logger';
 import { PERIOD_TO_API, type TimePeriod } from './traderPositionData';
 
+/**
+ * Price API v3 root. Declared once so the spot-price and historical-price
+ * requests below cannot drift apart.
+ */
+const PRICE_API_V3_BASE_URL = 'https://price.api.cx.metamask.io/v3';
+
 export interface SpotTraderPositionPricesParams {
   positionParam: Position | undefined;
   caipChainId: CaipChainId | undefined;
@@ -62,7 +68,7 @@ export function useSpotTraderPositionPrices(
     let cancelled = false;
     (async () => {
       try {
-        const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
+        const url = `${PRICE_API_V3_BASE_URL}/spot-prices?${new URLSearchParams(
           {
             assetIds: assetId,
             includeMarketData: 'true',
@@ -127,7 +133,7 @@ export function useSpotTraderPositionPrices(
 
     const fetchPeriod = async (period: TimePeriod) => {
       const apiPeriod = PERIOD_TO_API[period];
-      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
+      const uri = `${PRICE_API_V3_BASE_URL}/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
       try {
         const response = await fetch(uri);
         if (response.status === 204 || !response.ok)

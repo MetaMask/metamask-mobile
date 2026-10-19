@@ -3,6 +3,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { transferConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useConfirmReject } from '../../../hooks/useConfirmReject';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../UI/navbar/navbar';
 import Transfer from './transfer';
@@ -67,6 +68,10 @@ jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useConfirmReject', () => ({
+  useConfirmReject: jest.fn(),
+}));
+
 jest.mock('../../UI/navbar/navbar', () => ({
   getNavbar: jest.fn(),
 }));
@@ -104,6 +109,7 @@ describe('Transfer', () => {
   );
   const mockTrackPageViewedEvent = jest.fn();
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmReject = jest.mocked(useConfirmReject);
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
@@ -115,6 +121,7 @@ describe('Transfer', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+    mockUseConfirmReject.mockReturnValue({ onReject: jest.fn() });
 
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackPageViewedEvent: mockTrackPageViewedEvent,
@@ -128,6 +135,7 @@ describe('Transfer', () => {
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
+    mockUseConfirmReject.mockImplementation(() => ({ onReject: mockOnReject }));
 
     const { getByText } = renderWithProvider(<Transfer />, {
       state: transferConfirmationState,

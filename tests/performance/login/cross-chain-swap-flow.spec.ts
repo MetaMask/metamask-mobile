@@ -1,14 +1,14 @@
 import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper.js';
-import { System, PerformanceSwaps } from '../../tags.performance.js';
+import { Performance, PerformanceSwaps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
-test.describe(`${System} ${PerformanceSwaps}`, () => {
+test.describe(`${Performance} ${PerformanceSwaps}`, () => {
   test(
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
@@ -29,8 +29,8 @@ test.describe(`${System} ${PerformanceSwaps}`, () => {
       await WalletView.tapWalletSwapButton();
 
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(QuoteView.amountInput),
+        await AppiumAssertions.expectElementToBeVisible(
+          QuoteView.bridgeViewScroll,
         );
       });
 

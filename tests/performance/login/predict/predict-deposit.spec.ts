@@ -1,12 +1,13 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
+import { AppiumAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 /*
  * Scenario: Predict Deposit Performance Test
@@ -38,11 +39,10 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapPredictButton();
+      await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictMarketList.container),
+        await AppiumAssertions.expectElementToBeVisible(
+          PredictMarketList.container,
         );
       });
 
@@ -55,8 +55,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
 
       await PredictMarketList.tapAddFundsButton();
       await timer2.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TransactionPayConfirmation.keyboardContainer),
+        await AppiumAssertions.expectElementToBeVisible(
+          TransactionPayConfirmation.keyboardContainer,
         );
       });
 
@@ -71,8 +71,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
 
       await TransactionPayConfirmation.tapKeyboardContinueButton();
       await timer4.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(TransactionPayConfirmation.transactionFee),
+        await AppiumAssertions.expectElementToBeVisible(
+          TransactionPayConfirmation.transactionFee,
         );
       });
 

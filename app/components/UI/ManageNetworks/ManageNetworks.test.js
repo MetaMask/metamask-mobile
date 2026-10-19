@@ -1,21 +1,29 @@
-// Third party dependencies.
 import React from 'react';
 import { Linking } from 'react-native';
-// Internal dependencies.
+import { fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import ManageNetworks from './ManageNetworks';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import AppConstants from '../../../core/AppConstants';
-import { fireEvent } from '@testing-library/react-native';
+import Routes from '../../../constants/navigation/Routes';
+import { ConnectedAccountsSelectorsIDs } from '../../Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
+
+const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest
+  .fn()
+  .mockReturnValue({ name: 'NETWORK_SELECTOR_PRESSED' });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  build: mockBuild,
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -25,39 +33,65 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 const mockNetworkName = 'Ethereum Main Network';
 
+const mockUseSelectorWithNetworkName = () => {
+  useSelector.mockImplementation((selector) => {
+    if (selector === selectNetworkName) {
+      return mockNetworkName;
+    }
+
+    return undefined;
+  });
+};
+
 describe('ManageNetworks', () => {
-  it('should render correctly', () => {
-    useSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkName) return mockNetworkName;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelectorWithNetworkName();
+  });
+
+  it('renders the current network on the select button', () => {
+    const { getByTestId, getByText } = renderWithProvider(<ManageNetworks />);
+
+    expect(
+      getByTestId(ConnectedAccountsSelectorsIDs.NETWORK_PICKER),
+    ).toBeOnTheScreen();
+    expect(getByText(mockNetworkName)).toBeOnTheScreen();
+  });
+
+  it('opens the network selector when the select button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<ManageNetworks />);
+
+    fireEvent.press(getByTestId(ConnectedAccountsSelectorsIDs.NETWORK_PICKER));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    const { toJSON } = renderWithProvider(
-      <ManageNetworks navigation={useNavigation()} />,
-    );
-    expect(toJSON()).not.toBeNull();
+    expect(mockTrackEvent).toHaveBeenCalledWith(mockBuild());
   });
 
   it.each([
-    [
-      {
-        link: AppConstants.URLS.PRIVACY_POLICY_2024,
-        testId: 'privacy-policy-link',
-      },
-      {
-        link: AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY,
-        testId: 'solana-privacy-policy-link',
-      },
-    ],
-  ])('opens link %link', ({ link, testId }) => {
-    useSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkName) return mockNetworkName;
-    });
-    const { getByTestId } = renderWithProvider(
-      <ManageNetworks navigation={useNavigation()} />,
-    );
-    const button = getByTestId(testId);
-    fireEvent.press(button);
+    {
+      link: AppConstants.URLS.PRIVACY_POLICY_2024,
+      testId: 'privacy-policy-link',
+    },
+    {
+      link: AppConstants.URLS.ADD_SOLANA_ACCOUNT_PRIVACY_POLICY,
+      testId: 'solana-privacy-policy-link',
+    },
+  ])('opens $testId', ({ link, testId }) => {
+    const { getByTestId } = renderWithProvider(<ManageNetworks />);
+
+    fireEvent.press(getByTestId(testId));
+
     expect(Linking.openURL).toHaveBeenCalledWith(link);
   });
 });

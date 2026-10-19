@@ -4,6 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingTokenRowItem from '../TrendingTokenRowItem/TrendingTokenRowItem';
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
  * Filter context for analytics tracking
@@ -48,6 +49,10 @@ export interface TrendingTokensListProps {
    * When provided, shows a Quick Trade flash button on each row.
    */
   onQuickTrade?: (token: TrendingAsset) => void;
+  /**
+   * Token Details analytics source for row taps.
+   */
+  tokenDetailsSource?: TokenDetailsSource;
 }
 
 /**
@@ -65,6 +70,7 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
     onLoadMore,
     isLoadingMore,
     onQuickTrade,
+    tokenDetailsSource,
   }) => {
     const renderItem = useCallback(
       ({ item, index }: { item: TrendingAsset; index: number }) => (
@@ -73,10 +79,15 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
           selectedTimeOption={selectedTimeOption}
           position={index}
           filterContext={filterContext}
-          onQuickTrade={onQuickTrade}
+          endAction={
+            onQuickTrade
+              ? { type: 'quick-trade', onPress: onQuickTrade }
+              : undefined
+          }
+          tokenDetailsSource={tokenDetailsSource}
         />
       ),
-      [selectedTimeOption, filterContext, onQuickTrade],
+      [selectedTimeOption, filterContext, onQuickTrade, tokenDetailsSource],
     );
 
     const keyExtractor = useCallback(

@@ -9,6 +9,16 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { getNetworkImageSource } from '../../../../../util/networks';
+
+jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
+  getNetworkImageSource: jest.fn((args: { chainId: string }) =>
+    jest
+      .requireActual('../../../../../util/networks')
+      .getNetworkImageSource(args),
+  ),
+}));
 
 jest.mock('../../../../Base/TokenIcon', () => {
   const ReactActual = jest.requireActual('react');
@@ -62,8 +72,15 @@ function render(props: TokenIconProps) {
 }
 
 describe('TokenIcon', () => {
+  const mockGetNetworkImageSource = jest.mocked(getNetworkImageSource);
+
   beforeEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    mockGetNetworkImageSource.mockImplementation((args) =>
+      jest
+        .requireActual('../../../../../util/networks')
+        .getNetworkImageSource(args),
+    );
   });
 
   it('renders token icon', () => {
@@ -75,6 +92,30 @@ describe('TokenIcon', () => {
     expect(getByTestId('token-icon').props.accessibilityLabel).toBe(
       TOKEN_ICON_URL_MOCK,
     );
+    expect(getByTestId('badgenetwork')).toBeOnTheScreen();
+  });
+
+  it('hides network badge when showNetwork is false', () => {
+    const { getByTestId, queryByTestId } = render({
+      address: ADDRESS_MOCK,
+      chainId: CHAIN_ID_MOCK,
+      showNetwork: false,
+    });
+
+    expect(getByTestId('token-icon')).toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
+  });
+
+  it('hides network badge when network image is missing', () => {
+    mockGetNetworkImageSource.mockReturnValue(undefined as never);
+
+    const { getByTestId, queryByTestId } = render({
+      address: ADDRESS_MOCK,
+      chainId: CHAIN_ID_MOCK,
+    });
+
+    expect(getByTestId('token-icon')).toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 
   it('renders nothing if token not found', () => {

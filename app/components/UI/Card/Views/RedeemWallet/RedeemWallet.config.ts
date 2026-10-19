@@ -1,5 +1,5 @@
 import { CardMessageBoxType } from '../../types';
-import { CardActions } from '../../util/metrics';
+import { CardActions, CardScreens } from '../../util/metrics';
 import {
   CASHBACK_MONEY_ACCOUNT_ORIGIN,
   CREDIT_MONEY_ACCOUNT_ORIGIN,
@@ -38,6 +38,7 @@ interface RedeemModeConfig {
   moneyAccountRequiredType: CardMessageBoxType;
   moneyAccountOrigin: LinkFlowOrigin;
   analyticsAction: CardActions;
+  analyticsScreen: CardScreens;
   showRefundInfo: boolean;
   showFiatBalance: boolean;
 }
@@ -60,6 +61,7 @@ export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
     moneyAccountRequiredType: CardMessageBoxType.CashbackMoneyAccountRequired,
     moneyAccountOrigin: CASHBACK_MONEY_ACCOUNT_ORIGIN,
     analyticsAction: CardActions.CASHBACK_BUTTON,
+    analyticsScreen: CardScreens.CASHBACK,
     showRefundInfo: false,
     showFiatBalance: false,
   },
@@ -82,6 +84,7 @@ export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
     moneyAccountRequiredType: CardMessageBoxType.CreditMoneyAccountRequired,
     moneyAccountOrigin: CREDIT_MONEY_ACCOUNT_ORIGIN,
     analyticsAction: CardActions.CREDIT_BUTTON,
+    analyticsScreen: CardScreens.CREDIT_REDEEM,
     showRefundInfo: true,
     showFiatBalance: true,
   },

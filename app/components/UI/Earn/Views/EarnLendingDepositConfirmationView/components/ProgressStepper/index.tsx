@@ -1,22 +1,23 @@
 import React, { useMemo, useCallback } from 'react';
 import { ColorValue, Dimensions, View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
-import Avatar, {
-  AvatarVariant,
-  AvatarSize,
-} from '../../../../../../../component-library/components/Avatars/Avatar';
-import AvatarBase from '../../../../../../../component-library/components/Avatars/Avatar/foundation/AvatarBase';
 import {
+  AvatarBase,
+  AvatarBaseSize,
+  AvatarIcon,
+  AvatarIconSize,
   IconColor,
   IconName,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Loader from '../../../../../../../component-library/components-temp/Loader';
 import styleSheet from './ProgressStepper.styles';
+import { PROGRESS_STEPPER_TEST_IDS } from './ProgressStepper.testIds';
+
+export { PROGRESS_STEPPER_TEST_IDS } from './ProgressStepper.testIds';
 
 export interface ProgressStep {
   label: string;
@@ -30,18 +31,6 @@ export interface ProgressStepperProps {
   steps: ProgressStep[];
   activeStep: number;
 }
-
-const prefix = 'progress-stepper';
-
-export const PROGRESS_STEPPER_TEST_IDS = {
-  STEP: `${prefix}-step`,
-  STEP_ICON: {
-    COMPLETED: `${prefix}-step-icon-completed`,
-    LOADING: `${prefix}-step-icon-loading`,
-    PENDING: `${prefix}-step-icon-pending`,
-  },
-  PROGRESS_BAR: `${prefix}-progress-bar`,
-};
 
 const ProgressStepper = ({
   height = 10,
@@ -78,12 +67,11 @@ const ProgressStepper = ({
     (index: number, isLoading: boolean) => {
       if (isCompletedStep(index) && !isActiveStep(index) && !isLoading) {
         return (
-          <Avatar
-            variant={AvatarVariant.Icon}
-            name={IconName.Check}
-            iconColor={IconColor.Inverse}
-            size={AvatarSize.Sm}
-            backgroundColor={theme.colors.primary.default}
+          <AvatarIcon
+            iconName={IconName.Check}
+            iconProps={{ color: IconColor.PrimaryInverse }}
+            size={AvatarIconSize.Sm}
+            twClassName="bg-primary-default"
             testID={PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED}
           />
         );
@@ -93,7 +81,7 @@ const ProgressStepper = ({
         return (
           <AvatarBase
             style={styles.completeStep}
-            size={AvatarSize.Sm}
+            size={AvatarBaseSize.Sm}
             testID={PROGRESS_STEPPER_TEST_IDS.STEP_ICON.LOADING}
           >
             <View>
@@ -108,13 +96,15 @@ const ProgressStepper = ({
           style={
             isCompletedStep(index) ? styles.completeStep : styles.incompleteStep
           }
-          size={AvatarSize.Sm}
+          size={AvatarBaseSize.Sm}
         >
           <Text
             color={
-              isCompletedStep(index) ? TextColor.Inverse : TextColor.Primary
+              isCompletedStep(index)
+                ? TextColor.PrimaryInverse
+                : TextColor.PrimaryDefault
             }
-            variant={TextVariant.BodySM}
+            variant={TextVariant.BodySm}
             testID={PROGRESS_STEPPER_TEST_IDS.STEP_ICON.PENDING}
           >
             {index + 1}
@@ -127,7 +117,6 @@ const ProgressStepper = ({
       isCompletedStep,
       styles.completeStep,
       styles.incompleteStep,
-      theme.colors.primary.default,
       theme.colors.primary.inverse,
     ],
   );
@@ -163,15 +152,15 @@ const ProgressStepper = ({
             {getStepIcon(index, isLoading)}
             <Text
               style={styles.stepLabelContainer}
-              variant={TextVariant.BodySM}
-              color={TextColor.Primary}
+              variant={TextVariant.BodySm}
+              color={TextColor.PrimaryDefault}
             >
               {label.split(' ').map((word, wordIndex) => (
                 <>
                   <Text
                     key={`${word}-${wordIndex}`}
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Primary}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.PrimaryDefault}
                   >
                     {word}
                   </Text>

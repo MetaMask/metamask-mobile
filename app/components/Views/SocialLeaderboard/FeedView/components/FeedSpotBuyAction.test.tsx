@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import FeedSpotBuyAction, {
   type FeedSpotBuyActionHandle,
 } from './FeedSpotBuyAction';
-import type { QuickBuyTarget } from '../../TraderPositionView/components/QuickBuy';
+import type { QuickBuyTarget } from '../../../../UI/QuickBuy';
 
 const target: QuickBuyTarget = {
   tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
@@ -41,20 +41,17 @@ let mockDestToken: unknown = {
   chainId: '0x1',
 };
 let mockQuickBuyIsLoading = false;
-jest.mock(
-  '../../TraderPositionView/components/QuickBuy/hooks/useQuickBuySetup',
-  () => ({
-    useQuickBuySetup: () => ({
-      destToken: mockDestToken,
-      isLoading: mockQuickBuyIsLoading,
-      chainId: undefined,
-      isUnsupportedChain: false,
-    }),
+jest.mock('../../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
+  useQuickBuySetup: () => ({
+    destToken: mockDestToken,
+    isLoading: mockQuickBuyIsLoading,
+    chainId: undefined,
+    isUnsupportedChain: false,
   }),
-);
+}));
 
 let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-jest.mock('../../TraderPositionView/components/QuickBuy', () => {
+jest.mock('../../../../UI/QuickBuy', () => {
   const { View } = jest.requireActual('react-native');
   return {
     QuickBuy: {

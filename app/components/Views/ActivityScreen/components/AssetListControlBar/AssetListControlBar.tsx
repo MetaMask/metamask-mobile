@@ -6,6 +6,7 @@ import {
   ButtonBaseSize,
   IconName,
 } from '@metamask/design-system-react-native';
+import PerpsAggregatedFillsCheckbox from '../../../../UI/Perps/components/PerpsAggregatedFillsCheckbox';
 
 /**
  * Describes a single filter chip: its label, press handler, and the testID to
@@ -14,6 +15,12 @@ import {
 export interface FilterChipDescriptor {
   label: string;
   onPress: () => void;
+  testID: string;
+}
+
+export interface AggregatedToggleDescriptor {
+  isSelected: boolean;
+  onChange: (isSelected: boolean) => void;
   testID: string;
 }
 
@@ -27,6 +34,13 @@ export interface AssetListControlBarProps {
    * concern only.
    */
   secondaryChip?: FilterChipDescriptor | null;
+  /**
+   * Optional Aggregated checkbox shown on Perps Trades (and pinned with the
+   * chips). Omitted when the current type/sub-filter has no fill aggregation.
+   * The Aggregated control, rendered after the chips. Only supplied for Perps trades, where
+   * fills can be collapsed per order; omitted everywhere else.
+   */
+  aggregatedToggle?: AggregatedToggleDescriptor | null;
   suppressTestIDs?: boolean;
 }
 
@@ -52,17 +66,16 @@ const FilterChip: React.FC<{
 /**
  * Horizontally-scrollable filter chip row for the Activity screen — mirrors
  * the extension's `AssetListControlBar` pattern. Pure presentational: the
- * parent screen owns filter state, label resolution, and sheet rendering.
+ * parent screen owns filter state, label resolution, and opens filter sheets
+ * via `ROOT_MODAL_FLOW` navigation (so sheets cover the tab bar).
  *
  * Chips use the default design-system select-button styling (plain label +
  * dropdown chevron, no leading icon, no accent colour).
- *
- * Sheets must remain siblings of the scroll content (not nested inside it),
- * since the underlying `component-library` `BottomSheet` does not portal.
  */
 const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   typeChip,
   secondaryChip,
+  aggregatedToggle,
   suppressTestIDs = false,
 }) => {
   const tw = useTailwind();
@@ -71,11 +84,18 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('flex-row gap-2 px-4 pb-4')}
+      contentContainerStyle={tw.style('flex-row items-center gap-2 px-4 pb-4')}
     >
       <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
       {secondaryChip ? (
         <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
+      ) : null}
+      {aggregatedToggle ? (
+        <PerpsAggregatedFillsCheckbox
+          isSelected={aggregatedToggle.isSelected}
+          onChange={aggregatedToggle.onChange}
+          testID={suppressTestIDs ? undefined : aggregatedToggle.testID}
+        />
       ) : null}
     </ScrollView>
   );

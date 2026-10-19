@@ -244,7 +244,7 @@ describe('TronStakingLearnMoreModal', () => {
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: 'EarnFaqApys',
-        data: { experience: 'POOLED_STAKING' },
+        data: { experience: 'TRX_STAKING' },
       });
     });
 
