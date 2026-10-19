@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -78,7 +79,11 @@ const PerpsSocialTrending: React.FC = () => {
   );
 
   if (isLoading && posts.length === 0) {
-    return <SocialFeedSkeleton count={PERPS_TRENDING_POST_COUNT} />;
+    return (
+      <Box twClassName="gap-6">
+        <SocialFeedSkeleton count={PERPS_TRENDING_POST_COUNT} />
+      </Box>
+    );
   }
 
   if (error && posts.length === 0) {
@@ -90,11 +95,13 @@ const PerpsSocialTrending: React.FC = () => {
   }
 
   return (
-    <SocialV1FeedPostList
-      posts={posts.slice(0, PERPS_TRENDING_POST_COUNT)}
-      dividerKeyPrefix="perps-home-trending"
-      renderPost={renderPost}
-    />
+    <Box twClassName="gap-6">
+      <SocialV1FeedPostList
+        posts={posts.slice(0, PERPS_TRENDING_POST_COUNT)}
+        dividerKeyPrefix="perps-home-trending"
+        renderPost={renderPost}
+      />
+    </Box>
   );
 };
 
