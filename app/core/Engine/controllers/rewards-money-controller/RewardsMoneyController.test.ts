@@ -594,13 +594,11 @@ describe('RewardsMoneyController', () => {
         );
       expect(referralCalls()).toHaveLength(1);
 
-      const settled = await Promise.all([
-        expect(first).rejects.toThrow('busy'),
-        expect(second).rejects.toThrow('busy'),
-      ]);
+      const firstRejection = await expect(first).rejects.toThrow('busy');
+      const secondRejection = await expect(second).rejects.toThrow('busy');
       rejectReferral(new Error('busy'));
       await jest.advanceTimersByTimeAsync(0);
-      await settled;
+      await Promise.all([firstRejection, secondRejection]);
 
       await expect(controller.getReferralMe()).resolves.toBeDefined();
       expect(referralCalls()).toHaveLength(2);
