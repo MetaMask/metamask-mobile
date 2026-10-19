@@ -93,6 +93,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: {
       DisplayXl: 'display-xl',
       DisplayLg: 'display-lg',
+      DisplayMd: 'display-md',
+      HeadingLg: 'heading-lg',
+      HeadingMd: 'heading-md',
+      HeadingSm: 'heading-sm',
       BodyMd: 'body-md',
     },
     BoxFlexDirection: { Column: 'column' },
@@ -153,7 +157,7 @@ describe('MarketingMoment', () => {
 
     expect(getByTestId('custom-title')).toHaveTextContent('Perps are here');
     expect(getByTestId('custom-title').props.twClassName).toBe(
-      'w-full text-center py-3 text-accent02-light',
+      'w-full text-center py-3 leading-[48px] tracking-[-1.2px] -mb-[12px] text-accent02-light',
     );
     expect(getByTestId('custom-description')).toHaveTextContent(
       'Long or short with up to 40x leverage.',

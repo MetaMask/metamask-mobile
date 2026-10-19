@@ -16,7 +16,14 @@ jest.mock('@metamask/design-system-react-native', () => {
     }) => ReactActual.createElement(Text, props, children),
     FontFamily: { Hero: 'hero', Default: 'default' },
     FontWeight: { Regular: 'regular' },
-    TextVariant: { DisplayXl: 'display-xl', DisplayLg: 'display-lg' },
+    TextVariant: {
+      DisplayXl: 'display-xl',
+      DisplayLg: 'display-lg',
+      DisplayMd: 'display-md',
+      HeadingLg: 'heading-lg',
+      HeadingMd: 'heading-md',
+      HeadingSm: 'heading-sm',
+    },
   };
 });
 
