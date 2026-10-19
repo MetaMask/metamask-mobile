@@ -107,8 +107,10 @@ export type RewardsMoneyControllerGetPerpsRebateQuoteAction = {
 
 /**
  * Enrols the session profile under a referrer's code. Drops that profile's
- * cached referral me after the write succeeds. The new role is read back
- * through `getReferralMe({ forceFresh: true })`.
+ * cached referral me after the write succeeds, so a later read cannot
+ * return the pre-registration roles for the rest of the cache window. A
+ * read already in flight cannot write its payload back. The new role is
+ * read through `getReferralMe({ forceFresh: true })`.
  */
 export type RewardsMoneyControllerRegisterRefereeAction = {
   type: `RewardsMoneyController:registerReferee`;
