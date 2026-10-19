@@ -1098,6 +1098,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
+          tdpVersion="v3"
           onSwapPress={onSwapPress}
           securityData={
             {
@@ -1114,8 +1115,13 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onSwapPress).not.toHaveBeenCalled();
       expect(mockOnSwap).not.toHaveBeenCalled();
 
-      // Simulate user tapping "Proceed" inside the modal
+      // The security-warning sheet must carry tdp_version so the §10.4
+      // proceed-rate guardrail can split v2 vs v3; the param defaults to 'v2',
+      // so dropping it would silently mislabel V1.
       const navigateCall = mockNavigate.mock.calls[0];
+      expect(navigateCall[1].params.tdpVersion).toBe('v3');
+
+      // Simulate user tapping "Proceed" inside the modal
       const onProceed = navigateCall[1].params.onProceed;
       onProceed();
 

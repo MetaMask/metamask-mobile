@@ -12,6 +12,7 @@ import {
   resolveSwipeTargetTab,
 } from './TokenDetailsV1';
 import {
+  TokenDetailsSource,
   TokenDetailsVariant,
   type TokenDetailsRouteParams,
 } from '../constants/constants';
@@ -208,43 +209,56 @@ jest.mock('../components/ShareTokenBottomSheet', () => {
   return () => <MockText testID="share-token-bottom-sheet">share</MockText>;
 });
 
+const mockInlineHeaderProps: Record<string, unknown>[] = [];
+
 jest.mock('../components/TokenDetailsInlineHeader', () => {
   const { Pressable: MockPressable, Text: MockText } =
     jest.requireActual('react-native');
   return {
-    TokenDetailsInlineHeader: ({
-      token,
-      description,
-      titleEndAccessory,
-      onBackPress,
-      onPriceAlertPress,
-      onSharePress,
-    }: React.ComponentProps<typeof TokenDetailsInlineHeader>) => (
-      <>
-        <MockText>{token.symbol}</MockText>
-        {titleEndAccessory}
-        {description}
-        <MockPressable testID="mock-back" onPress={onBackPress} />
-        {onPriceAlertPress && (
-          <MockPressable
-            testID="mock-price-alert"
-            onPress={onPriceAlertPress}
-          />
-        )}
-        {onSharePress && (
-          <MockPressable testID="mock-share" onPress={onSharePress} />
-        )}
-      </>
-    ),
+    TokenDetailsInlineHeader: (
+      props: React.ComponentProps<typeof TokenDetailsInlineHeader>,
+    ) => {
+      mockInlineHeaderProps.push(props);
+      const {
+        token,
+        description,
+        titleEndAccessory,
+        onBackPress,
+        onPriceAlertPress,
+        onSharePress,
+      } = props;
+      return (
+        <>
+          <MockText>{token.symbol}</MockText>
+          {titleEndAccessory}
+          {description}
+          <MockPressable testID="mock-back" onPress={onBackPress} />
+          {onPriceAlertPress && (
+            <MockPressable
+              testID="mock-price-alert"
+              onPress={onPriceAlertPress}
+            />
+          )}
+          {onSharePress && (
+            <MockPressable testID="mock-share" onPress={onSharePress} />
+          )}
+        </>
+      );
+    },
   };
 });
+
+const mockActionsSectionProps: Record<string, unknown>[] = [];
 
 // Actions row is covered by TokenDetailsActionsSection.test.tsx.
 jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-v1-actions" />,
+    default: (props: Record<string, unknown>) => {
+      mockActionsSectionProps.push(props);
+      return <View testID="mock-v1-actions" />;
+    },
   };
 });
 
@@ -342,6 +356,8 @@ describe('TokenDetailsV1', () => {
     mockSecurityQueryResult.isPending = false;
     mockSecurityQueryResult.dataUpdatedAt = 0;
     mockStickyFooterProps.length = 0;
+    mockInlineHeaderProps.length = 0;
+    mockActionsSectionProps.length = 0;
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -354,6 +370,15 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId(TOKEN_DETAILS_V1_TEST_ID)).toBeTruthy();
     expect(getByText('PEPE')).toBeTruthy();
+    // V1 must thread tdp_version='v3' to the header (security-badge sheet) and
+    // the actions row (below-chart Buy/Send/Receive events); both default to
+    // 'v2', so dropping the prop would silently mislabel V1 as legacy.
+    expect(mockInlineHeaderProps[0]).toEqual(
+      expect.objectContaining({ tdpVersion: 'v3' }),
+    );
+    expect(mockActionsSectionProps[0]).toEqual(
+      expect.objectContaining({ tdpVersion: 'v3' }),
+    );
   });
 
   it('renders the age chip in the header with the mocked token age', () => {
@@ -420,6 +445,9 @@ describe('TokenDetailsV1', () => {
         currentTokenBalance: '2.5',
         hasTokenBalance: true,
         isTokenDetailsV1: true,
+        // Footer defaults to 'v2'; V1 must pass 'v3' so footer Buy/Sell events
+        // (and the security-warning sheet) are not mislabelled as legacy.
+        tdpVersion: 'v3',
         quickBuyEntrypointLayout: 'buy_sell',
         onOpenQuickBuy: expect.any(Function),
       }),
@@ -1022,6 +1050,37 @@ describe('TokenDetailsV1', () => {
         />,
       );
       expect(trackedEvents('Token Details Opened')).toHaveLength(1);
+
+      // A different token must re-fire (dedup keys on the token, not mount).
+      rerender(
+        <TokenDetailsV1
+          token={{ ...baseToken, address: '0xdifferentaddress' }}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+      expect(trackedEvents('Token Details Opened')).toHaveLength(2);
+    });
+
+    it('reports has_balance and the real source from the token, not constants', () => {
+      render(
+        <TokenDetailsV1
+          token={{
+            ...baseToken,
+            balance: '2.5',
+            source: TokenDetailsSource.Trending,
+          }}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      const openedEvents = trackedEvents('Token Details Opened');
+      expect(openedEvents).toHaveLength(1);
+      expect(openedEvents[0].properties).toEqual(
+        expect.objectContaining({
+          source: 'trending',
+          has_balance: true,
+        }),
+      );
     });
 
     it('fires TOKEN_DETAILS_TAB_VIEWED with the tapped tab name', () => {
@@ -1073,6 +1132,36 @@ describe('TokenDetailsV1', () => {
 
       // The pill jump to Security must not also emit a tab-viewed event.
       expect(trackedEvents('Token Details Tab Viewed')).toHaveLength(0);
+    });
+
+    it('reports the actual non-default verdict from the security facts', () => {
+      // Warning payload -> `useSecurityFacts` maps to `medium_risk`, proving the
+      // event reads the displayed verdict rather than a hardcoded `screened`.
+      mockSecurityQueryResult.data = {
+        resultType: 'Warning',
+        features: [
+          {
+            featureId: 'SNIPE_AT_MINT',
+            type: 'Warning',
+            description: 'Sniped at mint',
+          },
+        ],
+      } as unknown as TokenDetailsRouteParams['securityData'];
+
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      fireEvent.press(getByTestId(SecurityPillSelectors.VERDICT));
+
+      const pillEvents = trackedEvents('Token Details Security Pill Clicked');
+      expect(pillEvents).toHaveLength(1);
+      expect(pillEvents[0].properties).toEqual(
+        expect.objectContaining({ verdict: 'medium_risk' }),
+      );
     });
   });
 

@@ -75,7 +75,10 @@ const mockRequestTokenSecurityForAsset = jest.mocked(
   requestTokenSecurityForAsset,
 );
 
-const renderScreen = (securityData?: TokenSecurityData) => {
+const renderScreen = (
+  securityData?: TokenSecurityData,
+  routeOverrides?: { tdpVersion?: string; tokenCategory?: string },
+) => {
   mockRouteParams = {
     token: {
       caipAssetId: TOKEN_CAIP_ASSET_ID,
@@ -83,6 +86,7 @@ const renderScreen = (securityData?: TokenSecurityData) => {
       chainId: TOKEN_CHAIN_ID,
       symbol: TOKEN_SYMBOL,
     },
+    ...routeOverrides,
   };
 
   const queryClient = new QueryClient({
@@ -160,6 +164,25 @@ describe('ContractSecurityScreen', () => {
         expect.objectContaining({
           tdp_version: 'v3',
           token_category: 'memecoin',
+        }),
+      );
+    });
+
+    it('reads tdp_version/token_category from the route and verdict from the payload', () => {
+      // Non-default route values + a Warning payload (ETHOS_WARNING ->
+      // `medium_risk`) prove the effect reads the route and facts rather than
+      // returning the hardcoded `v3` / `memecoin` / `screened` defaults.
+      renderScreen(ETHOS_WARNING, {
+        tdpVersion: 'v2',
+        tokenCategory: 'standard',
+      });
+
+      const [event] = mockTrackEvent.mock.calls[0];
+      expect(event.properties).toEqual(
+        expect.objectContaining({
+          tdp_version: 'v2',
+          token_category: 'standard',
+          verdict: 'medium_risk',
         }),
       );
     });

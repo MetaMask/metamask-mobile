@@ -151,7 +151,7 @@ const mockOnSend = jest.fn();
 const mockOnReceive = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
-  useTokenActions: () => mockUseTokenActions(),
+  useTokenActions: (args: unknown) => mockUseTokenActions(args),
 }));
 
 const mockUseStickyTokenActions = jest.fn();
@@ -563,6 +563,16 @@ describe('TokenDetails', () => {
       assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
       enabled: true,
     });
+  });
+
+  it('passes tdpVersion="v2" to useTokenActions so legacy below-chart events are tagged', () => {
+    // The hook only adds `tdp_version` when the argument is set; without this
+    // the legacy Buy/Send/Receive events would drop it.
+    render(<TokenDetails />);
+
+    expect(mockUseTokenActions).toHaveBeenCalledWith(
+      expect.objectContaining({ tdpVersion: 'v2' }),
+    );
   });
 
   it('does not render a full-page loader when txLoading is true', () => {
