@@ -2,13 +2,14 @@ import {
   array,
   boolean,
   number,
-  object,
   optional,
   record,
   string,
+  type,
   unknown,
   type Infer,
 } from '@metamask/superstruct';
+import { CaipAssetTypeStruct } from '@metamask/utils';
 import {
   HexStringSchema,
   PreparedLimitOrderDelegationSchema,
@@ -32,7 +33,7 @@ export type SignedLimitOrderDelegation = Infer<
  * strings so a value the API adds later doesn't fail validation; the request
  * side narrows them (see `LimitOrderTriggerKind`).
  */
-export const LimitOrderTriggerSchema = object({
+export const LimitOrderTriggerSchema = type({
   kind: string(),
   threshold: string(),
   price: string(),
@@ -42,11 +43,11 @@ export type LimitOrderTrigger = Infer<typeof LimitOrderTriggerSchema>;
 
 /**
  * An asset as described by the Bridge API. Only the fields the client relies on
- * are required; the rest are optional so extra or omitted metadata doesn't
- * fail validation.
+ * are required; the rest are optional and unknown ones are allowed, so extra
+ * or omitted metadata (e.g. a new `coinLabel`) doesn't fail validation.
  */
-export const LimitOrderAssetSchema = object({
-  assetId: string(),
+export const LimitOrderAssetSchema = type({
+  assetId: CaipAssetTypeStruct,
   symbol: string(),
   decimals: number(),
   chainId: optional(number()),
@@ -66,7 +67,7 @@ export type LimitOrderAsset = Infer<typeof LimitOrderAssetSchema>;
 /**
  * One leg of an order or of a fill, as an asset plus the amount moved.
  */
-export const LimitOrderLegSchema = object({
+export const LimitOrderLegSchema = type({
   asset: LimitOrderAssetSchema,
   amount: string(),
   usd: optional(string()),
@@ -83,7 +84,7 @@ export type LimitOrderLeg = Infer<typeof LimitOrderLegSchema>;
  * Lifecycle timestamps, as ISO-8601 strings. `closedAt` is only set once the
  * order or transaction has reached a terminal state.
  */
-export const LimitOrderTimingDataSchema = object({
+export const LimitOrderTimingDataSchema = type({
   createdAt: string(),
   expiresAt: optional(string()),
   closedAt: optional(string()),
@@ -95,7 +96,7 @@ export type LimitOrderTimingData = Infer<typeof LimitOrderTimingDataSchema>;
  * The created order. `state` and `failureReason` stay plain strings so new
  * server-side states don't fail validation.
  */
-export const CreatedLimitOrderSchema = object({
+export const CreatedLimitOrderSchema = type({
   id: string(),
   clientOrderId: string(),
   profileId: optional(string()),
@@ -113,10 +114,22 @@ export const CreatedLimitOrderSchema = object({
 export type CreatedLimitOrder = Infer<typeof CreatedLimitOrderSchema>;
 
 /**
+ * One fee in a fill's `feeData`, e.g. its `txFee`. Only the fields the client
+ * shows are checked, so the rest of a fee can change freely.
+ */
+export const LimitOrderFeeSchema = type({
+  amount: string(),
+  asset: type({ assetId: string(), symbol: string(), decimals: number() }),
+  usd: optional(string()),
+});
+
+export type LimitOrderFee = Infer<typeof LimitOrderFeeSchema>;
+
+/**
  * A fill attempt against the order. Present from the first response for an
  * order that filled immediately, otherwise an empty list.
  */
-export const CreatedLimitOrderTransactionSchema = object({
+export const CreatedLimitOrderTransactionSchema = type({
   status: string(),
   txHash: optional(HexStringSchema),
   quoteId: optional(string()),
@@ -135,7 +148,7 @@ export type CreatedLimitOrderTransaction = Infer<
 /**
  * Response body for `POST /v2/limit-orders`.
  */
-export const CreateLimitOrderResponseSchema = object({
+export const CreateLimitOrderResponseSchema = type({
   order: CreatedLimitOrderSchema,
   transactions: optional(array(CreatedLimitOrderTransactionSchema)),
 });

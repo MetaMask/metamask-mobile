@@ -1,7 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import {
-  BannerAlert,
-  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -13,6 +11,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
 import { DetailRow } from '../LimitOrderConfirmationModal/DetailRow';
 import { TokenAmountValue } from '../LimitOrderConfirmationModal/TokenAmountValue';
 import { OpenLimitOrderDetailsModalSelectorsIDs } from './testIds';
@@ -25,8 +24,8 @@ export const OpenLimitOrderDetailsModal = ({
   submittedAmount,
   triggerPrice,
   triggerToken,
+  triggerDirection,
   triggerComparison,
-  usdTriggerPrice,
   expiry,
   onCancelOrder,
   onClose,
@@ -61,21 +60,6 @@ export const OpenLimitOrderDetailsModal = ({
           dest: destToken?.symbol ?? '',
         })}
       </BottomSheetHeader>
-      {usdTriggerPrice && (
-        <Box paddingHorizontal={3} paddingBottom={2}>
-          <BannerAlert
-            descriptionProps={{
-              variant: TextVariant.BodySm,
-              color: TextColor.TextDefault,
-            }}
-            severity={BannerAlertSeverity.Info}
-            description={strings('bridge.limit.usd_price_notice', {
-              usdPrice: usdTriggerPrice,
-            })}
-            testID={OpenLimitOrderDetailsModalSelectorsIDs.USD_PRICE_NOTICE}
-          />
-        </Box>
-      )}
       <Box paddingBottom={2}>
         <DetailRow
           label={strings('bridge.limit.status')}
@@ -96,7 +80,14 @@ export const OpenLimitOrderDetailsModal = ({
           testID={OpenLimitOrderDetailsModalSelectorsIDs.TRIGGER_CONDITION}
         >
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
-            <TokenAmountValue amount={triggerPrice} token={triggerToken} />
+            <TokenAmountValue
+              amount={triggerPrice}
+              prefix={
+                triggerDirection &&
+                strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)
+              }
+              token={triggerToken}
+            />
             {triggerComparison ? (
               <Text
                 variant={TextVariant.BodySm}
@@ -120,14 +111,16 @@ export const OpenLimitOrderDetailsModal = ({
           </Text>
         </DetailRow>
       </Box>
-      <BottomSheetFooter
-        secondaryButtonProps={{
-          children: strings('bridge.limit.cancel_order'),
-          onPress: onCancelOrder,
-          isDanger: true,
-          testID: OpenLimitOrderDetailsModalSelectorsIDs.CANCEL_ORDER_BUTTON,
-        }}
-      />
+      {onCancelOrder && (
+        <BottomSheetFooter
+          secondaryButtonProps={{
+            children: strings('bridge.limit.cancel_order'),
+            onPress: onCancelOrder,
+            isDanger: true,
+            testID: OpenLimitOrderDetailsModalSelectorsIDs.CANCEL_ORDER_BUTTON,
+          }}
+        />
+      )}
     </BottomSheet>
   );
 };

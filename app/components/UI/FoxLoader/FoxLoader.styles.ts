@@ -1,13 +1,11 @@
 // Third party dependencies.
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../util/theme/models';
 
-// Fox size matched to the native splash asset across all tested devices:
-export const FOX_SIZE = Platform.OS === 'android' ? 143 : 126;
-// Static fox PNG size — matches the fox asset's natural dimensions
-const STATIC_FOX_SIZE = Platform.OS === 'android' ? 98 : 88;
+// Matches the native splash fox (144pt/dp) so the handoff stays seamless.
+const STATIC_FOX_SIZE = 144;
 
 /**
  * Style sheet function for FoxLoader component.
@@ -32,26 +30,16 @@ const styleSheet = (params: {
     },
     animationWrapper: {
       alignItems: 'center',
-      width: FOX_SIZE,
-      height: FOX_SIZE,
+      justifyContent: 'center',
+      width: STATIC_FOX_SIZE,
+      height: STATIC_FOX_SIZE,
       position: 'absolute',
-      top: Math.round((screenH - FOX_SIZE) / 2),
-      left: Math.round((screenW - FOX_SIZE) / 2),
-    },
-    riveAnimation: {
-      width: FOX_SIZE,
-      height: FOX_SIZE,
+      top: Math.round((screenH - STATIC_FOX_SIZE) / 2),
+      left: Math.round((screenW - STATIC_FOX_SIZE) / 2),
     },
     staticFox: {
       width: STATIC_FOX_SIZE,
       height: STATIC_FOX_SIZE,
-      position: 'absolute',
-      // Explicit pixel offsets — avoids percentage-based positioning that rounds
-      // differently across device densities. The vertical offset shifts the fox
-      // up to match where the Rive fox renders at t=0 (artboard center is not
-      // at 50%: measured center y≈120.5/256 vs 128/256 geometric center).
-      top: (FOX_SIZE - STATIC_FOX_SIZE) / 2,
-      left: (FOX_SIZE - STATIC_FOX_SIZE) / 2,
     },
   });
 };

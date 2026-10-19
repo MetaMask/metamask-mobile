@@ -7,6 +7,7 @@ export type VbaOnboardingDestinationId =
   | 'vendorTerms'
   | 'email'
   | 'identityVerification'
+  | 'identityVerified'
   | 'kycPending'
   | 'kycRejected'
   | 'accountProvisioningError'
@@ -48,8 +49,9 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
 
 /**
  * Maps controller facts onto the next onboarding module or status destination.
- * AutoRamp provisioning is performed by `hydrateVbaOnboarding`, so it is not a
- * client-owned module.
+ * This read does not sign or create an account. Approved KYC with a usable
+ * autoramp opens the account screen. Approved KYC without one opens Identity
+ * verified. Account setup runs later, on that account screen.
  *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
@@ -71,13 +73,9 @@ export const getVbaDestinationForSnapshot = (
   }
 
   if (snapshot.kycStatus === 'approved') {
-    if (snapshot.autorampStatus === 'ready') {
-      return 'complete';
-    }
-
-    return snapshot.autorampStatus === 'retryable_failure'
-      ? 'accountProvisioningError'
-      : 'kycPending';
+    return snapshot.autorampStatus === 'ready'
+      ? 'complete'
+      : 'identityVerified';
   }
 
   if (

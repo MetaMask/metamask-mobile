@@ -1,4 +1,6 @@
 import '../../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 import { renderManagePriceAlertsViewWithRoutes } from '../../../../../../../tests/component-view/renderers/priceAlerts';
 import {
   setupPriceAlertsApiMock,
@@ -15,12 +17,19 @@ import {
 } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
 beforeEach(() => {
+  netInfoMock.__setMockNetInfo({
+    type: 'wifi',
+    isInternetReachable: true,
+  });
   setupPriceAlertsApiMock();
 });
 
 afterEach(() => {
   clearPriceAlertsApiMocks();
+  netInfoMock.__resetMockNetInfo();
 });
 
 describeForPlatforms('ManagePriceAlertsView', () => {

@@ -88,25 +88,6 @@ jest.mock(
     },
 );
 
-jest.mock('../PerpsAggregatedFillsCheckbox', () => {
-  const { Pressable, Text: RNText } = jest.requireActual('react-native');
-  return function MockPerpsAggregatedFillsCheckbox({
-    testID,
-    onChange,
-    isSelected,
-  }: {
-    testID?: string;
-    onChange?: (next: boolean) => void;
-    isSelected?: boolean;
-  }) {
-    return (
-      <Pressable testID={testID} onPress={() => onChange?.(!isSelected)}>
-        <RNText>Aggregated</RNText>
-      </Pressable>
-    );
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -377,6 +358,42 @@ describe('PerpsMarketTradesList', () => {
 
       const iconSizes = screen.getAllByTestId('logo-size');
       expect(iconSizes[0]).toHaveTextContent('48');
+    });
+  });
+
+  describe('Aggregated fills', () => {
+    it.each([
+      ['loading', true],
+      ['loaded', false],
+    ])('omits the Aggregated checkbox when %s', (_state, isLoading) => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills, isLoading),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      expect(
+        screen.queryByTestId('perps-market-trades-aggregated-checkbox'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the fills of one order as a single aggregated row', () => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn([
+          { ...mockOrderFills[0], orderId: 'order-1', size: '1.0' },
+          {
+            ...mockOrderFills[0],
+            orderId: 'order-1',
+            size: '0.5',
+            timestamp: mockOrderFills[0].timestamp - 1000,
+          },
+        ]),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      expect(screen.getAllByText('Opened long')).toHaveLength(1);
+      expect(screen.getByText('1.5 ETH')).toBeOnTheScreen();
     });
   });
 

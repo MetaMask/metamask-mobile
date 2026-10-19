@@ -7,10 +7,12 @@ import { strings } from '../../../../../../locales/i18n';
 import FilterOptionSheet from './FilterOptionSheet';
 import {
   LEADERBOARD_COHORT_LABEL_KEY,
-  LEADERBOARD_COHORT_LEADING_EMOJI,
   LEADERBOARD_COHORT_OPTIONS,
-  type LeaderboardTraderCohort,
 } from './filterOptions';
+import {
+  LEADERBOARD_COHORT_LEADING_EMOJI,
+  type LeaderboardTraderCohort,
+} from '../../../../UI/SocialFeed/utils/traderStats';
 import {
   CohortFilterSelectorsIDs,
   getCohortFilterOptionTestId,

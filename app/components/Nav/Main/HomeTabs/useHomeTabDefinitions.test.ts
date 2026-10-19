@@ -9,6 +9,7 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import initialRootState from '../../../../util/test/initial-root-state';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import TrendingFeedSessionManager from '../../../UI/Trending/services/TrendingFeedSessionManager';
+import { navigateToSocialTab } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { useHomeTabDefinitions } from './useHomeTabDefinitions';
 
 jest.mock('../../../../util/haptics');
@@ -30,6 +31,13 @@ jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialTab: jest.fn(),
+  }),
+);
 
 const mockSessionManager = {
   enableAppStateListener: jest.fn(),
@@ -217,6 +225,20 @@ describe('useHomeTabDefinitions', () => {
 
       expect(mockNavigateToMoneyHome).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('selects the Social tab through the onboarding-aware tab helper', () => {
+      const { result } = renderDefinitions({ showSocialTab: true });
+      const social = result.current.tabs[4];
+
+      result.current
+        .getNativeTabListeners(social)({ navigation: mockNavigation })
+        .tabPress?.();
+
+      expect(navigateToSocialTab).toHaveBeenCalledWith(
+        mockNavigation.navigate,
+        { source: 'nav_tab' },
+      );
     });
 
     it('maps onLeave to the blur listener', () => {

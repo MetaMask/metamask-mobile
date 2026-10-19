@@ -118,7 +118,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
                   </Text>
                   <Box paddingTop={1}>
                     <Icon
-                      name={IconName.Export}
+                      name={IconName.ArrowSquareOut}
                       size={IconSize.Sm}
                       color={IconColor.IconAlternative}
                     />

@@ -5,6 +5,7 @@ import {
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyEnableMfaFlag,
   selectMoneyHubEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyDepositMinBalance,
@@ -37,6 +38,7 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
 
 jest.mock('../../../../lib/Money/feature-flags', () => ({
   isMoneyAccountEnabled: jest.fn(),
+  isMoneyMfaEnabled: jest.fn(),
 }));
 
 const mockedValidate =
@@ -47,6 +49,10 @@ const mockedValidate =
 const mockedIsMoneyAccountEnabled = jest.requireMock(
   '../../../../lib/Money/feature-flags',
 ).isMoneyAccountEnabled as jest.Mock;
+
+const mockedIsMoneyMfaEnabled = jest.requireMock(
+  '../../../../lib/Money/feature-flags',
+).isMoneyMfaEnabled as jest.Mock;
 
 const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
   engine: {
@@ -209,6 +215,22 @@ describe('selectMoneyEnableMoneyAccountFlag', () => {
     const result = selectMoneyEnableMoneyAccountFlag(state as never);
 
     expect(mockedIsMoneyAccountEnabled).toHaveBeenCalledWith({});
+    expect(result).toBe(true);
+  });
+});
+
+describe('selectMoneyEnableMfaFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('delegates to isMoneyMfaEnabled', () => {
+    mockedIsMoneyMfaEnabled.mockReturnValue(true);
+    const state = createState();
+
+    const result = selectMoneyEnableMfaFlag(state as never);
+
+    expect(mockedIsMoneyMfaEnabled).toHaveBeenCalledWith({});
     expect(result).toBe(true);
   });
 });

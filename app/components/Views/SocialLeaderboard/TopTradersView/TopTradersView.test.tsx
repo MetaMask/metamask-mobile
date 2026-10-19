@@ -18,6 +18,7 @@ import type {
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
+import { SocialV1TraderRow } from './components';
 import { readSnapshot } from './leaderboardSnapshot';
 import { REVEAL_DWELL_MS } from './components/useLeaderboardReveal';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
@@ -170,6 +171,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
+    pnl30d: 220_000,
     winRatePercent: 92,
     pnlPerChain: { base: 500000, ethereum: 463146.8 },
     followerCount: 48707,
@@ -184,6 +186,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
+    pnl30d: 50_000,
     winRatePercent: 61,
     pnlPerChain: { base: 474751.45 },
     followerCount: 21999,
@@ -198,6 +201,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
+    pnl30d: 2_500,
     winRatePercent: 48,
     pnlPerChain: { solana: 374735.16 },
     followerCount: 11772,
@@ -345,6 +349,11 @@ jest.mock('../analytics', () => {
   };
 });
 
+const mockUseMyProfile = jest.fn();
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => mockUseMyProfile(),
+}));
+
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -361,6 +370,18 @@ describe('TopTradersView', () => {
     mockRouteParams = {};
     mockNotificationPreferences = { ...defaultNotificationPreferences };
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockUseMyProfile.mockReturnValue({
+      profile: {
+        profileId: 'current-user',
+        displayName: 'Giga Whale',
+        handle: 'giga-whale',
+        shareUrl: 'https://metamask.io/social/giga-whale',
+        pnlUsd: 7100,
+      },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
   });
 
   it('renders all traders', () => {
@@ -846,6 +867,101 @@ describe('TopTradersView', () => {
       latestCalls.forEach(([options]) => {
         expect(options).toEqual(expect.objectContaining({ sort: 'pnl' }));
       });
+    });
+
+    it('pins the signed-in user above the list when they are not ranked in the page', () => {
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+      expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    });
+
+    it('omits the signed-in user from the list body when they appear in the ranking', () => {
+      mockUseMyProfile.mockReturnValue({
+        profile: {
+          profileId: fixtureTraders[0].id,
+          displayName: fixtureTraders[0].username,
+          handle: fixtureTraders[0].username,
+          shareUrl: '',
+          linkedAccountAddress: fixtureTraders[0].address,
+        },
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getAllByText('alpha.eth')).toHaveLength(1);
+    });
+
+    it('filters the list to shrimp while keeping the pinned viewer', () => {
+      const { DEFAULT_FILTERS } = jest.requireActual(
+        '../shell/filters/filterDefaults',
+      ) as typeof import('../shell/filters/filterDefaults');
+
+      renderWithProvider(
+        <TopTradersView
+          useV1Filters
+          RowComponent={SocialV1TraderRow}
+          v1AppliedFilters={{ ...DEFAULT_FILTERS, traderCohort: 'shrimp' }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+      expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+      expect(screen.queryByText('alpha.eth')).toBeNull();
+      expect(screen.queryByText('beta.eth')).toBeNull();
+    });
+
+    it('opens the V1 profile from a V1 list row', () => {
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      fireEvent.press(screen.getByText('alpha.eth'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.V1_PROFILE,
+        {
+          traderId: fixtureTraders[0].id,
+          traderName: fixtureTraders[0].username,
+          traderAddress: fixtureTraders[0].address,
+          traderAvatarUri: fixtureTraders[0].avatarUri,
+          source: 'leaderboard',
+          traderRank: 1,
+        },
+        {},
+      );
+    });
+
+    it('opens the owner V1 profile from the pinned viewer card', () => {
+      renderWithProvider(
+        <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.V1_PROFILE,
+        undefined,
+        {},
+      );
     });
   });
 

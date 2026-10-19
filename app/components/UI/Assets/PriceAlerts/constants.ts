@@ -34,10 +34,11 @@ export interface CreatePriceAlertRouteParams extends PriceAlertRouteParams {
 export type AlertType = 'absolute_price' | 'percent_change';
 
 /** Rolling window a percent-change alert watches. */
-export type AlertPeriod = '1h' | '24h';
+export type AlertPeriod = '5m' | '1h' | '24h';
 
 /** Order per design: 24hr first. */
 export const ALERT_PERIODS = ['24h', '1h'] as const;
+export const PERP_ALERT_PERIODS = ['24h', '1h', '5m'] as const;
 
 /** Direction of the percent-change movement that arms the alert. */
 export type AlertDirection = 'up' | 'down';
@@ -147,6 +148,7 @@ export const CreatePriceAlertTestIds = {
   TYPE_SEGMENT_TARGET: 'create-price-alert-type-segment-target',
   TYPE_SEGMENT_CHANGE: 'create-price-alert-type-segment-change',
   PERIOD_SEGMENT: 'create-price-alert-period-segment',
+  PERIOD_SEGMENT_5M: 'create-price-alert-period-segment-5m',
   PERIOD_SEGMENT_1H: 'create-price-alert-period-segment-1h',
   PERIOD_SEGMENT_24H: 'create-price-alert-period-segment-24h',
   DIRECTION_TOGGLE: 'create-price-alert-direction-toggle',

@@ -7,7 +7,6 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import { BRIDGE_API_BASE_URL } from '../../../../../../constants/bridge';
 import { getLimitOrdersDataServiceMessenger } from '../../../../../../core/Engine/messengers/limit-orders-data-service-messenger';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
 import { limitOrdersQueries } from '../../../queries/limitOrders';
@@ -19,6 +18,11 @@ import {
 } from '../../../services/LimitOrdersDataService';
 import { getLimitOrders } from '.';
 import { LimitOrderState } from './types';
+
+const MOCK_BASE_URL = 'https://limit-orders.test';
+jest.mock('../getLimitOrdersBaseUrl', () => ({
+  getLimitOrdersBaseUrl: () => 'https://limit-orders.test',
+}));
 
 const mockGetBearerToken = jest.fn();
 jest.mock('../../../../../../core/Engine', () => ({
@@ -121,7 +125,7 @@ describe('getLimitOrders', () => {
 
     const url = getRequestedUrl();
     expect(`${url.origin}${url.pathname}`).toBe(
-      `${BRIDGE_API_BASE_URL}/v2/orders/limit`,
+      `${MOCK_BASE_URL}/v2/orders/limit`,
     );
     expect(Object.fromEntries(url.searchParams)).toStrictEqual({
       accountAddress: `eip155:1:${WALLET_ADDRESS}`,
@@ -253,7 +257,7 @@ describe('getLimitOrders', () => {
   // Drives the orders through every layer the orders tabs use: the hook, the UI
   // query client, the messenger and LimitOrdersDataService.
   describe('through useLimitOrders', () => {
-    function setUp() {
+    function setUp({ refetchInterval }: { refetchInterval?: number } = {}) {
       const rootMessenger = new Messenger<
         MockAnyNamespace,
         LimitOrdersDataServiceActions,
@@ -300,6 +304,7 @@ describe('getLimitOrders', () => {
           useLimitOrders({
             walletAddress: WALLET_ADDRESS,
             states: OPEN_STATES,
+            refetchInterval,
           }),
         { wrapper },
       );
@@ -426,6 +431,36 @@ describe('getLimitOrders', () => {
           ]),
         );
         expect(globalFetchSpy).toHaveBeenCalledTimes(2);
+      } finally {
+        tearDown();
+      }
+    });
+
+    it('reloads the orders from the API on the refetch interval', async () => {
+      globalFetchSpy
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        )
+        .mockResolvedValue(
+          createPageResponse({
+            orders: [createApiOrder('order-2'), createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        );
+      const { result, tearDown } = setUp({ refetchInterval: 50 });
+
+      try {
+        await waitFor(() => expect(result.current.orders).toHaveLength(1));
+
+        await waitFor(() =>
+          expect(result.current.orders.map(({ id }) => id)).toStrictEqual([
+            'order-2',
+            'order-1',
+          ]),
+        );
       } finally {
         tearDown();
       }

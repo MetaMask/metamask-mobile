@@ -63,6 +63,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import Routes from '../../../../../constants/navigation/Routes';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
@@ -463,9 +464,12 @@ const PerpsMarketListView = ({
 
   useEffect(() => {
     if (filteredMarkets.length > 0) {
+      // The fade is gated on markets arriving, so its duration lands on top of
+      // however long the list took to load rather than overlapping it. Keep it
+      // short enough that it softens the pop-in without reading as latency.
       Animated.timing(fadeAnimation, {
         toValue: 1,
-        duration: 300,
+        duration: AnimationDuration.Fast,
         useNativeDriver: true,
       }).start();
     }

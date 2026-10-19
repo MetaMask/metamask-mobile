@@ -2,10 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Position } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
-import { chainNameToId } from '../utils/chainMapping';
-import { isPerpPosition, isClosedPosition } from '../utils/perp';
-import { resolveTradeActions, type TradeAction } from '../utils/tradeAction';
-import { tradeTimestampToMs } from '../utils/tradeTimestamp';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  isPerpPosition,
+  isClosedPosition,
+} from '../../../UI/SocialFeed/utils/perp';
+import {
+  resolveTradeActions,
+  type TradeAction,
+} from '../../../UI/SocialFeed/utils/tradeAction';
+import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { useSpotTraderPositionPrices } from './useSpotTraderPositionPrices';
 import {
@@ -244,11 +250,11 @@ export function useTraderPositionData(
       : positionParam?.pnlValueUsd;
   const pnlPercent = isPerp
     ? (positionParam?.pnlPercent ??
-      (positionParam?.boughtUsd
+      (positionParam?.boughtUsd && positionParam.realizedPnl != null
         ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
         : null))
     : isClosed
-      ? positionParam?.boughtUsd
+      ? positionParam?.boughtUsd && positionParam.realizedPnl != null
         ? (positionParam.realizedPnl / positionParam.boughtUsd) * 100
         : null
       : (positionParam?.pnlPercent ?? null);

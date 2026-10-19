@@ -165,6 +165,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isLoading,
     error: placeOrderError,
     result,
+    lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder({ transactionActiveAbTests });
@@ -185,6 +187,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     preview,
     error: previewError,
     isCalculating,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: market.id,
     outcomeId: outcome.id,
@@ -207,14 +210,20 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (balance + initial preview)
@@ -693,11 +702,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={
-          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
-        }
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.BUY}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />

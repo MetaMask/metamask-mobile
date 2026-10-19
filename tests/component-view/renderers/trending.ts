@@ -1,5 +1,6 @@
 import '../mocks';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -143,5 +144,40 @@ export function renderExploreSearchScreenWithRoutes(
     [{ name: Routes.BROWSER.HOME }],
     { state },
     initialParams,
+  );
+}
+
+/**
+ * Starts ExploreSearchScreen after a previous route so back/cancel behavior can
+ * be asserted with the real navigation stack.
+ */
+export function renderExploreSearchScreenWithBackStack(
+  options: RenderTrendingViewOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { initialParams } = options;
+  const state = buildTrendingState(options);
+  const SearchEntry = () => {
+    const navigation = useNavigation();
+
+    useEffect(() => {
+      navigation.navigate(Routes.EXPLORE_SEARCH, initialParams);
+    }, [navigation]);
+
+    return null;
+  };
+
+  return renderScreenWithRoutes(
+    SearchEntry,
+    { name: Routes.WALLET_VIEW },
+    [
+      {
+        name: Routes.EXPLORE_SEARCH,
+        Component: withQueryClient(
+          ExploreSearchScreen as unknown as React.ComponentType<unknown>,
+        ),
+      },
+      { name: Routes.BROWSER.HOME },
+    ],
+    { state },
   );
 }

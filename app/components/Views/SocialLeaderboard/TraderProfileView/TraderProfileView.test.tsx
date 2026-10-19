@@ -373,6 +373,8 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  openError: null,
+  closedError: null,
   refetch: mockRefetchPositions,
 };
 
@@ -407,6 +409,8 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetchPositions,
     };
     mockRefresh.mockResolvedValue(undefined);
@@ -1285,5 +1289,15 @@ describe('TraderProfileView', () => {
       ).toBeOnTheScreen();
       expect(screen.queryByText('+$1,000,000')).not.toBeOnTheScreen();
     });
+  });
+
+  it('opens the stats sheet when the headline stats row is pressed', () => {
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+    );
+
+    expect(screen.getByTestId('trader-stats-sheet')).toBeOnTheScreen();
   });
 });

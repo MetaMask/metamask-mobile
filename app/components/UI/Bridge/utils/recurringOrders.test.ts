@@ -98,13 +98,38 @@ describe('recurring order formatting', () => {
     expect(result).toBe(0.9);
   });
 
-  it('formats a structured price range in USD', () => {
+  it('formats a historical USD price range in the current currency', () => {
     const result = formatRecurringPriceRange({
       priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+      currentCurrency: 'EUR',
+      usdToCurrentCurrencyRate: 0.9,
     });
 
-    expect(result).toContain('$1,800.00');
-    expect(result).toContain('$2,200.00');
+    expect(result).toContain('€1,620.00');
+    expect(result).toContain('€1,980.00');
+  });
+
+  it('preserves a one-sided historical price range during conversion', () => {
+    const result = formatRecurringPriceRange({
+      priceRange: {
+        tokenSide: 'dest',
+        currency: 'USD',
+        min: '1800',
+      },
+      currentCurrency: 'EUR',
+      usdToCurrentCurrencyRate: 0.9,
+    });
+
+    expect(result).toBe('≥ €1,620.00');
+  });
+
+  it('returns the missing placeholder when the currency rate is unavailable', () => {
+    const result = formatRecurringPriceRange({
+      priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+      currentCurrency: 'EUR',
+    });
+
+    expect(result).toBe('--');
   });
 
   it('formats average execution price in the current currency', () => {

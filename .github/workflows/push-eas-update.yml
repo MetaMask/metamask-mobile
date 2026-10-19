@@ -77,7 +77,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   TARGET_PR_NUMBER: ${{ inputs.pr_number }}
@@ -197,6 +196,9 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+    permissions:
+      contents: read
+      id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.validate-pr.outputs.commit_sha }}
@@ -210,6 +212,9 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+    permissions:
+      contents: read
+      id-token: write # requested by setup-node-modules.yml
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.base_branch }}
@@ -242,13 +247,15 @@ jobs:
 
       - name: Map channel to build name and load config
         id: config
+        env:
+          CHANNEL: ${{ inputs.channel }}
         run: |
-          case "${{ inputs.channel }}" in
+          case "${CHANNEL}" in
             exp)        BUILD_NAME="main-exp" ;;
             rc)         BUILD_NAME="main-rc" ;;
             production) BUILD_NAME="main-prod" ;;
             *)
-              echo "::error::Unknown channel: ${{ inputs.channel }}"
+              echo "::error::Unknown channel: ${CHANNEL}"
               exit 1
               ;;
           esac
@@ -408,6 +415,9 @@ jobs:
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       inputs.channel == 'production'
+    permissions:
+      contents: read
+      id-token: write # token exchange for the team approval check
     runs-on: ubuntu-latest
     steps:
       - name: Get token
@@ -446,6 +456,9 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: ios
@@ -478,6 +491,9 @@ jobs:
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: android

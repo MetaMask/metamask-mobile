@@ -30,6 +30,17 @@ describe('isAppiumSessionReuseEnabled', () => {
     expect(result).toBe(false);
   });
 
+  it('returns false for TestMu regardless of env', () => {
+    // eslint-disable-next-line dot-notation
+    process.env[envKey] = 'true';
+
+    const result = isAppiumSessionReuseEnabled({
+      device: { provider: ProviderName.TESTMU, name: 'Pixel 8 Pro' },
+    });
+
+    expect(result).toBe(false);
+  });
+
   it('returns false when APPIUM_SESSION_REUSE is false', () => {
     // eslint-disable-next-line dot-notation
     process.env[envKey] = 'false';

@@ -4,8 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ListItem,
   SectionHeader,
   TextColor,
@@ -32,23 +30,21 @@ import {
 } from '../../../../../core/Analytics/events/transactions';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
-import PerpsAggregatedFillsCheckbox from '../PerpsAggregatedFillsCheckbox';
 import { PerpsRecentActivityListSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
   isLoading?: boolean;
   iconSize?: number;
-  aggregateFills?: boolean;
-  onAggregateFillsChange?: (aggregateFills: boolean) => void;
+  /** Render a stream error below the heading while retaining cached activity. */
+  errorContent?: React.ReactNode;
 }
 
 const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   transactions,
   isLoading,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
-  aggregateFills = true,
-  onAggregateFillsChange,
+  errorContent,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const isTestnet = usePerpsNetwork() === 'testnet';
@@ -61,31 +57,6 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
       showBackButton: true,
     });
   }, [navigation]);
-
-  const renderSectionHeader = (isInteractive: boolean) => (
-    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
-      <Box twClassName="flex-1">
-        {isInteractive ? (
-          <SectionHeader
-            title={activityTitle}
-            isInteractive
-            onPress={handleSeeAll}
-          />
-        ) : (
-          <SectionHeader title={activityTitle} />
-        )}
-      </Box>
-      {onAggregateFillsChange ? (
-        <Box twClassName="pr-4">
-          <PerpsAggregatedFillsCheckbox
-            isSelected={aggregateFills}
-            onChange={onAggregateFillsChange}
-            testID="perps-home-aggregated-checkbox"
-          />
-        </Box>
-      ) : null}
-    </Box>
-  );
 
   const handleTransactionPress = useCallback(
     (transaction: PerpsTransaction) => {
@@ -137,9 +108,12 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           }
           value={fill?.amount}
           valueProps={{
-            color: fill?.isPositive
-              ? TextColor.SuccessDefault
-              : TextColor.ErrorDefault,
+            color:
+              fill?.isPositive === undefined
+                ? TextColor.TextDefault
+                : fill.isPositive
+                  ? TextColor.SuccessDefault
+                  : TextColor.ErrorDefault,
           }}
           onPress={() => handleTransactionPress(item)}
         />
@@ -151,19 +125,25 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   if (isLoading) {
     return (
       <Box>
-        {renderSectionHeader(false)}
+        <SectionHeader title={activityTitle} />
+        {errorContent}
         <PerpsRowSkeleton count={3} />
       </Box>
     );
   }
 
-  if (transactions.length === 0) {
+  if (transactions.length === 0 && !errorContent) {
     return null;
   }
 
   return (
     <Box>
-      {renderSectionHeader(true)}
+      <SectionHeader
+        title={activityTitle}
+        isInteractive={transactions.length > 0}
+        onPress={handleSeeAll}
+      />
+      {errorContent}
       <FlatList
         testID={PerpsRecentActivityListSelectorsIDs.LIST}
         data={transactions}

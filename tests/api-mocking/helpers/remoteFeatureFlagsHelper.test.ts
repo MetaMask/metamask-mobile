@@ -45,6 +45,69 @@ describe('Remote Feature Flags Helper', () => {
       expect(websocketFlag).toEqual({ backendWebSocketConnection: true });
     });
 
+    it('pins 2026-10-06 production UI flags to pre-sync values', () => {
+      const result = createRemoteFeatureFlagsMock();
+      const response = result.response as Record<string, unknown>[];
+      const flagByName = (name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      const disabledVersionGate = {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      };
+      const disabledFlagNames = [
+        'mobileUxBftcOnsolidation',
+        'earnHomeSectionEnabled',
+        'earnExploreSectionEnabled',
+        'earnTradeMenuRowRedesignEnabled',
+        'earnMoneyAssetOverviewFooterCtaEnabled',
+        'earnMoneyCardFlipAnimationEnabled',
+        'earnMoneyBalanceAnimationEnabled',
+        'brazeBannerHomeMinVersion',
+        'cardIntercomSupport',
+        'crossmintApplePayCheckout',
+      ];
+
+      for (const flagName of disabledFlagNames) {
+        expect(flagByName(flagName)).toEqual(disabledVersionGate);
+      }
+
+      expect(flagByName('stellarAccounts')).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.1',
+      });
+      expect(flagByName('nativeTabBarEnabled')).toBe(true);
+      expect(flagByName('predictHomeRedesign')).toEqual({
+        enabled: true,
+        minimumVersion: '8.6.0',
+      });
+      expect(flagByName('cardUkMigration')).toEqual({
+        enabled: false,
+        minimumVersion: '8.13.0',
+        startDate: '',
+        endDate: '',
+      });
+    });
+
+    it('pins DeFi controller V2 off and lets a test override win', () => {
+      const defaultResponse = createRemoteFeatureFlagsMock().response as Record<
+        string,
+        unknown
+      >[];
+      const overrideResponse = createRemoteFeatureFlagsMock({
+        defiControllerV2: { enabled: true },
+      }).response as Record<string, unknown>[];
+      const flagByName = (response: Record<string, unknown>[], name: string) =>
+        response.find((obj) => name in obj)?.[name];
+
+      expect(flagByName(defaultResponse, 'defiControllerV2')).toEqual({
+        enabled: false,
+      });
+      expect(flagByName(overrideResponse, 'defiControllerV2')).toEqual({
+        enabled: true,
+      });
+    });
+
     it('uses flask distribution when specified', () => {
       const result = createRemoteFeatureFlagsMock({}, 'flask');
 

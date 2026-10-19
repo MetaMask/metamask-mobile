@@ -145,6 +145,12 @@ export const MOCK_RECURRING_COMPLETED_ORDER = createMockRecurringOrder({
   filledSwapsCount: 5,
   createdAt: '2026-08-27T12:00:00.000Z',
   endsAt: '2026-08-31T12:00:00.000Z',
+  priceRange: {
+    tokenSide: 'source',
+    currency: 'USD',
+    min: '1800',
+    max: '2200',
+  },
 });
 
 export const MOCK_RECURRING_CANCELLED_ORDER = createMockRecurringOrder({

@@ -5,6 +5,9 @@ export const ALLOWLISTED_HOSTS = [
   '0.0.0.0',
   '127.0.0.1',
   'localhost',
+  // BrowserStack Local tunnel hostname for fixture / command-queue servers
+  // (same role as localhost — getLocalHost() returns bs-local.com on BS).
+  'bs-local.com',
   '10.0.2.2', // Android emulator host
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];

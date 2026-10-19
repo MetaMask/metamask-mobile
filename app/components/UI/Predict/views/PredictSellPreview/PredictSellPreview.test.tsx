@@ -107,8 +107,10 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
   usePredictOrderRetry: () => ({
     retrySheetRef: { current: null },
     retrySheetVariant: 'busy' as const,
+    retryQuote: null,
     isRetrying: false,
-    handleRetryWithBestPrice: jest.fn(),
+    handleRetry: jest.fn(),
+    handleRetryConfirm: jest.fn(),
   }),
 }));
 
@@ -598,12 +600,13 @@ describe('PredictSellPreview', () => {
       expect(cashOutTexts.length).toBe(1);
     });
 
-    it('renders the cash-out amount as a large static value in sheet mode', () => {
+    it('renders the cash-out amount at the DisplayLg size in sheet mode', () => {
       renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
         state: initialState,
       });
 
       const amount = screen.getAllByText('$57.30')[0];
+      // DisplayLg: 40px / 50px, medium weight.
       expect(amount).toHaveStyle({
         fontSize: 40,
         lineHeight: 50,

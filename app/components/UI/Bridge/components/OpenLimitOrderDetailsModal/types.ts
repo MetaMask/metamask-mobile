@@ -1,4 +1,5 @@
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import type { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import type { LimitOrderConfirmationMarketComparison } from '../LimitOrderConfirmationModal/types';
 
@@ -33,8 +34,8 @@ export interface OpenLimitOrderDetailsModalProps {
    */
   submittedAmount: string;
   /**
-   * Limit price the order triggers at, e.g. "2200 USDC", or "€1800" for a
-   * fiat price shown in the user's display currency.
+   * Limit price the order triggers at, e.g. "2200 USDC", or "$2200" for a
+   * fiat price.
    */
   triggerPrice: string;
   /**
@@ -42,13 +43,12 @@ export interface OpenLimitOrderDetailsModalProps {
    */
   triggerToken?: BridgeToken;
   /**
-   * USD price the order is placed at, e.g. "$2200". When set, a notice
-   * explains that the trigger price is shown in the display currency but the
-   * order was placed at this USD price.
+   * Which side of the trigger price fills the order, shown as a ≥ or ≤ sign
+   * before it. Without it, no sign is shown.
    */
-  usdTriggerPrice?: string;
+  triggerDirection?: LimitOrderPriceComparisonDirection;
   /**
-   * Expiration label, e.g. "Sep 27".
+   * Expiration label, e.g. "Sep 27, 2026 at 12:00 PM".
    */
   expiry: string;
   /**
@@ -58,9 +58,10 @@ export interface OpenLimitOrderDetailsModalProps {
   triggerComparison?: LimitOrderConfirmationMarketComparison;
   /**
    * Fired when the cancel order button is pressed. The host opens the cancel
-   * order sheet from here.
+   * order sheet from here. Without it, the button is not shown, e.g. for an
+   * order the API reports as not cancellable.
    */
-  onCancelOrder: () => void;
+  onCancelOrder?: () => void;
   /**
    * Fired when the sheet is dismissed. Used by tests and non-navigation hosts.
    */
@@ -78,9 +79,5 @@ export interface OpenLimitOrderDetailsModalProps {
 export interface TriggerPriceDisplay {
   triggerPrice: string;
   triggerToken: BridgeToken;
-  /**
-   * The USD price the order is placed at, set only when the trigger row shows
-   * it converted to another currency.
-   */
-  usdTriggerPrice?: string;
+  triggerDirection?: LimitOrderPriceComparisonDirection;
 }

@@ -17,10 +17,17 @@
 		<string>applinks:link.metamask.io</string>
 		<string>applinks:link.metamask.com</string>
 		<string>applinks:link-test.metamask.io</string>
+		<string>applinks:link-test.metamask.com</string>
 		<string>applinks:metamask.test-app.link</string>
 		<string>applinks:metamask-alternate.test-app.link</string>
 		<string>webcredentials:link.metamask.io</string>
 		<string>webcredentials:link.metamask.com</string>
+		<string>webcredentials:authentication.dev-api.cx.metamask.io</string>
+		<string>webcredentials:authentication.uat-api.cx.metamask.io</string>
+		<string>webcredentials:authentication.api.cx.metamask.io</string>
+		<string>webcredentials:authentication.dev-api.cx.metamask.com</string>
+		<string>webcredentials:authentication.uat-api.cx.metamask.com</string>
+		<string>webcredentials:authentication.api.cx.metamask.com</string>
 	</array>
 	<key>com.apple.developer.in-app-payments</key>
 	<array>

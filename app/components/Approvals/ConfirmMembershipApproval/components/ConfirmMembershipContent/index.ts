@@ -1,0 +1,1 @@
+export { ConfirmMembershipContent } from './ConfirmMembershipContent';

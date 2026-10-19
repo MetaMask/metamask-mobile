@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StatsRow from './StatsRow';
 import type { TraderStats } from '@metamask/social-controllers';
@@ -132,6 +132,17 @@ describe('StatsRow', () => {
     renderWithProvider(<StatsRow stats={baseStats} />);
 
     expect(screen.getByText('Avg. hold')).toBeOnTheScreen();
+  });
+
+  it('invokes onPress when the stats row is pressed', () => {
+    const onPress = jest.fn();
+
+    renderWithProvider(<StatsRow stats={baseStats} onPress={onPress} />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+    );
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it.each(['Win rate', '7D P&L', 'Avg. hold'])(

@@ -37,6 +37,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../components/RebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest
     .fn()
@@ -80,18 +85,15 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
-    };
-  },
-);
+jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const MockReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
+  };
+});
 
 jest.mock(
   '../../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
@@ -418,6 +420,38 @@ describe('BridgeMarketViewFooter', () => {
         });
       },
     );
+
+    it('shows no-fee copy without a fee percentage for subscription discount', async () => {
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            feeData: {
+              metabridge: [
+                {
+                  quoteBpsFee: 0.004156,
+                  baseBpsFee: 87.5,
+                  discountType: 'subscription',
+                },
+              ],
+            },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
+
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).toHaveTextContent(`0.875%${strings('bridge.no_fees_with_orange')}`);
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
+        ).not.toHaveTextContent('MetaMask fee');
+      });
+    });
 
     it('shows no MM fee disclaimer when dest token is mUSD and fee is zero', async () => {
       const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;

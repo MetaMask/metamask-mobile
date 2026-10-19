@@ -63,8 +63,10 @@ import {
   SeedlessOnboardingControllerErrorMessage,
   EncAccountDataType,
   SeedlessOnboardingMigrationVersion,
+  InvalidPrimarySecretDataTypeError,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { selectAnalyticsId } from '../../selectors/analyticsController';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
   SeedlessOnboardingControllerError,
@@ -109,6 +111,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 import { captureException } from '@sentry/react-native';
+import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
 import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
@@ -117,6 +120,146 @@ import {
   getUnlockAppStartType,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
 } from '../Performance/unlockTraces';
+
+type Incident1745IdentifySource =
+  | 'rehydrateSeedPhrase'
+  | 'syncSeedPhrases'
+  | 'unlockIdentify';
+
+type Incident1745Shape =
+  | 'no_secrets'
+  | 'invalid_primary_secret'
+  | 'primary_mismatch';
+
+function areUint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((byte, index) => byte === b[index]);
+}
+
+function reportIncident1745AffectedUser({
+  source,
+  shape,
+  cause_message,
+  remote_data_type,
+}: {
+  source: Incident1745IdentifySource;
+  shape: Incident1745Shape;
+  cause_message?: string;
+  remote_data_type?: string;
+}): void {
+  const profileId = selectAnalyticsId(ReduxService.store.getState());
+  captureExceptionForced(
+    new Error(`incident_1745: corrupted seedless backup detected in ${source}`),
+    {
+      incident: 'incident_1745',
+      shape,
+      profile_id: profileId ?? 'unknown',
+      ...(cause_message ? { cause_message } : {}),
+      ...(remote_data_type ? { remote_data_type } : {}),
+    },
+  ).catch(() => undefined);
+}
+
+/**
+ * Force-report incident 1745 Shape A when seedless metadata has no usable primary SRP.
+ *
+ * On `@metamask/seedless-onboarding-controller` >= 11, `fetchAllSecretData` throws
+ * `NoSecretDataFound` / `InvalidPrimarySecretDataTypeError` before returning secrets
+ * (new `EncAccountDataType` schema + legacy type fallback). Post-fetch `[0].type`
+ * checks alone are not enough to identify affected users.
+ *
+ * Shapes B/C (mislabeled primary that still fetches successfully) are covered by
+ * {@link identifyIncident1745AffectedUser}.
+ */
+export function reportIncident1745Shape1IfNeeded(
+  error: unknown,
+  source: Incident1745IdentifySource,
+): void {
+  const err = error instanceof Error ? error : new Error(String(error));
+  const isNoSecrets = containsErrorMessage(
+    err,
+    SeedlessOnboardingControllerErrorMessage.NoSecretDataFound,
+  );
+  const isInvalidPrimary =
+    error instanceof InvalidPrimarySecretDataTypeError ||
+    containsErrorMessage(
+      err,
+      SeedlessOnboardingControllerErrorMessage.InvalidPrimarySecretDataType,
+    );
+
+  if (!isNoSecrets && !isInvalidPrimary) {
+    return;
+  }
+
+  reportIncident1745AffectedUser({
+    source,
+    shape: isNoSecrets ? 'no_secrets' : 'invalid_primary_secret',
+    cause_message: err.message,
+  });
+}
+
+/**
+ * Full incident 1745 identification (Shapes A/B/C) for seedless users.
+ *
+ * Per core#10219 identify-users guidance: on unlock, fetch remote secrets, resolve
+ * the remote primary (controller V1 earliest-mnemonic / V2 `PrimarySrp` sort), and
+ * compare it to the local primary HD keyring mnemonic.
+ *
+ * - Shape A: fetch throws `NoSecretDataFound` / `InvalidPrimarySecretDataType`
+ * - Shape B/C: fetch succeeds but remote "primary" bytes ≠ local primary HD
+ *
+ * @param password - Wallet password (required by KeyringController.exportSeedPhrase).
+ */
+export async function identifyIncident1745AffectedUser(
+  password: string,
+): Promise<void> {
+  try {
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+
+    let remoteSecrets: Awaited<
+      ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+    >;
+    try {
+      remoteSecrets = await SeedlessOnboardingController.fetchAllSecretData();
+    } catch (error) {
+      // Shape A only when controller signals missing/invalid primary.
+      // Other failures (network, auth, crypto) are intentionally ignored.
+      reportIncident1745Shape1IfNeeded(error, 'unlockIdentify');
+      return;
+    }
+
+    // Controller guarantees a mnemonic primary at [0] when fetch resolves.
+    const remotePrimary = remoteSecrets[0];
+
+    let localPrimarySeed: Uint8Array;
+    try {
+      // Omit keyringId → primary HD keyring (KeyringController default).
+      localPrimarySeed = await KeyringController.exportSeedPhrase({
+        password,
+      });
+    } catch {
+      // Cannot compare without local primary — do not classify.
+      return;
+    }
+
+    if (!areUint8ArraysEqual(localPrimarySeed, remotePrimary.data)) {
+      // Shape B (V1 earliest-imported) / C (V2 mislabeled PrimarySrp).
+      reportIncident1745AffectedUser({
+        source: 'unlockIdentify',
+        shape: 'primary_mismatch',
+        remote_data_type: String(remotePrimary.dataType ?? remotePrimary.type),
+      });
+    }
+  } catch {
+    // Identification must never surface to unlock UX.
+  }
+}
 
 /**
  * Holds auth data used to determine auth configuration
@@ -785,6 +928,7 @@ class AuthenticationService {
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
+   * @param options.navigationBehavior - `preserve` leaves the current route in place. Resume uses it because the privacy cover is hiding that route. The default navigates to Home, a pending deeplink, or the metrics opt-in screen.
    * @returns - void
    */
   unlockWallet = async (
@@ -792,6 +936,7 @@ class AuthenticationService {
       password,
       authPreference,
       onBeforeNavigate,
+      navigationBehavior = 'default',
       // Optional onboarding trace context; forwarded to rehydrateSeedPhrase so the seedless
       // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
       // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
@@ -800,6 +945,7 @@ class AuthenticationService {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
+      navigationBehavior?: 'default' | 'preserve';
       parentContext?: TraceContext;
     } = {
       password: undefined,
@@ -864,11 +1010,29 @@ class AuthenticationService {
           this.dispatchPasswordSet();
           this.postLoginAsyncOperations().catch(() => undefined);
 
+          // Incident 1745 ID (Shapes A/B/C): async, non-blocking remote vs local
+          // primary compare. Skip oauth rehydrate — Shape A is already reported
+          // there, and the local vault was rebuilt from remote so B/C cannot apply.
+          if (
+            passwordToUse &&
+            !authPreference?.oauth2Login &&
+            selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+          ) {
+            identifyIncident1745AffectedUser(passwordToUse).catch(
+              () => undefined,
+            );
+          }
+
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
 
           if (onBeforeNavigate) {
             await onBeforeNavigate();
+          }
+
+          // Resume already has a route under the privacy cover. Leave it.
+          if (navigationBehavior === 'preserve') {
+            return;
           }
 
           // TODO: Refactor this orchestration to sagas.
@@ -1132,8 +1296,23 @@ class AuthenticationService {
     }
 
     // 1. fetch all seed phrases
-    const [rootSecret, ...otherSecrets] =
-      await SeedlessOnboardingController.fetchAllSecretData();
+    let rootSecret:
+      | Awaited<
+          ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+        >[number]
+      | undefined;
+    let otherSecrets: Awaited<
+      ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+    >;
+    try {
+      [rootSecret, ...otherSecrets] =
+        await SeedlessOnboardingController.fetchAllSecretData();
+    } catch (error) {
+      // Controller throws NoSecretDataFound / InvalidPrimarySecretDataType before
+      // returning secrets when primary SRP metadata is missing or corrupted.
+      reportIncident1745Shape1IfNeeded(error, 'syncSeedPhrases');
+      throw error;
+    }
     if (!rootSecret) {
       throw new Error('No root SRP found');
     }
@@ -1347,6 +1526,10 @@ class AuthenticationService {
         fetchSrpsSuccess = true;
       } catch (error) {
         const err = ensureError(error, 'Fetch SRPs failed');
+
+        // Controller validates primary SRP (legacy type + EncAccountDataType) and
+        // throws before returning secrets — report Shape 1 here, not post-fetch.
+        reportIncident1745Shape1IfNeeded(error, 'rehydrateSeedPhrase');
 
         // trace only if error is not an incorrect password error
         if (
@@ -1564,6 +1747,39 @@ class AuthenticationService {
       }
       return false;
     }
+  };
+
+  /**
+   * Prompts biometric unlock after checking whether the seedless password is
+   * outdated. Shared by cold start and resume so both prompt identically.
+   * Rejects when unlock fails; callers decide the Login fallback.
+   */
+  tryBiometricUnlock = async (options?: {
+    navigationBehavior?: 'default' | 'preserve';
+  }): Promise<void> => {
+    if (
+      await this.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      })
+    ) {
+      NavigationService.navigation?.reset({
+        routes: [
+          {
+            name: Routes.ONBOARDING.REHYDRATE,
+            params: { isSeedlessPasswordOutdated: true },
+          },
+        ],
+      });
+      return;
+    }
+
+    if (options?.navigationBehavior === 'preserve') {
+      await this.unlockWallet({ navigationBehavior: 'preserve' });
+      return;
+    }
+
+    await this.unlockWallet();
   };
 
   /**

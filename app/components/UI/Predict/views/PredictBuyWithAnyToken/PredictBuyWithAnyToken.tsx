@@ -200,6 +200,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     preview,
     error: previewError,
     isCalculating: isPreviewCalculating,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: market.id,
     outcomeId: outcome.id,
@@ -278,6 +279,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     errorMessageSource,
     buyErrorBanner,
     isOrderNotFilled,
+    retryOrderState,
     resetOrderNotFilled,
     clearBuyErrorBanner,
   } = usePredictBuyError({
@@ -363,15 +365,16 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     activeOrder?.paymentTokenSymbol,
   ]);
 
-  const { handleConfirm, placeOrder } = usePredictBuyActions({
-    analyticsProperties,
-    preview,
-    amountUsd: currentValue,
-    setIsConfirming,
-    isSheetMode,
-    onClose,
-    transactionActiveAbTests,
-  });
+  const { handleConfirm, placeOrder, lastSubmittedPreview } =
+    usePredictBuyActions({
+      analyticsProperties,
+      preview,
+      amountUsd: currentValue,
+      setIsConfirming,
+      isSheetMode,
+      onClose,
+      transactionActiveAbTests,
+    });
 
   useEffect(() => {
     if (!isPreviewCalculating) {
@@ -390,14 +393,20 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
     isSheetMode,
     attempt: Engine.context.PredictController.getRetryablePredictBuyAttempt(),
   });
@@ -442,7 +451,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     }
 
     if (isBannerActive) {
-      handleRetryWithBestPrice();
+      if (isOrderNotFilled) {
+        void handleRetry();
+      } else {
+        // Non-fill banners (order_failed, payment_failed) have no retry
+        // episode — the fresh-quote confirm flow is scoped to not-filled
+        // errors. Clear the banner so the action button returns to the
+        // normal confirm path instead of silently doing nothing.
+        clearBuyErrorBanner();
+      }
       return;
     }
     if (isChangePaymentMode) {
@@ -459,7 +476,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPaymentSelectorNavigationLocked,
     isChangePaymentMode,
     isAddFundsMode,
-    handleRetryWithBestPrice,
+    isOrderNotFilled,
+    handleRetry,
+    clearBuyErrorBanner,
     handleChangePaymentMethod,
     handleAddFunds,
     handleConfirm,
@@ -478,7 +497,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const Wrapper = isSheetMode ? Box : SafeAreaView;
   const wrapperProps = isSheetMode
-    ? { twClassName: 'bg-background-default' }
+    ? {}
     : { style: tw.style('flex-1 bg-background-default') };
 
   const {
@@ -689,11 +708,11 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={
-          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
-        }
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.BUY}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={handleRetryDismiss}
         isRetrying={isRetrying}
       />

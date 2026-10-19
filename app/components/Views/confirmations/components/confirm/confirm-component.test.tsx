@@ -3,12 +3,15 @@ import { cloneDeep } from 'lodash';
 import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler, ScrollView, StyleSheet } from 'react-native';
 import { BottomSheet } from '@metamask/design-system-react-native';
+import { Severity } from '../../types/alerts';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {
   generateContractInteractionState,
+  batchApprovalConfirmation,
+  getAppStateForConfirmation,
   mockTxId,
   personalSignatureConfirmationState,
   stakingClaimConfirmationState,
@@ -20,6 +23,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { Confirm, ConfirmationLoader } from './confirm-component';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
@@ -65,6 +69,10 @@ jest.mock('../../hooks/ui/useFullScreenConfirmation');
 jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../info/money-account-deposit-info', () => ({
+  MoneyAccountDepositInfo: () => null,
 }));
 
 const mockSetOptions = jest.fn();
@@ -178,6 +186,17 @@ describe('Confirm', () => {
   const useConfirmRejectMock = jest.mocked(useConfirmReject);
   const mockOnReject = jest.fn();
   const useParamsMock = jest.mocked(useParams);
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
+
+  const mockGeneralAlert = [
+    {
+      key: 'membership-alert',
+      title: 'Membership alert',
+      severity: Severity.Danger,
+      message: 'Generic membership alert',
+    },
+  ];
 
   beforeEach(() => {
     useParamsMock.mockReturnValue({});
@@ -207,6 +226,93 @@ describe('Confirm', () => {
       state: typedSignV1ConfirmationState,
     });
     expect(getByTestId('modal-confirmation-container')).toBeDefined();
+  });
+
+  it('hides the generic alert banner for nested membership batch confirmations', () => {
+    jest.mocked(useConfirmationAlerts).mockReturnValue(mockGeneralAlert);
+
+    const membershipBatchConfirmation = cloneDeep(batchApprovalConfirmation);
+    membershipBatchConfirmation.nestedTransactions = [
+      ...(membershipBatchConfirmation.nestedTransactions ?? []),
+      {
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+        to: '0x0000000000000000000000000000000000000001',
+        data: '0x',
+        value: '0x0',
+      },
+    ];
+
+    const { queryByTestId } = renderWithProvider(<Confirm />, {
+      state: getAppStateForConfirmation(membershipBatchConfirmation),
+    });
+
+    expect(queryByTestId('security-alert-banner-0')).toBeNull();
+  });
+
+  it('keeps the generic alert banner eligible for regular transaction controls', () => {
+    jest.mocked(useConfirmationAlerts).mockReturnValue(mockGeneralAlert);
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: generateContractInteractionState,
+    });
+
+    expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
+  });
+
+  describe('first-frame deferral', () => {
+    let frames: FrameRequestCallback[];
+
+    beforeEach(() => {
+      frames = [];
+      jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback);
+          return frames.length;
+        });
+      jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    function renderMoneyDepositConfirm() {
+      const moneyDepositConfirmation = {
+        chainId: '0x1',
+        id: 'money-deposit-confirmation',
+        networkClientId: '1',
+        origin: 'metamask.github.io',
+        status: 'unapproved',
+        time: 1733143817088,
+        txParams: {
+          from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+        },
+        type: TransactionType.moneyAccountDeposit,
+      } as never;
+
+      return renderWithProvider(<Confirm />, {
+        state: getAppStateForConfirmation(moneyDepositConfirmation),
+      });
+    }
+
+    it('defers useConfirmationAlerts until after the first two frames for money deposits', () => {
+      renderMoneyDepositConfirm();
+
+      expect(useConfirmationAlerts).not.toHaveBeenCalled();
+
+      act(() => frames[0](16));
+      expect(useConfirmationAlerts).not.toHaveBeenCalled();
+
+      act(() => frames[1](32));
+      expect(useConfirmationAlerts).toHaveBeenCalled();
+    });
+
+    it('calls useConfirmationAlerts immediately for non-deposit confirmations', () => {
+      renderWithProvider(<Confirm />, { state: typedSignV1ConfirmationState });
+
+      expect(useConfirmationAlerts).toHaveBeenCalled();
+    });
   });
 
   describe('forced bottom sheet', () => {

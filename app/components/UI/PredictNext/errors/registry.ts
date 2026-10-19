@@ -15,6 +15,8 @@ export enum PredictErrorCode {
   BALANCE_UNAVAILABLE = 'BALANCE_UNAVAILABLE',
   INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY',
   INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
+  INSUFFICIENT_POSITION = 'INSUFFICIENT_POSITION',
+  POSITION_UNAVAILABLE = 'POSITION_UNAVAILABLE',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -113,6 +115,18 @@ export const predictErrorRegistry: Record<
     category: 'action_failed',
     message: 'Not enough balance for this order.',
     recoverable: false,
+  },
+  // Over-sell / not-owned: the backend validates against authoritative
+  // Venue evidence, so a local over-sell that slips through fails here.
+  [PredictErrorCode.INSUFFICIENT_POSITION]: {
+    category: 'action_failed',
+    message: 'Not enough contracts in this position.',
+    recoverable: true,
+  },
+  [PredictErrorCode.POSITION_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'Your position is unavailable right now.',
+    recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {
     category: 'action_failed',

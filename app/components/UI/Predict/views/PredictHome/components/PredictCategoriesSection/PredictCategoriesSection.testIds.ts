@@ -9,5 +9,6 @@ import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 export const PREDICT_CATEGORIES_SECTION_TEST_IDS = {
   SECTION: PredictHomeSelectorsIDs.CATEGORIES_SECTION,
   HEADER: 'predict-home-categories-header',
+  CAROUSEL: 'predict-home-categories-carousel',
   TILE_PREFIX: 'predict-home-categories-tile',
 } as const;
