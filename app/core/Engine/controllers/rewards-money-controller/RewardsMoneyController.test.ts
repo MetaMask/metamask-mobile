@@ -594,11 +594,23 @@ describe('RewardsMoneyController', () => {
         );
       expect(referralCalls()).toHaveLength(1);
 
-      const firstRejection = await expect(first).rejects.toThrow('busy');
-      const secondRejection = await expect(second).rejects.toThrow('busy');
+      const rejectionOf = (pending: Promise<unknown>) =>
+        pending.then(
+          () => {
+            throw new Error('expected referral read to reject');
+          },
+          (error: unknown) => error,
+        );
+      const firstRejection = rejectionOf(first);
+      const secondRejection = rejectionOf(second);
       rejectReferral(new Error('busy'));
       await jest.advanceTimersByTimeAsync(0);
-      await Promise.all([firstRejection, secondRejection]);
+      await expect(firstRejection).resolves.toEqual(
+        expect.objectContaining({ message: 'busy' }),
+      );
+      await expect(secondRejection).resolves.toEqual(
+        expect.objectContaining({ message: 'busy' }),
+      );
 
       await expect(controller.getReferralMe()).resolves.toBeDefined();
       expect(referralCalls()).toHaveLength(2);
