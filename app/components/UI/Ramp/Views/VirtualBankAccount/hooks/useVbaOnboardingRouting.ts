@@ -17,10 +17,6 @@ import {
   getVbaDestinationForSnapshot,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
-import {
-  buildBrazilMusdAutorampRequest,
-  type VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot,
-} from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import {
   getVbaVendorTermsAcceptance,
@@ -28,6 +24,7 @@ import {
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
+import { VBA_KYC_VENDOR } from '../constants';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -165,6 +162,13 @@ export const navigateToVbaOnboardingDestination = (
     );
     return;
   }
+  if (destinationId === 'identityVerified') {
+    openAsOnlyOnboardingRoute(
+      navigation,
+      VbaOnboardingRoutes.IDENTITY_VERIFIED,
+    );
+    return;
+  }
 
   const screen = {
     vendorTerms: VbaOnboardingRoutes.VENDOR_TERMS,
@@ -194,47 +198,19 @@ export interface OpenVbaOnboardingRequest {
 }
 
 /**
- * v27 hydrate only reads status. Main still opens a BRL to mUSD route, so
- * register the wallet when needed and create that autoramp here.
+ * Re-submits capability authorization for a KYC session that already exists.
+ * First-time creation stays on the email screen, which also has the signed-in
+ * token `startSession` needs when no session exists.
  */
-const provisionBrazilMusdAutoramp = async (
-  walletAddress: string,
-  snapshot: RampsVbaOnboardingSnapshot,
-): Promise<RampsVbaOnboardingSnapshot> => {
-  if (
-    snapshot.kycStatus !== 'approved' ||
-    (snapshot.autorampStatus !== 'needs_wallet_registration' &&
-      snapshot.autorampStatus !== 'needs_source_currency')
-  ) {
-    return snapshot;
+const resumePersistedKycSession = async (): Promise<void> => {
+  const kycController = Engine.context.KycController;
+  if (!kycController.readSessionStatus()) {
+    return;
   }
 
-  if (snapshot.autorampStatus === 'needs_wallet_registration') {
-    const registration =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address: walletAddress,
-      });
-    if (registration.type === 'lookupUnavailable') {
-      return { ...snapshot, autorampStatus: 'retryable_failure' };
-    }
-  }
-
-  try {
-    await Engine.context.RampsController.createAutoramp(
-      buildBrazilMusdAutorampRequest(walletAddress),
-    );
-  } catch (error) {
-    Logger.error(error as Error, {
-      tags: { feature: 'vba-onboarding' },
-      context: {
-        name: 'provisionBrazilMusdAutoramp',
-        data: { autorampStatus: snapshot.autorampStatus },
-      },
-    });
-    return { ...snapshot, autorampStatus: 'retryable_failure' };
-  }
-
-  return { ...snapshot, autorampStatus: 'ready' };
+  await kycController.startSession({
+    vendor: VBA_KYC_VENDOR,
+  });
 };
 
 const resolveOpenRequest = (
@@ -260,8 +236,10 @@ export type ResolvedVbaOnboarding =
   | { status: 'error' };
 
 /**
- * Hydrates VBA onboarding facts and picks the next destination. Does not
- * navigate. A missing wallet or a thrown hydrate returns `{ status: 'error' }`.
+ * Resumes a persisted KYC session, hydrates VBA onboarding facts, and picks
+ * the next destination. Does not navigate, sign, or create an autoramp. A
+ * missing wallet, a failed session resume, or a thrown hydrate returns
+ * `{ status: 'error' }`.
  *
  * @param source - Caller/entry point for error telemetry.
  */
@@ -276,16 +254,14 @@ export const resolveVbaOnboarding = async (
       return { status: 'error' };
     }
 
-    const hydratedSnapshot = applyVbaDevOverrides(
+    await resumePersistedKycSession();
+
+    const accountSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({
         walletAddress,
         refreshKyc: true,
         refreshAutoramps: true,
       }),
-    );
-    const accountSnapshot = await provisionBrazilMusdAutoramp(
-      walletAddress,
-      hydratedSnapshot,
     );
     if (
       accountSnapshot.sessionExists &&

@@ -51,8 +51,8 @@ export interface PerpsTransaction {
   fill?: {
     shortTitle: string; // e.g., "Opened long" or "Closed long"
     amount: string; // e.g., "+$43.99" or "-$400"
-    amountNumber: number; // e.g., 43.99 or 400
-    isPositive: boolean;
+    amountNumber?: number; // Unknown when the venue omits realized PnL
+    isPositive?: boolean;
     size: string;
     entryPrice: string;
     points: string;

@@ -311,6 +311,10 @@ describe('LivePriceHeader', () => {
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
       expect(changeText?.props.color).toBe(TextColor.SuccessDefault);
+
+      const periodText = textElements.find((el) => el.props.children === '24h');
+      expect(periodText?.props.color).toBe(TextColor.TextAlternative);
+      expect(periodText?.props.variant).toBe(TextVariant.BodySm);
     });
 
     it('renders a smaller prominent price for the prominent variant (Pro)', () => {
@@ -325,6 +329,9 @@ describe('LivePriceHeader', () => {
 
       expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
+
+      const periodText = textElements.find((el) => el.props.children === '24h');
+      expect(periodText?.props.color).toBe(TextColor.TextAlternative);
     });
 
     it('shows the absolute change and percentage for the large variant', () => {
@@ -401,7 +408,7 @@ describe('LivePriceHeader', () => {
     });
 
     it('shows only the percentage for the compact (default) variant', () => {
-      const { UNSAFE_getAllByType } = render(
+      const { UNSAFE_getAllByType, queryByText } = render(
         <LivePriceHeader symbol="ETH" currentPrice={3000} />,
       );
 
@@ -410,6 +417,7 @@ describe('LivePriceHeader', () => {
       );
 
       expect(changeText).toBeDefined();
+      expect(queryByText('24h')).toBeNull();
     });
 
     it('stacks the change below the price for the large variant', () => {
