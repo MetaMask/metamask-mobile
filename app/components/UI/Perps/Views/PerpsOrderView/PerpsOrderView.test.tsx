@@ -2600,7 +2600,7 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('passes validation, payment, TP/SL, and execution errors to the Trade sheet', () => {
+  it('passes validation, payment and TP/SL errors to the Trade sheet and leaves execution errors to the toast', () => {
     const { useInsufficientPayTokenBalanceAlert } = jest.requireMock(
       '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
     ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
@@ -2623,7 +2623,7 @@ describe('PerpsOrderView', () => {
     (usePerpsOrderExecution as jest.Mock).mockReturnValue({
       placeOrder: jest.fn(),
       isPlacing: false,
-      error: { error: 'Order execution failed' },
+      error: 'Order execution failed',
     });
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
       ...defaultMockHooks.usePerpsOrderContext,
@@ -2653,8 +2653,8 @@ describe('PerpsOrderView', () => {
     );
     expect(
       getMockTradeScreenProps().errorMessages.map(({ key }) => key),
-    ).toContain('execution-Order execution failed');
-    expect(getMockTradeScreenProps().errorMessages).toHaveLength(6);
+    ).not.toContain('execution-Order execution failed');
+    expect(getMockTradeScreenProps().errorMessages).toHaveLength(5);
   });
 
   it('awaits pending validation before submitting from the Trade sheet', async () => {
