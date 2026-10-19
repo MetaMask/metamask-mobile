@@ -30,6 +30,12 @@ export interface LimitOrderConfirmationModalParams {
    */
   payingAmount: string;
   /**
+   * Destination amount the order would produce if it filled exactly at its
+   * limit price, including its symbol, e.g. "341.22 USDC". It is an estimate
+   * since the cost tolerance can reduce what is actually received.
+   */
+  estReceivingAmount: string;
+  /**
    * Limit price the order triggers at, e.g. "$3,412.20".
    */
   triggerPrice: string;

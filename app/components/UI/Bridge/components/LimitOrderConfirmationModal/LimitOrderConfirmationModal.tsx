@@ -35,6 +35,7 @@ export const LimitOrderConfirmationModal = ({
   sourceToken,
   destToken,
   payingAmount,
+  estReceivingAmount,
   triggerPrice,
   triggerComparison,
   triggerToken,
@@ -134,11 +135,11 @@ export const LimitOrderConfirmationModal = ({
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
-        <DetailRow label={strings('bridge.limit.receiving')}>
-          <TokenAmountValue
-            amount={destToken?.symbol ?? '--'}
-            token={destToken}
-          />
+        <DetailRow
+          label={strings('bridge.limit.est_receiving')}
+          testID={LimitOrderConfirmationModalSelectorsIDs.RECEIVING}
+        >
+          <TokenAmountValue amount={estReceivingAmount} token={destToken} />
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow label={strings('bridge.limit.trigger_condition')}>

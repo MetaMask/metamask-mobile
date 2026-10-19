@@ -163,6 +163,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
   payingAmount: '0.1 ETH',
+  estReceivingAmount: '341.22 USDC',
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',

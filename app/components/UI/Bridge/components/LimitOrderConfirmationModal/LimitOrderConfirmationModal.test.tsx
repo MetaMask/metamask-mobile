@@ -69,6 +69,7 @@ function buildProps(
     sourceToken: mockSourceToken,
     destToken: mockDestToken,
     payingAmount: '0.1 ETH',
+    estReceivingAmount: '341.22 USDC',
     triggerPrice: '$3,412.20',
     expiry: '7 days',
     costTolerance: '2%',
@@ -113,6 +114,21 @@ describe('LimitOrderConfirmationModal', () => {
     rerender(<LimitOrderConfirmationModal {...props} costTolerance="0.5%" />);
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays the estimated receiving amount', () => {
+    const { getByTestId } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    const receivingRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.RECEIVING,
+    );
+
+    expect(
+      within(receivingRow).getByText(strings('bridge.limit.est_receiving')),
+    ).toBeOnTheScreen();
+    expect(within(receivingRow).getByText('341.22 USDC')).toBeOnTheScreen();
   });
 
   it('displays the trigger price after an @', () => {
