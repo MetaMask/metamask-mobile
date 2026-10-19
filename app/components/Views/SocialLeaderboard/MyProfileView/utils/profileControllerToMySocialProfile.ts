@@ -62,6 +62,7 @@ export const profileControllerToMySocialProfile = (
     avatarBackgroundId: foxicon?.avatarBackgroundId ?? null,
     rankingTag: null,
     xHandle: profile.connectedToX ? (xProfile?.username ?? null) : null,
+    connectedToX: profile.connectedToX,
     followerCount: null,
     followingCount: null,
     shareUrl: profileUrlForHandle(profile.username),
@@ -70,5 +71,6 @@ export const profileControllerToMySocialProfile = (
     timesCopied: null,
     linkedAccountAddress: getLinkedEvmAddress(profile.linkedAddresses),
     shareTradingActivity: profile.tradingPrivacy === 'public',
+    joinedAt: profile.createdAt || null,
   };
 };

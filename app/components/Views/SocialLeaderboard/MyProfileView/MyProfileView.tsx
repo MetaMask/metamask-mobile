@@ -261,12 +261,12 @@ const MyProfileView: React.FC = () => {
     openComposer();
   }, [openComposer]);
 
-  const handleResetProfile = useCallback(() => {
-    resetLocalSocialProfile();
+  const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
-  const handleCreateProfile = useCallback(() => {
+  const handleResetProfile = useCallback(() => {
+    resetLocalSocialProfile();
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
@@ -423,7 +423,17 @@ const MyProfileView: React.FC = () => {
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           endAccessory={
             isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+                <ButtonIcon
+                  iconName={IconName.Refresh}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleResetProfile}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.debug_reset_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+                />
                 <ButtonIcon
                   iconName={IconName.Edit}
                   iconProps={{ color: IconColor.IconDefault }}
@@ -553,16 +563,6 @@ const MyProfileView: React.FC = () => {
                   </Box>
                 )}
               </Box>
-              {isOwner ? (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  isFullWidth
-                  onPress={handleResetProfile}
-                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
-                >
-                  {strings('social_leaderboard.my_profile.debug_reset_profile')}
-                </Button>
-              ) : null}
             </Box>
 
             <Box
@@ -631,6 +631,9 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                avatarBackgroundId={displayProfile.avatarBackgroundId}
               />
             ) : postsError && posts.length === 0 ? (
               <Box

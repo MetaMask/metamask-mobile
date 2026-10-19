@@ -4,6 +4,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 import { CardProviderIds } from '../../../core/Engine/controllers/card-controller/provider-types';
 import {
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
@@ -30,6 +31,7 @@ export {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
@@ -69,6 +71,12 @@ export const selectApplePayLearnMoreUrl = createSelector(
       ? url
       : DEFAULT_APPLE_PAY_LEARN_MORE_URL;
   },
+);
+
+export const selectCardLinkApiEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    readCardLinkApiEnabled(remoteFeatureFlags as CardRemoteFeatureFlags),
 );
 
 // -- Immersve provider flags --
