@@ -919,6 +919,70 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  describe('VBA bank details action button', () => {
+    it('renders the Details button when the account is ready', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders no Details button when there is no VBA account', () => {
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('tracks and navigates to VBA details on press', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
+        label_key: 'money.action.details',
+        component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+        redirect_target: SCREEN_NAMES.VBA_DETAILS,
+        button_position: 4,
+        button_row_button_count: 4,
+      });
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_DETAILS);
+    });
+
+    it('counts four buttons in the Add tracking payload when Details is shown', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_position: 1,
+          button_row_button_count: 4,
+        }),
+      );
+    });
+  });
+
   describe('time to content telemetry', () => {
     it('marks APY and earnings ready when cached content is visible during refetch', () => {
       mockUseMoneyVaultApy.mockReturnValue({

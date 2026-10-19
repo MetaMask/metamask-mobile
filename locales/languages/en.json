@@ -9192,7 +9192,8 @@
     "action": {
       "add": "Add",
       "transfer": "Send",
-      "card": "Card"
+      "card": "Card",
+      "details": "Details"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"

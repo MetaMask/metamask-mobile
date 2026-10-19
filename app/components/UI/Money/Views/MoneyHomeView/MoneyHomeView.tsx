@@ -123,7 +123,8 @@ import { usePlusAccess } from '../../../../../hooks/usePlusAccess';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
-const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
+/** Row is Add + Send + Card, plus Details once the VBA account is ready. */
+const ACTION_BUTTON_ROW_BASE_COUNT = 3;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -205,6 +206,12 @@ const MoneyHomeView = () => {
   // refresh is the one-shot KYC session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
+  // The bank-details button only makes sense once the virtual account exists:
+  // its screen shows the PIX key and autoramp for a provisioned account.
+  const showVbaDetailsButton = vbaHomeCard.type === 'account_is_ready';
+  const actionButtonRowCount = showVbaDetailsButton
+    ? ACTION_BUTTON_ROW_BASE_COUNT + 1
+    : ACTION_BUTTON_ROW_BASE_COUNT;
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
@@ -518,13 +525,13 @@ const MoneyHomeView = () => {
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
-      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+      button_row_button_count: actionButtonRowCount,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const navigateToCardHome = useCallback(() => {
     const isUpsell = metamaskCardMode === 'upsell';
@@ -548,7 +555,7 @@ const MoneyHomeView = () => {
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       redirect_target: SCREEN_NAMES.CARD_HOME,
       button_position: 3,
-      button_row_button_count: ACTION_BUTTON_ROW_BUTTON_COUNT,
+      button_row_button_count: actionButtonRowCount,
     });
 
     trackEvent(
@@ -570,7 +577,22 @@ const MoneyHomeView = () => {
     createEventBuilder,
     activeProviderId,
     navigateToCardHome,
+    actionButtonRowCount,
   ]);
+
+  const handleActionButtonDetailsPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
+      label_key: 'money.action.details',
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      redirect_target: SCREEN_NAMES.VBA_DETAILS,
+      button_position: 4,
+      button_row_button_count: actionButtonRowCount,
+    });
+
+    navigation.navigate(Routes.RAMP.VBA_DETAILS);
+  }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -1065,7 +1087,7 @@ const MoneyHomeView = () => {
                 labelKey: 'money.action.add',
                 componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
                 buttonPosition: 1,
-                buttonRowButtonCount: ACTION_BUTTON_ROW_BUTTON_COUNT,
+                buttonRowButtonCount: actionButtonRowCount,
               }),
           }}
           transfer={{
@@ -1073,6 +1095,11 @@ const MoneyHomeView = () => {
             disabled: !hasSpendableBalance,
           }}
           card={{ onPress: handleActionButtonCardPress }}
+          details={
+            showVbaDetailsButton
+              ? { onPress: handleActionButtonDetailsPress }
+              : undefined
+          }
         />
         {vbaHomeCard.type !== 'none' && (
           <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
