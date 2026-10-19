@@ -11,6 +11,7 @@ export const AccountsMenuSelectorsIDs = {
   BUY_BUTTON: 'buy-button',
   EARN_BUTTON: 'earn-button',
   NOTIFICATIONS_BUTTON: 'notifications-button',
+  METAMASK_ORANGE: 'metamask-orange-menu-item',
 
   // Manage Card
   MANAGE_CARD: 'manage-card',
