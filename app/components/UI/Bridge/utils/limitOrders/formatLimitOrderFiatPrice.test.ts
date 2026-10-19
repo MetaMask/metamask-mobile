@@ -64,6 +64,13 @@ describe('formatLimitOrderFiatInputPrice', () => {
     expect(formatLimitOrderFiatInputPrice(0.004)).toBeUndefined();
   });
 
+  it('rounds to the given decimal places', () => {
+    expect(formatLimitOrderFiatInputPrice(0.0000037998, 9)).toBe('0.0000038');
+    expect(formatLimitOrderFiatInputPrice(0.10298176120674981, 4)).toBe(
+      '0.103',
+    );
+  });
+
   it('returns undefined for unusable amounts', () => {
     expect(formatLimitOrderFiatInputPrice(0)).toBeUndefined();
     expect(formatLimitOrderFiatInputPrice(-1)).toBeUndefined();
@@ -83,6 +90,16 @@ describe('formatLimitOrderFiatInputPriceFromTokenAmount', () => {
     expect(result).toBe('0.1');
   });
 
+  it('converts a token amount to a fiat unit price with the given decimal places', () => {
+    const result = formatLimitOrderFiatInputPriceFromTokenAmount(
+      '0.0000038',
+      0.9998,
+      9,
+    );
+
+    expect(result).toBe('0.000003799');
+  });
+
   it('returns undefined when the fiat rate or amount is missing', () => {
     expect(
       formatLimitOrderFiatInputPriceFromTokenAmount('1', undefined),
@@ -94,13 +111,15 @@ describe('formatLimitOrderFiatInputPriceFromTokenAmount', () => {
 });
 
 describe('roundLimitOrderMarketFiatToInput', () => {
-  it('rounds a market price to two decimal places', () => {
-    expect(roundLimitOrderMarketFiatToInput(0.10298176120674981)).toBe(0.1);
+  it('rounds a market price of at least 1 to two decimal places', () => {
     expect(roundLimitOrderMarketFiatToInput(4321.987654321)).toBe(4321.99);
+    expect(roundLimitOrderMarketFiatToInput(1.23456)).toBe(1.23);
   });
 
-  it('returns a market price too small to round as is', () => {
+  it('rounds a sub-dollar market price to four significant digits', () => {
+    expect(roundLimitOrderMarketFiatToInput(0.10298176120674981)).toBe(0.103);
     expect(roundLimitOrderMarketFiatToInput(0.004)).toBe(0.004);
+    expect(roundLimitOrderMarketFiatToInput(0.0000039998123)).toBe(0.000004);
   });
 
   it('returns undefined when there is no market price', () => {

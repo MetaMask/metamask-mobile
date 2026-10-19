@@ -73,6 +73,8 @@ function renderKeypadHook(
       customPercent: overrides.customPercent ?? '5',
       isLimitFiatMode: overrides.isLimitFiatMode ?? true,
       limitPrice: overrides.limitPrice ?? '100',
+      limitPriceDecimals:
+        'limitPriceDecimals' in overrides ? overrides.limitPriceDecimals : 2,
       nativeToken: overrides.nativeToken ?? nativeToken,
       onCustomPercentChange: mockOnCustomPercentChange,
       onLimitPriceChange: mockOnLimitPriceChange,
@@ -234,6 +236,7 @@ describe('useSwapsLimitOrderKeypad', () => {
     const { result } = renderKeypadHook({
       isLimitFiatMode: false,
       limitPrice: '0.05',
+      limitPriceDecimals: 18,
     });
 
     act(() => {
@@ -244,6 +247,47 @@ describe('useSwapsLimitOrderKeypad', () => {
       value: '0.05',
       currency: 'ETH',
       decimals: 18,
+    });
+  });
+
+  it('accepts as many limit price decimals as a cheap token needs', () => {
+    const { result } = renderKeypadHook({
+      limitPrice: '0.0000038',
+      limitPriceDecimals: 9,
+    });
+
+    act(() => {
+      result.current.focusLimitPrice();
+    });
+
+    expect(result.current.keypadProps).toEqual({
+      value: '0.0000038',
+      currency: 'SWAPS_FIAT_INPUT',
+      decimals: 9,
+    });
+    expect(mockUseSourceAmountCursor).toHaveBeenCalledWith(
+      expect.objectContaining({
+        onSourceAmountChange: mockOnLimitPriceChange,
+        sourceTokenDecimals: 9,
+      }),
+    );
+  });
+
+  it('does not bound limit price decimals when they are unknown', () => {
+    const { result } = renderKeypadHook({
+      isLimitFiatMode: false,
+      limitPrice: '0.05',
+      limitPriceDecimals: undefined,
+    });
+
+    act(() => {
+      result.current.focusLimitPrice();
+    });
+
+    expect(result.current.keypadProps).toEqual({
+      value: '0.05',
+      currency: 'ETH',
+      decimals: Infinity,
     });
   });
 

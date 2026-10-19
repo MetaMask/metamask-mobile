@@ -27,21 +27,24 @@ const createCurrencyFormatter = () =>
 
 const fiatModeDefaults = {
   counterFiatRate: 2000,
-  counterTokenDecimals: 18,
   counterTokenSymbol: 'ETH',
   currentCurrency: 'USD',
   isLimitFiatMode: true,
   limitPrice: '50',
+  marketFiat: 50,
 };
 
 const tokenModeDefaults = {
   counterFiatRate: 2000,
-  counterTokenDecimals: 18,
   counterTokenSymbol: 'ETH',
   currentCurrency: 'USD',
   isLimitFiatMode: false,
   limitPrice: '0.025',
+  marketFiat: 50,
 };
+
+// A quoted token worth a fraction of a cent, like PEPE.
+const CHEAP_MARKET_FIAT = 0.0000039998;
 
 describe('getSwapsLimitOrderSecondaryValue', () => {
   beforeEach(() => {
@@ -99,6 +102,26 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
       });
 
       expect(result).toBe('0 ETH');
+    });
+
+    it('keeps five decimal places for a regular token amount', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...fiatModeDefaults,
+        limitPrice: '112.2468',
+      });
+
+      expect(result).toBe('0.05612 ETH');
+    });
+
+    it('keeps a cheap token amount instead of rounding it to zero', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...fiatModeDefaults,
+        counterFiatRate: 4000,
+        limitPrice: '0.0000038',
+        marketFiat: CHEAP_MARKET_FIAT,
+      });
+
+      expect(result).toBe('0.00000000095 ETH');
     });
   });
 
@@ -163,6 +186,26 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
       });
 
       expect(result).toBe('$0');
+    });
+
+    it('keeps a sub-cent fiat price of a cheap token instead of rounding it to zero', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...tokenModeDefaults,
+        counterFiatRate: 0.9998,
+        counterTokenSymbol: 'mUSD',
+        limitPrice: '0.0000038',
+        marketFiat: CHEAP_MARKET_FIAT,
+      });
+
+      expect(result).toBe('$0.000003799');
+      expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          style: 'currency',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 9,
+        }),
+      );
     });
   });
 });

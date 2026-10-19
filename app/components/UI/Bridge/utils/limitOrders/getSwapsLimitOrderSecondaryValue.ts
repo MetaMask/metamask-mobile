@@ -1,29 +1,36 @@
 import { formatAmountWithLocaleSeparators } from '../formatAmountWithLocaleSeparators';
-import {
-  formatFiatInputAmount,
-  formatSecondaryTokenAmount,
-  formatTokenInputAmountFromFiat,
-} from '../sourceAmountInputMode';
+import { formatTokenInputAmountFromFiat } from '../sourceAmountInputMode';
 import { formatCurrency } from '../currencyUtils';
+import { formatLimitOrderFiatInputPriceFromTokenAmount } from './formatLimitOrderFiatPrice';
 import { formatLimitOrderFiatValue } from './formatLimitOrderFiatValue';
+import {
+  getLimitOrderFiatPriceDecimals,
+  getLimitOrderSecondaryTokenPriceDecimals,
+} from './getLimitOrderPriceDecimals';
 
 /**
  * Secondary-row label for the limit price: Build the ≈ 0.0561 ETH row
+ *
+ * Shown with enough precision for a cheap quoted token (e.g. PEPE) that the
+ * row follows the limit price instead of reading as zero.
  */
 export const getSwapsLimitOrderSecondaryValue = ({
   counterFiatRate,
-  counterTokenDecimals,
   counterTokenSymbol,
   currentCurrency,
   isLimitFiatMode,
   limitPrice,
+  marketFiat,
 }: {
   counterFiatRate: number | undefined;
-  counterTokenDecimals: number | undefined;
   counterTokenSymbol: string | undefined;
   currentCurrency: string | undefined;
   isLimitFiatMode: boolean;
   limitPrice: string | undefined;
+  /**
+   * Live fiat price of 1 unit of the quoted token, which sets the precision.
+   */
+  marketFiat: number | undefined;
 }): string | undefined => {
   if (!counterTokenSymbol) {
     return undefined;
@@ -35,24 +42,29 @@ export const getSwapsLimitOrderSecondaryValue = ({
     const counterFromFiat = formatTokenInputAmountFromFiat({
       fiatAmount: limitPrice,
       tokenFiatRate: counterFiatRate,
-      tokenDecimals: counterTokenDecimals,
+      tokenDecimals: getLimitOrderSecondaryTokenPriceDecimals({
+        counterFiatRate,
+        marketFiat,
+      }),
     });
 
     if (counterFromFiat && Number(counterFromFiat) > 0) {
-      const formattedCounterAmount =
-        formatSecondaryTokenAmount(counterFromFiat);
-
       return `${formatAmountWithLocaleSeparators(
-        formattedCounterAmount ?? counterFromFiat,
+        counterFromFiat,
       )} ${counterTokenSymbol}`;
     }
 
     return `0 ${counterTokenSymbol}`;
   }
 
-  const fiatFromCounter = formatFiatInputAmount(limitPrice, counterFiatRate);
-  if (fiatFromCounter && Number(fiatFromCounter) > 0) {
-    return formatLimitOrderFiatValue(fiatFromCounter, currency);
+  const fiatDecimals = getLimitOrderFiatPriceDecimals(marketFiat);
+  const fiatFromCounter = formatLimitOrderFiatInputPriceFromTokenAmount(
+    limitPrice,
+    counterFiatRate,
+    fiatDecimals,
+  );
+  if (fiatFromCounter) {
+    return formatLimitOrderFiatValue(fiatFromCounter, currency, fiatDecimals);
   }
 
   return formatCurrency(0, currency, {

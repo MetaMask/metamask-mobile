@@ -6,7 +6,6 @@ import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import type { useSourceAmountInput } from '../useSourceAmountInput';
 import type { BridgeToken } from '../../types';
 import { LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH } from '../../constants/limitOrders';
-import { FIAT_INPUT_DECIMALS } from '../../utils/sourceAmountInputMode';
 
 export enum LimitOrderKeypadField {
   Amount = 'amount',
@@ -22,6 +21,10 @@ interface UseLimitOrderKeypadOptions {
   customPercent: string | undefined;
   isLimitFiatMode: boolean;
   limitPrice: string | undefined;
+  /**
+   * Decimal places the limit price accepts. Unbounded when undefined.
+   */
+  limitPriceDecimals: number | undefined;
   nativeToken: BridgeToken | undefined;
   onCustomPercentChange: (value: string | undefined) => void;
   onLimitPriceChange: (value: string | undefined) => void;
@@ -32,6 +35,7 @@ export const useSwapsLimitOrderKeypad = ({
   customPercent,
   isLimitFiatMode,
   limitPrice,
+  limitPriceDecimals: limitPriceDecimalsOption,
   nativeToken,
   onCustomPercentChange,
   onLimitPriceChange,
@@ -42,9 +46,7 @@ export const useSwapsLimitOrderKeypad = ({
     LimitOrderKeypadField.Amount,
   );
 
-  const limitPriceDecimals = isLimitFiatMode
-    ? FIAT_INPUT_DECIMALS
-    : (nativeToken?.decimals ?? Infinity);
+  const limitPriceDecimals = limitPriceDecimalsOption ?? Infinity;
 
   const {
     sourceSelection: limitPriceSelection,

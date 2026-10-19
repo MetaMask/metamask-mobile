@@ -411,6 +411,7 @@ function buildPriceAdjustMock() {
     isLimitFiatMode: false,
     executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
+    limitPriceDecimals: 18,
     marketComparison: undefined,
     isTriggerPriceNearMarket: false,
     priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
@@ -507,6 +508,19 @@ describe('BridgeLimitOrderView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('lets the limit price keypad take the decimals the limit price is set with', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPriceDecimals: 11,
+    }));
+
+    renderLimitOrderView();
+
+    expect(useSwapsLimitOrderKeypad).toHaveBeenCalledWith(
+      expect.objectContaining({ limitPriceDecimals: 11 }),
+    );
   });
 
   it('renders the destination amount the source amount buys at the limit price', () => {
