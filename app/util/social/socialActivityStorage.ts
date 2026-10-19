@@ -4,26 +4,6 @@ import StorageWrapper from '../../store/storage-wrapper';
 
 export const SOCIAL_RECENT_ACTIVITY_WINDOW_MS = 48 * 60 * 60 * 1000;
 
-/** Returns whether an epoch-ms or ISO timestamp is inside the social window. */
-export const isRecentSocialActivityTimestamp = (
-  timestamp: number | string | null | undefined,
-  now: number = Date.now(),
-): boolean => {
-  const timestampMs =
-    typeof timestamp === 'number' ? timestamp : Date.parse(timestamp ?? '');
-
-  if (!Number.isFinite(timestampMs) || timestampMs <= 0) {
-    return false;
-  }
-
-  const elapsed = now - timestampMs;
-  return elapsed >= 0 && elapsed < SOCIAL_RECENT_ACTIVITY_WINDOW_MS;
-};
-
-/** Builds the storage key for one wallet's last social trade. */
-export const getSocialLastTradeStorageKey = (walletId: string): string =>
-  `${SOCIAL_LAST_TRADE_AT}:${walletId}`;
-
 const SOCIAL_TRADE_SOURCES = new Set<string>([
   'notification',
   'profile_position',
@@ -48,39 +28,28 @@ export const isSocialTradeSource = (source?: string): boolean =>
  * Storage failures must not affect the user's trade, so both synchronous and
  * asynchronous storage errors are intentionally ignored.
  */
-export const recordSocialTrade = (
-  walletId: string,
-  timestamp: number = Date.now(),
-): void => {
-  if (!walletId) {
-    return;
-  }
-
+export const recordSocialTrade = (timestamp: number = Date.now()): void => {
   try {
-    StorageWrapper.setItem(
-      getSocialLastTradeStorageKey(walletId),
-      String(timestamp),
-    )?.catch(() => undefined);
+    StorageWrapper.setItem(SOCIAL_LAST_TRADE_AT, String(timestamp))?.catch(
+      () => undefined,
+    );
   } catch {
     // A missed timestamp only costs this user the reordered section.
   }
 };
 
 /** Synchronous by design so homepage section order is decided during render. */
-export const hasRecentSocialTrade = (
-  walletId: string | undefined,
-  now: number = Date.now(),
-): boolean => {
-  if (!walletId) {
-    return false;
-  }
-
-  const stored = StorageWrapper.getItemSync(
-    getSocialLastTradeStorageKey(walletId),
-  );
+export const hasRecentSocialTrade = (now: number = Date.now()): boolean => {
+  const stored = StorageWrapper.getItemSync(SOCIAL_LAST_TRADE_AT);
   if (!stored) {
     return false;
   }
 
-  return isRecentSocialActivityTimestamp(Number(stored), now);
+  const timestamp = Number(stored);
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    return false;
+  }
+
+  const elapsed = now - timestamp;
+  return elapsed >= 0 && elapsed < SOCIAL_RECENT_ACTIVITY_WINDOW_MS;
 };

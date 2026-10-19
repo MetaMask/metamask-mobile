@@ -213,10 +213,6 @@ jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/multichainAccounts/selectedWallet', () => ({
-  selectSelectedAccountWalletId: jest.fn(),
-}));
-
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
   selectCurrencyRates: jest.fn(),

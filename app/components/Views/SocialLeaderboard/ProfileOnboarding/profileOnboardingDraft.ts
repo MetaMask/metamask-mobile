@@ -176,7 +176,6 @@ export const buildOnboardedSocialProfile = (
     profileId: 'current-user',
     displayName: draft.displayName.trim(),
     handle,
-    createdAt: new Date().toISOString(),
     bio: null,
     imageUrl: usesXAvatar ? draft.xAvatarUrl : null,
     avatarPresetId: usesXAvatar ? null : draft.avatarPresetId,

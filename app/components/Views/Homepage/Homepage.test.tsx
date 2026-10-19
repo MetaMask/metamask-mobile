@@ -173,9 +173,30 @@ jest.mock('../../UI/Perps/hooks', () => ({
   })),
 }));
 
-const mockUseSocialTopTradersEligible = jest.fn(() => false);
+const mockUseSocialTopTradersEligible = jest.fn(
+  (_enabled: boolean, _hydrateProfile: boolean) => false,
+);
 jest.mock('./hooks/useIsSocialTopTradersEligible', () => ({
-  useIsSocialTopTradersEligible: () => mockUseSocialTopTradersEligible(),
+  useIsSocialTopTradersEligible: (enabled: boolean, hydrateProfile: boolean) =>
+    mockUseSocialTopTradersEligible(enabled, hydrateProfile),
+}));
+
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = 'WIFI';
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+  useNetworkTierState: () => ({
+    tier: mockNetworkTier,
+    isResolved: mockNetworkTier !== null,
+  }),
 }));
 
 jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
@@ -409,23 +430,6 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 const mockEnableAllPopularNetworks = jest.fn();
 let mockPopularNetworks: string[] = [];
 const mockIsNetworkEnabled = jest.fn(() => true);
-let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
-let mockNetworkTier:
-  | 'NONE'
-  | 'SLOW_CELLULAR'
-  | 'FAST_CELLULAR'
-  | 'WIFI'
-  | null = 'WIFI';
-jest.mock('../../../util/deviceCapability', () => ({
-  getHardwareTier: () => mockHardwareTier,
-}));
-jest.mock('../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => mockNetworkTier,
-  useNetworkTierState: () => ({
-    tier: mockNetworkTier,
-    isResolved: mockNetworkTier !== null,
-  }),
-}));
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -494,6 +498,8 @@ describe('Homepage', () => {
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseSocialTopTradersEligible.mockReturnValue(false);
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'WIFI';
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
@@ -836,6 +842,26 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
       expect(callBySectionName('perps')?.sectionIndex).toBe(2);
       expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, true);
+    });
+
+    it('uses cached eligibility without profile hydration on low-end devices', () => {
+      mockHardwareTier = 'LOW';
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
     });
 
     it('keeps Top Traders below Tokens for ineligible Social V1 treatment users', () => {
@@ -914,6 +940,10 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('perps')?.sectionIndex).toBe(1);
       expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(
+        false,
+        false,
+      );
     });
   });
 

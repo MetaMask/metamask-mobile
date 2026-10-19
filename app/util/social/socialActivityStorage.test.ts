@@ -1,8 +1,7 @@
+import { SOCIAL_LAST_TRADE_AT } from '../../constants/storage';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
-  getSocialLastTradeStorageKey,
   hasRecentSocialTrade,
-  isRecentSocialActivityTimestamp,
   isSocialTradeSource,
   recordSocialTrade,
   SOCIAL_RECENT_ACTIVITY_WINDOW_MS,
@@ -15,8 +14,6 @@ jest.mock('../../store/storage-wrapper', () => ({
 
 const mockStorage = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
 const NOW = 1_760_000_000_000;
-const WALLET_ID = 'entropy:wallet-1';
-const OTHER_WALLET_ID = 'entropy:wallet-2';
 
 describe('socialActivityStorage', () => {
   beforeEach(() => {
@@ -43,24 +40,18 @@ describe('socialActivityStorage', () => {
 
   describe('recordSocialTrade', () => {
     it('writes the supplied timestamp as a string', () => {
-      recordSocialTrade(WALLET_ID, NOW);
+      recordSocialTrade(NOW);
 
       expect(mockStorage.setItem).toHaveBeenCalledWith(
-        getSocialLastTradeStorageKey(WALLET_ID),
+        SOCIAL_LAST_TRADE_AT,
         String(NOW),
       );
-    });
-
-    it('does not write when no wallet is selected', () => {
-      recordSocialTrade('');
-
-      expect(mockStorage.setItem).not.toHaveBeenCalled();
     });
 
     it('swallows storage failures', async () => {
       mockStorage.setItem.mockRejectedValue(new Error('storage unavailable'));
 
-      expect(() => recordSocialTrade(WALLET_ID, NOW)).not.toThrow();
+      expect(() => recordSocialTrade(NOW)).not.toThrow();
 
       await Promise.resolve();
     });
@@ -70,13 +61,13 @@ describe('socialActivityStorage', () => {
     it('returns false when no trade was recorded', () => {
       mockStorage.getItemSync.mockReturnValue(null);
 
-      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(NOW)).toBe(false);
     });
 
     it('returns true for a trade inside the recency window', () => {
       mockStorage.getItemSync.mockReturnValue(String(NOW - 1000));
 
-      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(true);
+      expect(hasRecentSocialTrade(NOW)).toBe(true);
     });
 
     it('returns false after the recency window', () => {
@@ -84,13 +75,13 @@ describe('socialActivityStorage', () => {
         String(NOW - SOCIAL_RECENT_ACTIVITY_WINDOW_MS),
       );
 
-      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(NOW)).toBe(false);
     });
 
     it('returns false for a future timestamp', () => {
       mockStorage.getItemSync.mockReturnValue(String(NOW + 60_000));
 
-      expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
+      expect(hasRecentSocialTrade(NOW)).toBe(false);
     });
 
     it.each([['not-a-number'], [''], ['0'], ['-1']])(
@@ -98,61 +89,18 @@ describe('socialActivityStorage', () => {
       (stored) => {
         mockStorage.getItemSync.mockReturnValue(stored);
 
-        expect(hasRecentSocialTrade(WALLET_ID, NOW)).toBe(false);
+        expect(hasRecentSocialTrade(NOW)).toBe(false);
       },
     );
 
     it('reads the timestamp synchronously', () => {
       mockStorage.getItemSync.mockReturnValue(String(NOW - 1000));
 
-      hasRecentSocialTrade(WALLET_ID, NOW);
+      hasRecentSocialTrade(NOW);
 
       expect(mockStorage.getItemSync).toHaveBeenCalledWith(
-        getSocialLastTradeStorageKey(WALLET_ID),
+        SOCIAL_LAST_TRADE_AT,
       );
     });
-
-    it('returns false when no wallet is selected', () => {
-      expect(hasRecentSocialTrade(undefined, NOW)).toBe(false);
-
-      expect(mockStorage.getItemSync).not.toHaveBeenCalled();
-    });
-
-    it('does not reuse another wallet timestamp', () => {
-      mockStorage.getItemSync.mockImplementation((key) =>
-        key === getSocialLastTradeStorageKey(WALLET_ID)
-          ? String(NOW - 1000)
-          : null,
-      );
-
-      expect(hasRecentSocialTrade(OTHER_WALLET_ID, NOW)).toBe(false);
-    });
-  });
-
-  describe('isRecentSocialActivityTimestamp', () => {
-    it('accepts an ISO timestamp inside the recency window', () => {
-      expect(
-        isRecentSocialActivityTimestamp(
-          new Date(NOW - 1000).toISOString(),
-          NOW,
-        ),
-      ).toBe(true);
-    });
-
-    it('rejects timestamps at or beyond the recency boundary', () => {
-      expect(
-        isRecentSocialActivityTimestamp(
-          new Date(NOW - SOCIAL_RECENT_ACTIVITY_WINDOW_MS).toISOString(),
-          NOW,
-        ),
-      ).toBe(false);
-    });
-
-    it.each(['not-a-date', '', null, undefined])(
-      'rejects an unusable timestamp %p',
-      (timestamp) => {
-        expect(isRecentSocialActivityTimestamp(timestamp, NOW)).toBe(false);
-      },
-    );
   });
 });

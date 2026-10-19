@@ -177,11 +177,19 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }),
     );
     const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
-    const isSocialTopTradersEligible = useIsSocialTopTradersEligible();
+    const isSocialV1PriorityEnabled =
+      isTopTradersEnabled && socialV1Variant.useSocialV1;
+    const shouldHydrateSocialProfile =
+      isSocialV1PriorityEnabled &&
+      networkTier !== 'NONE' &&
+      (hardwareTier !== 'LOW' || networkTier === null);
+    const isSocialTopTradersEligible = useIsSocialTopTradersEligible(
+      isSocialV1PriorityEnabled,
+      shouldHydrateSocialProfile,
+    );
     const showTopTradersAboveAllocation =
-      isTopTradersEnabled &&
+      isSocialV1PriorityEnabled &&
       shouldMountOptionalSections &&
-      socialV1Variant.useSocialV1 &&
       isSocialTopTradersEligible;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =

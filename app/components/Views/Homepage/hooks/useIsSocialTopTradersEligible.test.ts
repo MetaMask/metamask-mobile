@@ -1,15 +1,10 @@
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { act, renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import {
   type MySocialProfile,
   useMyProfile,
 } from '../../SocialLeaderboard/MyProfileView/hooks';
-import {
-  hasRecentSocialTrade,
-  isRecentSocialActivityTimestamp,
-} from '../../../../util/social/socialActivityStorage';
-import { getLocalSocialProfileSnapshot } from '../../SocialLeaderboard/MyProfileView/hooks/localSocialProfileStore';
+import { hasRecentSocialTrade } from '../../../../util/social/socialActivityStorage';
 import {
   evaluateIsSocialTopTradersEligible,
   useIsSocialTopTradersEligible,
@@ -20,169 +15,110 @@ jest.mock('../../SocialLeaderboard/MyProfileView/hooks', () => ({
 }));
 
 jest.mock('../../../../util/social/socialActivityStorage', () => ({
-  ...jest.requireActual('../../../../util/social/socialActivityStorage'),
   hasRecentSocialTrade: jest.fn(),
-  isRecentSocialActivityTimestamp: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
-const mockUseMyProfile = useMyProfile as jest.MockedFunction<
-  typeof useMyProfile
->;
-const mockHasRecentSocialTrade = hasRecentSocialTrade as jest.MockedFunction<
-  typeof hasRecentSocialTrade
->;
-const mockIsRecentSocialActivityTimestamp =
-  isRecentSocialActivityTimestamp as jest.MockedFunction<
-    typeof isRecentSocialActivityTimestamp
-  >;
-const realIsRecentSocialActivityTimestamp = jest.requireActual<
-  typeof import('../../../../util/social/socialActivityStorage')
->(
-  '../../../../util/social/socialActivityStorage',
-).isRecentSocialActivityTimestamp;
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseMyProfile = jest.mocked(useMyProfile);
+const mockHasRecentSocialTrade = jest.mocked(hasRecentSocialTrade);
 const mockFocusEffect = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (callback: () => void) => mockFocusEffect(callback),
 }));
 
-const walletId = 'entropy:wallet-1';
-const PROFILE_CREATED_AT = new Date().toISOString();
-const NOW = Date.parse(PROFILE_CREATED_AT);
-const recentSocialProfile = {
+const NOW = 1_760_000_000_000;
+const socialProfile = {
   profileId: 'profile-1',
-  createdAt: PROFILE_CREATED_AT,
 } as MySocialProfile;
-const staleSocialProfile = {
-  profileId: 'profile-1',
-  createdAt: new Date(NOW - 49 * 60 * 60 * 1000).toISOString(),
-} as MySocialProfile;
+
+const setProfile = (profile: MySocialProfile | null) => {
+  mockUseMyProfile.mockReturnValue({
+    profile,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  });
+};
 
 describe('useIsSocialTopTradersEligible', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMyProfile.mockReturnValue({
-      profile: null,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
+    setProfile(null);
     mockHasRecentSocialTrade.mockReturnValue(false);
-    mockIsRecentSocialActivityTimestamp.mockReturnValue(false);
-    mockUseSelector.mockReturnValue(walletId);
   });
 
   describe('evaluateIsSocialTopTradersEligible', () => {
-    it('returns true for a user with a social profile', () => {
-      mockIsRecentSocialActivityTimestamp.mockReturnValue(true);
-
-      const result = evaluateIsSocialTopTradersEligible(
-        recentSocialProfile,
-        walletId,
-        NOW,
-      );
+    it('returns true for any social profile', () => {
+      const result = evaluateIsSocialTopTradersEligible(socialProfile, NOW);
 
       expect(result).toBe(true);
       expect(mockHasRecentSocialTrade).not.toHaveBeenCalled();
     });
 
-    it('returns false for a stale social profile without a recent trade', () => {
-      const result = evaluateIsSocialTopTradersEligible(
-        staleSocialProfile,
-        walletId,
-        NOW,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true for a user with a recent social trade', () => {
+    it('returns true for a recent social trade without a profile', () => {
       mockHasRecentSocialTrade.mockReturnValue(true);
 
-      const result = evaluateIsSocialTopTradersEligible(null, walletId, NOW);
+      const result = evaluateIsSocialTopTradersEligible(null, NOW);
 
       expect(result).toBe(true);
-      expect(mockHasRecentSocialTrade).toHaveBeenCalledWith(walletId, NOW);
+      expect(mockHasRecentSocialTrade).toHaveBeenCalledWith(NOW);
     });
 
     it('returns false without a social profile or recent trade', () => {
-      const result = evaluateIsSocialTopTradersEligible(null, walletId, NOW);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for a profile without a creation timestamp', () => {
-      const result = evaluateIsSocialTopTradersEligible(
-        { profileId: 'unlinked-profile' } as MySocialProfile,
-        walletId,
-        NOW,
-      );
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for the default profile outside the activity window', () => {
-      mockIsRecentSocialActivityTimestamp.mockImplementation(
-        realIsRecentSocialActivityTimestamp,
-      );
-      const { profile } = getLocalSocialProfileSnapshot();
-
-      const result = evaluateIsSocialTopTradersEligible(
-        profile,
-        walletId,
-        Date.now(),
-      );
+      const result = evaluateIsSocialTopTradersEligible(null, NOW);
 
       expect(result).toBe(false);
     });
   });
 
   it('resolves eligibility during the first render', () => {
-    mockUseMyProfile.mockReturnValue({
-      profile: recentSocialProfile,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
-    mockIsRecentSocialActivityTimestamp.mockReturnValue(true);
+    setProfile(socialProfile);
 
-    const { result } = renderHook(() => useIsSocialTopTradersEligible());
+    const { result } = renderHook(() => useIsSocialTopTradersEligible(true));
 
     expect(result.current).toBe(true);
   });
 
+  it('uses a cached profile without hydrating it', () => {
+    setProfile(socialProfile);
+
+    const { result } = renderHook(() =>
+      useIsSocialTopTradersEligible(true, false),
+    );
+
+    expect(result.current).toBe(true);
+    expect(mockUseMyProfile).toHaveBeenCalledWith({ enabled: false });
+  });
+
+  it('does not evaluate eligibility when the experiment is disabled', () => {
+    setProfile(socialProfile);
+    mockHasRecentSocialTrade.mockReturnValue(true);
+
+    const { result } = renderHook(() => useIsSocialTopTradersEligible(false));
+
+    expect(result.current).toBe(false);
+    expect(mockUseMyProfile).toHaveBeenCalledWith({ enabled: false });
+    expect(mockHasRecentSocialTrade).not.toHaveBeenCalled();
+  });
+
   it('does not re-evaluate when profile changes while the homepage is focused', () => {
     const { result, rerender } = renderHook(() =>
-      useIsSocialTopTradersEligible(),
+      useIsSocialTopTradersEligible(true),
     );
-    const [initialFocusCallback] = mockFocusEffect.mock.calls[0] as [
-      () => void,
-    ];
+    const [focusCallback] = mockFocusEffect.mock.calls[0] as [() => void];
 
-    mockUseMyProfile.mockReturnValue({
-      profile: recentSocialProfile,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
-    mockIsRecentSocialActivityTimestamp.mockReturnValue(true);
+    setProfile(socialProfile);
     rerender({});
 
     expect(result.current).toBe(false);
-    expect(mockFocusEffect.mock.calls.at(-1)?.[0]).toBe(initialFocusCallback);
 
-    act(() => initialFocusCallback());
+    act(() => focusCallback());
 
     expect(result.current).toBe(true);
   });
 
   it('re-evaluates eligibility when the homepage regains focus', () => {
-    const { result } = renderHook(() => useIsSocialTopTradersEligible());
+    const { result } = renderHook(() => useIsSocialTopTradersEligible(true));
 
     expect(result.current).toBe(false);
 
@@ -194,31 +130,15 @@ describe('useIsSocialTopTradersEligible', () => {
     expect(result.current).toBe(true);
   });
 
-  it('drops eligibility when the social profile and trade window are absent on focus', () => {
-    mockUseMyProfile.mockReturnValue({
-      profile: recentSocialProfile,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
-    mockIsRecentSocialActivityTimestamp.mockReturnValue(true);
-
-    const { result, rerender } = renderHook(() =>
-      useIsSocialTopTradersEligible(),
+  it('drops eligibility when the experiment is disabled', () => {
+    setProfile(socialProfile);
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useIsSocialTopTradersEligible(enabled),
+      { initialProps: { enabled: true } },
     );
 
-    expect(result.current).toBe(true);
-
-    mockUseMyProfile.mockReturnValue({
-      profile: null,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
-    rerender({});
-    mockIsRecentSocialActivityTimestamp.mockReturnValue(false);
+    rerender({ enabled: false });
     const [focusCallback] = mockFocusEffect.mock.calls.at(-1) as [() => void];
-
     act(() => focusCallback());
 
     expect(result.current).toBe(false);

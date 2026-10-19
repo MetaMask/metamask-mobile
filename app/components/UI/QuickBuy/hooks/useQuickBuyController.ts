@@ -90,7 +90,6 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectSelectedAccountWalletId } from '../../../../selectors/multichainAccounts/selectedWallet';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -353,7 +352,6 @@ export function useQuickBuyController(
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
-  const walletId = useSelector(selectSelectedAccountWalletId);
   const destAddress = useSelector(selectDestAddress);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
@@ -1748,8 +1746,8 @@ export function useQuickBuyController(
         undefined, // inputPrimaryDenomination
         BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       );
-      if (isSocialTradeSource(analyticsContext.source) && walletId) {
-        recordSocialTrade(walletId);
+      if (isSocialTradeSource(analyticsContext.source)) {
+        recordSocialTrade();
       }
       const txHash =
         submitResult &&
@@ -1870,7 +1868,6 @@ export function useQuickBuyController(
     estimatedReceiveAmount,
     target,
     analyticsContext.source,
-    walletId,
   ]);
 
   // Preformatted headline value in the user's display currency (correct symbol

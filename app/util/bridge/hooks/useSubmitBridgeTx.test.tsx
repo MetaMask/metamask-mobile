@@ -20,7 +20,6 @@ import { createActiveABTestAssignment } from '../../analytics/activeABTestAssign
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { recordSocialTrade } from '../../social/socialActivityStorage';
-import { selectSelectedAccountWalletId } from '../../../selectors/multichainAccounts/selectedWallet';
 
 type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
@@ -50,10 +49,6 @@ jest.mock('../../../core/Engine', () => {
 jest.mock('../../social/socialActivityStorage', () => ({
   ...jest.requireActual('../../social/socialActivityStorage'),
   recordSocialTrade: jest.fn(),
-}));
-
-jest.mock('../../../selectors/multichainAccounts/selectedWallet', () => ({
-  selectSelectedAccountWalletId: jest.fn(),
 }));
 
 jest.mock('../../../selectors/networkController', () => {
@@ -119,9 +114,6 @@ const expectedDefaultQuotesReceivedContext = expect.objectContaining({
   slippage_limit: 0,
 });
 const mockRecordSocialTrade = jest.mocked(recordSocialTrade);
-const mockSelectSelectedAccountWalletId = jest.mocked(
-  selectSelectedAccountWalletId,
-);
 const SOCIAL_BRIDGE_LOCATIONS: MetaMetricsSwapsEventSource[] = [
   MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
   MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
@@ -164,7 +156,6 @@ describe('useSubmitBridgeTx', () => {
     jest.clearAllMocks();
     // Default every test to the non-experiment path unless it opts in.
     mockABTests();
-    mockSelectSelectedAccountWalletId.mockReturnValue('entropy:wallet-1');
   });
 
   const createWrapper = (mockState = {}, bridgeControllerState = {}) => {
@@ -827,7 +818,7 @@ describe('useSubmitBridgeTx', () => {
   });
 
   it.each(SOCIAL_BRIDGE_LOCATIONS)(
-    'records the wallet after social submitTx from %s',
+    'records social activity after submitTx from %s',
     async (location) => {
       const callOrder: string[] = [];
       mockRecordSocialTrade.mockImplementation(() => {
@@ -846,13 +837,13 @@ describe('useSubmitBridgeTx', () => {
         location,
       });
 
-      expect(mockRecordSocialTrade).toHaveBeenCalledWith('entropy:wallet-1');
+      expect(mockRecordSocialTrade).toHaveBeenCalledWith();
       expect(callOrder).toStrictEqual(['submitTx', 'record']);
     },
   );
 
   it.each(SOCIAL_BRIDGE_LOCATIONS)(
-    'records the wallet after social submitIntent from %s',
+    'records social activity after submitIntent from %s',
     async (location) => {
       const callOrder: string[] = [];
       mockRecordSocialTrade.mockImplementation(() => {
@@ -871,12 +862,12 @@ describe('useSubmitBridgeTx', () => {
         location,
       });
 
-      expect(mockRecordSocialTrade).toHaveBeenCalledWith('entropy:wallet-1');
+      expect(mockRecordSocialTrade).toHaveBeenCalledWith();
       expect(callOrder).toStrictEqual(['submitIntent', 'record']);
     },
   );
 
-  it('does not record the wallet for a non-social bridge location', async () => {
+  it('does not record activity for a non-social bridge location', async () => {
     mockSubmitTx.mockResolvedValueOnce({} as TransactionMeta);
     const { result } = renderHook(() => useSubmitBridgeTx(), {
       wrapper: createWrapper(),
@@ -890,7 +881,7 @@ describe('useSubmitBridgeTx', () => {
     expect(mockRecordSocialTrade).not.toHaveBeenCalled();
   });
 
-  it('does not record the wallet when bridge submission throws', async () => {
+  it('does not record activity when bridge submission throws', async () => {
     mockSubmitTx.mockRejectedValueOnce(new Error('submit failed'));
     const { result } = renderHook(() => useSubmitBridgeTx(), {
       wrapper: createWrapper(),
@@ -902,21 +893,6 @@ describe('useSubmitBridgeTx', () => {
         location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
       }),
     ).rejects.toThrow('submit failed');
-
-    expect(mockRecordSocialTrade).not.toHaveBeenCalled();
-  });
-
-  it('does not record a wallet when no wallet ID is selected', async () => {
-    mockSelectSelectedAccountWalletId.mockReturnValue(null);
-    mockSubmitTx.mockResolvedValueOnce({} as TransactionMeta);
-    const { result } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await result.current.submitBridgeTx({
-      quoteResponse: createQuoteResponse(),
-      location: MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
-    });
 
     expect(mockRecordSocialTrade).not.toHaveBeenCalled();
   });
