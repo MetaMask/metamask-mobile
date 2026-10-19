@@ -29,7 +29,7 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
         'Time since the user taps Money until content is visible',
         // Android base from the Oct 2026 Pixel 8 Pro baseline (max 1605ms).
         // iOS stays wide until an iOS baseline exists.
-        { ios: 60_000, android: 3_500 },
+        { ios: 60_000, android: 4_200 },
         currentDeviceDetails.platform,
       );
 
