@@ -1,9 +1,6 @@
 import React from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import {
-  Box,
-  ButtonIcon,
-  HeaderRoot,
-  HeaderStandardAnimated,
   Icon,
   IconColor,
   IconName,
@@ -11,6 +8,8 @@ import {
 } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
+import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
 
@@ -19,6 +18,13 @@ interface MoneyHeaderCommonProps {
    * Handler for the options menu button
    */
   onMenuPress: () => void;
+  /**
+   * Floats the header over the page on its glass backdrop, with the buttons in
+   * capsules, as on the brand refresh.
+   */
+  isGlass?: boolean;
+  /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
+  onLayout?: (event: LayoutChangeEvent) => void;
   /** Shows the green shield next to the title when 2-step verification is on. */
   isMfaEnabled?: boolean;
 }
@@ -38,7 +44,8 @@ interface MoneyHeaderPushedProps {
 /** The Money tab, which is rooted in the tab bar and has nothing to go back to. */
 interface MoneyHeaderTabProps {
   onBack?: never;
-  scrollY?: never;
+  /** Scroll offset of the page, which fades the glass backdrop in. */
+  scrollY?: SharedValue<number>;
   titleSectionHeight?: never;
 }
 
@@ -46,7 +53,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, isMfaEnabled } = props;
+  const { onMenuPress, isGlass = false, onLayout, isMfaEnabled } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -57,7 +64,10 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
 
   if (props.onBack) {
     return (
-      <HeaderStandardAnimated
+      <HeaderStandardAnimatedGlass
+        isGlass={isGlass}
+        onLayout={onLayout}
+        includesTopInset={isGlass}
         testID={MoneyHeaderTestIds.CONTAINER}
         title={strings('money.title')}
         titleProps={{
@@ -76,7 +86,11 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
   }
 
   return (
-    <HeaderRoot
+    <HeaderRootGlass
+      isGlass={isGlass}
+      onLayout={onLayout}
+      includesTopInset={isGlass}
+      scrollY={props.scrollY}
       testID={MoneyHeaderTestIds.CONTAINER}
       twClassName="pl-4 pr-3"
       title={strings('money.title')}
@@ -94,11 +108,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
           />
         ) : undefined
       }
-      endAccessory={
-        <Box twClassName="flex-row items-center gap-1">
-          <ButtonIcon {...menuButtonProps} />
-        </Box>
-      }
+      endButtonIconProps={[menuButtonProps]}
     />
   );
 };

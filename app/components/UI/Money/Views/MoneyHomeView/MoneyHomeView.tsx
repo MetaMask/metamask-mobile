@@ -6,6 +6,11 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type LayoutChangeEvent } from 'react-native';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import {
+  NativeHeaderBackdrop,
+  useNativeHeaderScroll,
+} from '../../../../hooks/useNativeHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated from 'react-native-reanimated';
@@ -29,7 +34,10 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { useStyles } from '../../../../hooks/useStyles';
 import MoneyHeader, {
   type MoneyHeaderProps,
+  useMoneyNativeHeader,
 } from '../../components/MoneyHeader';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
@@ -136,7 +144,7 @@ const MoneyHomeView = () => {
   // than rooted in the tab bar, which is the only case that gets a back
   // affordance and the title that collapses into the header on scroll.
   const isPushed = Boolean(showBackButton);
-  const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
+  const { titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -436,6 +444,21 @@ const MoneyHomeView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const isBrandRefresh = useSelector(selectMoneyBrandRefreshEnabled) === true;
+  const isGlass = useIsGlassSurfaceEnabled(selectMoneyBrandRefreshEnabled);
+  const isNativeHeader = useMoneyNativeHeader({
+    onMenuPress: handleMenuPress,
+    onBack: isPushed ? handleBackPress : undefined,
+    isEnabled: isBrandRefresh,
+  });
+
+  const { scrollY, scrollDistance, onScroll } =
+    useNativeHeaderScroll(isNativeHeader);
+  const isFloatingHeader = isBrandRefresh && !isNativeHeader;
+  const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
+    useHeaderGlassInset(isFloatingHeader, insets.top);
+  const topInset = isNativeHeader || isFloatingHeader ? 0 : insets.top;
+
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
       setTitleSectionHeight(event.nativeEvent.layout.height);
@@ -456,6 +479,7 @@ const MoneyHomeView = () => {
     : {
         onMenuPress: handleMenuPress,
         isMfaEnabled: mfaStatus === 'enabled',
+        scrollY,
       };
 
   const handleAddPress = useCallback(
@@ -998,6 +1022,7 @@ const MoneyHomeView = () => {
       key: 'condensed-info',
       node: (
         <MoneyCondensedInfoCards
+          isGlass={isGlass}
           onHowItWorksPress={() =>
             handleHowItWorksPress({
               componentName:
@@ -1029,16 +1054,29 @@ const MoneyHomeView = () => {
 
   return (
     <Box
-      style={[styles.safeArea, { paddingTop: insets.top }]}
+      style={[styles.safeArea, { paddingTop: topInset }]}
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader {...headerProps} />
+      {/* Mounted before the content so assistive tech reads the header first. */}
+      {!isNativeHeader && (
+        <MoneyHeader
+          {...headerProps}
+          isGlass={isFloatingHeader}
+          onLayout={isFloatingHeader ? handleFloatingHeaderLayout : undefined}
+        />
+      )}
       <Animated.ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
+        contentInsetAdjustmentBehavior={
+          isNativeHeader ? 'automatic' : undefined
+        }
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 40 + floatingTabBarInset },
+          {
+            paddingTop: floatingHeaderInset,
+            paddingBottom: 40 + floatingTabBarInset,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
@@ -1049,6 +1087,7 @@ const MoneyHomeView = () => {
             onRefresh={handlePullRefresh}
             tintColor={colors.icon.default}
             colors={[colors.primary.default]}
+            progressViewOffset={floatingHeaderInset}
           />
         }
       >
@@ -1083,10 +1122,11 @@ const MoneyHomeView = () => {
             onApyInfoPress={handleApyInfoPress}
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
-            showTitle={isPushed}
+            showTitle={isPushed && !isNativeHeader}
           />
         </Box>
         <MoneyActionButtonRow
+          isGlass={isGlass}
           add={{
             onPress: () =>
               handleAddPress({
@@ -1116,7 +1156,7 @@ const MoneyHomeView = () => {
         {mfaStatus === 'not_set_up' ? (
           <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
         ) : null}
-        <MoneyOnboardingCard />
+        <MoneyOnboardingCard isGlass={isGlass} />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}
@@ -1124,6 +1164,12 @@ const MoneyHomeView = () => {
           </React.Fragment>
         ))}
       </Animated.ScrollView>
+      {isNativeHeader && (
+        <NativeHeaderBackdrop
+          scrollDistance={scrollDistance}
+          testID={MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP}
+        />
+      )}
     </Box>
   );
 };
