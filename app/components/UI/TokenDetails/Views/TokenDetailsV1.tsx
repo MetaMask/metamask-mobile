@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -45,7 +46,15 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../QuickBuy';
+import type { SocialV1FeedItem } from '../../SocialFeed/types';
+import { chainNameToId } from '../../SocialFeed/utils/chainMapping';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -63,6 +72,7 @@ import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExpla
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
+import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
@@ -359,9 +369,75 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
-  const { activeTab, activateTab, mountedTabs, swipeGesture } =
-    useTokenDetailsV1Tabs({ onTabChange: clampScrollToTabBar });
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
+
+  const [copyTrade, setCopyTrade] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+  } | null>(null);
+  const handleFeedCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+      setCopyTrade({
+        target: {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        copyTradeOrigin: commentId ? { commentId } : undefined,
+      });
+    },
+    [],
+  );
+  const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
+  const visibleTabs = useMemo(
+    () =>
+      TOKEN_DETAILS_V1_TABS.filter(
+        (tab) => (tab !== 'feed' && tab !== 'holders') || showSocialTabs,
+      ),
+    [showSocialTabs],
+  );
+  // Feed is first, so it is the landing tab while social tabs are shown.
+  // An empty feed or an empty holders list still keeps its tab. Both tabs
+  // are omitted only when social is off or the token has no CAIP-19 id.
+  const landingTab = visibleTabs[0] ?? 'overview';
+  const userPickedTabRef = useRef(false);
+  const applyingLandingTabRef = useRef(false);
+  const handleTabChange = useCallback(() => {
+    if (!applyingLandingTabRef.current) {
+      userPickedTabRef.current = true;
+    }
+    clampScrollToTabBar();
+  }, [clampScrollToTabBar]);
+  const { activeTab, activateTab, mountedTabs, swipeGesture } =
+    useTokenDetailsV1Tabs({
+      initialTab: landingTab,
+      onTabChange: handleTabChange,
+      tabs: visibleTabs,
+    });
+
+  useEffect(() => {
+    if (!visibleTabs.includes(activeTab)) {
+      applyingLandingTabRef.current = true;
+      activateTab(visibleTabs[0] ?? 'overview');
+      applyingLandingTabRef.current = false;
+      return;
+    }
+    if (!userPickedTabRef.current && activeTab !== landingTab) {
+      applyingLandingTabRef.current = true;
+      activateTab(landingTab);
+      applyingLandingTabRef.current = false;
+    }
+  }, [activeTab, activateTab, landingTab, visibleTabs]);
 
   /**
    * Selecting the tab alone would leave the reader looking at the price hero
@@ -424,7 +500,15 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         );
       }
       if (tab === 'feed' && socialEnabled && caip19AssetId) {
-        return <TokenDetailsFeedTab assetId={caip19AssetId} />;
+        return (
+          <TokenDetailsFeedTab
+            assetId={caip19AssetId}
+            onCopyTrade={handleFeedCopyTrade}
+          />
+        );
+      }
+      if (tab === 'holders' && socialEnabled && caip19AssetId) {
+        return <TokenDetailsHoldersTab assetId={caip19AssetId} />;
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
@@ -442,6 +526,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       handleAttributionPress,
       handleOpenContractSecurity,
       socialEnabled,
+      handleFeedCopyTrade,
     ],
   );
 
@@ -576,6 +661,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 activeTab={activeTab}
                 onTabPress={activateTab}
                 onLayout={handleTabBarLayout}
+                tabs={visibleTabs}
               />
 
               <GestureDetector gesture={swipeGesture}>
@@ -584,7 +670,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   style={tabContentContainerStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
-                  {TOKEN_DETAILS_V1_TABS.map((tab) => {
+                  {visibleTabs.map((tab) => {
                     const isActive = tab === activeTab;
                     return (
                       <View
@@ -636,6 +722,16 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             networkName={networkConfigurationByChainId?.name}
           />
         )}
+
+        <QuickBuy.Root
+          isVisible={copyTrade !== null}
+          target={copyTrade?.target ?? null}
+          onClose={closeCopyTrade}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+          copyTradeOrigin={copyTrade?.copyTradeOrigin}
+        />
       </View>
     </PriceChartProvider>
   );

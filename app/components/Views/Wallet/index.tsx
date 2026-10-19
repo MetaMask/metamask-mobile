@@ -29,9 +29,9 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import FloatingHeader, {
-  useFloatingHeaderInset,
-} from '../../../component-library/components-temp/FloatingHeader';
+import HeaderGlass, {
+  useHeaderGlassInset,
+} from '../../../component-library/components-temp/HeaderGlass';
 import { useSharedValue } from 'react-native-reanimated';
 import {
   SafeAreaView,
@@ -941,7 +941,7 @@ const Wallet = ({
   const isFloatingJsHeader =
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
-    useFloatingHeaderInset(isFloatingJsHeader);
+    useHeaderGlassInset(isFloatingJsHeader);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1359,12 +1359,12 @@ const Wallet = ({
               >
                 {isFloatingJsHeader && (
                   // Mounted before the content so assistive tech reads the header first.
-                  <FloatingHeader
+                  <HeaderGlass
                     onLayout={handleFloatingHeaderLayout}
                     testID={WalletViewSelectorsIDs.WALLET_FLOATING_HEADER}
                   >
                     {renderWalletHeader()}
-                  </FloatingHeader>
+                  </HeaderGlass>
                 )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
                 <HomepageScrollContext.Provider

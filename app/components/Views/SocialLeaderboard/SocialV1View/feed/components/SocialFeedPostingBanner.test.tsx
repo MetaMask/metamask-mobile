@@ -66,8 +66,23 @@ describe('SocialFeedPostingBanner', () => {
 
     expect(
       screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.AVATAR),
-    ).toBeOnTheScreen();
+    ).toHaveProp('source', { uri: 'https://cdn.test/avatar.png' });
     expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+  });
+
+  it('renders the chosen fox preset when the profile has no photo', () => {
+    renderWithProvider(
+      <SocialFeedPostingBanner
+        authorHandle="wen-cat"
+        avatarPresetId="zombie"
+        avatarBackgroundId="lime"
+        startedAtMs={1_000_000}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostingBannerSelectorsIDs.AVATAR}-art`),
+    ).toBeOnTheScreen();
   });
 
   it('starts the countdown when it mounts before the clock is set', () => {

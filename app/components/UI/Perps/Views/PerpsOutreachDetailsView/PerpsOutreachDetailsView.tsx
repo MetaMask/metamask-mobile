@@ -23,6 +23,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { usePerpsOutreachBanner } from '../../hooks/usePerpsOutreachBanner';
 import { PerpsOutreachDetailsViewSelectorsIDs } from './PerpsOutreachDetailsView.testIds';
@@ -198,110 +199,119 @@ const PerpsOutreachDetailsView = () => {
   );
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      // Invoked once by DSRN on every close path (header X via
-      // onCloseBottomSheet, swipe, overlay tap, hardware back). That single
-      // pop dismisses only the transparent modal and leaves the Perps page
-      // the user opened the banner from underneath.
-      goBack={handleGoBack}
-      testID={PerpsOutreachDetailsViewSelectorsIDs.SHEET}
+    // This screen is a transparent modal. On Android that modal is its own
+    // window, so the root provider reports a bottom inset of 0 and the sheet
+    // footer sits under the navigation bar. Measuring this window restores it.
+    <ModalSafeAreaProvider
+      testID={PerpsOutreachDetailsViewSelectorsIDs.SAFE_AREA}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: PerpsOutreachDetailsViewSelectorsIDs.CLOSE_BUTTON,
-        }}
-      />
-
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-4">
-        <Image
-          source={outreachFoxImage}
-          resizeMode="contain"
-          // Rounded so a future opaque illustration keeps the same silhouette
-          // as the transparent one used today.
-          style={tw.style('h-20 w-20 rounded-2xl')}
-          accessibilityIgnoresInvertColors
+      <BottomSheet
+        ref={sheetRef}
+        // Invoked once by DSRN on every close path (header X via
+        // onCloseBottomSheet, swipe, overlay tap, hardware back). That single
+        // pop dismisses only the transparent modal and leaves the Perps page
+        // the user opened the banner from underneath.
+        goBack={handleGoBack}
+        testID={PerpsOutreachDetailsViewSelectorsIDs.SHEET}
+      >
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{
+            testID: PerpsOutreachDetailsViewSelectorsIDs.CLOSE_BUTTON,
+          }}
         />
 
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="mt-4 text-center"
-          testID={PerpsOutreachDetailsViewSelectorsIDs.TITLE}
-        >
-          {strings('perps.outreach_details.title')}
-        </Text>
+        <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-4">
+          <Image
+            source={outreachFoxImage}
+            resizeMode="contain"
+            // Rounded so a future opaque illustration keeps the same silhouette
+            // as the transparent one used today.
+            style={tw.style('h-20 w-20 rounded-2xl')}
+            accessibilityIgnoresInvertColors
+          />
 
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2 text-center"
-          testID={PerpsOutreachDetailsViewSelectorsIDs.BODY}
-        >
-          {strings('perps.outreach_details.subtitle')}
-        </Text>
-
-        <Box twClassName="mt-6 w-full gap-1">
-          <FeatureRow
-            iconName={IconName.Trophy}
-            title={strings('perps.outreach_details.features.vip.title')}
-            subtitle={strings('perps.outreach_details.features.vip.subtitle')}
-            testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_VIP}
-          />
-          <FeatureRow
-            iconName={IconName.Messages}
-            title={strings('perps.outreach_details.features.support.title')}
-            subtitle={strings(
-              'perps.outreach_details.features.support.subtitle',
-            )}
-            testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_SUPPORT}
-          />
-          <FeatureRow
-            iconName={IconName.Rocket}
-            title={strings('perps.outreach_details.features.roadmap.title')}
-            subtitle={strings(
-              'perps.outreach_details.features.roadmap.subtitle',
-            )}
-            testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_ROADMAP}
-          />
-          <FeatureRow
-            iconName={IconName.Global}
-            title={strings('perps.outreach_details.features.trip.title')}
-            subtitle={strings('perps.outreach_details.features.trip.subtitle')}
-            testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_TRIP}
-          />
-        </Box>
-
-        {contactCopy ? (
           <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="mt-6 text-center"
-            testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_TEXT}
+            variant={TextVariant.HeadingLg}
+            twClassName="mt-4 text-center"
+            testID={PerpsOutreachDetailsViewSelectorsIDs.TITLE}
           >
-            {contactCopy.before}
+            {strings('perps.outreach_details.title')}
+          </Text>
+
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mt-2 text-center"
+            testID={PerpsOutreachDetailsViewSelectorsIDs.BODY}
+          >
+            {strings('perps.outreach_details.subtitle')}
+          </Text>
+
+          <Box twClassName="mt-6 w-full gap-1">
+            <FeatureRow
+              iconName={IconName.Trophy}
+              title={strings('perps.outreach_details.features.vip.title')}
+              subtitle={strings('perps.outreach_details.features.vip.subtitle')}
+              testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_VIP}
+            />
+            <FeatureRow
+              iconName={IconName.Messages}
+              title={strings('perps.outreach_details.features.support.title')}
+              subtitle={strings(
+                'perps.outreach_details.features.support.subtitle',
+              )}
+              testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_SUPPORT}
+            />
+            <FeatureRow
+              iconName={IconName.Rocket}
+              title={strings('perps.outreach_details.features.roadmap.title')}
+              subtitle={strings(
+                'perps.outreach_details.features.roadmap.subtitle',
+              )}
+              testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_ROADMAP}
+            />
+            <FeatureRow
+              iconName={IconName.Global}
+              title={strings('perps.outreach_details.features.trip.title')}
+              subtitle={strings(
+                'perps.outreach_details.features.trip.subtitle',
+              )}
+              testID={PerpsOutreachDetailsViewSelectorsIDs.FEATURE_TRIP}
+            />
+          </Box>
+
+          {contactCopy ? (
             <Text
               variant={TextVariant.BodySm}
-              color={TextColor.PrimaryDefault}
-              twClassName="underline"
-              onPress={handleEmailPress}
-              testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_EMAIL}
+              color={TextColor.TextAlternative}
+              twClassName="mt-6 text-center"
+              testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_TEXT}
             >
-              {email}
+              {contactCopy.before}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                twClassName="underline"
+                onPress={handleEmailPress}
+                testID={PerpsOutreachDetailsViewSelectorsIDs.CONTACT_EMAIL}
+              >
+                {email}
+              </Text>
+              {contactCopy.after}
             </Text>
-            {contactCopy.after}
-          </Text>
-        ) : null}
-      </Box>
+          ) : null}
+        </Box>
 
-      {contact ? (
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-          secondaryButtonProps={secondaryButtonProps}
-          primaryButtonProps={primaryButtonProps}
-        />
-      ) : null}
-    </BottomSheet>
+        {contact ? (
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            secondaryButtonProps={secondaryButtonProps}
+            primaryButtonProps={primaryButtonProps}
+          />
+        ) : null}
+      </BottomSheet>
+    </ModalSafeAreaProvider>
   );
 };
 

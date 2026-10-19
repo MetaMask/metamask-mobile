@@ -1,7 +1,6 @@
 import { type AppThemeKey } from '../../util/theme/models';
 import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import {
-  type LockAppAction,
   type CheckForDeeplinkAction,
   type PasswordSetAction,
   type PasswordUnsetAction,
@@ -41,12 +40,6 @@ import {
 import { type PendingAppInstall } from '../../reducers/user/types';
 
 export * from './types';
-
-export function lockApp(): LockAppAction {
-  return {
-    type: UserActionType.LOCKED_APP,
-  };
-}
 
 export function checkForDeeplink(): CheckForDeeplinkAction {
   return {

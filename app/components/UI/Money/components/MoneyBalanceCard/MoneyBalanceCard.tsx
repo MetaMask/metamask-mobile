@@ -36,7 +36,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
-import GlassSurface from '../../../../../component-library/components-temp/GlassSurface';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
@@ -376,7 +376,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
         onPress={handleCardPress}
         style={styles.glassContainer}
       >
-        <GlassSurface
+        <BoxGlass
           radiusClassName="rounded-xl"
           isInteractive
           hasSheen
@@ -387,7 +387,7 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
           ]}
         >
           {content}
-        </GlassSurface>
+        </BoxGlass>
       </Pressable>
     );
   }

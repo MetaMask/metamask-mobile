@@ -97,6 +97,35 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the token symbol and market cap on a deeplink search result', async () => {
+    clearTrendingApiMocks();
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      mockRwaTokensData,
+      [
+        {
+          ...mockAppleSearchResult,
+          marketCap: 76000000000,
+          aggregatedUsdVolume: 974248822.2,
+        },
+      ],
+    );
+    const { findByText, queryByText } = renderExploreSearchScreenWithRoutes({
+      initialParams: {
+        initialQuery: 'Apple',
+        entryPoint: 'deeplink',
+      },
+    });
+
+    expect(
+      await findByText('Apple Token', {}, { timeout: 10000 }),
+    ).toBeOnTheScreen();
+    expect(await findByText('APPLE · $76B cap')).toBeOnTheScreen();
+    expect(queryByText('$974.2M vol')).toBeNull();
+    expect(queryByText(/cap •/)).toBeNull();
+  });
+
   it('redacts a clipboard-prefilled query from the searched event', async () => {
     const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
 
@@ -620,6 +649,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
         'eth',
       );
+      await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
       trackEventSpy.mockClear();
 
       await actButtonPress(
@@ -639,14 +669,13 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {
-    const { getByTestId } = renderExploreSearchScreenWithRoutes();
+    const { findByTestId } = renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately — it does not require
-    // a search query. The "All" pill must be selected (active) by default.
-    await waitFor(() => {
-      const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
-      expect(allPill).toBeOnTheScreen();
-      expect(allPill.props.accessibilityState?.selected).toBe(true);
-    });
+    // Pill row mounts after the screen transition settles (see transition test).
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+    expect(allPill.props.accessibilityState?.selected).toBe(true);
   });
 });
