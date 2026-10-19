@@ -2,15 +2,16 @@ import type {
   TokenDetailsRouteParams,
   TokenDetailsVariant,
 } from '../constants/constants';
+import type { TdpVersion } from '../../../../util/analytics/analytics.types';
 
 /**
  * Analytics `tdp_version` property value.
  *
- * The new Token Details page is called "V1" internally (`TokenDetailsVariant`,
- * `TokenDetailsV1`) but ships to product/analytics as `'v3'`; the legacy page
- * reports `'v2'`.
+ * Re-exported from the shared analytics types so Token Details call sites can
+ * keep importing it from here, while the single source of truth lives in the
+ * `util` layer (`app/util/analytics/analytics.types.ts`).
  */
-export type TdpVersion = 'v2' | 'v3';
+export type { TdpVersion };
 
 /** Analytics `token_category` property value. */
 export type TdpTokenCategory = TokenDetailsVariant | 'standard';

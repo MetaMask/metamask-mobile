@@ -1,5 +1,5 @@
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { IMetaMetricsEvent, JsonMap } from './analytics.types';
+import { IMetaMetricsEvent, JsonMap, TdpVersion } from './analytics.types';
 
 export enum ActionLocation {
   HOME = 'home',
@@ -35,17 +35,6 @@ export enum ActionPosition {
   SEVENTH_POSITION = 6,
   EIGHTH_POSITION = 7,
 }
-
-/**
- * Token Details page analytics version.
- *
- * Mirrors `TdpVersion` from
- * `app/components/UI/TokenDetails/analytics/getTdpAnalyticsBase.ts`. Defined
- * locally as a string-literal union to avoid a `util` -> `components`
- * dependency. `'v2'` is the legacy Token Details page, `'v3'` is the new
- * (memecoin/V1) page.
- */
-export type TdpVersion = 'v2' | 'v3';
 
 /**
  * Properties for action button tracking
