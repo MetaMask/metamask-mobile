@@ -1,6 +1,8 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 
+const MAX_DISPLAY_PERCENT = 999;
+
 interface Params {
   limitFiat: string | undefined;
   marketFiat: number | undefined;
@@ -10,7 +12,7 @@ interface Params {
  * Returns the signed market-comparison label for a quoted-token unit limit
  * price, whether the limit is above or below market.
  *
- * Hidden when the displayed percent rounds to 0.00.
+ * Hidden when the displayed percent rounds to 0.00. Capped at ±999%.
  */
 export const getSwapsLimitOrderPriceMarketComparison = ({
   limitFiat,
@@ -32,7 +34,9 @@ export const getSwapsLimitOrderPriceMarketComparison = ({
   }
 
   const percent = limit.minus(market).dividedBy(market).multipliedBy(100);
-  const displayPercent = percent.abs().toFixed(2);
+  const displayPercent = percent.abs().gt(MAX_DISPLAY_PERCENT)
+    ? String(MAX_DISPLAY_PERCENT)
+    : percent.abs().toFixed(2);
   if (!percent.isFinite() || displayPercent === '0.00') {
     return undefined;
   }
