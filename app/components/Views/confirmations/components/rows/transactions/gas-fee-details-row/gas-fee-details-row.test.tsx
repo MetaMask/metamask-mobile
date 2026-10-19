@@ -1,5 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { cloneDeep } from 'lodash';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -26,10 +27,27 @@ import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupport
 import { useInsufficientBalanceAlert } from '../../../../hooks/alerts/useInsufficientBalanceAlert';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
+import {
+  ConfirmationContextProvider,
+  useConfirmationContext,
+} from '../../../../context/confirmation-context';
+import {
+  AlertsContextProvider,
+  useAlerts,
+} from '../../../../context/alert-system-context';
+
+const GAS_FEE_MODAL_TEST_ID = 'gas-fee-modal-mock';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
 }));
+jest.mock('../../../modals/gas-fee-modal', () => {
+  const { View } = jest.requireActual('react-native');
+  const { createElement } = jest.requireActual('react');
+  return {
+    GasFeeModal: () => createElement(View, { testID: 'gas-fee-modal-mock' }),
+  };
+});
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -552,6 +570,62 @@ describe('GasFeesDetailsRow', () => {
       );
 
       expect(getByTestIdBatch('gas-fees-details')).toBeOnTheScreen();
+    });
+  });
+
+  describe('gas fee modal', () => {
+    const ContextControls = () => {
+      const { setIsGasFeeModalVisible } = useConfirmationContext();
+      const { showAlertModal, hideAlertModal } = useAlerts();
+
+      return (
+        <>
+          <TouchableOpacity
+            testID="open-gas-fee-modal-from-alert"
+            onPress={() => {
+              showAlertModal();
+              setIsGasFeeModalVisible(true);
+            }}
+          />
+          <TouchableOpacity
+            testID="hide-alert-modal"
+            onPress={hideAlertModal}
+          />
+        </>
+      );
+    };
+
+    const renderWithContexts = () =>
+      renderWithProvider(
+        <ConfirmationContextProvider>
+          <AlertsContextProvider alerts={[]}>
+            <ContextControls />
+            <GasFeesDetailsRow />
+          </AlertsContextProvider>
+        </ConfirmationContextProvider>,
+        { state: createStateWithSimulationData() },
+      );
+
+    it('opens gas fee modal when network fee is pressed', () => {
+      const { getByText, getByTestId, queryByTestId } = renderWithContexts();
+
+      expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
+
+      fireEvent.press(getByText('$0.34'));
+
+      expect(getByTestId(GAS_FEE_MODAL_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('opens gas fee modal only after alert modal is hidden', () => {
+      const { getByTestId, queryByTestId } = renderWithContexts();
+
+      fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
+
+      expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
+
+      fireEvent.press(getByTestId('hide-alert-modal'));
+
+      expect(getByTestId(GAS_FEE_MODAL_TEST_ID)).toBeOnTheScreen();
     });
   });
 });

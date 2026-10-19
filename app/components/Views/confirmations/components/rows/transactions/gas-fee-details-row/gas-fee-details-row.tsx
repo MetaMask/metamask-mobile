@@ -2,7 +2,7 @@ import {
   TransactionBatchMeta,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import React, { useState } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
@@ -24,6 +24,8 @@ import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfir
 import { useTransactionBatchesMetadata } from '../../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useAutomaticGasFeeTokenSelect } from '../../../../hooks/useAutomaticGasFeeTokenSelect';
+import { useAlerts } from '../../../../context/alert-system-context';
+import { useConfirmationContext } from '../../../../context/confirmation-context';
 import { GasFeeTokenToast } from '../../../gas/gas-fee-token-toast';
 import { GasSpeed } from '../../../gas/gas-speed';
 import { SelectedGasFeeToken } from '../../../gas/selected-gas-fee-token';
@@ -259,7 +261,11 @@ const GasFeesDetailsRow = ({
   hideSpeed = false,
   noSection = false,
 }) => {
-  const [gasModalVisible, setGasModalVisible] = useState(false);
+  const {
+    isGasFeeModalVisible: gasModalVisible,
+    setIsGasFeeModalVisible: setGasModalVisible,
+  } = useConfirmationContext();
+  const { alertModalVisible } = useAlerts();
   const { styles } = useStyles(styleSheet, {});
   useAutomaticGasFeeTokenSelect();
 
@@ -380,7 +386,8 @@ const GasFeesDetailsRow = ({
             </AlertRow>
           )}
       </Container>
-      {gasModalVisible && (
+      {/* Wait for the alert modal to close, as iOS can't stack native modals reliably. */}
+      {gasModalVisible && !alertModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}
       <GasFeeTokenToast />
