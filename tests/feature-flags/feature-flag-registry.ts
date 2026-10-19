@@ -4591,13 +4591,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyMovementBrazilNeobank: {
-    name: 'moneyMovementBrazilNeobank',
+  // Not in the production client-config response yet. inProd stays false so
+  // the weekly registry sync does not treat this as removed from production.
+  // A missing, disabled, or empty value allows no region.
+  moneyMovementNeobank: {
+    name: 'moneyMovementNeobank',
     type: FeatureFlagType.Remote,
-    inProd: true,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
+      regions: [],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5617,6 +5621,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {},
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsRebateBannerEnabled: {
+    name: 'swapsRebateBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

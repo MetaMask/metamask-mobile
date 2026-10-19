@@ -35,6 +35,11 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
+import {
+  useVbaHomeCard,
+  useVbaHomeCardRefresh,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -195,6 +200,11 @@ const MoneyHomeView = () => {
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
+
+  // At most one VBA identity-status card; `none` renders nothing. The focus
+  // refresh is the one-shot KYC session GET.
+  const vbaHomeCard = useVbaHomeCard();
+  useVbaHomeCardRefresh();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
@@ -1064,6 +1074,9 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
+        {vbaHomeCard.type !== 'none' && (
+          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        )}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
