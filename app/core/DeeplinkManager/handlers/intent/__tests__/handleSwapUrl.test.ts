@@ -3,6 +3,7 @@ import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux/ReduxService';
 import { resetBridgeState } from '../../../../redux/slices/bridge';
 import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
+import { BridgeTabKey } from '../../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -213,6 +214,63 @@ describe('handleSwapUrl', () => {
       },
     });
     expect(mockEnableNetwork).toHaveBeenCalledWith(CHAIN_IDS.MAINNET);
+  });
+
+  it('opens the Limit tab with processed swap parameters', async () => {
+    const swapPath =
+      'tab=limit&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&to=eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7&amount=1000000';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: expectedSourceToken,
+        destToken: expectedDestToken,
+        sourceAmount: '1.0',
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Limit,
+      },
+    });
+  });
+
+  it('opens the Limit tab without token parameters', async () => {
+    const swapPath = 'tab=limit';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Limit,
+      },
+    });
+  });
+
+  it('ignores unsupported tab parameters', async () => {
+    const swapPath = 'tab=recurring';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+      },
+    });
   });
 
   it('navigates to Bridge view with partial parameters (only source token)', async () => {
@@ -536,6 +594,26 @@ describe('handleSwapUrl', () => {
         sourcePage: 'deeplink',
         bridgeViewMode: BridgeViewMode.Unified,
         location: 'Main View',
+      },
+    });
+  });
+
+  it('preserves the Limit tab when amount parsing falls back', async () => {
+    const swapPath =
+      'tab=limit&from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=invalid';
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: undefined,
+        destToken: undefined,
+        sourceAmount: undefined,
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: 'Main View',
+        initialTab: BridgeTabKey.Limit,
       },
     });
   });

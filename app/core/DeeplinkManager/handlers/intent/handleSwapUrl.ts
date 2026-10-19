@@ -12,6 +12,7 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
+import { BridgeTabKey } from '../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
@@ -165,6 +166,17 @@ const ensureChainAvailable = async (chainId: Hex | CaipChainId) => {
   return true;
 };
 
+function getSwapUrlParams(swapPath: string) {
+  const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
+  return new URLSearchParams(cleanPath);
+}
+
+function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
+  return urlParams.get('tab') === BridgeTabKey.Limit
+    ? BridgeTabKey.Limit
+    : undefined;
+}
+
 /**
  * Handles deeplinks for the unified swap/bridge experience
  *
@@ -172,9 +184,10 @@ const ensureChainAvailable = async (chainId: Hex | CaipChainId) => {
  * @param params.swapPath - The swap URL path containing the parameters
  *
  * @example
- * URL format: ?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
+ * URL format: ?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000
  *
  * Parameters:
+ * - tab: Optional order type. "limit" opens the Limit Order form.
  * - from: CAIP-19 asset identifier for source token
  * - to: CAIP-19 asset identifier for destination token
  * - amount: Amount in minimal divisible units (e.g., 1000000 for 1.00 USDC)
@@ -203,12 +216,12 @@ const resolveSwapTarget = async (
   swapPath: string,
 ): Promise<DeeplinkIntent['target']> => {
   // Parse URL parameters
-  const cleanPath = swapPath.startsWith('?') ? swapPath.slice(1) : swapPath;
-  const urlParams = new URLSearchParams(cleanPath);
+  const urlParams = getSwapUrlParams(swapPath);
 
   const fromCaip = urlParams.get('from');
   const toCaip = urlParams.get('to');
   const atomicAmount = urlParams.get('amount');
+  const initialTab = getInitialTab(urlParams);
 
   // Validate and lookup tokens
   const sourceToken =
@@ -249,6 +262,7 @@ const resolveSwapTarget = async (
     sourcePage: 'deeplink',
     bridgeViewMode: BridgeViewMode.Unified,
     location: MetaMetricsSwapsEventSource.MainView,
+    ...(initialTab && { initialTab }),
   });
 };
 
@@ -260,6 +274,8 @@ export const createSwapDeeplinkIntent = async ({
 });
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
+  const initialTab = getInitialTab(getSwapUrlParams(swapPath));
+
   try {
     await executeDeeplinkIntent(await createSwapDeeplinkIntent({ swapPath }));
   } catch (error) {
@@ -270,6 +286,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
       location: MetaMetricsSwapsEventSource.MainView,
+      ...(initialTab && { initialTab }),
     });
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,

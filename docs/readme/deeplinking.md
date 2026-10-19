@@ -288,6 +288,19 @@ Contract:
 https://link.metamask.io/swap?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000
 ```
 
+#### Limit Order Link
+
+Use the existing `swap` action with `tab=limit`:
+
+```
+https://link.metamask.io/swap?tab=limit&from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7&amount=1000000
+```
+
+- `from`, `to`, and `amount` are optional and use the same CAIP-19 and atomic-unit formats as market swap links.
+- The limit price initializes from the live market price and expiration uses the current in-app default.
+- Limit Orders require an eligible same-chain pair. Unsupported or cross-chain inputs are replaced with a supported pair, and an amount that no longer applies is cleared.
+- If the Limit Orders tab is unavailable, the link falls back to the Market tab.
+
 #### Private Link (Signed)
 
 To create a signed link, use the `link-signer-api`:
@@ -973,7 +986,7 @@ The `deposit` / `metamask://deposit` deeplink is **deprecated** and no longer op
 
 | Action                   | Purpose                     | Handler Function                 | Notes                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------ | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19)                                                                                                                                                                                                                                                                                                                                                                                           |
+| `swap`                   | Token swap/bridge (CAIP-19) | `handleSwapUrl`                  | Params: `from`, `to`, `amount` (CAIP-19); `tab=limit` opens the Limit Order form                                                                                                                                                                                                                                                                                                                                                   |
 | `buy` / `buy-crypto`     | Buy crypto                  | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `sell` / `sell-crypto`   | Sell crypto                 | `handleRampUrl`                  |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `send`                   | Send transaction            | Recursive `parse()` call         |                                                                                                                                                                                                                                                                                                                                                                                                                                    |
