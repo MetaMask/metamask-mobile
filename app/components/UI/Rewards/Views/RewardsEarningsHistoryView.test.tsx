@@ -1,6 +1,8 @@
 import React from 'react';
+import { FlatList } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import type {
+  LedgerClaimEntryDto,
   LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
@@ -65,6 +67,19 @@ const earning: LedgerEntryDto = {
   swaps_source: null,
   perps_source: null,
   predict_source: null,
+};
+
+const claim: LedgerClaimEntryDto = {
+  type: 'claim',
+  id: earning.id,
+  route: 'REFERRAL_REV_SHARE',
+  gross_amount: '1000000',
+  net_amount: '1000000',
+  withholding_rate_bps: 0,
+  status: 'SETTLED',
+  ledger_timestamp: '2026-09-02T00:00:00.000Z',
+  settled_at: '2026-09-02T00:00:00.000Z',
+  payout_method: 'VOUCHER',
 };
 
 const STATE = {
@@ -142,6 +157,29 @@ describe('RewardsEarningsHistoryView', () => {
     );
 
     expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('keys an earning and a claim that share an id apart', () => {
+    (useEarningsHistory as jest.Mock).mockReturnValue({
+      items: [earning, claim],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { UNSAFE_getByType } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state: STATE },
+    );
+    const { keyExtractor } = UNSAFE_getByType(FlatList).props;
+
+    expect(keyExtractor(earning)).toBe(`earning-${earning.id}`);
+    expect(keyExtractor(claim)).toBe(`claim-${earning.id}`);
   });
 
   it('opens the trade tray from the empty history action', () => {

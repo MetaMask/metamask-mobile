@@ -45,6 +45,7 @@ const RewardsEarningsHistoryView: React.FC = () => {
       testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
       list={list}
       renderItem={renderItem}
+      keyExtractor={(item) => `${item.type}-${item.id}`}
       emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
       emptyActionLabel={localizedText?.tradingActivityEmptyAction}
       emptyOnAction={openTradeActions}
