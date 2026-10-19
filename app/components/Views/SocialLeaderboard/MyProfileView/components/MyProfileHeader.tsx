@@ -4,6 +4,7 @@ import {
   BoxFlexDirection,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Tag,
@@ -21,6 +22,7 @@ import ProfileAvatar from './ProfileAvatar';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
 import MyProfileStats from './MyProfileStats';
 
@@ -61,6 +63,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   const rankingTag = overlayedStats.rankingTag
     ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
     : null;
+  const joinedLabel = formatJoinedLabel(profile.joinedAt);
 
   return (
     <Box paddingHorizontal={4} paddingBottom={4}>
@@ -73,6 +76,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           <ProfileAvatar
             imageUrl={profile.imageUrl}
             avatarPresetId={profile.avatarPresetId}
+            avatarBackgroundId={profile.avatarBackgroundId}
             size="lg"
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
@@ -213,6 +217,25 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           </Box>
         </Pressable>
       </Box>
+
+      {joinedLabel ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
+          paddingTop={2}
+          testID={MyProfileViewSelectorsIDs.JOINED}
+        >
+          <Icon
+            name={IconName.Clock}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {joinedLabel}
+          </Text>
+        </Box>
+      ) : null}
 
       <MyProfileStats stats={overlayedStats} onPress={onStatsPress} />
     </Box>

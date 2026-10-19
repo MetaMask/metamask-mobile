@@ -122,6 +122,12 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     expect(unmapped).toStrictEqual([]);
   });
 
+  it('maps the v20 price-moved code to the slippage recovery copy', () => {
+    expect(ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PRICE_MOVED]).toBe(
+      'perps.errors.slippageExceeded',
+    );
+  });
+
   it('resolves every mapped i18n key to English copy', () => {
     const unresolved = errorCodes
       .map((code) => ERROR_CODE_TO_I18N_KEY[code])

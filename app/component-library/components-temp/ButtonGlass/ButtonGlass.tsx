@@ -6,7 +6,7 @@ import {
   type ButtonBaseProps,
 } from '@metamask/design-system-react-native';
 
-import GlassSurface from '../GlassSurface';
+import BoxGlass from '../BoxGlass';
 import { useTheme } from '../../../util/theme';
 
 export type ButtonGlassVariant =
@@ -17,7 +17,7 @@ export type ButtonGlassVariant =
 export type ButtonGlassProps = ButtonBaseProps & {
   /** False renders the plain `Button` in the same variant. */
   isGlass?: boolean;
-  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: clear glass. */
+  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: the plain button. */
   variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
 };
@@ -25,6 +25,7 @@ export type ButtonGlassProps = ButtonBaseProps & {
 /**
  * The design-system `Button` drawn on Liquid Glass, kept out of the package
  * until the design system takes it. Callers gate `isGlass` on their screen flag.
+ * Tertiary stays the plain button: a ghost control has no glass container.
  */
 const ButtonGlass = ({
   isGlass = true,
@@ -35,7 +36,7 @@ const ButtonGlass = ({
 }: ButtonGlassProps) => {
   const { colors } = useTheme();
 
-  if (!isGlass) {
+  if (!isGlass || variant === ButtonVariant.Tertiary) {
     return (
       <Button
         {...props}
@@ -49,7 +50,7 @@ const ButtonGlass = ({
   const isPrimary = variant === ButtonVariant.Primary;
 
   return (
-    <GlassSurface
+    <BoxGlass
       radiusClassName="rounded-full"
       isInteractive={!props.isDisabled}
       hasSheen={variant === ButtonVariant.Secondary}
@@ -63,7 +64,7 @@ const ButtonGlass = ({
         // Fills a sized wrapper; otherwise hugs its label, as the plain Button does.
         isFullWidth={props.isFullWidth ?? containerStyle !== undefined}
       />
-    </GlassSurface>
+    </BoxGlass>
   );
 };
 

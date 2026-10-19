@@ -35,6 +35,11 @@ import MoneyBalanceSummary from '../../components/MoneyBalanceSummary';
 import MoneyActionButtonRow from '../../components/MoneyActionButtonRow';
 import MoneyEarnings from '../../components/MoneyEarnings';
 import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
+import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
+import {
+  useVbaHomeCard,
+  useVbaHomeCardRefresh,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -196,6 +201,11 @@ const MoneyHomeView = () => {
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
+  // At most one VBA identity-status card; `none` renders nothing. The focus
+  // refresh is the one-shot KYC session GET.
+  const vbaHomeCard = useVbaHomeCard();
+  useVbaHomeCardRefresh();
+
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
     overrideToUsd: true,
   });
@@ -329,7 +339,8 @@ const MoneyHomeView = () => {
   const last30DaysInterest =
     formattedLast30DaysInterest ?? projectedMonthlyFallback;
   const sinceInceptionInterest =
-    formattedSinceInceptionInterest ?? formattedZero;
+    formattedSinceInceptionInterest ??
+    (sinceInceptionQuery.isError ? undefined : formattedZero);
 
   const isEarningsLoading =
     last30DaysQuery.isInitialLoading ||
@@ -337,9 +348,7 @@ const MoneyHomeView = () => {
     (formattedLast30DaysInterest === undefined &&
       (vaultApyQuery.isLoading || isBalanceLoading));
 
-  const hasEarningsContent = Boolean(
-    last30DaysInterest && sinceInceptionInterest,
-  );
+  const hasEarningsContent = Boolean(last30DaysInterest);
   const earningsFailed =
     (last30DaysQuery.isError || sinceInceptionQuery.isError) &&
     !hasEarningsContent;
@@ -1065,6 +1074,9 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
+        {vbaHomeCard.type !== 'none' && (
+          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        )}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

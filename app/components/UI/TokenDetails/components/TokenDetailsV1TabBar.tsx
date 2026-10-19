@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
-  useWindowDimensions,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -35,8 +34,9 @@ export const resolveSwipeTargetTab = (
   activeTab: TokenDetailsV1TabKey,
   translationX: number,
   velocityX: number,
+  tabs: readonly TokenDetailsV1TabKey[] = TOKEN_DETAILS_V1_TABS,
 ): TokenDetailsV1TabKey | null => {
-  const activeIndex = TOKEN_DETAILS_V1_TABS.indexOf(activeTab);
+  const activeIndex = tabs.indexOf(activeTab);
   if (activeIndex < 0) {
     return null;
   }
@@ -47,7 +47,7 @@ export const resolveSwipeTargetTab = (
     return null;
   }
   const targetIndex = translationX > 0 ? activeIndex - 1 : activeIndex + 1;
-  return TOKEN_DETAILS_V1_TABS[targetIndex] ?? null;
+  return tabs[targetIndex] ?? null;
 };
 
 export interface UseTokenDetailsV1TabsResult {
@@ -59,6 +59,8 @@ export interface UseTokenDetailsV1TabsResult {
 
 export interface UseTokenDetailsV1TabsOptions {
   initialTab?: TokenDetailsV1TabKey;
+  /** Tabs currently shown. Swipes stay inside this list. */
+  tabs?: readonly TokenDetailsV1TabKey[];
   onTabChange?: (
     targetTab: TokenDetailsV1TabKey,
     currentTab: TokenDetailsV1TabKey,
@@ -81,6 +83,7 @@ export const useTokenDetailsV1Tabs = (
       ? initialTabOrOptions
       : (options?.initialTab ?? TOKEN_DETAILS_V1_TABS[0]);
   const onTabChange = options?.onTabChange ?? options?.onTabWillChange;
+  const tabs = options?.tabs ?? TOKEN_DETAILS_V1_TABS;
 
   const [activeTab, setActiveTab] = useState<TokenDetailsV1TabKey>(initialTab);
   const [mountedTabs, setMountedTabs] = useState<Set<TokenDetailsV1TabKey>>(
@@ -112,12 +115,13 @@ export const useTokenDetailsV1Tabs = (
         activeTab,
         translationX,
         velocityX,
+        tabs,
       );
       if (targetTab) {
         activateTab(targetTab);
       }
     },
-    [activeTab, activateTab],
+    [activeTab, activateTab, tabs],
   );
 
   const swipeGesture = useMemo(
@@ -153,8 +157,6 @@ export interface UseTokenDetailsV1ScrollStabilizationResult {
   scrollViewRef: React.RefObject<ScrollView | null>;
   handleScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   handleTabBarLayout: (event: LayoutChangeEvent) => void;
-  handleScrollViewLayout: (event: LayoutChangeEvent) => void;
-  tabContentContainerStyle: ViewStyle;
   /**
    * Pulls the page back down to the tab bar when a tab change would otherwise
    * leave the reader below the new tab's content. Only ever scrolls up.
@@ -178,25 +180,8 @@ export const useTokenDetailsV1ScrollStabilization = (
   const currentScrollYRef = useRef(0);
   const tabBarOffsetYRef = useRef<number | null>(null);
 
-  const { height: windowHeight } = useWindowDimensions();
-  const [scrollViewHeight, setScrollViewHeight] = useState(0);
-
-  const minTabContentHeight = useMemo(
-    () => Math.max(scrollViewHeight, windowHeight),
-    [scrollViewHeight, windowHeight],
-  );
-
-  const tabContentContainerStyle = useMemo<ViewStyle>(
-    () => ({ minHeight: minTabContentHeight }),
-    [minTabContentHeight],
-  );
-
   const handleTabBarLayout = useCallback((event: LayoutChangeEvent) => {
     tabBarOffsetYRef.current = event.nativeEvent.layout.y;
-  }, []);
-
-  const handleScrollViewLayout = useCallback((event: LayoutChangeEvent) => {
-    setScrollViewHeight(event.nativeEvent.layout.height);
   }, []);
 
   const onScroll = options?.onScroll;
@@ -231,8 +216,6 @@ export const useTokenDetailsV1ScrollStabilization = (
     scrollViewRef,
     handleScroll,
     handleTabBarLayout,
-    handleScrollViewLayout,
-    tabContentContainerStyle,
     clampScrollToTabBar,
     scrollToTabBar,
   };
@@ -242,6 +225,8 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Visible tabs. Defaults to Feed, Overview, Security, Holders. */
+  tabs?: readonly TokenDetailsV1TabKey[];
 }
 
 const getTabLabel = (tab: TokenDetailsV1TabKey): string =>
@@ -251,28 +236,33 @@ const getTabTestID = (tab: TokenDetailsV1TabKey): string =>
   `token-details-v1-tab-${tab}`;
 
 const TokenDetailsV1TabBar = memo(
-  ({ activeTab, onTabPress, onLayout }: TokenDetailsV1TabBarProps) => {
-    const tabs = useMemo<TabItem[]>(
+  ({
+    activeTab,
+    onTabPress,
+    onLayout,
+    tabs = TOKEN_DETAILS_V1_TABS,
+  }: TokenDetailsV1TabBarProps) => {
+    const tabItems = useMemo<TabItem[]>(
       () =>
-        TOKEN_DETAILS_V1_TABS.map((tab) => ({
+        tabs.map((tab) => ({
           key: tab,
           label: getTabLabel(tab),
           content: null,
           testID: getTabTestID(tab),
         })),
-      [],
+      [tabs],
     );
 
-    const activeIndex = TOKEN_DETAILS_V1_TABS.indexOf(activeTab);
+    const activeIndex = tabs.indexOf(activeTab);
 
     const handleTabPress = useMemo(
       () => (index: number) => {
-        const tab = TOKEN_DETAILS_V1_TABS[index];
+        const tab = tabs[index];
         if (tab) {
           onTabPress(tab);
         }
       },
-      [onTabPress],
+      [onTabPress, tabs],
     );
 
     return (
@@ -289,7 +279,7 @@ const TokenDetailsV1TabBar = memo(
         onLayout={onLayout}
       >
         <TabsBar
-          tabs={tabs}
+          tabs={tabItems}
           activeIndex={activeIndex}
           onTabPress={handleTabPress}
         />

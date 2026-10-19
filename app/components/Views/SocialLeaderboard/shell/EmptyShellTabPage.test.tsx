@@ -41,13 +41,13 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
       post,
       onCopyTrade,
     }: {
-      post: { item: SocialV1FeedItem };
-      onCopyTrade?: (item: SocialV1FeedItem) => void;
+      post: { item: SocialV1FeedItem; commentId?: string };
+      onCopyTrade?: (item: SocialV1FeedItem, commentId?: string) => void;
     }) => (
       <View>
         <Pressable
           testID={`social-v1-feed-card-${post.item.id}`}
-          onPress={() => onCopyTrade?.(post.item)}
+          onPress={() => onCopyTrade?.(post.item, post.commentId)}
         />
       </View>
     ),
@@ -255,11 +255,35 @@ describe('EmptyShellTabPage', () => {
 
     fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
 
-    expect(onQuickBuy).toHaveBeenCalledWith({
-      tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-      tokenSymbol: 'PUMP',
-      tokenName: 'PUMP',
-      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      {
+        tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+        tokenSymbol: 'PUMP',
+        tokenName: 'PUMP',
+        chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      },
+      expect.anything(),
+    );
+  });
+
+  it('passes the copied post comment id as the QuickBuy copy-trade origin', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[1];
+    const onQuickBuy = jest.fn();
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+        onQuickBuy={onQuickBuy}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    expect(onQuickBuy).toHaveBeenCalledWith(expect.any(Object), {
+      commentId: `mock-comment-${item.id}`,
     });
   });
 
