@@ -15,9 +15,6 @@ import {
   getLiveTradeRowTestId,
 } from './LiveTradeRow.testIds';
 
-/** Lines the card up with the identity text: avatar (32) plus its gap-2 (8). */
-const CARD_INDENT_CLASSNAME = 'ml-10';
-
 export interface LiveTradeRowProps {
   item: LiveTradeRowModel;
   onPositionPress: (item: LiveTradeRowModel) => void;
@@ -68,7 +65,7 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
     : 'neutral';
 
   return (
-    <Box twClassName="px-4 py-3 gap-3" testID={getLiveTradeRowTestId(item.id)}>
+    <Box twClassName="px-4 py-3" testID={getLiveTradeRowTestId(item.id)}>
       <SocialTraderIdentityRow
         author={item.author}
         handle={item.authorHandle}
@@ -82,34 +79,33 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
           more: getSocialEntryOptionsTriggerTestId(item.id),
           identityPress: `live-trade-trader-${item.id}`,
         }}
-      />
-      <Pressable
-        onPress={handlePositionPress}
-        accessibilityRole="button"
-        accessibilityLabel={item.symbol}
-        testID={getLiveTradeCardTestId(item.id)}
-        style={({ pressed }) =>
-          tw.style(CARD_INDENT_CLASSNAME, pressed && 'opacity-60')
-        }
       >
-        <PositionCardShell tone={tone}>
-          <PositionCardHeader
-            layout={item.isClosed ? 'closed' : 'open'}
-            avatar={item.avatar}
-            symbol={item.symbol}
-            valueLabel={item.valueLabel}
-            pnlLabel={item.pnlLabel}
-            pnlValueLabel={item.pnlValueLabel}
-            isPnlPositive={item.isPnlPositive}
-            direction={item.direction}
-            leverageLabel={item.leverageLabel}
-            side={item.side}
-            subtitleLabel={item.subtitleLabel}
-            closedAgeLabel={closedAgeLabel(item.closedAtMs, now)}
-            testID={getLiveTradeHeaderTestId(item.id)}
-          />
-        </PositionCardShell>
-      </Pressable>
+        <Pressable
+          onPress={handlePositionPress}
+          accessibilityRole="button"
+          accessibilityLabel={item.symbol}
+          testID={getLiveTradeCardTestId(item.id)}
+          style={({ pressed }) => tw.style(pressed && 'opacity-60')}
+        >
+          <PositionCardShell tone={tone}>
+            <PositionCardHeader
+              layout={item.isClosed ? 'closed' : 'open'}
+              avatar={item.avatar}
+              symbol={item.symbol}
+              valueLabel={item.valueLabel}
+              pnlLabel={item.pnlLabel}
+              pnlValueLabel={item.pnlValueLabel}
+              isPnlPositive={item.isPnlPositive}
+              direction={item.direction}
+              leverageLabel={item.leverageLabel}
+              side={item.side}
+              subtitleLabel={item.subtitleLabel}
+              closedAgeLabel={closedAgeLabel(item.closedAtMs, now)}
+              testID={getLiveTradeHeaderTestId(item.id)}
+            />
+          </PositionCardShell>
+        </Pressable>
+      </SocialTraderIdentityRow>
       {optionsSheet}
     </Box>
   );
