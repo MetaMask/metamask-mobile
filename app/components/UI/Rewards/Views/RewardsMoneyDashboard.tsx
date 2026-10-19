@@ -22,6 +22,7 @@ import { useFloatingTabBarInset } from '../../../../component-library/components
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
+import { selectCandidateSubscriptionId } from '../../../../reducers/rewards/selectors';
 import { selectPrimaryHDKeyring } from '../../../../selectors/keyringController';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -170,6 +171,14 @@ const RewardsMoneyDashboard: React.FC = () => {
     };
   });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
+  // selectRewardsSubscriptionId hides a candidate still 'pending' or 'retry'
+  // as null. Wait for that lookup, unless the account subscription is already
+  // known, so a subscribed visit is not locked in as unsubscribed.
+  const subscriptionKnown =
+    Boolean(subscriptionId) ||
+    (candidateSubscriptionId !== 'pending' &&
+      candidateSubscriptionId !== 'retry');
   const profileId = useSelector(selectSessionProfileId);
   const identityReady = Boolean(useSelector(selectPrimaryHDKeyring));
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
@@ -191,7 +200,12 @@ const RewardsMoneyDashboard: React.FC = () => {
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
 
   useEffect(() => {
-    if (!profileId || !referralMe || hasTrackedDashboardViewed.current) {
+    if (
+      !profileId ||
+      !referralMe ||
+      !subscriptionKnown ||
+      hasTrackedDashboardViewed.current
+    ) {
       return;
     }
     trackRewardsDashboardViewed(createEventBuilder, {
@@ -200,7 +214,13 @@ const RewardsMoneyDashboard: React.FC = () => {
       referralMe,
     });
     hasTrackedDashboardViewed.current = true;
-  }, [createEventBuilder, profileId, referralMe, subscriptionId]);
+  }, [
+    createEventBuilder,
+    profileId,
+    referralMe,
+    subscriptionId,
+    subscriptionKnown,
+  ]);
 
   const tabs = useMemo<TabItem[]>(
     () => [

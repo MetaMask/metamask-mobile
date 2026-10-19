@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
   ReferralMeDto,
@@ -193,6 +194,7 @@ const renderDashboard = ({
   hasProfileId = true,
   identityReady = true,
   subscriptionId = 'sub-123',
+  candidateSubscriptionId = subscriptionId,
   referralMeEntry,
   earningsSummaryEntry,
 }: {
@@ -201,6 +203,7 @@ const renderDashboard = ({
   /** Primary HD keyring loaded. Locked or not-yet-loaded identity stays a skeleton. */
   identityReady?: boolean;
   subscriptionId?: string | null;
+  candidateSubscriptionId?: string | 'pending' | 'error' | 'retry' | null;
   referralMeEntry?: {
     loading: boolean;
     error: boolean;
@@ -218,7 +221,7 @@ const renderDashboard = ({
   return renderWithProvider(<RewardsMoneyDashboard />, {
     state: {
       rewards: {
-        candidateSubscriptionId: subscriptionId,
+        candidateSubscriptionId,
       },
       engine: {
         backgroundState: {
@@ -329,6 +332,51 @@ describe('RewardsMoneyDashboard', () => {
       });
 
       expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    });
+
+    it('does not track while the candidate subscription is pending', () => {
+      renderDashboard({
+        subscriptionId: null,
+        candidateSubscriptionId: 'pending',
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    });
+
+    it('tracks has_subscription once the candidate subscription resolves', () => {
+      const { store } = renderDashboard({
+        subscriptionId: null,
+        candidateSubscriptionId: 'pending',
+      });
+
+      act(() => {
+        store.dispatch(setCandidateSubscriptionId('sub-123'));
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards-money',
+        has_subscription: true,
+        persona: 'referrer',
+        roles: ['referrer'],
+      });
+    });
+
+    it('tracks an unsubscribed visit once the candidate lookup finds none', () => {
+      const { store } = renderDashboard({
+        subscriptionId: null,
+        candidateSubscriptionId: 'pending',
+      });
+
+      act(() => {
+        store.dispatch(setCandidateSubscriptionId(null));
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards-money',
+        has_subscription: false,
+        persona: 'referrer',
+        roles: ['referrer'],
+      });
     });
 
     it('does not track the Money dashboard error state', () => {
