@@ -23,7 +23,7 @@ const MoneyMfaIntroView = () => {
 
   const handleAddPasskey = useCallback(() => {
     navigation.goBack();
-    turnOn();
+    void turnOn();
   }, [navigation, turnOn]);
 
   return (

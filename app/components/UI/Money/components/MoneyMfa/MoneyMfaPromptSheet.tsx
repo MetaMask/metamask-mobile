@@ -17,7 +17,7 @@ const MoneyMfaPromptSheet = () => {
 
   const handleAddPasskey = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      turnOn();
+      void turnOn();
     });
   }, [turnOn]);
 

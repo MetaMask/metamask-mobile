@@ -113,7 +113,7 @@ const MoneyMoreSheet = () => {
       } else if (mfaStatus === 'not_set_up') {
         navigation.navigate(Routes.MONEY.MFA_INTRO);
       } else {
-        turnOnMfa();
+        void turnOnMfa();
       }
     });
   }, [isMfaOn, mfaStatus, navigation, turnOnMfa]);
