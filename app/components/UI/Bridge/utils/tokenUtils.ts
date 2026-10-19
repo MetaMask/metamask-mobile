@@ -19,6 +19,7 @@ import type { BridgeToken, IncludeAsset, PopularToken } from '../types';
 import { getSwapDestToken } from './getSwapDestToken';
 import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
 import { areAddressesEqual } from '../../../../util/address';
+import { filterOutRwaTokens } from './filterOutRwaTokens';
 
 export interface ApiTokenForBridgeToken {
   assetId: string;
@@ -269,3 +270,25 @@ export const isSameBridgeToken = (
     formatChainIdToCaip(tokenA.chainId) === formatChainIdToCaip(tokenB.chainId)
   );
 };
+
+export const isNetworkSupportedForNonMarketSwapTab = (
+  chainId: BridgeToken['chainId'] | undefined,
+  enabledChainIds: CaipChainId[],
+): chainId is BridgeToken['chainId'] => {
+  if (!chainId) {
+    return false;
+  }
+
+  const caipChainId = formatChainIdToCaip(chainId);
+  return !isNonEvmChainId(caipChainId) && enabledChainIds.includes(caipChainId);
+};
+
+export const isTokenSupportedForNonMarketSwapTab = (
+  token: BridgeToken | undefined,
+  enabledChainIds: CaipChainId[],
+): token is BridgeToken =>
+  Boolean(
+    token &&
+      isNetworkSupportedForNonMarketSwapTab(token.chainId, enabledChainIds) &&
+      filterOutRwaTokens([token]).length === 1,
+  );

@@ -38,7 +38,7 @@ that order.
 
 1. From the repo root, run:
    ```bash
-   node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+   node .github/scripts/qa-automation/performance-tests/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
 ````
 
 If `gh` auth is missing, fix auth first. Do not invent metrics.
@@ -151,7 +151,7 @@ Do not add device, PR-count, run-count, pass-count, failure-count, or artifact-d
 ## Manual dry-run
 
 ```bash
-node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+node .github/scripts/qa-automation/performance-tests/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
 # Inspect /tmp/weekly-app-profiling/{report.json,slack.md,ai-briefing.md}
 # Then paste ai-briefing.md into an agent chat to generate insights and Slack the result
 ````

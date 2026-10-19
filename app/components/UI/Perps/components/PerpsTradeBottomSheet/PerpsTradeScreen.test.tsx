@@ -7,6 +7,10 @@ import {
   within,
 } from '@testing-library/react-native';
 import { typography } from '@metamask/design-tokens';
+import {
+  Text as DSText,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import PerpsTradeScreen from './PerpsTradeScreen';
 import type PerpsSlider from '../PerpsSlider';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
@@ -15,6 +19,8 @@ import {
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
+
+jest.mock('../../../../../util/haptics');
 
 const mockNavigateTo = jest.fn();
 let mockLivePriceHeaderProps:
@@ -69,7 +75,7 @@ jest.mock('../LivePriceDisplay/LivePriceHeader', () => ({
   },
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -572,6 +578,32 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(screen.getByText('Set price')).toBeOnTheScreen();
     expect(screen.queryByText('$0.00')).not.toBeOnTheScreen();
+  });
+
+  it('colors Set price as an error when the limit price is unset', () => {
+    render(<PerpsTradeScreen {...defaultProps} orderType="limit" />);
+
+    const setPriceText = screen
+      .UNSAFE_getAllByType(DSText)
+      .find((text) => text.props.children === 'Set price');
+
+    expect(setPriceText?.props.color).toBe(TextColor.ErrorDefault);
+  });
+
+  it('colors the limit price as default once a price is entered', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        orderType="limit"
+        limitPrice="98.50"
+      />,
+    );
+
+    const priceText = screen
+      .UNSAFE_getAllByType(DSText)
+      .find((text) => text.props.children === '$98.5');
+
+    expect(priceText?.props.color).toBe(TextColor.TextDefault);
   });
 
   it('shows a limit-price crossing warning', () => {

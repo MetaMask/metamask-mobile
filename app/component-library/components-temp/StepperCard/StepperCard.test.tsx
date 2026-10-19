@@ -6,7 +6,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import StepperCard from './StepperCard';
 import type { StepperCardStep } from './StepperCard.types';
 import { GlassView } from 'expo-glass-effect';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
 import { mockTheme } from '../../../util/theme';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {

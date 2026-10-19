@@ -3,7 +3,7 @@
 # Downloads Hermes CPU profiles from a performance E2E run, groups every
 # segment and retry by scenario, symbolicates with verified same-run Android
 # sourcemaps when available, then emits deterministic skill timing. Claude
-# adds optional short context only. BrowserStack app-profiling metrics are
+# adds optional short context only. TestMu app-profiling metrics are
 # intentionally not used.
 #
 # Cadence:
@@ -30,7 +30,7 @@
 #   week vs the week before). Slack lists only regressions / spikes / new
 #   hot frames, plus the GitHub issues opened during that week with a
 #   one-line brief and link each. Stable scenarios are omitted. On main
-#   this posts to #mm-qa-legends-ai-alerts.
+#   this posts to #metamask-performance.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -87,7 +87,7 @@ on:
         type: boolean
         default: false
       post_to_slack:
-        description: 'Send the analysis summary to Slack (#mm-qa-legends-ai-alerts on main)'
+        description: 'Send the analysis summary to Slack (#metamask-performance for weekly reports on main; #mm-qa-legends-ai-alerts otherwise)'
         required: false
         type: boolean
         default: true
@@ -103,10 +103,15 @@ env:
   # A workflow_run listener always runs from the default branch, so
   # `github.ref` would route a chained branch run to the channel. The branch
   # that actually produced the profiles is the one that decides.
-  # C0C3WSWNKS5 is #mm-qa-legends-ai-alerts.
+  # Weekly main reports go to #metamask-performance (C07KB8HRZ4J); other main
+  # digests go to #mm-qa-legends-ai-alerts (C0C3WSWNKS5). Branch runs go to a
+  # personal DM.
   SLACK_TARGET: >-
-    ${{ ((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
-        && 'C0C3WSWNKS5'
+    ${{ (((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
+          && (github.event_name == 'schedule' || github.event.inputs.weekly == 'true')
+          && 'C07KB8HRZ4J')
+        || (((github.event_name == 'workflow_run' && github.event.workflow_run.head_branch) || github.ref_name) == 'main'
+          && 'C0C3WSWNKS5')
         || 'UEYQL2PEV' }}
   # #metamask-performance. Posted only when slack-performance.md exists,
   # which is when this run opened a GitHub bug.

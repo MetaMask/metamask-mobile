@@ -3,6 +3,7 @@ import { fireEvent, render, within } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -112,6 +113,17 @@ describe('LimitOrderConfirmationModal', () => {
     rerender(<LimitOrderConfirmationModal {...props} costTolerance="0.5%" />);
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays the trigger price after an @', () => {
+    const { getByTestId, getByText } = render(
+      <LimitOrderConfirmationModal {...buildProps()} />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
+      strings('bridge.limit.trigger_condition_at'),
+    );
+    expect(getByText('$3,412.20')).toBeOnTheScreen();
   });
 
   it('displays the account upgrade fee as the estimated network fee', () => {
@@ -254,7 +266,7 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
   });
 
-  it('opens the cost tolerance tooltip when the info button is pressed', () => {
+  it('opens the cost tolerance tooltip when the cost tolerance label is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps({ costTolerance: '2%' })} />,
     );
@@ -310,7 +322,7 @@ describe('LimitOrderConfirmationModal', () => {
     ).toHaveTextContent(strings('bridge.limit.includes_metamask_fee'));
   });
 
-  it('opens the account upgrade fee info sheet when the fee disclaimer is pressed', () => {
+  it('opens the MetaMask fee info sheet when the fee disclaimer is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
@@ -321,7 +333,7 @@ describe('LimitOrderConfirmationModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_METAMASK_FEE_INFO_MODAL,
     });
   });
 });
