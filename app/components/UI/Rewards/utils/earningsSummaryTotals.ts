@@ -55,7 +55,9 @@ export function creditedBaseUnits(
 /**
  * A ledger row is voided when every base unit of `musd_amount` is voided.
  * A day row adds up several earnings, and a void of some of them leaves the
- * rest payable, so a smaller `voided_musd_amount` is not a voided row.
+ * rest payable, so a smaller `voided_musd_amount` is not a voided row. Treat
+ * an over-void the same as a full void because the credited amount floors at
+ * zero.
  */
 export function isVoidedEarning(
   amount: string | null | undefined,
@@ -67,7 +69,10 @@ export function isVoidedEarning(
   const total = new BigNumber(amount);
   const removed = new BigNumber(voided);
   return (
-    total.isFinite() && removed.isFinite() && removed.gt(0) && removed.eq(total)
+    total.isFinite() &&
+    removed.isFinite() &&
+    removed.gt(0) &&
+    removed.gte(total)
   );
 }
 

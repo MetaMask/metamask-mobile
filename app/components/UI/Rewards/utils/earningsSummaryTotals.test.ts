@@ -91,6 +91,7 @@ describe('earningsSummaryTotals', () => {
 
   it('marks a row voided only when the void covers the whole amount', () => {
     expect(isVoidedEarning('10000000', '10000000')).toBe(true);
+    expect(isVoidedEarning('10000000', '12000000')).toBe(true);
     expect(isVoidedEarning('10000000', '2000000')).toBe(false);
     expect(isVoidedEarning('2500000', '0')).toBe(false);
     expect(isVoidedEarning(null, '1000000')).toBe(false);

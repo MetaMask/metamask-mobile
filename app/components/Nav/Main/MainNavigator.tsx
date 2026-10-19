@@ -1132,7 +1132,7 @@ const MainNavigator = () => {
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL}
-          component={RewardsMoneyClaimsPausedModal}
+          component={RewardsMoneyClaimsPausedModal as ScreenComponent}
         />
         <NativeStack.Screen
           name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}

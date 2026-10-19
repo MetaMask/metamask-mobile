@@ -10,6 +10,7 @@ import type {
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 import { selectGeoLocation } from '../rewards/selectors';
 import type {
+  ClaimLock,
   EarningsSummaryEntry,
   ReferralFunnelEntry,
   ReferralMeEntry,
@@ -209,4 +210,15 @@ export function selectClaimWaitingUntil(
     return undefined;
   }
   return state.rewardsMoney.claimWaitingUntil?.[profileId];
+}
+
+/** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
+export function selectClaimLock(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimLock | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimLocks?.[profileId];
 }

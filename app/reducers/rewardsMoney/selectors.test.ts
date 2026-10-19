@@ -10,6 +10,7 @@ import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
   selectCashbackLedger,
+  selectClaimLock,
   selectClaimWaitingUntil,
   selectCommissions,
   selectEarningsHistory,
@@ -329,6 +330,26 @@ describe('rewardsMoney selectors', () => {
       expect(selectClaimWaitingUntil(state, PROFILE_A)).toBe(1_800_000_000_000);
       expect(selectClaimWaitingUntil(state, PROFILE_B)).toBeUndefined();
       expect(selectClaimWaitingUntil(state, undefined)).toBeUndefined();
+    });
+  });
+
+  describe('selectClaimLock', () => {
+    it('returns the session lock for the profile', () => {
+      const lock = {
+        status: 'in_progress' as const,
+        summaryKey: '1000000',
+      };
+      const state = {
+        ...initialRootState,
+        rewardsMoney: {
+          ...initialRootState.rewardsMoney,
+          claimLocks: { [PROFILE_A]: lock },
+        },
+      };
+
+      expect(selectClaimLock(state, PROFILE_A)).toEqual(lock);
+      expect(selectClaimLock(state, PROFILE_B)).toBeUndefined();
+      expect(selectClaimLock(state, undefined)).toBeUndefined();
     });
   });
 });

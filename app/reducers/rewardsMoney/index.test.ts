@@ -10,6 +10,7 @@ import rewardsMoneyReducer, {
   setCashbackLedger,
   setCommissions,
   setEarningsHistory,
+  setClaimLock,
   setClaimWaitingUntil,
   setInFlightClaims,
   setEarningsSummary,
@@ -94,6 +95,7 @@ describe('rewardsMoneyReducer', () => {
       earningsHistory: {},
       inFlightClaims: {},
       claimWaitingUntil: {},
+      claimLocks: {},
     });
   });
 
@@ -107,6 +109,7 @@ describe('rewardsMoneyReducer', () => {
       earningsHistory: {},
       inFlightClaims: {},
       claimWaitingUntil: {},
+      claimLocks: {},
     });
   });
 
@@ -356,6 +359,12 @@ describe('rewardsMoneyReducer', () => {
         claimWaitingUntil: {
           [PROFILE_A]: 1_800_000_000_000,
         },
+        claimLocks: {
+          [PROFILE_A]: {
+            status: 'in_progress' as const,
+            summaryKey: 'stale',
+          },
+        },
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -393,6 +402,7 @@ describe('rewardsMoneyReducer', () => {
       expect(state.claimWaitingUntil[PROFILE_A]).toBe(
         persisted.claimWaitingUntil[PROFILE_A],
       );
+      expect(state.claimLocks).toEqual({});
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -416,6 +426,7 @@ describe('rewardsMoneyReducer', () => {
         earningsHistory: {},
         inFlightClaims: {},
         claimWaitingUntil: {},
+        claimLocks: {},
       });
     });
   });
@@ -445,6 +456,7 @@ describe('rewardsMoneyReducer', () => {
         earningsHistory: {},
         inFlightClaims: {},
         claimWaitingUntil: {},
+        claimLocks: {},
       });
     });
   });
@@ -590,6 +602,28 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(cleared.claimWaitingUntil[PROFILE_A]).toBeUndefined();
+    });
+
+    it('keeps a claim lock by profile and clears it', () => {
+      const locked = rewardsMoneyReducer(
+        initialState,
+        setClaimLock({
+          profileId: PROFILE_A,
+          lock: { status: 'awaiting_fresh_summary', summaryKey: 'before' },
+        }),
+      );
+
+      expect(locked.claimLocks[PROFILE_A]).toEqual({
+        status: 'awaiting_fresh_summary',
+        summaryKey: 'before',
+      });
+
+      const cleared = rewardsMoneyReducer(
+        locked,
+        setClaimLock({ profileId: PROFILE_A, lock: null }),
+      );
+
+      expect(cleared.claimLocks[PROFILE_A]).toBeUndefined();
     });
   });
 });

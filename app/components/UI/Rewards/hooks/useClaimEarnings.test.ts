@@ -12,8 +12,13 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { setClaimWaitingUntil } from '../../../../reducers/rewardsMoney';
 import {
+  setClaimLock,
+  setClaimWaitingUntil,
+  type ClaimLock,
+} from '../../../../reducers/rewardsMoney';
+import {
+  selectClaimLock,
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
 } from '../../../../reducers/rewardsMoney/selectors';
@@ -43,6 +48,7 @@ import { useClaimEarnings } from './useClaimEarnings';
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 let storedClaimWait: number | undefined;
+let storedClaimLock: ClaimLock | undefined;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -52,6 +58,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../reducers/rewardsMoney/selectors', () => ({
   selectReferralMeLocalizedText: jest.fn(),
   selectClaimWaitingUntil: jest.fn(),
+  selectClaimLock: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/moneyAccountController', () => ({
@@ -249,16 +256,21 @@ describe('useClaimEarnings', () => {
 
   beforeEach(() => {
     storedClaimWait = undefined;
+    storedClaimLock = undefined;
     jest.clearAllMocks();
     mockDispatch.mockImplementation((action: Action) => {
       if (setClaimWaitingUntil.match(action)) {
         storedClaimWait =
           action.payload.until === null ? undefined : action.payload.until;
       }
+      if (setClaimLock.match(action)) {
+        storedClaimLock = action.payload.lock ?? undefined;
+      }
     });
     jest
       .mocked(selectClaimWaitingUntil)
       .mockImplementation(() => storedClaimWait);
+    jest.mocked(selectClaimLock).mockImplementation(() => storedClaimLock);
     onOpened.mockReset();
     onSubmitted.mockReset();
     onClaimsPaused.mockReset();
@@ -546,9 +558,51 @@ describe('useClaimEarnings', () => {
     });
     expect(mockEngineCall).not.toHaveBeenCalled();
 
+    rerender({ current: { ...stale } });
+    expect(result.current.isClaiming).toBe(true);
+
     rerender({ current: summary('0') });
 
     expect(result.current.isClaiming).toBe(false);
+  });
+
+  it('keeps Claim disabled after the tab remounts when the summary refresh failed', async () => {
+    const stale = summary(ONE_DOLLAR);
+    onSubmitted.mockRejectedValue(new Error('network'));
+    const mount = (current: EarningsSummaryDto) =>
+      renderHook(
+        ({ live }: { live: EarningsSummaryDto }) =>
+          useClaimEarnings(PROFILE_ID, {
+            persona: 'referee',
+            onOpened,
+            onSubmitted,
+            summary: live,
+          }),
+        { initialProps: { live: current } },
+      );
+    const first = mount(stale);
+
+    await act(async () => {
+      await first.result.current.claim(stale);
+    });
+    first.unmount();
+
+    const second = mount({ ...stale });
+
+    expect(second.result.current.isClaiming).toBe(true);
+    mockEngineCall.mockClear();
+    await act(async () => {
+      await second.result.current.claim({ ...stale });
+    });
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await act(async () => {
+      second.rerender({ live: summary('0') });
+    });
+    // The selector mock is not a store subscription. The effect already
+    // cleared the lock; this render is the one a real dispatch would cause.
+    second.rerender({ live: summary('0') });
+    expect(second.result.current.isClaiming).toBe(false);
   });
 
   it('signs a proof challenge and retries the same route', async () => {
@@ -815,7 +869,10 @@ describe('useClaimEarnings', () => {
     });
     expect(mockEngineCall).not.toHaveBeenCalled();
 
-    rerender({ live: summary(ONE_DOLLAR) });
+    rerender({ live: { ...pressed } });
+    expect(result.current.isClaiming).toBe(true);
+
+    rerender({ live: summary('0') });
     expect(result.current.isClaiming).toBe(false);
   });
 
@@ -1269,5 +1326,38 @@ describe('useClaimEarnings', () => {
       claim_type: 'cashback',
       partial: false,
     });
+  });
+
+  it('keeps Claim disabled after the tab remounts while a claim is running', async () => {
+    let release: (result: InitiateClaimResult) => void = () => undefined;
+    mockEngineCall.mockImplementation(
+      () =>
+        new Promise<InitiateClaimResult>((resolve) => {
+          release = resolve;
+        }),
+    );
+    const first = renderClaim();
+    let runningClaim: Promise<void> = Promise.resolve();
+
+    await act(async () => {
+      runningClaim = first.result.current.claim(summary(ONE_DOLLAR));
+      await Promise.resolve();
+    });
+    first.unmount();
+
+    const remounted = renderClaim();
+    expect(remounted.result.current.isClaiming).toBe(true);
+    mockEngineCall.mockClear();
+    await act(async () => {
+      await remounted.result.current.claim(summary(ONE_DOLLAR));
+    });
+    expect(mockEngineCall).not.toHaveBeenCalled();
+
+    await act(async () => {
+      release(authorized());
+      await runningClaim;
+    });
+    remounted.rerender();
+    expect(remounted.result.current.isClaiming).toBe(false);
   });
 });

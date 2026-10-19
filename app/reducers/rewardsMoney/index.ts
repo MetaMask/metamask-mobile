@@ -44,6 +44,21 @@ export interface RewardsMoneyState {
    * keyed by Hydra profile id. Survives leaving the Earnings tab.
    */
   claimWaitingUntil: Record<string, number>;
+  /**
+   * Claim button lock for one profile. `in_progress` is a claim this session
+   * has not finished. `awaiting_fresh_summary` is a paid claim whose balance
+   * refresh failed, or an address this phone cannot sign. `summaryKey` is the
+   * claimable figures that lock was taken against. Dropped on rehydrate, so a
+   * killed session cannot leave Claim disabled.
+   */
+  claimLocks: Record<string, ClaimLock>;
+}
+
+export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
+
+export interface ClaimLock {
+  status: ClaimLockStatus;
+  summaryKey: string;
 }
 
 export const initialState: RewardsMoneyState = {
@@ -55,6 +70,7 @@ export const initialState: RewardsMoneyState = {
   earningsHistory: {},
   inFlightClaims: {},
   claimWaitingUntil: {},
+  claimLocks: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -242,6 +258,19 @@ const rewardsMoneySlice = createSlice({
       }
       state.claimWaitingUntil[action.payload.profileId] = action.payload.until;
     },
+    setClaimLock: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        lock: ClaimLock | null;
+      }>,
+    ) => {
+      if (action.payload.lock === null) {
+        delete state.claimLocks[action.payload.profileId];
+        return;
+      }
+      state.claimLocks[action.payload.profileId] = action.payload.lock;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -263,6 +292,9 @@ const rewardsMoneySlice = createSlice({
             persisted.inFlightClaims ?? initialState.inFlightClaims,
           claimWaitingUntil:
             persisted.claimWaitingUntil ?? initialState.claimWaitingUntil,
+          // A lock belongs to the running session. Restoring one would leave
+          // Claim disabled after the process that owned the claim was gone.
+          claimLocks: {},
         };
       },
     );
@@ -284,6 +316,7 @@ export const {
   setEarningsHistory,
   setInFlightClaims,
   setClaimWaitingUntil,
+  setClaimLock,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 

@@ -9,8 +9,12 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
-import { setClaimWaitingUntil } from '../../../../reducers/rewardsMoney';
 import {
+  setClaimLock,
+  setClaimWaitingUntil,
+} from '../../../../reducers/rewardsMoney';
+import {
+  selectClaimLock,
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
@@ -81,6 +85,43 @@ function bitcoinAccountForEarningAddress(earningAddress: string) {
   return typeMatches ? { account, bitcoin } : null;
 }
 
+function branchClaimKey(
+  branch:
+    | EarningsSummaryDto['self_earned']
+    | EarningsSummaryDto['earned_by_others']
+    | undefined,
+): string {
+  return Object.entries(branch?.by_claim_family ?? {})
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([name, totals]) =>
+      [
+        name,
+        totals.claimable ?? '',
+        totals.held ?? '',
+        totals.blocked ?? '',
+        totals.pending,
+        totals.claimed,
+      ].join(':'),
+    )
+    .join(',');
+}
+
+/**
+ * Claimable figures a later summary has to change before Claim is enabled
+ * again. A new object with the same figures is still the pre-claim balance.
+ */
+export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
+  return [
+    summary.claimable ?? '',
+    summary.held ?? '',
+    summary.blocked ?? '',
+    summary.pending,
+    summary.claimed,
+    branchClaimKey(summary.self_earned),
+    branchClaimKey(summary.earned_by_others),
+  ].join('|');
+}
+
 /**
  * Claims referee cashback that reaches the summary minimum, signs the
  * challenges, and submits the voucher. One toast, after the batch is
@@ -105,10 +146,13 @@ export function useClaimEarnings(
     /**
      * Runs after a confirmed claim, before Claim is enabled again. A rejection
      * means the balance on screen is still the pre-claim one, so Claim stays
-     * disabled until `summary` is replaced.
+     * disabled until a summary with different claimable figures arrives.
      */
     onSubmitted?: () => void | Promise<void>;
-    /** The summary currently on screen. A new object releases a failed refresh. */
+    /**
+     * The summary currently on screen. A failed refresh stays locked until
+     * these claimable figures change, including after the tab unmounts.
+     */
     summary?: EarningsSummaryDto | null;
   } = {},
 ): {
@@ -128,6 +172,11 @@ export function useClaimEarnings(
   const persistedWaitUntil = useSelector((state: RootState) =>
     selectClaimWaitingUntil(state, profileId),
   );
+  const claimLock = useSelector((state: RootState) =>
+    selectClaimLock(state, profileId),
+  );
+  const claimLockRef = useRef(claimLock);
+  claimLockRef.current = claimLock;
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
@@ -141,21 +190,18 @@ export function useClaimEarnings(
   );
   const isClaimingRef = useRef(false);
   const claimWaitingUntilRef = useRef<number | null>(claimWaitingUntil);
-  /** The summary object Claim was pressed against, when its refresh failed. */
-  const claimedSummaryRef = useRef<EarningsSummaryDto | null>(null);
-  const refreshHoldRef = useRef(false);
 
   useEffect(() => {
-    if (!refreshHoldRef.current) {
+    if (claimLock?.status !== 'awaiting_fresh_summary' || !liveSummary) {
       return;
     }
-    if (!liveSummary || liveSummary === claimedSummaryRef.current) {
+    if (earningsSummaryClaimKey(liveSummary) === claimLock.summaryKey) {
       return;
     }
-    refreshHoldRef.current = false;
     isClaimingRef.current = false;
     setIsClaiming(false);
-  }, [liveSummary]);
+    dispatch(setClaimLock({ profileId, lock: null }));
+  }, [claimLock, dispatch, liveSummary, profileId]);
 
   useEffect(() => {
     if (claimWaitingUntil === null) {
@@ -182,6 +228,7 @@ export function useClaimEarnings(
       if (
         !localizedText ||
         isClaimingRef.current ||
+        claimLockRef.current != null ||
         (waitingUntil !== null && waitingUntil > Date.now()) ||
         !canClaimEarnings(summary, persona)
       ) {
@@ -189,7 +236,9 @@ export function useClaimEarnings(
       }
       isClaimingRef.current = true;
       setIsClaiming(true);
-      let refreshHold = false;
+      const summaryKey = earningsSummaryClaimKey(summary);
+      let lockArmed = false;
+      let holdForFreshSummary = false;
       const startedAt = Date.now();
       const routes = claimRoutesForSummary(summary);
       let tracked = false;
@@ -242,6 +291,14 @@ export function useClaimEarnings(
           fail('claimFailureToast');
           return;
         }
+
+        dispatch(
+          setClaimLock({
+            profileId,
+            lock: { status: 'in_progress', summaryKey },
+          }),
+        );
+        lockArmed = true;
 
         const outcomes = await runEarningsClaim({
           moneyAccountAddress,
@@ -341,9 +398,7 @@ export function useClaimEarnings(
           try {
             await onSubmitted?.();
           } catch {
-            refreshHold = true;
-            refreshHoldRef.current = true;
-            claimedSummaryRef.current = summary;
+            holdForFreshSummary = true;
           }
         }
         if (outcomes.some((outcome) => outcome.opened)) {
@@ -351,16 +406,22 @@ export function useClaimEarnings(
         }
         // A namespace this phone has no account for will fail the same way
         // on the next press. Claim stays disabled until a later summary
-        // replaces this one.
+        // carries different claimable figures.
         if (
           !paid &&
           outcomes.some(
             (outcome) => outcome.reason === 'UNSUPPORTED_EARNING_ADDRESS',
           )
         ) {
-          refreshHold = true;
-          refreshHoldRef.current = true;
-          claimedSummaryRef.current = summary;
+          holdForFreshSummary = true;
+        }
+        if (holdForFreshSummary) {
+          dispatch(
+            setClaimLock({
+              profileId,
+              lock: { status: 'awaiting_fresh_summary', summaryKey },
+            }),
+          );
         }
         const retryAfterSeconds = outcomes.reduce(
           (longest, outcome) =>
@@ -385,7 +446,10 @@ export function useClaimEarnings(
         );
         fail('claimFailureToast');
       } finally {
-        if (!refreshHold) {
+        if (!holdForFreshSummary) {
+          if (lockArmed) {
+            dispatch(setClaimLock({ profileId, lock: null }));
+          }
           isClaimingRef.current = false;
           setIsClaiming(false);
         }
@@ -413,7 +477,7 @@ export function useClaimEarnings(
 
   return {
     claim,
-    isClaiming,
+    isClaiming: isClaiming || claimLock != null,
     isClaimWaiting:
       claimWaitingUntil !== null && claimWaitingUntil > Date.now(),
   };
