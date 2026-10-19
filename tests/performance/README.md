@@ -125,26 +125,28 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 
 ## CI Triggers
 
-Performance E2E never runs on push. On a PR it runs only when the PR has the `run-performance-tests` label. Coverage otherwise comes from the fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
+Performance E2E never runs on push. On a PR it runs only from a performance label. `run-performance-tests` runs the full suite. An area label such as `run-performance-perps-tests` runs only that area, and several area labels run their union. Coverage otherwise comes from the fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
 
-| Event                                 | Behavior                                                                                           |
-| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Push to `main`, `stable`, `release/*` | No performance tests.                                                                              |
-| PR without `run-performance-tests`    | No performance tests. Smart E2E Selection does not start them.                                     |
-| PR with `run-performance-tests`       | Full performance suite. Ignored on fork PRs and when the base branch is `stable`.                  |
-| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only. |
-| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).             |
+| Event                                 | Behavior                                                                                                 |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                    |
+| PR without a performance label        | No performance tests. Smart E2E Selection does not start them.                                           |
+| PR with `run-performance-tests`       | Full performance suite. Ignored on fork PRs and when the base branch is `stable`.                        |
+| PR with area performance labels       | Only the labeled areas. Several labels run their union. The full-suite label wins when both are present. |
+| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.       |
+| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                   |
 
 Workflow layout:
 
 - [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on BrowserStack, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
-- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` only when the PR has the `run-performance-tests` label, and then runs the full suite.
+- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` when the PR has `run-performance-tests` or an area label such as `run-performance-perps-tests`. The general label runs the full suite. Area labels run only their tags.
 
 ### TestMu scheduled-performance dashboard
 
 A pull request does not run performance tests unless it has
-`run-performance-tests`, so an ordinary PR never creates TestMu sessions. The
+`run-performance-tests` or an area performance label, so an ordinary PR never
+creates TestMu sessions. The
 four daily scheduled runs (Monday–Saturday) use one stable project and build.
 Manual TestMu dispatches and labeled PR runs keep a branch build name, so they
 do not join this history:

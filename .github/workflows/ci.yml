@@ -1530,10 +1530,10 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # PR performance runs only when the PR has the run-performance-tests label.
-    # get-requirements sets run_performance for that label on non-fork PRs
-    # whose base is not stable. The label runs the full suite. Smart E2E
-    # Selection does not start this job. Scheduled and manual runs use
+    # PR performance runs only from labels, on non-fork PRs whose base is
+    # not stable. run-performance-tests runs the full suite. Each
+    # run-performance-<area>-tests label runs that area. Smart E2E Selection
+    # does not start this job. Scheduled and manual runs use
     # run-performance-e2e-manual.yml.
     if: >-
       ${{
@@ -1544,8 +1544,8 @@ jobs:
     needs: [get_requirements, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: '["ALL"]'
-      performance_tags_reasoning: 'Run via run-performance-tests label on PR'
+      performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.performance_tags_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
