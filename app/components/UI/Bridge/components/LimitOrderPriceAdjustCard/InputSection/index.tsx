@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -11,6 +12,8 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -29,10 +32,11 @@ import { typography } from '@metamask/design-tokens';
 import { InputSectionProps, InputSectionRef } from './types';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
+  LIMIT_ORDER_DIRECTION,
   LimitOrderExecutionType,
-  LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
 import { strings } from '../../../../../../../locales/i18n';
+import { getTokenImageSource } from '../../../utils';
 import { getCurrencySymbol } from '../../../utils/currencyUtils';
 import { getSwapsLimitOrderDefaultPriceComparisonDirection } from '../../../utils/limitOrders/getSwapsLimitOrderPriceComparisonDirection';
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
@@ -54,11 +58,13 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     {
       executionType,
       quotedSymbol,
+      quotedToken,
       isLimitFiatMode,
       unitSymbol,
       onQuoteUnitPress,
       value,
       onInputPress,
+      isInputPressDisabled = false,
       onDismissKeypad,
       selection,
       onSelectionChange,
@@ -80,16 +86,33 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const comparisonDirection =
       priceComparisonDirection ??
       getSwapsLimitOrderDefaultPriceComparisonDirection(executionType);
-    const comparisonLabel =
-      comparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
-        ? strings('bridge.limit.is_at_or_above')
-        : strings('bridge.limit.is_at_or_below');
+    const comparisonLabel = strings(
+      LIMIT_ORDER_DIRECTION[comparisonDirection].labelKey,
+    );
     const quoteUnitLabel = quotedSymbol
       ? strings('bridge.limit.quote_unit', {
           amount: 1,
           symbol: quotedSymbol,
         })
       : strings('bridge.limit.quote_unit_fallback', { amount: 1 });
+    const quoteUnitTokenSymbol = quotedToken?.symbol ?? quotedSymbol;
+    const quoteUnitImageSource = useMemo(
+      () =>
+        quoteUnitTokenSymbol
+          ? getTokenImageSource(
+              quoteUnitTokenSymbol,
+              quotedToken?.image,
+              quotedToken?.address,
+              quotedToken?.chainId,
+            )
+          : undefined,
+      [
+        quoteUnitTokenSymbol,
+        quotedToken?.address,
+        quotedToken?.chainId,
+        quotedToken?.image,
+      ],
+    );
     const inputPrefix = isLimitFiatMode
       ? getCurrencySymbol(currentCurrency || 'usd')
       : undefined;
@@ -187,6 +210,19 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
               'flex-row items-center gap-0.5 rounded-2xl bg-muted px-2 py-0.5',
             )}
           >
+            {quoteUnitTokenSymbol ? (
+              <AvatarToken
+                key={`${quotedToken?.chainId ?? ''}:${quotedToken?.address ?? quoteUnitTokenSymbol}`}
+                name={quoteUnitTokenSymbol}
+                src={quoteUnitImageSource}
+                size={AvatarTokenSize.Xs}
+                twClassName="mr-0.5 h-3 w-3"
+                testID={
+                  LimitOrderPriceAdjustInputSectionSelectorsIDs.QUOTE_UNIT_AVATAR
+                }
+                accessible={false}
+              />
+            ) : null}
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -217,6 +253,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="min-w-0"
+            pointerEvents={isInputPressDisabled ? 'none' : 'auto'}
+            testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW}
           >
             {inputPrefix ? (
               <Text

@@ -261,12 +261,12 @@ const MyProfileView: React.FC = () => {
     openComposer();
   }, [openComposer]);
 
-  const handleResetProfile = useCallback(() => {
-    resetLocalSocialProfile();
+  const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
-  const handleCreateProfile = useCallback(() => {
+  const handleResetProfile = useCallback(() => {
+    resetLocalSocialProfile();
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
@@ -397,6 +397,7 @@ const MyProfileView: React.FC = () => {
                     <ProfileAvatar
                       imageUrl={displayProfile.imageUrl}
                       avatarPresetId={displayProfile.avatarPresetId}
+                      avatarBackgroundId={displayProfile.avatarBackgroundId}
                       size="xs"
                       testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR}
                     />
@@ -422,7 +423,17 @@ const MyProfileView: React.FC = () => {
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           endAccessory={
             isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+                <ButtonIcon
+                  iconName={IconName.Refresh}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleResetProfile}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.debug_reset_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+                />
                 <ButtonIcon
                   iconName={IconName.Edit}
                   iconProps={{ color: IconColor.IconDefault }}
@@ -508,53 +519,50 @@ const MyProfileView: React.FC = () => {
               />
             </Box>
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              gap={2}
-              paddingHorizontal={4}
-              paddingBottom={8}
-            >
-              {isOwner ? (
-                <>
+            <Box gap={2} paddingHorizontal={4} paddingBottom={8}>
+              <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+                {isOwner ? (
+                  <>
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleEditProfile}
+                        testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.edit_profile')}
+                      </Button>
+                    </Box>
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        isFullWidth
+                        onPress={handleShareProfile}
+                        testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      >
+                        {strings('social_leaderboard.my_profile.share_profile')}
+                      </Button>
+                    </Box>
+                  </>
+                ) : (
                   <Box twClassName="flex-1">
                     <Button
-                      variant={ButtonVariant.Secondary}
+                      variant={
+                        isFollowing
+                          ? ButtonVariant.Secondary
+                          : ButtonVariant.Primary
+                      }
                       isFullWidth
-                      onPress={handleEditProfile}
-                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                      onPress={handleFollowPress}
+                      testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.edit_profile')}
+                      {isFollowing
+                        ? strings('social_leaderboard.following')
+                        : strings('social_leaderboard.follow')}
                     </Button>
                   </Box>
-                  <Box twClassName="flex-1">
-                    <Button
-                      variant={ButtonVariant.Secondary}
-                      isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
-                    >
-                      {strings('social_leaderboard.my_profile.share_profile')}
-                    </Button>
-                  </Box>
-                </>
-              ) : (
-                <Box twClassName="flex-1">
-                  <Button
-                    variant={
-                      isFollowing
-                        ? ButtonVariant.Secondary
-                        : ButtonVariant.Primary
-                    }
-                    isFullWidth
-                    onPress={handleFollowPress}
-                    testID={MyProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                  >
-                    {isFollowing
-                      ? strings('social_leaderboard.following')
-                      : strings('social_leaderboard.follow')}
-                  </Button>
-                </Box>
-              )}
+                )}
+              </Box>
             </Box>
 
             <Box
@@ -623,7 +631,9 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
-                onResetProfile={handleResetProfile}
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                avatarBackgroundId={displayProfile.avatarBackgroundId}
               />
             ) : postsError && posts.length === 0 ? (
               <Box
@@ -716,6 +726,7 @@ const MyProfileView: React.FC = () => {
                 <ProfileAvatar
                   imageUrl={displayProfile.imageUrl}
                   avatarPresetId={displayProfile.avatarPresetId}
+                  avatarBackgroundId={displayProfile.avatarBackgroundId}
                   size="sm"
                   testID={TraderStatsSheetSelectorsIDs.HEADER_AVATAR}
                 />

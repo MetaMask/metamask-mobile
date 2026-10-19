@@ -50,6 +50,11 @@ describe('ManageProfileLinkedAccountView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile: jest.fn().mockResolvedValue(undefined),
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
   });
@@ -80,6 +85,11 @@ describe('ManageProfileLinkedAccountView', () => {
       profile: undefined,
       linkedAddresses: [],
       updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability: jest.fn(),
     });
 

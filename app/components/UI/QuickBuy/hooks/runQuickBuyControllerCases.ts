@@ -73,6 +73,7 @@ import {
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 
 const mockUseQuickBuyAnalytics = useQuickBuyAnalytics as jest.MockedFunction<
   typeof useQuickBuyAnalytics
@@ -189,7 +190,7 @@ const createActiveQuote = (
     overrides,
   ) as EnrichedQuickBuyQuote;
 
-const setupDefaultMocks = () => {
+export const setupDefaultMocks = () => {
   (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
   mockUseRampNavigation.mockReturnValue({
     goToBuy: mockGoToBuy,
@@ -286,6 +287,7 @@ const setupDefaultMocks = () => {
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
+  (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({});
   (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
     (kind: string) => ({ kind }),
   );
@@ -313,6 +315,7 @@ export const runQuickBuyControllerCases = ({
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
     postSwapShare?: boolean,
+    copyTradeOrigin?: CopyTradeOrigin,
   ) => {
     result: {
       current: UseQuickBuyControllerResult;
@@ -2067,6 +2070,7 @@ export const runQuickBuyControllerCases = ({
           jest.fn(),
           {
             tokenPriceFiat: 0.95625,
+            source: 'market_insights' as const,
           },
         );
 
@@ -3660,6 +3664,201 @@ export const runQuickBuyControllerCases = ({
         );
       });
 
+      describe('copy-trade intents', () => {
+        const copyTradeOrigin: CopyTradeOrigin = {
+          commentId: '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c',
+        };
+        const expectedIntent = {
+          origin: { kind: 'comment', id: copyTradeOrigin.commentId },
+          copierAccount: { caip10: 'eip155:1:0xWALLET' },
+          execution: { product: 'swaps', quoteId: 'quote-request-1' },
+        };
+        const mockMessengerCall = () =>
+          Engine.controllerMessenger.call as jest.Mock;
+
+        const mockQuote = () => {
+          setupQuoteSourceMock({
+            activeQuote: createActiveQuote({
+              quote: { requestId: 'quote-request-1' },
+            }),
+            destTokenAmount: '1',
+            isQuoteLoading: false,
+            isNoQuotesAvailable: false,
+            quoteFetchError: null,
+            isActiveQuoteForCurrentTokenPair: true,
+            isQuoteRequestStale: false,
+            sortedQuotes: [],
+            quoteCount: 0,
+            quotesLastFetchedAt: null,
+            refreshCount: 0,
+            quoteRefreshRateMs: 30000,
+            maxRefreshCount: 5,
+            refetchQuotes: jest.fn(),
+          });
+        };
+
+        it('posts a swaps intent for the submitted quote before submitTx', async () => {
+          mockQuote();
+          const callOrder: string[] = [];
+          mockMessengerCall().mockImplementation(() => {
+            callOrder.push('intent');
+          });
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockImplementation(async () => {
+            callOrder.push('submitTx');
+          });
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockMessengerCall()).toHaveBeenCalledWith(
+            'SocialService:createCopyTradeIntent',
+            expectedIntent,
+          );
+          expect(callOrder).toStrictEqual(['intent', 'submitTx']);
+        });
+
+        it('posts a swaps intent for a sell', async () => {
+          mockUsePositionTokenBalance.mockReturnValue(
+            createSourceToken({ address: '0xDEST', symbol: 'TARGET' }),
+          );
+          mockUseReceiveTokens.mockReturnValue([
+            createSourceToken({
+              address: '0xusdc',
+              symbol: 'USDC',
+              currencyExchangeRate: 1,
+            }),
+          ]);
+          mockQuote();
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            'sell',
+            undefined,
+            copyTradeOrigin,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockMessengerCall()).toHaveBeenCalledWith(
+            'SocialService:createCopyTradeIntent',
+            expectedIntent,
+          );
+        });
+
+        it('posts no intent without a copy-trade origin', async () => {
+          mockQuote();
+          const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockMessengerCall()).not.toHaveBeenCalled();
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalled();
+        });
+
+        it('posts no intent when confirm opens add funds', async () => {
+          (useLatestBalance as jest.Mock).mockReturnValue({
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          });
+          mockQuote();
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+          act(() => {
+            result.current.handleAmountChange('250');
+          });
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockGoToBuy).toHaveBeenCalled();
+          expect(mockMessengerCall()).not.toHaveBeenCalled();
+        });
+
+        it('submits the swap when the intent request rejects', async () => {
+          mockQuote();
+          mockMessengerCall().mockRejectedValue(new Error('500'));
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalled();
+          expect(Logger.error).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+              tags: expect.objectContaining({
+                operation: 'create_copy_trade_intent',
+              }),
+            }),
+          );
+        });
+
+        it('submits the swap when the intent action is not registered', async () => {
+          mockQuote();
+          mockMessengerCall().mockImplementation(() => {
+            throw new Error(
+              'A handler for SocialService:createCopyTradeIntent has not been registered',
+            );
+          });
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalled();
+        });
+      });
+
       describe('trade-level analytics', () => {
         const mockSuccessfulSubmit = () => {
           setupQuoteSourceMock({
@@ -3702,7 +3901,9 @@ export const runQuickBuyControllerCases = ({
         it('reports submit execution time from the start timestamp', async () => {
           mockSuccessfulSubmit();
           const submitStartedAtRef = { current: null as number | null };
-          const analytics = mockUseQuickBuyAnalytics('', '');
+          const analytics = mockUseQuickBuyAnalytics('', '', {
+            source: 'market_insights' as const,
+          });
           mockUseQuickBuyAnalytics.mockReturnValue({
             ...analytics,
             refs: {

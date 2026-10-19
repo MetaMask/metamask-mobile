@@ -339,9 +339,11 @@ jobs:
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # Stay on 8x16: peak RAM above the 8 GB line.
-          - scripts: lint # 12.3 GB peak
-            profile: namespace-profile-metamask-ci-linux
+          # 16x32 (MCWP-812): the 12288 MB ceiling OOM'd lint on 8x16.
+          # LINT_HEAP_MB raises it here; local `yarn lint` stays at 12288.
+          - scripts: lint # was 12.3 GB peak on 8x16; now intermittently OOMs
+            profile: namespace-profile-metamask-ci-linux-large
+            heap_mb: 24576
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -389,6 +391,11 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
+        env:
+          # Only the `lint` entry defines `heap_mb`; it's blank for every other
+          # matrix entry, so `yarn lint`'s `${LINT_HEAP_MB:-12288}` fallback in
+          # package.json covers both local runs and these other CI scripts.
+          LINT_HEAP_MB: ${{ matrix.heap_mb }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -410,6 +417,9 @@ jobs:
       ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
     needs:
       - get_requirements
+    permissions:
+      contents: read
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -427,13 +437,21 @@ jobs:
         id: analyzer-ref
         shell: bash
         run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: ${{ steps.analyzer-ref.outputs.ref }}
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
       - name: Install AI Analyzer dependencies
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -1308,9 +1326,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
-        shard: [1, 2, 3, 4]
+        # The shard list length must match the denominator in --shard below.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1336,7 +1354,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/6 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1466,6 +1484,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
@@ -1504,20 +1523,21 @@ jobs:
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
           analyzer-ref: ${{ steps.analyzer-ref.outputs.ref }}
-          analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
           langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Run when:
-    # - run-performance-tests label is on the PR (forced run, all tests), OR
-    # - the PR targets main and Smart E2E Selection chose performance tags.
+    # Smart E2E Selection performance contract:
+    # - ["ALL"] → run every performance test
+    # - ["@Tag", ...] → run those tests
+    # - [] → run none
+    # - blank output → run none
+    # - selection error → run none
+    # The run-performance-tests label still forces ["ALL"].
     # PRs targeting release/* or stable only run performance tests via the label.
-    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
-    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
@@ -1527,14 +1547,15 @@ jobs:
           (
             github.event.pull_request.base.ref == 'main' &&
             needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]' &&
+            needs.smart-e2e-selection.outputs.ai_performance_test_tags != ''
           )
         )
       }}
     needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
+      performance_tags: ${{ needs.get_requirements.outputs.run_performance == 'true' && '["ALL"]' || needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
       performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}

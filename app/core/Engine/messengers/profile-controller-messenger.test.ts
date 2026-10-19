@@ -24,8 +24,11 @@ describe('getProfileControllerMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         actions: expect.arrayContaining([
+          'ProfileService:getProfile',
           'ProfileService:updateProfile',
           'ProfileService:checkUsernameAvailability',
+          'ProfileService:getXAuthUrl',
+          'ProfileService:disconnectX',
         ]),
       }),
     );

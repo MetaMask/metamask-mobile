@@ -154,7 +154,11 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null
+          "signInLink": null,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],
@@ -173,48 +177,7 @@
         },
         "ConfigRegistryController": {
           "configs": {
-            "eventsConfig": {
-              "events": {
-                "App Installed": ["product", "marketing"],
-                "App Opened": ["product", "marketing"],
-                "Approval Completed": ["product", "marketing"],
-                "Banner Dismissed": ["product", "marketing"],
-                "Banner Display": ["product", "marketing"],
-                "Banner Select": ["product", "marketing"],
-                "Card Delegation Process Completed": ["product", "marketing"],
-                "Deep Link Used": ["product", "marketing"],
-                "InApp Notification Clicked": ["product", "marketing"],
-                "InApp Notification Detail Clicked": ["product", "marketing"],
-                "On-ramp Purchase Completed": ["product", "marketing"],
-                "Perp Position Close Transaction": ["product", "marketing"],
-                "Perp Risk Management": ["product", "marketing"],
-                "Perp Trade Transaction": ["product", "marketing"],
-                "Predict Trade Transaction": ["product", "marketing"],
-                "Push Notification Clicked": ["product", "marketing"],
-                "Rewards Opt In Completed": ["product", "marketing"],
-                "Shield Subscription Request": ["product", "marketing"],
-                "Swap Completed": ["product", "marketing"],
-                "Test Dual Purpose Event": ["product", "marketing"],
-                "Test Marketing Purpose Event": ["marketing"],
-                "Test Product Purpose Event": ["product"],
-                "Transaction Finalized": ["product", "marketing"],
-                "Unified SwapBridge Completed": ["product", "marketing"],
-                "Wallet Created": ["product", "marketing"],
-                "Wallet Imported": ["product", "marketing"],
-                "mUSD Conversion Status Updated": ["product", "marketing"],
-                "mUSD Fullscreen Announcement Button Clicked": [
-                  "product",
-                  "marketing"
-                ],
-                "mUSD Fullscreen Announcement Displayed": [
-                  "product",
-                  "marketing"
-                ]
-              },
-              "schemaVersion": "1.0.0",
-              "timestamp": 1790801015245,
-              "version": "ff39fc551a6903927f237fd74bb46ef66838378e"
-            },
+            "eventsConfig": null,
             "networks": {}
           },
           "etag": null,

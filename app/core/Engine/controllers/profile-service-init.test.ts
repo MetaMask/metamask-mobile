@@ -1,13 +1,20 @@
+import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 import {
   ProfileService,
   type ProfileServiceMessenger,
 } from '@metamask/profile-controller';
-import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
+import type { CaipAccountId } from '@metamask/utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getProfileServiceMessenger } from '../messengers/profile-service-messenger';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import type { MessengerClientInitRequest } from '../types';
-import { profileServiceInit } from './profile-service-init';
+import {
+  createProfileServiceClient,
+  profileServiceInit,
+} from './profile-service-init';
+
+const LINKED_ADDRESS =
+  'eip155:1:0x0000000000000000000000000000000000000001' as CaipAccountId;
 
 function getInitRequestMock(): jest.Mocked<
   MessengerClientInitRequest<ProfileServiceMessenger>
@@ -23,8 +30,79 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('profileServiceInit', () => {
-  it('instantiates the ProfileService', () => {
-    const { controller } = profileServiceInit(getInitRequestMock());
+  it('registers the mock profile service by default', async () => {
+    const request = getInitRequestMock();
+    const { controller } = profileServiceInit(request);
+
+    expect(controller).not.toBeInstanceOf(ProfileService);
+
+    const created = await request.controllerMessenger.call(
+      'ProfileService:createProfile',
+      {
+        profile_id: 'profile-1',
+        username: 'wen-cat',
+        display_name: 'Wen Cat',
+        bio: null,
+        linked_addresses: [LINKED_ADDRESS],
+        trading_privacy: 'private',
+      },
+    );
+
+    expect(created).toEqual(
+      expect.objectContaining({
+        profile_id: 'profile-1',
+        username: 'wen-cat',
+        display_name: 'Wen Cat',
+        trading_privacy: 'private',
+        linked_addresses: [LINKED_ADDRESS],
+      }),
+    );
+
+    const availability = await request.controllerMessenger.call(
+      'ProfileService:checkUsernameAvailability',
+      'wen-cat',
+    );
+    expect(availability.available).toBe(true);
+
+    const fetched = await request.controllerMessenger.call(
+      'ProfileService:getProfile',
+      'profile-1',
+    );
+    expect(fetched.username).toBe('wen-cat');
+
+    const updated = await request.controllerMessenger.call(
+      'ProfileService:updateProfile',
+      'profile-1',
+      { display_name: 'Wen Cat 2' },
+    );
+    expect(updated.display_name).toBe('Wen Cat 2');
+
+    await request.controllerMessenger.call(
+      'ProfileService:disconnectX',
+      'profile-1',
+    );
+    const afterDisconnect = await request.controllerMessenger.call(
+      'ProfileService:getProfile',
+      'profile-1',
+    );
+    expect(afterDisconnect.connected_to_x).toBe(false);
+  });
+
+  it('rejects getProfile when no profile has been created', async () => {
+    const request = getInitRequestMock();
+    profileServiceInit(request);
+
+    await expect(
+      request.controllerMessenger.call('ProfileService:getProfile', 'missing'),
+    ).rejects.toThrow('404');
+  });
+
+  it('instantiates ProfileService when the mock is turned off', () => {
+    const request = getInitRequestMock();
+    const controller = createProfileServiceClient(
+      request.controllerMessenger,
+      false,
+    );
 
     expect(controller).toBeInstanceOf(ProfileService);
   });

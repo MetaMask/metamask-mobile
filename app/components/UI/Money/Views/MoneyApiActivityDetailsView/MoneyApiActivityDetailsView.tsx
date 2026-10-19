@@ -416,7 +416,7 @@ function MoneyApiActivityDetailsContent({
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleViewOnExplorer}
-              startIconName={IconName.Export}
+              startIconName={IconName.ArrowSquareOut}
               testID="card-transaction-details-explorer-button"
             >
               {strings('transaction_details.view_on_block_explorer')}
