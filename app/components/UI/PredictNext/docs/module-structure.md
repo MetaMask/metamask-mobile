@@ -37,9 +37,13 @@ PredictNext/
   hooks/                       # Existing cross-screen React query integration
   navigation/
 
-  auth/                        # Kalshi P-256 device key in SecureKeychain
+  auth/                        # Kalshi P-256 device key and in-memory A2T session
     kalshiDeviceKey.ts
     KalshiDeviceKeyBootstrap.tsx
+    a2tSession.ts
+    a2tSessionInstance.ts
+    a2tIssuerUrl.ts
+    A2tSessionBootstrap.tsx
 
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types

@@ -1,6 +1,6 @@
 # Kalshi device key
 
-Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app holds a P-256 device key and a 16-byte salt. The A2T `nonce` is `base64url(SHA-256(public key || salt))`. Later issuance sends the public key and salt to our A2T service and signs the proof of possession with this key.
+Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app holds a P-256 device key and a 16-byte salt. The A2T `nonce` is `base64url(SHA-256(public key || salt))`. `a2tSession.ensureA2T` sends the public key and salt to the A2T issuer, signs `srpMessage` with the SRP key, and signs the proof of possession with this key.
 
 `auth/kalshiDeviceKey.ts` creates that key when `predictConfig.enabled` and `predictConfig.venues.kalshi.enabled` are both true and the wallet is unlocked. `KalshiDeviceKeyBootstrap` runs that check when the Kalshi stack mounts, and again when the unlock state changes. Locking the wallet, turning Kalshi off, or leaving the stack drops the plaintext key. The encrypted copy remains until the wallet is reset.
 
