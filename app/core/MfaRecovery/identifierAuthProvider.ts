@@ -1,8 +1,13 @@
 import { Platform } from 'react-native';
 import { bytesToHex, stringToBytes } from '@metamask/utils';
 import { sha256 } from '@noble/hashes/sha2';
+import type { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { AuthConnection } from '../OAuthService/OAuthInterface';
 import { createLoginHandler } from '../OAuthService/OAuthLoginHandlers';
+import {
+  AuthServerUrl,
+  web3AuthNetwork,
+} from '../OAuthService/OAuthLoginHandlers/constants';
 import { fromBase64UrlSafe } from '../OAuthService/OAuthLoginHandlers/utils';
 import { toByteArray } from 'react-native-quick-base64';
 import type {
@@ -52,9 +57,9 @@ const decodeJwtPayload = (jwt: string): Record<string, unknown> => {
 const trimTrailingSlash = (value: string) => value.replace(/\/$/u, '');
 
 /**
- * Native ID-token login with a caller nonce. iOS Google and Android Apple use
- * the auth-server code flow, so the raw ID token never reaches the client
- * until MFA-660 lands.
+ * Login with a caller nonce. Native flows return the raw ID token directly;
+ * code flows (iOS Google, Android Apple) exchange the code with the auth
+ * server, which returns the original token as `provider_id_token`.
  */
 export const loginWithNonceViaHandlers: LoginWithNonce = async ({
   authConnection,
@@ -64,12 +69,23 @@ export const loginWithNonceViaHandlers: LoginWithNonce = async ({
     nonce,
   });
   const result = await handler.login();
-  if (!result || !('idToken' in result)) {
+  if (!result) {
+    throw new Error(`MFA recovery: ${authConnection} login was cancelled`);
+  }
+  if ('idToken' in result) {
+    return result.idToken;
+  }
+  const { provider_id_token: providerIdToken } = await handler.getAuthTokens(
+    { ...result, web3AuthNetwork: web3AuthNetwork as Web3AuthNetwork },
+    AuthServerUrl,
+    'online',
+  );
+  if (!providerIdToken) {
     throw new Error(
-      `MFA recovery: ${authConnection} on ${Platform.OS} does not return a raw ID token yet`,
+      `MFA recovery: auth server did not return the ${authConnection} ID token`,
     );
   }
-  return result.idToken;
+  return providerIdToken;
 };
 
 /**

@@ -15,6 +15,11 @@ jest.mock('../OAuthService/OAuthLoginHandlers', () => ({
   createLoginHandler: jest.fn(),
 }));
 
+jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
+  AuthServerUrl: 'https://auth.example',
+  web3AuthNetwork: 'sapphire_devnet',
+}));
+
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
   return {
@@ -88,9 +93,31 @@ describe('loginWithNonceViaHandlers', () => {
     expect(idToken).toBe('raw-id-token');
   });
 
-  it('throws when the platform handler omits a raw ID token', async () => {
-    const login = jest.fn().mockResolvedValue({ authCode: 'code-only' });
-    mockCreateLoginHandler.mockReturnValue({ login } as never);
+  it('exchanges a code-flow login for the provider ID token', async () => {
+    const codeResult = { code: 'auth-code', codeVerifier: 'verifier' };
+    const login = jest.fn().mockResolvedValue(codeResult);
+    const getAuthTokens = jest
+      .fn()
+      .mockResolvedValue({ id_token: 'auth-jwt', provider_id_token: 'raw' });
+    mockCreateLoginHandler.mockReturnValue({ login, getAuthTokens } as never);
+
+    const idToken = await loginWithNonceViaHandlers({
+      authConnection: AuthConnection.Google,
+      nonce: '0xabc',
+    });
+
+    expect(getAuthTokens).toHaveBeenCalledWith(
+      { ...codeResult, web3AuthNetwork: 'sapphire_devnet' },
+      'https://auth.example',
+      'online',
+    );
+    expect(idToken).toBe('raw');
+  });
+
+  it('throws when the auth server omits the provider ID token', async () => {
+    const login = jest.fn().mockResolvedValue({ code: 'auth-code' });
+    const getAuthTokens = jest.fn().mockResolvedValue({ id_token: 'auth-jwt' });
+    mockCreateLoginHandler.mockReturnValue({ login, getAuthTokens } as never);
 
     await expect(
       loginWithNonceViaHandlers({
@@ -98,7 +125,21 @@ describe('loginWithNonceViaHandlers', () => {
         nonce: '0xabc',
       }),
     ).rejects.toThrow(
-      `MFA recovery: ${AuthConnection.Google} on ${Platform.OS} does not return a raw ID token yet`,
+      `MFA recovery: auth server did not return the ${AuthConnection.Google} ID token`,
+    );
+  });
+
+  it('throws when the login is cancelled', async () => {
+    const login = jest.fn().mockResolvedValue(undefined);
+    mockCreateLoginHandler.mockReturnValue({ login } as never);
+
+    await expect(
+      loginWithNonceViaHandlers({
+        authConnection: AuthConnection.Apple,
+        nonce: '0xabc',
+      }),
+    ).rejects.toThrow(
+      `MFA recovery: ${AuthConnection.Apple} login was cancelled`,
     );
   });
 });
