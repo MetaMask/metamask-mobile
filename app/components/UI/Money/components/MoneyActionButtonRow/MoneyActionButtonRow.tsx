@@ -18,6 +18,8 @@ interface MoneyActionButtonRowProps {
   add: ActionButtonConfig;
   transfer: ActionButtonConfig;
   card: ActionButtonConfig;
+  /** Virtual bank account details. Omitted when there is no account to show. */
+  details?: ActionButtonConfig;
 }
 
 const styles = StyleSheet.create({
@@ -31,6 +33,7 @@ const MoneyActionButtonRow = ({
   add,
   transfer,
   card,
+  details,
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -64,6 +67,17 @@ const MoneyActionButtonRow = ({
       twClassName="py-3"
       style={styles.buttonContainer}
     />
+    {details ? (
+      <MainActionButton
+        iconName={IconName.Bank}
+        label={strings('money.action.details')}
+        onPress={details.onPress}
+        isDisabled={details.disabled}
+        testID={MoneyActionButtonRowTestIds.DETAILS_BUTTON}
+        twClassName="py-3"
+        style={styles.buttonContainer}
+      />
+    ) : null}
   </Box>
 );
 
