@@ -156,11 +156,25 @@ describe('CreateVirtualBankAccount', () => {
     });
 
     // Component-view and integration tests cannot observe Fabric's Android
-    // removal transition. The crash happens when this loading state clears
-    // before the screen unmounts, so success must leave the CTA disabled.
+    // removal transition. Success leaves the CTA busy so a second tap cannot
+    // start another advance while this screen is leaving.
     await waitFor(() => {
       expect(button).toBeDisabled();
     });
+  });
+
+  it('keeps the button label from being re-parented while the screen is removed', () => {
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    // Loading toggles whether Fabric flattens the button content row. Pinning
+    // that row stops the label moving during the Android removal transition.
+    expect(
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ).findAllByProps({ collapsable: false }),
+    ).not.toHaveLength(0);
   });
 
   it('reenables the CTA when vendor terms are not accepted', async () => {

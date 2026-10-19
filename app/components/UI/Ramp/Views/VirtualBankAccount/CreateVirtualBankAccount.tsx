@@ -111,9 +111,7 @@ const CreateVirtualBankAccount = ({
         },
       });
     } finally {
-      // A successful advance unmounts this screen. Clearing the loading state
-      // first swaps the button label back in while Android is still removing
-      // the screen, and Fabric crashes re-parenting that text.
+      // A successful advance unmounts this screen, so keep the button busy.
       if (!didAdvance) {
         setIsAdvancing(false);
       }
@@ -283,6 +281,10 @@ const CreateVirtualBankAccount = ({
           size={ButtonSize.Lg}
           isFullWidth
           isLoading={isAccepting || isAdvancing}
+          // The loading state toggles whether Fabric flattens this row. If that
+          // lands in the same commit that removes the screen, Android crashes
+          // re-parenting the label ("The specified child already has a parent").
+          contentWrapperProps={{ collapsable: false }}
           isDisabled={!canAgreeAndContinue}
           onPress={handleAgreeAndContinue}
           testID={
