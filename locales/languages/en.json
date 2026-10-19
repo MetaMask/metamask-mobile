@@ -1186,6 +1186,11 @@
       "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
       "button": "Come back later"
     },
+    "identity_verified": {
+      "title": "Identity verified",
+      "description": "Your identity check is complete.",
+      "button": "Continue"
+    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
@@ -1217,7 +1222,9 @@
       "button": "Done",
       "waiting_for_pix": "PIX instructions appear here once the account is approved.",
       "loading": "Loading PIX details",
-      "load_error": "Couldn't refresh the deposit. We'll try again."
+      "load_error": "Couldn't refresh the deposit. We'll try again.",
+      "setup_error": "Couldn't create your account.",
+      "retry": "Try again"
     }
   },
   "social_leaderboard": {
@@ -1593,6 +1600,8 @@
       "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
+      "joined": "Joined {{time}}",
+      "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
@@ -1607,6 +1616,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Display name",
@@ -1649,6 +1664,7 @@
       "socials": "Socials",
       "trading_activity": "Trading activity",
       "trading_activity_on": "On",
+      "trading_activity_off": "Off",
       "linked_social_account": "Linked social account",
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
@@ -5815,7 +5831,8 @@
       "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
       "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
       "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
-      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer",
+      "resource_unavailable": "Unavailable"
     },
     "disabled_button": {
       "buy": "Buying not supported for this account",
@@ -6116,7 +6133,8 @@
     "tabs": {
       "overview": "Overview",
       "security": "Security",
-      "feed": "Feed"
+      "feed": "Feed",
+      "holders": "Holders"
     },
     "performance": {
       "title": "Performance"

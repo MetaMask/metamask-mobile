@@ -1,4 +1,4 @@
-import { MAX_USERNAME_LENGTH } from './profileOnboardingDraft';
+export const MAX_USERNAME_LENGTH = 20;
 
 // 50 x 50 x 50 = 125,000 combinations
 

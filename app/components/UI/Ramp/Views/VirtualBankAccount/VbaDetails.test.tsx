@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { StrictMode } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -8,12 +8,16 @@ import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
+import { resetBrazilMusdAutorampSetupGuard } from './ensureBrazilMusdAutoramp';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
+const mockHydrate = jest.fn();
+const mockRegisterWallet = jest.fn();
+const mockCreateAutoramp = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
@@ -67,6 +71,10 @@ jest.mock('../../../../../core/Engine', () => ({
         ],
       },
       refreshAutoramp: (...args: unknown[]) => mockRefreshAutoramp(...args),
+      hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
+      registerMoneyAccountWallet: (...args: unknown[]) =>
+        mockRegisterWallet(...args),
+      createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
     },
     NeoBankService: {
       getPixDepositInstructions: (...args: unknown[]) => mockGetPix(...args),
@@ -117,6 +125,7 @@ const restoreNeoBankService = () => {
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetBrazilMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
     mockDebugEnv = undefined;
     mockHardwareTier = null;
@@ -124,6 +133,13 @@ describe('VbaDetails', () => {
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
+    mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
+    mockCreateAutoramp.mockResolvedValue({
+      id: 'ar-new',
+      walletAddress: '0xabc',
+      status: 'Created',
+    });
     setAutoramps([{ ...approvedAutoramp }]);
     restoreNeoBankService();
   });
@@ -353,6 +369,7 @@ describe('VbaDetails', () => {
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
@@ -386,17 +403,22 @@ describe('VbaDetails', () => {
     expect(Logger.error).toHaveBeenCalled();
   });
 
-  it('waits for PIX when no usable autoramp exists', async () => {
+  it('waits when no usable autoramp exists and the customer is not active', async () => {
     setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(
         getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
       ).toBeOnTheScreen();
     });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetPix).not.toHaveBeenCalled();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+    ).not.toBeOnTheScreen();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {
@@ -424,5 +446,72 @@ describe('VbaDetails', () => {
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
+  });
+
+  it('registers and creates the BRL autoramp once across StrictMode mounts', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'needs_wallet_registration',
+    });
+    const calls: string[] = [];
+    mockRegisterWallet.mockImplementation(async () => {
+      calls.push('register');
+      return { type: 'alreadyRegistered' };
+    });
+    mockCreateAutoramp.mockImplementation(async () => {
+      calls.push('create');
+      setAutoramps([
+        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+      ]);
+      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+    });
+    mockGetPix.mockResolvedValue(pixInstructions);
+
+    renderWithProvider(
+      <StrictMode>
+        <VbaDetails />
+      </StrictMode>,
+    );
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+    });
+    expect(calls).toEqual(['register', 'create']);
+    expect(mockCreateAutoramp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+      }),
+    );
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-new');
+    });
+  });
+
+  it('stays on details with retry when setup fails', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+    mockCreateAutoramp
+      .mockRejectedValueOnce(new Error('create failed'))
+      .mockImplementation(async () => {
+        setAutoramps([
+          { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+        ]);
+        return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+      });
+    mockGetPix.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
+
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-new');
+    });
+    expect(mockCreateAutoramp).toHaveBeenCalledTimes(2);
   });
 });

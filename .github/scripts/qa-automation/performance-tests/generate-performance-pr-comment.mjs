@@ -33,6 +33,13 @@ import {
   BASELINE_WORKFLOW,
   COMMENT_MARKER as APP_PROFILING_MARKER,
 } from './diff-app-profiling.mjs';
+import {
+  buildProfilingSection,
+  buildApiRequestsSection,
+  buildApiRequestsFullReport,
+  describeFailure,
+  describeQualityGateViolations,
+} from './perf-comment-details.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
 const OUTPUT_FILE = process.argv[3] || 'performance-pr-comment.md';
@@ -91,6 +98,10 @@ async function main() {
     switch (reason) {
       case 'quality_gates_exceeded':
         return 'Quality gates exceeded';
+      case 'session_creation_failed':
+        return 'Session creation failed';
+      case 'no_performance_metrics':
+        return 'No performance metrics';
       case 'timedOut':
         return 'Timed out';
       case 'test_error':
@@ -105,6 +116,41 @@ async function main() {
     return String(value ?? '—')
       .replaceAll('|', '\\|')
       .replaceAll('\n', ' ');
+  }
+
+  const TESTMU_TEST_URL = 'https://appautomation.lambdatest.com/test?testID=';
+  // The dashboard is keyed by test id (RMAA-AND-<org>-<n>), which TestMu also
+  // embeds in the recording URL; the WebDriver session id does not work there.
+  const TESTMU_TEST_ID_IN_RECORDING = /\/([A-Z]{2,}-[A-Z]{2,}-\d+-[A-Za-z0-9]+)\/video\//;
+
+  /**
+   * TestMu recordings link to the test page, which needs a TestMu login, so the
+   * video is not exposed publicly. Other providers keep their recording link.
+   */
+  function formatRecordingLinks({ recordingLink }) {
+    if (!recordingLink) {
+      return '—';
+    }
+    const testId = TESTMU_TEST_ID_IN_RECORDING.exec(recordingLink)?.[1];
+    return testId
+      ? `[📹 Watch on TestMu](${TESTMU_TEST_URL}${testId})`
+      : `[📹 Watch](${recordingLink})`;
+  }
+
+  /** Explains why a passed test needed a retry, e.g. a session creation failure. */
+  function formatRetryNote(retryInfo) {
+    if (!retryInfo) {
+      return '';
+    }
+    const reason = describeFailure(
+      formatReason(retryInfo.firstFailureReason),
+      retryInfo.firstFailureMessage,
+    );
+    const seconds =
+      typeof retryInfo.firstFailureDurationSec === 'number'
+        ? ` after ${retryInfo.firstFailureDurationSec.toFixed(0)}s`
+        : '';
+    return ` ⚠️ passed on attempt ${retryInfo.attempts}; attempt 1: ${reason}${seconds}`;
   }
 
   function getDeviceKey(device) {
@@ -150,6 +196,25 @@ async function main() {
     return { bySessionId, byTestIdentity };
   }
 
+  /** Per-scenario profiling and API calls, for every scenario (not only failed). */
+  function collectDetailRuns() {
+    if (!performanceResults) {
+      return [];
+    }
+
+    return Object.entries(performanceResults).flatMap(([platform, devices]) =>
+      Object.entries(devices ?? {}).flatMap(([deviceKey, tests]) =>
+        (tests ?? []).map((test) => ({
+          testName: test.testName,
+          device: getDeviceLabel(test.device ?? deviceKey, platform),
+          profilingSummary: test.profilingSummary ?? null,
+          apiCalls: test.apiCalls ?? null,
+          apiCallsError: test.apiCallsError ?? null,
+        })),
+      ),
+    );
+  }
+
   function getAllTestRuns() {
     if (!performanceResults) {
       return [];
@@ -189,6 +254,7 @@ async function main() {
               : '—',
             team: test.team?.teamId ?? 'Unknown Team',
             recordingLink: test.videoURL ?? failedTest?.recordingLink,
+            retryInfo: test.retryInfo ?? null,
           };
         }),
       ),
@@ -335,10 +401,19 @@ async function main() {
               ? formatDevice(String(t.device))
               : t.platform;
 
-        const reason = formatReason(t.failureReason);
-        const recording = t.recordingLink
-          ? `[📹 Watch](${t.recordingLink})`
-          : '—';
+        const reason =
+          (t.failureReason === 'quality_gates_exceeded'
+            ? describeQualityGateViolations(t.qualityGates)
+            : null) ??
+          describeFailure(
+            formatReason(t.failureReason),
+            t.failureReason === 'quality_gates_exceeded'
+              ? null
+              : t.failureMessage,
+          );
+        const recording = formatRecordingLinks({
+          recordingLink: t.recordingLink,
+        });
         const key = `${t.platform}|${getDeviceKey(t.device)}|${t.testName}`;
         const profilingSection = profilingByKey.get(key);
 
@@ -362,11 +437,13 @@ async function main() {
     md += `|------|----------|--------|----------|------|-----------|\n`;
 
     for (const test of passedTestRuns) {
-      const recording = test.recordingLink
-        ? `[📹 Watch](${test.recordingLink})`
-        : '—';
+      const recording = formatRecordingLinks({
+        recordingLink: test.recordingLink,
+      });
 
-      md += `| ${escapeMarkdownTable(test.testName)} | ${
+      md += `| ${escapeMarkdownTable(test.testName)}${escapeMarkdownTable(
+        formatRetryNote(test.retryInfo),
+      )} | ${
         test.platform
       } | ${escapeMarkdownTable(test.device)} | ${test.duration} | ${escapeMarkdownTable(
         test.team,
@@ -375,6 +452,17 @@ async function main() {
 
     md += `\n</details>\n\n`;
   }
+
+  const detailRuns = collectDetailRuns();
+  md += buildProfilingSection(detailRuns);
+  // GitHub caps a comment at 65,536 characters: the PR comment gets the most
+  // called endpoints per scenario, and CI appends the complete list to the
+  // workflow run summary (see the *-api-full.md file written below).
+  const runUrl = runId && repo ? `https://github.com/${repo}/actions/runs/${runId}` : null;
+  md += buildApiRequestsSection(detailRuns, {
+    charBudget: Math.max(0, 60000 - md.length - 600),
+    fullListUrl: runUrl,
+  });
 
   // Footer
   md += `---\n`;
@@ -391,6 +479,16 @@ async function main() {
 
   fs.writeFileSync(OUTPUT_FILE, md);
   console.log(`✅ PR comment written to ${OUTPUT_FILE}`);
+
+  // Complete API request list, for CI to append to the workflow run summary.
+  const fullReportFile = `${OUTPUT_FILE.replace(/\.md$/, '')}-api-full.md`;
+  const fullReport = buildApiRequestsFullReport(detailRuns);
+  if (fullReport) {
+    fs.writeFileSync(fullReportFile, fullReport);
+    console.log(`✅ Complete API request list written to ${fullReportFile}`);
+  } else if (fs.existsSync(fullReportFile)) {
+    fs.unlinkSync(fullReportFile);
+  }
 }
 
 main().catch((error) => {
