@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -25,7 +29,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -38,7 +45,11 @@ import {
   getVbaRegionOverride,
   selectMoneyMovementNeobank,
 } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
+import {
+  getVbaSourceCurrencyForCountry,
+  isVbaSourceCurrency,
+  VBA_CHOOSABLE_SOURCE_CURRENCIES,
+} from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
@@ -214,12 +225,24 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const { regionCurrencies } = useSelector(selectMoneyMovementNeobank);
-  const sourceCurrency = getVbaSourceCurrencyForCountry(
-    getVbaRegionOverride() ?? location,
-    regionCurrencies,
+  const { chooseCurrency, regionCurrencies } = useSelector(
+    selectMoneyMovementNeobank,
   );
+  const effectiveLocation = getVbaRegionOverride() ?? location;
+  // With chooseCurrency on, only the picked currency may create an account.
+  const regionCurrency = chooseCurrency
+    ? undefined
+    : getVbaSourceCurrencyForCountry(effectiveLocation, regionCurrencies);
+  const requestedCurrency = route.params?.sourceCurrency;
+  // EUR stays out until that deposit layout exists. Ignore anything else too.
+  const pickedCurrency =
+    isVbaSourceCurrency(requestedCurrency) &&
+    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
+      ? requestedCurrency
+      : undefined;
+  const sourceCurrency = pickedCurrency ?? regionCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -229,7 +252,8 @@ const VbaDetails = () => {
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
-      ? (findUsableAutoramp(readAutoramps(), walletAddress)?.status ?? null)
+      ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+          ?.status ?? null)
       : null,
   );
   const [transactionStatus, setTransactionStatus] = useState<string | null>(
@@ -242,6 +266,9 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
+  const accountKeyRef = useRef(
+    `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
+  );
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -256,7 +283,11 @@ const VbaDetails = () => {
         return;
       }
       const ramps = Engine.context.RampsController as DepositRamps;
-      let autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+      let autoramp = findUsableAutoramp(
+        readAutoramps(),
+        walletAddress,
+        sourceCurrency,
+      );
       if (!autoramp) {
         if (!sourceCurrency) {
           setSetupFailed(true);
@@ -270,7 +301,11 @@ const VbaDetails = () => {
         if (!isMountedRef.current) {
           return;
         }
-        autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+        autoramp = findUsableAutoramp(
+          readAutoramps(),
+          walletAddress,
+          sourceCurrency,
+        );
         if (!autoramp) {
           setSetupFailed(outcome === 'failed');
           setIsTerminal(outcome === 'terminal');
@@ -320,6 +355,7 @@ const VbaDetails = () => {
         Logger.error(error as Error, {
           message: 'VbaDetails: failed to load deposit instructions',
         });
+        throw error;
       }
 
       if (debugEnabled && neoBank.listAutorampTransactions) {
@@ -339,6 +375,28 @@ const VbaDetails = () => {
     },
     [debugEnabled, sourceCurrency, walletAddress],
   );
+
+  useEffect(() => {
+    const nextKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+    if (accountKeyRef.current === nextKey) {
+      return;
+    }
+    accountKeyRef.current = nextKey;
+    // A reused route or an account switch must not keep the previous details.
+    pollingDoneRef.current = false;
+    setInstructions(null);
+    setHasLoaded(false);
+    setLoadError(false);
+    setSetupFailed(false);
+    setIsTerminal(false);
+    setAutorampId(null);
+    setAutorampStatus(
+      walletAddress
+        ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+            ?.status ?? null)
+        : null,
+    );
+  }, [sourceCurrency, walletAddress]);
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -450,9 +508,7 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
-  const isBankTransfer =
-    instructions?.type === 'UsBank' ||
-    (!instructions && sourceCurrency === 'USD');
+  const isBankTransfer = instructions?.type === 'UsBank';
 
   // Offline never fetches, so it skips straight to the waiting copy.
   const isLoading = !hasLoaded && networkTier !== 'NONE';

@@ -25,6 +25,7 @@ import {
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
+import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -123,15 +124,26 @@ export const openAsOnlyOnboardingRoute = (
  * Pushes the completed account on the same stack as onboarding, with the same
  * horizontal transition. The screen hides its back button, so this does not
  * replace the route underneath.
+ *
+ * @param navigation - Navigation from any screen inside or beside onboarding.
+ * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
+ * IP country's currency.
  */
-const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
+export const openCompletedVbaAccount = (
+  navigation: AppNavigationProp,
+  sourceCurrency?: VbaSourceCurrency,
+): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
 
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
+      current.dispatch(
+        sourceCurrency
+          ? CommonActions.navigate(Routes.RAMP.VBA_DETAILS, { sourceCurrency })
+          : CommonActions.navigate(Routes.RAMP.VBA_DETAILS),
+      );
       return;
     }
 

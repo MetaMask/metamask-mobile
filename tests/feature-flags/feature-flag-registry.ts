@@ -4613,6 +4613,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '0.0.0',
       regions: [],
       regionCurrencies: {},
+      chooseCurrency: false,
     },
     status: FeatureFlagStatus.Active,
   },

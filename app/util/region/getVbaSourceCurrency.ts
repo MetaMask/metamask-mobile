@@ -10,17 +10,24 @@ export const VBA_SOURCE_CURRENCIES: readonly VbaSourceCurrency[] = [
 ];
 
 /**
- * Currencies `VbaDetails` can show deposit details for. PR1 only has PIX.
+ * Currencies `VbaDetails` can show deposit details for. Choose Currency only
+ * offers these. EUR stays out until that layout exists.
  */
 const VBA_CURRENCIES_WITH_DEPOSIT_DETAILS: ReadonlySet<VbaSourceCurrency> =
-  new Set(['BRL']);
+  new Set(['BRL', 'USD']);
+
+/** Currencies the Choose Currency screen lists, in display order. */
+export const VBA_CHOOSABLE_SOURCE_CURRENCIES: readonly VbaSourceCurrency[] =
+  VBA_SOURCE_CURRENCIES.filter((currency) =>
+    VBA_CURRENCIES_WITH_DEPOSIT_DETAILS.has(currency),
+  );
 
 /**
  * Picks the autoramp fiat from a GeolocationController location.
  *
- * Only the leading country segment is used. The map comes from
- * `moneyMovementNeobank.regionCurrencies`. Missing or unsupported values fail
- * closed.
+ * Only the leading country segment is used, so `US-CA` reads as `US`. The map
+ * comes from `moneyMovementNeobank.regionCurrencies`. A missing country or a
+ * currency without a details layout fails closed.
  *
  * @param location - Raw GeolocationController location, such as `BR` or `US-CA`.
  * @param regionCurrencies - Country-to-currency map from the remote flag.

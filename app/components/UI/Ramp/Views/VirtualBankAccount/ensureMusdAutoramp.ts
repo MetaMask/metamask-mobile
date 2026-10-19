@@ -13,6 +13,7 @@ export type MusdAutorampSetupOutcome =
 interface AutorampCursor {
   walletAddress: string;
   status: string;
+  depositRailsSummary?: { currency?: string };
 }
 
 const setupByWallet = new Map<string, Promise<MusdAutorampSetupOutcome>>();
@@ -28,14 +29,42 @@ const isForWallet = (autoramp: AutorampCursor, walletAddress: string) =>
 const isTerminal = (autoramp: AutorampCursor) =>
   autoramp.status === 'Rejected' || autoramp.status === 'Cancelled';
 
-/** First autoramp for this wallet that is not Rejected or Cancelled. */
+const knownCurrency = (autoramp: AutorampCursor): string | undefined =>
+  autoramp.depositRailsSummary?.currency;
+
+/**
+ * First autoramp for this wallet that is not Rejected or Cancelled.
+ * When `sourceCurrency` is set, an autoramp whose fiat is already known only
+ * matches that fiat. An autoramp with no fiat yet still matches, so a create
+ * that has not received deposit rails is not repeated.
+ */
 export const findUsableAutoramp = <T extends AutorampCursor>(
   autoramps: readonly T[],
   walletAddress: string,
+  sourceCurrency?: string,
 ): T | undefined =>
-  autoramps.find(
-    (autoramp) => isForWallet(autoramp, walletAddress) && !isTerminal(autoramp),
-  );
+  autoramps.find((autoramp) => {
+    if (!isForWallet(autoramp, walletAddress) || isTerminal(autoramp)) {
+      return false;
+    }
+    if (!sourceCurrency) {
+      return true;
+    }
+    const currency = knownCurrency(autoramp);
+    return !currency || currency === sourceCurrency;
+  });
+
+const isTerminalForCurrency = (
+  autoramp: AutorampCursor,
+  walletAddress: string,
+  sourceCurrency: string,
+): boolean => {
+  if (!isForWallet(autoramp, walletAddress) || !isTerminal(autoramp)) {
+    return false;
+  }
+  const currency = knownCurrency(autoramp);
+  return !currency || currency === sourceCurrency;
+};
 
 const readAutoramps = (): AutorampCursor[] =>
   Engine.context.RampsController.state?.autoramps ?? [];
@@ -45,7 +74,7 @@ const runSetup = async (
   sourceCurrency: VbaSourceCurrency,
   replaceTerminal: boolean,
 ): Promise<MusdAutorampSetupOutcome> => {
-  if (findUsableAutoramp(readAutoramps(), walletAddress)) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 
@@ -55,18 +84,23 @@ const runSetup = async (
     refreshAutoramps: true,
   });
 
-  if (
-    findUsableAutoramp(readAutoramps(), walletAddress) ||
-    snapshot.autorampStatus === 'ready'
-  ) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
+    return 'ready';
+  }
+
+  // Hydrate reports ready when any fiat is usable. A different known fiat
+  // does not satisfy this request, so create one for the requested currency.
+  if (snapshot.autorampStatus === 'ready') {
+    await Engine.context.RampsController.createAutoramp(
+      buildMusdAutorampRequest(walletAddress, sourceCurrency),
+    );
     return 'ready';
   }
 
   if (
     !replaceTerminal &&
-    readAutoramps().some(
-      (autoramp) =>
-        isForWallet(autoramp, walletAddress) && isTerminal(autoramp),
+    readAutoramps().some((autoramp) =>
+      isTerminalForCurrency(autoramp, walletAddress, sourceCurrency),
     )
   ) {
     return 'terminal';
@@ -96,7 +130,7 @@ const runSetup = async (
     return 'waiting';
   }
 
-  if (findUsableAutoramp(readAutoramps(), walletAddress)) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 

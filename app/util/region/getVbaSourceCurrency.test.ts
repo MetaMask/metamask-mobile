@@ -5,7 +5,7 @@ import {
 } from './getVbaSourceCurrency';
 
 describe('getVbaSourceCurrencyForCountry', () => {
-  const regionCurrencies = { BR: 'BRL', US: 'USD' } as const;
+  const regionCurrencies = { BR: 'BRL', US: 'USD', FR: 'EUR' } as const;
 
   it.each([
     ['BR', 'BRL'],
@@ -16,15 +16,21 @@ describe('getVbaSourceCurrencyForCountry', () => {
     );
   });
 
-  it('fails closed for USD until its details layout is stacked on top', () => {
-    expect(
-      getVbaSourceCurrencyForCountry('US-CA', regionCurrencies),
-    ).toBeUndefined();
+  it('maps the US to USD', () => {
+    expect(getVbaSourceCurrencyForCountry('US-CA', regionCurrencies)).toBe(
+      'USD',
+    );
   });
 
   it('fails closed when the flag does not map the country', () => {
     expect(
       getVbaSourceCurrencyForCountry('US-CA', { BR: 'BRL' }),
+    ).toBeUndefined();
+  });
+
+  it('fails closed when the mapped currency has no details layout', () => {
+    expect(
+      getVbaSourceCurrencyForCountry('FR', regionCurrencies),
     ).toBeUndefined();
   });
 

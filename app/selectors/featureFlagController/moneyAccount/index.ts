@@ -40,12 +40,14 @@ export const MONEY_MOVEMENT_NEOBANK_FLAG_KEY = 'moneyMovementNeobank' as const;
 interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   regions?: unknown;
   regionCurrencies?: unknown;
+  chooseCurrency?: unknown;
 }
 
 /**
  * `validatedVersionGatedFeatureFlag` unwraps `{ name, value }` and then
- * returns only a boolean, which drops `regions`. Recover the same payload
- * here so the country list can be read after the enabled + minimumVersion gate.
+ * returns only a boolean, which drops `regions` and `chooseCurrency`. Recover
+ * the same payload here so those fields can be read after the enabled +
+ * minimumVersion gate.
  *
  * @param remoteFlag - Raw `moneyMovementNeobank` value from RemoteFeatureFlagController.
  * @returns The version-gated object, including any extra fields, or undefined.
@@ -114,11 +116,14 @@ function normalizeVbaRegionCurrencies(
 
   const normalized: Record<string, 'BRL' | 'USD' | 'EUR'> = {};
   for (const [region, currency] of Object.entries(regionCurrencies)) {
-    const code = region.trim().toUpperCase();
-    const fiat =
+    const normalizedRegion = region.trim().toUpperCase();
+    const normalizedCurrency =
       typeof currency === 'string' ? currency.trim().toUpperCase() : '';
-    if (code && VBA_SOURCE_CURRENCIES.has(fiat)) {
-      normalized[code] = fiat as 'BRL' | 'USD' | 'EUR';
+    if (normalizedRegion && VBA_SOURCE_CURRENCIES.has(normalizedCurrency)) {
+      normalized[normalizedRegion] = normalizedCurrency as
+        | 'BRL'
+        | 'USD'
+        | 'EUR';
     }
   }
   return normalized;
@@ -135,19 +140,28 @@ export interface MoneyMovementNeobankRollout {
   regions: readonly string[];
   /** Currency served for each IP country. Missing countries fail closed. */
   regionCurrencies: Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>>;
+  /**
+   * True when the user picks the account currency on Choose Currency. False
+   * creates it in the currency mapped from the IP country. Only a literal
+   * `true` enables it, and it is false whenever `isEnabled` is false.
+   */
+  chooseCurrency: boolean;
 }
 
 const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
   isEnabled: false,
   regions: [],
   regionCurrencies: {},
+  chooseCurrency: false,
 };
 
 /**
  * Virtual Bank Account rollout from `moneyMovementNeobank`.
  *
  * The object is the only switch: `{ enabled, minimumVersion, regions,
- * regionCurrencies }`. A closed gate allows no country.
+ * regionCurrencies, chooseCurrency }`. `validatedVersionGatedFeatureFlag`
+ * checks enabled and minimumVersion; the other fields are read from that same
+ * payload. A closed gate allows no country.
  *
  * @returns The enabled country list, or a disabled rollout.
  */
@@ -167,6 +181,7 @@ export const selectMoneyMovementNeobank = createSelector(
       isEnabled: true,
       regions,
       regionCurrencies: normalizeVbaRegionCurrencies(payload.regionCurrencies),
+      chooseCurrency: payload.chooseCurrency === true,
     };
   },
 );
@@ -183,7 +198,10 @@ export function isVbaGeoBypassEnabled(): boolean {
   return process.env.MM_MONEY_VBA_GEO_BYPASS === 'true';
 }
 
-/** Lower-environment IP-country override for testing the whole VBA flow. */
+/**
+ * Optional lower-environment IP-country override for testing the whole VBA
+ * flow. The remote flag must still enable and map the overridden country.
+ */
 export function getVbaRegionOverride(): string | undefined {
   const override =
     process.env.MM_MONEY_VBA_REGION_OVERRIDE?.trim().toUpperCase();

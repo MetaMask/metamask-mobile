@@ -21,6 +21,8 @@ const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
+let mockRouteParams: { sourceCurrency?: string } | undefined;
+let mockChooseCurrency = false;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
@@ -34,6 +36,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../../../../selectors/rampsController', () => ({
@@ -48,8 +51,9 @@ jest.mock(
     ),
     selectMoneyMovementNeobank: () => ({
       isEnabled: true,
-      regions: ['BR'],
-      regionCurrencies: { BR: 'BRL' },
+      regions: ['BR', 'US'],
+      regionCurrencies: { BR: 'BRL', US: 'USD' },
+      chooseCurrency: mockChooseCurrency,
     }),
   }),
 );
@@ -148,6 +152,8 @@ describe('VbaDetails', () => {
     resetMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
+    mockRouteParams = undefined;
+    mockChooseCurrency = false;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -297,6 +303,19 @@ describe('VbaDetails', () => {
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
     });
 
+    it('shows the Pix title when the loaded rail is Pix, even if USD was requested', async () => {
+      mockRouteParams = { sourceCurrency: 'USD' };
+      mockGetDepositInstructions.mockResolvedValue({
+        type: 'Pix',
+        ...pixInstructions,
+      });
+
+      const { findByText, queryByText } = renderWithProvider(<VbaDetails />);
+
+      expect(await findByText('Add money with Pix')).toBeOnTheScreen();
+      expect(queryByText('Add money by bank transfer')).toBeNull();
+    });
+
     it('shows the Pix rows when the autoramp has a Pix rail', async () => {
       mockGetDepositInstructions.mockResolvedValue({
         type: 'Pix',
@@ -322,9 +341,7 @@ describe('VbaDetails', () => {
         ).toBeOnTheScreen();
       });
       expect(
-        getByText(
-          'Your account details appear here once the account is approved.',
-        ),
+        getByText('Your account details will appear here shortly.'),
       ).toBeOnTheScreen();
     });
   });
@@ -683,6 +700,49 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-new');
     });
+  });
+
+  it('creates the autoramp in the currency picked on Choose Currency', async () => {
+    mockChooseCurrency = true;
+    mockRouteParams = { sourceCurrency: 'USD' };
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'USD' }],
+        }),
+      );
+    });
+  });
+
+  it('ignores an EUR route param and does not create an account', async () => {
+    mockChooseCurrency = true;
+    mockRouteParams = { sourceCurrency: 'EUR' };
+    setAutoramps([]);
+
+    const { findByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(
+      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+    ).toBeOnTheScreen();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('shows the setup error instead of using the region when chooseCurrency is on and no currency was picked', async () => {
+    mockChooseCurrency = true;
+    setAutoramps([]);
+
+    const { findByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(
+      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+    ).toBeOnTheScreen();
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('stays on details with retry when setup fails', async () => {

@@ -27,7 +27,12 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const setAutoramps = (
-  autoramps: { id?: string; walletAddress: string; status: string }[],
+  autoramps: {
+    id?: string;
+    walletAddress: string;
+    status: string;
+    depositRailsSummary?: { currency?: string };
+  }[],
 ) => {
   (
     Engine.context.RampsController.state as {
@@ -107,6 +112,48 @@ describe('ensureMusdAutoramp', () => {
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
     expect(mockHydrate).not.toHaveBeenCalled();
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('creates the requested fiat when the usable autoramp is a different currency', async () => {
+    setAutoramps([
+      {
+        walletAddress: '0xabc',
+        status: 'Approved',
+        depositRailsSummary: { currency: 'BRL' },
+      },
+    ]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'ready' });
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
+  });
+
+  it('does not create again when the usable autoramp has no currency yet', async () => {
+    setAutoramps([{ walletAddress: '0xabc', status: 'Created' }]);
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('does not treat a rejected BRL autoramp as terminal for a USD request', async () => {
+    setAutoramps([
+      {
+        walletAddress: '0xabc',
+        status: 'Rejected',
+        depositRailsSummary: { currency: 'BRL' },
+      },
+    ]);
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
   it('does not replace rejected or cancelled routes on its own', async () => {
