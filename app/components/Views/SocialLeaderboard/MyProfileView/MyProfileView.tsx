@@ -503,7 +503,13 @@ const MyProfileView: React.FC = () => {
               />
             </Box>
 
-            <Box gap={2} paddingHorizontal={4}>
+            <Box
+              gap={2}
+              paddingHorizontal={4}
+              paddingBottom={
+                overlayedStats.performanceCells.length === 0 ? 8 : undefined
+              }
+            >
               <Box flexDirection={BoxFlexDirection.Row} gap={2}>
                 {isOwner ? (
                   <>
