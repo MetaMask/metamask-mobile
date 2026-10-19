@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
-import VbaKycPending from '../VbaKycPending';
-import VbaKycRejected from '../VbaKycRejected';
+import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
+import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
-import { useVbaKycStatusRedirect } from '../hooks/useVbaKycStatusRedirect';
+import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
 
 interface VbaStatusAdapterProps {
   variant: VbaOnboardingStubVariant;

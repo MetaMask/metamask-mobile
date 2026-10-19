@@ -1,5 +1,6 @@
 import { CaipChainId } from '@metamask/utils';
 import { IconName } from '@metamask/design-system-react-native';
+import { KeyringAccountType } from '@metamask/keyring-api';
 
 export interface Icon {
   /**
@@ -66,6 +67,11 @@ export interface MultichainAddressRowProps {
    * Address string to display (will be truncated)
    */
   address: string;
+  /**
+   * Keyring account type, used to show a label such as "Native SegWit"
+   * beside the network name
+   */
+  accountType?: KeyringAccountType;
   /**
    * Copy operation parameters
    */

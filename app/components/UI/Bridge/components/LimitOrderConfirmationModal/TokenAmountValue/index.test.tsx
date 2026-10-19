@@ -1,4 +1,5 @@
 import React from 'react';
+import { FontWeight } from '@metamask/design-system-react-native';
 import { render } from '@testing-library/react-native';
 import { createMockTokenWithBalance } from '../../../testUtils';
 import { TokenAvatarSelectorsIDs } from '../TokenAvatar/testIds';
@@ -30,6 +31,24 @@ describe('TokenAmountValue', () => {
     expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
       '0.1 ETH',
     );
+  });
+
+  it('uses the requested font weight for the amount and symbol', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue
+        amount="0.1"
+        token={mockToken}
+        showTokenSymbol
+        fontWeight={FontWeight.Medium}
+      />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
+    expect(getByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
   });
 
   it('renders the token avatar when a token is provided', () => {
@@ -66,6 +85,28 @@ describe('TokenAmountValue', () => {
     expect(getByTestId(TokenAmountValueSelectorsIDs.SYMBOL)).toHaveTextContent(
       'ETH',
     );
+  });
+
+  it('renders the prefix as its own text, raised onto the amount center line', () => {
+    const { getByTestId } = render(
+      <TokenAmountValue amount="2200 USDC" prefix="@" token={mockToken} />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
+      '@',
+    );
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveStyle({
+      top: -1.5,
+    });
+    expect(getByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toHaveTextContent(
+      '2200 USDC',
+    );
+  });
+
+  it('does not render a prefix by default', () => {
+    const { queryByTestId } = render(<TokenAmountValue amount="2200 USDC" />);
+
+    expect(queryByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toBeNull();
   });
 
   it('does not render the token symbol without a token', () => {

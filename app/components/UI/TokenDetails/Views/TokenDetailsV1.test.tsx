@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, type LayoutChangeEvent } from 'react-native';
-import { fireEvent, render, within } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 
 import {
   TokenDetailsV1,
@@ -28,6 +28,8 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
+import { SocialLeaderboard } from '../../SocialLeaderboard';
+import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 const mockGoBack = jest.fn();
@@ -45,6 +47,10 @@ jest.mock('react-redux', () => ({
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
+jest.mock('../../SocialLeaderboard', () => ({
+  SocialLeaderboard: jest.fn(() => null),
+}));
+
 jest.mock('../../SocialFeed', () => {
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
     posts: [],
@@ -57,14 +63,7 @@ jest.mock('../../SocialFeed', () => {
   }));
   return {
     useSocialFeed: useSocialFeedMock,
-    SocialFeed: ({
-      source,
-    }: {
-      source: { kind: 'token'; assetId: string };
-    }) => {
-      useSocialFeedMock(source);
-      return null;
-    },
+    SocialFeed: () => null,
     SocialFeedSurfaceProvider: ({ children }: { children?: React.ReactNode }) =>
       children ?? null,
     SocialV1FeedPostList: () => null,
@@ -74,6 +73,59 @@ jest.mock('../../SocialFeed', () => {
     SocialFeedError: () => null,
   };
 });
+
+jest.mock('../components/tabs/TokenDetailsFeed', () => {
+  const { Pressable: FeedPressable } = jest.requireActual('react-native');
+  const { useSocialFeed: useFeed } = jest.requireMock('../../SocialFeed');
+  const { mockOpenSpotFeedItem } = jest.requireActual(
+    '../../SocialFeed/mocks/socialV1Feed.mock',
+  );
+  return {
+    TokenDetailsFeed: ({
+      source,
+      onCopyTrade,
+    }: {
+      source: { kind: 'token'; assetId: string };
+      onCopyTrade?: (item: unknown, commentId?: string) => void;
+    }) => {
+      useFeed(source);
+      return (
+        <FeedPressable
+          testID="mock-feed-copy-trade"
+          onPress={() =>
+            onCopyTrade?.(
+              mockOpenSpotFeedItem({
+                asset: {
+                  symbol: 'PEPE',
+                  avatar: {
+                    positionId: 'pos-pepe',
+                    chain: 'ethereum',
+                    tokenAddress:
+                      ' 0x6982508145454ce325ddbe47a25d4ec3d2311933 ',
+                    tokenImageUrl: null,
+                    tokenSymbol: 'PEPE',
+                  },
+                },
+              }),
+              'comment-1',
+            )
+          }
+        />
+      );
+    },
+  };
+});
+
+const mockQuickBuyRoot = jest.fn((_props: Record<string, unknown>) => null);
+jest.mock('../../QuickBuy', () => ({
+  QuickBuy: {
+    Root: (props: Record<string, unknown>) => mockQuickBuyRoot(props),
+  },
+  TOP_TRADERS_QUICK_BUY_FEATURES: {},
+}));
+
+const lastQuickBuyProps = () =>
+  mockQuickBuyRoot.mock.calls[mockQuickBuyRoot.mock.calls.length - 1][0];
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -180,7 +232,6 @@ jest.mock('../components/tabs/OverviewTab', () => {
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
   const { View, Pressable, Text } = jest.requireActual('react-native');
-  const tabs = ['feed', 'overview', 'security'];
   return {
     ...actual,
     __esModule: true,
@@ -188,10 +239,12 @@ jest.mock('../components/TokenDetailsV1TabBar', () => {
       activeTab,
       onTabPress,
       onLayout,
+      tabs = ['feed', 'overview', 'security'],
     }: {
       activeTab: string;
       onTabPress: (tab: string) => void;
       onLayout?: (event: LayoutChangeEvent) => void;
+      tabs?: readonly string[];
     }) => (
       <View testID="mock-tab-bar" onLayout={onLayout}>
         {tabs.map((tab) => (
@@ -270,6 +323,13 @@ jest.mock('../TraderPositionPnl/useOpenPositionHeader', () => ({
   useOpenPositionHeader: () => ({ isLoading: false }),
 }));
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
+
 const mockStickyFooterProps: Record<string, unknown>[] = [];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {
@@ -335,6 +395,17 @@ describe('TokenDetailsV1', () => {
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockUseTokenBalance.mockReturnValue({ balance: undefined });
+    mockUseSocialFeed.mockImplementation(() => ({
+      posts: [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(),
+      dataUpdatedAt: undefined,
+    }));
     mockOverviewProps.length = 0;
     mockPriceHeaderProps.length = 0;
     mockSecurityQueryResult.data = null;
@@ -460,8 +531,8 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('renders the price hero, tab bar and Feed panel by default', () => {
-    const { getByTestId, getByText } = render(
+  it('renders the price hero, tab bar and Overview panel when the feed is empty', () => {
+    const { getByTestId, getByText, queryByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
@@ -470,23 +541,22 @@ describe('TokenDetailsV1', () => {
 
     expect(getByTestId('mock-price')).toBeTruthy();
     expect(getByTestId('mock-tab-bar')).toBeTruthy();
-    // Feed is the default landing tab (index 0). Without the social
-    // leaderboard flag the Feed tab renders the placeholder panel.
-    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
-    expect(getByText('feed:true')).toBeTruthy();
-    expect(getByText('overview:false')).toBeTruthy();
+    expect(getByTestId('mock-overview')).toBeTruthy();
+    expect(getByText('overview:true')).toBeTruthy();
     expect(getByText('security:false')).toBeTruthy();
+    // Social is off in this render, so both social tabs are filtered out —
+    // not just Feed.
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+    expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
   });
 
   it('wires the Overview panel with the token, asset id and currency', () => {
-    const { getByTestId } = render(
+    render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
-
-    fireEvent.press(getByTestId('token-details-v1-tab-overview'));
 
     expect(mockOverviewProps[0]).toStrictEqual(
       expect.objectContaining({
@@ -522,28 +592,28 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // The active page (Feed is the default landing tab) flows at its natural
+    // The active page (Overview while Feed is hidden) flows at its natural
     // height…
-    const feedPage = getByTestId(
-      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`,
+    const overviewPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
     );
-    expect(feedPage).toBeOnTheScreen();
-    expect(feedPage.props.style).toBeUndefined();
-    expect(feedPage.props.pointerEvents).toBe('auto');
+    expect(overviewPage).toBeOnTheScreen();
+    expect(overviewPage.props.style).toBeUndefined();
+    expect(overviewPage.props.pointerEvents).toBe('auto');
 
     // …while inactive pages are display:none — out of layout entirely, so
     // no page stretches to a tallest sibling and hits stay on the active one.
     // (Hidden elements need opt-in to be queryable.)
-    const overviewPage = getByTestId(
-      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-overview`,
+    const securityPage = getByTestId(
+      `${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-security`,
       { includeHiddenElements: true },
     );
-    expect(overviewPage.props.style).toStrictEqual({ display: 'none' });
-    expect(overviewPage.props.pointerEvents).toBe('none');
+    expect(securityPage.props.style).toStrictEqual({ display: 'none' });
+    expect(securityPage.props.pointerEvents).toBe('none');
   });
 
   it('re-stacks pages when the active tab changes so tabs keep their own heights', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
@@ -565,10 +635,10 @@ describe('TokenDetailsV1', () => {
         .style,
     ).toBeUndefined();
     expect(
-      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
+      queryByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`, {
         includeHiddenElements: true,
-      }).props.style,
-    ).toStrictEqual({ display: 'none' });
+      }),
+    ).toBeNull();
   });
 
   it('mounts tab pages lazily on first activation and keeps them mounted', () => {
@@ -579,9 +649,9 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    // Only the default tab (Feed) is mounted initially.
-    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
-    expect(queryByTestId('mock-overview')).toBeNull();
+    // Feed is omitted until it has posts, so Overview is the only mounted tab.
+    expect(getByTestId('mock-overview')).toBeTruthy();
+    expect(queryByTestId('token-details-v1-tab-panel-feed')).toBeNull();
     expect(queryByTestId(SecurityTabSelectors.TAB)).toBeNull();
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
@@ -782,12 +852,31 @@ describe('TokenDetailsV1', () => {
   });
 
   it('switches tab panels and back to the Overview tab', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    mockUseSocialFeed.mockReturnValue({
+      posts: [{ id: 'post-1' } as SocialV1FeedPost],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(),
+      dataUpdatedAt: undefined,
+    });
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
         token={baseToken}
         variant={TokenDetailsVariant.Memecoin}
       />,
     );
+
+    expect(getByText('feed:true')).toBeTruthy();
 
     fireEvent.press(getByTestId('token-details-v1-tab-security'));
 
@@ -802,10 +891,12 @@ describe('TokenDetailsV1', () => {
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
     expect(getByText('feed:true')).toBeTruthy();
-    expect(getByTestId('token-details-v1-tab-panel-feed')).toBeTruthy();
+    expect(
+      getByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`),
+    ).toBeTruthy();
   });
 
-  it('loads the social feed on the Feed tab', () => {
+  it('keeps the Feed and Holders tabs when they have no rows', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -820,11 +911,170 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
+    expect(getByTestId('token-details-v1-tab-feed')).toBeTruthy();
+    expect(getByTestId('token-details-v1-tab-holders')).toBeTruthy();
+  });
+
+  it('lands on the Feed tab even when the feed has no posts', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { getByText } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    // Keeping the tab is not the same as landing on it: an empty feed must
+    // still be the tab the reader opens on.
+    expect(getByText('feed:true')).toBeTruthy();
+    expect(getByText('overview:false')).toBeTruthy();
+  });
+
+  it('drops both social tabs when the token has no CAIP-19 asset id', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    // No chain id, so `useTokenCaipAssetId` resolves null and neither social
+    // surface has a source to load.
+    const tokenWithoutAssetId = {
+      ...baseToken,
+      chainId: undefined,
+      caipAssetId: undefined,
+    } as unknown as TokenDetailsRouteParams;
+
+    const { queryByTestId, getByText } = render(
+      <TokenDetailsV1
+        token={tokenWithoutAssetId}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+    expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
+    expect(getByText('overview:true')).toBeTruthy();
+  });
+
+  it('loads the social feed on the Feed tab', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    mockUseSocialFeed.mockReturnValue({
+      posts: [{ id: 'post-1' } as SocialV1FeedPost],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(),
+      dataUpdatedAt: undefined,
+    });
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
     fireEvent.press(getByTestId('token-details-v1-tab-feed'));
 
     expect(mockUseSocialFeed).toHaveBeenCalledWith({
       kind: 'token',
       assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
+    });
+  });
+
+  it('opens Quick Buy for the token when a feed post is copy traded', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+    expect(lastQuickBuyProps().isVisible).toBe(false);
+
+    fireEvent.press(getByTestId('mock-feed-copy-trade'));
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        target: {
+          tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+          tokenSymbol: 'PEPE',
+          tokenName: 'PEPE',
+          chain: 'eip155:1',
+        },
+        copyTradeOrigin: { commentId: 'comment-1' },
+        initialTradeMode: 'buy',
+        analyticsContext: { source: 'trader_feed' },
+      }),
+    );
+  });
+
+  it('closes the copy-trade Quick Buy sheet', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+    fireEvent.press(getByTestId('mock-feed-copy-trade'));
+
+    act(() => {
+      (lastQuickBuyProps().onClose as () => void)();
+    });
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({ isVisible: false, target: null }),
+    );
+  });
+
+  it('shows the Social leaderboard on the Holders tab', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent.press(getByTestId('token-details-v1-tab-holders'));
+
+    expect(jest.mocked(SocialLeaderboard).mock.calls[0][0]).toEqual({
+      source: { kind: 'all' },
+      location: 'token_details',
+      showViewerRow: true,
     });
   });
 
@@ -899,9 +1149,11 @@ describe('TokenDetailsV1', () => {
     it('targets the next tab on a left swipe', () => {
       expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('holders');
     });
 
     it('targets the previous tab on a right swipe', () => {
+      expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('security');
       expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
     });
@@ -916,7 +1168,7 @@ describe('TokenDetailsV1', () => {
       expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
       // No neighbouring tab in the swipe direction.
       expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
-      expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('holders', -120, 0)).toBeNull();
     });
   });
 
