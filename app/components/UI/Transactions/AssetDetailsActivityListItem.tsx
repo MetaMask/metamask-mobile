@@ -112,16 +112,12 @@ export const AssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
-      // Not-yet-submitted txs have no hash; the details screen also resolves local txs by id.
-      navigation.navigate(
-        Routes.ACTIVITY_DETAILS,
-        getActivityDetailsRoute(item) ?? {
-          chainId: item.chainId,
-          txIdentifier: tx.id,
-        },
-      );
+      const detailsRoute = getActivityDetailsRoute(item);
+      if (detailsRoute) {
+        navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+      }
     },
-    [navigation, tx.id],
+    [navigation],
   );
 
   const handleImportTimePress = useCallback(() => {

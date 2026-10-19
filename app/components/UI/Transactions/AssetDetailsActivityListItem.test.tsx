@@ -174,7 +174,7 @@ describe('AssetDetailsActivityListItem', () => {
     );
   });
 
-  it('routes a transaction without a hash to ActivityDetails by its local id', () => {
+  it('routes a transaction without a hash to ActivityDetails using its id as the identifier', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({
       id: 'tx-unsubmitted',

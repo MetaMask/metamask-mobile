@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { connect } from 'react-redux';
+import { connect, useStore } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useNavigation } from '@react-navigation/native';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { isStrictHexString } from '@metamask/utils';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
 import decodeTransaction from '../../TransactionElement/utils';
 import BaseNotification from '../../../../component-library/components-temp/BaseNotification';
 import { collectibleContractsSelector } from '../../../../reducers/collectibles';
@@ -30,19 +34,47 @@ function TransactionNotification(props) {
   } = props;
 
   const navigation = useNavigation();
+  const store = useStore();
   const [transactionElement, setTransactionElement] = useState(undefined);
   const [tx, setTx] = useState({});
 
   const onPressNotification = useCallback(() => {
+    onDismissComplete?.();
+
     const transactionId = currentNotification.transaction.id;
-    const chainId = transactions.find(
-      ({ id }) => id === transactionId,
-    )?.chainId;
+    const transaction = transactions.find(({ id }) => id === transactionId);
+
+    const currentRoute = NavigationService.navigation.getCurrentRoute();
+    if (
+      currentRoute?.name === Routes.ACTIVITY_DETAILS &&
+      [transactionId, transaction?.hash].includes(
+        currentRoute.params?.txIdentifier,
+      )
+    ) {
+      return;
+    }
+
+    // The redesigned details only resolve the selected account's local activity;
+    // anything else falls back to the confirmations details screen.
+    const canOpenActivityDetails =
+      isStrictHexString(transaction?.chainId) &&
+      selectLocalActivityItemsByIdentifier(store.getState()).has(
+        transactionId.toLowerCase(),
+      );
+
     navigateToTransactionDetails(navigation, {
       transactionId,
-      ...(chainId ? { chainId: toEvmCaipChainId(chainId) } : {}),
+      ...(canOpenActivityDetails
+        ? { chainId: toEvmCaipChainId(transaction.chainId) }
+        : {}),
     });
-  }, [navigation, currentNotification.transaction.id, transactions]);
+  }, [
+    currentNotification.transaction.id,
+    navigation,
+    onDismissComplete,
+    store,
+    transactions,
+  ]);
 
   const onCloseNotification = useCallback(() => {
     setTimeout(() => onClose(), 1000);
