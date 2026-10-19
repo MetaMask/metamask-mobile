@@ -495,19 +495,23 @@ export class RewardsMoneyController extends BaseController<
   }
 
   /**
-   * Enrols the session profile under a referrer's code. Nothing is cached: the
-   * referral role that changes as a result is read back through
-   * `getReferralMe({ forceFresh: true })`.
+   * Enrols the session profile under a referrer's code. Drops that profile's
+   * cached referral me after the write succeeds, so a later read cannot
+   * return the pre-registration roles for the rest of the cache window. A
+   * read already in flight cannot write its payload back. The new role is
+   * read through `getReferralMe({ forceFresh: true })`.
    */
   async registerReferee(params: RegisterRefereeDto): Promise<void> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
 
+    const profileId = await this.#getProfileId();
     await this.messenger.call(
       'RewardsMoneyDataService:registerReferee',
       params,
     );
+    this.#invalidateReferralMe(profileId);
   }
 
   async getEarningsSummary(
@@ -742,6 +746,19 @@ export class RewardsMoneyController extends BaseController<
       (this.#referralMeRequestGeneration.get(profileId) ?? 0) + 1;
     this.#referralMeRequestGeneration.set(profileId, generation);
     return generation;
+  }
+
+  /**
+   * Forget a profile's referral me. The generation moves first so a read that
+   * started before registration cannot refill the entry after it is removed.
+   * The in-flight promise is dropped so a later read does not join it.
+   */
+  #invalidateReferralMe(profileId: string): void {
+    this.#startReferralMeRequest(profileId);
+    this.#referralMeInFlight.delete(profileId);
+    this.update((draft) => {
+      delete draft.referralMe[profileId];
+    });
   }
 
   #writeReferralMeIfLatest(

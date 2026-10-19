@@ -594,7 +594,7 @@ describe('RewardsMoneyController', () => {
         );
       expect(referralCalls()).toHaveLength(1);
 
-      const settled = Promise.all([
+      const settled = await Promise.all([
         expect(first).rejects.toThrow('busy'),
         expect(second).rejects.toThrow('busy'),
       ]);
@@ -827,6 +827,121 @@ describe('RewardsMoneyController', () => {
       await controller.registerReferee({ code: 'KOL1' });
 
       expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
+    });
+
+    it('drops the cached referral me after a successful registration', async () => {
+      const beforeRegistration: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      };
+      const afterRegistration: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
+      let referralReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          referralReads += 1;
+          return Promise.resolve(
+            referralReads === 1 ? beforeRegistration : afterRegistration,
+          );
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return Promise.resolve(undefined);
+        }
+        return undefined;
+      });
+
+      await controller.getReferralMe();
+      await controller.registerReferee({ code: 'KOL1' });
+
+      expect(controller.state.referralMe[PROFILE_A]).toBeUndefined();
+      await expect(controller.getReferralMe()).resolves.toEqual(
+        afterRegistration,
+      );
+      expect(referralReads).toBe(2);
+    });
+
+    it('keeps the cached referral me when registration fails', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return Promise.resolve(mockReferralMe);
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return Promise.reject(new Error('registration failed'));
+        }
+        return undefined;
+      });
+
+      await controller.getReferralMe();
+      await expect(
+        controller.registerReferee({ code: 'KOL1' }),
+      ).rejects.toThrow('registration failed');
+
+      await expect(controller.getReferralMe()).resolves.toEqual(mockReferralMe);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getReferralMe',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not let a pre-registration read refill the referral me cache', async () => {
+      let resolveFirstRead: (value: ReferralMeDto) => void = () => undefined;
+      const afterRegistration: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
+      let referralReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          referralReads += 1;
+          if (referralReads === 1) {
+            return new Promise<ReferralMeDto>((resolve) => {
+              resolveFirstRead = resolve;
+            });
+          }
+          return Promise.resolve(afterRegistration);
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return Promise.resolve(undefined);
+        }
+        return undefined;
+      });
+
+      const pendingRead = controller.getReferralMe();
+      await Promise.resolve();
+      await Promise.resolve();
+      await controller.registerReferee({ code: 'KOL1' });
+      resolveFirstRead({
+        ...mockReferralMe,
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      });
+      await pendingRead;
+
+      expect(controller.state.referralMe[PROFILE_A]).toBeUndefined();
+      await expect(controller.getReferralMe()).resolves.toEqual(
+        afterRegistration,
+      );
+      expect(referralReads).toBe(2);
     });
   });
 
