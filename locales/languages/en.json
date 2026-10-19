@@ -10040,8 +10040,8 @@
     "generic_error_toast_body": "Please try again in a few minutes.",
     "orders": {
       "tabs": {
-        "open_orders": "Open orders",
-        "open_orders_with_count": "Open orders ({{count}})",
+        "open_orders": "Open",
+        "open_orders_with_count": "Open ({{count}})",
         "history": "History"
       },
       "empty": {

@@ -338,7 +338,7 @@ describe('OrdersTabs', () => {
 
     expect(
       getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
-    ).toHaveTextContent(/^Open orders$|^Open ordersOpen orders$/);
+    ).toHaveTextContent(/^Open$|^OpenOpen$/);
     expect(
       getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
     ).not.toHaveTextContent('(');
@@ -352,7 +352,7 @@ describe('OrdersTabs', () => {
 
     expect(
       getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
-    ).toHaveTextContent(/^Open orders \(2\)/);
+    ).toHaveTextContent(/^Open \(2\)/);
   });
 
   it('counts only open orders matching the selected network in the tab title', () => {
@@ -370,7 +370,7 @@ describe('OrdersTabs', () => {
 
     expect(
       getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
-    ).toHaveTextContent(/^Open orders \(2\)/);
+    ).toHaveTextContent(/^Open \(2\)/);
   });
 
   it('hides open orders that are not on the selected network', () => {
@@ -386,7 +386,7 @@ describe('OrdersTabs', () => {
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
   });
 
-  it('switches back to open orders when Open orders tab is pressed from History', () => {
+  it('switches back to open orders when the Open tab is pressed from History', () => {
     const { getByTestId, getByText, queryByText } = renderOrdersTabs({
       openOrders: chainOrdersTab([]),
       history: chainOrdersTab([]),
