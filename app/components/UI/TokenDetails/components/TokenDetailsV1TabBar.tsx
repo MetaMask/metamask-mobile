@@ -4,6 +4,7 @@ import {
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type ViewStyle,
 } from 'react-native';
 import { Gesture, type PanGesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
