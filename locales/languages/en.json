@@ -1191,6 +1191,9 @@
       "description": "Your identity check is complete.",
       "button": "Continue"
     },
+    "creating_account": {
+      "title": "Creating your bank account"
+    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
@@ -9149,7 +9152,7 @@
       "account_is_ready": {
         "title": "You’re all set",
         "description": "Your virtual account details are ready.",
-        "cta": "View Pix details"
+        "cta": "View account details"
       },
       "kyc_pending": {
         "title": "Verifying your identity",
