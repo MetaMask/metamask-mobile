@@ -159,6 +159,7 @@ env:
   TESTMU_DEVICE: "$(yaml_escape "${TESTMU_DEVICE:-}")"
   TESTMU_OS_VERSION: "$(yaml_escape "${TESTMU_OS_VERSION:-}")"
   TESTMU_BUILD_NAME: "$(yaml_escape "${TESTMU_BUILD_NAME:-HyperExecute-Performance}")"
+  TESTMU_PROJECT_NAME: "$(yaml_escape "${TESTMU_PROJECT_NAME:-}")"
   TESTMU_GEO_LOCATION: "$(yaml_escape "${TESTMU_GEO_LOCATION:-SE}")"
   TEST_PLATFORM: "$(yaml_escape "${TEST_PLATFORM:-android}")"
   QA_APP_VERSION: "$(yaml_escape "${QA_APP_VERSION:-HyperExecute}")"
