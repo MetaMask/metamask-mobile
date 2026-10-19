@@ -1596,7 +1596,11 @@ export const runQuickBuyControllerCases = ({
         mockUsePositionTokenBalance.mockReturnValue(
           positionRate === undefined
             ? undefined
-            : { currencyExchangeRate: positionRate },
+            : createSourceToken({
+                address: '0xDEST',
+                symbol: 'GIGA',
+                currencyExchangeRate: positionRate,
+              }),
         );
         mockUseDestTokenExchangeRate.mockReturnValue(destRate);
       };
