@@ -1562,7 +1562,10 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: 'home_section' },
+        params: {
+          source: 'home_section',
+          button_location: 'perps_section_header',
+        },
       });
     });
 
