@@ -10,7 +10,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontFamily,
   Text,
   TextColor,
   TextVariant,
@@ -19,6 +18,7 @@ import {
   ThemeProvider,
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
+import MarketingMomentTitle from '../MarketingMomentTitle';
 import { MarketingMomentSelectorsIDs } from './MarketingMoment.testIds';
 import type {
   MarketingMomentAction,
@@ -82,18 +82,13 @@ const MarketingMomentContent = ({
           {title ? (
             <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
               {typeof title === 'string' ? (
-                <Text
-                  variant={TextVariant.DisplayXl}
-                  fontFamily={FontFamily.Hero}
-                  accessibilityRole="header"
+                <MarketingMomentTitle
                   testID={MarketingMomentSelectorsIDs.TITLE}
                   {...titleTextProps}
-                  twClassName={`w-full text-center leading-[1.1] tracking-[-1.2px]${
-                    titleClassName ? ` ${titleClassName}` : ''
-                  }`}
+                  twClassName={titleClassName}
                 >
                   {title}
-                </Text>
+                </MarketingMomentTitle>
               ) : (
                 title
               )}

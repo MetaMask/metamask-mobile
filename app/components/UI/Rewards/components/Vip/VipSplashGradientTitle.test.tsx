@@ -14,11 +14,17 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       twClassName?: string;
     }) => ReactActual.createElement(Text, props, children),
-    FontFamily: { Hero: 'hero' },
+    FontFamily: { Hero: 'hero', Default: 'default' },
     FontWeight: { Regular: 'regular' },
-    TextVariant: { DisplayXl: 'displayXl' },
+    TextVariant: { DisplayXl: 'display-xl', DisplayLg: 'display-lg' },
   };
 });
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
+  I18nEvents: new (jest.requireActual('events').EventEmitter)(),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: jest.fn(() => ({})) }),
@@ -62,8 +68,8 @@ describe('VipSplashGradientTitle', () => {
     const mask = getByTestId('vip-splash-title');
     expect(mask).toHaveTextContent('Welcome to Gold Fox Collective');
     expect(mask.props.accessibilityRole).toBe('header');
-    expect(mask.props.variant).toBe('displayXl');
-    expect(mask.props.twClassName).toContain('tracking-[-1.2px]');
+    expect(mask.props.variant).toBe('display-xl');
+    expect(mask.props.fontFamily).toBe('hero');
 
     const sizingCopy = getAllByText('Welcome to Gold Fox Collective', {
       includeHiddenElements: true,
