@@ -1,13 +1,16 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
 import { moneyMfaStore } from './moneyMfaStore';
 import { createMfaMoneyAccount } from './createMfaMoneyAccount';
+
+const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'email_otp'];
 
 export type MoneyMfaStatus =
   | 'unavailable'
@@ -20,6 +23,11 @@ export type MoneyMfaStatus =
 const getReason = () => ({
   operation: 'money.mfa.setup',
   enrollDescription: strings('money.mfa.setup_operation_description'),
+});
+
+const getTurnOffReason = () => ({
+  operation: 'money.mfa.turnOff',
+  verifyDescription: strings('money.mfa.turn_off_verify_description'),
 });
 
 /**
@@ -36,9 +44,17 @@ export const useMoneyMfa = () => {
     moneyMfaStore.getState,
   );
 
-  const hasPasskey = credentials.some(
-    ({ type, status }) => type === 'passkey' && status === 'active',
+  const activeMethods = useMemo(
+    () =>
+      MONEY_MFA_METHODS.filter((method) =>
+        credentials.some(
+          ({ type, status: credentialStatus }) =>
+            type === method && credentialStatus === 'active',
+        ),
+      ),
+    [credentials],
   );
+  const hasPasskey = activeMethods.includes('passkey');
 
   let status: MoneyMfaStatus;
   if (!isFlagEnabled || !isMfaKitEnabled()) {
@@ -78,8 +94,9 @@ export const useMoneyMfa = () => {
     try {
       if (hasPasskey) {
         await verifyOrEnroll({
-          methods: ['passkey'],
-          verifyWith: 'passkey',
+          methods: activeMethods,
+          verifyWith: activeMethods,
+          maxSessionAgeMs: 0,
           reason: getReason(),
         });
       } else {
@@ -95,11 +112,28 @@ export const useMoneyMfa = () => {
       return;
     }
     await createAccount();
-  }, [hasPasskey, enroll, verifyOrEnroll, createAccount, showEnabledSheet]);
+  }, [
+    hasPasskey,
+    activeMethods,
+    enroll,
+    verifyOrEnroll,
+    createAccount,
+    showEnabledSheet,
+  ]);
 
-  const turnOff = useCallback(() => {
+  const turnOff = useCallback(async () => {
+    try {
+      await verifyOrEnroll({
+        methods: activeMethods,
+        verifyWith: activeMethods,
+        maxSessionAgeMs: 0,
+        reason: getTurnOffReason(),
+      });
+    } catch {
+      return;
+    }
     moneyMfaStore.setState({ isTurnedOff: true });
-  }, []);
+  }, [activeMethods, verifyOrEnroll]);
 
   const dismissFailure = useCallback(() => {
     moneyMfaStore.setState({ phase: 'idle' });

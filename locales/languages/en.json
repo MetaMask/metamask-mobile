@@ -9329,6 +9329,7 @@
       "turn_off_title": "Turn off 2-step verification",
       "turn_off_description": "Your Money account will no longer have an extra layer of protection. If another security method is compromised, unauthorized transactions become more likely.",
       "turn_off_cta": "Turn off",
+      "turn_off_verify_description": "Verify it's you to turn off 2-step verification",
       "cancel": "Cancel",
       "badge_label": "2-step verification is on",
       "setup_operation_description": "Protect your Money account with a passkey"

@@ -54,6 +54,11 @@ const activePasskey: EnrolledCredential = {
   status: 'active',
 };
 
+const activeEmail = {
+  type: 'email_otp',
+  status: 'active',
+} as EnrolledCredential;
+
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
@@ -247,7 +252,8 @@ describe('useMoneyMfa', () => {
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
         methods: ['passkey'],
-        verifyWith: 'passkey',
+        verifyWith: ['passkey'],
+        maxSessionAgeMs: 0,
         reason: expect.objectContaining({ operation: 'money.mfa.setup' }),
       });
       expect(mockEnroll).not.toHaveBeenCalled();
@@ -337,15 +343,48 @@ describe('useMoneyMfa', () => {
   });
 
   describe('turnOff', () => {
-    it('marks 2FA as turned off', () => {
+    it('verifies with a fresh passkey check, then marks 2FA as turned off', async () => {
       const { result } = arrange({ credentials: [activePasskey] });
 
-      act(() => {
-        result.current.turnOff();
+      await act(async () => {
+        await result.current.turnOff();
       });
 
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
+        methods: ['passkey'],
+        verifyWith: ['passkey'],
+        maxSessionAgeMs: 0,
+        reason: expect.objectContaining({ operation: 'money.mfa.turnOff' }),
+      });
       expect(moneyMfaStore.getState().isTurnedOff).toBe(true);
       expect(result.current.status).toBe('off');
+    });
+
+    it('offers every active method when email is also set up', async () => {
+      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          methods: ['passkey', 'email_otp'],
+          verifyWith: ['passkey', 'email_otp'],
+        }),
+      );
+    });
+
+    it('keeps 2FA on when verification is rejected', async () => {
+      mockVerifyOrEnroll.mockRejectedValue(new Error('flow_cancelled'));
+      const { result } = arrange({ credentials: [activePasskey] });
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+
+      expect(moneyMfaStore.getState().isTurnedOff).toBe(false);
+      expect(result.current.status).toBe('enabled');
     });
   });
 
