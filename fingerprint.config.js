@@ -241,7 +241,7 @@ const config = {
     '.github/workflows/run-appium-smoke-tests-android.yml',
     '.github/workflows/run-appium-smoke-tests-ios.yml',
     '.github/workflows/run-e2e-api-specs.yml',
-    '.github/workflows/performance-test-runner.yml',
+    '.github/workflows/performance-test-runner-testmu.yml',
     '.github/workflows/update-e2e-fixtures.yml',
     '.github/workflows/upload-to-testflight.yml',
     '.github/workflows/runway-ota-resolve-context.yml',

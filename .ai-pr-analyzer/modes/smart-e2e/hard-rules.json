@@ -176,7 +176,7 @@
           "\\.(md|mdx|txt)$",
           "\\.(svg|png)$",
           "^locales/languages/.*\\.json$",
-          "^\\.github/workflows/performance-test-runner\\.yml$",
+          "^\\.github/workflows/performance-test-runner-testmu\\.yml$",
           "^\\.github/workflows/run-performance-.*\\.yml$"
         ]
       }
@@ -206,7 +206,7 @@
           "\\.(md|mdx|txt)$",
           "\\.(svg|png)$",
           "^locales/languages/.*\\.json$",
-          "^\\.github/workflows/performance-test-runner\\.yml$",
+          "^\\.github/workflows/performance-test-runner-testmu\\.yml$",
           "^\\.github/workflows/run-performance-.*\\.yml$"
         ]
       }

@@ -125,7 +125,7 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
   it('keeps targeted smoke tags when a page object changes with a performance workflow', () => {
     const result = resultOf(
       evaluate([
-        '.github/workflows/performance-test-runner.yml',
+        '.github/workflows/performance-test-runner-testmu.yml',
         'tests/page-objects/Onboarding/ImportWalletView.ts',
         'tests/performance/onboarding/helpers/seedlessOnboardingTimers.ts',
         'tests/performance/onboarding/seedless-apple-onboarding.spec.ts',
@@ -158,7 +158,7 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
   it('applies shared infra rule when page-object changes alongside ignorable workflow files', () => {
     const result = resultOf(
       evaluate([
-        '.github/workflows/performance-test-runner.yml',
+        '.github/workflows/performance-test-runner-testmu.yml',
         'tests/page-objects/wallet/AccountListBottomSheet.ts',
       ]),
     );

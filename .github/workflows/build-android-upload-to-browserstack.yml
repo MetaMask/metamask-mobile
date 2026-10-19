@@ -69,8 +69,9 @@ on:
         required: false
         type: boolean
         description: >-
-          When true, upload the staged APKs to BrowserStack. Pull-request
-          performance runs set this false and upload to TestMu only.
+          When true, upload the staged APKs to BrowserStack. Performance runs
+          set this false and upload to TestMu only. Nightly system tests leave
+          the default.
         default: true
       upload_to_testmu:
         required: false

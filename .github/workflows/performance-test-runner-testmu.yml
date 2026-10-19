@@ -1,7 +1,7 @@
 name: Performance Test Runner — TestMu AI HyperExecute (Reusable)
 
-# Runs the same Android performance specs as BrowserStack, orchestrated by
-# TestMu HyperExecute. BrowserStack jobs stay in performance-test-runner.yml.
+# Runs Android performance specs on TestMu real devices, orchestrated by
+# TestMu HyperExecute.
 
 on:
   workflow_call:
@@ -262,8 +262,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      # Prefixed testmu-he- so the hermes-cpuprofiles-* pattern used by
-      # analyze-app-profiling keeps matching BrowserStack profiles only.
+      # Prefixed testmu-he- so analyze-app-profiling downloads these profiles.
       - name: Upload Hermes CPU profiles
         uses: actions/upload-artifact@v7
         if: ${{ always() && inputs.collect_hermes_cpuprofiles == true }}

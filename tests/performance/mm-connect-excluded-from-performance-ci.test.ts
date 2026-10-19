@@ -71,7 +71,7 @@ describe('MMConnect excluded from performance CI', () => {
 
   it('omits mm-connect branches from the performance test runner', () => {
     const runner = readRepoFile(
-      '.github/workflows/performance-test-runner.yml',
+      '.github/workflows/performance-test-runner-testmu.yml',
     );
 
     expect(runner).not.toContain('mm-connect');
