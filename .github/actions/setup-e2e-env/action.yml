@@ -464,7 +464,7 @@ runs:
         retry_wait_seconds: 60
         on_retry_command: |
           echo "::warning::CocoaPods install failed, retrying after trunk cleanup..."
-          pod repo remove trunk || true
+          (cd ios && bundle exec pod repo remove trunk) || true
         command: cd ios && bundle exec pod install --repo-update
       env:
         COCOAPODS_DISABLE_STATS: 'true'
