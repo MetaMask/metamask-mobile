@@ -17,6 +17,7 @@ import { MoneyActivityFilter } from '../constants/moneyActivity';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import { useNeobankAutorampActivity } from './useNeobankAutorampActivity';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
@@ -25,9 +26,11 @@ import {
   selectMoneyEnableMoneyAccountFlag,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
+import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
+jest.mock('./useNeobankAutorampActivity');
 jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));
@@ -43,6 +46,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
 const mockUseSelector = jest.mocked(useSelector);
@@ -157,6 +161,24 @@ describe('mergeMoneyActivity', () => {
 
   it('returns an empty list when both sources are empty', () => {
     expect(mergeMoneyActivity([], [])).toEqual([]);
+  });
+
+  it('merges pending NeoBank bank transfers into the feed', () => {
+    const neobank: NeobankBankTransferActivity[] = [
+      {
+        id: 'neo-1',
+        autorampId: 'ar-1',
+        status: 'Pending',
+        time: 250,
+        destinationAmount: '15',
+      },
+    ];
+
+    const items = mergeMoneyActivity([], [], [], neobank);
+
+    expect(items).toEqual([
+      expect.objectContaining({ kind: 'neobank', id: 'neo-1', time: 250 }),
+    ]);
   });
 
   it('orders rows sharing a timestamp deterministically by id', () => {
@@ -376,6 +398,10 @@ describe('useMoneyActivityItems', () => {
     jest.clearAllMocks();
     mockUseMoneyAccountTransactions.mockReturnValue(txResult());
     mockUseMoneyAccountApiActivity.mockReturnValue(apiResult());
+    mockUseNeobankAutorampActivity.mockReturnValue({
+      activity: [],
+      refetch: jest.fn(),
+    });
     mockUseCardTransactionIndex.mockReturnValue(defaultIndexResult);
     mockUseCardCapabilities.mockReturnValue(null);
     mockEnrichmentFlags();
@@ -761,5 +787,31 @@ describe('useMoneyActivityItems', () => {
     expect(mockUseCardTransactionIndex).toHaveBeenCalledWith(
       expect.objectContaining({ oldestVisibleTime: undefined }),
     );
+  });
+
+  it('refetches Accounts API while a Completed NeoBank deposit awaits settlement', () => {
+    jest.useFakeTimers();
+    const refetch = jest.fn();
+    const completedNeobank: NeobankBankTransferActivity = {
+      id: 'neo-done',
+      autorampId: 'ar-1',
+      status: 'Completed',
+      time: 1_000,
+      destinationAmount: '15',
+    };
+    mockUseNeobankAutorampActivity.mockReturnValue({
+      activity: [completedNeobank],
+      refetch: jest.fn(),
+    });
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({ activity: [], refetch }),
+    );
+
+    renderHook(() => useMoneyActivityItems());
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(10_000);
+    expect(refetch).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
   });
 });

@@ -39,6 +39,7 @@ import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
+import { isNeobankFailedStatus } from '../../utils/neobankActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -82,9 +83,15 @@ interface ActivitySection {
 }
 
 function isPendingItem(item: MoneyActivityItem): boolean {
-  return (
-    item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
-  );
+  if (item.kind === 'onchain') {
+    return getMoneyActivityStatus(item.tx) === 'pending';
+  }
+  if (item.kind === 'neobank') {
+    // Off-chain VBA deposits stay in the Pending bucket until mUSD settles
+    // on-chain (then Accounts API replaces the NeoBank row).
+    return !isNeobankFailedStatus(item.tx.status);
+  }
+  return false;
 }
 
 function dateKeyUtc(time: number): string {

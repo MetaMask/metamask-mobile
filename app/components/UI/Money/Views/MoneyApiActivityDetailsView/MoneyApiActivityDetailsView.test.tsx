@@ -2,7 +2,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
 import { MoneyApiActivityDetailsView } from './MoneyApiActivityDetailsView';
-import type { AccountsApiActivity } from '../../types/moneyActivity';
+import type {
+  AccountsApiActivity,
+  NeobankBankTransferActivity,
+} from '../../types/moneyActivity';
 import {
   CardMerchantCategory,
   CardTransactionStatus,
@@ -44,6 +47,16 @@ const refund: AccountsApiActivity = {
   token,
   amount: '1500000',
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
+};
+
+const bankTransfer: AccountsApiActivity = {
+  kind: 'bank_transfer',
+  hash: '0xbank' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f' as Hex,
+  token,
+  amount: '15009500',
+  receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
 };
 
 const declinedCardTransaction: CardTransaction = {
@@ -208,11 +221,63 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockRefetchApiActivity = jest.fn();
+let mockApiActivity: unknown[] = [];
+jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
+  useMoneyAccountApiActivity: () => ({
+    activity: mockApiActivity,
+    refetch: mockRefetchApiActivity,
+    watermark: Number.NEGATIVE_INFINITY,
+    isComplete: true,
+    pageCount: 1,
+    hasMore: false,
+    loadMore: jest.fn(),
+    isLoadingMore: false,
+    isLoading: false,
+    error: false,
+  }),
+}));
+
+jest.mock(
+  '../../../../Views/confirmations/components/progress-list',
+  () => {
+    const { View, Text: RNText, Pressable } =
+      jest.requireActual('react-native');
+    return {
+      ProgressList: ({ children }: { children: React.ReactNode }) => (
+        <View testID="progress-list">{children}</View>
+      ),
+      ProgressListItem: ({
+        title,
+        subtitle,
+        severity,
+        onButtonPress,
+      }: {
+        title: string;
+        subtitle: string;
+        severity?: string;
+        onButtonPress?: () => void;
+      }) => (
+        <View testID={`progress-list-item-${severity ?? 'success'}`}>
+          <RNText>{title}</RNText>
+          <RNText>
+            {severity === 'warning' ? 'transaction.pending' : subtitle}
+          </RNText>
+          {onButtonPress ? (
+            <Pressable testID="block-explorer-button" onPress={onButtonPress} />
+          ) : null}
+        </View>
+      ),
+    };
+  },
+);
+
 describe('MoneyApiActivityDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBlockExplorerFlag = true;
     mockRouteParams = { activity: card };
+    mockApiActivity = [];
   });
 
   describe('card spend', () => {
@@ -562,6 +627,116 @@ describe('MoneyApiActivityDetailsView', () => {
           },
         }),
       );
+    });
+  });
+
+  describe('bank_transfer', () => {
+    beforeEach(() => {
+      mockRouteParams = { activity: bankTransfer };
+    });
+
+    it('renders the Deposited title and You deposited hero', () => {
+      const { getByTestId, getByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(getByTestId('header-title')).toHaveTextContent(
+        'money.transaction.deposited',
+      );
+      expect(getByText('money.api_activity_details.you_deposited')).toBeTruthy();
+    });
+
+    it('renders the Steps timeline with bank transfer and Money deposit', () => {
+      const { getByTestId, getByText, getAllByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByTestId('money-bank-transfer-steps')).toBeTruthy();
+      expect(
+        getByText('transaction_details.label.steps_completed'),
+      ).toBeTruthy();
+      // Paid-with row + Steps title both use this string.
+      expect(
+        getAllByText('money.transaction.bank_transfer').length,
+      ).toBeGreaterThan(0);
+      expect(
+        getByText('transaction_details.title.money_account_deposit'),
+      ).toBeTruthy();
+    });
+
+    it('does not render Steps for cashback rows', () => {
+      mockRouteParams = { activity: cashback };
+      const { queryByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(queryByTestId('money-bank-transfer-steps')).toBeNull();
+    });
+  });
+
+  describe('neobank bank_transfer', () => {
+    const pendingNeobank: NeobankBankTransferActivity = {
+      id: 'neo-pending',
+      autorampId: 'ar-1',
+      status: 'Pending',
+      time: 1780574031000,
+      destinationAmount: '15',
+    };
+
+    it('keeps both Steps pending while MoonPay pay-in is still open', () => {
+      mockRouteParams = { neobankActivity: pendingNeobank };
+      const { getByTestId, getByText, getAllByText, getAllByTestId, queryByText } =
+        render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('money.api_activity_details.pending')).toBeTruthy();
+      // Header title + hero copy both use Depositing.
+      expect(
+        getAllByText('money.transaction.depositing').length,
+      ).toBeGreaterThan(0);
+      expect(
+        queryByText('money.api_activity_details.you_deposited'),
+      ).toBeNull();
+      expect(queryByText(/\+15\.00/)).toBeNull();
+      expect(getByTestId('money-bank-transfer-steps')).toBeTruthy();
+      expect(
+        getAllByText('money.transaction.bank_transfer').length,
+      ).toBeGreaterThan(0);
+      expect(
+        getByText('transaction_details.title.money_account_deposit'),
+      ).toBeTruthy();
+      expect(getAllByTestId('progress-list-item-warning')).toHaveLength(2);
+      expect(getAllByText('transaction.pending').length).toBeGreaterThan(0);
+    });
+
+    it('marks Bank transfer complete and Money deposit pending after MoonPay Completed', () => {
+      mockRouteParams = {
+        neobankActivity: { ...pendingNeobank, status: 'Completed' },
+      };
+      const { getByText, getByTestId, getAllByTestId, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      // Still awaiting on-chain mUSD — overall status stays Pending.
+      expect(getByText('money.api_activity_details.pending')).toBeTruthy();
+      expect(
+        queryByText('money.api_activity_details.you_deposited'),
+      ).toBeNull();
+      expect(queryByText(/\+15\.00/)).toBeNull();
+      expect(getByTestId('progress-list-item-success')).toBeTruthy();
+      expect(getAllByTestId('progress-list-item-warning')).toHaveLength(1);
+      expect(mockRefetchApiActivity).toHaveBeenCalled();
+    });
+
+    it('flips to settled bank_transfer detail once Accounts API indexes mUSD', () => {
+      mockApiActivity = [{ ...bankTransfer, amount: '15000000' }];
+      mockRouteParams = {
+        neobankActivity: { ...pendingNeobank, status: 'Completed' },
+      };
+      const { getByText, getAllByTestId, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('money.api_activity_details.you_deposited')).toBeTruthy();
+      expect(getByText('money.api_activity_details.completed')).toBeTruthy();
+      expect(getByText(/\+15\.00/)).toBeTruthy();
+      expect(queryByText('money.api_activity_details.pending')).toBeNull();
+      expect(getAllByTestId('progress-list-item-success')).toHaveLength(2);
     });
   });
 

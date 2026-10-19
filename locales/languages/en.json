@@ -9422,6 +9422,7 @@
       "purchase": "Purchase",
       "refund": "Refund",
       "musd_back": "mUSD back",
+      "bank_transfer": "Bank transfer",
       "converted": "Converted",
       "depositing": "Depositing",
       "converting": "Converting",
@@ -9439,11 +9440,14 @@
       "you_spent": "You spent",
       "you_earned": "You earned",
       "you_were_refunded": "You were refunded",
+      "you_deposited": "You deposited",
       "completed": "Completed",
       "paid_to": "Paid to",
+      "paid_with": "Paid with",
       "received_from": "Received from",
       "date": "Date",
-      "amount_unavailable": "Amount unavailable"
+      "amount_unavailable": "Amount unavailable",
+      "pending": "Pending"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",

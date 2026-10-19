@@ -25,6 +25,14 @@ export const DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS: readonly 
     '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
   ];
 
+/**
+ * Default VBA deposit-from allowlist is empty — do not ship Iron/QA EOAs in
+ * the binary. Populate via LD `moneyVbaActivityDepositFromAddresses` or local
+ * `MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES` (comma-separated).
+ */
+export const DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES: readonly string[] =
+  [];
+
 /** `multiSend` entrypoint on card-cashback payout transactions. */
 const CARD_CASHBACK_MULTISEND_METHOD_ID = '0x0d49b711';
 
@@ -182,6 +190,7 @@ export function parseAccountsApiActivity(
   response: AccountsApiTransactionsResponse,
   moneyAddress: string,
   cashbackMultisendContracts: readonly string[] = DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
+  vbaDepositFromAddresses: readonly string[] = DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES,
 ): AccountsApiActivity[] {
   return (response.data ?? []).flatMap((tx): AccountsApiActivity[] => {
     if (tx.transactionType === METAMASK_CARD_PAYMENT_TYPE) {
@@ -213,8 +222,46 @@ export function parseAccountsApiActivity(
         { ...parsed, kind: 'cashback', receivedFrom: transfer.from as Hex },
       ];
     }
+    if (isVbaBankTransfer(tx, moneyAddress, vbaDepositFromAddresses)) {
+      const transfer = inboundMusdTransfer(tx, moneyAddress);
+      const parsed = parseSettlement(tx, transfer);
+      if (!parsed || !transfer) {
+        return [];
+      }
+      return [
+        {
+          ...parsed,
+          kind: 'bank_transfer',
+          receivedFrom: transfer.from as Hex,
+        },
+      ];
+    }
     return [];
   });
+}
+
+/**
+ * Inbound mUSD to the Money Account from an allowlisted VBA / Iron (or QA
+ * test) sender. Checked after card/cashback so those kinds keep priority.
+ */
+function isVbaBankTransfer(
+  tx: AccountsApiTransaction,
+  moneyAddress: string,
+  vbaDepositFromAddresses: readonly string[],
+): boolean {
+  if (tx.isError || vbaDepositFromAddresses.length === 0) {
+    return false;
+  }
+  if (!parseChainId(tx.chainId)) {
+    return false;
+  }
+  const transfer = inboundMusdTransfer(tx, moneyAddress);
+  if (!transfer) {
+    return false;
+  }
+  return vbaDepositFromAddresses.some((addr) =>
+    areAddressesEqual(transfer.from, addr),
+  );
 }
 
 function isCashbackMultisendTarget(
