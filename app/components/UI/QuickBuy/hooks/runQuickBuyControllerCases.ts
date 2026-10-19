@@ -365,6 +365,67 @@ export const runQuickBuyControllerCases = ({
       jest.resetAllMocks();
     });
 
+    const renderWithAmount = () => {
+      const quoteState = createQuoteState();
+      setupQuoteSourceMock(quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        undefined,
+        undefined,
+        undefined,
+        props,
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+
+      return { result, rerender, props, quoteState };
+    };
+
+    const settleQuote = () => {
+      const state = renderWithAmount();
+      state.quoteState.isQuoteLoading = true;
+      state.rerender(state.props);
+      state.quoteState.isQuoteLoading = false;
+      state.quoteState.activeQuote = createActiveQuote();
+      state.rerender(state.props);
+      state.rerender(state.props);
+      return state;
+    };
+
+    const renderWithSource = ({
+      source = {},
+      balance = {
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      },
+      onClose = jest.fn(),
+    }: {
+      source?: Partial<BridgeToken>;
+      balance?: {
+        displayBalance?: string;
+        atomicBalance?: string;
+      };
+      onClose?: () => void;
+    } = {}) => {
+      const sourceToken = createSourceToken(source);
+      mockUseLatestBalance.mockReturnValue(balance);
+      mockUsePayWithTokens.mockReturnValue({
+        options: [sourceToken],
+        isLoading: false,
+      });
+
+      return {
+        ...renderHook(createTarget(), onClose),
+        sourceToken,
+      };
+    };
+
     describe('handleAmountChange', () => {
       it('ignores input with more than one decimal point', () => {
         const { result } = renderHook(createTarget(), jest.fn());
@@ -419,16 +480,9 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('resets slider percent when the user types a custom amount', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleSliderChange(50);
@@ -447,16 +501,9 @@ export const runQuickBuyControllerCases = ({
 
     describe('handleSliderChange', () => {
       it('updates display state (sliderPercent, fiatAmount) on every 1% tick', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleSliderChange(50);
@@ -467,16 +514,9 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('does not fire analytics during drag — only updates display', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
         mockTrackAmountSelected.mockClear();
 
         act(() => {
@@ -492,16 +532,9 @@ export const runQuickBuyControllerCases = ({
 
     describe('sheet open defaults', () => {
       it('starts with an empty amount instead of auto-selecting 50%', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.sliderPercent).toBe(0);
         expect(result.current.fiatAmount).toBe('');
@@ -510,16 +543,9 @@ export const runQuickBuyControllerCases = ({
 
     describe('handleSliderDragEnd', () => {
       it('commits the amount and fires analytics once when the user lifts their finger', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
         mockTrackAmountSelected.mockClear();
 
         act(() => {
@@ -543,16 +569,9 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('deduplicates identical commit values (Tap + Pan double-fire guard)', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleSliderDragEnd(50);
@@ -565,16 +584,13 @@ export const runQuickBuyControllerCases = ({
 
     describe('handleQuickAmountPress', () => {
       it('commits the fiat amount, syncs the slider, and tracks PRESET analytics', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '10',
-          atomicBalance: '10000000000000000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 200 },
+          balance: {
+            displayBalance: '10',
+            atomicBalance: '10000000000000000000',
+          },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 200 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleQuickAmountPress(50, 50);
@@ -593,18 +609,13 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('enables Add Funds when a pill exceeds the available balance', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '0.1',
-          atomicBalance: '100000000000000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 2000 },
+          balance: {
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          },
         });
-        const sourceWithRate = createSourceToken({
-          currencyExchangeRate: 2000,
-        });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleQuickAmountPress(250, 250);
@@ -619,18 +630,13 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('enables Add Funds when keypad entry exceeds the available balance', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '0.1',
-          atomicBalance: '100000000000000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 2000 },
+          balance: {
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          },
         });
-        const sourceWithRate = createSourceToken({
-          currencyExchangeRate: 2000,
-        });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleAmountChange('250');
@@ -645,19 +651,15 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('routes to Ramp buy when Add Funds is confirmed', async () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '0.1',
-          atomicBalance: '100000000000000000',
-        });
-        const sourceWithRate = createSourceToken({
-          currencyExchangeRate: 2000,
-        });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
         const onClose = jest.fn();
-
-        const { result } = renderHook(createTarget(), onClose);
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 2000 },
+          balance: {
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          },
+          onClose,
+        });
 
         act(() => {
           result.current.handleQuickAmountPress(250, 250);
@@ -675,24 +677,20 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('does not close the sheet when pay-with asset id cannot be resolved', async () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '0.1',
-          atomicBalance: '100000000000000000',
-        });
-        const sourceWithRate = createSourceToken({
-          currencyExchangeRate: 2000,
-        });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
         const onClose = jest.fn();
+        const { result, sourceToken } = renderWithSource({
+          source: { currencyExchangeRate: 2000 },
+          balance: {
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          },
+          onClose,
+        });
         (toAssetId as jest.Mock).mockImplementation((address: string) =>
-          address === sourceWithRate.address
+          address === sourceToken.address
             ? undefined
             : 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
         );
-
-        const { result } = renderHook(createTarget(), onClose);
 
         act(() => {
           result.current.handleQuickAmountPress(250, 250);
@@ -708,18 +706,13 @@ export const runQuickBuyControllerCases = ({
 
       it('passes insufficient balance when a pill exceeds the available balance', () => {
         // Balance 0.1 ETH @ 2000 => maxSpendFiat 200; the 250 pill exceeds it.
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '0.1',
-          atomicBalance: '100000000000000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 2000 },
+          balance: {
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          },
         });
-        const sourceWithRate = createSourceToken({
-          currencyExchangeRate: 2000,
-        });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleQuickAmountPress(250, 250);
@@ -736,15 +729,12 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('keeps Add Funds actionable (not loading) even if quotes report loading', () => {
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '0.1',
-          atomicBalance: '100000000000000000',
-        });
-        const sourceWithRate = createSourceToken({
-          currencyExchangeRate: 2000,
-        });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 2000 },
+          balance: {
+            displayBalance: '0.1',
+            atomicBalance: '100000000000000000',
+          },
         });
         // Force a mid-flight fetch: even if a prior valid-amount request is still
         // reporting loading, the add-funds CTA must not spin.
@@ -753,8 +743,6 @@ export const runQuickBuyControllerCases = ({
             isQuoteLoading: true,
           }),
         );
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleQuickAmountPress(250, 250);
@@ -769,16 +757,13 @@ export const runQuickBuyControllerCases = ({
 
       it('still fetches quotes for a within-balance pill', () => {
         // Balance 10 ETH @ 200 => maxSpendFiat 2000; the 50 pill is well within it.
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '10',
-          atomicBalance: '10000000000000000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 200 },
+          balance: {
+            displayBalance: '10',
+            atomicBalance: '10000000000000000000',
+          },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 200 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleQuickAmountPress(50, 50);
@@ -813,16 +798,9 @@ export const runQuickBuyControllerCases = ({
         (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
           ETH: { conversionRate: 1000, usdConversionRate: 1200 },
         });
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
         mockTrackAmountSelected.mockClear();
 
         act(() => {
@@ -847,16 +825,9 @@ export const runQuickBuyControllerCases = ({
         (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
           ETH: { conversionRate: 1000, usdConversionRate: 1000 },
         });
-        (useLatestBalance as jest.Mock).mockReturnValue({
-          displayBalance: '100',
-          atomicBalance: '100000000',
+        const { result } = renderWithSource({
+          source: { currencyExchangeRate: 1 },
         });
-        const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
-        (usePayWithTokens as jest.Mock).mockReturnValue({
-          options: [sourceWithRate],
-        });
-
-        const { result } = renderHook(createTarget(), jest.fn());
 
         act(() => {
           result.current.handleSliderChange(33);
@@ -1404,24 +1375,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('is enabled after quote loading settles for the entered amount', () => {
-        const quoteState = createQuoteState();
-
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
+        const { result, rerender, props, quoteState } = renderWithAmount();
 
         quoteState.isQuoteLoading = true;
         rerender(props);
@@ -1435,24 +1389,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('enables the CTA on the same render the loader clears when the quote arrives', () => {
-        const quoteState = createQuoteState();
-
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
+        const { result, rerender, props, quoteState } = renderWithAmount();
 
         quoteState.isQuoteLoading = true;
         rerender(props);
@@ -1475,23 +1412,8 @@ export const runQuickBuyControllerCases = ({
       it('enables the CTA when sentAmount is missing but quote.srcTokenAmount matches the request', () => {
         // Partial QuoteMetadata (#33559) can omit sentAmount. Without a fallback
         // to quote.srcTokenAmount the CTA stayed disabled with a valid quote.
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
+        const { result, rerender, props, quoteState } = renderWithAmount();
 
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
         quoteState.activeQuote = createActiveQuote({
           quote: { srcTokenAmount: '10000000000000000' },
           sentAmount: { amount: undefined },
@@ -1502,23 +1424,8 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('enables the CTA for a gas-included quote whose srcTokenAmount is the post-fee amount', () => {
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
+        const { result, rerender, props, quoteState } = renderWithAmount();
 
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
         quoteState.isQuoteLoading = true;
         rerender(props);
         quoteState.isQuoteLoading = false;
@@ -1537,32 +1444,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('is disabled when amount changes after quote loading settles', () => {
-        const quoteState = createQuoteState();
-
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-
-        quoteState.isQuoteLoading = true;
-        rerender(props);
-
-        quoteState.isQuoteLoading = false;
-        quoteState.activeQuote = createActiveQuote();
-        rerender(props);
-        rerender(props);
+        const { result } = settleQuote();
 
         act(() => {
           result.current.handleAmountChange('30');
@@ -1571,34 +1453,6 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.isConfirmDisabled).toBe(true);
         expect(result.current.confirmButtonState).toBe('idle');
       });
-
-      const settleQuote = () => {
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-        quoteState.isQuoteLoading = true;
-        rerender(props);
-        quoteState.isQuoteLoading = false;
-        quoteState.activeQuote = createActiveQuote();
-        rerender(props);
-        rerender(props);
-
-        return { result, rerender, props };
-      };
 
       it('is disabled when a hardware wallet sources from Solana', () => {
         (selectIsSolanaSourced as unknown as jest.Mock).mockReturnValue(true);
@@ -1635,23 +1489,7 @@ export const runQuickBuyControllerCases = ({
       it('sets isPriceImpactError when price impact exceeds error threshold, but does NOT disable the button (intercept handled by context)', () => {
         // Use the same settle cycle as the hardware-Solana test so that
         // settledSourceTokenAmountRef is properly updated and isPendingQuoteRefresh = false.
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
+        const { result, rerender, props, quoteState } = renderWithAmount();
 
         // Simulate quote loading cycle so settledSourceTokenAmountRef is settled.
         quoteState.isQuoteLoading = true;
@@ -1677,29 +1515,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('keeps the CTA enabled during a background refresh of a usable quote', () => {
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-        quoteState.isQuoteLoading = true;
-        rerender(props);
-        quoteState.isQuoteLoading = false;
-        quoteState.activeQuote = createActiveQuote();
-        rerender(props);
-        rerender(props);
+        const { result, rerender, props, quoteState } = settleQuote();
 
         expect(result.current.isConfirmDisabled).toBe(false);
 
@@ -1712,23 +1528,8 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('blocks the CTA on the initial load when no usable quote exists yet', () => {
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
+        const { result, rerender, props, quoteState } = renderWithAmount();
 
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
         quoteState.isQuoteLoading = true;
         rerender(props);
 
@@ -1738,29 +1539,7 @@ export const runQuickBuyControllerCases = ({
       });
 
       it('blocks the CTA when a request input change makes the displayed quote stale', () => {
-        const quoteState = createQuoteState();
-        setupQuoteSourceMock(quoteState);
-
-        const props = {
-          target: createTarget(),
-          onClose: jest.fn(),
-        };
-        const { result, rerender } = renderHook(
-          undefined,
-          undefined,
-          undefined,
-          props,
-        );
-
-        act(() => {
-          result.current.handleAmountChange('20');
-        });
-        quoteState.isQuoteLoading = true;
-        rerender(props);
-        quoteState.isQuoteLoading = false;
-        quoteState.activeQuote = createActiveQuote();
-        rerender(props);
-        rerender(props);
+        const { result, rerender, props, quoteState } = settleQuote();
 
         expect(result.current.isConfirmDisabled).toBe(false);
 
