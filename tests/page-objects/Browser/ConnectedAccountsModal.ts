@@ -6,6 +6,7 @@ import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/Wa
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import { type AppiumElement } from '../../framework';
 
 class ConnectedAccountsModal {
@@ -238,10 +239,20 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Confirm disconnect-all. Wait for the confirm control and the connected
+   * sheet's disconnect_all control to leave the tree — iOS can still show the
+   * sheet while the next specs already assert the browser chrome.
+   */
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
+      waitForElementToDisappear: true,
     });
+    await Utilities.waitForElementToDisappear(
+      this.disconnectAllAccountsAndNetworksButton,
+      15_000,
+    );
   }
 
   async scrollToBottomOfModal(): Promise<void> {
