@@ -98,7 +98,10 @@ export const useSubscriptionLinkedMusdHoldings =
      */
     const moneyAccountGroupEvmAddress = useMemo(() => {
       const entropy = primaryMoneyAccount?.options?.entropy;
-      if (!entropy) {
+      // Only consider mnemonic-based money accounts here, since the money
+      // account is a BIP-44 account and uses the primary SRP used by other
+      // BIP-44 accounts/groups.
+      if (!entropy || entropy.type !== 'mnemonic') {
         return undefined;
       }
       const groupId = toMultichainAccountGroupId(

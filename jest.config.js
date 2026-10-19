@@ -103,8 +103,10 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
-  // 5.x ships ESM-only under dist/*.js (3.x used CJS).
+  // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
+  // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).
+  '@metamask/money-account-controller',
   '@metamask/money-account-api-data-service',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
