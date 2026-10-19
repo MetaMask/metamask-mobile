@@ -23,7 +23,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const openAddFundsTimer = new TimerHelper(
         'Open Add Funds',
-        { ios: 5000, android: 5000 },
+        { ios: 5000, android: 3500 },
         currentDeviceDetails.platform,
       );
       const getQuoteTimer = new TimerHelper(
