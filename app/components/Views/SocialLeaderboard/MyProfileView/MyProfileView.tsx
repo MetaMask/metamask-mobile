@@ -63,6 +63,7 @@ import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/compon
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import MyProfileCompactStats from './components/MyProfileCompactStats';
+import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
 import ProfileAvatar from './components/ProfileAvatar';
@@ -499,11 +500,10 @@ const MyProfileView: React.FC = () => {
                 isOwner={isOwner}
                 onFollowersPress={handleFollowersPress}
                 onFollowingPress={handleFollowingPress}
-                onStatsPress={() => setIsStatsSheetOpen(true)}
               />
             </Box>
 
-            <Box gap={2} paddingHorizontal={4} paddingBottom={8}>
+            <Box gap={2} paddingHorizontal={4}>
               <Box flexDirection={BoxFlexDirection.Row} gap={2}>
                 {isOwner ? (
                   <>
@@ -549,9 +549,14 @@ const MyProfileView: React.FC = () => {
               </Box>
             </Box>
 
+            <MyProfilePerformanceStats
+              cells={overlayedStats.performanceCells}
+              onPress={() => setIsStatsSheetOpen(true)}
+            />
+
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="border-b border-muted px-4 gap-4"
+              twClassName="px-4 gap-4"
               accessibilityRole="tablist"
             >
               <ProfileTabButton

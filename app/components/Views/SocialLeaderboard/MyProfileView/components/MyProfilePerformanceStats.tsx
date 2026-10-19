@@ -2,6 +2,7 @@ import {
   Box,
   BoxFlexDirection,
   FontWeight,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -65,57 +66,61 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
   }
 
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={
-        onPress
-          ? strings(
-              'social_leaderboard.trader_profile.stats_sheet_accessibility_label',
-            )
-          : undefined
-      }
-      testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}
-    >
-      <Box twClassName="mt-4">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-          {strings('social_leaderboard.my_profile.performance_30d')}
-        </Text>
-        <Box gap={2} twClassName="py-3">
-          {chunkPairs(cells).map((row) => (
-            <Box
-              key={row.map((cell) => cell.id).join('-')}
-              flexDirection={BoxFlexDirection.Row}
-              gap={4}
-            >
-              {row.map((cell) => (
-                <Box key={cell.id} twClassName="flex-1 min-w-0">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                  >
-                    {strings(CELL_CONFIG[cell.id].labelKey)}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    twClassName={TONE_CLASS[cell.tone]}
-                    numberOfLines={1}
-                    testID={CELL_CONFIG[cell.id].testID}
-                  >
-                    {cell.value}
-                  </Text>
-                </Box>
-              ))}
-              {row.length === 1 ? <Box twClassName="flex-1" /> : null}
-            </Box>
-          ))}
+    <Box>
+      <SectionDivider marginVertical={4} />
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? 'button' : undefined}
+        accessibilityLabel={
+          onPress
+            ? strings(
+                'social_leaderboard.trader_profile.stats_sheet_accessibility_label',
+              )
+            : undefined
+        }
+        testID={MyProfileViewSelectorsIDs.PERFORMANCE_SECTION}
+      >
+        <Box twClassName="px-4">
+          <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+            {strings('social_leaderboard.my_profile.performance_30d')}
+          </Text>
+          <Box gap={2} twClassName="py-3">
+            {chunkPairs(cells).map((row) => (
+              <Box
+                key={row.map((cell) => cell.id).join('-')}
+                flexDirection={BoxFlexDirection.Row}
+                gap={4}
+              >
+                {row.map((cell) => (
+                  <Box key={cell.id} twClassName="flex-1 min-w-0 gap-0.5">
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      numberOfLines={1}
+                    >
+                      {strings(CELL_CONFIG[cell.id].labelKey)}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      twClassName={TONE_CLASS[cell.tone]}
+                      numberOfLines={1}
+                      testID={CELL_CONFIG[cell.id].testID}
+                    >
+                      {cell.value}
+                    </Text>
+                  </Box>
+                ))}
+                {row.length === 1 ? <Box twClassName="flex-1" /> : null}
+              </Box>
+            ))}
+          </Box>
         </Box>
-      </Box>
-    </Pressable>
+      </Pressable>
+      <SectionDivider marginVertical={4} />
+    </Box>
   );
 };
 

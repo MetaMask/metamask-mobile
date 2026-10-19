@@ -24,7 +24,6 @@ import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
-import MyProfilePerformanceStats from './MyProfilePerformanceStats';
 
 const RANKING_TAG_DISPLAY: Record<
   ProfileRankingTag,
@@ -42,7 +41,6 @@ interface MyProfileHeaderProps {
   isOwner?: boolean;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
-  onStatsPress?: () => void;
 }
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
@@ -52,7 +50,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   isOwner = true,
   onFollowersPress,
   onFollowingPress,
-  onStatsPress,
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
@@ -236,11 +233,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           </Text>
         </Box>
       ) : null}
-
-      <MyProfilePerformanceStats
-        cells={overlayedStats.performanceCells}
-        onPress={onStatsPress}
-      />
     </Box>
   );
 };
