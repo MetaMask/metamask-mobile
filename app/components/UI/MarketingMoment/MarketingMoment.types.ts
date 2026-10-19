@@ -33,7 +33,8 @@ export interface MarketingMomentProps {
   title?: ReactNode;
   /**
    * Props spread onto `MarketingMomentTitle` when `title` is a string.
-   * `twClassName` is appended to the title layout classes.
+   * The template sets `w-full text-center`. `twClassName` and `style` are
+   * applied after that.
    */
   titleProps?: Partial<TextProps>;
   /**

@@ -6,6 +6,7 @@ import {
   TextVariant,
   type TextProps,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import I18n, { I18nEvents } from '../../../../locales/i18n';
 import {
   getMarketingMomentTitlePresentation,
@@ -37,11 +38,19 @@ const MarketingMomentTitle = ({
     getLocaleSnapshot,
     getLocaleSnapshot,
   );
+  const tw = useTailwind();
   const presentation = getMarketingMomentTitlePresentation(
     supportsGrotzecLocale(locale),
     Platform.OS,
     variant,
   );
+  const titleStyle = [
+    presentation.className ? tw.style(presentation.className) : undefined,
+    presentation.style,
+    style,
+  ]
+    .flat()
+    .filter((entry) => entry != null);
 
   return (
     <Text
@@ -49,10 +58,8 @@ const MarketingMomentTitle = ({
       {...props}
       variant={presentation.variant}
       fontFamily={presentation.fontFamily ?? FontFamily.Default}
-      twClassName={`w-full text-center${
-        presentation.className ? ` ${presentation.className}` : ''
-      }${twClassName ? ` ${twClassName}` : ''}`}
-      style={presentation.style ? [presentation.style, style] : style}
+      twClassName={twClassName}
+      style={titleStyle.length > 0 ? titleStyle : undefined}
     >
       {children}
     </Text>

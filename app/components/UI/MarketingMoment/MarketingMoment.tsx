@@ -57,7 +57,11 @@ const MarketingMomentContent = ({
   const artworkBoxProps = artworkWrapperProps ?? {};
   const { className: _artworkClassName, ...artworkBoxSpreadProps } =
     artworkBoxProps;
-  const { twClassName: titleClassName, ...titleTextProps } = titleProps ?? {};
+  const {
+    twClassName: titleClassName,
+    style: titleStyle,
+    ...titleTextProps
+  } = titleProps ?? {};
 
   return (
     <Box
@@ -85,7 +89,11 @@ const MarketingMomentContent = ({
                 <MarketingMomentTitle
                   testID={MarketingMomentSelectorsIDs.TITLE}
                   {...titleTextProps}
-                  twClassName={titleClassName}
+                  twClassName="w-full text-center"
+                  style={[
+                    titleClassName ? tw.style(titleClassName) : undefined,
+                    titleStyle,
+                  ]}
                 >
                   {title}
                 </MarketingMomentTitle>
