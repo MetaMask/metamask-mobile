@@ -19,6 +19,46 @@ export enum LimitOrderPriceComparisonDirection {
   AT_OR_BELOW = 'atOrBelow',
 }
 
+/**
+ * Everything a comparison direction maps to, so a new reading of it is a new
+ * field here rather than another switch. Labels are locale keys, resolved
+ * where they render.
+ */
+export const LIMIT_ORDER_DIRECTION: Record<
+  LimitOrderPriceComparisonDirection,
+  {
+    /** 
+     * The Bridge API `trigger.threshold` for this direction. 
+     */
+    threshold: 'above' | 'below';
+    /** 
+     * The direction a price reads in once inverted. 
+     */
+    opposite: LimitOrderPriceComparisonDirection;
+    /** 
+     * Sign shown before a trigger price, e.g. "≥ $2,200.00".
+     */
+    signKey: string;
+    /** 
+     * Comparison in the price input copy, e.g. "is at or above". 
+     */
+    labelKey: string;
+  }
+> = {
+  [LimitOrderPriceComparisonDirection.AT_OR_ABOVE]: {
+    threshold: 'above',
+    opposite: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+    signKey: 'bridge.limit.trigger_condition_at_or_above',
+    labelKey: 'bridge.limit.is_at_or_above',
+  },
+  [LimitOrderPriceComparisonDirection.AT_OR_BELOW]: {
+    threshold: 'below',
+    opposite: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+    signKey: 'bridge.limit.trigger_condition_at_or_below',
+    labelKey: 'bridge.limit.is_at_or_below',
+  },
+};
+
 export const LIMIT_ORDER_BUTTON_PRICE_PRESETS = [5, 10];
 
 /**

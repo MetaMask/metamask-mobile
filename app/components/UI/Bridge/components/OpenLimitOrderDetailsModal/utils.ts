@@ -1,7 +1,11 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
+import {
+  LIMIT_ORDER_DIRECTION,
+  LimitOrderExecutionType,
+  LimitOrderPriceComparisonDirection,
+} from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
@@ -70,9 +74,10 @@ function invertPrice(price: string): string {
 
 /**
  * Resolves how the trigger row reads: a price shown against the token it
- * prices, in fiat, or for a `ratio` as an amount of the counter token. A fiat
- * price shows in USD, the currency the order is placed in, unless a display
- * currency and its rate are given to convert it with.
+ * prices, in fiat, or for a `ratio` as an amount of the counter token, along
+ * with which side of that price fills the order. A fiat price shows in USD,
+ * the currency the order is placed in, unless a display currency and its rate
+ * are given to convert it with.
  */
 export function getTriggerPrice(
   order: LimitOrder,
@@ -82,6 +87,12 @@ export function getTriggerPrice(
   fiatToUsdRate?: number,
 ): TriggerPriceDisplay {
   const { trigger } = order;
+  const reportedDirection = Object.values(
+    LimitOrderPriceComparisonDirection,
+  ).find(
+    (direction) =>
+      LIMIT_ORDER_DIRECTION[direction].threshold === trigger.threshold,
+  );
 
   switch (trigger.kind) {
     case 'src_price':
@@ -92,6 +103,7 @@ export function getTriggerPrice(
           fiatToUsdRate,
         ),
         triggerToken: sourceToken,
+        triggerDirection: reportedDirection,
       };
     case 'dest_price':
       return {
@@ -101,6 +113,7 @@ export function getTriggerPrice(
           fiatToUsdRate,
         ),
         triggerToken: destinationToken,
+        triggerDirection: reportedDirection,
       };
     default: {
       // A `ratio` price shows as an amount of the counter token per unit of
@@ -115,10 +128,10 @@ export function getTriggerPrice(
       const [quotedToken, counterToken] = isSell
         ? [sourceToken, destinationToken]
         : [destinationToken, sourceToken];
-      const price =
-        isRatioQuotedPerSourceToken(order) === isSell
-          ? trigger.price
-          : invertPrice(trigger.price);
+      const isShownAsReported = isRatioQuotedPerSourceToken(order) === isSell;
+      const price = isShownAsReported
+        ? trigger.price
+        : invertPrice(trigger.price);
 
       return {
         triggerPrice: strings('bridge.limit.quote_unit', {
@@ -126,6 +139,10 @@ export function getTriggerPrice(
           symbol: counterToken.symbol,
         }),
         triggerToken: quotedToken,
+        triggerDirection: isShownAsReported
+          ? reportedDirection
+          : reportedDirection &&
+            LIMIT_ORDER_DIRECTION[reportedDirection].opposite,
       };
     }
   }

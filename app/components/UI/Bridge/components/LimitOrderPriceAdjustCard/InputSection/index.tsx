@@ -32,8 +32,8 @@ import { typography } from '@metamask/design-tokens';
 import { InputSectionProps, InputSectionRef } from './types';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import {
+  LIMIT_ORDER_DIRECTION,
   LimitOrderExecutionType,
-  LimitOrderPriceComparisonDirection,
 } from '../../../constants/limitOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { getTokenImageSource } from '../../../utils';
@@ -85,10 +85,9 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const comparisonDirection =
       priceComparisonDirection ??
       getSwapsLimitOrderDefaultPriceComparisonDirection(executionType);
-    const comparisonLabel =
-      comparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
-        ? strings('bridge.limit.is_at_or_above')
-        : strings('bridge.limit.is_at_or_below');
+    const comparisonLabel = strings(
+      LIMIT_ORDER_DIRECTION[comparisonDirection].labelKey,
+    );
     const quoteUnitLabel = quotedSymbol
       ? strings('bridge.limit.quote_unit', {
           amount: 1,
