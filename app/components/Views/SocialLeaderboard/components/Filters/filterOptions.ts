@@ -1,4 +1,3 @@
-import type { LeaderboardTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   LeaderboardSort,
   SocialTimeframe,
@@ -61,27 +60,6 @@ export const V1_LEADERBOARD_RANKING_LABEL_KEY: Record<
 };
 
 export const DEFAULT_V1_LEADERBOARD_RANKING: V1LeaderboardRanking = 'pnl';
-
-export const LEADERBOARD_COHORT_OPTIONS: LeaderboardTraderCohort[] = [
-  'all',
-  'shrimp',
-  'dolphin',
-  'whale',
-  'kol',
-];
-
-export const LEADERBOARD_COHORT_LABEL_KEY: Record<
-  LeaderboardTraderCohort,
-  string
-> = {
-  all: 'social_leaderboard.shell.filters.trader_cohort.all',
-  shrimp: 'social_leaderboard.shell.filters.trader_cohort.shrimp',
-  dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
-  whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
-  kol: 'social_leaderboard.shell.filters.trader_cohort.kol',
-};
-
-export const DEFAULT_LEADERBOARD_COHORT: LeaderboardTraderCohort = 'all';
 
 export {
   DEFAULT_LEADERBOARD_SORT,

@@ -72,7 +72,6 @@ describe('profileOnboardingDraft', () => {
     expect(profile.shareTradingActivity).toBe(false);
     expect(profile.xHandle).toBeNull();
     expect(profile.connectedToX).toBe(false);
-    expect(profile.rankingTag).toBeNull();
     expect(profile.shareUrl).toBe('https://metamask.io/wen-cat');
   });
 

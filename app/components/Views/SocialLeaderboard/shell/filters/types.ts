@@ -6,17 +6,8 @@ import type { SocialShellTab } from '../types';
  */
 export type SocialFilterType = 'all' | 'tokens' | 'perps' | 'predictions';
 
-/**
- * Trader cohort filter. `following` is tab-specific; `verified` is a
- * Leaderboard Traders chip (Following / Live trades use `verification`).
- */
-export type SocialTraderCohort =
-  | 'all'
-  | 'following'
-  | 'shrimp'
-  | 'dolphin'
-  | 'whale'
-  | 'verified';
+/** Relationship filter for trader lists. */
+export type SocialFilterFollowing = 'all' | 'following';
 
 export type SocialFilterVerification = 'all' | 'verified' | 'unverified';
 
@@ -55,7 +46,7 @@ export interface SocialRangeFilter {
  */
 export interface SocialShellFilters {
   type: SocialFilterType;
-  traderCohort: SocialTraderCohort;
+  following: SocialFilterFollowing;
   verification: SocialFilterVerification;
   timeframe: SocialFilterTimeframe;
   network: SocialFilterNetwork;
@@ -88,7 +79,7 @@ export interface SocialFilterApiParams {
   chains: readonly string[];
   timeframe: SocialFilterTimeframe;
   network: SocialFilterNetwork;
-  traderCohort: SocialTraderCohort;
+  following: SocialFilterFollowing;
   verification: SocialFilterVerification;
   marketCap: SocialRangeFilter;
   volume24h: SocialRangeFilter;

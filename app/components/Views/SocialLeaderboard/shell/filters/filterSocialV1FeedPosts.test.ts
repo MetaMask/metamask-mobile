@@ -51,51 +51,25 @@ describe('filterSocialV1FeedPosts', () => {
       },
     }),
   });
-  const shrimp = post({
-    id: 'shrimp',
-    marketCapUsd: 5_200_000_000,
-    item: mockOpenSpotFeedItem({
-      id: 'shrimp-item',
-      author: {
-        id: 'shrimp-trader',
-        username: 'shrimp',
-        winRatePercent: 40,
-        pnl30d: 2_500,
-      },
-    }),
-  });
 
-  const all = [spot, perp, shrimp];
+  const all = [spot, perp];
 
   it('returns every post for default filters', () => {
     const result = filterSocialV1FeedPosts(all, DEFAULT_FILTERS);
 
-    expect(result.map((item) => item.id)).toStrictEqual([
-      'spot',
-      'perp',
-      'shrimp',
-    ]);
+    expect(result.map((item) => item.id)).toStrictEqual(['spot', 'perp']);
   });
 
   it('keeps only spot posts for the tokens chip', () => {
     const result = filterSocialV1FeedPosts(all, filters({ type: 'tokens' }));
 
-    expect(result.map((item) => item.id)).toStrictEqual(['spot', 'shrimp']);
+    expect(result.map((item) => item.id)).toStrictEqual(['spot']);
   });
 
   it('keeps only perp posts for the perps chip', () => {
     const result = filterSocialV1FeedPosts(all, filters({ type: 'perps' }));
 
     expect(result.map((item) => item.id)).toStrictEqual(['perp']);
-  });
-
-  it('keeps shrimp-band authors from 30-day PnL', () => {
-    const result = filterSocialV1FeedPosts(
-      all,
-      filters({ traderCohort: 'shrimp' }),
-    );
-
-    expect(result.map((item) => item.id)).toStrictEqual(['shrimp']);
   });
 
   it('drops spot posts whose market cap is outside the slider', () => {
@@ -116,6 +90,6 @@ describe('filterSocialV1FeedPosts', () => {
       }),
     );
 
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(2);
   });
 });

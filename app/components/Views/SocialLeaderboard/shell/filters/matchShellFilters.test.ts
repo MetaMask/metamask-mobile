@@ -1,8 +1,8 @@
 import { DEFAULT_FILTERS } from './filterDefaults';
 import {
   matchesShellAssetType,
+  matchesShellFollowing,
   matchesShellMarketCap,
-  matchesShellTraderCohort,
 } from './matchShellFilters';
 import type { SocialShellFilters } from './types';
 
@@ -38,75 +38,20 @@ describe('matchesShellAssetType', () => {
   });
 });
 
-describe('matchesShellTraderCohort', () => {
-  it('keeps every trader when cohort is all', () => {
+describe('matchesShellFollowing', () => {
+  it('keeps every trader when following is all', () => {
+    expect(matchesShellFollowing({ following: 'all' })).toBe(true);
+  });
+
+  it('keeps followed traders when following is selected', () => {
     expect(
-      matchesShellTraderCohort({
-        traderCohort: 'all',
-        pnl30d: 2_500,
-      }),
+      matchesShellFollowing({ following: 'following', isFollowing: true }),
     ).toBe(true);
   });
 
-  it('treats leftover verified as a no-op', () => {
+  it('drops unfollowed traders when following is selected', () => {
     expect(
-      matchesShellTraderCohort({
-        traderCohort: 'verified',
-        pnl30d: 2_500,
-      }),
-    ).toBe(true);
-  });
-
-  it('keeps followed traders for the following cohort', () => {
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'following',
-        pnl30d: 50_000,
-        isFollowing: true,
-      }),
-    ).toBe(true);
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'following',
-        pnl30d: 50_000,
-        isFollowing: false,
-      }),
-    ).toBe(false);
-  });
-
-  it('bands shrimp dolphin and whale from 30-day PnL', () => {
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'shrimp',
-        pnl30d: 2_500,
-      }),
-    ).toBe(true);
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'dolphin',
-        pnl30d: 50_000,
-      }),
-    ).toBe(true);
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'whale',
-        pnl30d: 220_000,
-      }),
-    ).toBe(true);
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'whale',
-        pnl30d: 2_500,
-      }),
-    ).toBe(false);
-  });
-
-  it('drops traders with no 30-day PnL from a sized cohort', () => {
-    expect(
-      matchesShellTraderCohort({
-        traderCohort: 'shrimp',
-        pnl30d: null,
-      }),
+      matchesShellFollowing({ following: 'following', isFollowing: false }),
     ).toBe(false);
   });
 });

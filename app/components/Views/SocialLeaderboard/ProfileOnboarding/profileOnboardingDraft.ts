@@ -180,7 +180,6 @@ export const buildOnboardedSocialProfile = (
     imageUrl: usesXAvatar ? draft.xAvatarUrl : null,
     avatarPresetId: usesXAvatar ? null : draft.avatarPresetId,
     avatarBackgroundId: usesXAvatar ? null : draft.avatarBackgroundId,
-    rankingTag: null,
     xHandle: draft.path === 'x' ? draft.xUsername : null,
     connectedToX: draft.path === 'x',
     followerCount: 0,

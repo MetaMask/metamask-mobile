@@ -19,11 +19,8 @@ export {
   TYPE_OPTIONS,
   TYPE_OPTIONS_FOLLOWING,
   TYPE_LABEL_KEY,
-  COHORT_OPTIONS_FOLLOWING,
-  COHORT_OPTIONS_LIVE_TRADES,
-  COHORT_OPTIONS_LEADERBOARD,
-  COHORT_LABEL_KEY,
-  COHORT_LEADING_EMOJI,
+  FOLLOWING_OPTIONS,
+  FOLLOWING_LABEL_KEY,
   VERIFICATION_OPTIONS,
   VERIFICATION_LABEL_KEY,
   TIMEFRAME_OPTIONS,
@@ -36,7 +33,7 @@ export {
 export { resolveNetworkForType, NETWORKS_BY_TYPE } from './networkOptions';
 export type {
   SocialFilterType,
-  SocialTraderCohort,
+  SocialFilterFollowing,
   SocialFilterVerification,
   SocialFilterTimeframe,
   SocialFilterNetwork,

@@ -135,9 +135,9 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     (): SocialLeaderboardFilters => ({
       timeframe: toLeaderboardTimeframe(appliedFilters.timeframe),
       ranking,
-      cohort: appliedFilters.traderCohort,
+      following: appliedFilters.following,
     }),
-    [appliedFilters.timeframe, appliedFilters.traderCohort, ranking],
+    [appliedFilters.following, appliedFilters.timeframe, ranking],
   );
 
   useEffect(() => {

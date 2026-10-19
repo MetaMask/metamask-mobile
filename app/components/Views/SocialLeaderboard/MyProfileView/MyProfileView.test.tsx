@@ -229,7 +229,6 @@ const profile: UseMyProfileResult['profile'] = {
   imageUrl: null,
   avatarPresetId: 'zombie',
   avatarBackgroundId: 'lime',
-  rankingTag: 'whale',
   xHandle: 'giga-whale',
   followerCount: 4,
   followingCount: 0,
@@ -289,15 +288,15 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('renders the mocked owner identity and whale ranking', () => {
+  it('renders the mocked owner identity without a ranking tag', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.DISPLAY_NAME),
     ).toHaveTextContent('Giga Whale');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐋 Whale');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HANDLE),
     ).toHaveTextContent('@giga-whale.metamask');

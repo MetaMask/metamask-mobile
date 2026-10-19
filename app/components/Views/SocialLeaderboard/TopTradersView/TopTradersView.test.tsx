@@ -801,7 +801,7 @@ describe('TopTradersView', () => {
   });
 
   describe('Social V1 filters', () => {
-    it('shows ranking and custom filters without type, cohort, or date chips', () => {
+    it('shows ranking and custom filters without type or date chips', () => {
       renderWithProvider(<TopTradersView useV1Filters />);
 
       expect(
@@ -812,9 +812,6 @@ describe('TopTradersView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(TopTradersViewSelectorsIDs.TYPE_SELECTOR),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId(TopTradersViewSelectorsIDs.COHORT_SELECTOR),
       ).toBeNull();
       expect(
         screen.queryByTestId(TopTradersViewSelectorsIDs.TIMEFRAME_SELECTOR),
@@ -905,16 +902,25 @@ describe('TopTradersView', () => {
       expect(screen.getAllByText('alpha.eth')).toHaveLength(1);
     });
 
-    it('filters the list to shrimp while keeping the pinned viewer', () => {
+    it('filters the list to followed traders while keeping the pinned viewer', () => {
       const { DEFAULT_FILTERS } = jest.requireActual(
         '../shell/filters/filterDefaults',
       ) as typeof import('../shell/filters/filterDefaults');
+
+      setTabResult('all', {
+        traders: fixtureTraders.map((trader) => ({
+          ...trader,
+          isFollowing: trader.id === 'trader-3',
+        })),
+        isFetching: false,
+        hasFetched: true,
+      });
 
       renderWithProvider(
         <TopTradersView
           useV1Filters
           RowComponent={SocialV1TraderRow}
-          v1AppliedFilters={{ ...DEFAULT_FILTERS, traderCohort: 'shrimp' }}
+          v1AppliedFilters={{ ...DEFAULT_FILTERS, following: 'following' }}
         />,
       );
 

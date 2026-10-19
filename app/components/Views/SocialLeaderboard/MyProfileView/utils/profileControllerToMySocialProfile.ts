@@ -60,7 +60,6 @@ export const profileControllerToMySocialProfile = (
     imageUrl: foxicon ? null : profile.avatarUrl || null,
     avatarPresetId: foxicon?.avatarPresetId ?? null,
     avatarBackgroundId: foxicon?.avatarBackgroundId ?? null,
-    rankingTag: null,
     xHandle: profile.connectedToX ? (xProfile?.username ?? null) : null,
     connectedToX: profile.connectedToX,
     followerCount: null,

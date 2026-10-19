@@ -18,11 +18,6 @@ export type {
   SortFilterSelectorProps,
   SortFilterSheetProps,
 } from './SortFilter';
-export { CohortFilterSelector, CohortFilterSheet } from './CohortFilter';
-export type {
-  CohortFilterSelectorProps,
-  CohortFilterSheetProps,
-} from './CohortFilter';
 export { RankingFilterSelector, RankingFilterSheet } from './RankingFilter';
 export type {
   RankingFilterSelectorProps,
@@ -40,12 +35,9 @@ export type {
   FeedSortFilterSheetProps,
 } from './FeedSortFilter';
 export {
-  DEFAULT_LEADERBOARD_COHORT,
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
   DEFAULT_V1_LEADERBOARD_RANKING,
-  LEADERBOARD_COHORT_LABEL_KEY,
-  LEADERBOARD_COHORT_OPTIONS,
   LEADERBOARD_SORT_LABEL_KEY,
   LEADERBOARD_SORT_OPTIONS,
   TIMEFRAME_LABEL_KEY,
@@ -55,17 +47,14 @@ export {
   V1_LEADERBOARD_RANKING_LABEL_KEY,
   V1_LEADERBOARD_RANKING_OPTIONS,
 } from './filterOptions';
-export type { LeaderboardTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
 export type { V1LeaderboardRanking } from './filterOptions';
 export {
-  CohortFilterSelectorsIDs,
   FilterOptionSheetSelectorsIDs,
   RankingFilterSelectorsIDs,
   FeedSortFilterSelectorsIDs,
   SortFilterSelectorsIDs,
   TimeframeFilterSelectorsIDs,
   TypeFilterSelectorsIDs,
-  getCohortFilterOptionTestId,
   getFeedSortFilterOptionTestId,
   getRankingFilterOptionTestId,
   getSortFilterOptionTestId,

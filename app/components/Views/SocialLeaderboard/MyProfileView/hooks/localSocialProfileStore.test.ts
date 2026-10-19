@@ -13,7 +13,6 @@ const onboardedProfile: MySocialProfile = {
   bio: null,
   imageUrl: null,
   avatarPresetId: 'zombie',
-  rankingTag: null,
   xHandle: null,
   followerCount: 0,
   shareUrl: 'https://metamask.io/wen-cat',

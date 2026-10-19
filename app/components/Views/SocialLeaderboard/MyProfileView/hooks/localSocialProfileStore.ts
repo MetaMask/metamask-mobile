@@ -23,7 +23,6 @@ const createDefaultProfile = (): MySocialProfile => ({
   handle: 'giga-whale',
   bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
   imageUrl: null,
-  rankingTag: 'whale',
   xHandle: 'giga-whale',
   followerCount: 0,
   shareUrl: 'https://metamask.io/social/giga-whale',

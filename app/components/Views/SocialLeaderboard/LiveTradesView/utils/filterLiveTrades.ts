@@ -1,8 +1,8 @@
 import type { SocialShellFilters } from '../../shell/filters/types';
 import {
   matchesShellAssetType,
+  matchesShellFollowing,
   matchesShellMarketCap,
-  matchesShellTraderCohort,
 } from '../../shell/filters/matchShellFilters';
 import type { LiveTradeRowModel } from '../types';
 
@@ -10,7 +10,6 @@ import type { LiveTradeRowModel } from '../types';
  * Client-side Live trades filter. Data-backed:
  * - Asset Tokens / Perps (`row.type`)
  * - Traders Following (followed profile ids)
- * - Traders Shrimp / Dolphin / Whale (`resolveTraderCohort(actor.pnl30d)`)
  * - Market cap on spot fills that carry `Trade.marketCap` (USD billions)
  *
  * Hidden in the sheet until the API can honor them:
@@ -25,9 +24,8 @@ export function filterLiveTrades(
   return rows.filter(
     (row) =>
       matchesShellAssetType(row.type, filters) &&
-      matchesShellTraderCohort({
-        traderCohort: filters.traderCohort,
-        pnl30d: row.author.pnl30d,
+      matchesShellFollowing({
+        following: filters.following,
         isFollowing: followingProfileIds.includes(row.traderId),
       }) &&
       matchesShellMarketCap(row.marketCapUsd, filters),

@@ -1,9 +1,5 @@
 import type { SocialV1FeedAuthor } from '../types';
-import {
-  buildTraderStatLabels,
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from './traderStats';
+import { buildTraderStatLabels } from './traderStats';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) =>
@@ -22,44 +18,6 @@ const author = (
   followerCount: 17_200,
   tradeCount30d: 141,
   ...overrides,
-});
-
-describe('resolveTraderCohort', () => {
-  it('bands a trader by 30-day P&L', () => {
-    expect(resolveTraderCohort(250_000)).toBe('whale');
-    expect(resolveTraderCohort(50_000)).toBe('dolphin');
-    expect(resolveTraderCohort(500)).toBe('shrimp');
-  });
-
-  it('includes each band from its threshold up', () => {
-    expect(resolveTraderCohort(100_000)).toBe('whale');
-    expect(resolveTraderCohort(99_999)).toBe('dolphin');
-    expect(resolveTraderCohort(10_000)).toBe('dolphin');
-    expect(resolveTraderCohort(9_999)).toBe('shrimp');
-  });
-
-  // A loss is a real band, not missing data.
-  it('bands a losing trader as a shrimp', () => {
-    expect(resolveTraderCohort(-8_200)).toBe('shrimp');
-  });
-
-  it('has no band without a P&L to place them with', () => {
-    expect(resolveTraderCohort(null)).toBeNull();
-    expect(resolveTraderCohort(undefined)).toBeNull();
-    expect(resolveTraderCohort(Number.NaN)).toBeNull();
-  });
-});
-
-describe('traderCohortEmoji', () => {
-  it('reuses the leaderboard filter icons', () => {
-    expect(traderCohortEmoji('whale')).toBe('🐳');
-    expect(traderCohortEmoji('dolphin')).toBe('🐬');
-    expect(traderCohortEmoji('shrimp')).toBe('🦐');
-  });
-
-  it('has nothing to show without a cohort', () => {
-    expect(traderCohortEmoji(null)).toBeUndefined();
-  });
 });
 
 describe('buildTraderStatLabels', () => {

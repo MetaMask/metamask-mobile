@@ -22,11 +22,7 @@ import { MOCK_MARKER } from '../mockMarker';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
-import {
-  buildTraderStatLabels,
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from '../utils/traderStats';
+import { buildTraderStatLabels } from '../utils/traderStats';
 import { formatFeedPostAge } from '../utils/formatters';
 import {
   SocialTraderIdentityRowSelectorsIDs,
@@ -54,7 +50,7 @@ export interface SocialTraderIdentityRowProps {
 
 /**
  * Shared trader identity chrome for Social V1: avatar, handle, invented
- * verified badge, cohort emoji, relative age, rotating stat line, overflow.
+ * verified badge, relative age, rotating stat line, overflow.
  */
 const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   author,
@@ -71,7 +67,6 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   const tw = useTailwind();
   const { showMockedFields } = useSocialFeedSurface();
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
-  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
 
   const identity = (
     <Box
@@ -132,17 +127,6 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
                 {MOCK_MARKER}
               </Text>
             </>
-          ) : null}
-          {cohortEmoji ? (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="shrink-0"
-              testID={
-                testIDs?.cohort ?? SocialTraderIdentityRowSelectorsIDs.COHORT
-              }
-            >
-              {cohortEmoji}
-            </Text>
           ) : null}
           <Text
             variant={TextVariant.BodySm}

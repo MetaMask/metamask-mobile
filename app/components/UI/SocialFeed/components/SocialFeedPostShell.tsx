@@ -145,7 +145,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
           verifiedBadge: SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE,
-          cohort: SocialFeedPostShellSelectorsIDs.COHORT,
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,

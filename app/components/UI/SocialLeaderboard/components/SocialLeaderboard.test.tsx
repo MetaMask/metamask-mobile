@@ -188,9 +188,9 @@ describe('SocialLeaderboard', () => {
     expect(rowIds()).toEqual(['trader-row-high', 'trader-row-mid']);
   });
 
-  it('applies the cohort filter to the loaded page', () => {
+  it('applies the following filter to the loaded page', () => {
     renderLeaderboard({
-      filters: { timeframe: '30d', ranking: 'pnl', cohort: 'following' },
+      filters: { timeframe: '30d', ranking: 'pnl', following: 'following' },
     });
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(

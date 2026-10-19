@@ -23,7 +23,7 @@ export function mapFiltersToApiParams(
     chains,
     timeframe: filters.timeframe,
     network: filters.network,
-    traderCohort: filters.traderCohort,
+    following: filters.following,
     verification: filters.verification,
     marketCap: filters.marketCap,
     volume24h: filters.volume24h,

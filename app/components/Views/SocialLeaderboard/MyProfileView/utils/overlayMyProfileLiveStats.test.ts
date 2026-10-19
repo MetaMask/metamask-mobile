@@ -19,7 +19,6 @@ const localProfile: MySocialProfile = {
   profileAgeLabel: '2y',
   copySuccessRatePercent: 72,
   followerCount: 4,
-  rankingTag: 'whale',
 };
 
 const liveProfile = (
@@ -66,7 +65,7 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.fallbackFields.winRate).toBe(true);
     expect(result.fallbackFields.holdTime).toBe(false);
     expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
-    expect(result.rankingTag).toBe('whale');
+    expect(result.rankingTag).toBeUndefined();
     expect(result.followerCount).toBe(4);
     expect(result.sheetProfile.profile.name).toBe('Giga Whale');
     expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
