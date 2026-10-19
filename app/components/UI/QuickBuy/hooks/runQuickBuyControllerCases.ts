@@ -2,6 +2,7 @@ import { ChainId, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { act } from '@testing-library/react-native';
+import { BigNumber } from 'ethers';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { useDisplayCurrencyValue } from '../../Bridge/hooks/useDisplayCurrencyValue';
@@ -414,7 +415,13 @@ export const runQuickBuyControllerCases = ({
       onClose?: () => void;
     } = {}) => {
       const sourceToken = createSourceToken(source);
-      mockUseLatestBalance.mockReturnValue(balance);
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: balance.displayBalance,
+        atomicBalance:
+          balance.atomicBalance === undefined
+            ? undefined
+            : BigNumber.from(balance.atomicBalance),
+      });
       mockUsePayWithTokens.mockReturnValue({
         options: [sourceToken],
         isLoading: false,
