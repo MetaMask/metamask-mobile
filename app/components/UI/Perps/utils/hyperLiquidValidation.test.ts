@@ -47,7 +47,7 @@ describe('hyperLiquidValidation', () => {
       });
     });
 
-    it('should create error result with unknown error', () => {
+    it('should keep a string error message', () => {
       const error = 'string error';
       const defaultResponse = { success: true, data: null };
 
@@ -55,7 +55,7 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        error: 'string error',
         data: null,
       });
     });

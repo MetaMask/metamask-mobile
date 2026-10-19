@@ -39,7 +39,6 @@ import {
   formatTokenPrice,
   isInvertedPriceRange,
   isValidPriceRange,
-  PRICE_RANGE_CURRENCY,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   tokenPairRateFromFiatRates,
@@ -73,8 +72,6 @@ function PricePercentRow({
   isDisabled: boolean;
   onSelect: (percent: number) => void;
 }) {
-  const tw = useTailwind();
-
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -83,28 +80,18 @@ function PricePercentRow({
       twClassName="w-full"
     >
       {percents.map((percent) => (
-        <Pressable
+        <Button
           key={percent}
-          accessibilityRole="button"
-          disabled={isDisabled}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          isDisabled={isDisabled}
           onPress={() => onSelect(percent)}
           testID={PriceRangeSheetSelectorsIDs.PERCENT(bound, percent)}
-          style={({ pressed }) =>
-            tw.style(
-              'h-12 min-w-0 flex-1 items-center justify-center rounded-xl bg-muted',
-              isDisabled && 'opacity-50',
-              pressed && !isDisabled && 'bg-muted-pressed',
-            )
-          }
+          twClassName="min-w-0 flex-1 px-0"
+          textProps={{ fontWeight: FontWeight.Medium }}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {formatPercentLabel(percent)}
-          </Text>
-        </Pressable>
+          {formatPercentLabel(percent)}
+        </Button>
       ))}
     </Box>
   );
@@ -148,8 +135,9 @@ function PriceRangeAmountField({
 const PriceRangeSheet = ({
   sourceToken,
   destToken,
-  sourceUsdRate,
-  destUsdRate,
+  currency,
+  sourceFiatRate,
+  destFiatRate,
   initialTokenSide,
   initialMin,
   initialMax,
@@ -182,25 +170,20 @@ const PriceRangeSheet = ({
   }, [focusedField]);
 
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
-  const selectedUsdRate =
-    pendingTokenSide === 'source' ? sourceUsdRate : destUsdRate;
+  const selectedFiatRate =
+    pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
   const hasLivePrice =
-    selectedUsdRate !== undefined && Number.isFinite(selectedUsdRate);
+    selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
   const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
-  const currencySymbol = getCurrencySymbol(PRICE_RANGE_CURRENCY);
+  const currencySymbol = getCurrencySymbol(currency);
   const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
-    () =>
-      formatTokenPrice(
-        selectedToken?.symbol,
-        selectedUsdRate,
-        PRICE_RANGE_CURRENCY,
-      ),
-    [selectedToken?.symbol, selectedUsdRate],
+    () => formatTokenPrice(selectedToken?.symbol, selectedFiatRate, currency),
+    [currency, selectedToken?.symbol, selectedFiatRate],
   );
   const exchangeRateLabel = useMemo(
     () =>
@@ -208,13 +191,13 @@ const PriceRangeSheet = ({
         selected: pendingTokenSide,
         sourceSymbol: sourceToken?.symbol,
         destSymbol: destToken?.symbol,
-        quoteRate: tokenPairRateFromFiatRates(sourceUsdRate, destUsdRate),
+        quoteRate: tokenPairRateFromFiatRates(sourceFiatRate, destFiatRate),
       }),
     [
-      destUsdRate,
+      destFiatRate,
       destToken?.symbol,
       pendingTokenSide,
-      sourceUsdRate,
+      sourceFiatRate,
       sourceToken?.symbol,
     ],
   );
@@ -250,22 +233,22 @@ const PriceRangeSheet = ({
 
   const handleMinPercentPress = useCallback(
     (percent: number) => {
-      if (selectedUsdRate === undefined) {
+      if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMin(applyPercentToPrice(selectedUsdRate, percent));
+      setPendingMin(applyPercentToPrice(selectedFiatRate, percent));
     },
-    [selectedUsdRate],
+    [selectedFiatRate],
   );
 
   const handleMaxPercentPress = useCallback(
     (percent: number) => {
-      if (selectedUsdRate === undefined) {
+      if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMax(applyPercentToPrice(selectedUsdRate, percent));
+      setPendingMax(applyPercentToPrice(selectedFiatRate, percent));
     },
-    [selectedUsdRate],
+    [selectedFiatRate],
   );
 
   const handleKeypadChange = useCallback(
@@ -298,7 +281,7 @@ const PriceRangeSheet = ({
       isValidPriceRange(pendingMin, pendingMax)
         ? {
             tokenSide: pendingTokenSide,
-            currency: PRICE_RANGE_CURRENCY,
+            currency,
             min: pendingMin,
             max: pendingMax,
           }
@@ -308,6 +291,7 @@ const PriceRangeSheet = ({
   }, [
     canConfirm,
     closeSheet,
+    currency,
     onConfirm,
     pendingMax,
     pendingMin,

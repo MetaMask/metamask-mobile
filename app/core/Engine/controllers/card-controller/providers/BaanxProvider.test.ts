@@ -330,7 +330,6 @@ describe('BaanxProvider', () => {
 
     const account: CardAccountStatus = {
       verificationStatus: 'VERIFIED',
-      provisioningEligible: true,
       countryOfResidence: 'US',
       holderName: 'Test User',
       shippingAddress: null,
@@ -670,6 +669,83 @@ describe('BaanxProvider', () => {
         name: 'CardProviderError',
         code: CardProviderErrorCode.InvalidCredentials,
         statusCode: 401,
+      });
+    });
+  });
+
+  describe('requestAccountClosure', () => {
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      accessTokenExpiresAt: 1,
+      refreshTokenExpiresAt: 2,
+      location: 'international',
+      providerUserId: 'baanx-user-1',
+    };
+
+    it('posts /v1/user/closure with providerUserId', async () => {
+      const post = jest.fn().mockResolvedValue(undefined);
+      const get = jest.fn();
+      const provider = new BaanxProvider({
+        service: { post, get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await provider.requestAccountClosure(tokens);
+
+      expect(post).toHaveBeenCalledWith(
+        '/v1/user/closure',
+        { userId: 'baanx-user-1' },
+        tokens,
+      );
+      expect(get).not.toHaveBeenCalled();
+    });
+
+    it('falls back to GET /v1/user when providerUserId is missing', async () => {
+      const { providerUserId: _providerUserId, ...tokensWithoutUserId } =
+        tokens;
+      const post = jest.fn().mockResolvedValue(undefined);
+      const get = jest.fn().mockResolvedValue({ id: 'from-profile' });
+      const provider = new BaanxProvider({
+        service: { post, get, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await provider.requestAccountClosure(tokensWithoutUserId);
+
+      expect(get).toHaveBeenCalledWith('/v1/user', tokensWithoutUserId);
+      expect(post).toHaveBeenCalledWith(
+        '/v1/user/closure',
+        { userId: 'from-profile' },
+        tokensWithoutUserId,
+      );
+    });
+
+    it('resolves when closure was already requested (400)', async () => {
+      const post = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(400, '/v1/user/closure', ''));
+      const provider = new BaanxProvider({
+        service: { post, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await expect(
+        provider.requestAccountClosure(tokens),
+      ).resolves.toBeUndefined();
+    });
+
+    it('throws a mapped error on a 500', async () => {
+      const post = jest
+        .fn()
+        .mockRejectedValue(new CardApiError(500, '/v1/user/closure', ''));
+      const provider = new BaanxProvider({
+        service: { post, apiKey: 'k' } as unknown as BaanxService,
+      });
+
+      await expect(
+        provider.requestAccountClosure(tokens),
+      ).rejects.toMatchObject({
+        name: 'CardProviderError',
+        code: CardProviderErrorCode.ServerError,
+        statusCode: 500,
       });
     });
   });
@@ -1943,5 +2019,136 @@ describe('BaanxProvider — listTransactions', () => {
       code: CardProviderErrorCode.InvalidCredentials,
       statusCode: 401,
     });
+  });
+});
+
+describe('BaanxProvider push provisioning', () => {
+  const tokens: CardAuthTokens = {
+    accessToken: 'at',
+    refreshToken: 'rt',
+    accessTokenExpiresAt: 1,
+    location: 'us',
+  };
+
+  const activeCard = {
+    id: 'card-1',
+    status: CardStatus.ACTIVE,
+    type: CardType.VIRTUAL,
+    panLast4: '1234',
+    holderName: 'Jane Doe',
+    isFreezable: true,
+  };
+
+  it('exposes Apple Pay and Google Pay', () => {
+    const provider = new BaanxProvider({
+      service: { apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    expect(provider.capabilities.pushProvisioning).toEqual({
+      applePay: true,
+      googlePay: true,
+    });
+  });
+
+  it('converts PassKit values to the Baanx hex wire format', async () => {
+    const post = jest.fn().mockResolvedValue({
+      encryptedPassData: 'enc',
+      activationData: 'act',
+      ephemeralPublicKey: 'epk',
+    });
+    const provider = new BaanxProvider({
+      service: { post, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    await provider.createApplePayProvisioningRequest(
+      {
+        nonce: 'dGVzdC1ub25jZQ==',
+        nonceSignature: 'dGVzdC1zaWduYXR1cmU=',
+        certificates: ['bGVhZi1jZXJ0', 'aW50ZXJtZWRpYXRlLWNlcnQ='],
+      },
+      tokens,
+    );
+
+    expect(post).toHaveBeenCalledWith(
+      '/v1/card/wallet/provision/apple',
+      {
+        leafCertificate: '6c6561662d63657274',
+        intermediateCertificate: '696e7465726d6564696174652d63657274',
+        nonce: '746573742d6e6f6e6365',
+        nonceSignature: '746573742d7369676e6174757265',
+      },
+      tokens,
+    );
+  });
+
+  it('rejects a certificate chain shorter than leaf and intermediate', async () => {
+    const post = jest.fn();
+    const provider = new BaanxProvider({
+      service: { post, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    await expect(
+      provider.createApplePayProvisioningRequest(
+        {
+          nonce: 'dGVzdC1ub25jZQ==',
+          nonceSignature: 'dGVzdC1zaWduYXR1cmU=',
+          certificates: ['bGVhZi1jZXJ0'],
+        },
+        tokens,
+      ),
+    ).rejects.toMatchObject({
+      code: CardProviderErrorCode.InvalidRequest,
+    });
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it('fills wallet provisioning from an active card issued after the cutoff', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'José',
+          lastName: "O'Brien",
+          createdAt: '2025-11-10T00:00:00.000Z',
+        });
+      }
+      if (path === '/v1/card/status') {
+        return Promise.resolve(activeCard);
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.account).not.toHaveProperty('provisioningEligible');
+    expect(data.walletProvisioning).toEqual({
+      eligible: true,
+      cardholderName: 'Jose OBrien',
+      lastFour: '1234',
+      network: 'MASTERCARD',
+    });
+  });
+
+  it('returns null wallet provisioning when the user has no card', async () => {
+    const get = jest.fn().mockImplementation((path: string) => {
+      if (path === '/v1/user') {
+        return Promise.resolve({
+          verificationState: 'VERIFIED',
+          firstName: 'Jane',
+          createdAt: '2025-12-01T00:00:00.000Z',
+        });
+      }
+      return Promise.resolve(null);
+    });
+    const provider = new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+    const data = await provider.getCardHomeData('0xabc', tokens);
+
+    expect(data.walletProvisioning).toBeNull();
   });
 });

@@ -1,6 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
@@ -15,7 +14,6 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
   NCAA_GAMES_FEED_ID,
   NCAA_FEED_SCREEN_ID,
@@ -113,7 +111,7 @@ describe('PredictHome', () => {
   });
 
   it('masks Balance when privacy mode is enabled', async () => {
-    const view = renderPredictNext(undefined, true);
+    const view = renderPredictNext(true);
 
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
     expect(view.queryByText('$123.13')).not.toBeOnTheScreen();
@@ -335,6 +333,148 @@ describe('PredictHome', () => {
     expect(within(nflSection).getByText('Q4 · 01:12')).toBeOnTheScreen();
   });
 
+  describe('live-data subscriptions', () => {
+    /** Home cards ask the live-data service for card-visible Markets only. */
+    const CARD_SCOPE = { marketScope: 'card' };
+    const liveDataCalls = () =>
+      messengerCall.mock.calls.filter(([action]: [string]) =>
+        action.startsWith('PredictLiveDataService:'),
+      );
+    const eventIds = (events: readonly { id: PredictEntityId }[]) =>
+      events.map((event) => event.id);
+
+    const layoutHome = (
+      view: ReturnType<typeof renderPredictNext>,
+      { nflY, ncaaY, viewportHeight }: Record<string, number>,
+    ) => {
+      fireEvent(view.getByTestId(PredictHomeTestIds.SCROLL), 'layout', {
+        nativeEvent: { layout: { height: viewportHeight } },
+      });
+      fireEvent(
+        view.getByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        'layout',
+        { nativeEvent: { layout: { y: nflY, height: 300 } } },
+      );
+      fireEvent(
+        view.getByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
+        'layout',
+        { nativeEvent: { layout: { y: ncaaY, height: 300 } } },
+      );
+    };
+
+    const watchedEventIds = () =>
+      liveDataCalls()
+        .filter(([action]) => action === 'PredictLiveDataService:watchEvents')
+        .flatMap(([, , ids]: [string, string, PredictEntityId[]]) => ids);
+
+    // Reanimated's Jest mock runs the scroll reaction through the
+    // microtask/frame queues, so let them drain before reading the result.
+    const scrollHome = (
+      view: ReturnType<typeof renderPredictNext>,
+      y: number,
+    ) =>
+      act(async () => {
+        fireEvent.scroll(view.getByTestId(PredictHomeTestIds.SCROLL), {
+          nativeEvent: { contentOffset: { y } },
+        });
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      });
+
+    it('watches every preview Event once both sections are loaded', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+
+      expect(watchedEventIds()).toEqual([
+        ...eventIds(nflEvents),
+        ...eventIds(ncaaEvents),
+      ]);
+      expect(
+        liveDataCalls().filter(
+          ([action]) => action === 'PredictLiveDataService:unwatchEvents',
+        ),
+      ).toEqual([]);
+    });
+
+    it('releases a section that is fully below the viewport and rewatches it when scrolled in', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      messengerCall.mockClear();
+
+      layoutHome(view, { nflY: 200, ncaaY: 900, viewportHeight: 800 });
+
+      expect(liveDataCalls()).toEqual([
+        [
+          'PredictLiveDataService:unwatchEvents',
+          'kalshi',
+          eventIds(ncaaEvents),
+          CARD_SCOPE,
+        ],
+      ]);
+
+      messengerCall.mockClear();
+      await scrollHome(view, 600);
+
+      expect(liveDataCalls()).toEqual([
+        [
+          'PredictLiveDataService:watchEvents',
+          'kalshi',
+          eventIds(ncaaEvents),
+          CARD_SCOPE,
+        ],
+        [
+          'PredictLiveDataService:unwatchEvents',
+          'kalshi',
+          eventIds(nflEvents),
+          CARD_SCOPE,
+        ],
+      ]);
+    });
+
+    it('keeps a section watched while any part of it overlaps the viewport', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      messengerCall.mockClear();
+
+      layoutHome(view, { nflY: 200, ncaaY: 700, viewportHeight: 800 });
+      await scrollHome(view, 450);
+
+      expect(liveDataCalls()).toEqual([]);
+    });
+
+    it('releases every Home watch while an Event Screen is on top and rewatches on return', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      messengerCall.mockClear();
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      );
+      await view.findByTestId(PredictEventScreenTestIds.VIEW);
+
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictLiveDataService:unwatchEvents',
+        'kalshi',
+        [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+        CARD_SCOPE,
+      );
+
+      messengerCall.mockClear();
+      fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));
+      await waitFor(() =>
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictLiveDataService:watchEvents',
+          'kalshi',
+          [...eventIds(nflEvents), ...eventIds(ncaaEvents)],
+          CARD_SCOPE,
+        ),
+      );
+    });
+  });
+
   it.each([
     {
       feedScreenId: NFL_FEED_SCREEN_ID,
@@ -499,6 +639,9 @@ describe('PredictHome', () => {
         if (action === 'PredictMarketDataService:getEvent') {
           return Promise.resolve(nflEvents.find((event) => event.id === id));
         }
+        if (action === 'PredictPortfolioService:getPositions') {
+          return Promise.resolve({ venueId: 'kalshi', positions: [] });
+        }
         return Promise.resolve({
           venueId: 'kalshi',
           id,
@@ -552,19 +695,5 @@ describe('PredictHome', () => {
     expect(
       view.queryByTestId(PredictEventScreenTestIds.VIEW),
     ).not.toBeOnTheScreen();
-  });
-
-  it('tracks the homepage entry point', async () => {
-    renderPredictNext({
-      entryPoint: PredictEventValues.ENTRY_POINT.HOMESCREEN_BALANCE_BREAKDOWN,
-    });
-
-    await waitFor(() =>
-      expect(
-        Engine.context.PredictController.trackHomeViewed,
-      ).toHaveBeenCalledWith({
-        entryPoint: 'homescreen_balance_breakdown',
-      }),
-    );
   });
 });

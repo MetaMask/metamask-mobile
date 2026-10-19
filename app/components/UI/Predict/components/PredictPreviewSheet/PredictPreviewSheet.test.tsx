@@ -147,6 +147,39 @@ describe('PredictPreviewSheet', () => {
     });
   });
 
+  it('insets the header content to 16px from the screen edge when there is no image', async () => {
+    render(<TestComponent shouldOpen title="Yes · 25 bps decrease" />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('preview-sheet-header-content'),
+      ).toBeOnTheScreen();
+    });
+    // The header itself contributes 8px, so the content adds the remaining 8px.
+    expect(screen.getByTestId('preview-sheet-header-content')).toHaveStyle({
+      paddingLeft: 8,
+    });
+  });
+
+  it('does not inset the header content when an image is rendered', async () => {
+    render(
+      <TestComponent
+        shouldOpen
+        title="Yes · 25 bps decrease"
+        image="https://img.example.com/a.png"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('preview-sheet-header-content'),
+      ).toBeOnTheScreen();
+    });
+    expect(screen.getByTestId('preview-sheet-header-content')).not.toHaveStyle({
+      paddingLeft: 8,
+    });
+  });
+
   it('renders custom header via renderHeader prop', async () => {
     const customHeader = () => (
       <Text testID="custom-header">Custom Header</Text>

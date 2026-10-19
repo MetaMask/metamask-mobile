@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Pressable } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -6,9 +7,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -37,6 +35,8 @@ import {
 } from '../../../Card/util/metrics';
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
+import { MoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface MoneyMetaMaskCardProps {
   /**
@@ -48,10 +48,11 @@ interface MoneyMetaMaskCardProps {
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
-  /** When true, disables the link-mode CTA. */
+  /** When true, disables link-mode press handlers. */
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
    * Metal card image and 3% cashback copy.
@@ -89,13 +90,11 @@ const CardRow = ({
   isMetalCard,
   cardName,
   cashbackPercentage,
-  onPress,
   testID,
 }: {
   isMetalCard: boolean;
   cardName: string;
   cashbackPercentage: string;
-  onPress: () => void;
   testID: string;
 }) => (
   <Box
@@ -126,14 +125,6 @@ const CardRow = ({
         </Text>
       </Box>
     </Box>
-    <Button
-      variant={ButtonVariant.Secondary}
-      size={ButtonSize.Md}
-      onPress={onPress}
-      twClassName="self-center"
-    >
-      {strings('money.metamask_card.get_now')}
-    </Button>
   </Box>
 );
 
@@ -160,17 +151,13 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
 );
 
 const LinkContent = ({
-  onLinkPress,
   showMetalCard,
   apy,
   hideCardImage,
-  isLinkDisabled = false,
 }: {
-  onLinkPress: () => void;
   showMetalCard: boolean;
   apy: number | undefined;
   hideCardImage: boolean;
-  isLinkDisabled?: boolean;
 }) => {
   const hasApy = apy !== undefined;
   const subtitle = hasApy
@@ -225,17 +212,6 @@ const LinkContent = ({
           </Box>
         </Box>
       )}
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        isDisabled={isLinkDisabled}
-        onPress={onLinkPress}
-        testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
-        twClassName="mt-3"
-      >
-        {strings('money.metamask_card.link_card')}
-      </Button>
     </Box>
   );
 };
@@ -243,13 +219,11 @@ const LinkContent = ({
 const ManageContent = ({
   cardBalance,
   isBalanceStale,
-  onManagePress,
   showMetalCard,
   privacyMode,
 }: {
   cardBalance: string;
   isBalanceStale: boolean;
-  onManagePress: () => void;
   showMetalCard: boolean;
   privacyMode: boolean;
 }) => (
@@ -286,23 +260,23 @@ const ManageContent = ({
         </Text>
       </Box>
     </Box>
-    <Button
-      variant={ButtonVariant.Secondary}
-      size={ButtonSize.Lg}
-      isFullWidth
-      onPress={onManagePress}
-      testID={MoneyMetaMaskCardTestIds.MANAGE_BUTTON}
-    >
-      {strings('money.metamask_card.manage_card')}
-    </Button>
   </Box>
 );
+
+const HEADER_TITLE_KEY_BY_MODE = {
+  upsell: 'money.metamask_card.upsell_title',
+  link: 'money.metamask_card.link_title',
+  manage: 'money.metamask_card.title',
+  verifying: 'money.metamask_card.title',
+  loading: 'money.metamask_card.title',
+} as const satisfies Record<MoneyMetaMaskCardMode, string>;
 
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
   onLinkPress,
   onManagePress,
+  onHeaderPress,
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
@@ -320,6 +294,8 @@ const MoneyMetaMaskCard = ({
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedViewRef = useRef(false);
   const cardType = showMetalCard ? 'metal' : 'virtual';
+
+  const tw = useTailwind();
 
   const buildAnalyticsProperties = useCallback(
     (action?: CardActions) =>
@@ -344,7 +320,7 @@ const MoneyMetaMaskCard = ({
   );
 
   const trackCardButtonClick = useCallback(
-    (action: CardActions) => {
+    (action: CardActions | undefined) => {
       if (!analyticsScreen || !analyticsEntryPoint) return;
 
       trackEvent(
@@ -404,15 +380,45 @@ const MoneyMetaMaskCard = ({
     onManagePress?.();
   }, [trackCardButtonClick, onManagePress]);
 
+  const isInteractionDisabled =
+    mode === 'verifying' || mode === 'loading' || isLinkDisabled;
+
+  const pressHandler = useMemo(
+    () =>
+      isInteractionDisabled
+        ? undefined
+        : (
+            {
+              upsell: handleGetNowPress,
+              link: handleLinkPress,
+              manage: handleManagePress,
+            } satisfies Partial<Record<MoneyMetaMaskCardMode, () => void>>
+          )[mode],
+    [
+      handleGetNowPress,
+      handleLinkPress,
+      handleManagePress,
+      isInteractionDisabled,
+      mode,
+    ],
+  );
+
+  const handleContentPress = useCallback(() => {
+    pressHandler?.();
+  }, [pressHandler]);
+
+  const handleHeaderPress = useCallback(() => {
+    onHeaderPress?.(mode);
+    pressHandler?.();
+  }, [mode, onHeaderPress, pressHandler]);
+
   let content: React.ReactNode = null;
   if (mode === 'link') {
     content = (
       <LinkContent
-        onLinkPress={handleLinkPress}
         showMetalCard={showMetalCard}
         apy={apy}
         hideCardImage={hideCardImage}
-        isLinkDisabled={isLinkDisabled}
       />
     );
   } else if (mode === 'manage') {
@@ -420,7 +426,6 @@ const MoneyMetaMaskCard = ({
       <ManageContent
         cardBalance={cardBalance ?? ''}
         isBalanceStale={isBalanceStale}
-        onManagePress={handleManagePress}
         showMetalCard={showMetalCard}
         privacyMode={privacyMode}
       />
@@ -449,6 +454,7 @@ const MoneyMetaMaskCard = ({
       </Box>
     );
   } else {
+    // Upsell mode
     content = (
       <>
         <Text
@@ -462,29 +468,31 @@ const MoneyMetaMaskCard = ({
           isMetalCard={false}
           cardName={strings('money.metamask_card.virtual_card')}
           cashbackPercentage="1"
-          onPress={handleGetNowPress}
           testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
         />
       </>
     );
   }
 
-  let headerTitleKey: string;
-  if (mode === 'link') {
-    headerTitleKey = 'money.metamask_card.link_title';
-  } else if (mode === 'manage' || mode === 'verifying' || mode === 'loading') {
-    headerTitleKey = 'money.metamask_card.title';
-  } else {
-    headerTitleKey = 'money.metamask_card.upsell_title';
-  }
+  const headerTitleKey = HEADER_TITLE_KEY_BY_MODE[mode];
 
   return (
     <Box
       twClassName="px-4 py-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
-      <MoneySectionHeader title={strings(headerTitleKey)} />
-      {content}
+      <MoneySectionHeader
+        testID={MoneyMetaMaskCardTestIds.HEADER}
+        title={strings(headerTitleKey)}
+        onPress={pressHandler ? handleHeaderPress : undefined}
+      />
+      <Pressable
+        testID={MoneyMetaMaskCardTestIds.CONTENT}
+        style={tw.style('gap-3')}
+        onPress={pressHandler ? handleContentPress : undefined}
+      >
+        {content}
+      </Pressable>
     </Box>
   );
 };

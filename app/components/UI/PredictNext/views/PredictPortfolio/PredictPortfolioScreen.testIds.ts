@@ -19,6 +19,7 @@ export const PredictPortfolioScreenTestIds = {
   ACTIVITY_NEXT_PAGE_LOADING:
     'predict-next-portfolio-activity-next-page-loading',
   POSITION_ROW: 'predict-next-portfolio-position-row',
+  POSITION_ROW_CASH_OUT: 'predict-next-portfolio-position-row-cash-out',
   ACTIVITY_ROW: 'predict-next-portfolio-activity-row',
   POSITION_ROW_FALLBACK_ICON:
     'predict-next-portfolio-position-row-fallback-icon',

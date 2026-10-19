@@ -24,6 +24,21 @@ let captureInFlight = false;
 let replayInFlight = false;
 
 /**
+ * Returns the trimmed value when it is a non-empty string, otherwise undefined.
+ *
+ * Branch params are untyped native data: keys can be missing, `null`, empty,
+ * or of an unexpected type. Normalising here keeps every optional field
+ * handled the same way, so no empty strings end up persisted or emitted.
+ */
+const readNonEmptyString = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+};
+
+/**
  * Reads Branch attribution at install time using getLatestReferringParams.
  *
  * We intentionally use getLatestReferringParams here (not getFirstReferringParams)
@@ -39,6 +54,15 @@ let replayInFlight = false;
  *
  * Accepts both direct-tap (+clicked_branch_link: true) and NativeLink/pasteboard
  * (+clicked_branch_link: false, $deeplink_path present) attribution.
+ *
+ * UTM values are read from the link's Branch Analytics Tags, using Branch's
+ * documented UTM mapping: `~channel` -> utm_source, `~feature` -> utm_medium,
+ * `~campaign` -> utm_campaign. These tags are only exposed through the SDK and
+ * are never part of the referring link, so they are stored separately rather
+ * than merged into the deeplink path. Branch has no Analytics Tag mapped to
+ * utm_term or utm_content, so those are not captured.
+ *
+ * Optional fields are omitted when missing, empty, or not a string.
  */
 const readBranchAttributionAtInstall = async (): Promise<
   PendingAppInstallAttribution | undefined
@@ -46,18 +70,29 @@ const readBranchAttributionAtInstall = async (): Promise<
   try {
     const params = await branch.getLatestReferringParams();
 
-    const clickedBranchLink = params?.['+clicked_branch_link'] === true;
-    const deeplinkPath = params?.$deeplink_path as string | undefined;
-    const referringLink = params?.['~referring_link'] as string | undefined;
+    if (!params) {
+      return undefined;
+    }
+
+    const clickedBranchLink = params['+clicked_branch_link'] === true;
+    const deeplinkPath = readNonEmptyString(params.$deeplink_path);
 
     if (!clickedBranchLink && !deeplinkPath) {
       return undefined;
     }
 
+    const referringLink = readNonEmptyString(params['~referring_link']);
+    const utmSource = readNonEmptyString(params['~channel']);
+    const utmMedium = readNonEmptyString(params['~feature']);
+    const utmCampaign = readNonEmptyString(params['~campaign']);
+
     return {
       clickedBranchLink,
       ...(deeplinkPath ? { deeplinkPath } : {}),
       ...(referringLink ? { referringLink } : {}),
+      ...(utmSource ? { utmSource } : {}),
+      ...(utmMedium ? { utmMedium } : {}),
+      ...(utmCampaign ? { utmCampaign } : {}),
     };
   } catch (error) {
     Logger.error(
@@ -77,15 +112,22 @@ const readBranchAttributionAtInstall = async (): Promise<
  * referring link URL (extension sources it from the metamask.io
  * `deferred_deeplink` cookie). Branch's short `$deeplink_path` is only used
  * when no full URL is available.
+ *
+ * `utm_source`, `utm_medium` and `utm_campaign` come from Branch Analytics
+ * Tags and are only included when they were captured at install time.
  */
 const attributionToEventProperties = (
   attribution: PendingAppInstallAttribution,
 ): AnalyticsEventProperties => {
-  const deeplinkPath = attribution.referringLink ?? attribution.deeplinkPath;
+  const { referringLink, utmSource, utmMedium, utmCampaign } = attribution;
+  const deeplinkPath = referringLink ?? attribution.deeplinkPath;
 
   return {
     install_source: 'deeplink',
     ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
+    ...(utmSource ? { utm_source: utmSource } : {}),
+    ...(utmMedium ? { utm_medium: utmMedium } : {}),
+    ...(utmCampaign ? { utm_campaign: utmCampaign } : {}),
   };
 };
 

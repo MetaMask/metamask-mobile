@@ -2,10 +2,9 @@ import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { Performance, PerformancePreps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView.js';
 import AppiumAssertions from '../../framework/AppiumAssertions';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
 
@@ -34,8 +33,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
 
       await loginToAppPlaywright();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapPerpsButton(); // may need to change for catchAll trade perps contracts
+      await WalletView.scrollAndTapPerpsSection();
       // Open Perps Main Screen
       await selectPerpsMainScreenTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

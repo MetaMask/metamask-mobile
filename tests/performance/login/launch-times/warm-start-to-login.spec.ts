@@ -33,21 +33,15 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        await AppiumAssertions.expectElementToBeVisible(
-          WalletView.accountIcon,
-          {
-            description:
-              'Wallet account icon should be visible before warm start',
-          },
-        );
 
+        // The vault lock now runs after foreground, so it is inside this clock.
         const timer1 = new TimerHelper(
           'Time since the user open the app again and the login screen appears',
-          { ios: 2500, android: 3000 },
+          { ios: 2500, android: 3500 },
           currentDeviceDetails.platform,
         );
 
-        await AppiumGestures.backgroundApp(35);
+        await AppiumGestures.backgroundApp(40);
         await AppiumGestures.activateApp(currentDeviceDetails);
 
         await timer1.measure(async () => {

@@ -24,10 +24,8 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomSafeAreaInset } from '../../../../hooks/useBottomSafeAreaInset';
 import { EditAccountNameIds } from '../EditAccountName.testIds';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
@@ -51,7 +49,7 @@ export const EditMultichainAccountName = () => {
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation<AppNavigationProp>();
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   const accountGroupFromSelector = useSelector((state: RootState) =>
     initialAccountGroup
@@ -74,10 +72,15 @@ export const EditMultichainAccountName = () => {
           ? { paddingTop: StatusBar.currentHeight }
           : undefined,
         {
-          paddingBottom: Platform.OS === 'android' ? 10 : insets.bottom,
+          // Android draws edge-to-edge, so the confirm button has to clear the
+          // system navigation bar. 10dp stays the minimum visual gap.
+          paddingBottom:
+            Platform.OS === 'android'
+              ? Math.max(bottomSafeAreaInset, 10)
+              : bottomSafeAreaInset,
         },
       ),
-    [insets.bottom, tw],
+    [bottomSafeAreaInset, tw],
   );
 
   const handleAccountNameChange = useCallback(() => {

@@ -5,6 +5,7 @@ import {
   renderHook,
   screen,
 } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 
 import { toast } from '@metamask/design-system-react-native';
 
@@ -22,6 +23,7 @@ import {
   selectIsBasicFunctionalityConsolidatedEnabled,
 } from '../../selectors/settings';
 import { strings } from '../../../locales/i18n';
+import { BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK } from '../UI/BasicFunctionality/BasicFunctionalityMigrationBottomSheet/BasicFunctionalityMigrationBottomSheet';
 import {
   consolidateBasicFunctionality,
   dismissBasicFunctionalityMigrationNotification,
@@ -385,6 +387,31 @@ describe('useBasicFunctionalityConsolidation', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.SECURITY_SETTINGS,
     });
+  });
+
+  it('opens the blog from Learn more without dismissing the notice', () => {
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as never);
+    setSelectorValues({ shouldShowToast: true });
+
+    renderHook(() => useBasicFunctionalityConsolidation());
+
+    render(mockToast.mock.calls[0][0].description);
+
+    fireEvent.press(
+      screen.getByText(
+        strings('basic_functionality_migration.learn_more_link'),
+      ),
+    );
+
+    expect(openURL).toHaveBeenCalledWith(
+      BASIC_FUNCTIONALITY_MIGRATION_BLOG_POST_LINK,
+    );
+    expect(
+      dismissBasicFunctionalityMigrationNotification,
+    ).not.toHaveBeenCalled();
+    openURL.mockRestore();
   });
 
   it('dismisses the notification when the toast is closed', () => {

@@ -3,13 +3,10 @@ import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 
 export interface BannersState {
   dismissedBanners: string[];
-  /** The dismiss key of the last Braze banner the user explicitly closed. Persisted so the same banner is not re-shown on the next cold start. */
-  lastDismissedBrazeBanner: string | null;
 }
 
 const initialState: BannersState = {
   dismissedBanners: [],
-  lastDismissedBrazeBanner: null,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -27,19 +24,15 @@ const bannersSlice = createSlice({
         state.dismissedBanners.push(action.payload);
       }
     },
-    setLastDismissedBrazeBanner: (
-      state,
-      action: PayloadAction<string | null>,
-    ) => {
-      state.lastDismissedBrazeBanner = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
       if (action.payload?.banners) {
         return {
           ...initialState,
-          ...action.payload.banners,
+          dismissedBanners:
+            action.payload.banners.dismissedBanners ??
+            initialState.dismissedBanners,
         };
       }
       return state;
@@ -47,6 +40,5 @@ const bannersSlice = createSlice({
   },
 });
 
-export const { dismissBanner, setLastDismissedBrazeBanner } =
-  bannersSlice.actions;
+export const { dismissBanner } = bannersSlice.actions;
 export default bannersSlice.reducer;

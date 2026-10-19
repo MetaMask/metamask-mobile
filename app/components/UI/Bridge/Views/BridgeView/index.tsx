@@ -1,6 +1,16 @@
-import React, { startTransition, useCallback, useEffect, useMemo } from 'react';
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import {
+  type RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
@@ -17,15 +27,20 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import {
-  resetBridgeDestToken,
   resetBridgeState,
-  resetBridgeTokenInputs,
   selectBridgeViewMode,
+  selectDestAddress,
   selectDestToken,
+  selectSlippage,
+  selectSourceAmount,
   selectSourceToken,
+  setDestAmount,
+  setSelectedQuoteRequestId,
+  setBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { useEnsureDestTokenSecurityData } from '../../hooks/useEnsureDestTokenSecurityData';
 import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
@@ -35,21 +50,91 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
+import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
+import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
+import { useInitialDestToken } from '../../hooks/useInitialDestToken';
+import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
 
 const BridgeView = () => {
-  const { selectedTab, renderedTab, setSelectedTab, setRenderedTab } =
-    useBridgeSession();
+  const {
+    selectedTab,
+    renderedTab,
+    setSelectedTab,
+    setRenderedTab,
+    setQuoteParams,
+  } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const sourceAmount = useSelector(selectSourceAmount);
+  const slippage = useSelector(selectSlippage);
+  const walletAddress = useSelector(selectSourceWalletAddress);
+  const destAddress = useSelector(selectDestAddress);
+  useEnsureDestTokenSecurityData();
+
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
+  const initialTab = route.params?.initialTab;
+  const initialSourceToken = route.params?.sourceToken;
+  const initialSourceAmount = route.params?.sourceAmount;
+  const initialDestToken = route.params?.destToken;
+
+  useInitialSourceToken(initialSourceToken, initialSourceAmount);
+  useInitialDestToken(initialSourceToken, initialDestToken);
+  useReconcileInputsForNonMarketSwapTab({
+    renderedTab,
+    sourceToken,
+    destToken,
+  });
+
+  useEffect(() => {
+    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
+      dispatch(setBridgeViewMode(route.params.bridgeViewMode));
+    }
+  }, [bridgeViewMode, dispatch, route.params?.bridgeViewMode]);
+
+  useLayoutEffect(() => {
+    if (!initialTab) {
+      return;
+    }
+
+    setSelectedTab(initialTab);
+    setRenderedTab(initialTab);
+    navigation.setParams({ initialTab: undefined });
+  }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
+
+  const quoteParams = useMemo(
+    (): QuoteParams => ({
+      srcToken: sourceToken,
+      destToken,
+      srcAmount: sourceAmount,
+      slippage,
+      walletAddress,
+      destWalletAddress: destAddress,
+    }),
+    [
+      sourceToken,
+      destToken,
+      sourceAmount,
+      slippage,
+      walletAddress,
+      destAddress,
+    ],
+  );
+
+  // Update BridgeSessionProvider's quote params
+  useEffect(() => {
+    setQuoteParams(quoteParams);
+  }, [quoteParams, setQuoteParams]);
 
   let headerTitle: string;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
@@ -187,25 +272,15 @@ const BridgeView = () => {
     }
   }, [tabs, renderedTab, setRenderedTab, setSelectedTab]);
 
-  // Stops any in-flight BridgeController quote polling, clears the amount
-  // inputs and drops the destination token for the tab being left, whenever
-  // the rendered tab changes. The destination goes because each tab anchors
-  // its own source token as it mounts (Market from its route params, Limit to
-  // the default pair of its restricted chains), so a destination kept from the
-  // previous tab would be left on an unrelated chain; clearing it lets the
-  // incoming tab derive the destination from its own source token's default
-  // pair. This intentionally runs as the effect's cleanup rather than eagerly
-  // inside handleTabPress: cleanups fire after React commits the tab switch
-  // (deferred via startTransition above), so the outgoing tab is already gone
-  // by the time this runs instead of visibly flashing back to a reset state
-  // right before it's replaced.
+  // Stop in-flight quote polling and discard quote-only local state on tab
+  // changes without clearing the shared token pair or source amount.
   useEffect(
     () => () => {
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
       }
-      dispatch(resetBridgeTokenInputs());
-      dispatch(resetBridgeDestToken());
+      dispatch(setDestAmount(undefined));
+      dispatch(setSelectedQuoteRequestId(undefined));
     },
     [renderedTab, dispatch],
   );

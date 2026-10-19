@@ -86,6 +86,7 @@ import {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,
@@ -160,6 +161,7 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
@@ -268,6 +270,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPredictThePitchPrizePool',
       'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
       'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
       'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
       'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
       'RewardsDataService:registerMoneyAccountBinding',

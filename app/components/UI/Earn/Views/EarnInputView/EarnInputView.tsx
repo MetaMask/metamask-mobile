@@ -57,7 +57,13 @@ import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 import useEarnTokens from '../../hooks/useEarnTokens';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import EarnMaintenanceBanner from '../../components/EarnMaintenanceBanner';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import {
   EARN_LENDING_ACTIONS,
   EarnTokenDetails,
@@ -116,8 +122,17 @@ const EarnInputView = () => {
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, token?.chainId as Hex),
   );
+
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
+  );
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
+  const isStablecoinLendingServiceInterruptionBannerEnabled = useSelector(
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
   );
 
   // if token is ETH, use 1 as the exchange rate
@@ -157,6 +172,11 @@ const EarnInputView = () => {
   const earnToken = getEarnToken(token);
   const stakingExperienceType =
     earnToken?.experience.type ?? EARN_EXPERIENCES.POOLED_STAKING;
+  const isPooledStakingExperience =
+    earnToken?.isETH &&
+    earnToken?.experience?.type === EARN_EXPERIENCES.POOLED_STAKING;
+  const isStablecoinLendingExperience =
+    earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
   const endpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, earnToken?.chainId as Hex),
@@ -995,7 +1015,19 @@ const EarnInputView = () => {
     earnToken?.experience.type,
   ]);
 
+  const isPooledStakingReviewButtonDisabled =
+    isPooledStakingExperience &&
+    (!isPooledStakingEnabled ||
+      isPooledStakingServiceInterruptionBannerEnabled);
+
+  const isStablecoinLendingReviewButtonDisabled =
+    isStablecoinLendingExperience &&
+    (!isStablecoinLendingEnabled ||
+      isStablecoinLendingServiceInterruptionBannerEnabled);
+
   const isReviewButtonDisabled =
+    isStablecoinLendingReviewButtonDisabled ||
+    isPooledStakingReviewButtonDisabled ||
     isOverMaximum.isOverMaximumToken ||
     isOverMaximum.isOverMaximumEth ||
     !isNonZeroAmount ||
@@ -1034,6 +1066,22 @@ const EarnInputView = () => {
         }
         includesTopInset
       />
+      {isPooledStakingExperience &&
+        isPooledStakingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.POOLED_STAKING}
+            />
+          </View>
+        )}
+      {isStablecoinLendingExperience &&
+        isStablecoinLendingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.STABLECOIN_LENDING}
+            />
+          </View>
+        )}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronEnabled && (

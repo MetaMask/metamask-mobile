@@ -29,6 +29,7 @@ jest.mock('../../sdk', () => ({
 // Mock push provisioning hook
 const mockInitiateProvisioning = jest.fn();
 const mockResetProvisioningStatus = jest.fn();
+const mockOpenInWallet = jest.fn(() => Promise.resolve());
 const mockUsePushProvisioning = jest.fn(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (_options: unknown) => ({
@@ -41,6 +42,10 @@ const mockUsePushProvisioning = jest.fn(
     isError: false,
     isLoading: false,
     canAddToWallet: false,
+    isCardInWallet: false,
+    pendingVerificationDevices: [] as ('phone' | 'watch')[],
+    canOpenInWallet: false,
+    openInWallet: mockOpenInWallet,
   }),
 );
 
@@ -62,7 +67,13 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -105,6 +116,7 @@ import {
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
   selectCardProviderUserId,
+  selectCardSelectedCountry,
   selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
@@ -112,13 +124,16 @@ import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledFo
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
+import type { UseMoneyAccountCardLinkageReturn } from '../../hooks/useMoneyAccountCardLinkage';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockNavigationDispatch = jest.fn();
+let mockIsFocused = true;
 
 import {
   useFocusEffect,
@@ -131,6 +146,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useFocusEffect: jest.fn(),
+    useIsFocused: () => mockIsFocused,
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -396,20 +412,32 @@ jest.mock('../../hooks/useIsSwapEnabledForPriorityToken', () => ({
 }));
 
 const mockStartMoneyAccountLinkFlow = jest.fn();
-const mockUseMoneyAccountCardLinkage = jest.fn(() => ({
-  hasMoneyAccountRequirements: false,
-  isCardAuthenticated: false,
-  primaryMoneyAccount: undefined,
-  moneyAccountCardToken: null,
-  canLink: false,
-  status: 'idle' as const,
-  isLinking: false,
-  error: null,
-  startLinkFlow: mockStartMoneyAccountLinkFlow,
-  openLinkCardSheet: jest.fn(),
-  confirmLinkInBackground: jest.fn(),
-  reset: jest.fn(),
-}));
+const createDefaultMoneyAccountCardLinkageMock =
+  (): UseMoneyAccountCardLinkageReturn => ({
+    hasMoneyAccountRequirements: false,
+    hasMoneyAccountBaseRequirements: false,
+    isCardAuthenticated: false,
+    isCardVerified: false,
+    isCardLinkedToMoneyAccount: false,
+    isResidencyBlocked: false,
+    primaryMoneyAccount: undefined,
+    moneyAccountCardToken: null,
+    canLink: false,
+    isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
+    status: 'idle' as const,
+    isLinking: false,
+    error: null,
+    getLinkFlowRedirectTarget: jest.fn(() => undefined),
+    startLinkFlow: mockStartMoneyAccountLinkFlow,
+    openLinkCardSheet: jest.fn(),
+    confirmLinkInBackground: jest.fn(),
+    reset: jest.fn(),
+  });
+const mockUseMoneyAccountCardLinkage = jest.fn<
+  UseMoneyAccountCardLinkageReturn,
+  []
+>(createDefaultMoneyAccountCardLinkageMock);
 
 jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
@@ -667,7 +695,7 @@ const BAANX_CAPABILITIES = {
   supportsFundingLimits: true,
   fundingChains: ['eip155:59144', 'eip155:8453'],
   supportsFreeze: true,
-  supportsPushProvisioning: true,
+  pushProvisioning: { applePay: true, googlePay: true },
   onboarding: { type: 'steps', steps: [], kycProvider: 'veriff' },
   supportsPinView: true,
   supportsPinSet: false,
@@ -873,6 +901,7 @@ function setupMockSelectors(
       decimals: number;
     } | null;
     activeProviderId: string;
+    selectedCountry: string | null;
     isCardIntercomSupportEnabled: boolean;
     providerUserId: string | null;
     hasCompletedMigration: boolean;
@@ -898,6 +927,7 @@ function setupMockSelectors(
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
     activeProviderId: 'baanx',
+    selectedCountry: null,
     isCardIntercomSupportEnabled: false,
     providerUserId: 'cardholder-1',
     hasCompletedMigration: false,
@@ -918,6 +948,7 @@ function setupMockSelectors(
       return config.lastUnauthenticatedReason;
     if (selector === selectCardUserLocation) return config.userLocation;
     if (selector === selectCardActiveProviderId) return config.activeProviderId;
+    if (selector === selectCardSelectedCountry) return config.selectedCountry;
     if (selector === selectCardHomeDataStatus) return config.cardHomeDataStatus;
     if (selector === selectPrimaryMoneyAccount)
       return config.primaryMoneyAccount;
@@ -1088,7 +1119,6 @@ function setupLoadCardDataMock(
   if (config.kycStatus?.verificationState && !ud) {
     account = {
       verificationStatus: config.kycStatus.verificationState,
-      provisioningEligible: false,
       holderName: null,
       shippingAddress: null,
       countryOfResidence: config.countryOfResidence ?? null,
@@ -1125,7 +1155,6 @@ function setupLoadCardDataMock(
       ud.firstName && ud.lastName ? `${ud.firstName} ${ud.lastName}` : null;
     account = {
       verificationStatus: config.kycStatus?.verificationState ?? null,
-      provisioningEligible: false,
       holderName: derivedHolderName,
       shippingAddress,
       countryOfResidence: config.countryOfResidence ?? null,
@@ -1164,6 +1193,14 @@ function setupLoadCardDataMock(
           availableFundingAssets: fundingAssets,
           card,
           account,
+          walletProvisioning: card
+            ? {
+                eligible: card.status === 'ACTIVE',
+                cardholderName: account?.holderName ?? '',
+                lastFour: String(card.lastFour ?? ''),
+                network: 'MASTERCARD' as const,
+              }
+            : null,
           alerts,
           actions,
           delegationSettings: config.delegationSettings,
@@ -1208,6 +1245,12 @@ function overrideCardHomeDataBalance(
         type: CardType.VIRTUAL,
       },
       account: null,
+      walletProvisioning: {
+        eligible: true,
+        cardholderName: '',
+        lastFour: '1234',
+        network: 'MASTERCARD' as const,
+      },
       alerts: [],
       actions: [{ type: 'add_funds', enabled: true }],
     },
@@ -1249,8 +1292,50 @@ function render() {
   );
 }
 
+const authTransitionListeners = new Set<() => void>();
+
+const CardHomeAuthTransitionProbe = () => {
+  const [, setTick] = React.useState(1);
+  React.useEffect(() => {
+    const listener = () => setTick((tick) => tick + 1);
+    authTransitionListeners.add(listener);
+    return () => {
+      authTransitionListeners.delete(listener);
+    };
+  }, []);
+  return (
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <CardHome />
+    </ToastContext.Provider>
+  );
+};
+
+function renderAuthTransition() {
+  const view = renderScreen(
+    withCardSDK(CardHomeAuthTransitionProbe),
+    { name: Routes.CARD.HOME },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+  return {
+    ...view,
+    update() {
+      act(() => {
+        authTransitionListeners.forEach((listener) => listener());
+      });
+    },
+  };
+}
+
 describe('CardHome Component', () => {
   beforeEach(() => {
+    authTransitionListeners.clear();
+    mockIsFocused = true;
     mockCanEnableCard = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
@@ -1405,8 +1490,21 @@ describe('CardHome Component', () => {
 
     (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValue(true);
 
+    jest.mocked(useImmersveSupportedRegions).mockReturnValue({
+      region: null,
+      onboardingDocuments: [],
+      permanentDocuments: [],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
     // Setup default selectors
     setupMockSelectors();
+    mockUseMoneyAccountCardLinkage.mockReset();
+    mockUseMoneyAccountCardLinkage.mockImplementation(
+      createDefaultMoneyAccountCardLinkageMock,
+    );
   });
 
   it('renders card title, action buttons, and manage spending limit item', async () => {
@@ -1475,6 +1573,69 @@ describe('CardHome Component', () => {
       }),
     );
     expect(mockClearLastUnauthenticatedReason).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces with authentication when the user logs out while Card Home is focused', () => {
+    mockIsFocused = true;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+    );
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'REPLACE',
+      routeName: Routes.CARD.AUTHENTICATION,
+    });
+  });
+
+  it('waits until Card Home is focused before replacing with authentication', () => {
+    mockIsFocused = false;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+
+    setupMockSelectors({ isAuthenticated: false });
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+    view.update();
+
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
+
+    mockIsFocused = true;
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+    );
+    expect(mockNavigationDispatch).toHaveBeenCalledWith({
+      type: 'REPLACE',
+      routeName: Routes.CARD.AUTHENTICATION,
+    });
+  });
+
+  it('does not replace with authentication when auth returns before Card Home refocuses', () => {
+    mockIsFocused = false;
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    setupMockSelectors({ isAuthenticated: true });
+    view.update();
+
+    mockIsFocused = true;
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+    view.update();
+
+    expect(StackActions.replace).not.toHaveBeenCalled();
+    expect(mockNavigationDispatch).not.toHaveBeenCalled();
   });
 
   it('navigates to add funds modal when add funds button is pressed with USDC token', async () => {
@@ -2026,6 +2187,10 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: true,
         canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2048,6 +2213,176 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: false,
         canAddToWallet: true,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the card is already in the wallet', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a pending verification notice that names the devices', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone', 'watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_description', {
+            devices: strings('card.push_provisioning.device_list_and', {
+              first: strings('card.push_provisioning.device_iphone'),
+              second: strings('card.push_provisioning.device_apple_watch'),
+            }),
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the iPhone pass from the pending notice', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone'],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      fireEvent.press(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).getByTestId('confirm-button'),
+      );
+
+      expect(mockOpenInWallet).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the wallet link when only the Watch pass is pending', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).queryByTestId('confirm-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the instructions when push provisioning is unavailable', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the Immersve card is frozen', () => {
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
       });
 
       render();
@@ -2100,6 +2435,65 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the Immersve privacy policy and contact support before a card exists', () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      activeProviderId: 'immersve',
+      selectedCountry: 'GB',
+    });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: null,
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+    });
+    jest.mocked(useImmersveSupportedRegions).mockReturnValue({
+      region: null,
+      onboardingDocuments: [],
+      permanentDocuments: [
+        {
+          id: 'privacyPolicy',
+          title: 'Privacy policy',
+          url: 'https://example.com/privacy',
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render();
+
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('GB', {
+      enabled: true,
+    });
+    expect(
+      screen.getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-privacyPolicy`),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Privacy policy')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
+  });
+
+  it('uses the issued card region for legal documents when a card exists', () => {
+    setupMockSelectors({
+      isAuthenticated: true,
+      activeProviderId: 'immersve',
+      selectedCountry: 'GB',
+    });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      cardDetails: { type: CardType.VIRTUAL, regionCode: 'NZ' },
+    });
+
+    render();
+
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('NZ', {
+      enabled: true,
+    });
+  });
+
   it('shows the Enable card button for allowance_revoked with no banner', () => {
     mockCanEnableCard = true;
     mockProvisioningView = 'hidden';
@@ -2125,7 +2519,7 @@ describe('CardHome Component', () => {
     render();
 
     // Then: should show balance information
-    expect(screen.getByText('$1,000.00')).toBeTruthy();
+    expect(screen.getByText('$1,000.00')).toBeOnTheScreen();
     // CardAssetItem should be rendered (not a skeleton)
     expect(
       screen.queryByTestId(CardHomeSelectors.CARD_ASSET_ITEM_SKELETON),
@@ -2190,9 +2584,11 @@ describe('CardHome Component', () => {
     render();
 
     // Then: should show error state
-    expect(screen.getByText('Unable to load card')).toBeTruthy();
-    expect(screen.getByText('Please try again later')).toBeTruthy();
-    expect(screen.getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON)).toBeTruthy();
+    expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
+    expect(screen.getByText('Please try again later')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.TRY_AGAIN_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('calls fetchAllData when try again button is pressed', async () => {
@@ -2235,7 +2631,7 @@ describe('CardHome Component', () => {
       screen.getByText(
         'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
       ),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('dispatches bridge tokens when opening swaps with non-supported token', async () => {
@@ -2276,7 +2672,7 @@ describe('CardHome Component', () => {
     render();
 
     // Then: should display formatted balance instead of fiat
-    expect(screen.getByText('1000.000000 USDC')).toBeTruthy();
+    expect(screen.getByText('1000.000000 USDC')).toBeOnTheScreen();
   });
 
   it('falls back to balanceFormatted when balanceFiat is not available', () => {
@@ -2290,7 +2686,7 @@ describe('CardHome Component', () => {
     render();
 
     // Then: should display formatted balance as fallback
-    expect(screen.getByText('1000.000000 USDC')).toBeTruthy();
+    expect(screen.getByText('1000.000000 USDC')).toBeOnTheScreen();
   });
 
   it('fires CARD_HOME_VIEWED once when balances are loaded', async () => {
@@ -2876,7 +3272,7 @@ describe('CardHome Component', () => {
       const addFundsButton = screen.getByTestId(
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
-      expect(addFundsButton).toBeTruthy();
+      expect(addFundsButton).toBeOnTheScreen();
       // Button should have disabled styling applied
       expect(addFundsButton).toBeDisabled();
     });
@@ -2892,7 +3288,7 @@ describe('CardHome Component', () => {
       const addFundsButton = screen.getByTestId(
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
-      expect(addFundsButton).toBeTruthy();
+      expect(addFundsButton).toBeOnTheScreen();
       expect(addFundsButton).toBeEnabled();
     });
 
@@ -2909,7 +3305,7 @@ describe('CardHome Component', () => {
       const addFundsButton = screen.getByTestId(
         CardHomeSelectors.ADD_FUNDS_BUTTON,
       );
-      expect(addFundsButton).toBeTruthy();
+      expect(addFundsButton).toBeOnTheScreen();
       expect(addFundsButton).toBeDisabled();
     });
 
@@ -3020,7 +3416,7 @@ describe('CardHome Component', () => {
       // Then: should show change asset button
       expect(
         screen.getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('navigates to authentication when change asset pressed and not authenticated', () => {
@@ -3070,7 +3466,7 @@ describe('CardHome Component', () => {
       // Then: should show manage spending limit item
       expect(
         screen.getByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('navigates to authentication when manage spending limit pressed and not authenticated', () => {
@@ -3099,7 +3495,7 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should show logout button
-      expect(screen.getByText('Logout')).toBeTruthy();
+      expect(screen.getByText('Logout')).toBeOnTheScreen();
     });
 
     it('shows logout confirmation alert when logout button pressed', () => {
@@ -3257,8 +3653,8 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should show error state
-      expect(screen.getByText('Unable to load card')).toBeTruthy();
-      expect(screen.getByText('Please try again later')).toBeTruthy();
+      expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
+      expect(screen.getByText('Please try again later')).toBeOnTheScreen();
     });
 
     it('calls fetchAllData when try again pressed with card details error', async () => {
@@ -3317,10 +3713,10 @@ describe('CardHome Component', () => {
       // Then: should show loading skeletons
       expect(
         screen.getByTestId(CardHomeSelectors.BALANCE_SKELETON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('prioritizes priority token error over card details error', () => {
@@ -3335,7 +3731,7 @@ describe('CardHome Component', () => {
       render();
 
       // Then: should show error state
-      expect(screen.getByText('Unable to load card')).toBeTruthy();
+      expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
     });
   });
 
@@ -3361,7 +3757,7 @@ describe('CardHome Component', () => {
         screen.getByText(
           'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('does not show limited allowance warning when authenticated', () => {
@@ -3637,7 +4033,7 @@ describe('CardHome Component', () => {
         // Then: enable card button is displayed
         expect(
           screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('does not show Enable Card button for PENDING user without card', () => {
@@ -3719,7 +4115,7 @@ describe('CardHome Component', () => {
         // When loading, the button skeleton is shown instead
         expect(
           screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
         expect(
           screen.queryByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
         ).toBeNull();
@@ -3839,7 +4235,7 @@ describe('CardHome Component', () => {
         // Then: enable card button is displayed (only VERIFIED users can enable)
         expect(
           screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('does not show enable card button for unauthenticated users', () => {
@@ -3875,7 +4271,7 @@ describe('CardHome Component', () => {
 
         expect(
           screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('does not show enable assets button when warning is NeedDelegation and user is PENDING', () => {
@@ -3909,7 +4305,7 @@ describe('CardHome Component', () => {
 
         expect(
           screen.getByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -3927,8 +4323,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Unable to load card')).toBeTruthy();
-        expect(screen.getByTestId('try-again-button')).toBeTruthy();
+        expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
+        expect(screen.getByTestId('try-again-button')).toBeOnTheScreen();
       });
 
       it('shows error view even when KYC status exists with error', () => {
@@ -3944,8 +4340,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Unable to load card')).toBeTruthy();
-        expect(screen.getByTestId('try-again-button')).toBeTruthy();
+        expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
+        expect(screen.getByTestId('try-again-button')).toBeOnTheScreen();
       });
 
       it('shows error view for unauthenticated users with error', () => {
@@ -3961,8 +4357,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Unable to load card')).toBeTruthy();
-        expect(screen.getByTestId('try-again-button')).toBeTruthy();
+        expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
+        expect(screen.getByTestId('try-again-button')).toBeOnTheScreen();
       });
 
       it('shows error view when loading with error', () => {
@@ -3978,8 +4374,8 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Unable to load card')).toBeTruthy();
-        expect(screen.getByTestId('try-again-button')).toBeTruthy();
+        expect(screen.getByText('Unable to load card')).toBeOnTheScreen();
+        expect(screen.getByTestId('try-again-button')).toBeOnTheScreen();
       });
     });
 
@@ -4059,7 +4455,7 @@ describe('CardHome Component', () => {
         // Then: enable card button is displayed (only VERIFIED users can enable)
         expect(
           screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('does not show enable card button for null verification state', () => {
@@ -4100,7 +4496,7 @@ describe('CardHome Component', () => {
         // Then: KYC warning is displayed
         expect(
           screen.getByText('card.card_home.warnings.kyc_pending.title'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('displays KYC warning for UNVERIFIED user without card', () => {
@@ -4121,7 +4517,7 @@ describe('CardHome Component', () => {
         // Then: KYC warning is displayed
         expect(
           screen.getByText('card.card_home.warnings.kyc_pending.title'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('does not display KYC warning for VERIFIED user', () => {
@@ -4169,7 +4565,7 @@ describe('CardHome Component', () => {
         // KYC warning is shown
         expect(
           screen.getByText('card.card_home.warnings.kyc_pending.title'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -4192,7 +4588,7 @@ describe('CardHome Component', () => {
         // Then: enable assets button is shown
         expect(
           screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('does not display enable card button for PENDING user without delegated asset', () => {
@@ -4343,7 +4739,7 @@ describe('CardHome Component', () => {
         // Then: card details button is shown
         expect(
           screen.getByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('calls fetchCardDetailsToken when button is pressed after biometric authentication', async () => {
@@ -4932,7 +5328,7 @@ describe('CardHome Component', () => {
 
         expect(
           screen.getByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('shows freeze toggle as teaser when user is not authenticated', () => {
@@ -5546,8 +5942,10 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Freeze card')).toBeTruthy();
-        expect(screen.getByText('Temporarily disable your card')).toBeTruthy();
+        expect(screen.getByText('Freeze card')).toBeOnTheScreen();
+        expect(
+          screen.getByText('Temporarily disable your card'),
+        ).toBeOnTheScreen();
       });
 
       it('shows "Unfreeze card" title and description when card is frozen', () => {
@@ -5584,10 +5982,10 @@ describe('CardHome Component', () => {
 
         render();
 
-        expect(screen.getByText('Unfreeze card')).toBeTruthy();
+        expect(screen.getByText('Unfreeze card')).toBeOnTheScreen();
         expect(
           screen.getByText('Reactivate your card to resume transactions'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
 
       it('shows switch as disabled while toggling', () => {
@@ -5709,7 +6107,7 @@ describe('CardHome Component', () => {
         const orderMetalCardItem = screen.queryByTestId(
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
         );
-        expect(orderMetalCardItem).toBeTruthy();
+        expect(orderMetalCardItem).toBeOnTheScreen();
       });
 
       const orderMetalCardItem = screen.getByTestId(
@@ -5757,7 +6155,7 @@ describe('CardHome Component', () => {
         const orderMetalCardItem = screen.queryByTestId(
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
         );
-        expect(orderMetalCardItem).toBeTruthy();
+        expect(orderMetalCardItem).toBeOnTheScreen();
       });
 
       const orderMetalCardItem = screen.getByTestId(
@@ -5859,7 +6257,7 @@ describe('CardHome Component', () => {
         const orderMetalCardItem = screen.queryByTestId(
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
         );
-        expect(orderMetalCardItem).toBeTruthy();
+        expect(orderMetalCardItem).toBeOnTheScreen();
       });
 
       const orderMetalCardItem = screen.getByTestId(
@@ -5979,7 +6377,7 @@ describe('CardHome Component', () => {
         const orderMetalCardItem = screen.queryByTestId(
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
         );
-        expect(orderMetalCardItem).toBeTruthy();
+        expect(orderMetalCardItem).toBeOnTheScreen();
       });
 
       const orderMetalCardItem = screen.getByTestId(
@@ -6041,7 +6439,7 @@ describe('CardHome Component', () => {
         const orderMetalCardItem = screen.queryByTestId(
           CardHomeSelectors.ORDER_METAL_CARD_ITEM,
         );
-        expect(orderMetalCardItem).toBeTruthy();
+        expect(orderMetalCardItem).toBeOnTheScreen();
       });
 
       const orderMetalCardItem = screen.getByTestId(
@@ -6107,7 +6505,7 @@ describe('CardHome Component', () => {
       mockResetProvisioningStatus.mockClear();
     });
 
-    it('calls usePushProvisioning with cardDetails from card status', async () => {
+    it('calls usePushProvisioning with the card id and wallet provisioning', async () => {
       // Given: authenticated user with card details
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
@@ -6125,19 +6523,18 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: usePushProvisioning should be called with memoized cardDetails
       await waitFor(() => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
       const options = getLastCallOptions();
 
-      // Verify cardDetails is passed correctly
-      expect(options.cardDetails).toEqual({
-        id: 'card-123',
-        holderName: 'John Doe',
-        panLast4: '1234',
-        status: 'ACTIVE',
+      expect(options.cardId).toBe('card-123');
+      expect(options.walletProvisioning).toEqual({
+        eligible: true,
+        cardholderName: 'John Doe',
+        lastFour: '1234',
+        network: 'MASTERCARD',
       });
     });
 
@@ -6179,7 +6576,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('passes null cardDetails when no card exists', async () => {
+    it('passes null wallet provisioning when no card exists', async () => {
       // Given: authenticated user without card
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
@@ -6197,14 +6594,14 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cardDetails should be null
       await waitFor(() => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
       const options = getLastCallOptions();
 
-      expect(options.cardDetails).toBeNull();
+      expect(options.cardId).toBeUndefined();
+      expect(options.walletProvisioning).toBeNull();
     });
 
     it('provides onSuccess callback that shows success toast', async () => {
@@ -6296,11 +6693,12 @@ describe('CardHome Component', () => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
-      // Then: holderName should come from KYC userDetails, not cardDetails
       const options = getLastCallOptions();
-      const cardDetails = options.cardDetails as { holderName: string };
+      const walletProvisioning = options.walletProvisioning as {
+        cardholderName: string;
+      };
 
-      expect(cardDetails.holderName).toBe('Jane Smith');
+      expect(walletProvisioning.cardholderName).toBe('Jane Smith');
     });
   });
 
@@ -6542,7 +6940,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6599,7 +6996,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6655,7 +7051,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6711,7 +7106,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6977,6 +7371,10 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: false,
         canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();
@@ -7002,19 +7400,54 @@ describe('CardHome Component', () => {
     });
   });
 
-  describe('Link Money Account CTA', () => {
+  describe('Link Money Account content', () => {
     const setupLinkageMock = (
-      overrides: Partial<{ canLink: boolean }> = {},
+      overrides: Partial<{
+        canLink: boolean;
+        isLinking: boolean;
+        isMoneyAccountLinkingSupported: boolean;
+      }> = {},
     ) => {
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
+        hasMoneyAccountBaseRequirements: true,
         isCardAuthenticated: true,
-        primaryMoneyAccount: undefined,
-        moneyAccountCardToken: null,
+        isCardVerified: true,
+        isCardLinkedToMoneyAccount: false,
+        isResidencyBlocked: false,
+        primaryMoneyAccount: {
+          id: 'money-account-1',
+          address: '0x1234567890123456789012345678901234567890',
+          type: 'eip155:eoa',
+          scopes: [],
+          methods: [],
+          options: {
+            entropy: {
+              type: 'mnemonic',
+              id: 'wallet1',
+              derivationPath: "m/44'/60'/0'/0/0",
+              groupIndex: 0,
+            },
+            exportable: false,
+          },
+        },
+        moneyAccountCardToken: {
+          address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+          symbol: 'veda',
+          name: 'veda',
+          decimals: 6,
+          caipChainId: 'eip155:143',
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
+          delegationContract: '0x9876543210987654321098765432109876543210',
+        },
         canLink: true,
+        isMoneyAccountLinkingSupported: true,
+        isMoneyCardSectionAvailable: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,
+        getLinkFlowRedirectTarget: jest.fn(() => undefined),
         startLinkFlow: mockStartMoneyAccountLinkFlow,
         openLinkCardSheet: jest.fn(),
         confirmLinkInBackground: jest.fn(),
@@ -7023,58 +7456,85 @@ describe('CardHome Component', () => {
       });
     };
 
-    it('renders the CTA when canLink is true and cardHomeDataStatus is success', () => {
+    it('starts the link flow when card content is pressed', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+      setupLinkageMock();
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      );
+
+      expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
+        screen: Routes.CARD.HOME,
+        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      });
+    });
+
+    it('renders link-mode content when Money Account linking is available', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
 
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
     });
 
-    it('does not render the CTA when canLink is false', () => {
+    it('hides link-mode content when Money Account linking is unavailable', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock({ canLink: false });
 
       render();
 
       expect(
-        screen.queryByTestId(
-          CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM,
-        ),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByText(strings('money.metamask_card.link_title')),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
-    it('keeps the CTA visible during a background refresh (stale-while-revalidate)', () => {
+    it('hides link-mode content when the authenticated provider does not support Money account linking', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+      mockGetCapabilities.mockReturnValue({
+        ...BAANX_CAPABILITIES,
+        supportsMoneyAccountLinking: false,
+      });
+      setupLinkageMock({
+        canLink: false,
+        isMoneyAccountLinkingSupported: false,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps link-mode content visible while linking is in progress', () => {
       setupMockSelectors({ cardHomeDataStatus: 'loading' });
-      setupLinkageMock();
+      setupLinkageMock({ isLinking: true });
 
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
       ).toBeOnTheScreen();
     });
 
-    it('calls startLinkFlow with Routes.CARD.HOME when the Link card button is pressed', () => {
+    it('starts the link flow when section header is pressed', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
 
       render();
 
-      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON));
+      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.HEADER));
 
+      expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledTimes(1);
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
         screen: Routes.CARD.HOME,
         entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,

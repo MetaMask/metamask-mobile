@@ -110,7 +110,7 @@ describe('AnnouncementCtaFooter', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+          MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED,
         )
           .addProperties({
             notification_id: props.notification.id,
@@ -201,7 +201,7 @@ describe('AnnouncementCtaFooter', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledWith(
         AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED,
+          MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED,
         )
           .addProperties({
             notification_id: props.notification.id,

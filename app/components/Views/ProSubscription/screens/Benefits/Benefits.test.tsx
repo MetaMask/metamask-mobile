@@ -1,6 +1,15 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, fireEvent, within } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  within,
+  waitFor,
+} from '@testing-library/react-native';
+import {
+  PRODUCT_TYPES,
+  RECURRING_INTERVALS,
+} from '@metamask/subscription-controller';
 import Benefits from './Benefits';
 import { BenefitsTestIds } from './Benefits.testIds';
 import {
@@ -9,20 +18,126 @@ import {
   PLANS,
   type PlanId,
 } from './Benefits.constants';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
+import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
+import type {
+  MoneyAccountPlusPricingView,
+  PlanPricingView,
+} from './utils/mapMoneyAccountPlusPricing';
+
+jest.mock('./hooks/useSubscriptionPricing', () => ({
+  useSubscriptionPricing: jest.fn(),
+}));
+
+jest.mock('./hooks/useMoneyAccountPlusTrialEligibility', () => ({
+  useMoneyAccountPlusTrialEligibility: jest.fn(),
+}));
+
+jest.mock('../../hooks/useStartProSubscription', () => ({
+  useStartProSubscription: jest.fn(),
+}));
+
+const mockIsProduction = jest.fn();
+jest.mock('../../../../../util/environment', () => ({
+  isProduction: () => mockIsProduction(),
+}));
+
+const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
+const mockUseMoneyAccountPlusTrialEligibility = jest.mocked(
+  useMoneyAccountPlusTrialEligibility,
+);
+const mockUseStartProSubscription = jest.mocked(useStartProSubscription);
+const mockRetry = jest.fn();
+const mockStartSubscription = jest.fn<Promise<void>, [unknown]>();
+
+const MONTHLY_PLAN: PlanPricingView = {
+  interval: RECURRING_INTERVALS.month,
+  currency: 'usd',
+  unitAmount: 499,
+  unitDecimals: 2,
+  amount: 4.99,
+};
+
+const ANNUAL_PLAN: PlanPricingView = {
+  interval: RECURRING_INTERVALS.year,
+  currency: 'usd',
+  unitAmount: 4999,
+  unitDecimals: 2,
+  amount: 49.99,
+};
+
+const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
+  status: 'ready',
+  monthly: MONTHLY_PLAN,
+  annual: ANNUAL_PLAN,
+  savings: {
+    amount: 9.89,
+    equivalentMonthly: 49.99 / 12,
+  },
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+const mockOnCheckoutStart = jest.fn();
+const mockOnCheckoutError = jest.fn();
+
+const mockPricingState = ({
+  isLoading = false,
+  hasError = false,
+  plusPricing = READY_PLUS_PRICING,
+}: {
+  isLoading?: boolean;
+  hasError?: boolean;
+  plusPricing?: MoneyAccountPlusPricingView;
+} = {}) => {
+  mockUseSubscriptionPricing.mockReturnValue({
+    plusPricing,
+    isLoading,
+    hasError,
+    retry: mockRetry,
+  });
+};
+
+const mockStartSubscriptionState = ({
+  isSubmitting = false,
+  errorMessage = undefined,
+}: {
+  isSubmitting?: boolean;
+  errorMessage?: string;
+} = {}) => {
+  mockUseStartProSubscription.mockReturnValue({
+    startSubscription: mockStartSubscription,
+    isSubmitting,
+    errorMessage,
+  });
+};
 
 const renderBenefits = (initialPlan?: PlanId) =>
-  render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
+  render(
+    <Benefits
+      onSuccess={mockOnSuccess}
+      onCheckoutStart={mockOnCheckoutStart}
+      onCheckoutError={mockOnCheckoutError}
+      initialPlan={initialPlan}
+    />,
+  );
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
 describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsProduction.mockReturnValue(false);
+    mockStartSubscription.mockResolvedValue(undefined);
+    mockPricingState();
+    mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+      isEligibleForTrial: false,
+    });
+    mockStartSubscriptionState();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -40,10 +155,16 @@ describe('Benefits', () => {
       );
     });
 
-    it('renders the price line from i18n', () => {
+    it('renders the price line from mapped Plus pricing', () => {
+      I18n.locale = 'en-US';
+
       const { getByTestId } = renderBenefits();
+
       expect(getByTestId(BenefitsTestIds.PRICE_LINE)).toHaveTextContent(
-        strings('pro_subscription.description'),
+        strings('pro_subscription.description', {
+          monthlyPrice: formatSubscriptionFiat(4.99, 'usd'),
+          annualPrice: formatSubscriptionFiat(49.99, 'usd'),
+        }),
       );
     });
 
@@ -65,18 +186,73 @@ describe('Benefits', () => {
       });
     });
 
-    it('renders both plan selector cards', () => {
+    it('renders both plan selector cards with mapped prices', () => {
+      I18n.locale = 'en-US';
+
       const { getByTestId } = renderBenefits();
+
       PLANS.forEach((plan) => {
         expect(
           getByTestId(BenefitsTestIds.PLAN_CARD(plan.id)),
         ).toBeOnTheScreen();
       });
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_PRICE('monthly')),
+      ).toHaveTextContent(
+        strings('pro_subscription.plans.monthly.price', {
+          price: formatSubscriptionFiat(4.99, 'usd'),
+        }),
+      );
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_PRICE('annual')),
+      ).toHaveTextContent(
+        strings('pro_subscription.plans.annual.price', {
+          price: formatSubscriptionFiat(49.99, 'usd'),
+        }),
+      );
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_SAVINGS_BADGE('annual')),
+      ).toHaveTextContent(strings('pro_subscription.plans.annual.badge'));
     });
 
     it('renders the CTA button', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Stripe test clocks checkbox', () => {
+    it('renders the checkbox unchecked in non-production', () => {
+      const { getByTestId } = renderBenefits();
+
+      expect(
+        getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX),
+      ).toBeOnTheScreen();
+      expect(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: false }),
+      );
+    });
+
+    it('toggles selected state when pressed', () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX));
+
+      expect(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
+    });
+
+    it('does not render the checkbox in production', () => {
+      mockIsProduction.mockReturnValue(true);
+
+      const { queryByTestId } = renderBenefits();
+
+      expect(
+        queryByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -86,7 +262,7 @@ describe('Benefits', () => {
     it('renders CTA button with join label by default', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -96,7 +272,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -106,7 +282,7 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
 
@@ -117,20 +293,179 @@ describe('Benefits', () => {
       fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
+    });
+  });
+
+  describe('Free trial', () => {
+    const trialPricing: MoneyAccountPlusPricingView = {
+      ...READY_PLUS_PRICING,
+      monthly: { ...MONTHLY_PLAN, trialPeriodDays: 7 },
+      annual: { ...ANNUAL_PLAN, trialPeriodDays: 7 },
+    };
+
+    it('shows trial copy when the controller reports the user is eligible', () => {
+      mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+        isEligibleForTrial: true,
+      });
+      mockPricingState({ plusPricing: trialPricing });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).toHaveTextContent(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('monthly')),
+      ).toHaveTextContent(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.start_free_trial'),
+      );
+      expect(
+        getByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION),
+      ).toHaveTextContent(strings('pro_subscription.free_trial_description'));
+    });
+
+    it('hides trial copy when the controller reports the user is not eligible', () => {
+      mockPricingState({ plusPricing: trialPricing });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('monthly')),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.join_orange'),
+      );
+      expect(
+        queryByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION),
+      ).not.toBeOnTheScreen();
     });
   });
 
   // ── Callbacks ─────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
-    it('calls onSuccess when the CTA is pressed', () => {
+    const ANNUAL_CHECKOUT_PLAN = {
+      planId: 'annual',
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      interval: RECURRING_INTERVALS.year,
+      currency: 'usd',
+      unitAmount: 4999,
+      unitDecimals: 2,
+      amount: 49.99,
+    };
+
+    const MONTHLY_CHECKOUT_PLAN = {
+      planId: 'monthly',
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      interval: RECURRING_INTERVALS.month,
+      currency: 'usd',
+      unitAmount: 499,
+      unitDecimals: 2,
+      amount: 4.99,
+    };
+
+    it('calls onCheckoutStart before starting the subscription', () => {
       const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
 
-      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockOnCheckoutStart).toHaveBeenCalledTimes(1);
+      expect(mockStartSubscription).toHaveBeenCalledTimes(1);
+      expect(mockOnCheckoutStart.mock.invocationCallOrder[0]).toBeLessThan(
+        mockStartSubscription.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls onCheckoutError when the subscription fails to start', async () => {
+      mockStartSubscription.mockRejectedValue(new Error('signing rejected'));
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+      await Promise.resolve();
+
+      expect(mockOnCheckoutError).toHaveBeenCalledTimes(1);
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('starts the subscription and calls onSuccess with the annual checkout plan by default', async () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
+      expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
+      expect(mockOnSuccess).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
+    });
+
+    it('starts the subscription and calls onSuccess with the monthly checkout plan after Monthly is selected', async () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
+      expect(mockStartSubscription).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
+      expect(mockOnSuccess).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
+    });
+
+    it('does not call onSuccess when starting the subscription fails', async () => {
+      mockStartSubscription.mockRejectedValue(new Error('start failed'));
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() =>
+        expect(mockStartSubscription).toHaveBeenCalledTimes(1),
+      );
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('shows the join error banner when starting the subscription fails', () => {
+      const errorMessage = strings('pro_subscription.join_error');
+      mockStartSubscriptionState({ errorMessage });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.JOIN_ERROR)).toHaveTextContent(
+        errorMessage,
+      );
+    });
+
+    it('shows the insufficient balance message when the join fails on balance', () => {
+      const errorMessage = strings('pro_subscription.insufficient_balance');
+      mockStartSubscriptionState({ errorMessage });
+
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.JOIN_ERROR)).toHaveTextContent(
+        errorMessage,
+      );
+    });
+
+    it('does not show the join error banner when there is no error', () => {
+      const { queryByTestId } = renderBenefits();
+
+      expect(queryByTestId(BenefitsTestIds.JOIN_ERROR)).toBeNull();
+    });
+
+    it('shows the CTA as busy while the subscription is submitting', () => {
+      mockStartSubscriptionState({ isSubmitting: true });
+      const { getByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ busy: true, disabled: true }),
+      );
     });
 
     it('pressing a benefit row opens the detail sheet', () => {
@@ -314,7 +649,7 @@ describe('Benefits', () => {
         getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
       ).toBeOnTheScreen();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
+        strings('pro_subscription.join_orange'),
       );
     });
   });
@@ -357,6 +692,140 @@ describe('Benefits', () => {
           strings('pro_subscription.benefits_description.atm_fees.description'),
         ),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  // ── Pricing fetch states ───────────────────────────────────────────────────
+
+  describe('Pricing fetch states', () => {
+    it('shows a plan card skeleton per plan instead of plan cards while pricing is fetching', () => {
+      mockPricingState({ isLoading: true });
+
+      const { getAllByTestId, getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_LOADING)).toBeOnTheScreen();
+      expect(getAllByTestId(BenefitsTestIds.PLAN_CARD_SKELETON)).toHaveLength(
+        PLANS.length,
+      );
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+      expect(queryByTestId(BenefitsTestIds.PRICING_ERROR)).toBeNull();
+    });
+
+    it('shows an error and retry control when pricing fetch fails', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_ERROR)).toBeOnTheScreen();
+      expect(
+        getByTestId(BenefitsTestIds.PRICING_RETRY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+    });
+
+    it('calls retry when the retry control is pressed', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PRICING_RETRY_BUTTON));
+
+      expect(mockRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onSuccess when the CTA is pressed while pricing is loading', () => {
+      mockPricingState({ isLoading: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSuccess when the CTA is pressed after a pricing error', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('hides the annual card when only monthly pricing is mapped', () => {
+      mockPricingState({
+        plusPricing: {
+          status: 'ready',
+          monthly: READY_PLUS_PRICING.monthly,
+        },
+      });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_SAVINGS_BADGE('annual')),
+      ).toBeNull();
+    });
+
+    it('hides the savings badge when annual savings are undefined', () => {
+      mockPricingState({
+        plusPricing: {
+          status: 'ready',
+          monthly: READY_PLUS_PRICING.monthly,
+          annual: READY_PLUS_PRICING.annual,
+        },
+      });
+
+      const { queryByTestId } = renderBenefits();
+
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_SAVINGS_BADGE('annual')),
+      ).toBeNull();
+    });
+
+    it('shows unavailable copy when Plus pricing is missing', () => {
+      mockPricingState({ plusPricing: { status: 'unavailable' } });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(
+        getByTestId(BenefitsTestIds.PRICING_UNAVAILABLE),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+    });
+
+    it('shows malformed copy when Plus prices cannot be read', () => {
+      mockPricingState({ plusPricing: { status: 'malformed' } });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_MALFORMED)).toBeOnTheScreen();
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+    });
+
+    it('does not call onSuccess when Plus pricing is unavailable', () => {
+      mockPricingState({ plusPricing: { status: 'unavailable' } });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSuccess when Plus prices are malformed', () => {
+      mockPricingState({ plusPricing: { status: 'malformed' } });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 });

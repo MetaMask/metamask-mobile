@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import QuickBuyRoot from './QuickBuyRoot';
@@ -20,20 +20,12 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
-jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
-  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
-    buyAmounts: [10, 50, 100, 250],
-    sellPercentages: [25, 50, 75, 100],
-    savePreferences: jest.fn(),
-    isLoaded: true,
-  })),
-}));
-
 jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
 const mockTrack = jest.fn();
+const sheetAnalyticsContext = { source: 'market_insights' as const };
 
 jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   const actual = jest.requireActual('../../Views/SocialLeaderboard/analytics');
@@ -43,8 +35,18 @@ jest.mock('../../Views/SocialLeaderboard/analytics', () => {
   };
 });
 
+jest.mock('../Bridge/providers/BridgeSessionProvider', () => ({
+  BridgeSessionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../Bridge/providers/SwapQuotesProvider', () => ({
+  SwapQuotesProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 let storedOnOpenCallback: (() => void) | undefined;
-const mockOnCloseDialog = jest.fn((cb?: () => void) => cb?.());
+const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
+const mockOnOpenBottomSheet = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -53,22 +55,23 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheetDialog: ReactMock.forwardRef(
+    BottomSheet: ReactMock.forwardRef(
       (
         {
           children,
           onClose,
+          onOpen,
         }: {
           children: unknown;
           onClose?: () => void;
+          onOpen?: () => void;
         },
         ref: unknown,
       ) => {
+        storedOnOpenCallback = onOpen;
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenDialog: (cb: () => void) => {
-            storedOnOpenCallback = cb;
-          },
-          onCloseDialog: mockOnCloseDialog,
+          onOpenBottomSheet: mockOnOpenBottomSheet,
+          onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
         return ReactMock.createElement(
           View,
@@ -184,6 +187,7 @@ const buildHookResult = (
   sourceToken: undefined,
   sourceChainId: '0x1',
   sourceTokenOptions: [],
+  payWithChainIds: [],
   selectedSourceToken: undefined,
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
@@ -206,7 +210,6 @@ const buildHookResult = (
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -216,9 +219,7 @@ const buildHookResult = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
@@ -230,6 +231,12 @@ const buildHookResult = (
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
   hasNoPayWithFunds: false,
+  hasInsufficientBalance: false,
+  isGasless: false,
+  estimatedReceiveFiat: undefined,
+  gasFeeDeductionLabel: undefined,
+  discountBadge: undefined,
+  baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: true,
@@ -251,9 +258,10 @@ const buildHookResult = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
-  sellDestTokenOptions: [],
-  selectedDestStable: undefined,
-  handleSelectDestStable: jest.fn(),
+  isMaxAmountAllowed: true,
+  positionTokenFromSetup: undefined,
+  selectedReceiveToken: undefined,
+  handleSelectReceiveToken: jest.fn(),
   handleConfirm: jest.fn(),
   ...overrides,
 });
@@ -292,10 +300,6 @@ describe('QuickBuyRoot', () => {
           onPress={() => setActiveScreen('quoteDetails')}
         />
         <Pressable
-          testID="nav-editQuickAmounts"
-          onPress={() => setActiveScreen('editQuickAmounts')}
-        />
-        <Pressable
           testID="nav-amount"
           onPress={() => setActiveScreen('amount')}
         />
@@ -306,7 +310,7 @@ describe('QuickBuyRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     storedOnOpenCallback = undefined;
-    mockOnCloseDialog.mockImplementation((cb?: () => void) => cb?.());
+    mockOnCloseBottomSheet.mockImplementation((cb?: () => void) => cb?.());
     (useQuickBuyController as jest.Mock).mockReturnValue(buildHookResult());
     (useQuickBuySetup as jest.Mock).mockReturnValue({
       chainId: '0x1',
@@ -316,6 +320,26 @@ describe('QuickBuyRoot', () => {
     });
   });
 
+  it('clears the token-selector network filter when the sheet unmounts', () => {
+    const { store, unmount } = renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
+      />,
+      { state: { bridge: { tokenSelectorNetworkFilter: 'eip155:137' } } },
+    );
+    expect(store.getState().bridge.tokenSelectorNetworkFilter).toBe(
+      'eip155:137',
+    );
+
+    unmount();
+
+    expect(store.getState().bridge.tokenSelectorNetworkFilter).toBeUndefined();
+  });
+
   it('renders default AmountScreen content when no children are passed', () => {
     renderWithProvider(
       <QuickBuyRoot
@@ -323,6 +347,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
 
@@ -333,6 +358,7 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
   });
 
   it('fires SOCIAL_QUICK_BUY_SHEET_VIEWED when the sheet opens with a source', () => {
@@ -360,13 +386,38 @@ describe('QuickBuyRoot', () => {
     );
   });
 
-  it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when analytics source is absent', () => {
+  it('attributes SOCIAL_QUICK_BUY_SHEET_VIEWED to an allowed initial trade mode', () => {
     renderWithProvider(
       <QuickBuyRoot
         isVisible
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        initialTradeMode="sell"
         onClose={jest.fn()}
+        analyticsContext={{ source: 'market_insights' }}
+      />,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
+      expect.objectContaining({
+        [QuickBuyEventProperties.TRADE_TYPE]: 'sell',
+      }),
+    );
+  });
+
+  it('does not fire SOCIAL_QUICK_BUY_SHEET_VIEWED when the target token symbol is empty', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition({ tokenSymbol: '' }))}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
 
@@ -426,6 +477,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       >
         <MockPriceImpactConfirmScreen />
       </QuickBuyRoot>,
@@ -450,6 +502,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
 
@@ -470,6 +523,7 @@ describe('QuickBuyRoot', () => {
         target={positionToQuickBuyTarget(createPosition())}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
     expect(toJSON()).toBeNull();
@@ -482,135 +536,10 @@ describe('QuickBuyRoot', () => {
         target={null}
         features={TOP_TRADERS_QUICK_BUY_FEATURES}
         onClose={jest.fn()}
+        analyticsContext={sheetAnalyticsContext}
       />,
     );
     expect(toJSON()).toBeNull();
-  });
-
-  it('captures the baseline height on the amount screen without locking it', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      />,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-
-    expect(StyleSheet.flatten(container.props.style)?.height).toBeUndefined();
-  });
-
-  it('locks height on sub-screens using the amount-screen baseline', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      >
-        <NavigationProbe />
-      </QuickBuyRoot>,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-
-    act(() => {
-      fireEvent.press(screen.getByTestId('nav-payWith'));
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
-    });
-  });
-
-  it('locks sub-screens to the latest amount height after the keypad collapses', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      >
-        <NavigationProbe />
-      </QuickBuyRoot>,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    // Keypad-open height first, then collapsed amount height.
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 700 } },
-      });
-    });
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 420 } },
-      });
-    });
-
-    act(() => {
-      fireEvent.press(screen.getByTestId('nav-quoteDetails'));
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 420,
-    });
-  });
-
-  it('keeps the locked height when a later layout reports a different height on a sub-screen', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      >
-        <NavigationProbe />
-      </QuickBuyRoot>,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-    act(() => {
-      fireEvent.press(screen.getByTestId('nav-payWith'));
-    });
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 300 } },
-      });
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
-    });
   });
 
   describe('close behavior', () => {
@@ -619,7 +548,7 @@ describe('QuickBuyRoot', () => {
       return <Pressable testID="probe-close" onPress={onClose} />;
     };
 
-    it('animates the sheet down via onCloseDialog and runs the parent onClose', () => {
+    it('animates the sheet down via onCloseBottomSheet and runs the parent onClose', () => {
       const onClose = jest.fn();
       renderWithProvider(
         <QuickBuyRoot
@@ -627,6 +556,7 @@ describe('QuickBuyRoot', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={onClose}
+          analyticsContext={sheetAnalyticsContext}
         >
           <CloseProbe />
         </QuickBuyRoot>,
@@ -639,7 +569,7 @@ describe('QuickBuyRoot', () => {
         fireEvent.press(screen.getByTestId('probe-close'));
       });
 
-      expect(mockOnCloseDialog).toHaveBeenCalledTimes(1);
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
@@ -650,6 +580,7 @@ describe('QuickBuyRoot', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         >
           <CloseProbe />
         </QuickBuyRoot>,
@@ -684,6 +615,7 @@ describe('QuickBuyRoot', () => {
           target={positionToQuickBuyTarget(createPosition())}
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           onClose={jest.fn()}
+          analyticsContext={sheetAnalyticsContext}
         >
           <NavigationProbe />
         </QuickBuyRoot>,
@@ -735,26 +667,6 @@ describe('QuickBuyRoot', () => {
       expect(screen.getByTestId('active-screen')).toHaveTextContent(
         'quoteDetails',
       );
-    });
-
-    it('uses dynamic height when navigating to editQuickAmounts', () => {
-      renderWithNavigation();
-
-      const container = screen.getByTestId('quick-buy-content-container');
-      act(() => {
-        fireEvent(container, 'layout', {
-          nativeEvent: { layout: { height: 480 } },
-        });
-      });
-
-      act(() => {
-        fireEvent.press(screen.getByTestId('nav-editQuickAmounts'));
-      });
-
-      expect(screen.getByTestId('active-screen')).toHaveTextContent(
-        'editQuickAmounts',
-      );
-      expect(StyleSheet.flatten(container.props.style)?.height).toBeUndefined();
     });
   });
 });

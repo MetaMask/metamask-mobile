@@ -8,6 +8,7 @@ import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID } from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.constants';
 import Routes from '../../../constants/navigation/Routes';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import {
@@ -22,6 +23,10 @@ import {
   createMockState,
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+
+jest.mock('../../hooks/useNonTokenBalance', () => ({
+  useAccountListBalance: jest.fn(() => () => undefined),
+}));
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -309,7 +314,9 @@ describe('AccountSelector', () => {
 
       fireEvent.press(manageAccountsButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW, {
+        source: ManageAccountsViewedSource.AccountList,
+      });
     });
   });
 

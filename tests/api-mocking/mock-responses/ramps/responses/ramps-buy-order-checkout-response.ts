@@ -6,7 +6,7 @@
  */
 
 export const BUY_ORDER_WIDGET_URL_RESPONSE = {
-  url: 'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback?orderId=mock-order-123',
+  url: 'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback?orderId=mock-order-123',
   browser: 'APP_BROWSER',
   orderId: null,
 };

@@ -9,7 +9,6 @@ import {
   FeatureId,
   formatChainIdToHex,
   getNativeAssetForChainId,
-  isNativeAddress,
   isNonEvmChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
@@ -31,6 +30,7 @@ import {
   setDestToken,
   setIsDestTokenManuallySet,
   setAbTestContext,
+  resetBridgeState,
 } from '../../../../../core/redux/slices/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import Engine from '../../../../../core/Engine';
@@ -44,19 +44,8 @@ import {
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
-import {
-  ARC_HEX_CHAIN_ID,
-  ARC_USDC_BRIDGE_TOKEN,
-} from '../../../../../enablement/assets/arc';
 import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
-
-/**
- * Allows to manually set the default Swap token when clicking on the Swap CTA from
- * native token page. If unset, `getNativeAssetForChainId` of bridge-controller is used.
- */
-const NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN: { [key: string]: BridgeToken } = {
-  [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
-};
+import type { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -78,6 +67,7 @@ export interface BridgeRouteParams {
   destToken?: BridgeToken;
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
+  initialTab?: BridgeTabKey;
   scrollToTopOnNav?: boolean;
   autoFocusSourceAmountInput?: boolean;
   /**
@@ -89,6 +79,9 @@ export interface BridgeRouteParams {
   swapViewTraceId?: string;
 }
 
+/**
+ * @deprecated Use MetaMetricsSwapsEventSource instead.
+ */
 export enum SwapBridgeNavigationLocation {
   MainView = MetaMetricsSwapsEventSource.MainView,
   TokenView = MetaMetricsSwapsEventSource.TokenView,
@@ -96,6 +89,7 @@ export enum SwapBridgeNavigationLocation {
   TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
   FollowTradingTokenScreen = MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
   FollowTradingFeedScreen = MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
+  TransactionDetails = MetaMetricsSwapsEventSource.TransactionDetails,
 }
 
 /**
@@ -124,6 +118,8 @@ export const toMetaMetricsSwapsEventSource = (
       return MetaMetricsSwapsEventSource.FollowTradingTokenScreen;
     case SwapBridgeNavigationLocation.FollowTradingFeedScreen:
       return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
+    case SwapBridgeNavigationLocation.TransactionDetails:
+      return MetaMetricsSwapsEventSource.TransactionDetails;
     default:
       return MetaMetricsSwapsEventSource.MainView;
   }
@@ -208,7 +204,6 @@ export const useSwapBridgeNavigation = ({
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
     (
-      bridgeViewMode: BridgeViewMode,
       sourceTokenOverride?: BridgeToken,
       destTokenOverride?: BridgeToken,
       buttonLabel?: string,
@@ -217,6 +212,7 @@ export const useSwapBridgeNavigation = ({
       swapButtonClickLocationOverride?:
         | ActionLocation
         | SwapBridgeNavigationLocation,
+      initialTab?: BridgeTabKey,
     ) => {
       // Use tokenOverride if provided, otherwise fall back to tokenBase
       const effectiveSourceTokenBase = sourceTokenOverride ?? sourceTokenBase;
@@ -280,15 +276,6 @@ export const useSwapBridgeNavigation = ({
       let sourceToken = isBridgeEnabledSource
         ? candidateSourceToken
         : undefined;
-
-      // Doing this manual override last to ensure it is not overriden by the previous overrides.
-      if (
-        isNativeAddress(sourceToken?.address) &&
-        NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId]
-      ) {
-        sourceToken =
-          NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId];
-      }
 
       if (!sourceToken) {
         // fallback to ETH on mainnet
@@ -357,19 +344,22 @@ export const useSwapBridgeNavigation = ({
       const params = startSwapBridgePageLoadTrace({
         sourceToken,
         sourcePage,
-        bridgeViewMode,
+        bridgeViewMode: BridgeViewMode.Unified,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
         ...(shouldAutoFocusSourceAmountInput && {
           autoFocusSourceAmountInput: true,
         }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
+        ...(initialTab && { initialTab }),
       });
 
       // Prefetch popular tokens
       if (isBasicFunctionalityEnabled) {
         prefetchPopularTokens();
       }
+
+      dispatch(resetBridgeState());
 
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
@@ -450,27 +440,7 @@ export const useSwapBridgeNavigation = ({
   );
   const { networkModal } = useAddNetwork();
 
-  const goToSwaps = useCallback(
-    (
-      tokenOverride?: BridgeToken,
-      destTokenOverride?: BridgeToken,
-      buttonLabel?: string,
-      scrollToTopOnNav?: boolean,
-      swapButtonClickLocationOverride?:
-        | ActionLocation
-        | SwapBridgeNavigationLocation,
-    ) => {
-      goToNativeBridge(
-        BridgeViewMode.Unified,
-        tokenOverride,
-        destTokenOverride,
-        buttonLabel,
-        scrollToTopOnNav,
-        swapButtonClickLocationOverride,
-      );
-    },
-    [goToNativeBridge],
-  );
+  const goToSwaps = useCallback(goToNativeBridge, [goToNativeBridge]);
 
   return {
     goToSwaps,

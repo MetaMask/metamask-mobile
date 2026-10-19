@@ -1,5 +1,5 @@
 // Core hooks (direct controller access)
-export { useBottomSafeAreaInset } from './useBottomSafeAreaInset';
+export { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
@@ -104,6 +104,7 @@ export {
 
 // A/B tests
 export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+export { usePerpsHomeExploreAbTest } from './usePerpsHomeExploreAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

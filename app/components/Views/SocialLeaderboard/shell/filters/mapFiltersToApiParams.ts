@@ -24,6 +24,7 @@ export function mapFiltersToApiParams(
     timeframe: filters.timeframe,
     network: filters.network,
     traderCohort: filters.traderCohort,
+    verification: filters.verification,
     marketCap: filters.marketCap,
     volume24h: filters.volume24h,
   };

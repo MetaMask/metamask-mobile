@@ -7,6 +7,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  IconSize,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -28,7 +30,6 @@ import {
   clearImmersveKycOnClose,
 } from '../ImmersveKYCModal/ImmersveKYCModal';
 import OnboardingStep from './OnboardingStep';
-import AnimatedSpinner from '../../../AnimatedSpinner';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
 // this window and send them to the "we'll notify you" pending screen. Immersve
@@ -203,7 +204,10 @@ const ImmersveKYCProcessing = () => {
         />
       ) : (
         <>
-          <AnimatedSpinner testID="immersve-kyc-processing-spinner" />
+          <Spinner
+            testID="immersve-kyc-processing-spinner"
+            spinnerIconProps={{ size: IconSize.Xl }}
+          />
           <Text
             variant={TextVariant.BodyMd}
             twClassName="text-center text-text-alternative mt-4 px-4"

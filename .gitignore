@@ -49,6 +49,7 @@ android/app/bin/
 android/app/gradle*
 android/app/_build*
 android/libs
+android/app/src/main/java/inline/
 .cxx/
 .kotlin/
 
@@ -152,6 +153,9 @@ test-reports/
 appwright/reporters/reports/*
 tests/reporters/reports/
 *.apk
+tmp/hyperexecute/
+tests/hyperexecute/discovered-*.txt
+/.hyperexecuteignore
 
 # anvil binaries
 .metamask/*
@@ -161,6 +165,9 @@ ccache
 
 # eslint cache
 .eslintcache
+
+# WDA DerivedData for iOS Appium. CI caches this inside the workspace.
+.cache/
 
 # open-rpc/test-coverage
 html-report/
@@ -267,3 +274,6 @@ sourcemaps/**/*.js.map
 
 # Platform API docs
 .platform-api-docs/
+
+# Regenerated from tests/tags.js and tests/tags.performance.js before Smart E2E analysis
+.ai-pr-analyzer/modes/smart-e2e/catalog.json

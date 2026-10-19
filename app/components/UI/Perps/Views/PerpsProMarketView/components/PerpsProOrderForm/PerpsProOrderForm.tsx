@@ -13,8 +13,6 @@ import {
   Checkbox,
   FilterButton,
   FontWeight,
-  HelpText,
-  HelpTextSeverity,
   Icon,
   IconColor,
   IconName,
@@ -46,6 +44,7 @@ import {
 import {
   getPerpsProChaseFormActiveCountSelector,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProOrderFormNoticeTestId,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
@@ -177,10 +176,10 @@ const PriceField = ({
           <ButtonBase
             size={ButtonBaseSize.Sm}
             onPress={onUseMidPress}
-            twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+            twClassName="h-[26px] shrink-0 rounded-md bg-subsection px-2 py-0.5"
             contentWrapperProps={{ twClassName: 'justify-end' }}
             textProps={{
-              variant: TextVariant.BodySm,
+              variant: TextVariant.BodyXs,
               fontWeight: FontWeight.Medium,
             }}
             testID={midButtonTestID}
@@ -204,14 +203,14 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
             severity={BannerAlertSeverity.Warning}
             title={notice.title}
             description={notice.message}
-            testID={`${ids.NOTICE}-${notice.id}`}
+            testID={getPerpsProOrderFormNoticeTestId(notice.id)}
           />
         ) : (
           <Text
             key={notice.id}
             variant={TextVariant.BodyXs}
             color={TextColor.ErrorDefault}
-            testID={`${ids.NOTICE}-${notice.id}`}
+            testID={getPerpsProOrderFormNoticeTestId(notice.id)}
           >
             {notice.message}
           </Text>
@@ -712,7 +711,7 @@ const PerpsProOrderForm = ({
             (wraps form + divider + book), not this Box. Summary rows use
             KeyValueRow which ships with px-4 by default — override to px-0 so
             margin/liquidation/slippage/fees align with the form above. */}
-        <Box twClassName="gap-4">
+        <Box twClassName="gap-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -726,39 +725,41 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Sm}
               testID={ids.DIRECTION_CONTROL}
             >
+              {/* Labels are passed as strings, not <Text> elements: ButtonBase
+                  only applies its centering and single-line label defaults when
+                  children is a string. Translations such as el "Αγορά (Long)"
+                  are far wider than en "Long", so the default px-4 is narrowed
+                  to px-1 to give them room before they have to ellipsize.
+                  The direction colour rides on twClassName rather than `color`
+                  because the Secondary variant appends its own `text-default`
+                  after the colour prop, and only twClassName is merged last. */}
               <FilterButton
                 value="long"
                 disabled={isScaleFormLocked}
-                twClassName={isLong ? 'bg-success-muted' : ''}
+                twClassName={`px-1 ${isLong ? 'bg-success-muted' : ''}`}
                 testID={ids.DIRECTION_LONG}
+                textProps={{
+                  twClassName: isLong
+                    ? TextColor.SuccessDefault
+                    : TextColor.TextAlternative,
+                  ellipsizeMode: 'tail',
+                }}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isLong
-                      ? TextColor.SuccessDefault
-                      : TextColor.TextAlternative
-                  }
-                >
-                  {strings('perps.market.long')}
-                </Text>
+                {strings('perps.market.long')}
               </FilterButton>
               <FilterButton
                 value="short"
                 disabled={isScaleFormLocked}
-                twClassName={!isLong ? 'bg-error-muted' : ''}
+                twClassName={`px-1 ${!isLong ? 'bg-error-muted' : ''}`}
                 testID={ids.DIRECTION_SHORT}
+                textProps={{
+                  twClassName: isLong
+                    ? TextColor.TextAlternative
+                    : TextColor.ErrorDefault,
+                  ellipsizeMode: 'tail',
+                }}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={
-                    isLong ? TextColor.TextAlternative : TextColor.ErrorDefault
-                  }
-                >
-                  {strings('perps.market.short')}
-                </Text>
+                {strings('perps.market.short')}
               </FilterButton>
             </SegmentedControl>
             {isOrderBookCollapsed ? (
@@ -776,19 +777,21 @@ const PerpsProOrderForm = ({
             testID={ids.MARGIN_SETTINGS_ROW}
           >
             <ButtonBase
-              size={ButtonBaseSize.Sm}
+              size={ButtonBaseSize.Md}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
+              twClassName="flex-1 rounded-xl bg-muted"
+              textProps={{ variant: TextVariant.BodySm }}
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
             </ButtonBase>
             <ButtonBase
-              size={ButtonBaseSize.Sm}
+              size={ButtonBaseSize.Md}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="h-8 flex-1 rounded-lg bg-muted px-2"
+              twClassName="flex-1 rounded-xl bg-muted px-2"
+              textProps={{ variant: TextVariant.BodySm }}
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
@@ -802,7 +805,7 @@ const PerpsProOrderForm = ({
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
               isDisabled={isScaleFormLocked}
-              twClassName="h-[54px] w-full bg-transparent px-3"
+              twClassName="h-[48px] w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
@@ -952,16 +955,17 @@ const PerpsProOrderForm = ({
             </Text>
           ) : null}
           {priceCardMessage ? (
-            <HelpText
-              severity={
+            <Text
+              variant={TextVariant.BodyXs}
+              color={
                 priceCardMessage.severity === 'error'
-                  ? HelpTextSeverity.Danger
-                  : HelpTextSeverity.Warning
+                  ? TextColor.ErrorDefault
+                  : TextColor.WarningDefault
               }
               testID={ids.PRICE_CARD_MESSAGE}
             >
               {priceCardMessage.message}
-            </HelpText>
+            </Text>
           ) : null}
           <PerpsProSizeInput
             inputRef={sizeInputRef}

@@ -111,31 +111,28 @@ export function resolveAuthView({
   }
 }
 
-export function isCountryLocked(
-  view: AuthView,
-  {
-    countryKey,
-    migrationPhase,
-  }: {
-    countryKey: string | null;
-    migrationPhase: string | null | undefined;
-  },
-): boolean {
-  switch (view.mode) {
-    case 'resolving':
-    case 'account_missing':
-      return true;
-    case 'wallet':
-      return view.origin === 'linked' || view.origin === 'resume';
-    case 'email':
-      if (view.origin === 'resume') return true;
-      if (view.origin === 'only') {
-        return countryKey === 'GB' && migrationPhase === 'forced';
-      }
-      return false;
-    default:
-      return false;
+export function resolveDisplayedWalletAddress({
+  origin,
+  pinnedAddress,
+  selectedAddress,
+  hasShownPinnedSelection,
+}: {
+  origin: 'linked' | 'resume' | 'manual' | null;
+  pinnedAddress: string | null;
+  selectedAddress: string | undefined;
+  hasShownPinnedSelection: boolean;
+}): string | undefined {
+  if (origin === 'resume' && pinnedAddress) {
+    return pinnedAddress;
   }
+  if (origin === 'linked' && pinnedAddress) {
+    const selectedDiffers =
+      hasShownPinnedSelection &&
+      selectedAddress !== undefined &&
+      selectedAddress.toLowerCase() !== pinnedAddress.toLowerCase();
+    return selectedDiffers ? selectedAddress : pinnedAddress;
+  }
+  return selectedAddress;
 }
 
 export function resolveActiveBanner({

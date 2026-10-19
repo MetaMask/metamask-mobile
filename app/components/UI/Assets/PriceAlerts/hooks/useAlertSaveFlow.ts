@@ -40,6 +40,8 @@ type AlertAnalyticsProperties = {
   alert_type: (typeof PriceAlertAnalytics.TYPE)[keyof typeof PriceAlertAnalytics.TYPE];
   alert_value: number;
   alert_recurring: boolean;
+  /** Differentiates spot token alerts from perpetuals market alerts. */
+  alert_market_type: (typeof PriceAlertAnalytics.MARKET_TYPE)[keyof typeof PriceAlertAnalytics.MARKET_TYPE];
 } & Record<string, string | number | boolean>;
 
 export interface SaveAlertFlowParams {
@@ -152,6 +154,7 @@ const useAlertSaveFlow = ({
               ...analyticsProperties,
               asset_id: assetId,
               token_symbol: displayTicker,
+              alert_market_type: PriceAlertAnalytics.MARKET_TYPE.SPOT,
               ...(editingAlert
                 ? {
                     interaction_type:

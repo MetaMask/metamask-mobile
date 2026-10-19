@@ -1,5 +1,7 @@
 import type { CaipChainId, Hex } from '@metamask/utils';
 import type { BridgeToken } from '../Bridge/types';
+import { normalizeTokenAddress } from '../Bridge/utils/tokenUtils';
+import { filterOutRwaTokens } from '../Bridge/utils/filterOutRwaTokens';
 
 const EVM_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -25,7 +27,10 @@ export const isSameAsset = (
     Partial<Pick<BridgeToken, 'symbol'>>,
 ): boolean => {
   if (token.chainId !== other.chainId) return false;
-  if (token.address.toLowerCase() === other.address.toLowerCase()) {
+  if (
+    normalizeTokenAddress(token.address.toLowerCase(), token.chainId) ===
+    normalizeTokenAddress(other.address.toLowerCase(), other.chainId)
+  ) {
     return true;
   }
   const isNonEvm =
@@ -57,7 +62,11 @@ export const selectDefaultSourceToken = (
   const isDest = (t: BridgeToken): boolean =>
     destToken ? isSameAsset(t, destToken) : false;
 
-  const eligible = options.filter((t) => !isDest(t));
+  const nonDest = options.filter((t) => !isDest(t));
+  // RWA tokens (e.g. Ondo TSLAon) need intent-based submission and often get
+  // no quotes, so they are only picked when nothing else is held.
+  const nonRwa = filterOutRwaTokens(nonDest);
+  const eligible = nonRwa.length > 0 ? nonRwa : nonDest;
 
   if (destChainId) {
     const nativeOnDest = eligible.find(

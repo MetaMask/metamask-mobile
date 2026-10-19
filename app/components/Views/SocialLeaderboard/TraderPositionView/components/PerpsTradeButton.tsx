@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTradablePerpsMarketSymbols } from '../../../../UI/WhatsHappening/hooks';
-import { getSupportedXyzPerpMarketSymbol } from '../../utils/perp';
+import { getSupportedXyzPerpMarketSymbol } from '../../../../UI/SocialFeed/utils/perp';
 
 export interface PerpsTradeButtonProps {
   /** Raw perp market symbol from the position (may carry a HIP-3 prefix). */

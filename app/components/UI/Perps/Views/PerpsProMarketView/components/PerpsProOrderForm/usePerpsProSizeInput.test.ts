@@ -24,6 +24,112 @@ describe('usePerpsProSizeInput', () => {
     jest.clearAllMocks();
   });
 
+  it('preserves venue-owned base intent through blur and live price changes', () => {
+    const params = createParams({
+      preserveAssetIntent: true,
+      effectivePrice: 137.31,
+    });
+    const { result, rerender } = renderHook(
+      (input) => usePerpsProSizeInput(input),
+      { initialProps: params },
+    );
+
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeInput.onChange('0.123456'));
+    act(() => result.current.sizeInput.onBlur());
+    rerender({ ...params, effectivePrice: 140.13 });
+
+    expect(result.current.sizeInput.value).toBe('0.123456');
+    expect(result.current.exactAssetAmount).toBe('0.123456');
+  });
+
+  it('keeps exact base intent and its live USD projection across denomination toggles', () => {
+    const params = createParams({
+      preserveAssetIntent: true,
+      effectivePrice: 137.31,
+    });
+    const { result, rerender } = renderHook(
+      (input) => usePerpsProSizeInput(input),
+      { initialProps: params },
+    );
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeInput.onChange('0.123456'));
+    rerender({ ...params, usdAmount: '16.95' });
+
+    act(() => result.current.sizeInput.onToggleDenomination());
+    rerender({ ...params, usdAmount: '16.95', effectivePrice: 140.13 });
+    act(() => result.current.sizeInput.onBlur());
+
+    expect(result.current.exactAssetAmount).toBe('0.123456');
+    expect(result.current.sizeInput.value).toBe('17.3');
+    expect(result.current.effectiveUsdAmount).toBe('17.3');
+    act(() => result.current.sizeInput.onToggleDenomination());
+    expect(result.current.sizeInput.value).toBe('0.123456');
+    expect(result.current.exactAssetAmount).toBe('0.123456');
+  });
+
+  it.each(['usd edit', 'slider', 'external clamp'] as const)(
+    'replaces retained base intent after a %s even while price is unavailable',
+    (change) => {
+      const params = createParams({
+        preserveAssetIntent: true,
+        effectivePrice: 137.31,
+      });
+      const { result, rerender } = renderHook(
+        (input) => usePerpsProSizeInput(input),
+        { initialProps: params },
+      );
+      act(() => result.current.sizeInput.onToggleDenomination());
+      act(() => result.current.sizeInput.onChange('0.123456'));
+      rerender({ ...params, usdAmount: '16.95' });
+      act(() => result.current.sizeInput.onToggleDenomination());
+      rerender({ ...params, usdAmount: '16.95', effectivePrice: 0 });
+
+      if (change === 'usd edit') {
+        act(() => result.current.sizeInput.onChange('10'));
+      } else if (change === 'slider') {
+        act(() => result.current.sizeSlider.onDragEnd(10));
+      }
+      rerender({ ...params, usdAmount: '10', effectivePrice: 0 });
+      rerender({ ...params, usdAmount: '10' });
+      act(() => result.current.sizeInput.onToggleDenomination());
+
+      expect(result.current.exactAssetAmount).toBeUndefined();
+      expect(result.current.effectiveUsdAmount).toBe('10');
+      expect(result.current.sizeInput.value).toBe('0.072');
+    },
+  );
+
+  it('keeps a slider selection as a capped quote intent in base denomination', () => {
+    const params = createParams({ preserveAssetIntent: true });
+    const { result } = renderHook(() => usePerpsProSizeInput(params));
+
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeSlider.onValueChange(137));
+
+    expect(result.current.exactAssetAmount).toBeUndefined();
+    expect(result.current.effectiveUsdAmount).toBe('137');
+  });
+
+  it('keeps the committed slider budget through base blur, price ticks and denomination toggles', () => {
+    const params = createParams({ preserveAssetIntent: true });
+    const { result, rerender } = renderHook(
+      (input) => usePerpsProSizeInput(input),
+      { initialProps: params },
+    );
+    act(() => result.current.sizeInput.onToggleDenomination());
+    act(() => result.current.sizeSlider.onDragEnd(137));
+    rerender({ ...params, usdAmount: '137' });
+    act(() => result.current.sizeInput.onBlur());
+    rerender({ ...params, usdAmount: '137', effectivePrice: 95000 });
+
+    expect(result.current.exactAssetAmount).toBeUndefined();
+    expect(result.current.effectiveUsdAmount).toBe('137');
+    act(() => result.current.sizeInput.onToggleDenomination());
+    expect(result.current.sizeInput.value).toBe('137');
+    expect(result.current.effectiveUsdAmount).toBe('137');
+  });
+
   it('starts in USD mode with the canonical amount', () => {
     const params = createParams();
 
@@ -174,7 +280,7 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.denomination.unit).toBe('usd');
   });
 
-  it('keeps forced USD drafts through canonical echoes and restores the asset draft', () => {
+  it('keeps the asset draft through canonical echoes and empty commits', () => {
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
       { initialProps: createParams({ usdAmount: '90000' }) },
@@ -189,31 +295,15 @@ describe('usePerpsProSizeInput', () => {
       symbol: 'BTC',
     });
 
-    rerender(createParams({ usdAmount: '90000', forceUsd: true }));
-
-    expect(result.current.sizeInput.value).toBe('90000');
-    expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
-    expect(result.current.sizeInput.canToggleDenomination).toBe(false);
-
     act(() => {
-      result.current.sizeInput.onChange('120');
+      result.current.sizeInput.onChange('0.001');
     });
 
-    expect(mockSetAmount).toHaveBeenLastCalledWith('120');
+    expect(mockSetAmount).toHaveBeenLastCalledWith('90');
 
-    rerender(createParams({ usdAmount: '120', forceUsd: true }));
-
-    expect(result.current.sizeInput.value).toBe('120');
-
-    rerender(createParams({ usdAmount: '120', forceUsd: false }));
+    rerender(createParams({ usdAmount: '90' }));
 
     expect(result.current.sizeInput.value).toBe('0.001');
-    expect(result.current.sizeInput.denomination).toEqual({
-      unit: 'asset',
-      symbol: 'BTC',
-    });
-
-    rerender(createParams({ usdAmount: '120', forceUsd: true }));
 
     act(() => {
       result.current.sizeInput.onChange('');
@@ -221,14 +311,10 @@ describe('usePerpsProSizeInput', () => {
 
     expect(mockSetAmount).toHaveBeenLastCalledWith('0');
 
-    rerender(createParams({ usdAmount: '0', forceUsd: true }));
+    rerender(createParams({ usdAmount: '0' }));
 
     expect(result.current.sizeInput.value).toBe('');
     expect(result.current.effectiveUsdAmount).toBe('0');
-
-    rerender(createParams({ usdAmount: '0', forceUsd: false }));
-
-    expect(result.current.sizeInput.value).toBe('0');
     expect(result.current.sizeInput.denomination).toEqual({
       unit: 'asset',
       symbol: 'BTC',

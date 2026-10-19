@@ -30,6 +30,7 @@ export const FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
   [TabBarIconKey.Activity]: IconName.ClockFilled,
   [TabBarIconKey.Money]: IconName.MusdFilled,
+  [TabBarIconKey.Social]: IconName.PeopleFilled,
 };
 
 /** Trimmed off the bottom safe-area inset so the pill sits closer to the edge. */
@@ -75,7 +76,7 @@ export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 15;
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
 
 /** Surface colour over the glass trade tray: 0 is pure glass, 1 is opaque. */
-export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.75;
+export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.5;
 
 /** Alpha of the hairline drawn around the glass tray. */
 export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;

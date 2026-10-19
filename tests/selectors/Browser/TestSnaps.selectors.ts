@@ -1,6 +1,6 @@
 // Shared test-snaps URL for flows, selectors, and helpers without importing TestSnaps.
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.5.2/';
+  'https://metamask.github.io/snaps/test-snaps/3.6.0/';
 
 // Only keep selectors that are actually used in tests
 export const TestSnapViewSelectorWebIDS = {

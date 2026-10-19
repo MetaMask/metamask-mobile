@@ -27,16 +27,22 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
 }) => (
   <KeyValueRow
     variant={KeyValueRowVariant.Summary}
-    keyLabel={strings('bridge.cost_tolerance')}
-    keyTextProps={{
-      variant: TextVariant.BodyMd,
-      color: TextColor.TextAlternative,
-      fontWeight: FontWeight.Regular,
-    }}
-    keyEndAccessory={
-      <LimitOrderCostToleranceTooltip
-        testID={CostToleranceRowSelectorsIDs.TOOLTIP}
-      />
+    keyLabel={
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Regular}
+        >
+          {strings('bridge.cost_tolerance')}
+        </Text>
+        <LimitOrderCostToleranceTooltip
+          testID={CostToleranceRowSelectorsIDs.TOOLTIP}
+        />
+      </Box>
     }
     value={
       <TouchableOpacity
@@ -53,21 +59,20 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
         >
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
+            color={TextColor.TextDefault}
             testID={CostToleranceRowSelectorsIDs.VALUE}
           >
             {value}
           </Text>
           <Icon
-            name={IconName.Edit}
+            name={IconName.ArrowRight}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
-            twClassName="-mt-0.5"
           />
         </Box>
       </TouchableOpacity>
     }
-    twClassName="h-8"
+    twClassName="h-auto"
   />
 );
 

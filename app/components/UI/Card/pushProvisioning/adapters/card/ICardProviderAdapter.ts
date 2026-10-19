@@ -5,10 +5,13 @@
  * for push provisioning payload encryption.
  */
 
-import { CardProviderId, ApplePayEncryptedPayload } from '../../types';
+import { ApplePayEncryptedPayload, WalletType } from '../../types';
+import type { CardProviderId } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 
 export interface ICardProviderAdapter {
   readonly providerId: CardProviderId;
+
+  supportsWallet(walletType: WalletType): boolean;
 
   /** Get pre-encrypted opaque payment card data for Google Wallet */
   getOpaquePaymentCard(): Promise<{ opaquePaymentCard: string }>;

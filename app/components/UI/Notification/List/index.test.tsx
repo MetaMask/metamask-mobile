@@ -254,6 +254,23 @@ describe('useNotificationOnClick', () => {
     expect(mocks.mockNavigation.navigate).not.toHaveBeenCalled();
   });
 
+  it('opens deeplink via SharedDeeplinkManager when CTA link is a link.metamask.com host', async () => {
+    const mockParse = jest.mocked(SharedDeeplinkManager.parse);
+    const mocks = arrangeMocks();
+    const hook = renderHook(() =>
+      useNotificationOnClick({ navigation: mocks.mockNavigation }),
+    );
+    const notification = mockNotificationsWithMetaData[0].notification;
+    const ctaLink = 'https://link.metamask.com/perps';
+
+    await act(() =>
+      hook.result.current.onNotificationPress(notification, ctaLink),
+    );
+
+    expect(mockParse).toHaveBeenCalledWith(ctaLink, expect.any(Object));
+    expect(mocks.mockNavigation.navigate).not.toHaveBeenCalled();
+  });
+
   it('opens external URL via Linking when CTA link is not a metamask universal link', async () => {
     const mockOpenURL = jest
       .spyOn(Linking, 'openURL')

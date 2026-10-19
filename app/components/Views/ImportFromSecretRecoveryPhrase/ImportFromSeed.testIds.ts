@@ -14,10 +14,15 @@ export const ImportFromSeedSelectorsIDs = {
     'import-from-seed-screen-confirm-password-visibility-id',
   BACK_BUTTON_ID: 'import-from-seed-screen-back-button-id',
   QR_CODE_BUTTON_ID: 'import-from-seed-screen-qr-code-button-id',
-  LEARN_MORE_LINK_ID: 'import-from-seed-screen-learn-more-link-id',
   CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
-  CHECKBOX_TEXT_ID: 'import-from-seed-screen-checkbox-text-id',
   WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
   IMPORT_FROM_EXTENSION_LINK_ID:
     'import-from-seed-screen-import-from-extension-link-id',
+  IMPORT_OPTIONS_SHEET_ID: 'import-from-seed-screen-import-options-sheet-id',
+  IMPORT_OPTIONS_SHEET_CLOSE_ID:
+    'import-from-seed-screen-import-options-sheet-close-id',
+  IMPORT_FROM_SRP_QR_OPTION_ID:
+    'import-from-seed-screen-import-from-srp-qr-option-id',
+  IMPORT_FROM_EXTENSION_OPTION_ID:
+    'import-from-seed-screen-import-from-extension-option-id',
 };

@@ -33,6 +33,10 @@ const styleSheet = (params: { theme: Theme }) => {
     reviewButtonContainer: {
       padding: 16,
     },
+    maintenanceBanner: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
     keypad: {
       paddingHorizontal: 16,
     },

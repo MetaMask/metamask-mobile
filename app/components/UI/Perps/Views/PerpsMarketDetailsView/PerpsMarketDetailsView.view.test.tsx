@@ -814,7 +814,7 @@ describe('PerpsMarketDetailsView', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        within(marketSummary).getByTestId(
+        screen.getByTestId(
           PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
         ),
       ).toBeOnTheScreen();
@@ -898,16 +898,16 @@ describe('PerpsMarketDetailsView', () => {
         },
       });
 
-      const period3mButton = await screen.findByTestId(
-        getPerpsCandlePeriodSelector.periodButton(CANDLE_SELECTOR_BASE, '3m'),
+      const period1hButton = await screen.findByTestId(
+        getPerpsCandlePeriodSelector.periodButton(CANDLE_SELECTOR_BASE, '1h'),
       );
-      expect(period3mButton).toBeOnTheScreen();
+      expect(period1hButton).toBeOnTheScreen();
 
-      fireEvent.press(period3mButton);
+      fireEvent.press(period1hButton);
 
       expect(
         store.getState().settings.perpsChartPreferences.preferredCandlePeriod,
-      ).toBe('3m');
+      ).toBe('1h');
     });
 
     it('opens more candle periods bottom sheet and selects a period', async () => {

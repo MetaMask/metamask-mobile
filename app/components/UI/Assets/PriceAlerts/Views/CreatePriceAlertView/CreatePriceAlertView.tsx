@@ -10,24 +10,55 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
+import { PerpsStreamProvider } from '../../../../Perps/providers/PerpsStreamManager';
+import { usePerpsLiveFocusedPrice } from '../../../../Perps/hooks/stream/usePerpsLiveFocusedPrice';
 import AlertTypeToggle from '../../components/AlertTypeToggle';
 import {
   type AlertType,
   type CreatePriceAlertRouteParams,
   CreatePriceAlertTestIds,
+  PriceAlertAnalytics,
 } from '../../constants';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import useAlertSaveFlow from '../../hooks/useAlertSaveFlow';
+import usePerpAlertSaveFlow from '../../perpApi';
 import AbsolutePriceAlertForm from './AbsolutePriceAlertForm';
 import PercentChangeAlertForm from './PercentChangeAlertForm';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { selectPerpsPriceAlertsPercentChangeEnabledFlag } from '../../../../Perps/selectors/featureFlags';
+
+/**
+ * Mounted only in perps mode (inside PerpsStreamProvider). Spot Create lives
+ * on the main stack without that provider, so the focused-price hook cannot
+ * run there.
+ */
+const PerpsAlertLivePrice: React.FC<{
+  symbol: string;
+  onPrice: (price: number) => void;
+}> = ({ symbol, onPrice }) => {
+  const focused = usePerpsLiveFocusedPrice({ symbol, enabled: true });
+  const raw = focused?.markPrice ?? focused?.price;
+  const parsed = raw === undefined ? Number.NaN : Number.parseFloat(raw);
+
+  useEffect(() => {
+    if (Number.isFinite(parsed)) {
+      onPrice(parsed);
+    }
+  }, [parsed, onPrice]);
+
+  return null;
+};
 
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
@@ -50,7 +81,22 @@ const CreatePriceAlertView: React.FC = () => {
     existingPercentAlerts,
     editingAlert,
     initialType,
+    mode,
+    marketId,
+    szDecimals,
   } = route.params;
+  const isPerpsMode = mode === 'perps';
+  const isPerpsPercentChangeEnabled = useSelector(
+    selectPerpsPriceAlertsPercentChangeEnabledFlag,
+  );
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const shouldUseLivePrice =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
+  const [livePrice, setLivePrice] = useState<number | undefined>();
+  const displayPrice =
+    isPerpsMode && livePrice !== undefined ? livePrice : currentPrice;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
@@ -58,12 +104,20 @@ const CreatePriceAlertView: React.FC = () => {
     !isEditing &&
     (existingAbsoluteAlerts?.length ?? 0) === 0 &&
     (existingPercentAlerts?.length ?? 0) === 0;
-  const { saveAlert } = useAlertSaveFlow({
+
+  // Spot flow — always call both hooks to satisfy Rules of Hooks.
+  const { saveAlert: spotSaveAlert } = useAlertSaveFlow({
     assetId,
     displayTicker,
     fromManage,
     shouldAutoWatchlistOnCreate,
   });
+  const { saveAlert: perpSaveAlert } = usePerpAlertSaveFlow({
+    marketId: marketId ?? '',
+    displayTicker,
+    fromManage,
+  });
+  const saveAlert = isPerpsMode ? perpSaveAlert : spotSaveAlert;
   const [alertType, setAlertType] = useState<AlertType>(
     editingAlert?.type ?? initialType ?? 'absolute_price',
   );
@@ -76,8 +130,11 @@ const CreatePriceAlertView: React.FC = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties({
-          asset_id: assetId,
+          asset_id: isPerpsMode ? marketId : assetId,
           token_symbol: displayTicker,
+          alert_market_type: isPerpsMode
+            ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+            : PriceAlertAnalytics.MARKET_TYPE.SPOT,
           has_existing_alert:
             (existingAbsoluteAlerts?.length ?? 0) > 0 ||
             (existingPercentAlerts?.length ?? 0) > 0,
@@ -86,6 +143,8 @@ const CreatePriceAlertView: React.FC = () => {
     );
   }, [
     assetId,
+    marketId,
+    isPerpsMode,
     createEventBuilder,
     displayTicker,
     existingAbsoluteAlerts,
@@ -94,10 +153,14 @@ const CreatePriceAlertView: React.FC = () => {
     trackEvent,
   ]);
 
-  const formattedCurrentPrice = useMemo(
-    () => formatPriceWithSubscriptNotation(currentPrice, currentCurrency),
-    [currentCurrency, currentPrice],
-  );
+  const formattedCurrentPrice = useMemo(() => {
+    if (isPerpsMode) {
+      // Deliberately omits szDecimals so this reads identically to the live
+      // market header, which formats by magnitude rather than venue tick size.
+      return formatPerpsPrice(displayPrice);
+    }
+    return formatPriceWithSubscriptNotation(displayPrice, currentCurrency);
+  }, [currentCurrency, displayPrice, isPerpsMode]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -108,6 +171,8 @@ const CreatePriceAlertView: React.FC = () => {
     editingAlert?.type === 'absolute_price' ? editingAlert : undefined;
   const editingPercentAlert =
     editingAlert?.type === 'percent_change' ? editingAlert : undefined;
+  const canUsePercentChange =
+    !isPerpsMode || isPerpsPercentChangeEnabled || Boolean(editingPercentAlert);
 
   return (
     <SafeAreaView
@@ -115,24 +180,43 @@ const CreatePriceAlertView: React.FC = () => {
       testID={CreatePriceAlertTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
+        {/* The header centers the title block but not the text inside it, so
+            longer translations wrap with their trailing line pushed left. */}
         <HeaderStandard
           title={strings(
             isEditing ? 'price_alerts.edit_title' : 'price_alerts.create_title',
             { ticker: displayTicker },
           )}
+          titleProps={{
+            twClassName: 'text-center',
+            testID: CreatePriceAlertTestIds.HEADER_TITLE,
+          }}
           subtitle={formattedCurrentPrice}
+          subtitleProps={{
+            twClassName: 'text-center',
+            testID: CreatePriceAlertTestIds.HEADER_SUBTITLE,
+          }}
           onBack={handleBack}
         />
 
-        <AlertTypeToggle
-          value={alertType}
-          onChange={setAlertType}
-          isDisabled={isEditing}
-        />
+        {isPerpsMode && shouldUseLivePrice ? (
+          <PerpsStreamProvider>
+            <PerpsAlertLivePrice symbol={assetId} onPrice={setLivePrice} />
+          </PerpsStreamProvider>
+        ) : null}
 
-        {alertType === 'percent_change' ? (
+        {(!isPerpsMode || isPerpsPercentChangeEnabled) && (
+          <AlertTypeToggle
+            value={alertType}
+            onChange={setAlertType}
+            isDisabled={isEditing}
+          />
+        )}
+
+        {alertType === 'percent_change' && canUsePercentChange ? (
           <PercentChangeAlertForm
             assetId={assetId}
+            marketId={isPerpsMode ? marketId : undefined}
             saveAlert={saveAlert}
             editingAlert={editingPercentAlert}
             existingPercentAlerts={existingPercentAlerts}
@@ -141,11 +225,13 @@ const CreatePriceAlertView: React.FC = () => {
           <AbsolutePriceAlertForm
             assetId={assetId}
             displayTicker={displayTicker}
-            currentPrice={currentPrice}
+            currentPrice={displayPrice}
             currentCurrency={currentCurrency}
             saveAlert={saveAlert}
             editingAlert={editingAbsoluteAlert}
             existingAbsoluteAlerts={existingAbsoluteAlerts}
+            marketId={isPerpsMode ? marketId : undefined}
+            szDecimals={szDecimals}
           />
         )}
 

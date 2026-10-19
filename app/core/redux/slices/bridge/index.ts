@@ -95,6 +95,7 @@ export interface BridgeState {
   isSelectingToken: boolean;
   isGasIncludedSTXSendBundleSupported: boolean;
   isGasIncluded7702Supported: boolean;
+  isNativeGasIncludedSupported: boolean;
   /**
    * Tracks whether the user has manually selected a destination token.
    * When true, changing the source token to a different network won't auto-update the dest token.
@@ -169,6 +170,7 @@ export const initialState: BridgeState = {
   isSelectingToken: false,
   isGasIncludedSTXSendBundleSupported: false,
   isGasIncluded7702Supported: false,
+  isNativeGasIncludedSupported: false,
   isDestTokenManuallySet: false,
   abTestContext: undefined,
   tokenSelectorNetworkFilter: undefined,
@@ -368,6 +370,12 @@ const slice = createSlice({
     setIsGasIncluded7702Supported: (state, action: PayloadAction<boolean>) => {
       state.isGasIncluded7702Supported = action.payload;
     },
+    setIsNativeGasIncludedSupported: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.isNativeGasIncludedSupported = action.payload;
+    },
     setAbTestContext: (
       state,
       action: PayloadAction<BridgeState['abTestContext']>,
@@ -502,6 +510,9 @@ export default reducer;
 const selectBridgeState = (state: RootState) => state[name];
 
 // Derived selectors using createSelector
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSourceAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.sourceAmount,
@@ -786,11 +797,18 @@ export const selectEnabledSourceChains = createSelector(
 );
 
 // Combined selectors for related state
+
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSourceToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.sourceToken,
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectDestToken = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destToken,
@@ -820,6 +838,9 @@ export const selectSelectedDestChainId = createSelector(
   },
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectSlippage = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.slippage,
@@ -840,6 +861,9 @@ export const selectLimitOrderMarketComparison = createSelector(
   (bridgeState) => bridgeState.limitOrderMarketComparison,
 );
 
+/**
+ * @deprecated Use BridgeSessionProvider.quoteParams instead
+ */
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -882,6 +906,9 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 // Selector for 7702 gas included support
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
+
+export const selectIsNativeGasIncludedSupported = (state: RootState) =>
+  state.bridge.isNativeGasIncludedSupported;
 
 const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
 const EMPTY_HISTORICAL_PRICES = {};
@@ -1283,6 +1310,7 @@ export const {
   setIsSelectingToken,
   setIsGasIncludedSTXSendBundleSupported,
   setIsGasIncluded7702Supported,
+  setIsNativeGasIncludedSupported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
   setOrdersNetworkFilter,

@@ -1,5 +1,4 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import PredictBuyActionButton from './PredictBuyActionButton';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -65,8 +64,8 @@ describe('PredictBuyActionButton', () => {
       expect(screen.getByText(/Placing prediction/)).toBeOnTheScreen();
     });
 
-    it('displays ActivityIndicator', () => {
-      const { UNSAFE_getByType } = renderWithProvider(
+    it('marks the button busy while placing a prediction', () => {
+      renderWithProvider(
         <PredictBuyActionButton
           isLoading
           onPress={mockOnPress}
@@ -77,7 +76,7 @@ describe('PredictBuyActionButton', () => {
         />,
       );
 
-      UNSAFE_getByType(ActivityIndicator);
+      expect(screen.getByRole('button')).toBeBusy();
     });
 
     it('renders button with disabled state', () => {
@@ -95,28 +94,10 @@ describe('PredictBuyActionButton', () => {
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
     });
-
-    it('applies reduced opacity style', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-        />,
-      );
-
-      const button = screen.getByRole('button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
-    });
   });
 
   describe('when isLoading is false', () => {
-    it('renders ButtonHero component', () => {
+    it('renders the place prediction button', () => {
       renderWithProvider(
         <PredictBuyActionButton
           isLoading={false}
@@ -177,44 +158,6 @@ describe('PredictBuyActionButton', () => {
       );
 
       expect(screen.getByTestId('action-button')).toBeDisabled();
-    });
-
-    it('applies reduced opacity when showReducedOpacity is true', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading={false}
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-          testID="action-button"
-        />,
-      );
-
-      const button = screen.getByTestId('action-button');
-      expect(button.props.style).toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
-    });
-
-    it('does not apply reduced opacity when showReducedOpacity is false', () => {
-      renderWithProvider(
-        <PredictBuyActionButton
-          isLoading={false}
-          onPress={mockOnPress}
-          disabled={false}
-          showReducedOpacity={false}
-          outcomeTokenTitle="Yes"
-          sharePrice={0.65}
-          testID="action-button"
-        />,
-      );
-
-      const button = screen.getByTestId('action-button');
-      expect(button.props.style).not.toEqual(
-        expect.objectContaining({ opacity: 0.5 }),
-      );
     });
 
     it('calls onPress when button is pressed', () => {

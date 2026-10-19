@@ -6,9 +6,6 @@
   "LoggingController": {
     "logs": {}
   },
-  "AccountTrackerController": {
-    "accountsByChainId": {}
-  },
   "AccountsController": {
     "internalAccounts": {
       "accounts": {},
@@ -32,7 +29,10 @@
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
     "consentDecisionMade": false,
-    "optedIn": false
+    "marketingCampaignCookieId": null,
+    "marketingConsentDecisionMade": false,
+    "optedIn": false,
+    "optedInToMarketing": false
   },
   "GatorPermissionsController": {
     "grantedPermissions": [],
@@ -49,16 +49,6 @@
     "allTokens": {},
     "allIgnoredTokens": {},
     "allDetectedTokens": {}
-  },
-  "CurrencyRateController": {
-    "currentCurrency": "usd",
-    "currencyRates": {
-      "ETH": {
-        "conversionDate": 0,
-        "conversionRate": 0,
-        "usdConversionRate": null
-      }
-    }
   },
   "DelegationController": {},
   "NetworkController": {
@@ -360,12 +350,6 @@
     "tokenNetworkFilter": {},
     "privacyMode": false
   },
-  "TokenBalancesController": {
-    "tokenBalances": {}
-  },
-  "TokenRatesController": {
-    "marketData": {}
-  },
   "TokenSearchDiscoveryDataController": {
     "tokenDisplayData": []
   },
@@ -424,6 +408,20 @@
     "followingAddresses": [],
     "followingProfileIds": [],
     "leaderboardEntries": []
+  },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -570,8 +568,7 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {},
-    "activeDappNetwork": null
+    "domains": {}
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -597,6 +594,7 @@
     "drafts": []
   },
   "AuthenticationController": {
+    "enrolledCredentials": [],
     "isSignedIn": false,
     "needsProfilePairing": true,
     "needsSocialPairing": true
@@ -635,9 +633,6 @@
     "isContactSyncingEnabled": true,
     "isContactSyncingInProgress": false,
     "isRampsSyncingEnabled": true
-  },
-  "MultichainBalancesController": {
-    "balances": {}
   },
   "MultichainNetworkController": {
     "isEvmSelected": true,
@@ -731,11 +726,6 @@
     "networkConnectionBannerStatus": "available",
     "networkConnectionBannerNetwork": null
   },
-  "MultichainAssetsController": {
-    "accountsAssets": {},
-    "assetsMetadata": {},
-    "allIgnoredAssets": {}
-  },
   "BridgeController": {
     "assetExchangeRates": {},
     "batchSellTrades": null,
@@ -777,6 +767,10 @@
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null,
     "signInLink": null,
+    "cardLinks": null,
+    "cardLinksFetchedAt": null,
+    "cardLinksSeeded": false,
+    "cardLinkApiBlocked": false,
     "accountLookupCache": {}
   },
   "UiSlotsController": {
@@ -786,9 +780,11 @@
   },
   "ConfigRegistryController": {
     "configs": {
+      "eventsConfig": null,
       "networks": {}
     },
     "etag": null,
+    "eventsConfigEtag": null,
     "lastFetched": null,
     "version": null
   },
@@ -808,15 +804,12 @@
     "providerDisclaimersAccepted": {
       "sumsub": null
     },
+    "providerFlowStatus": "not_started",
     "idosDisclaimersAccepted": null,
     "credentialReusabilityConsentGiven": null
   },
   "ConnectivityController": {
     "connectivityStatus": "online"
-  },
-  "MultichainAssetsRatesController": {
-    "conversionRates": {},
-    "historicalPrices": {}
   },
   "CronjobController": {
     "events": {}
@@ -903,6 +896,7 @@
     "predictThePitchPrizePool": {},
     "moneyAccountSweepstakesStats": {},
     "moneyAccountSweepstakesPrizePool": {},
+    "moneyAccountSweepstakesVolumeStats": {},
     "moneyAccountSweepstakesDrawProof": {},
     "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
@@ -958,6 +952,8 @@
   "AiDigestController": {},
   "RampsController": {
     "autoramps": [],
+    "moneyAccountWalletRegistrations": [],
+    "vbaAutorampListFetchedAt": null,
     "userRegion": null,
     "countries": {
       "data": [],

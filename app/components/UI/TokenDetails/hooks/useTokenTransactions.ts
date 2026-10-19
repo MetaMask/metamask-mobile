@@ -11,7 +11,10 @@ import {
 } from '../../../../constants/transaction';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
 import { selectTokens } from '../../../../selectors/tokensController';
-import { sortTransactions } from '../../../../util/activity';
+import {
+  getTokenTransferRecipients,
+  sortTransactions,
+} from '../../../../util/activity';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -506,6 +509,7 @@ export const useTokenTransactions = (
         isTransfer,
         transferInformation,
       } = tx;
+      const tokenTransferRecipients = getTokenTransferRecipients(tx);
 
       if (checkIsMusdClaimForCurrentView(tx)) {
         return true;
@@ -517,7 +521,10 @@ export const useTokenTransactions = (
 
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '')) &&
+          areAddressesEqual(to ?? '', selectedAddress ?? '') ||
+          tokenTransferRecipients.some((recipient) =>
+            areAddressesEqual(recipient, selectedAddress ?? ''),
+          )) &&
         (chainId === tx.chainId ||
           (!tx.chainId && networkId === tx.networkID)) &&
         tx.status !== 'unapproved'
