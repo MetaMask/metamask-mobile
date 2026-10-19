@@ -381,8 +381,6 @@ runs:
     - name: Install Foundry
       if: ${{ inputs.install-foundry == 'true' }}
       shell: bash
-      # Not added to $GITHUB_PATH: tests run through yarn, which already puts
-      # node_modules/.bin on PATH, and tests/seeder resolves anvil there.
       run: |
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
         yarn install:foundryup
