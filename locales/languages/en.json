@@ -1323,6 +1323,16 @@
         "title": "No activity yet",
         "description": "Trader activity will show up here as trades come in."
       },
+      "v1_empty": {
+        "trending": {
+          "title": "No posts yet",
+          "description": "Trader posts will show up here."
+        },
+        "following": {
+          "title": "No posts yet",
+          "description": "Follow traders to see their posts here."
+        }
+      },
       "empty_type": {
         "tokens": {
           "title": "No token activity"
