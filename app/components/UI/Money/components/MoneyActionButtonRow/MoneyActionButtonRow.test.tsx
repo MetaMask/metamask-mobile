@@ -98,4 +98,40 @@ describe('MoneyActionButtonRow', () => {
 
     expect(mockCard).not.toHaveBeenCalled();
   });
+
+  it('does not render the Details button when no details config is given', () => {
+    const { queryByTestId, queryByText } = render(
+      <MoneyActionButtonRow {...defaultProps} />,
+    );
+
+    expect(
+      queryByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+    ).toBeNull();
+    expect(queryByText(strings('money.action.details'))).toBeNull();
+  });
+
+  it('renders the Details button when a details config is given', () => {
+    const { getByTestId, getByText } = render(
+      <MoneyActionButtonRow {...defaultProps} details={{ onPress: noop }} />,
+    );
+
+    expect(
+      getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('money.action.details'))).toBeOnTheScreen();
+  });
+
+  it('calls details.onPress when Details button is pressed', () => {
+    const mockDetails = jest.fn();
+    const { getByTestId } = render(
+      <MoneyActionButtonRow
+        {...defaultProps}
+        details={{ onPress: mockDetails }}
+      />,
+    );
+
+    fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
+
+    expect(mockDetails).toHaveBeenCalledTimes(1);
+  });
 });
