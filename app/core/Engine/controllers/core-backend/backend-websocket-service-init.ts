@@ -1,4 +1,5 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
+import { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { MessengerClientInitFunction } from '../../types';
 import {
   BackendWebSocketServiceMessenger,
@@ -8,6 +9,34 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { store } from '../../../../store';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
+
+/**
+ * Engine clears remote flags when Basic functionality turns off and refetches
+ * them asynchronously when it turns back on. A reconnect is ready once that
+ * refetch has landed (`cacheTimestamp > 0`) or the websocket flag key itself
+ * is present again.
+ *
+ * @param state - Remote feature flag controller state.
+ * @returns Whether `isEnabled` can read a post-clear flag decision.
+ */
+const isRemoteFeatureFlagReconnectReady = (
+  state: RemoteFeatureFlagControllerState | undefined,
+): boolean => {
+  if (!state) {
+    return false;
+  }
+
+  if (state.cacheTimestamp > 0) {
+    return true;
+  }
+
+  const { remoteFeatureFlags } = state;
+  return (
+    typeof remoteFeatureFlags === 'object' &&
+    remoteFeatureFlags !== null &&
+    'backendWebSocketConnection' in remoteFeatureFlags
+  );
+};
 
 /**
  * Initialize the Backend Platform WebSocket service with authentication support.
@@ -39,13 +68,73 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
     onChange: (isBasic: boolean) => void,
   ) => {
     let previous = isBasicFunctionality();
-    return store.subscribe(() => {
+    let awaitingRemoteFeatureFlags = false;
+
+    const notifyBasicFunctionalityOn = (
+      state: RemoteFeatureFlagControllerState | undefined,
+    ) => {
+      if (!isRemoteFeatureFlagReconnectReady(state)) {
+        // Hold the reconnect. connect() would see an empty flag and return
+        // without scheduling another attempt while the app stays foregrounded
+        // and unlocked.
+        awaitingRemoteFeatureFlags = true;
+        return;
+      }
+
+      awaitingRemoteFeatureFlags = false;
+      onChange(true);
+    };
+
+    const onRemoteFeatureFlagsChange = (
+      state: RemoteFeatureFlagControllerState,
+    ) => {
+      if (!awaitingRemoteFeatureFlags || !isBasicFunctionality()) {
+        return;
+      }
+
+      notifyBasicFunctionalityOn(state);
+    };
+
+    initMessenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      onRemoteFeatureFlagsChange,
+    );
+
+    const unsubscribeStore = store.subscribe(() => {
       const current = isBasicFunctionality();
-      if (current !== previous) {
-        previous = current;
-        onChange(current);
+      if (current === previous) {
+        return;
+      }
+
+      previous = current;
+      if (!current) {
+        awaitingRemoteFeatureFlags = false;
+        onChange(false);
+        return;
+      }
+
+      try {
+        notifyBasicFunctionalityOn(
+          initMessenger.call('RemoteFeatureFlagController:getState'),
+        );
+      } catch (error) {
+        // A failed read leaves the flag decision unknown. Keep waiting for the
+        // refetch event instead of attempting a connect that cannot retry.
+        awaitingRemoteFeatureFlags = true;
+        Logger.log(
+          'BackendWebSocketService: Could not check feature flag, waiting for the refetch before connecting',
+          error,
+        );
       }
     });
+
+    return () => {
+      unsubscribeStore();
+      initMessenger.unsubscribe(
+        'RemoteFeatureFlagController:stateChange',
+        onRemoteFeatureFlagsChange,
+      );
+    };
   };
 
   const controller = new BackendWebSocketService({

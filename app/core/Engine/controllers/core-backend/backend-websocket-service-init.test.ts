@@ -39,11 +39,58 @@ describe('backendWebSocketServiceInit', () => {
 
     const mockInitMessenger = {
       call: jest.fn(),
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
     } as unknown as BackendWebSocketServiceInitMessenger;
 
     return {
       ...initRequestMock,
       initMessenger: mockInitMessenger,
+    };
+  };
+
+  const setBasicFunctionality = (enabled: boolean) => {
+    jest.mocked(store.getState).mockReturnValue({
+      settings: { basicFunctionalityEnabled: enabled },
+    } as ReturnType<typeof store.getState>);
+  };
+
+  const subscribeToBasicFunctionality = () => {
+    const { subscribeToBasicFunctionalityChange } = (
+      BackendWebSocketService as jest.Mock
+    ).mock.calls[0][0];
+    const onChange = jest.fn();
+    const unsubscribe = subscribeToBasicFunctionalityChange(onChange);
+
+    return { onChange, unsubscribe };
+  };
+
+  const captureBasicFunctionalitySubscription = (
+    mocks: ReturnType<typeof arrangeMocks>,
+  ) => {
+    let storeListener: (() => void) | undefined;
+    let remoteFeatureFlagListener:
+      | ((state: {
+          cacheTimestamp: number;
+          remoteFeatureFlags: Record<string, unknown>;
+        }) => void)
+      | undefined;
+    const unsubscribeStore = jest.fn();
+
+    jest.mocked(store.subscribe).mockImplementation((listener) => {
+      storeListener = listener;
+      return unsubscribeStore;
+    });
+    (mocks.initMessenger.subscribe as jest.Mock).mockImplementation(
+      (_event: string, listener: typeof remoteFeatureFlagListener) => {
+        remoteFeatureFlagListener = listener;
+      },
+    );
+
+    return {
+      storeListener: () => storeListener,
+      remoteFeatureFlagListener: () => remoteFeatureFlagListener,
+      unsubscribeStore,
     };
   };
 
@@ -170,31 +217,174 @@ describe('backendWebSocketServiceInit', () => {
       expect(isBasicFunctionality()).toBe(false);
     });
 
-    it('notifies the service when Basic Functionality changes', () => {
-      let listener: (() => void) | undefined;
-      jest.mocked(store.subscribe).mockImplementation((next) => {
-        listener = next;
-        return jest.fn();
-      });
-      jest.mocked(store.getState).mockReturnValue({
-        settings: { basicFunctionalityEnabled: true },
-      } as ReturnType<typeof store.getState>);
-
+    it('notifies the service when Basic Functionality turns off', () => {
       const mocks = arrangeMocks();
+      const { storeListener } = captureBasicFunctionalitySubscription(mocks);
       backendWebSocketServiceInit(mocks);
 
-      const { subscribeToBasicFunctionalityChange } = (
-        BackendWebSocketService as jest.Mock
-      ).mock.calls[0][0];
-      const onChange = jest.fn();
-      subscribeToBasicFunctionalityChange(onChange);
+      const { onChange } = subscribeToBasicFunctionality();
 
-      jest.mocked(store.getState).mockReturnValue({
-        settings: { basicFunctionalityEnabled: false },
-      } as ReturnType<typeof store.getState>);
-      listener?.();
+      setBasicFunctionality(false);
+      storeListener()?.();
 
       expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    it('reconnects immediately when Basic Functionality turns on and remote flags are already loaded', () => {
+      const mocks = arrangeMocks();
+      const { storeListener } = captureBasicFunctionalitySubscription(mocks);
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
+        cacheTimestamp: 1_700_000_000_000,
+        remoteFeatureFlags: { backendWebSocketConnection: true },
+      });
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+      onChange.mockClear();
+
+      setBasicFunctionality(true);
+      storeListener()?.();
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(true);
+    });
+
+    it('waits for the remote feature flag refetch before reconnecting when Basic Functionality turns on', () => {
+      const mocks = arrangeMocks();
+      const { storeListener, remoteFeatureFlagListener } =
+        captureBasicFunctionalitySubscription(mocks);
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
+        cacheTimestamp: 0,
+        remoteFeatureFlags: {},
+      });
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+      onChange.mockClear();
+
+      setBasicFunctionality(true);
+      storeListener()?.();
+
+      expect(onChange).not.toHaveBeenCalled();
+
+      remoteFeatureFlagListener()?.({
+        cacheTimestamp: 0,
+        remoteFeatureFlags: {},
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+
+      remoteFeatureFlagListener()?.({
+        cacheTimestamp: 1_700_000_000_000,
+        remoteFeatureFlags: { backendWebSocketConnection: true },
+      });
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(true);
+    });
+
+    it('reconnects when the websocket flag is restored before the cache timestamp', () => {
+      const mocks = arrangeMocks();
+      const { storeListener, remoteFeatureFlagListener } =
+        captureBasicFunctionalitySubscription(mocks);
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
+        cacheTimestamp: 0,
+        remoteFeatureFlags: {},
+      });
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+      setBasicFunctionality(true);
+      storeListener()?.();
+      onChange.mockClear();
+
+      remoteFeatureFlagListener()?.({
+        cacheTimestamp: 0,
+        remoteFeatureFlags: { backendWebSocketConnection: true },
+      });
+
+      expect(onChange).toHaveBeenCalledWith(true);
+    });
+
+    it('drops a deferred reconnect when Basic Functionality turns off before flags return', () => {
+      const mocks = arrangeMocks();
+      const { storeListener, remoteFeatureFlagListener } =
+        captureBasicFunctionalitySubscription(mocks);
+      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
+        cacheTimestamp: 0,
+        remoteFeatureFlags: {},
+      });
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+      setBasicFunctionality(true);
+      storeListener()?.();
+      setBasicFunctionality(false);
+      storeListener()?.();
+      onChange.mockClear();
+
+      remoteFeatureFlagListener()?.({
+        cacheTimestamp: 1_700_000_000_000,
+        remoteFeatureFlags: { backendWebSocketConnection: true },
+      });
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('keeps waiting for remote flags when the feature flag read throws', () => {
+      const mocks = arrangeMocks();
+      const { storeListener, remoteFeatureFlagListener } =
+        captureBasicFunctionalitySubscription(mocks);
+      const testError = new Error('Feature flag state unavailable');
+      (mocks.initMessenger.call as jest.Mock).mockImplementation(() => {
+        throw testError;
+      });
+      backendWebSocketServiceInit(mocks);
+      const { onChange } = subscribeToBasicFunctionality();
+
+      setBasicFunctionality(false);
+      storeListener()?.();
+      onChange.mockClear();
+
+      setBasicFunctionality(true);
+      storeListener()?.();
+
+      expect(onChange).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'BackendWebSocketService: Could not check feature flag, waiting for the refetch before connecting',
+        testError,
+      );
+
+      remoteFeatureFlagListener()?.({
+        cacheTimestamp: 1_700_000_000_000,
+        remoteFeatureFlags: { backendWebSocketConnection: true },
+      });
+
+      expect(onChange).toHaveBeenCalledWith(true);
+    });
+
+    it('unsubscribes from the store and remote feature flag updates', () => {
+      const mocks = arrangeMocks();
+      const { unsubscribeStore, remoteFeatureFlagListener } =
+        captureBasicFunctionalitySubscription(mocks);
+      backendWebSocketServiceInit(mocks);
+      const { unsubscribe } = subscribeToBasicFunctionality();
+
+      unsubscribe();
+
+      expect(unsubscribeStore).toHaveBeenCalledTimes(1);
+      expect(mocks.initMessenger.unsubscribe).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:stateChange',
+        remoteFeatureFlagListener(),
+      );
     });
   });
 });
