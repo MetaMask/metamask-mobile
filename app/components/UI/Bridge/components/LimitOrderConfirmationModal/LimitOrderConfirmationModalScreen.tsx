@@ -265,6 +265,7 @@ export const LimitOrderConfirmationModalScreen = () => {
   return (
     <LimitOrderConfirmationModal
       {...params}
+      triggerDirection={triggerInput.priceComparisonDirection}
       triggerComparison={triggerComparison}
       delegationFee={delegationFee}
       feeToken={feeToken}
