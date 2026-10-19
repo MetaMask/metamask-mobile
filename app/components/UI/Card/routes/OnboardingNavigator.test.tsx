@@ -78,14 +78,6 @@ jest.mock('@react-navigation/native-stack', () => {
   };
 });
 
-jest.mock('../../../../core/LockManagerService', () => ({
-  __esModule: true,
-  default: {
-    stopListening: jest.fn(),
-    startListening: jest.fn(),
-  },
-}));
-
 // Mock navigation components
 jest.mock('../components/Onboarding/SignUp', () => 'SignUp');
 jest.mock('../components/Onboarding/ConfirmEmail', () => 'ConfirmEmail');

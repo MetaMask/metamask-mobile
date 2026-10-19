@@ -22,8 +22,14 @@ import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../../../util/deviceCapability/types';
 import {
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+  LIMIT_ORDERS_REFETCH_INTERVAL,
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
   getSwapsLimitOrderExpirationLabel,
@@ -120,6 +126,17 @@ jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
 
 jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
+}));
+
+let mockHardwareTier: HardwareTier | null = 'HIGH';
+let mockNetworkTier: NetworkTier | null = 'WIFI';
+
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 const mockNavigate = jest.fn();
@@ -454,6 +471,8 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = false;
     mockIsCustomPercentFocused = false;
     mockSourceAmount = '';
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'WIFI';
 
     jest
       .mocked(useLimitOrderSwapInputs)
@@ -580,6 +599,34 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBe(true);
   });
 
+  it('renders the keypad confirm button when the limit price keypad is focused with a non-zero source amount', () => {
+    mockIsAmountFocused = false;
+    mockIsCustomPercentFocused = false;
+    mockSourceAmount = '2';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toBeOnTheScreen();
+  });
+
+  it('disables the keypad confirm button when the limit price is zero', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
   it('disables the keypad confirm button without a loading state when a traded asset has no price data', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
@@ -676,6 +723,22 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         ctaDisabled: true,
         ctaLabel: strings('bridge.limit.min_order_amount', { amount: '1' }),
+      }),
+    );
+  });
+
+  it('disables the footer confirm button when the limit price is zero', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    renderLimitOrderView();
+
+    expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ctaDisabled: true,
       }),
     );
   });
@@ -930,6 +993,7 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
         params: expect.objectContaining({
+          triggerPrice: expect.not.stringContaining(mockSourceToken.symbol),
           // Handed over as entered: the confirmation sheet converts it to USD
           // with the rate live when the order is created.
           triggerInput: {
@@ -949,9 +1013,11 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
       ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
       isLimitFiatMode: false,
       limitPrice: '0.04',
       priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      value: '0.04',
     }));
 
     const { getByTestId } = renderLimitOrderView();
@@ -962,6 +1028,7 @@ describe('BridgeLimitOrderView', () => {
       Routes.BRIDGE.MODALS.ROOT,
       expect.objectContaining({
         params: expect.objectContaining({
+          triggerPrice: '0.04 USDC',
           triggerInput: expect.objectContaining({
             isLimitFiatMode: false,
             limitPrice: '0.04',
@@ -1014,6 +1081,86 @@ describe('BridgeLimitOrderView', () => {
       }),
     );
   });
+
+  it('only enables the orders of the selected orders tab', () => {
+    renderLimitOrderView();
+
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: false,
+      }),
+    );
+
+    act(() => {
+      mockOnOrdersTabChange?.(OrdersTabKey.History);
+    });
+
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
+      }),
+    );
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Open]),
+        enabled: false,
+      }),
+    );
+  });
+
+  it.each([
+    {
+      hardwareTier: 'HIGH',
+      networkTier: 'WIFI',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: 'FAST_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'HIGH',
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: null,
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: null,
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+    },
+    { hardwareTier: 'HIGH', networkTier: 'NONE', expected: undefined },
+  ] as {
+    hardwareTier: HardwareTier | null;
+    networkTier: NetworkTier | null;
+    expected: number | undefined;
+  }[])(
+    'refetches the orders every $expected ms on $hardwareTier hardware over $networkTier network',
+    ({ hardwareTier, networkTier, expected }) => {
+      mockHardwareTier = hardwareTier;
+      mockNetworkTier = networkTier;
+
+      renderLimitOrderView();
+
+      const calls = jest.mocked(useLimitOrders).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach(([params]) => {
+        expect(params.refetchInterval).toBe(expected);
+      });
+    },
+  );
 
   describe('pull to refresh', () => {
     beforeEach(() => {

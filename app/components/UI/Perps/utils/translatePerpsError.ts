@@ -132,8 +132,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.twapDurationInvalid',
   [PERPS_ERROR_CODES.ORDER_TWAP_NOTIONAL_TOO_SMALL]:
     'perps.errors.orderValidation.twapNotionalTooSmall',
-  [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
-    'perps.errors.orderValidation.scalePreviewStale',
   [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_REQUIRED]:
     'perps.errors.orderValidation.scaleRangeRequired',
   [PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID]:
@@ -144,6 +142,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.scaleSizeTooSmall',
   [PERPS_ERROR_CODES.ORDER_SCALE_NOTIONAL_TOO_SMALL]:
     'perps.errors.orderValidation.scaleNotionalTooSmall',
+  [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
+    'perps.errors.orderValidation.scalePreviewStale',
   [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
     'perps.errors.orderValidation.chaseIntervalInvalid',
   [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
@@ -195,6 +195,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
+  // Local max-slippage rejection. Same recovery as a venue slippage reject.
+  [PERPS_ERROR_CODES.PRICE_MOVED]: 'perps.errors.slippageExceeded',
   [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
   // Network/service errors
   [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Linking, Share } from 'react-native';
+import { brandColor } from '@metamask/design-tokens';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type {
   Position,
@@ -226,7 +227,8 @@ const profile: UseMyProfileResult['profile'] = {
   handle: 'giga-whale.metamask',
   bio: 'Trading in the open. Copy my moves or fade them — either way we learn.',
   imageUrl: null,
-  avatarPresetId: 'fox-emoji',
+  avatarPresetId: 'zombie',
+  avatarBackgroundId: 'lime',
   rankingTag: 'whale',
   xHandle: 'giga-whale',
   followerCount: 4,
@@ -320,7 +322,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HEADER_COMPACT_AVATAR),
-    ).toHaveTextContent('🦊');
+    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
   });
 
   it('keeps the top inset on the animated header', () => {
@@ -493,6 +495,20 @@ describe('MyProfileView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('resets the local profile and opens onboarding from the header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    );
+
+    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'debug: reset profile');
+  });
+
   it('opens the post composer from the owner profile header', () => {
     renderWithProvider(<MyProfileView />);
 
@@ -607,6 +623,12 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(
+        `${MyProfileViewSelectorsIDs.EMPTY_STATE_AVATAR}-art`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
     ).toBeOnTheScreen();
   });
@@ -619,17 +641,6 @@ describe('MyProfileView', () => {
     );
 
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
-  });
-
-  it('resets the local profile and opens onboarding from the debug button', () => {
-    renderWithProvider(<MyProfileView />);
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    );
-
-    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 
   it('opens onboarding when the owner has no profile', () => {
