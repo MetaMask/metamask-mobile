@@ -1,7 +1,9 @@
 import React, { useSyncExternalStore } from 'react';
+import { Platform } from 'react-native';
 import {
   FontFamily,
   Text,
+  TextVariant,
   type TextProps,
 } from '@metamask/design-system-react-native';
 import I18n, { I18nEvents } from '../../../../locales/i18n';
@@ -19,11 +21,12 @@ const getLocaleSnapshot = () => I18n.locale || 'en';
 
 /**
  * Display title for a marketing moment. Grotzec languages use the hero face
- * and the tight marketing metrics. Every other language uses the system face
- * at DisplayLg.
+ * and the tight metrics for the requested Display or Heading size. Every other
+ * language uses the system face, and Display sizes step down one level.
  */
 const MarketingMomentTitle = ({
   accessibilityRole = 'header',
+  variant = TextVariant.DisplayXl,
   style,
   twClassName,
   children,
@@ -36,6 +39,8 @@ const MarketingMomentTitle = ({
   );
   const presentation = getMarketingMomentTitlePresentation(
     supportsGrotzecLocale(locale),
+    Platform.OS,
+    variant,
   );
 
   return (
@@ -47,7 +52,7 @@ const MarketingMomentTitle = ({
       twClassName={`w-full text-center${
         presentation.className ? ` ${presentation.className}` : ''
       }${twClassName ? ` ${twClassName}` : ''}`}
-      style={[presentation.style, style]}
+      style={presentation.style ? [presentation.style, style] : style}
     >
       {children}
     </Text>

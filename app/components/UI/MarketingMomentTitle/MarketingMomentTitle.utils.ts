@@ -1,6 +1,5 @@
 import { Platform, type TextStyle } from 'react-native';
 import { FontFamily, TextVariant } from '@metamask/design-system-react-native';
-import { typography } from '@metamask/design-tokens';
 
 /**
  * App languages whose glyphs fit in Grotzec Cond Bold.
@@ -17,21 +16,70 @@ const GROTZEC_LANGUAGE_CODES = new Set([
   'tr',
 ]);
 
-const DISPLAY_XL_FONT_SIZE = typography.sDisplayXL.fontSize;
-const GROTZEC_LINE_HEIGHT_RATIO = 0.8;
-const GROTZEC_ANDROID_LINE_HEIGHT_RATIO = 1.1;
-const GROTZEC_TRACKING_RATIO = -0.02;
+interface HeroTitleMetrics {
+  /** 80% line height, -2% tracking, and 20% padding with a matching negative margin. */
+  iosClassName: string;
+  /** 110% line height and -2% tracking. Android clips a line box shorter than the font. */
+  androidClassName: string;
+  /**
+   * Smaller variant used when Grotzec cannot draw the language. Headings keep
+   * their size, so this is set only for the Display sizes.
+   */
+  unsupportedVariant?: TextVariant;
+}
+
+/**
+ * Pixel classes for each Display and Heading size. `Text` applies the variant
+ * first, so these classes replace only line height, tracking, padding, and margin.
+ */
+const HERO_TITLE_VARIANTS: Partial<Record<TextVariant, HeroTitleMetrics>> = {
+  [TextVariant.DisplayXl]: {
+    iosClassName: 'py-3 leading-[48px] tracking-[-1.2px] -mb-[12px]',
+    androidClassName: 'leading-[66px] tracking-[-1.2px]',
+    unsupportedVariant: TextVariant.DisplayLg,
+  },
+  [TextVariant.DisplayLg]: {
+    iosClassName: 'py-2 leading-[32px] tracking-[-0.8px] -mb-[8px]',
+    androidClassName: 'leading-[44px] tracking-[-0.8px]',
+    unsupportedVariant: TextVariant.DisplayMd,
+  },
+  [TextVariant.DisplayMd]: {
+    iosClassName: 'py-[6.4px] leading-[25.6px] tracking-[-0.64px] -mb-[6.4px]',
+    androidClassName: 'leading-[35.2px] tracking-[-0.64px]',
+    unsupportedVariant: TextVariant.HeadingLg,
+  },
+  [TextVariant.HeadingLg]: {
+    iosClassName: 'py-[4.8px] leading-[19.2px] tracking-[-0.48px] -mb-[4.8px]',
+    androidClassName: 'leading-[26.4px] tracking-[-0.48px]',
+  },
+  [TextVariant.HeadingMd]: {
+    iosClassName: 'py-1 leading-[16px] tracking-[-0.4px] -mb-[4px]',
+    androidClassName: 'leading-[22px] tracking-[-0.4px]',
+  },
+  [TextVariant.HeadingSm]: {
+    iosClassName: 'py-[3.2px] leading-[12.8px] tracking-[-0.32px] -mb-[3.2px]',
+    androidClassName: 'leading-[17.6px] tracking-[-0.32px]',
+  },
+};
 
 export interface MarketingMomentTitlePresentation {
   variant: TextVariant;
   fontFamily?: FontFamily;
-  style: TextStyle;
   /**
-   * Extra layout classes. iOS Grotzec titles use `py-3` so the tight line box
-   * does not clip the face.
+   * System face for languages Grotzec cannot draw. Grotzec titles leave this
+   * unset and use `className` instead.
+   */
+  style?: TextStyle;
+  /**
+   * Grotzec leading, tracking, and clip classes for the requested variant.
    */
   className?: string;
 }
+
+const systemFontStyle = (os: typeof Platform.OS): TextStyle => ({
+  fontFamily: os === 'ios' ? 'System' : 'Roboto',
+  fontWeight: '700',
+});
 
 /**
  * Whether the app language can use Grotzec. `en-US` and `pt_BR` match on the
@@ -48,55 +96,32 @@ export function supportsGrotzecLocale(
 }
 
 /**
- * Display metrics for a marketing title. Grotzec locales use DisplayXl with
- * the agency leading and tracking. Other locales use the system face at
- * DisplayLg so the title does not grow without the condensed metrics.
- *
- * iOS can draw an 80% line box by padding the text and pulling the next line
- * back up. Android clips to the line box, so supported titles stay at 1.1.
+ * Display metrics for a hero title. Grotzec locales keep the requested variant
+ * and add that size's tight classes. Other locales use the system face and the
+ * variant's own line height, stepping Display sizes down one level.
  *
  * @param supportsGrotzec - Result of {@link supportsGrotzecLocale}.
  * @param os - Platform used to choose the line box and fallback face.
- * @returns Variant, optional hero family, and style overrides.
+ * @param variant - Requested Display or Heading size. Defaults to DisplayXl.
+ * @returns Variant, optional hero family, classes, and system-font style.
  */
 export function getMarketingMomentTitlePresentation(
   supportsGrotzec: boolean,
   os: typeof Platform.OS = Platform.OS,
+  variant: TextVariant = TextVariant.DisplayXl,
 ): MarketingMomentTitlePresentation {
+  const metrics = HERO_TITLE_VARIANTS[variant];
+
   if (!supportsGrotzec) {
     return {
-      variant: TextVariant.DisplayLg,
-      style: {
-        fontFamily: os === 'ios' ? 'System' : 'Roboto',
-        fontWeight: '700',
-      },
-    };
-  }
-
-  const letterSpacing = DISPLAY_XL_FONT_SIZE * GROTZEC_TRACKING_RATIO;
-
-  if (os === 'ios') {
-    const lineHeight = DISPLAY_XL_FONT_SIZE * GROTZEC_LINE_HEIGHT_RATIO;
-    const clipPadding = (DISPLAY_XL_FONT_SIZE - lineHeight) / 2;
-
-    return {
-      variant: TextVariant.DisplayXl,
-      fontFamily: FontFamily.Hero,
-      className: 'py-3',
-      style: {
-        lineHeight,
-        letterSpacing,
-        marginBottom: -clipPadding,
-      },
+      variant: metrics?.unsupportedVariant ?? variant,
+      style: systemFontStyle(os),
     };
   }
 
   return {
-    variant: TextVariant.DisplayXl,
+    variant,
     fontFamily: FontFamily.Hero,
-    style: {
-      lineHeight: DISPLAY_XL_FONT_SIZE * GROTZEC_ANDROID_LINE_HEIGHT_RATIO,
-      letterSpacing,
-    },
+    className: os === 'ios' ? metrics?.iosClassName : metrics?.androidClassName,
   };
 }
