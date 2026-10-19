@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the social feed to PEPE token details (#37180)
 - Added copy trading from Social feed positions, allowing users to open a Perps order without leaving the feed (#37115)
 - Added a virtual bank account identity verification failure page with a retry action and a way to leave the more-information screen (#37140)
+- Added Robinhood tokenized stocks to Explore stocks, search, and the full list, behind a feature flag (#37453)
 
 ### Changed
 
@@ -39,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated MetaMask Card sign-up copy to refer to the card provider instead of Crypto Life (#37224)
 - Updated contact add and edit forms with refreshed fields and actions (#36114)
 - Updated Contacts and Permissions empty states with improved description color and spacing (#36482)
+- Updated Stellar send confirmations to show the latest network fee, including when the fee changes after confirmation (#37568)
+- Updated Stellar security alerts to use generic copy (#37568)
 
 ### Fixed
 
@@ -68,6 +71,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the Money home Card section loading indefinitely for Immersve cardholders (#37128)
 - Fixed live sports scores in Predict freezing until the app was restarted (#36648)
 - Fixed deeplinks not opening after auto-lock, including when auto-lock ran during app resume (#36905, #36925)
+- Fixed the Money home Card section so Immersve sessions no longer spin forever, and a leftover Immersve sign-in no longer hides it for Baanx users (#37476)
+- Fixed top and bottom gaps around fullscreen HTML in-app messages on Android (#37472)
+- Fixed Infura-backed networks added from the additional networks list failing to connect, including networks already saved with a broken endpoint (#37333)
+- Fixed Bitcoin transactions being built with a zero network fee when the fee estimate was below 1 sat/vB (#37508)
+- Fixed Stellar transactions showing as successful when the network asked to try again later (#37568)
+- Fixed Stellar contract-token sends failing to retry after a sequence error (#37568)
+- Fixed newly listed Stellar tokens waiting up to an hour to appear (#37568)
+- Fixed Money Account withdraw refunds returning to the wallet instead of the Money Account (#37121)
+- Fixed duplicate transaction links on Money Account deposit details (#37045)
+- Fixed Swap to clear previously saved details before opening a new swap (#37243)
 
 ## [8.15.0]
 
