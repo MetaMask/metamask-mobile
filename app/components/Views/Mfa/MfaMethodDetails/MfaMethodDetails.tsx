@@ -1,6 +1,7 @@
 import React, { useContext, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import {
   StackActions,
   useNavigation,
@@ -34,6 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useTheme } from '../../../../util/theme';
 import { useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
@@ -48,6 +50,7 @@ import {
   maskEmail,
 } from '../labels';
 import { MfaMethodDetailsSelectorsIDs } from '../Mfa.testIds';
+import { getMfaUsedFor } from './mfaUsedFor';
 
 export interface MfaMethodDetailsParams {
   method: MfaMethod;
@@ -105,6 +108,7 @@ const MfaMethodDetails = () => {
   const { method, index } =
     useRoute<RouteProp<RootStackParamList, 'MfaMethodDetails'>>().params;
   const { credentials, verifyOrEnroll } = useMfa();
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [sheet, setSheet] = useState<'confirm' | 'lastMethod'>();
@@ -200,12 +204,14 @@ const MfaMethodDetails = () => {
           <Text variant={TextVariant.HeadingSm}>
             {strings('mfa.settings.used_for')}
           </Text>
-          <Box twClassName="flex-row items-center gap-4">
-            <AvatarIcon iconName={IconName.SecurityTick} />
-            <Text variant={TextVariant.BodyMd}>
-              {strings('mfa.settings.used_for_money')}
-            </Text>
-          </Box>
+          {getMfaUsedFor(method, { isSocialLogin }).map(
+            ({ key, icon, label }) => (
+              <Box key={key} twClassName="flex-row items-center gap-4">
+                <AvatarIcon iconName={icon} />
+                <Text variant={TextVariant.BodyMd}>{strings(label)}</Text>
+              </Box>
+            ),
+          )}
         </Box>
       </ScrollView>
       <Box twClassName="p-4">
