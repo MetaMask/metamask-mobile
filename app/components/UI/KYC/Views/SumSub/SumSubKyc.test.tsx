@@ -4,10 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaSumSubKyc, { VbaSumSubKycSelectorsIDs } from './SumSubKyc';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  prefetchSumsubToken,
-  takePrefetchedSumsubToken,
-} from '../../hooks/sumsubTokenPrefetch';
 import type { KycProviderFlowStatus } from '@metamask/kyc-controller';
 const mockOnSubmitted = jest.fn();
 const mockGoBack = jest.fn();
@@ -29,32 +25,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const mockKycControllerState: {
-  sessionStatus: { id: string } | null;
-  providerDisclaimersAccepted: {
-    sumsub: { key: string; version: string }[] | null;
-  };
-  idosDisclaimersAccepted: { key: string; version: string }[] | null;
-} = {
-  sessionStatus: null,
-  providerDisclaimersAccepted: { sumsub: null },
-  idosDisclaimersAccepted: null,
-};
-
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      get state() {
-        return mockKycControllerState;
-      },
       fetchSessionDisclaimers: jest.fn(),
       recordSessionDisclaimers: jest.fn(),
-      hasCompletedSessionDisclaimers: jest.fn(),
       launchProviderFlow: jest.fn(),
     },
     KycService: {
       getGeoCountry: jest.fn(),
-      createJourney: jest.fn(),
     },
   },
 }));
@@ -70,12 +49,10 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockKycController = Engine.context.KycController as unknown as {
   fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;
   recordSessionDisclaimers: jest.Mock<Promise<void>, [unknown]>;
-  hasCompletedSessionDisclaimers: jest.Mock<Promise<boolean>, []>;
   launchProviderFlow: jest.Mock<Promise<KycProviderFlowStatus>, [unknown]>;
 };
 const mockKycService = Engine.context.KycService as unknown as {
   getGeoCountry: jest.Mock<Promise<string>, []>;
-  createJourney: jest.Mock<Promise<unknown>, [unknown]>;
 };
 
 const catalog = {
@@ -84,20 +61,14 @@ const catalog = {
 };
 
 describe('VbaSumSubKyc', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
     mockParentCanGoBack.mockReturnValue(false);
-    mockKycControllerState.sessionStatus = null;
-    mockKycControllerState.providerDisclaimersAccepted = { sumsub: null };
-    mockKycControllerState.idosDisclaimersAccepted = null;
     mockKycService.getGeoCountry.mockResolvedValue('BRA');
     mockKycController.fetchSessionDisclaimers.mockResolvedValue(catalog);
     mockKycController.recordSessionDisclaimers.mockResolvedValue(undefined);
-    mockKycController.hasCompletedSessionDisclaimers.mockResolvedValue(false);
     mockKycController.launchProviderFlow.mockResolvedValue('submitted');
-    // Drain any SumSub token prefetch cached by a previous test.
-    await takePrefetchedSumsubToken();
   });
 
   it('renders the container', () => {
@@ -121,73 +92,6 @@ describe('VbaSumSubKyc', () => {
       credentialReusabilityConsentGiven: false,
     });
     expect(mockOnSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
-  });
-
-  it('skips the consent chain when the session already recorded consents', async () => {
-    mockKycControllerState.providerDisclaimersAccepted = {
-      sumsub: [{ key: 'sumsub-terms', version: '2' }],
-    };
-    mockKycController.hasCompletedSessionDisclaimers.mockResolvedValue(true);
-
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
-
-    await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
-    });
-    expect(
-      mockKycController.hasCompletedSessionDisclaimers,
-    ).toHaveBeenCalledTimes(1);
-    expect(mockKycService.getGeoCountry).not.toHaveBeenCalled();
-    expect(mockKycController.fetchSessionDisclaimers).not.toHaveBeenCalled();
-    expect(mockKycController.recordSessionDisclaimers).not.toHaveBeenCalled();
-    expect(mockOnSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
-  });
-
-  it('records consents when the server has not recorded them', async () => {
-    mockKycControllerState.providerDisclaimersAccepted = {
-      sumsub: [{ key: 'sumsub-terms', version: '2' }],
-    };
-    mockKycController.hasCompletedSessionDisclaimers.mockResolvedValue(false);
-
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
-
-    await waitFor(() => {
-      expect(mockKycController.recordSessionDisclaimers).toHaveBeenCalled();
-    });
-    expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
-  });
-
-  it('records consents when the consent check fails', async () => {
-    mockKycControllerState.providerDisclaimersAccepted = {
-      sumsub: [{ key: 'sumsub-terms', version: '2' }],
-    };
-    mockKycController.hasCompletedSessionDisclaimers.mockRejectedValue(
-      new Error('check failed'),
-    );
-
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
-
-    await waitFor(() => {
-      expect(mockKycController.recordSessionDisclaimers).toHaveBeenCalled();
-    });
-    expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
-  });
-
-  it('passes a prefetched token to the provider flow', async () => {
-    mockKycControllerState.sessionStatus = { id: 'session-1' };
-    mockKycService.createJourney.mockResolvedValue({
-      applicantAccessToken: 'token-1',
-    });
-    prefetchSumsubToken();
-
-    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
-
-    await waitFor(() => {
-      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({
-        applicantAccessToken: 'token-1',
-      });
-    });
-    expect(mockKycService.createJourney).toHaveBeenCalledTimes(1);
   });
 
   it('returns to the caller when SumSub is closed before submission', async () => {

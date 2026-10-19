@@ -12,7 +12,6 @@ import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 import { VBA_KYC_VENDOR } from '../constants';
-import { takePrefetchedSumsubToken } from '../../../../KYC/hooks/sumsubTokenPrefetch';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -72,12 +71,7 @@ const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
-const mockCreateJourney = jest.fn();
-const mockSelectKycProviderFlowStatus = jest.fn(() => 'not_started');
-const mockKycState: {
-  email: string | null;
-  sessionStatus: { id: string } | null;
-} = { email: null, sessionStatus: null };
+const mockKycState: { email: string | null } = { email: null };
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -96,9 +90,6 @@ jest.mock('../../../../../../core/Engine', () => ({
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
-    KycService: {
-      createJourney: (...args: unknown[]) => mockCreateJourney(...args),
-    },
   },
 }));
 
@@ -112,10 +103,6 @@ jest.mock('../../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
     (state: { address?: string }) => state.address ?? null,
   ),
-}));
-
-jest.mock('../../../../../../selectors/kycController', () => ({
-  selectKycProviderFlowStatus: () => mockSelectKycProviderFlowStatus(),
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -840,7 +827,7 @@ describe('useOpenVbaOnboarding', () => {
 describe('resolveVbaOnboarding', () => {
   const devGlobal = globalThis as { __DEV__?: boolean };
 
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks();
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
@@ -849,16 +836,11 @@ describe('resolveVbaOnboarding', () => {
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
     mockRecordVendorDisclaimers.mockResolvedValue([]);
     mockKycState.email = null;
-    mockKycState.sessionStatus = null;
-    mockSelectKycProviderFlowStatus.mockReturnValue('not_started');
     mockReadSessionStatus.mockReturnValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
-    mockCreateJourney.mockResolvedValue({ applicantAccessToken: 'token-1' });
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
-    // Drain any SumSub token prefetch cached by a previous test.
-    await takePrefetchedSumsubToken();
   });
 
   it('returns an error when no wallet address is selected', async () => {
@@ -908,25 +890,6 @@ describe('resolveVbaOnboarding', () => {
       vendor: VBA_KYC_VENDOR,
     });
     expect(calls).toEqual(['start', 'hydrate']);
-  });
-
-  it('prefetches the SumSub token for a resumed abandoned flow', async () => {
-    mockSelectKycProviderFlowStatus.mockReturnValue('abandoned');
-    mockKycState.sessionStatus = { id: 'session-1' };
-
-    await resolveVbaOnboarding('money-add-money-bank-account');
-
-    expect(mockCreateJourney).toHaveBeenCalledWith('session-1');
-    await expect(takePrefetchedSumsubToken()).resolves.toBe('token-1');
-  });
-
-  it('does not prefetch the SumSub token for other flows', async () => {
-    mockKycState.sessionStatus = { id: 'session-1' };
-
-    await resolveVbaOnboarding('money-add-money-bank-account');
-
-    expect(mockCreateJourney).not.toHaveBeenCalled();
-    await expect(takePrefetchedSumsubToken()).resolves.toBeUndefined();
   });
 
   it('resumes a persisted KYC session when no email is stored', async () => {
