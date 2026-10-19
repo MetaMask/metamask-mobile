@@ -66,8 +66,6 @@ runs:
           "ndk;26.1.10909125" \
           "cmake;3.22.1"
 
-    # Passed as step env to the steps that build, rather than written to
-    # $GITHUB_ENV/$GITHUB_PATH, so it does not leak into the caller's job.
     - name: Resolve Android SDK root
       id: android-sdk
       shell: bash
