@@ -182,7 +182,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const shouldHydrateSocialProfile =
       isSocialV1PriorityEnabled &&
       networkTier !== 'NONE' &&
-      (hardwareTier !== 'LOW' || networkTier === null);
+      hardwareTier !== 'LOW';
     const isSocialTopTradersEligible = useIsSocialTopTradersEligible(
       isSocialV1PriorityEnabled,
       shouldHydrateSocialProfile,
