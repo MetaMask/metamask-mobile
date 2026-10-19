@@ -11,6 +11,8 @@ import {
 } from '../../../../util/test/renderWithProvider';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import { useMoneyTransactionDisplayInfo } from './useMoneyTransactionDisplayInfo';
 import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 
@@ -62,6 +64,7 @@ function makeState(
       { conversionRate?: number; usdConversionRate?: number }
     >;
     tokenMarketData?: Record<string, unknown>;
+    remoteFeatureFlags?: Record<string, unknown>;
     tokens?: TransactionMeta[];
   } = {},
 ): ProviderValues['state'] {
@@ -106,6 +109,9 @@ function makeState(
         },
         AccountsController: {
           internalAccounts: { accounts: {}, selectedAccount: '' },
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: overrides.remoteFeatureFlags ?? {},
         },
         NetworkController: {
           networkConfigurationsByChainId: {
@@ -211,6 +217,117 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
       { state: makeState() },
     );
     expect(result.current.label).toBe('money.transaction.received');
+  });
+
+  it('formats a confirmed allowlisted incoming mUSD transfer as a VBA deposit', () => {
+    const sender = '0x000000000000000000000000000000000000000a';
+    const recipient = '0x000000000000000000000000000000000000000b';
+    const tx = makeTx(TransactionType.incoming, {
+      status: TransactionStatus.confirmed,
+      chainId: '0x8f',
+      txParams: { from: sender, to: recipient },
+      transferInformation: {
+        amount: '12345678',
+        symbol: 'mUSD',
+        decimals: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+      },
+    });
+    const remoteFeatureFlagController = {
+      remoteFeatureFlags: {
+        moneyVbaActivityDepositFromAddresses: [sender],
+      },
+    };
+    const state = makeState({
+      remoteFeatureFlags: remoteFeatureFlagController.remoteFeatureFlags,
+    });
+    const engineWithState = Engine as unknown as {
+      state: Record<string, unknown>;
+    };
+    engineWithState.state = {
+      ...(engineWithState.state ?? {}),
+      RemoteFeatureFlagController: remoteFeatureFlagController,
+    };
+
+    const { result, store } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, recipient),
+      { state },
+    );
+    store.dispatch(updateBgState('RemoteFeatureFlagController'));
+
+    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.description).toBe('money.transaction.bank_transfer');
+    expect(result.current.primaryAmount).toBe('+12.35 mUSD');
+    expect(result.current.fiatAmount).toBe('+$12.35');
+    expect(result.current.showPrimaryAmount).toBe(true);
+  });
+
+  it('keeps an incoming mUSD transfer as received when the sender list is empty', () => {
+    const sender = '0x000000000000000000000000000000000000000a';
+    const recipient = '0x000000000000000000000000000000000000000b';
+    const tx = makeTx(TransactionType.incoming, {
+      status: TransactionStatus.confirmed,
+      chainId: '0x8f',
+      txParams: { from: sender, to: recipient },
+      transferInformation: {
+        amount: '12345678',
+        symbol: 'mUSD',
+        decimals: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, recipient),
+      { state: makeState() },
+    );
+
+    expect(result.current.label).toBe('money.transaction.received');
+    expect(result.current.showPrimaryAmount).toBeUndefined();
+  });
+
+  it('updates classification when the remote sender list changes', () => {
+    const sender = '0x000000000000000000000000000000000000000a';
+    const recipient = '0x000000000000000000000000000000000000000b';
+    const tx = makeTx(TransactionType.incoming, {
+      status: TransactionStatus.confirmed,
+      chainId: '0x8f',
+      txParams: { from: sender, to: recipient },
+      transferInformation: {
+        amount: '12345678',
+        symbol: 'mUSD',
+        decimals: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+      },
+    });
+    const remoteFeatureFlagController = {
+      remoteFeatureFlags: {
+        moneyVbaActivityDepositFromAddresses: [sender],
+      },
+    };
+    const state = makeState({
+      remoteFeatureFlags: remoteFeatureFlagController.remoteFeatureFlags,
+    });
+    const engineWithState = Engine as unknown as {
+      state: Record<string, unknown>;
+    };
+    engineWithState.state = {
+      ...(engineWithState.state ?? {}),
+      RemoteFeatureFlagController: remoteFeatureFlagController,
+    };
+    const { result, store } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, recipient),
+      { state },
+    );
+
+    engineWithState.state = {
+      ...engineWithState.state,
+      RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+    };
+    store.dispatch(updateBgState('RemoteFeatureFlagController'));
+
+    expect(result.current.label).toBe('money.transaction.received');
+    expect(result.current.showPrimaryAmount).toBeUndefined();
   });
 
   it('returns sent for moneyAccountWithdraw type', () => {
