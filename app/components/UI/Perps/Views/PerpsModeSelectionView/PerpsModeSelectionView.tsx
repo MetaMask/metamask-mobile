@@ -71,6 +71,12 @@ const PerpsModeSelectionView: React.FC = () => {
   const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const [trackProEntryExposure, setTrackProEntryExposure] = useState(false);
+  const [pendingProEntry, setPendingProEntry] = useState<PerpsMode | null>(
+    null,
+  );
+  // Keep this above the leave effect. useABTest emits Experiment Viewed from
+  // an effect, and effects run in hook order, so exposure lands before the
+  // sheet unmounts.
   const { getProSwitchTarget } = usePerpsHeaderEntryNavigation({
     trackExposure: trackProEntryExposure,
   });
@@ -153,6 +159,39 @@ const PerpsModeSelectionView: React.FC = () => {
     ],
   );
 
+  const leaveChooserAfterSelection = useCallback(
+    (mode: PerpsMode) => {
+      // Home → Pro resets the parent Perps stack (clears the modal too).
+      if (entry === 'home' && mode === PerpsMode.Pro) {
+        continueAfterSelection(mode);
+        return;
+      }
+
+      // Market → Pro must drop Home while the modal is still nested under the
+      // Perps stack — after goBack the parent relationship is gone.
+      if (entry === 'market' && mode === PerpsMode.Pro) {
+        continueAfterSelection(mode);
+        navigation.goBack();
+        return;
+      }
+
+      navigation.goBack();
+      requestAnimationFrame(() => {
+        continueAfterSelection(mode);
+      });
+    },
+    [continueAfterSelection, entry, navigation],
+  );
+
+  const hasLeftAfterProEntryRef = useRef(false);
+  useEffect(() => {
+    if (pendingProEntry === null || hasLeftAfterProEntryRef.current) {
+      return;
+    }
+    hasLeftAfterProEntryRef.current = true;
+    leaveChooserAfterSelection(pendingProEntry);
+  }, [leaveChooserAfterSelection, pendingProEntry]);
+
   const continueAsPreselectedIfNeeded = useCallback(() => {
     if (
       entry !== 'trade' ||
@@ -193,13 +232,10 @@ const PerpsModeSelectionView: React.FC = () => {
   const handleSelect = useCallback(
     async (mode: PerpsMode) => {
       hasSelectedRef.current = true;
-      if (
+      const shouldTrackProEntry =
         mode === PerpsMode.Pro &&
         isProModeEnabled &&
-        (entry === 'home' || entry === 'trade')
-      ) {
-        setTrackProEntryExposure(true);
-      }
+        (entry === 'home' || entry === 'trade');
       setMode(mode);
       await markPerpsModeSelectionCompleted();
 
@@ -211,30 +247,20 @@ const PerpsModeSelectionView: React.FC = () => {
         entry,
       });
 
-      // Home → Pro resets the parent Perps stack (clears the modal too).
-      if (entry === 'home' && mode === PerpsMode.Pro) {
-        continueAfterSelection(mode);
+      if (shouldTrackProEntry) {
+        // Arm exposure and leave on the next effect flush. Navigating in this
+        // turn unmounts the sheet before useABTest can emit Experiment Viewed.
+        setTrackProEntryExposure(true);
+        setPendingProEntry(mode);
         return;
       }
 
-      // Market → Pro must drop Home while the modal is still nested under the
-      // Perps stack — after goBack the parent relationship is gone.
-      if (entry === 'market' && mode === PerpsMode.Pro) {
-        continueAfterSelection(mode);
-        navigation.goBack();
-        return;
-      }
-
-      navigation.goBack();
-      requestAnimationFrame(() => {
-        continueAfterSelection(mode);
-      });
+      leaveChooserAfterSelection(mode);
     },
     [
-      continueAfterSelection,
       entry,
       isProModeEnabled,
-      navigation,
+      leaveChooserAfterSelection,
       setMode,
       source,
       track,

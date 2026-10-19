@@ -83,6 +83,20 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockPerpsModeToggle = jest.fn();
 let mockPerpsModeValue = PerpsMode.Lite;
+const headerExposureCalls: boolean[] = [];
+
+jest.mock('../../hooks/usePerpsHeaderEntryNavigation', () => {
+  const actual = jest.requireActual(
+    '../../hooks/usePerpsHeaderEntryNavigation',
+  );
+  return {
+    ...actual,
+    usePerpsHeaderEntryNavigation: (options?: { trackExposure?: boolean }) => {
+      headerExposureCalls.push(options?.trackExposure === true);
+      return actual.usePerpsHeaderEntryNavigation(options);
+    },
+  };
+});
 
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
@@ -674,6 +688,7 @@ describe('PerpsHomeView', () => {
       dismiss: jest.fn(),
     });
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
+    headerExposureCalls.length = 0;
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
@@ -873,6 +888,7 @@ describe('PerpsHomeView', () => {
     });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     expect(mockReset).not.toHaveBeenCalled();
+    expect(headerExposureCalls).not.toContain(true);
   });
 
   it('does not open the mode selection sheet when the user has already completed it', async () => {
@@ -904,6 +920,7 @@ describe('PerpsHomeView', () => {
         }),
       ],
     });
+    expect(headerExposureCalls).toContain(true);
   });
 
   it('opens the mode selection sheet for first-time users from the header toggle', async () => {

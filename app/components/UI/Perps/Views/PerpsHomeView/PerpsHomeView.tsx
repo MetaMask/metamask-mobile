@@ -185,17 +185,13 @@ const PerpsHomeView = () => {
   const [trackProSwitchExposure, setTrackProSwitchExposure] = useState(false);
   const [commitProSwitch, setCommitProSwitch] = useState(false);
   const { getProSwitchTarget } = usePerpsHeaderEntryNavigation({
-    // Arm exposure only when the lite pill asks to enter Pro, so viewing
-    // Perps Home in Lite does not enroll the user.
+    // Arm exposure only after a committed switch into Pro. Viewing Lite, or
+    // opening the chooser and then staying in Lite, must not enroll the user.
     trackExposure: trackProSwitchExposure,
   });
   const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
   const handleModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
-      if (nextMode === PerpsMode.Pro) {
-        setTrackProSwitchExposure(true);
-      }
-
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
         entry: 'home',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
@@ -209,6 +205,7 @@ const PerpsHomeView = () => {
       // Discard Perps Home while Pro is active (TAT-3612). Navigation runs
       // in an effect so Experiment Viewed is emitted before the reset.
       if (nextMode === PerpsMode.Pro) {
+        setTrackProSwitchExposure(true);
         setCommitProSwitch(true);
       }
       return true;
