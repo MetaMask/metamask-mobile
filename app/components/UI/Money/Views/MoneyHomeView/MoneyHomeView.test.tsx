@@ -86,6 +86,10 @@ import {
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import {
+  useVbaEligibility,
+  type VbaEligibility,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -412,6 +416,32 @@ jest.mock(
   }),
 );
 
+const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility',
+  () => ({
+    useVbaEligibility: jest.fn(),
+  }),
+);
+
+const VBA_ELIGIBILITY_NOT_ELIGIBLE: VbaEligibility = {
+  isEligible: false,
+  isLoading: false,
+  isFlagEnabled: false,
+  isRegionEligible: false,
+  isDevBypassEnabled: false,
+  location: undefined,
+};
+
+const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
+  isEligible: true,
+  isLoading: false,
+  isFlagEnabled: true,
+  isRegionEligible: true,
+  isDevBypassEnabled: false,
+  location: 'BR',
+};
+
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
@@ -664,6 +694,7 @@ describe('MoneyHomeView', () => {
 
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
+    mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
     mockOpenVbaOnboarding.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
@@ -920,10 +951,9 @@ describe('MoneyHomeView', () => {
   });
 
   describe('VBA bank details action button', () => {
-    it('renders the Details button when the account is ready', () => {
-      mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_is_ready',
-      } as VbaHomeCard);
+    it('renders the Details button for every eligible user, card or not', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -932,8 +962,11 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders no Details button when there is no VBA account', () => {
-      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+    it('renders no Details button when the user is not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -942,10 +975,9 @@ describe('MoneyHomeView', () => {
       ).toBeNull();
     });
 
-    it('tracks and navigates to VBA details on press', () => {
-      mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_is_ready',
-      } as VbaHomeCard);
+    it('tracks and opens the same destination as the VBA card on press', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockOpenVbaOnboarding.mockResolvedValue(undefined);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
 
@@ -957,18 +989,15 @@ describe('MoneyHomeView', () => {
         button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
         label_key: 'money.action.details',
         component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-        redirect_target: SCREEN_NAMES.VBA_DETAILS,
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
         button_position: 4,
         button_row_button_count: 4,
       });
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.VBA_DETAILS);
+      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
     });
 
     it('counts four buttons in the Add tracking payload when Details is shown', () => {
-      mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_is_ready',
-      } as VbaHomeCard);
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
 

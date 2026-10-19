@@ -40,6 +40,8 @@ import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -206,9 +208,14 @@ const MoneyHomeView = () => {
   // refresh is the one-shot KYC session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
-  // The bank-details button only makes sense once the virtual account exists:
-  // its screen shows the PIX key and autoramp for a provisioned account.
-  const showVbaDetailsButton = vbaHomeCard.type === 'account_is_ready';
+  // The Details button is live for every VBA-eligible user (flag + IP region,
+  // the same eligibility gate the home cards use). Its destination is the same
+  // coordinator the cards use: a complete account lands on the PIX details
+  // screen, everyone else on their first incomplete onboarding module.
+  const { isEligible: isVbaEligible } = useVbaEligibility();
+  const openVbaOnboarding = useOpenVbaOnboarding('vba-action-row-details');
+  const [isDetailsOpening, setIsDetailsOpening] = useState(false);
+  const showVbaDetailsButton = isVbaEligible;
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
     : ACTION_BUTTON_ROW_BASE_COUNT;
@@ -581,18 +588,39 @@ const MoneyHomeView = () => {
   ]);
 
   const handleActionButtonDetailsPress = useCallback(() => {
+    if (isDetailsOpening) {
+      return;
+    }
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
       label_key: 'money.action.details',
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-      redirect_target: SCREEN_NAMES.VBA_DETAILS,
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
       button_position: 4,
       button_row_button_count: actionButtonRowCount,
     });
 
-    navigation.navigate(Routes.RAMP.VBA_DETAILS);
-  }, [navigation, trackButtonClicked, actionButtonRowCount]);
+    setIsDetailsOpening(true);
+    // Intentionally not awaited: openVbaOnboarding already routes internal
+    // failures to the recoverable-error screen. Log anything that escapes.
+    openVbaOnboarding()
+      .catch((error) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'money-home' },
+          context: {
+            name: 'MoneyHomeView',
+            data: { step: 'handleActionButtonDetailsPress' },
+          },
+        });
+      })
+      .finally(() => setIsDetailsOpening(false));
+  }, [
+    isDetailsOpening,
+    openVbaOnboarding,
+    trackButtonClicked,
+    actionButtonRowCount,
+  ]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -1097,7 +1125,10 @@ const MoneyHomeView = () => {
           card={{ onPress: handleActionButtonCardPress }}
           details={
             showVbaDetailsButton
-              ? { onPress: handleActionButtonDetailsPress }
+              ? {
+                  onPress: handleActionButtonDetailsPress,
+                  disabled: isDetailsOpening,
+                }
               : undefined
           }
         />
