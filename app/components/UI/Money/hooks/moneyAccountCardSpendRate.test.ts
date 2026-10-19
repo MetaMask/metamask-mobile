@@ -40,6 +40,17 @@ describe('parseRate18', () => {
     expect(result).toBe(2000000000000000000n);
   });
 
+  it('rejects a zero rate', () => {
+    // Arrange
+    const rate = '0.000';
+
+    // Act
+    const result = parseRate18(rate);
+
+    // Assert
+    expect(result).toBeUndefined();
+  });
+
   it('rejects rates with more than 18 decimal places', () => {
     // Arrange
     const rate = '1.0000000000000000001';
@@ -132,6 +143,25 @@ describe('fetchCardSpendRateHistory', () => {
       ...overrides,
     }) as RateHistoryResponse;
 
+  it('rejects rate history when its indexer is behind the latest activity block', async () => {
+    // Arrange
+    const fetchRange = jest
+      .fn()
+      .mockResolvedValue(
+        response([createRate(101, '1.2')], { as_of_block: 100 }),
+      );
+
+    // Act & Assert
+    await expect(
+      fetchCardSpendRateHistory(fetchRange, vaultAddress, chainId, [
+        { blockNumber: 101, time: activityTime },
+      ]),
+    ).rejects.toThrow(
+      'Rate history indexer has not reached the activity block',
+    );
+    expect(fetchRange).toHaveBeenCalledTimes(1);
+  });
+
   it('fetches one batched bounded range for activities with an available rate', async () => {
     // Arrange
     const fetchRange = jest
@@ -150,7 +180,8 @@ describe('fetchCardSpendRateHistory', () => {
     );
 
     // Assert
-    expect(result).toHaveLength(1);
+    expect(result.rates).toHaveLength(1);
+    expect(result.asOfBlock).toBe(200);
     expect(fetchRange).toHaveBeenCalledTimes(1);
     expect(fetchRange).toHaveBeenCalledWith(vaultAddress, {
       chainId,
@@ -202,7 +233,7 @@ describe('fetchCardSpendRateHistory', () => {
     );
 
     // Assert
-    expect(result).toEqual([]);
+    expect(result).toEqual({ rates: [], asOfBlock: 200 });
     expect(fetchRange).toHaveBeenCalledTimes(5);
     expect(fetchRange.mock.calls.at(-1)?.[1].from).toBe(
       new Date(
