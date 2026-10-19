@@ -46,7 +46,7 @@ export const bridgeStatusControllerInit: MessengerClientInitFunction<
       addTransactionBatchFn: (
         ...args: Parameters<typeof transactionController.addTransactionBatch>
       ) => transactionController.addTransactionBatch(...args),
-      traceFn: trace as TraceCallback,
+      traceFn: trace,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },

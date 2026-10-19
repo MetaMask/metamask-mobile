@@ -14,6 +14,8 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceContext,
+  type TraceRequest,
 } from '../../../../util/trace';
 
 global.fetch = jest.fn();
@@ -38,7 +40,9 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockTrace = jest.mocked(trace);
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = jest.mocked(endTrace);
 
 describe('useSearchTokens', () => {

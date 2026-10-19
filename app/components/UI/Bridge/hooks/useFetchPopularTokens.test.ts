@@ -11,6 +11,8 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceContext,
+  type TraceRequest,
 } from '../../../../util/trace';
 
 let globalFetchSpy: jest.SpyInstance;
@@ -30,7 +32,9 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 const mockPopularTokens = [
