@@ -580,6 +580,34 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBe(true);
   });
 
+  it('renders the keypad confirm button when the limit price keypad is focused with a non-zero source amount', () => {
+    mockIsAmountFocused = false;
+    mockIsCustomPercentFocused = false;
+    mockSourceAmount = '2';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toBeOnTheScreen();
+  });
+
+  it('disables the keypad confirm button when the limit price is zero', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
   it('disables the keypad confirm button without a loading state when a traded asset has no price data', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
@@ -676,6 +704,22 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         ctaDisabled: true,
         ctaLabel: strings('bridge.limit.min_order_amount', { amount: '1' }),
+      }),
+    );
+  });
+
+  it('disables the footer confirm button when the limit price is zero', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    renderLimitOrderView();
+
+    expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ctaDisabled: true,
       }),
     );
   });
@@ -930,6 +974,7 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
         params: expect.objectContaining({
+          triggerPrice: expect.not.stringContaining(mockSourceToken.symbol),
           // Handed over as entered: the confirmation sheet converts it to USD
           // with the rate live when the order is created.
           triggerInput: {
@@ -949,9 +994,11 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
       ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
       isLimitFiatMode: false,
       limitPrice: '0.04',
       priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      value: '0.04',
     }));
 
     const { getByTestId } = renderLimitOrderView();
@@ -962,6 +1009,7 @@ describe('BridgeLimitOrderView', () => {
       Routes.BRIDGE.MODALS.ROOT,
       expect.objectContaining({
         params: expect.objectContaining({
+          triggerPrice: '0.04 USDC',
           triggerInput: expect.objectContaining({
             isLimitFiatMode: false,
             limitPrice: '0.04',

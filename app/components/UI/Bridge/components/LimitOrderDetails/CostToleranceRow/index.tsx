@@ -65,7 +65,7 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
             {value}
           </Text>
           <Icon
-            name={IconName.Edit}
+            name={IconName.ArrowRight}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />

@@ -33,11 +33,6 @@ export type FeedCardItem = CoreFeedItem & {
    * while it is still running, because that span grows every second.
    */
   holdTimeMs?: number | null;
-  /**
-   * Average entry in USD from remaining cost basis / remaining holding.
-   * Null when the position is flat.
-   */
-  entryPriceUsd?: number | null;
 };
 
 export const asFeedCardItem = (item: CoreFeedItem): FeedCardItem =>
