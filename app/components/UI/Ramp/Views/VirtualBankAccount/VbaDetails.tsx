@@ -34,7 +34,10 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { isVbaGeoBypassEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  getVbaRegionOverride,
+  selectMoneyMovementNeobank,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
 import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
@@ -113,9 +116,11 @@ const VbaDetails = () => {
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const location = useSelector(selectGeolocationLocation);
-  const sourceCurrency =
-    getVbaSourceCurrencyForCountry(location) ??
-    (isVbaGeoBypassEnabled() ? 'BRL' : undefined);
+  const { regionCurrencies } = useSelector(selectMoneyMovementNeobank);
+  const sourceCurrency = getVbaSourceCurrencyForCountry(
+    getVbaRegionOverride() ?? location,
+    regionCurrencies,
+  );
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();

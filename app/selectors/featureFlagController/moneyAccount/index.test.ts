@@ -109,11 +109,12 @@ describe('Money Account feature flag selectors', () => {
   });
 
   describe('selectMoneyMovementNeobank', () => {
-    const disabled = { isEnabled: false, regions: [] };
+    const disabled = { isEnabled: false, regions: [], regionCurrencies: {} };
     const enabledFlag = {
       enabled: true,
       minimumVersion: '0.0.0',
       regions: ['BR'],
+      regionCurrencies: { BR: 'BRL' },
     };
 
     it('reads the camelCase key Client Config stores for money-movement-neobank', () => {
@@ -128,7 +129,11 @@ describe('Money Account feature flag selectors', () => {
         },
       });
 
-      expect(result).toEqual({ isEnabled: true, regions: ['BR', 'US'] });
+      expect(result).toEqual({
+        isEnabled: true,
+        regions: ['BR', 'US'],
+        regionCurrencies: { BR: 'BRL' },
+      });
     });
 
     it('reads regions from a progressive-rollout wrapper', () => {
@@ -139,7 +144,26 @@ describe('Money Account feature flag selectors', () => {
         },
       });
 
-      expect(result).toEqual({ isEnabled: true, regions: ['US'] });
+      expect(result).toEqual({
+        isEnabled: true,
+        regions: ['US'],
+        regionCurrencies: { BR: 'BRL' },
+      });
+    });
+
+    it('normalizes the region currency map and drops unsupported values', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          regionCurrencies: {
+            br: 'brl',
+            ' us ': ' usd ',
+            DE: 'GBP',
+          },
+        },
+      });
+
+      expect(result.regionCurrencies).toEqual({ BR: 'BRL', US: 'USD' });
     });
 
     it('is disabled when the flag serves enabled: false', () => {

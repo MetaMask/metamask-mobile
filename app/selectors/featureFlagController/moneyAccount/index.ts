@@ -39,6 +39,7 @@ export const MONEY_MOVEMENT_NEOBANK_FLAG_KEY = 'moneyMovementNeobank' as const;
 
 interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   regions?: unknown;
+  regionCurrencies?: unknown;
 }
 
 /**
@@ -98,6 +99,31 @@ function normalizeVbaRegionCodes(regions: unknown): string[] {
   return codes;
 }
 
+const VBA_SOURCE_CURRENCIES = new Set(['BRL', 'USD', 'EUR']);
+
+function normalizeVbaRegionCurrencies(
+  regionCurrencies: unknown,
+): Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>> {
+  if (
+    typeof regionCurrencies !== 'object' ||
+    regionCurrencies === null ||
+    Array.isArray(regionCurrencies)
+  ) {
+    return {};
+  }
+
+  const normalized: Record<string, 'BRL' | 'USD' | 'EUR'> = {};
+  for (const [region, currency] of Object.entries(regionCurrencies)) {
+    const code = region.trim().toUpperCase();
+    const fiat =
+      typeof currency === 'string' ? currency.trim().toUpperCase() : '';
+    if (code && VBA_SOURCE_CURRENCIES.has(fiat)) {
+      normalized[code] = fiat as 'BRL' | 'USD' | 'EUR';
+    }
+  }
+  return normalized;
+}
+
 export interface MoneyMovementNeobankRollout {
   /**
    * Whether this binary may offer Virtual Bank Accounts. False when the flag
@@ -107,19 +133,21 @@ export interface MoneyMovementNeobankRollout {
   isEnabled: boolean;
   /** Uppercase ISO 3166-1 alpha-2 codes. Empty whenever `isEnabled` is false. */
   regions: readonly string[];
+  /** Currency served for each IP country. Missing countries fail closed. */
+  regionCurrencies: Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>>;
 }
 
 const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
   isEnabled: false,
   regions: [],
+  regionCurrencies: {},
 };
 
 /**
  * Virtual Bank Account rollout from `moneyMovementNeobank`.
  *
- * The object is the only switch: `{ enabled, minimumVersion, regions }`.
- * `validatedVersionGatedFeatureFlag` checks enabled and minimumVersion; regions
- * are read from that same payload. A closed gate allows no country.
+ * The object is the only switch: `{ enabled, minimumVersion, regions,
+ * regionCurrencies }`. A closed gate allows no country.
  *
  * @returns The enabled country list, or a disabled rollout.
  */
@@ -135,7 +163,11 @@ export const selectMoneyMovementNeobank = createSelector(
     if (regions.length === 0) {
       return NEOBANK_ROLLOUT_DISABLED;
     }
-    return { isEnabled: true, regions };
+    return {
+      isEnabled: true,
+      regions,
+      regionCurrencies: normalizeVbaRegionCurrencies(payload.regionCurrencies),
+    };
   },
 );
 
@@ -149,6 +181,13 @@ export const selectMoneyMovementNeobank = createSelector(
  */
 export function isVbaGeoBypassEnabled(): boolean {
   return process.env.MM_MONEY_VBA_GEO_BYPASS === 'true';
+}
+
+/** Lower-environment IP-country override for testing the whole VBA flow. */
+export function getVbaRegionOverride(): string | undefined {
+  const override =
+    process.env.MM_MONEY_VBA_REGION_OVERRIDE?.trim().toUpperCase();
+  return override || undefined;
 }
 
 export const SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY =

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { GeolocationRequestStatus } from '@metamask/geolocation-controller';
 import {
+  getVbaRegionOverride,
   isVbaGeoBypassEnabled,
   selectMoneyMovementNeobank,
 } from '../../../../../../selectors/featureFlagController/moneyAccount';
@@ -93,17 +94,18 @@ export function useVbaEligibility(): VbaEligibility {
   );
   const location = useSelector(selectGeolocationLocation);
   const geolocationStatus = useSelector(selectGeolocationStatus);
+  const regionOverride = getVbaRegionOverride();
 
   return useMemo(
     () =>
       getVbaEligibility({
         isFlagEnabled,
-        location,
+        location: regionOverride ?? location,
         geolocationStatus,
         isDevBypassEnabled: isVbaGeoBypassEnabled(),
         regions,
       }),
-    [isFlagEnabled, location, geolocationStatus, regions],
+    [isFlagEnabled, location, geolocationStatus, regionOverride, regions],
   );
 }
 

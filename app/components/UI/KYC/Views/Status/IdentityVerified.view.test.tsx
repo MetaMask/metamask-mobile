@@ -106,7 +106,19 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       state: initialStateWallet()
         .withOverrides({
           engine: {
-            backgroundState: { GeolocationController: { location: 'BR-SP' } },
+            backgroundState: {
+              GeolocationController: { location: 'BR-SP' },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  moneyMovementNeobank: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                    regions: ['BR'],
+                    regionCurrencies: { BR: 'BRL' },
+                  },
+                },
+              },
+            },
           },
         } as DeepPartial<RootState>)
         .build() as DeepPartial<RootState>,

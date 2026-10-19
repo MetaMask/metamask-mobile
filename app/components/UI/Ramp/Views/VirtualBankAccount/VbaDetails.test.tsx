@@ -40,6 +40,20 @@ jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/moneyAccount',
+    ),
+    selectMoneyMovementNeobank: () => ({
+      isEnabled: true,
+      regions: ['BR'],
+      regionCurrencies: { BR: 'BRL' },
+    }),
+  }),
+);
+
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
 }));

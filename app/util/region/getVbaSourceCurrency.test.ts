@@ -5,21 +5,35 @@ import {
 } from './getVbaSourceCurrency';
 
 describe('getVbaSourceCurrencyForCountry', () => {
+  const regionCurrencies = { BR: 'BRL', US: 'USD' } as const;
+
   it.each([
     ['BR', 'BRL'],
     ['br-sp', 'BRL'],
   ])('maps %s to %s', (location, expected) => {
-    expect(getVbaSourceCurrencyForCountry(location)).toBe(expected);
+    expect(getVbaSourceCurrencyForCountry(location, regionCurrencies)).toBe(
+      expected,
+    );
   });
 
-  it('keeps US on BRL until USD deposit details can be shown', () => {
-    expect(getVbaSourceCurrencyForCountry('US-CA')).toBe('BRL');
+  it('fails closed for USD until its details layout is stacked on top', () => {
+    expect(
+      getVbaSourceCurrencyForCountry('US-CA', regionCurrencies),
+    ).toBeUndefined();
+  });
+
+  it('fails closed when the flag does not map the country', () => {
+    expect(
+      getVbaSourceCurrencyForCountry('US-CA', { BR: 'BRL' }),
+    ).toBeUndefined();
   });
 
   it.each(['DE', 'FR-75', '', UNKNOWN_LOCATION, undefined, null])(
     'returns undefined for %p',
     (location) => {
-      expect(getVbaSourceCurrencyForCountry(location)).toBeUndefined();
+      expect(
+        getVbaSourceCurrencyForCountry(location, regionCurrencies),
+      ).toBeUndefined();
     },
   );
 });

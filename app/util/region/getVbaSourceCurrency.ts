@@ -9,17 +9,8 @@ export const VBA_SOURCE_CURRENCIES: readonly VbaSourceCurrency[] = [
   'EUR',
 ];
 
-const VBA_SOURCE_CURRENCY_BY_COUNTRY: Readonly<
-  Record<string, VbaSourceCurrency>
-> = {
-  BR: 'BRL',
-  US: 'USD',
-};
-
 /**
- * Currencies `VbaDetails` can show deposit details for. A mapped currency
- * outside this set falls back to BRL, so US users keep today's BRL autoramp
- * until the bank transfer details layout ships.
+ * Currencies `VbaDetails` can show deposit details for. PR1 only has PIX.
  */
 const VBA_CURRENCIES_WITH_DEPOSIT_DETAILS: ReadonlySet<VbaSourceCurrency> =
   new Set(['BRL']);
@@ -27,24 +18,29 @@ const VBA_CURRENCIES_WITH_DEPOSIT_DETAILS: ReadonlySet<VbaSourceCurrency> =
 /**
  * Picks the autoramp fiat from a GeolocationController location.
  *
- * Only the leading country segment is used, so `US-CA` reads as `US`. EUR is
- * never picked from a country; it is only reachable from Choose Currency.
+ * Only the leading country segment is used. The map comes from
+ * `moneyMovementNeobank.regionCurrencies`. Missing or unsupported values fail
+ * closed.
  *
  * @param location - Raw GeolocationController location, such as `BR` or `US-CA`.
+ * @param regionCurrencies - Country-to-currency map from the remote flag.
  * @returns The fiat to create, or undefined when the country has no mapping.
  */
 export function getVbaSourceCurrencyForCountry(
   location: string | undefined | null,
+  regionCurrencies: Readonly<Record<string, VbaSourceCurrency>>,
 ): VbaSourceCurrency | undefined {
   if (!location || location === UNKNOWN_LOCATION) {
     return undefined;
   }
   const country = location.trim().toUpperCase().split('-')[0];
-  const currency = VBA_SOURCE_CURRENCY_BY_COUNTRY[country];
+  const currency = regionCurrencies[country];
   if (!currency) {
     return undefined;
   }
-  return VBA_CURRENCIES_WITH_DEPOSIT_DETAILS.has(currency) ? currency : 'BRL';
+  return VBA_CURRENCIES_WITH_DEPOSIT_DETAILS.has(currency)
+    ? currency
+    : undefined;
 }
 
 /**
