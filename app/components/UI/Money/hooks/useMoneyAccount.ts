@@ -9,6 +9,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { createMoneyAccountBatchId } from '../utils/createMoneyAccountBatchId';
 import {
   buildMoneyAccountDepositPlaceholderBatch,
@@ -258,6 +259,7 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
@@ -268,6 +270,9 @@ export function useMoneyAccountWithdrawal() {
     }
     if (!primaryMoneyAccount?.address) {
       throw new Error(`${LOG_TAG} Missing money account address`);
+    }
+    if (!recipient) {
+      throw new Error(`${LOG_TAG} Missing recipient EVM address`);
     }
 
     const { chainId, tellerAddress } = vaultConfig;
@@ -289,8 +294,8 @@ export function useMoneyAccountWithdrawal() {
       // Allows confirmation skeleton to render immediately before setup work for immediate navigation.
       await waitForNextFrame();
 
-      // MM Pay re-encodes both calls via `updateMoneyAccountWithdrawTokenAmount`
-      // once the user picks an amount.
+      // Placeholder amount — MM Pay re-encodes both calls via
+      // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
       const { withdrawTx, transferTx } =
         buildMoneyAccountWithdrawPlaceholderBatch({
           chainId,
@@ -330,6 +335,7 @@ export function useMoneyAccountWithdrawal() {
     navigateToConfirmation,
     navigation,
     primaryMoneyAccount,
+    recipient,
     showToast,
     vaultConfig,
   ]);

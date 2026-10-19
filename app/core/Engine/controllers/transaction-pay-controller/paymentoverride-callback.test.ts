@@ -252,6 +252,20 @@ describe('getPaymentOverrideData', () => {
     );
   });
 
+  it('returns empty array for a zero withdraw amount without calling the builder', async () => {
+    calcTokenValueMock.mockReturnValue({
+      decimalPlaces: jest.fn().mockReturnValue({
+        toFixed: jest.fn().mockReturnValue('0'),
+      }),
+    } as never);
+
+    const result = await getPaymentOverrideData(buildRequest(), mockMessenger);
+
+    expect(result).toStrictEqual({ calls: [] });
+    expect(buildMoneyAccountWithdrawBatchMock).not.toHaveBeenCalled();
+    expect(getDelegationTransactionMock).not.toHaveBeenCalled();
+  });
+
   it('builds TransactionMeta and passes it to getDelegationTransaction', async () => {
     await getPaymentOverrideData(buildRequest(), mockMessenger);
 
@@ -371,6 +385,23 @@ describe('getPaymentOverrideData', () => {
           },
         ],
       });
+    });
+
+    it('returns empty calls for a zero deposit amount without calling the builder', async () => {
+      calcTokenValueMock.mockReturnValue({
+        decimalPlaces: jest.fn().mockReturnValue({
+          toFixed: jest.fn().mockReturnValue('0'),
+        }),
+      } as never);
+
+      const result = await getPaymentOverrideData(
+        buildPostQuoteRequest(),
+        mockMessenger,
+      );
+
+      expect(result).toStrictEqual({ calls: [] });
+      expect(buildMoneyAccountDepositBatchMock).not.toHaveBeenCalled();
+      expect(getDelegationTransactionMock).not.toHaveBeenCalled();
     });
 
     it('returns empty object when vault config is missing', async () => {

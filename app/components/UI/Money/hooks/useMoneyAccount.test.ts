@@ -999,6 +999,21 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
+  it('throws when recipient EVM address is missing', async () => {
+    setupSelectors({ recipient: undefined });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateWithdrawal();
+      }),
+    ).rejects.toThrow('Missing recipient EVM address');
+
+    expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+  });
+
   it('throws when provider is unavailable', async () => {
     mockGetProviderByChainId.mockReturnValue(undefined as never);
 
