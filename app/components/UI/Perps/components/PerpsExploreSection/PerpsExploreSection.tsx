@@ -344,7 +344,7 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
         Skeleton={SectionPillsSkeleton}
         rowCount={EXPLORE_TAB_ROW_COUNT}
         maxPills={tabs.length}
-        wrapperTwClassName="bg-transparent"
+        wrapperTwClassName="bg-transparent pb-3"
         listTestId={`${TEST_ID}-tabs`}
       />
       {isMarketsLoading || !activeTab ? (
