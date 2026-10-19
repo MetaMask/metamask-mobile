@@ -225,6 +225,20 @@ describe('LimitOrderRow', () => {
     expect(getByText(strings('bridge.limit.canceled'))).toBeOnTheScreen();
   });
 
+  it('renders a cancelled order without a close time with its expiry date', () => {
+    const { getByText } = renderLimitOrderRow({
+      ...MOCK_LIMIT_CANCELLED_ORDER,
+      timingData: {
+        ...MOCK_LIMIT_CANCELLED_ORDER.timingData,
+        closedAt: undefined,
+      },
+    });
+
+    expect(
+      getByText(strings('bridge.limit.canceled_at', { date: 'Sep 9' })),
+    ).toBeOnTheScreen();
+  });
+
   it('renders a failed order with when it failed', () => {
     const { getByText } = renderLimitOrderRow(MOCK_LIMIT_FAILED_ORDER);
 

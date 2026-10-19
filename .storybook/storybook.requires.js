@@ -67,6 +67,7 @@ const getStories = () => {
     "./app/component-library/components-temp/Tabs/Tabs.stories.tsx": require("../app/component-library/components-temp/Tabs/Tabs.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
     "./app/component-library/components-temp/TitleStandard/TitleStandard.stories.tsx": require("../app/component-library/components-temp/TitleStandard/TitleStandard.stories.tsx"),
+    "./app/component-library/components-temp/TitleStandardMarketing/TitleStandardMarketing.stories.tsx": require("../app/component-library/components-temp/TitleStandardMarketing/TitleStandardMarketing.stories.tsx"),
     "./app/component-library/components-temp/TitleSubpage/TitleSubpage.stories.tsx": require("../app/component-library/components-temp/TitleSubpage/TitleSubpage.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/Accordion.stories.tsx": require("../app/component-library/components/Accordions/Accordion/Accordion.stories.tsx"),
     "./app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx": require("../app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader.stories.tsx"),
