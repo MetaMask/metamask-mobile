@@ -1,12 +1,21 @@
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../../../../selectors/featureFlagController';
 import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import type { RootState } from '../../../../../reducers';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
+import { isLighterProviderEnabled } from '../../utils/lighterFeatureFlags';
 
 export const selectPerpsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -438,6 +447,37 @@ export const selectPerpsPositionModifyPreviewEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for social features inside Perps.
+ * LaunchDarkly key (camelCase, same as the client key): `perpsSocialEnabled`.
+ */
+export const PERPS_SOCIAL_ENABLED_FLAG_KEY = 'perpsSocialEnabled' as const;
+
+export const selectPerpsSocialEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_SOCIAL_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectIsPerpsSocialEnabled = createSelector(
+  selectPerpsSocialEnabledFlag,
+  selectRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+  (isPerpsSocialFlagEnabled, remoteFeatureFlags, thresholdGroups) =>
+    isPerpsSocialFlagEnabled &&
+    resolveABTestAssignment(
+      remoteFeatureFlags,
+      SOCIAL_V1_AB_KEY,
+      Object.values(SocialV1Variant),
+      thresholdGroups,
+    ).variantName === SocialV1Variant.Treatment,
+);
+
+/**
  * Client-config / Redux key for the Pro Scale order feature flag.
  * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
  */
@@ -538,6 +578,58 @@ export const selectPerpsCrossMarginEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.[PERPS_CROSS_MARGIN_ENABLED_FLAG_KEY];
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Selector for the Lighter venue provider (TAT-3766 POC).
+ * Controls whether Lighter appears in the provider/network selector.
+ *
+ * Remote flag wins when valid; falls back to the local env gate so the POC
+ * stays switchable on a dev machine without a LaunchDarkly entry.
+ *
+ * LaunchDarkly key (kebab-case): `perps-lighter-provider-enabled`.
+ *
+ * @returns boolean - true if the Lighter provider should be selectable
+ */
+export const selectPerpsLighterProviderEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
+    const localFlag = isLighterProviderEnabled();
+    const remoteFlag =
+      remoteFeatureFlags?.perpsLighterProviderEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+export const selectPerpsPriceAlertsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsPriceAlertsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config key for perps percent-change price alerts.
+ * Defaults to false so percent-change alerts can be rolled out independently
+ * from threshold price alerts.
+ */
+export const PERPS_PRICE_ALERTS_PERCENT_CHANGE_ENABLED_FLAG_KEY =
+  'perpsPriceAlertsPercentChangeEnabled' as const;
+
+export const selectPerpsPriceAlertsPercentChangeEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_PRICE_ALERTS_PERCENT_CHANGE_ENABLED_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

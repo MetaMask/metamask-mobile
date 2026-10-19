@@ -27,6 +27,7 @@ import {
   PredictThePitchPrizePoolDto,
   MoneyAccountSweepstakesStatsMeDto,
   MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
   MoneyAccountSweepstakesDrawProofDto,
   VipDashboardState,
   VipRefereeMeState,
@@ -396,6 +397,12 @@ export interface RewardsState {
     CampaignResourceCacheEntry<MoneyAccountSweepstakesPrizePoolDto>
   >;
 
+  // Money Account Sweepstakes volume stats (keyed by campaignId)
+  moneyAccountSweepstakesVolumeStats: Record<
+    string,
+    CampaignResourceCacheEntry<MoneyAccountSweepstakesVolumeStatsDto>
+  >;
+
   // Money Account Sweepstakes draw proof (keyed by campaignId)
   moneyAccountSweepstakesDrawProofs: Record<
     string,
@@ -516,6 +523,7 @@ export const initialState: RewardsState = {
   predictThePitchPrizePools: {},
   moneyAccountSweepstakesStats: {},
   moneyAccountSweepstakesPrizePools: {},
+  moneyAccountSweepstakesVolumeStats: {},
   moneyAccountSweepstakesDrawProofs: {},
 
   pendingDeeplink: null,
@@ -779,6 +787,7 @@ const rewardsSlice = createSlice({
       state.predictThePitchPrizePools = {};
       state.moneyAccountSweepstakesStats = {};
       state.moneyAccountSweepstakesPrizePools = {};
+      state.moneyAccountSweepstakesVolumeStats = {};
       state.moneyAccountSweepstakesDrawProofs = {};
       state.seasonUserStatuses = {};
       state.referralDetails = {};
@@ -1716,6 +1725,45 @@ const rewardsSlice = createSlice({
       }
     },
 
+    // Money Account Sweepstakes volume stats reducers
+    setMoneyAccountSweepstakesVolumeStats: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        volumeStats: MoneyAccountSweepstakesVolumeStatsDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesVolumeStats,
+        action.payload.campaignId,
+      );
+      entry.data = action.payload.volumeStats;
+      entry.error = false;
+    },
+    setMoneyAccountSweepstakesVolumeStatsLoading: (
+      state,
+      action: PayloadAction<{ campaignId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesVolumeStats,
+        action.payload.campaignId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setMoneyAccountSweepstakesVolumeStatsError: (
+      state,
+      action: PayloadAction<{ campaignId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateCampaignResourceCacheEntry(
+        state.moneyAccountSweepstakesVolumeStats,
+        action.payload.campaignId,
+      );
+      entry.error = action.payload.error;
+      if (action.payload.error) {
+        entry.data = null;
+      }
+    },
+
     // Money Account Sweepstakes draw proof reducers
     setMoneyAccountSweepstakesDrawProof: (
       state,
@@ -2068,6 +2116,9 @@ export const {
   setMoneyAccountSweepstakesPrizePool,
   setMoneyAccountSweepstakesPrizePoolLoading,
   setMoneyAccountSweepstakesPrizePoolError,
+  setMoneyAccountSweepstakesVolumeStats,
+  setMoneyAccountSweepstakesVolumeStatsLoading,
+  setMoneyAccountSweepstakesVolumeStatsError,
   setMoneyAccountSweepstakesDrawProof,
   setMoneyAccountSweepstakesDrawProofLoading,
   setMoneyAccountSweepstakesDrawProofError,

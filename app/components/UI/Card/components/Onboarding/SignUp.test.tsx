@@ -1,4 +1,5 @@
 import React from 'react';
+import { Keyboard } from 'react-native';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -11,15 +12,13 @@ import SignUp from './SignUp';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import { CardActions, CardFlow, CardScreens } from '../../util/metrics';
 
 const mockUseCardPostAuthRedirect = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockBuild = jest.fn();
-const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
-const mockCreateEventBuilder = jest.fn(() => ({
-  addProperties: mockAddProperties,
-}));
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
   useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
@@ -29,12 +28,7 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
   },
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // Capture setOnValueChange so tests can simulate country picks from the modal.
 let capturedOnValueChange:
@@ -162,6 +156,7 @@ jest.mock('../../hooks/useRegions', () => ({
     signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
     getRegionByCode: mockGetRegionByCode,
     isLoading: false,
+    isRegistrationSettingsFetched: true,
   })),
 }));
 jest.mock('../../../../hooks/useDebouncedValue');
@@ -204,6 +199,7 @@ const mockSetSelectedCountry = jest.fn();
 const mockLogout = jest.fn();
 const mockBeginMigration = jest.fn();
 const mockCancelMigration = jest.fn();
+const mockRequestLegacyAccountClosure = jest.fn();
 const mockGetUserDetails = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
@@ -219,6 +215,8 @@ jest.mock('../../../../../core/Engine', () => ({
       logout: (...args: unknown[]) => mockLogout(...args),
       beginMigration: (...args: unknown[]) => mockBeginMigration(...args),
       cancelMigration: (...args: unknown[]) => mockCancelMigration(...args),
+      requestLegacyAccountClosure: (...args: unknown[]) =>
+        mockRequestLegacyAccountClosure(...args),
       getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
@@ -299,14 +297,24 @@ jest.mock('./OnboardingStep', () => {
 });
 
 // Create test store
-// SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.location
-// via selectGeolocationLocation. Pass { geoLocation: 'US' } etc. to control it.
+// SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.
+// Pass { geoLocation: 'US', geoStatus: 'loading' } to control it. A location
+// without a status is treated as a completed lookup.
 const createTestStore = (initialState: Record<string, unknown> = {}) => {
-  const { geoLocation, ...cardState } = initialState;
+  const { geoLocation, geoStatus, ...cardState } = initialState;
+  const hasGeoLocation = typeof geoLocation === 'string';
+  const hasGeoStatus = typeof geoStatus === 'string';
   const engineState = {
     backgroundState: {
       GeolocationController:
-        typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
+        hasGeoLocation || hasGeoStatus
+          ? {
+              ...(hasGeoLocation ? { location: geoLocation } : {}),
+              ...(hasGeoStatus
+                ? { status: geoStatus }
+                : { status: 'complete' }),
+            }
+          : undefined,
       CardController: {
         selectedCountry: null,
         activeProviderId: 'baanx',
@@ -323,11 +331,21 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
 
   return configureStore({
     reducer: {
-      engine: (state = engineState, action = { type: '', payload: null }) => {
-        switch (action.type) {
-          default:
-            return state;
+      engine: (
+        state: typeof engineState = engineState,
+        action: { type: string; payload?: unknown } = { type: '' },
+      ) => {
+        if (action.type === 'test/set-geolocation') {
+          return {
+            ...state,
+            backgroundState: {
+              ...state.backgroundState,
+              GeolocationController:
+                action.payload as typeof engineState.backgroundState.GeolocationController,
+            },
+          };
         }
+        return state;
       },
       card: (
         state = {
@@ -366,6 +384,7 @@ describe('SignUp Component', () => {
     mockGetUserDetails.mockReset();
     mockGetUserDetails.mockResolvedValue({});
     mockLogout.mockResolvedValue(undefined);
+    mockRequestLegacyAccountClosure.mockResolvedValue(undefined);
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseImmersveSupportedRegions.mockReturnValue({
       region: null,
@@ -417,10 +436,27 @@ describe('SignUp Component', () => {
     ).mockReturnValue(['GB']);
     mockGetResumeCardInfo.mockResolvedValue(null);
     store = createTestStore();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   describe('Analytics', () => {
-    it('tracks CARD_VIEWED event once country is known', async () => {
+    const eventsNamed = (event: { category: string }) =>
+      mockTrackEvent.mock.calls
+        .map(
+          (call) =>
+            call[0] as {
+              name: string;
+              properties: Record<string, unknown>;
+            },
+        )
+        .filter((trackedEvent) => trackedEvent?.name === event.category);
+
+    it('tracks a prefilled country on CARD_VIEWED without a failure reason', async () => {
       const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       render(
@@ -430,15 +466,14 @@ describe('SignUp Component', () => {
       );
 
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.CARD_VIEWED,
-        );
+        expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)).toHaveLength(1);
       });
-      expect(mockAddProperties).toHaveBeenCalledWith({
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0].properties).toEqual({
         provider: 'baanx',
         screen: CardScreens.SIGN_UP,
+        country_prefill_status: 'prefilled',
+        location_format: 'country',
       });
-      expect(mockTrackEvent).toHaveBeenCalled();
     });
 
     it('tracks CARD_VIEWED with immersve provider for Immersve countries', async () => {
@@ -456,14 +491,18 @@ describe('SignUp Component', () => {
       );
 
       await waitFor(() => {
-        expect(mockAddProperties).toHaveBeenCalledWith({
+        expect(
+          eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0]?.properties,
+        ).toEqual({
           provider: 'immersve',
           screen: CardScreens.SIGN_UP,
+          country_prefill_status: 'prefilled',
+          location_format: 'country',
         });
       });
     });
 
-    it('re-fires CARD_VIEWED when country switches provider attribution', async () => {
+    it('tracks CARD_VIEWED once when the user later changes country', async () => {
       const { selectCardImmersveEnabled } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
@@ -477,14 +516,9 @@ describe('SignUp Component', () => {
       );
 
       await waitFor(() => {
-        expect(mockAddProperties).toHaveBeenCalledWith({
-          provider: 'baanx',
-          screen: CardScreens.SIGN_UP,
-        });
+        expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)).toHaveLength(1);
       });
 
-      mockAddProperties.mockClear();
-      mockCreateEventBuilder.mockClear();
       mockTrackEvent.mockClear();
 
       fireEvent.press(getByTestId('signup-country-select'));
@@ -497,12 +531,215 @@ describe('SignUp Component', () => {
         });
       });
 
-      await waitFor(() => {
-        expect(mockAddProperties).toHaveBeenCalledWith({
-          provider: 'immersve',
-          screen: CardScreens.SIGN_UP,
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)).toHaveLength(0);
+    });
+
+    it('tracks CARD_VIEWED after registration settings finish fetching', () => {
+      const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+      const regionsResult = {
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter(
+          (region: { canSignUp: boolean }) => region.canSignUp,
+        ),
+        getRegionByCode: mockGetRegionByCode,
+        isLoading: false,
+        isRegistrationSettingsFetched: true,
+      };
+      mockUseRegions.mockReturnValue({
+        allRegions: [],
+        signUpRegions: [],
+        getRegionByCode: () => null,
+        isLoading: true,
+        isRegistrationSettingsFetched: false,
+      });
+
+      const storeWithGeo = createTestStore({ geoLocation: 'GB' });
+      const { rerender } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      mockUseRegions.mockReturnValue(regionsResult);
+      rerender(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.CARD_VIEWED.category,
+          properties: expect.objectContaining({
+            country_prefill_status: 'prefilled',
+            location_format: 'country',
+          }),
+        }),
+      );
+
+      mockUseRegions.mockImplementation(() => regionsResult);
+    });
+
+    it('tracks CARD_VIEWED when a known location has no terminal geolocation status', () => {
+      render(
+        <Provider
+          store={createTestStore({ geoLocation: 'GB', geoStatus: 'idle' })}
+        >
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.CARD_VIEWED.category,
+          properties: expect.objectContaining({
+            country_prefill_status: 'prefilled',
+            location_format: 'country',
+          }),
+        }),
+      );
+    });
+
+    it('does not track CARD_VIEWED while geolocation is loading', () => {
+      const storeWithGeo = createTestStore({
+        geoLocation: 'GB',
+        geoStatus: 'loading',
+      });
+
+      render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+    });
+
+    it('tracks CARD_VIEWED after a loading geolocation resolves to a country', () => {
+      const storeWithGeo = createTestStore({
+        geoLocation: 'UNKNOWN',
+        geoStatus: 'loading',
+      });
+
+      render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      act(() => {
+        storeWithGeo.dispatch({
+          type: 'test/set-geolocation',
+          payload: { location: 'GB', status: 'complete' },
         });
       });
+
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0]?.properties).toEqual(
+        {
+          provider: 'baanx',
+          screen: CardScreens.SIGN_UP,
+          country_prefill_status: 'prefilled',
+          location_format: 'country',
+        },
+      );
+    });
+
+    it('tracks a geolocation error without a provider', () => {
+      render(
+        <Provider
+          store={createTestStore({ geoLocation: 'US', geoStatus: 'error' })}
+        >
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0]?.properties).toEqual(
+        {
+          screen: CardScreens.SIGN_UP,
+          country_prefill_status: 'failed',
+          country_prefill_failure_reason: 'geolocation_error',
+          location_format: 'country',
+        },
+      );
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
+    });
+
+    it('tracks an unknown location after geolocation completes', () => {
+      render(
+        <Provider store={createTestStore({ geoLocation: 'UNKNOWN' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0]?.properties).toEqual(
+        {
+          screen: CardScreens.SIGN_UP,
+          country_prefill_status: 'failed',
+          country_prefill_failure_reason: 'unknown_location',
+          location_format: 'unknown',
+        },
+      );
+    });
+
+    it('tracks a location that is not a registration country', () => {
+      render(
+        <Provider store={createTestStore({ geoLocation: 'JP' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0]?.properties).toEqual(
+        {
+          screen: CardScreens.SIGN_UP,
+          country_prefill_status: 'failed',
+          country_prefill_failure_reason: 'unmatched_location',
+          location_format: 'country',
+        },
+      );
+    });
+
+    it('tracks unavailable registration settings ahead of geolocation', () => {
+      const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+      mockUseRegions.mockReturnValue({
+        allRegions: [],
+        signUpRegions: [],
+        getRegionByCode: () => null,
+        isLoading: false,
+        isRegistrationSettingsFetched: true,
+      });
+
+      render(
+        <Provider
+          store={createTestStore({ geoLocation: 'GB', geoStatus: 'error' })}
+        >
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(eventsNamed(MetaMetricsEvents.CARD_VIEWED)[0]?.properties).toEqual(
+        {
+          screen: CardScreens.SIGN_UP,
+          country_prefill_status: 'failed',
+          country_prefill_failure_reason: 'registration_settings_unavailable',
+          location_format: 'country',
+        },
+      );
+
+      mockUseRegions.mockImplementation(() => ({
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter(
+          (region: { canSignUp: boolean }) => region.canSignUp,
+        ),
+        getRegionByCode: mockGetRegionByCode,
+        isLoading: false,
+        isRegistrationSettingsFetched: true,
+      }));
     });
 
     it('tracks CARD_BUTTON_CLICKED with SIGN_UP_BUTTON when continue is pressed', async () => {
@@ -528,21 +765,19 @@ describe('SignUp Component', () => {
       });
 
       mockTrackEvent.mockClear();
-      mockCreateEventBuilder.mockClear();
-      mockAddProperties.mockClear();
 
       await act(async () => {
         fireEvent.press(continueButton);
       });
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        provider: 'baanx',
-        action: CardActions.SIGN_UP_BUTTON,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(eventsNamed(MetaMetricsEvents.CARD_BUTTON_CLICKED)).toEqual([
+        expect.objectContaining({
+          properties: {
+            provider: 'baanx',
+            action: CardActions.SIGN_UP_BUTTON,
+          },
+        }),
+      ]);
     });
   });
 
@@ -585,6 +820,21 @@ describe('SignUp Component', () => {
   });
 
   describe('Email Input', () => {
+    it('uses the email keyboard and autofill hints', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      expect(emailInput.props.keyboardType).toBe('email-address');
+      expect(emailInput.props.autoComplete).toBe('email');
+      expect(emailInput.props.textContentType).toBe('emailAddress');
+      expect(emailInput.props.autoCapitalize).toBe('none');
+      expect(emailInput.props.autoCorrect).toBe(false);
+    });
+
     it('allows text input', () => {
       const { getByTestId } = render(
         <Provider store={store}>
@@ -792,7 +1042,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('Canada')).toBeOnTheScreen();
+      expect(getByText('Canada', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
@@ -806,6 +1056,39 @@ describe('SignUp Component', () => {
       );
 
       expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+    });
+
+    it('prefills the US country from a subdivision geolocation', () => {
+      const { getByText } = render(
+        <Provider store={createTestStore({ geoLocation: 'US-NY' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('US');
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.CARD_VIEWED.category,
+          properties: expect.objectContaining({
+            country_prefill_status: 'prefilled',
+            location_format: 'subdivision',
+          }),
+        }),
+      );
+    });
+
+    it('prefills the Canada country from a subdivision geolocation', () => {
+      const { getByText } = render(
+        <Provider store={createTestStore({ geoLocation: 'CA-ON' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByText('Canada', { exact: false })).toBeOnTheScreen();
+      expect(mockSetUserLocation).toHaveBeenCalledWith('international');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('CA');
     });
 
     it('does not set userCardLocation when geoLocation is UNKNOWN', () => {
@@ -843,7 +1126,7 @@ describe('SignUp Component', () => {
       );
 
       // GB is now pre-selected
-      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
       // Button is enabled (country is selected) and shows waitlist label
       expect(getByTestId('signup-continue-button')).toBeEnabled();
       // Country not available info text shown
@@ -884,7 +1167,7 @@ describe('SignUp Component', () => {
       );
 
       // GB is pre-selected but treated as supported (Immersve), not waitlist
-      expect(getByText('United Kingdom')).toBeOnTheScreen();
+      expect(getByText('United Kingdom', { exact: false })).toBeOnTheScreen();
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
@@ -896,6 +1179,30 @@ describe('SignUp Component', () => {
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
       expect(mockSetSelectedCountry).toHaveBeenCalledWith('GB');
+    });
+
+    // Unit fallback: SignUp has no *.view.test.tsx; this file already renders
+    // the screen with mocked hooks/selectors. Locks the shared description key.
+    it('uses the provider-agnostic sign-up description for Immersve countries', () => {
+      const { selectCardImmersveEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/card',
+      );
+      (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
+
+      const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
+
+      const { getByTestId, queryByText } = render(
+        <Provider store={storeWithImmersve}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(getByTestId('onboarding-step-description')).toHaveTextContent(
+        'card.card_onboarding.sign_up.description',
+      );
+      expect(
+        queryByText('card.card_onboarding.sign_up.description_immersve'),
+      ).not.toBeOnTheScreen();
     });
 
     const enableImmersve = () => {
@@ -1139,6 +1446,32 @@ describe('SignUp Component', () => {
       expect(queryByTestId('signup-immersve-error-text')).toBeOnTheScreen();
     });
 
+    it('dismisses the keyboard without continuing when the phone keypad is submitted', async () => {
+      enableImmersve();
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(() => undefined);
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore({ geoLocation: 'GB' })}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fillImmersveForm(getByTestId);
+      await act(async () => {
+        fireEvent(
+          getByTestId('signup-immersve-phone-number-input'),
+          'onSubmitEditing',
+        );
+      });
+
+      expect(dismissSpy).toHaveBeenCalled();
+      expect(mockImmersveSignIn).not.toHaveBeenCalled();
+      expect(mockRouteImmersve).not.toHaveBeenCalled();
+      dismissSpy.mockRestore();
+    });
+
     it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {
       // Simulates a background re-fetch of registrationSettings that produces a
       // new getRegionByCode reference without changing the actual data.
@@ -1151,6 +1484,7 @@ describe('SignUp Component', () => {
         signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
         getRegionByCode: firstGetRegionByCode,
         isLoading: false,
+        isRegistrationSettingsFetched: true,
       });
 
       const { getByText, rerender } = render(
@@ -1160,7 +1494,7 @@ describe('SignUp Component', () => {
       );
 
       // US was auto-selected on first render
-      expect(getByText('United States')).toBeOnTheScreen();
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
       expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
 
       // Simulate background refetch: new function identity, same data
@@ -1170,6 +1504,7 @@ describe('SignUp Component', () => {
         signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
         getRegionByCode: secondGetRegionByCode,
         isLoading: false,
+        isRegistrationSettingsFetched: true,
       });
 
       rerender(
@@ -1180,7 +1515,8 @@ describe('SignUp Component', () => {
 
       // hasAutoSelectedCountry ref must have blocked the second run
       expect(secondGetRegionByCode).not.toHaveBeenCalled();
-      expect(getByText('United States')).toBeOnTheScreen();
+      expect(getByText('United States', { exact: false })).toBeOnTheScreen();
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1414,7 +1750,11 @@ describe('SignUp Component', () => {
       );
       fireEvent.press(alreadyHaveAccountButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+        { pop: true, merge: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -1429,9 +1769,11 @@ describe('SignUp Component', () => {
 
       fireEvent.press(getByTestId('signup-i-already-have-an-account-text'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        { pop: true, merge: true },
+      );
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
@@ -1457,7 +1799,7 @@ describe('SignUp Component', () => {
       );
 
       expect(getByTestId('signup-country-select')).toHaveTextContent(
-        'United Kingdom',
+        /United Kingdom/,
       );
       expect(mockSetSelectedCountry).not.toHaveBeenCalled();
       expect(mockSetUserLocation).not.toHaveBeenCalled();
@@ -1501,19 +1843,26 @@ describe('SignUp Component', () => {
 
     it('tracks CARD_VIEWED with migration flow props', async () => {
       render(
-        <Provider store={createTestStore()}>
+        <Provider store={createTestStore({ geoLocation: 'US' })}>
           <SignUp />
         </Provider>,
       );
 
       await waitFor(() => {
-        expect(mockAddProperties).toHaveBeenCalledWith({
-          provider: 'immersve',
-          screen: CardScreens.SIGN_UP,
-          flow: CardFlow.MIGRATION,
-          migration_phase: 'grace_window',
-          badge_reasons: ['card_migration'],
-        });
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.CARD_VIEWED.category,
+            properties: {
+              provider: 'immersve',
+              screen: CardScreens.SIGN_UP,
+              flow: CardFlow.MIGRATION,
+              migration_phase: 'grace_window',
+              badge_reasons: ['card_migration'],
+              country_prefill_status: 'skipped_uk_migration',
+              location_format: 'country',
+            },
+          }),
+        );
       });
     });
 
@@ -1533,17 +1882,26 @@ describe('SignUp Component', () => {
         getByTestId('signup-immersve-phone-number-input'),
         '7911123456',
       );
-      mockAddProperties.mockClear();
-      mockCreateEventBuilder.mockClear();
+      mockTrackEvent.mockClear();
 
       await act(async () => {
         fireEvent.press(getByTestId('signup-continue-button'));
       });
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.CARD_BUTTON_CLICKED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
+      const buttonEvent = mockTrackEvent.mock.calls
+        .map(
+          (call) =>
+            call[0] as {
+              name: string;
+              properties: Record<string, unknown>;
+            },
+        )
+        .find(
+          (event) =>
+            event.name === MetaMetricsEvents.CARD_BUTTON_CLICKED.category,
+        );
+
+      expect(buttonEvent?.properties).toEqual({
         provider: 'immersve',
         action: CardActions.SIGN_UP_BUTTON,
         flow: CardFlow.MIGRATION,
@@ -1552,16 +1910,8 @@ describe('SignUp Component', () => {
         country_of_residence: 'GB',
         phone_number_country_code: '44',
       });
-      expect(mockAddProperties).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: expect.anything(),
-        }),
-      );
-      expect(mockAddProperties).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          phone: expect.anything(),
-        }),
-      );
+      expect(buttonEvent?.properties).not.toHaveProperty('email');
+      expect(buttonEvent?.properties).not.toHaveProperty('phone');
     });
 
     it('prefills phone region after regions load when user details were pending', async () => {
@@ -1860,13 +2210,49 @@ describe('SignUp Component', () => {
       });
 
       expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockRequestLegacyAccountClosure).toHaveBeenCalledTimes(1);
       expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+      expect(
+        mockRequestLegacyAccountClosure.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockBeginMigration.mock.invocationCallOrder[0]);
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });
       expect(mockBeginMigration.mock.invocationCallOrder[0]).toBeLessThan(
         mockImmersveSignIn.mock.invocationCallOrder[0],
       );
+    });
+
+    it('continues Immersve sign-up when legacy account closure fails', async () => {
+      mockRequestLegacyAccountClosure.mockRejectedValue(
+        new Error('closure failed'),
+      );
+      mockImmersveSignIn.mockResolvedValue({ done: true });
+      mockGetFundingSources.mockResolvedValue([]);
+      mockCreateFundingSource.mockResolvedValue({ id: 'fs-1' });
+      mockPatchContactDetails.mockResolvedValue(undefined);
+      mockGetSpendingPrerequisites.mockResolvedValue({ prerequisites: [] });
+
+      const { getByTestId } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      fireEvent.changeText(getByTestId('signup-email-input'), 'gb@example.com');
+      fireEvent.changeText(
+        getByTestId('signup-immersve-phone-number-input'),
+        '7911123456',
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('signup-continue-button'));
+      });
+
+      expect(mockBeginMigration).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockImmersveSignIn).toHaveBeenCalled();
+      });
     });
 
     it('calls cancelMigration when Immersve continue fails after beginMigration', async () => {
@@ -1920,6 +2306,7 @@ describe('SignUp Component', () => {
       });
 
       expect(mockLogout).not.toHaveBeenCalled();
+      expect(mockRequestLegacyAccountClosure).not.toHaveBeenCalled();
       await waitFor(() => {
         expect(mockImmersveSignIn).toHaveBeenCalled();
       });

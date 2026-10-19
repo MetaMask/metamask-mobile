@@ -8,7 +8,6 @@ export const CardAuthenticationSelectors = {
   LOGIN_ERROR_TEXT: 'login-error-text',
   COUNTRY_SELECT: 'card-auth-country-select',
   ACCOUNT_SELECT: 'card-auth-account-select',
-  ACCOUNT_MISMATCH_ERROR: 'card-auth-account-mismatch-error',
   RESOLVING_SKELETON: 'card-auth-resolving-skeleton',
   FORK_CONTAINER: 'card-auth-fork',
   FORK_EMAIL: 'card-auth-fork-email',

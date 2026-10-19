@@ -261,6 +261,17 @@ describe('BaseWalletDetails', () => {
     expect(getByTestId(WalletDetailsIds.ACCOUNTS_LIST)).toBeTruthy();
   });
 
+  it('separates the detail rows with a 1px divider', () => {
+    const { getByTestId } = renderWithProvider(
+      <BaseWalletDetails wallet={mockWallet} />,
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(WalletDetailsIds.WALLET_BALANCE)).toHaveStyle({
+      marginBottom: 1,
+    });
+  });
+
   it('spaces the details section 8px below the header', () => {
     const { getByTestId } = renderWithProvider(
       <BaseWalletDetails wallet={mockWallet} />,

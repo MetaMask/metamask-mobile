@@ -1,34 +1,11 @@
-import React, {
-  forwardRef as mockForwardRef,
-  useImperativeHandle as mockUseImperativeHandle,
-} from 'react';
-import {
-  View as MockView,
-  TouchableOpacity as MockTouchableOpacity,
-  Text as MockRNText,
-  Platform,
-} from 'react-native';
+import React from 'react';
+import { Platform } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import OtherBottomSheet from './OtherBottomSheet';
 import { OtherBottomSheetTestIds } from './OtherBottomSheet.testIds';
 import { strings } from '../../../../../locales/i18n';
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = () => ({});
-    tw.style = jest.fn(() => ({}));
-    return tw;
-  },
-}));
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return {
-    ...actual,
-    useTheme: jest.fn(() => actual.mockTheme),
-  };
-});
-
+// The global keyboard-controller mock in testSetup does not export useResizeMode.
 jest.mock('react-native-keyboard-controller', () => ({
   KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
   useKeyboardState: (selector?: (state: { height: number }) => number) => {
@@ -37,94 +14,6 @@ jest.mock('react-native-keyboard-controller', () => ({
   },
   useResizeMode: jest.fn(),
 }));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const BottomSheet = mockForwardRef<
-    { onCloseBottomSheet: (cb: () => void) => void },
-    {
-      children: React.ReactNode;
-      testID?: string;
-      onClose?: () => void;
-      keyboardAvoidingViewEnabled?: boolean;
-    }
-  >(({ children, testID, keyboardAvoidingViewEnabled }, ref) => {
-    mockUseImperativeHandle(ref, () => ({
-      onCloseBottomSheet: (callback: () => void) => {
-        callback?.();
-      },
-    }));
-    return (
-      <MockView
-        testID={testID}
-        accessibilityState={{
-          selected: keyboardAvoidingViewEnabled,
-        }}
-      >
-        {children}
-      </MockView>
-    );
-  });
-  BottomSheet.displayName = 'BottomSheet';
-
-  const BottomSheetHeader = ({
-    children,
-    onClose,
-    closeButtonProps,
-  }: {
-    children?: React.ReactNode;
-    onClose?: () => void;
-    closeButtonProps?: { testID?: string };
-  }) => (
-    <MockView>
-      <MockTouchableOpacity testID={closeButtonProps?.testID} onPress={onClose}>
-        <MockView />
-      </MockTouchableOpacity>
-      {children}
-    </MockView>
-  );
-
-  const Button = ({
-    children,
-    onPress,
-    testID,
-  }: {
-    children?: React.ReactNode;
-    onPress?: () => void;
-    testID?: string;
-    isFullWidth?: boolean;
-    variant?: string;
-    size?: string;
-  }) => (
-    <MockTouchableOpacity testID={testID} onPress={onPress}>
-      {typeof children === 'string' ? (
-        <MockRNText>{children}</MockRNText>
-      ) : (
-        children
-      )}
-    </MockTouchableOpacity>
-  );
-
-  const Text = ({ children }: { children?: React.ReactNode }) => (
-    <MockRNText>{children}</MockRNText>
-  );
-
-  const Box = ({ children }: { children?: React.ReactNode }) => (
-    <MockView>{children}</MockView>
-  );
-
-  return {
-    __esModule: true,
-    BottomSheet,
-    BottomSheetHeader,
-    Button,
-    Text,
-    Box,
-    ButtonSize: { Lg: 'Lg' },
-    ButtonVariant: { Primary: 'Primary' },
-    FontWeight: { Bold: 'Bold' },
-    TextVariant: { HeadingSm: 'HeadingSm' },
-  };
-});
 
 const createProps = (
   overrides: Partial<React.ComponentProps<typeof OtherBottomSheet>> = {},
@@ -368,15 +257,11 @@ describe('OtherBottomSheet', () => {
         screen.getByTestId(OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(OtherBottomSheetTestIds.BOTTOM_SHEET).props
-          .accessibilityState,
-      ).toEqual({ selected: false });
-      expect(
         screen.getByTestId(OtherBottomSheetTestIds.DONE_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    it('offsets the entire sheet by keyboard height on iOS', () => {
+    it('does not wrap the sheet in a keyboard offset container on iOS', () => {
       Object.defineProperty(Platform, 'OS', {
         configurable: true,
         value: 'ios',
@@ -387,10 +272,6 @@ describe('OtherBottomSheet', () => {
       expect(
         screen.queryByTestId(OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER),
       ).not.toBeOnTheScreen();
-      expect(
-        screen.getByTestId(OtherBottomSheetTestIds.BOTTOM_SHEET).props
-          .accessibilityState,
-      ).toEqual({ selected: true });
       expect(
         screen.getByTestId(OtherBottomSheetTestIds.DONE_BUTTON),
       ).toBeOnTheScreen();

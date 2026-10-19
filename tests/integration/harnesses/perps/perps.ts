@@ -173,6 +173,7 @@ function createMockInfoClient() {
       balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
     }),
     userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+    userToMultiSigSigners: jest.fn().mockResolvedValue(null),
     meta: jest.fn().mockResolvedValue({
       universe: [
         { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -210,16 +211,18 @@ function createMockInfoClient() {
     perpDexs: jest.fn().mockResolvedValue([null]),
     allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
     frontendOpenOrders: jest.fn().mockResolvedValue([]),
+    twapHistory: jest.fn().mockResolvedValue([]),
+    activeAssetData: jest
+      .fn()
+      .mockResolvedValue({ leverage: { type: 'isolated', value: 5 } }),
     l2Book: jest.fn().mockResolvedValue({
       levels: [
         [{ px: '49999', sz: '1', n: 1 }],
         [{ px: '50001', sz: '1', n: 1 }],
       ],
     }),
-    orderStatus: jest.fn().mockResolvedValue({
-      status: 'order',
-      order: { status: 'open', order: { sz: '0.1' } },
-    }),
+    // No signed identity is known until the test supplies its venue receipt.
+    orderStatus: jest.fn().mockResolvedValue({ status: 'unknownOid' }),
     referral: jest.fn().mockResolvedValue({
       referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
     }),
@@ -344,7 +347,25 @@ export function buildPerpsIntegrationHarness(
       .fn()
       .mockReturnValue(options.isTestnet ? 'testnet' : 'mainnet'),
     getInfoClient: jest.fn().mockReturnValue(infoClient),
-    getExchangeClient: jest.fn().mockReturnValue(exchangeClient),
+    getExchangeClient: jest.fn((beforeDispatch?: () => Promise<void>) => {
+      if (!beforeDispatch) {
+        return exchangeClient;
+      }
+      // Run the fence before the mocked SDK call. Production runs it after
+      // signing; this harness does not simulate that signing boundary.
+      return new Proxy(exchangeClient, {
+        get(target, property, receiver) {
+          const value: unknown = Reflect.get(target, property, receiver);
+          if (typeof value !== 'function') {
+            return value;
+          }
+          return async (...args: unknown[]) => {
+            await beforeDispatch();
+            return Reflect.apply(value, target, args);
+          };
+        },
+      });
+    }),
     fetchHistoricalOrders: jest.fn().mockResolvedValue([]),
     disconnect: jest.fn().mockResolvedValue(undefined),
     toggleTestnet: jest.fn(),
@@ -368,8 +389,8 @@ export function buildPerpsIntegrationHarness(
     getUserAddressWithDefault: jest
       .fn()
       .mockResolvedValue(DEFAULT_USER_ADDRESS),
-    isKeyringUnlocked: jest.fn().mockReturnValue(true),
-    isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
+    isMainAccountSignerReady: jest.fn().mockReturnValue(true),
+    requiresSignatureConfirmation: jest.fn().mockReturnValue(false),
   } as unknown as jest.Mocked<HyperLiquidWalletService>;
 
   // Shared by every cached-position read on the mock subscription service so a

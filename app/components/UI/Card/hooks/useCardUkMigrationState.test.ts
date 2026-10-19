@@ -45,15 +45,21 @@ describe('useCardUkMigrationState', () => {
     const { result } = renderHook(() => useCardUkMigrationState());
 
     expect(mockResolve).toHaveBeenCalled();
+    const [, evaluationTime] = mockResolve.mock.calls[0];
+    expect(evaluationTime).toBeInstanceOf(Date);
     expect(result.current.state.phase).toBe('soft');
   });
 
   it('re-resolves when refresh is called so soft can become forced', () => {
-    mockResolve.mockImplementation(() => ({
-      phase: mockResolve.mock.calls.length <= 1 ? 'soft' : 'forced',
-      isActive: true,
-      deadline: new Date('2026-09-30T23:59:59.999Z'),
-    }));
+    let resolveCount = 0;
+    mockResolve.mockImplementation(() => {
+      resolveCount += 1;
+      return {
+        phase: resolveCount <= 1 ? 'soft' : 'forced',
+        isActive: true,
+        deadline: new Date('2026-09-30T23:59:59.999Z'),
+      };
+    });
 
     const { result } = renderHook(() => useCardUkMigrationState());
 

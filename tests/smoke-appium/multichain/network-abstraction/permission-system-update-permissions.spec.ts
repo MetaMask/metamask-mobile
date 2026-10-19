@@ -97,31 +97,36 @@ appiumTest.describe(
             await Assertions.expectElementToNotBeVisible(
               ToastModal.notificationTitle,
             );
-            await Assertions.expectTextDisplayed('Account 1');
-            await Assertions.expectElementToBeVisible(
-              ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
+            await ConnectedAccountsModal.expectConnectedAccountDisplayed(
+              'Account 1',
             );
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
-            await AccountListBottomSheet.tapAddAccountButtonV2();
-            await Assertions.expectTextDisplayed('Account 2');
+            await AccountListBottomSheet.addAccountAndExpectVisibleV2(
+              'Account 2',
+            );
 
             await AccountListBottomSheet.tapAccountByNameV2('Account 2');
             await AccountListBottomSheet.tapConnectAccountsButton();
 
-            await Assertions.expectTextDisplayed('Account 1');
-            await Assertions.expectTextDisplayed('Account 2');
+            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
+              'Account 1',
+              'Account 2',
+            ]);
 
             await ConnectedAccountsModal.tapAccountListBottomSheet();
-            await AccountListBottomSheet.tapAddAccountButtonV2();
-            await Assertions.expectTextDisplayed('Account 3');
+            await AccountListBottomSheet.addAccountAndExpectVisibleV2(
+              'Account 3',
+            );
 
             await AccountListBottomSheet.tapAccountByNameV2('Account 3');
             await AccountListBottomSheet.tapConnectAccountsButton();
 
-            await Assertions.expectTextDisplayed('Account 1');
-            await Assertions.expectTextDisplayed('Account 2');
-            await Assertions.expectTextDisplayed('Account 3');
+            await ConnectedAccountsModal.expectConnectedAccountsDisplayed([
+              'Account 1',
+              'Account 2',
+              'Account 3',
+            ]);
 
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();

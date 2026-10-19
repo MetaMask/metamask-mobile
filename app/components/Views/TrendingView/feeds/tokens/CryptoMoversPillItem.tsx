@@ -12,6 +12,7 @@ import {
   BadgeNetwork,
   BadgeWrapperPosition,
   BadgeWrapper,
+  Box,
 } from '@metamask/design-system-react-native';
 import { useTrendingTokenPress } from '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
@@ -62,19 +63,21 @@ const CryptoMoversPillItem: React.FC<CryptoMoversPillItemProps> = ({
 
   const leading = useMemo(
     () => (
-      <BadgeWrapper
-        position={BadgeWrapperPosition.BottomRight}
-        badge={
-          <BadgeNetwork src={networkBadgeImageSource} twClassName="h-4 w-4" />
-        }
-      >
-        <TrendingTokenLogo
-          assetId={token.assetId}
-          symbol={token.symbol}
-          size={LOGO_SIZE}
-          recyclingKey={token.assetId}
-        />
-      </BadgeWrapper>
+      <Box twClassName="mr-2">
+        <BadgeWrapper
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
+            <BadgeNetwork src={networkBadgeImageSource} twClassName="h-4 w-4" />
+          }
+        >
+          <TrendingTokenLogo
+            assetId={token.assetId}
+            symbol={token.symbol}
+            size={LOGO_SIZE}
+            recyclingKey={token.assetId}
+          />
+        </BadgeWrapper>
+      </Box>
     ),
     [networkBadgeImageSource, token.assetId, token.symbol],
   );

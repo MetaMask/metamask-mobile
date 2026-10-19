@@ -29,6 +29,7 @@ import {
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
   type OrderType,
+  type MarginMode,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsLiquidationPrice } from '../../hooks/usePerpsLiquidationPrice';
@@ -37,9 +38,16 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { usePerpsLivePrices } from '../../hooks';
-import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsLeveragePickerItemTestId,
+  PerpsLeverageBottomSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
+import {
+  calculateLiquidationDistance,
+  clampLiquidationDistance,
+} from '../../utils/liquidationDistance';
 import {
   Box,
   BoxAlignItems,
@@ -79,6 +87,7 @@ interface PerpsLeverageBottomSheetProps {
   limitPrice?: string;
   triggerPrice?: string;
   orderType?: OrderType;
+  marginMode?: MarginMode;
   enableConfirmHaptics?: boolean;
 }
 
@@ -112,6 +121,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   limitPrice,
   triggerPrice,
   orderType = 'market',
+  marginMode = 'isolated',
   enableConfirmHaptics = false,
 }) => {
   const tw = useTailwind();
@@ -177,7 +187,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const { liquidationPrice: apiLiquidationPrice, isCalculating } =
     usePerpsLiquidationPrice(
       {
-        entryPrice,
+        entryPrice: marginMode === 'cross' ? 0 : entryPrice,
         leverage: tempLeverage, // Final leverage value for API calls
         direction,
         asset,
@@ -270,26 +280,26 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
     }
 
     if (!dynamicLiquidationPrice || dynamicLiquidationPrice === 0) {
-      const theoreticalPercentage = (1 / tempLeverage) * 100;
-      return theoreticalPercentage >= 99.9 ? 100 : theoreticalPercentage;
+      return clampLiquidationDistance((1 / tempLeverage) * 100);
     }
 
-    const percentageDrop =
-      (Math.abs(currentPrice - dynamicLiquidationPrice) / currentPrice) * 100;
-
-    return percentageDrop >= 99.9 ? 100 : percentageDrop;
+    return clampLiquidationDistance(
+      calculateLiquidationDistance(currentPrice, dynamicLiquidationPrice),
+    );
   }, [currentPrice, dynamicLiquidationPrice, tempLeverage]);
 
-  const isRecalculating = leverageChanged;
+  const isRecalculating = marginMode !== 'cross' && leverageChanged;
 
   const hasValidApiPrice =
     !Number.isNaN(dynamicLiquidationPrice) && dynamicLiquidationPrice > 0;
 
-  const displayLiquidationPrice = isRecalculating
-    ? null
-    : hasValidApiPrice
-      ? dynamicLiquidationPrice
-      : lastValidLiquidationPrice.current;
+  // The cached estimate and leverage-based distance are isolated-only.
+  const displayLiquidationPrice =
+    marginMode === 'cross' || isRecalculating
+      ? null
+      : hasValidApiPrice
+        ? dynamicLiquidationPrice
+        : lastValidLiquidationPrice.current;
 
   const displayLiquidationPercentage = isRecalculating
     ? null
@@ -460,18 +470,26 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
   if (!isVisible) return null;
 
+  // As a nested Trade sheet screen the header only offers "back": the Trade
+  // sheet itself owns dismissal, and the explainer that the standalone sheet
+  // keeps behind the Liquidation price tooltip is shown inline instead.
+  const isNestedScreen = presentation === 'screen';
+
   const content = (
     <>
       <BottomSheetHeader
-        onBack={presentation === 'screen' ? onBack : undefined}
-        onClose={onClose}
+        onBack={isNestedScreen ? onBack : undefined}
+        onClose={isNestedScreen ? undefined : onClose}
       >
         {strings('perps.order.leverage_modal.title')}
       </BottomSheetHeader>
 
       <Box paddingTop={3} accessible={false}>
         {currentPrice ? (
-          <Box paddingHorizontal={4} accessible={false}>
+          // No horizontal padding here: KeyValueRow already insets itself by
+          // px-4, so adding it again doubled these rows to 32px and pushed
+          // them out of line with the description and footer button.
+          <>
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.order.leverage_modal.current_price')}
@@ -515,18 +533,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                           })
                         : PERPS_CONSTANTS.FallbackDataDisplay}
                     </Text>
-                    {(tempLeverage === 1 || displayLiquidationPrice !== null) &&
+                    {marginMode !== 'cross' &&
+                      (tempLeverage === 1 ||
+                        displayLiquidationPrice !== null) &&
                       displayLiquidationPercentage && (
                         <>
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
-                            testID={
-                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
-                            }
-                          >
-                            {` ${displayLiquidationPercentage}`}
-                          </Text>
                           <Icon
                             name={
                               direction === 'long'
@@ -535,17 +546,27 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                             }
                             size={IconSize.Sm}
                             color={IconColor.IconAlternative}
+                            twClassName="ml-1"
                             testID={
                               PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_TREND_ICON
                             }
                           />
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                            testID={
+                              PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                            }
+                          >
+                            {displayLiquidationPercentage}
+                          </Text>
                         </>
                       )}
                   </Box>
                 )
               }
             />
-          </Box>
+          </>
         ) : (
           <Text
             variant={TextVariant.BodyMd}
@@ -611,10 +632,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                     accessibilityLabel={`${value}x`}
                     accessibilityState={{ selected: isSelected }}
                     onPress={() => handleLeveragePress(value)}
-                    testID={`${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-${value}`}
+                    testID={getPerpsLeveragePickerItemTestId(value)}
                     style={({ pressed }) =>
                       tw.style(
-                        'h-10 items-center justify-center rounded-lg',
+                        'h-10 items-center justify-center rounded-full',
                         isSelected && 'bg-muted',
                         pressed && 'opacity-70',
                         { width: LEVERAGE_ITEM_WIDTH },
@@ -634,6 +655,22 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             </ScrollView>
           </MaskedView>
         </Box>
+
+        {isNestedScreen ? (
+          <>
+            {/* SectionDivider defaults to 20px vertical margin; drop the bottom
+                one so the explainer sits 16px below the rule. */}
+            <SectionDivider twClassName="mb-0" />
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="px-4 pt-4 pb-3"
+              testID={PerpsLeverageBottomSheetSelectorsIDs.DESCRIPTION}
+            >
+              {strings('perps.order.leverage_modal.description')}
+            </Text>
+          </>
+        ) : null}
       </Box>
 
       <BottomSheetFooter
@@ -649,7 +686,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   );
 
   if (presentation === 'screen') {
-    return <Box twClassName="flex-1">{content}</Box>;
+    // Sizes to its own content: the Trade sheet renders this screen without
+    // locking it to the Trade screen height, so stretching to fill would
+    // collapse it to nothing.
+    return <Box accessible={false}>{content}</Box>;
   }
 
   return (

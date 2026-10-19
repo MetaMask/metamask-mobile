@@ -1,16 +1,21 @@
 import React, { memo, useMemo } from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import {
   formatPerpsFiat,
-  PRICE_RANGES_UNIVERSAL,
   formatPercentage,
+  getUniversalPriceFractionDigits,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
@@ -179,16 +184,21 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
 
       // Compact header stays percentage-only; the prominent header mirrors the
       // asset overview screen by showing the absolute change and percentage,
-      // e.g. "+$3.57 (+0.21%)".
+      // e.g. "+$3.57 (+0.21%)", with a separate 24h period label.
       if (!isLarge || absoluteChange === null) {
         return percentage;
       }
 
       const sign = absoluteChange > 0 ? '+' : absoluteChange < 0 ? '-' : '';
+      // Match the market price's fraction digits. Formatting the change on
+      // its own magnitude picks a finer range (e.g. $0.81169 next to $84.491).
+      const priceFractionDigits = getUniversalPriceFractionDigits(currentPrice);
       const formattedAbsoluteChange = formatPerpsFiat(
         Math.abs(absoluteChange),
         {
           ranges: PRICE_RANGES_UNIVERSAL,
+          minimumDecimals: priceFractionDigits,
+          maximumDecimals: priceFractionDigits,
         },
       );
       return `${sign}${formattedAbsoluteChange} (${percentage})`;
@@ -196,6 +206,18 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       return PERPS_CONSTANTS.FallbackPercentageDisplay;
     }
   }, [currentPrice, displayChange, isLarge, absoluteChange]);
+
+  const changeText = (
+    <Text
+      variant={changeVariant}
+      fontWeight={changeFontWeight}
+      color={changeColor}
+      numberOfLines={1}
+      testID={testIDChange}
+    >
+      {formattedChange}
+    </Text>
+  );
 
   return (
     <View style={[styles.container, isLarge ? stackedLayout : inlineLayout]}>
@@ -209,15 +231,25 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       >
         {formattedPrice}
       </Text>
-      <Text
-        variant={changeVariant}
-        fontWeight={changeFontWeight}
-        color={changeColor}
-        numberOfLines={1}
-        testID={testIDChange}
-      >
-        {formattedChange}
-      </Text>
+      {isLarge ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Baseline}
+          twClassName="gap-1"
+        >
+          {changeText}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={testIDChange ? `${testIDChange}-period` : undefined}
+          >
+            {strings('perps.market.change_period_24h')}
+          </Text>
+        </Box>
+      ) : (
+        changeText
+      )}
     </View>
   );
 };

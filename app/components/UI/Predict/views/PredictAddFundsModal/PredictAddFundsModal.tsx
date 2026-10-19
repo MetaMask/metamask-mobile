@@ -57,7 +57,7 @@ const PredictAddFundsModal: React.FC = () => {
 
   useEffect(() => {
     if (autoDeposit) {
-      depositRef.current();
+      depositRef.current({ sheetPresentation: true });
     } else {
       predictUnavailableRef.current?.onOpenBottomSheet();
     }

@@ -1,12 +1,6 @@
 import React, { useCallback } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import {
-  FontWeight,
-  Slider,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { StyleSheet, View } from 'react-native';
+import { Slider } from '@metamask/design-system-react-native';
 import { playImpact, ImpactMoment } from '../../../../../util/haptics';
 
 /**
@@ -23,45 +17,21 @@ const THUMB_BOTTOM_OFFSET = THUMB_TOP_OFFSET + THUMB_SIZE;
 const SLIDER_TRACK_AREA_HEIGHT =
   SLIDER_VERTICAL_PADDING * 2 + THUMB_BOTTOM_OFFSET;
 /**
- * Visual scale applied to the `compact` variant so it matches Figma's small
- * slider (16px thumb, 4px track, 2px dots — exactly half of the design
- * system's hardcoded 32px/8px/4px). See the `variant` doc below for why this
- * can't just be a prop on the design system `Slider`.
+ * Visual scale applied to the `compact` variant so its thumb matches the
+ * 24px thumb of Figma's small slider (the design system hardcodes 32px). The
+ * track and dots shrink by the same factor (8px → 6px, 4px → 3px), which is
+ * the closest a uniform transform can get to Figma's 4px/2px. See the
+ * `variant` doc below for why this can't just be a prop on the design system
+ * `Slider`.
  */
-const COMPACT_SCALE = 0.5;
-
-/**
- * Figma's range labels stay at Body/Xs (12/20) regardless of the shrunken
- * track, so the `compact` variant renders them itself outside the scaler
- * rather than letting the design system's Body/Md labels be halved with
- * everything else. Mirrors `Slider`'s own edge insets so a label still lines
- * up with the dot it belongs to.
- */
-const COMPACT_LABEL_LINE_HEIGHT = 20;
-const COMPACT_LABEL_GAP = 8;
-const COMPACT_LABEL_MARKS = [
-  { step: 0, label: '0%', left: '2%' },
-  { step: 25, label: '25%', left: '25%' },
-  { step: 50, label: '50%', left: '50%' },
-  { step: 75, label: '75%', left: '75%' },
-  { step: 100, label: '100%', left: '98%' },
-] as const;
+const COMPACT_SCALE = 0.75;
 
 const styles = StyleSheet.create({
   compactScaler: {
     height: SLIDER_TRACK_AREA_HEIGHT * COMPACT_SCALE,
-    width: '200%',
+    width: `${100 / COMPACT_SCALE}%`,
     transform: [{ scale: COMPACT_SCALE }],
     transformOrigin: 'left top',
-  },
-  compactLabelRow: {
-    height: COMPACT_LABEL_LINE_HEIGHT,
-    marginTop: COMPACT_LABEL_GAP,
-  },
-  compactLabel: {
-    position: 'absolute',
-    alignItems: 'center',
-    transform: [{ translateX: '-50%' }],
   },
 });
 
@@ -86,18 +56,19 @@ interface PerpsSliderProps {
    * match Figma's small variant and removes the horizontal track inset, for
    * dense layouts (e.g. footer sliders). The design system `Slider` has no
    * size prop and only exposes one root `style`/`twClassName` covering its
-   * whole subtree, so this wraps it in a single `View` that declares
-   * `width: '200%'` (double, so the `Slider` — which stretches to fill its
-   * parent — still spans the full row after shrinking) and `height` equal
-   * to the target *post-scale* size (half the `Slider`'s natural height, so
-   * it overflows the declared box by exactly 2x). `transform: scale(0.5)`
-   * with `transformOrigin: 'left top'` then shrinks that whole overflowing
-   * render back down, anchored at the top-left corner — the declared box
-   * and the shrunk content end up pixel-identical, so no separate clipping
-   * container is needed. The drag/tap gesture math still runs against the
-   * pre-scale (double-size) layout box, so the hit-region stays exactly as
-   * large as the `'default'` variant's even though it now looks half the
-   * size.
+   * whole subtree, so this wraps it in a single `View` that declares a
+   * `width` of `100% / COMPACT_SCALE` (so the `Slider` — which stretches to
+   * fill its parent — still spans the full row after shrinking) and `height`
+   * equal to the target *post-scale* size (the `Slider`'s natural height
+   * times the scale, so it overflows the declared box by exactly
+   * `1 / COMPACT_SCALE`). `transform: scale(COMPACT_SCALE)` with
+   * `transformOrigin: 'left top'` then shrinks that whole overflowing render
+   * back down, anchored at the top-left corner — the declared box and the
+   * shrunk content end up pixel-identical, so no separate clipping container
+   * is needed. The drag/tap gesture math still runs against the pre-scale
+   * (larger) layout box, so the hit-region stays exactly as large as the
+   * `'default'` variant's even though it now looks smaller. That box is sized
+   * to the track and thumb only, so this variant never renders range labels.
    */
   variant?: 'default' | 'compact';
   testID?: string;
@@ -131,17 +102,6 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   }, []);
 
   const isCompact = variant === 'compact';
-  const hasCompactLabels = isCompact && showPercentageLabels;
-
-  const handleLabelPress = useCallback(
-    (markStep: number) => {
-      const next =
-        minimumValue + (markStep / 100) * (maximumValue - minimumValue);
-      onValueChange(next);
-      onDragEnd?.(next);
-    },
-    [maximumValue, minimumValue, onDragEnd, onValueChange],
-  );
 
   // The design system `Slider` only repositions its thumb when `value` changes;
   // it ignores range changes. Driving it in percent means a range change moves
@@ -221,32 +181,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     return slider;
   }
 
-  return (
-    <View>
-      <View style={styles.compactScaler}>{slider}</View>
-      {hasCompactLabels ? (
-        <View style={styles.compactLabelRow}>
-          {COMPACT_LABEL_MARKS.map((mark) => (
-            <Pressable
-              key={mark.step}
-              style={[styles.compactLabel, { left: mark.left }]}
-              onPress={() => handleLabelPress(mark.step)}
-              disabled={disabled}
-              accessibilityRole="button"
-            >
-              <Text
-                variant={TextVariant.BodyXs}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {mark.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-    </View>
-  );
+  return <View style={styles.compactScaler}>{slider}</View>;
 };
 
 export default PerpsSlider;

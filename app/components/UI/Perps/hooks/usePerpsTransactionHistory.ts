@@ -55,6 +55,10 @@ function deduplicateByTxHash(
 interface UsePerpsTransactionHistoryParams {
   accountId?: CaipAccountId;
   skipInitialFetch?: boolean;
+  /**
+   * When true (default), merge same-second close fills into one trade row.
+   */
+  aggregateFills?: boolean;
 }
 
 interface UsePerpsTransactionHistoryResult {
@@ -75,6 +79,7 @@ interface UsePerpsTransactionHistoryResult {
 export const usePerpsTransactionHistory = ({
   accountId,
   skipInitialFetch = false,
+  aggregateFills = true,
 }: UsePerpsTransactionHistoryParams = {}): UsePerpsTransactionHistoryResult => {
   const [transactions, setTransactions] = useState<PerpsTransaction[]>([]);
   const [restFills, setRestFills] = useState<OrderFill[]>([]);
@@ -384,6 +389,7 @@ export const usePerpsTransactionHistory = ({
     // Transform once on the complete merged fill set
     const mergedFillTransactions = transformFillsToTransactions(
       mergeOrderFills(restFills, liveFills),
+      { aggregate: aggregateFills },
     );
 
     // Separate non-trade transactions (orders, funding, user history deposits)
@@ -438,6 +444,7 @@ export const usePerpsTransactionHistory = ({
     transactions,
     walletDepositTransactions,
     walletWithdrawalTransactions,
+    aggregateFills,
   ]);
 
   return {

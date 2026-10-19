@@ -43,6 +43,17 @@ export SOURCEMAP_FILE="${SOURCEMAP_FILE:-$REPO_ROOT/sourcemaps/ios/index.js.map}
 # which fails the Bundle JS phase (xcodebuild 65) and blocks ios-app-main-dev-expo.
 export NODE_OPTIONS="${NODE_OPTIONS:+$NODE_OPTIONS }--max-old-space-size=8192"
 
+# Bundle through Expo CLI (matches android/app/build.gradle). Expo's transform
+# worker emits packed source maps that only `expo export:embed` knows how to
+# serialize; React Native's default `bundle` command crashes with
+# "Unexpected module with full source map found" when emitting a source map.
+if [[ -z "$CLI_PATH" ]]; then
+  export CLI_PATH="$("$NODE_BINARY" --print "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })")"
+fi
+if [[ -z "$BUNDLE_COMMAND" ]]; then
+  export BUNDLE_COMMAND="export:embed"
+fi
+
 # Generate JS bundle and upload Sentry source maps
 # Note: with-environment.sh was already sourced above, so environment is set.
 # Run sentry-xcode.sh directly passing react-native-xcode.sh as the bundler.

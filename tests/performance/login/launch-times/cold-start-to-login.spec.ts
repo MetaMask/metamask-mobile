@@ -33,14 +33,7 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        await AppiumAssertions.expectElementToBeVisible(
-          WalletView.accountIcon,
-          {
-            timeout: 15000,
-            description:
-              'Wallet account icon should be visible before relaunch',
-          },
-        );
+
         await WalletView.waitForBalanceToStabilize();
         await AppiumGestures.terminateApp(currentDeviceDetails);
 

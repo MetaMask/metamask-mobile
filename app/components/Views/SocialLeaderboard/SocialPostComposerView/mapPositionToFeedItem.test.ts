@@ -1,10 +1,12 @@
 import type { Position } from '@metamask/social-controllers';
 import { mapPositionToFeedItem } from './mapPositionToFeedItem';
 
-jest.mock('../utils/formatters', () => ({
+jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
   formatPercent: (value: number | null | undefined) =>
     value == null ? '—' : `${value}%`,
   formatSignedUsd: (value: number | null | undefined) =>
+    value == null ? '—' : `$${value}`,
+  formatSignedAbbreviatedUsd: (value: number | null | undefined) =>
     value == null ? '—' : `$${value}`,
   formatTradeUnitPrice: (value: number | null | undefined) =>
     value == null ? '—' : `$${value}`,
@@ -12,13 +14,17 @@ jest.mock('../utils/formatters', () => ({
     value == null ? '—' : `$${value}`,
 }));
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { perpPositionType?: string; chain?: string }) =>
     position.perpPositionType != null || position.chain === 'hyperliquid',
   isClosedPosition: () => false,
   getPerpPositionDirection: (position: {
     perpPositionType?: 'long' | 'short' | null;
   }) => position.perpPositionType ?? null,
+  getSupportedXyzPerpMarketSymbol: (symbol: string) => ({
+    targetSymbol: symbol,
+    requiresXyzMarketCheck: false,
+  }),
 }));
 
 const openSpot: Position = {
@@ -138,6 +144,20 @@ describe('mapPositionToFeedItem', () => {
       return;
     }
     expect(item.side).toBe('sell');
+  });
+
+  it('omits entry price when costBasis is null', () => {
+    const item = mapPositionToFeedItem(
+      { ...openPerp, costBasis: null },
+      'this is alpha',
+      { isClosed: false },
+    );
+
+    expect(item.variant).toBe('perpsOpen');
+    if (item.variant !== 'perpsOpen') {
+      return;
+    }
+    expect(item.entryPriceLabel).toBeUndefined();
   });
 
   it('omits leverage when the perp has no leverage field', () => {

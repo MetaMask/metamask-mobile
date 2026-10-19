@@ -4,11 +4,18 @@ import {
   getTriggerDirection,
   isLimitExecutionOrderType,
   isTriggerOrderType,
+  PRICE_RANGES_UNIVERSAL,
   type OrderType,
   type TriggerDirection,
   type TriggerOrderType,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
+import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
+import { formatPerpsFiat } from './formatUtils';
+import {
+  getPriceDeviationBand,
+  isPriceOutsideDeviationBand,
+} from './orderUtils';
 
 export type TriggerPriceValidationIssue =
   | { code: 'required' }
@@ -21,7 +28,8 @@ export type TriggerPriceValidationIssue =
 
 export type LimitPriceValidationIssue =
   | { code: 'required' }
-  | { code: 'positive' };
+  | { code: 'positive' }
+  | { code: 'too_far'; min: string; max: string };
 
 export type OrderFormFieldIssue =
   | {
@@ -48,6 +56,14 @@ export interface LimitPriceCrossingWarningInput {
   direction: 'long' | 'short';
   limitPrice: string | undefined;
   midPrice: number;
+  szDecimals?: number;
+}
+
+export interface LimitVsTriggerWarningInput {
+  orderType: OrderType;
+  direction: 'long' | 'short';
+  limitPrice: string | undefined;
+  triggerPrice: string | undefined;
   szDecimals?: number;
 }
 
@@ -174,18 +190,49 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
- * Validates the structural price input for limit and trigger-limit placements.
+ * Localized 95% band error, including the live acceptable range when the
+ * reference price is usable.
  *
- * @param input - Order type and candidate limit price.
+ * @param referencePrice - Live oracle/mark used for the band.
+ * @returns User-facing helper text.
+ */
+export const getLimitPriceTooFarMessage = (referencePrice: number): string => {
+  const constraint = strings(
+    'perps.order.limit_price_modal.limit_price_too_far',
+  );
+  const band = getPriceDeviationBand(
+    referencePrice,
+    LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+  );
+  if (!band) {
+    return constraint;
+  }
+  const range = strings(
+    'perps.order.limit_price_modal.limit_price_too_far_range',
+    {
+      min: formatPerpsFiat(band.min, { ranges: PRICE_RANGES_UNIVERSAL }),
+      max: formatPerpsFiat(band.max, { ranges: PRICE_RANGES_UNIVERSAL }),
+    },
+  );
+  return `${constraint} ${range}`;
+};
+
+/**
+ * Validates the structural price input for limit and trigger-limit placements,
+ * including HyperLiquid's live 95% reference-price band.
+ *
+ * @param input - Order type, candidate limit price, and live mid.
  * @returns A typed limit-price issue, or `undefined`.
  */
 export const getLimitPriceValidationIssue = ({
   orderType,
   limitPrice,
+  midPrice,
   szDecimals,
 }: {
   orderType: OrderType;
   limitPrice: string | undefined;
+  midPrice?: number;
   szDecimals?: number;
 }): LimitPriceValidationIssue | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
@@ -198,11 +245,48 @@ export const getLimitPriceValidationIssue = ({
     return limitPrice?.trim() ? { code: 'positive' } : { code: 'required' };
   }
 
+  if (
+    midPrice !== undefined &&
+    isPriceOutsideDeviationBand(
+      parsedLimit,
+      midPrice,
+      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    )
+  ) {
+    const band = getPriceDeviationBand(
+      midPrice,
+      LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
+    );
+    if (band) {
+      return {
+        code: 'too_far',
+        min: formatPerpsFiat(band.min, { ranges: PRICE_RANGES_UNIVERSAL }),
+        max: formatPerpsFiat(band.max, { ranges: PRICE_RANGES_UNIVERSAL }),
+      };
+    }
+  }
+
   return undefined;
 };
 
 /**
- * Builds all blocking price-field issues for an order form.
+ * True when a field issue only advises against the price the user chose, rather
+ * than making the order impossible to submit. A trigger on the unexpected side
+ * of mid is still a placeable order, so it must not gate the CTA; a missing or
+ * non-positive price is not.
+ *
+ * @param issue - Typed field issue.
+ * @returns `true` when the issue should surface as a warning.
+ */
+export const isAdvisoryOrderFormFieldIssue = (
+  issue: OrderFormFieldIssue,
+): boolean =>
+  issue.field === 'triggerPrice' && issue.issue.code === 'wrong_side';
+
+/**
+ * Builds all price-field issues for an order form, blocking and advisory alike.
+ * Callers that gate submission must filter out advisory issues with
+ * `isAdvisoryOrderFormFieldIssue`.
  *
  * @param input - Current order form prices and market reference.
  * @returns Typed issues with field ownership.
@@ -237,6 +321,7 @@ export const getOrderFormFieldIssues = ({
   const limitIssue = getLimitPriceValidationIssue({
     orderType,
     limitPrice,
+    midPrice,
     szDecimals,
   });
   if (limitIssue) {
@@ -272,10 +357,25 @@ export const getTriggerPriceValidationMessage = (
  */
 export const getLimitPriceValidationMessage = (
   issue: LimitPriceValidationIssue,
-): string =>
-  issue.code === 'required'
-    ? strings('perps.order.validation.limit_price_required')
-    : strings('perps.errors.orderValidation.pricePositive');
+): string => {
+  if (issue.code === 'required') {
+    return strings('perps.order.validation.limit_price_required');
+  }
+  if (issue.code === 'positive') {
+    return strings('perps.errors.orderValidation.pricePositive');
+  }
+  const constraint = strings(
+    'perps.order.limit_price_modal.limit_price_too_far',
+  );
+  const range = strings(
+    'perps.order.limit_price_modal.limit_price_too_far_range',
+    {
+      min: issue.min,
+      max: issue.max,
+    },
+  );
+  return `${constraint} ${range}`;
+};
 
 /**
  * Localizes any field-owned order-price issue.
@@ -325,6 +425,50 @@ export const getLimitPriceCrossingWarning = ({
   }
   if (direction === 'short' && limit < midPrice) {
     return strings('perps.order.validation.limit_price_below_warning');
+  }
+
+  return undefined;
+};
+
+/**
+ * Non-blocking warning when a trigger-limit order's limit price sits on the
+ * far side of its own trigger, which makes a fill unlikely: a buy limit resting
+ * below the breakout it waits for, or a sell limit resting above the breakdown
+ * it waits for, will usually be left behind once the trigger fires.
+ *
+ * Only stop-limit and take-profit-limit orders have both fields; the market
+ * variants have no limit price to compare. Equality is fine — a limit exactly
+ * at the trigger is the marketable case, not the stranded one.
+ *
+ * @param input - Order type, side, and both typed prices.
+ * @returns Localized warning copy, or `undefined`.
+ */
+export const getLimitVsTriggerWarning = ({
+  orderType,
+  direction,
+  limitPrice,
+  triggerPrice,
+  szDecimals,
+}: LimitVsTriggerWarningInput): string | undefined => {
+  if (!isTriggerOrderType(orderType) || !isLimitExecutionOrderType(orderType)) {
+    return undefined;
+  }
+
+  const limit = Number.parseFloat(
+    canonicalizeOrderPrice(limitPrice, szDecimals) ?? '',
+  );
+  const trigger = Number.parseFloat(
+    canonicalizeOrderPrice(triggerPrice, szDecimals) ?? '',
+  );
+  if (!(limit > 0) || !(trigger > 0)) {
+    return undefined;
+  }
+
+  if (direction === 'long' && limit < trigger) {
+    return strings('perps.order.validation.limit_price_below_trigger_warning');
+  }
+  if (direction === 'short' && limit > trigger) {
+    return strings('perps.order.validation.limit_price_above_trigger_warning');
   }
 
   return undefined;

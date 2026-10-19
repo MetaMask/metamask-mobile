@@ -36,6 +36,7 @@ type SearchTraceResult = 'success' | 'error';
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
+  enabled?: boolean;
 }
 
 interface UseSearchTokensResult {
@@ -72,6 +73,7 @@ const getResultCountBucket = (count: number): string =>
 export const useSearchTokens = ({
   chainIds,
   includeAssets,
+  enabled = true,
 }: UseSearchTokensParams): UseSearchTokensResult => {
   const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
@@ -120,6 +122,9 @@ export const useSearchTokens = ({
 
   const searchTokens = useCallback(
     async (query: string, cursor?: string) => {
+      if (!enabled) {
+        return;
+      }
       if (!query.trim()) {
         // If query is empty, reset search state
         resetSearch();
@@ -250,7 +255,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [bearerToken, resetSearch],
+    [bearerToken, enabled, resetSearch],
   );
 
   // Create debounced search function

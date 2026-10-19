@@ -35,11 +35,14 @@ async function assertConnectedAccountFromNativeUi(
   accountName: string,
   networkName?: string,
 ): Promise<void> {
+  // The "Permissions updated" toast overlays the browser account button and
+  // swallows taps until it dismisses. Wait with a short appear-timeout so we
+  // don't stall when no toast was shown.
+  await ToastModal.waitForToastToDismiss({ appearTimeout: 2_000 });
   await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
   await Assertions.expectTextDisplayed(accountName, {
     description: `Connected accounts modal should show ${accountName}`,
   });
-  await Assertions.expectElementToNotBeVisible(ToastModal.notificationTitle);
 
   if (networkName) {
     await ConnectedAccountsModal.tapPermissionsSummaryTab();

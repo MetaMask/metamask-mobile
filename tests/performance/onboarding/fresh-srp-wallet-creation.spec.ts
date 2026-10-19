@@ -355,9 +355,9 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       await CreatePasswordView.enterPassword(password);
       await CreatePasswordView.reEnterPassword(password);
       await AppiumGestures.hideKeyboard();
-      await CreatePasswordView.tapIUnderstandCheckBox();
 
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await walletCreationTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           ProtectYourWalletView.remindMeLaterButton,

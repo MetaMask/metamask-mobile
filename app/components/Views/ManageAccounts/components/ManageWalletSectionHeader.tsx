@@ -4,10 +4,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -17,12 +13,13 @@ import { strings } from '../../../../../locales/i18n';
 import {
   getManageAccountSectionHeaderId,
   getManageAccountSectionHeaderRemoveId,
+  getManageAccountSectionHeaderLockId,
 } from '../ManageAccounts.testIds';
 
 export interface ManageWalletSectionHeaderProps {
   /** Wallet display name rendered as the section title. */
   walletName: string;
-  /** When true, shows a Locked label and lock icon. */
+  /** When true, renders the locked-state indicator container. */
   isLocked?: boolean;
   /** When provided, shows a Remove control. */
   onRemove?: () => void;
@@ -53,21 +50,8 @@ const ManageWalletSectionHeader = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="ml-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={`${getManageAccountSectionHeaderId(walletName)}-lock-label`}
-        >
-          {strings('multichain_accounts.manage_accounts.locked')}
-        </Text>
-        <Icon
-          name={IconName.Lock}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-          twClassName="ml-1"
-        />
-      </Box>
+        testID={getManageAccountSectionHeaderLockId(walletName)}
+      />
     ) : null}
     {onRemove ? (
       <Text

@@ -44,6 +44,7 @@ import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
+import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -115,6 +116,7 @@ export function useAutomaticTransactionPayToken({
   );
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
+  const isMoneyAccountFlagDefault = useIsMoneyAccountFlagDefault();
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -197,6 +199,13 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
+    // The flag default applies the money-account override from
+    // useDefaultPaySelectedSection. Picking a token first would show that
+    // token briefly before the override lands and re-selects MUSD.
+    if (isMoneyAccountFlagDefault && !isMoneyPaymentOverride) {
+      return;
+    }
+
     if (autoSelectFiatPayment || tokens.length === 0) {
       // Do NOT set isUpdated.current here. This return is intentionally
       // unlatch-able: if isFiatEnabled is false because an incompatible provider
@@ -246,7 +255,9 @@ export function useAutomaticTransactionPayToken({
     disable,
     hasFiatPaymentSelected,
     isFiatEnabled,
+    isMoneyAccountFlagDefault,
     isMoneyAccountPayPending,
+    isMoneyPaymentOverride,
     maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,

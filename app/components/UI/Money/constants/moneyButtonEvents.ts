@@ -15,6 +15,8 @@ export enum MONEY_BUTTON_INTENTS {
   FILTER = 'filter',
   CARD_HOME = 'card_home',
   CARD_FEES = 'card_fees',
+  GET_PRO = 'get_pro',
+  OPEN_PRO_HUB = 'open_pro_hub',
 }
 
 export enum MONEY_BUTTON_TYPES {

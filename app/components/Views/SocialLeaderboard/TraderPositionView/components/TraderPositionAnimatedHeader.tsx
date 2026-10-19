@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
-import type { PerpDirection } from '../../utils/perp';
+import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
 

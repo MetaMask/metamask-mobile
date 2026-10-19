@@ -1,6 +1,7 @@
 import {
   selectVisibleAccountGroupsByWallet,
   selectAccountGroupHidden,
+  selectAccountListStats,
   selectHiddenAccountGroupIds,
 } from './manageAccounts';
 import { RootState } from '../../reducers';
@@ -220,6 +221,98 @@ describe('manageAccounts selectors', () => {
       const mockState = createMockState(undefined);
       const result = selectHiddenAccountGroupIds(mockState);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectAccountListStats', () => {
+    it('counts accounts, wallets and hidden accounts across the whole tree', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: wallet1,
+            [WALLET_ID_2]: wallet2,
+          },
+        },
+      });
+
+      expect(selectAccountListStats(mockState)).toStrictEqual({
+        totalAccounts: 3,
+        totalWallets: 2,
+        hiddenCount: 1,
+      });
+    });
+
+    it('counts account groups rather than the addresses inside them', () => {
+      // One group can hold several addresses; the account list renders one row
+      // per group, so `totalAccounts` has to track groups.
+      const multichainGroup = {
+        id: GROUP_ID_1,
+        type: AccountGroupType.MultichainAccount,
+        accounts: ['account-evm', 'account-sol', 'account-btc'],
+        metadata: { name: 'Account 1', pinned: false, hidden: false },
+      };
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...wallet1,
+              groups: { [GROUP_ID_1]: multichainGroup },
+            } as unknown as AccountWalletObject,
+          },
+        },
+      });
+
+      expect(selectAccountListStats(mockState)).toStrictEqual({
+        totalAccounts: 1,
+        totalWallets: 1,
+        hiddenCount: 0,
+      });
+    });
+
+    it('counts hidden accounts in the total, not apart from it', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...wallet1,
+              groups: { [GROUP_ID_2]: hiddenGroup2 },
+            } as unknown as AccountWalletObject,
+          },
+        },
+      });
+
+      expect(selectAccountListStats(mockState)).toStrictEqual({
+        totalAccounts: 1,
+        totalWallets: 1,
+        hiddenCount: 1,
+      });
+    });
+
+    it('counts a wallet with no groups', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...wallet1,
+              groups: {},
+            } as unknown as AccountWalletObject,
+          },
+        },
+      });
+
+      expect(selectAccountListStats(mockState)).toStrictEqual({
+        totalAccounts: 0,
+        totalWallets: 1,
+        hiddenCount: 0,
+      });
+    });
+
+    it('reports zeroes rather than undefined when the tree is missing', () => {
+      expect(selectAccountListStats(createMockState(undefined))).toStrictEqual({
+        totalAccounts: 0,
+        totalWallets: 0,
+        hiddenCount: 0,
+      });
     });
   });
 });

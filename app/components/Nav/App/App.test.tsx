@@ -79,6 +79,10 @@ jest.mock('../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations', () => ({
   useQuickBuyToastRegistrations: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../../Views/SocialLeaderboard/PostSwapShareBottomSheet', () => ({
+  PostSwapShareBottomSheet: () => null,
+}));
+
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
 jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
   <MockView testID="mock-ramps-service-disruption-modal" />
@@ -150,9 +154,6 @@ jest.mock(
 );
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
-));
-jest.mock('../../Views/SocialLoginIosUser', () => () => (
-  <MockView testID="mock-social-login" />
 ));
 jest.mock('../../Views/WalletCreationError', () => () => (
   <MockView testID="mock-wallet-error" />
@@ -238,9 +239,6 @@ jest.mock('../../Views/ProHub/screens/Earned', () => () => (
 ));
 jest.mock('../../Views/ProHub/screens/CancelMembership', () => () => (
   <MockView testID="mock-pro-hub-cancel-membership" />
-));
-jest.mock('../../Views/LockScreen', () => () => (
-  <MockView testID="mock-lock-screen" />
 ));
 jest.mock('../../Views/MultichainAccounts/AddressList', () => ({
   AddressList: () => <MockView testID="mock-address-list" />,
@@ -710,10 +708,6 @@ describe('App', () => {
       expect(Routes.EDIT_NETWORK).toBeDefined();
     });
 
-    it('has lock screen route defined', () => {
-      expect(Routes.LOCK_SCREEN).toBeDefined();
-    });
-
     it('has confirmation routes defined', () => {
       expect(Routes.CONFIRMATION_REQUEST_MODAL).toBeDefined();
       expect(Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE).toBeDefined();
@@ -857,19 +851,6 @@ describe('App', () => {
         expect(getByTestId(MOCK_FOX_LOADER_ID)).toBeTruthy();
       });
     });
-
-    it('renders the lock screen route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [{ name: Routes.LOCK_SCREEN }],
-      };
-
-      const { toJSON } = renderAppWithDefaultState(routeState);
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
   });
 
   describe('Onboarding navigation', () => {
@@ -904,10 +885,7 @@ describe('App', () => {
     });
 
     it('has social login routes defined', () => {
-      expect(Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER).toBeDefined();
-      expect(
-        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-      ).toBeDefined();
+      expect(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE).toBeDefined();
     });
 
     it('has wallet creation error route defined', () => {
@@ -1193,6 +1171,10 @@ describe('App', () => {
   describe('Account management screens', () => {
     it('has account selector route defined', () => {
       expect(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR).toBeDefined();
+    });
+
+    it('has manage accounts route defined', () => {
+      expect(Routes.MANAGE_ACCOUNTS_VIEW).toBeDefined();
     });
 
     it('has address selector route defined', () => {
@@ -2231,19 +2213,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-pk-list')).toBeOnTheScreen();
-      });
-    });
-
-    it('renders the LockScreen route', async () => {
-      const routeState = {
-        index: 0,
-        routes: [{ name: Routes.LOCK_SCREEN }],
-      };
-
-      const { getByTestId } = renderAppAtRoute(routeState);
-
-      await waitFor(() => {
-        expect(getByTestId('mock-lock-screen')).toBeTruthy();
       });
     });
   });

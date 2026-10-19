@@ -859,7 +859,7 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is money-account when isDefaultMoneyAccount flag is true', async () => {
+    it('uses the selected pay token when the money-account flag default has no override', async () => {
       useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
 
       runHook();
@@ -870,8 +870,8 @@ describe('useTransactionPayMetrics', () => {
         id: transactionIdMock,
         params: {
           properties: expect.objectContaining({
-            mm_pay_account_type_source_presented: 'money-account',
-            mm_pay_account_type_source_selected: 'money-account',
+            mm_pay_account_type_source_presented: 'metamask',
+            mm_pay_account_type_source_selected: 'metamask',
           }),
           sensitiveProperties: {},
         },

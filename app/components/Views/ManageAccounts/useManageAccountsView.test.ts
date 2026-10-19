@@ -1,7 +1,9 @@
 import { act } from '@testing-library/react-native';
-import { Alert } from 'react-native';
 import { AccountGroupId, AccountWalletType } from '@metamask/account-api';
-import type { AccountWalletObject } from '@metamask/account-tree-controller';
+import type {
+  AccountGroupObject,
+  AccountWalletObject,
+} from '@metamask/account-tree-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../core/Engine';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
@@ -15,13 +17,6 @@ import {
   createMockWallet,
 } from '../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import { forgetLedger, getDeviceId } from '../../../core/Ledger/Ledger';
-import {
-  forgetQrDevice,
-  withQrKeyring,
-} from '../../../core/QrKeyring/QrKeyring';
-import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { strings } from '../../../../locales/i18n';
 import useManageAccountsView from './useManageAccountsView';
 import { ManageAccountRowVariant } from './components/ManageAccountRow';
 
@@ -31,72 +26,15 @@ jest.mock('../../../core/Engine', () => ({
       setAccountGroupHidden: jest.fn(),
       syncWithUserStorage: jest.fn(),
     },
-    KeyringController: {
-      removeAccount: jest.fn(),
-      getAccounts: jest.fn(),
-      state: {
-        keyrings: [],
-      },
-    },
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          selectedAccount: '',
-          accounts: {},
-        },
-      },
-    },
   },
-  setSelectedAddress: jest.fn(),
-}));
-
-jest.mock('../../../core/Permissions', () => ({
-  removeAccountsFromPermissions: jest.fn(),
-}));
-
-jest.mock('../../../core/Ledger/Ledger', () => ({
-  forgetLedger: jest.fn(),
-  getDeviceId: jest.fn(),
-}));
-
-jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
-  forgetQrDevice: jest.fn(),
-  withQrKeyring: jest.fn(),
 }));
 
 const mockSetAccountGroupHidden = jest.mocked(
   Engine.context.AccountTreeController.setAccountGroupHidden,
 );
-const mockRemoveAccount = jest.mocked(
-  Engine.context.KeyringController.removeAccount,
+const mockSyncWithUserStorage = jest.mocked(
+  Engine.context.AccountTreeController.syncWithUserStorage,
 );
-const mockGetAccounts = jest.mocked(
-  Engine.context.KeyringController.getAccounts,
-);
-const mockSetSelectedAddress = jest.mocked(Engine.setSelectedAddress);
-const mockRemoveAccountsFromPermissions = jest.mocked(
-  removeAccountsFromPermissions,
-);
-
-const HARDWARE_ADDRESS = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
-const REMAINING_ADDRESS = '0x1234567890123456789012345678901234567890';
-
-const mockSelectedAccount = (address: string) => {
-  Engine.context.AccountsController.state = {
-    internalAccounts: {
-      selectedAccount: 'selected',
-      accounts: {
-        selected: { address },
-      },
-    },
-  } as unknown as typeof Engine.context.AccountsController.state;
-};
-
-const setKeyrings = (keyrings: { type: string; accounts: string[] }[]) => {
-  Engine.context.KeyringController.state = {
-    keyrings,
-  } as unknown as typeof Engine.context.KeyringController.state;
-};
 
 const buildState = (
   wallets: AccountWalletObject[],
@@ -132,10 +70,9 @@ const createBaseState = () => {
   };
 };
 
-const buildHardwareWalletState = (
-  keyringType: string,
-  address: string = HARDWARE_ADDRESS,
-) => {
+const HARDWARE_ADDRESS = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
+
+const buildHardwareWalletState = (keyringType: string, address: string) => {
   const group = createMockAccountGroup('keyring:hw/0', 'Hardware 1');
   const hardwareWallet = {
     id: 'keyring:hw',
@@ -151,6 +88,9 @@ const buildHardwareWalletState = (
     address,
     'Hardware 1',
   );
+  // Give the mock internal account the hardware keyring type so the sheet
+  // receives a representative account object.
+  internalAccount.metadata.keyring.type = keyringType;
 
   return buildState([hardwareWallet], {
     'account-keyring:hw/0': internalAccount,
@@ -159,56 +99,25 @@ const buildHardwareWalletState = (
 
 const renderUseManageAccountsView = ({
   state = createBaseState().state,
-  navigateToDeleteAccount,
+  navigateToRemoveAccount,
 }: {
   state?: RootState;
-  navigateToDeleteAccount?: (account: InternalAccount) => void;
+  navigateToRemoveAccount?: (
+    account: InternalAccount,
+    accountGroup: AccountGroupObject,
+  ) => void;
 } = {}) =>
   renderHookWithProvider(
-    () => useManageAccountsView({ navigateToDeleteAccount }),
+    () =>
+      useManageAccountsView({
+        navigateToRemoveAccount,
+      }),
     { state },
   );
-
-const triggerHardwareRemoveAlert = async (state: RootState) => {
-  const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {
-    // No-op: remove button is invoked explicitly.
-  });
-  const { result } = renderUseManageAccountsView({ state });
-
-  act(() => {
-    result.current.onRemoveAccount('keyring:hw/0');
-  });
-
-  expect(alertSpy).toHaveBeenCalledTimes(1);
-  const [, , buttons] = alertSpy.mock.calls[0];
-  const removeButton = buttons?.find(
-    (button) =>
-      button?.text === strings('accounts.remove_account_alert_remove_btn'),
-  );
-  await act(async () => {
-    await removeButton?.onPress?.();
-  });
-};
 
 describe('useManageAccountsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectedAccount(REMAINING_ADDRESS);
-    mockGetAccounts.mockResolvedValue([REMAINING_ADDRESS]);
-    jest.mocked(getDeviceId).mockResolvedValue('nano-x');
-    jest.mocked(withQrKeyring).mockImplementation(async (callback) =>
-      callback({
-        keyring: {
-          getName: jest.fn().mockResolvedValue('Keystone'),
-        },
-      } as never),
-    );
-    setKeyrings([
-      {
-        type: ExtendedKeyringTypes.ledger,
-        accounts: [HARDWARE_ADDRESS],
-      },
-    ]);
   });
 
   it('maps sections from the unfiltered account groups selector', () => {
@@ -293,9 +202,6 @@ describe('useManageAccountsView', () => {
 
   it('does not call syncWithUserStorage when toggling hidden state', () => {
     const { state, visibleGroupId } = createBaseState();
-    const mockSyncWithUserStorage = jest.mocked(
-      Engine.context.AccountTreeController.syncWithUserStorage,
-    );
     const { result } = renderUseManageAccountsView({ state });
 
     act(() => {
@@ -339,7 +245,7 @@ describe('useManageAccountsView', () => {
           isLocked: false,
           showsAddAccountFooter: true,
           rowVariantByGroupId: {
-            'keyring:hw/0': ManageAccountRowVariant.HideAndRemove,
+            'keyring:hw/0': ManageAccountRowVariant.Hide,
           },
         },
       },
@@ -392,106 +298,43 @@ describe('useManageAccountsView', () => {
   });
 
   describe('onRemoveAccount', () => {
-    it('shows the confirm Alert and removes the hardware account from the keyring', async () => {
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
+    it('does not dispatch a remove sheet for a Ledger hardware group (hide only)', () => {
+      const state = buildHardwareWalletState(
+        ExtendedKeyringTypes.ledger,
+        HARDWARE_ADDRESS,
+      );
+      const navigateToRemoveAccount = jest.fn();
+      const { result } = renderUseManageAccountsView({
+        state,
+        navigateToRemoveAccount,
+      });
 
-      await triggerHardwareRemoveAlert(state);
+      act(() => {
+        result.current.onRemoveAccount('keyring:hw/0');
+      });
 
-      expect(mockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
-        expect.anything(),
-      ]);
-      expect(mockRemoveAccount).toHaveBeenCalledTimes(1);
+      expect(navigateToRemoveAccount).not.toHaveBeenCalled();
     });
 
-    it.each([
-      {
-        description:
-          'reselects a remaining account when the removed hardware account is selected',
-        selectedAddress: HARDWARE_ADDRESS,
-        expectedReselect: REMAINING_ADDRESS,
-      },
-      {
-        description:
-          'does not reselect when the removed hardware account is not selected',
-        selectedAddress: REMAINING_ADDRESS,
-        expectedReselect: null,
-      },
-    ])('$description', async ({ selectedAddress, expectedReselect }) => {
-      mockSelectedAccount(selectedAddress);
-      mockGetAccounts.mockResolvedValue([REMAINING_ADDRESS]);
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
+    it('does not dispatch a remove sheet for a QR hardware group (hide only)', () => {
+      const state = buildHardwareWalletState(
+        ExtendedKeyringTypes.qr,
+        HARDWARE_ADDRESS,
+      );
+      const navigateToRemoveAccount = jest.fn();
+      const { result } = renderUseManageAccountsView({
+        state,
+        navigateToRemoveAccount,
+      });
 
-      await triggerHardwareRemoveAlert(state);
+      act(() => {
+        result.current.onRemoveAccount('keyring:hw/0');
+      });
 
-      if (expectedReselect) {
-        expect(mockSetSelectedAddress).toHaveBeenCalledWith(expectedReselect);
-      } else {
-        expect(mockSetSelectedAddress).not.toHaveBeenCalled();
-      }
+      expect(navigateToRemoveAccount).not.toHaveBeenCalled();
     });
 
-    it.each([
-      {
-        name: 'forgets the Ledger device when the ledger keyring is gone after removal',
-        keyringType: ExtendedKeyringTypes.ledger,
-        keyrings: [],
-        expectedForgetLedger: true,
-        expectedForgetQr: false,
-      },
-      {
-        name: 'forgets the Ledger device when the ledger keyring is empty after removal',
-        keyringType: ExtendedKeyringTypes.ledger,
-        keyrings: [{ type: ExtendedKeyringTypes.ledger, accounts: [] }],
-        expectedForgetLedger: true,
-        expectedForgetQr: false,
-      },
-      {
-        name: 'forgets the QR device when the QR keyring is empty after removal',
-        keyringType: ExtendedKeyringTypes.qr,
-        keyrings: [{ type: ExtendedKeyringTypes.qr, accounts: [] }],
-        expectedForgetLedger: false,
-        expectedForgetQr: true,
-      },
-      {
-        name: 'does not forget the hardware device when other accounts remain on the keyring',
-        keyringType: ExtendedKeyringTypes.ledger,
-        keyrings: [
-          {
-            type: ExtendedKeyringTypes.ledger,
-            accounts: [REMAINING_ADDRESS],
-          },
-        ],
-        expectedForgetLedger: false,
-        expectedForgetQr: false,
-      },
-    ])(
-      '$name',
-      async ({
-        keyringType,
-        keyrings,
-        expectedForgetLedger,
-        expectedForgetQr,
-      }) => {
-        setKeyrings(keyrings);
-        const state = buildHardwareWalletState(keyringType);
-
-        await triggerHardwareRemoveAlert(state);
-
-        if (expectedForgetLedger) {
-          expect(forgetLedger).toHaveBeenCalledTimes(1);
-        } else {
-          expect(forgetLedger).not.toHaveBeenCalled();
-        }
-
-        if (expectedForgetQr) {
-          expect(forgetQrDevice).toHaveBeenCalledTimes(1);
-        } else {
-          expect(forgetQrDevice).not.toHaveBeenCalled();
-        }
-      },
-    );
-
-    it('navigates to the delete-account sheet for an imported group', () => {
+    it('dispatches the same remove-account sheet for an imported group', () => {
       const group = createMockAccountGroup('keyring:imported/0', 'Imported 1');
       const importedWallet = createMockWallet('keyring:imported', 'Imported', [
         group,
@@ -504,19 +347,21 @@ describe('useManageAccountsView', () => {
       const state = buildState([importedWallet], {
         'account-keyring:imported/0': internalAccount,
       });
-      const navigateToDeleteAccount = jest.fn();
+      const navigateToRemoveAccount = jest.fn();
       const { result } = renderUseManageAccountsView({
         state,
-        navigateToDeleteAccount,
+        navigateToRemoveAccount,
       });
 
       act(() => {
         result.current.onRemoveAccount('keyring:imported/0');
       });
 
-      expect(navigateToDeleteAccount).toHaveBeenCalledTimes(1);
-      expect(navigateToDeleteAccount).toHaveBeenCalledWith(internalAccount);
-      expect(mockRemoveAccount).not.toHaveBeenCalled();
+      expect(navigateToRemoveAccount).toHaveBeenCalledTimes(1);
+      expect(navigateToRemoveAccount).toHaveBeenCalledWith(
+        internalAccount,
+        expect.objectContaining({ id: 'keyring:imported/0' }),
+      );
     });
 
     it.each([
@@ -535,21 +380,17 @@ describe('useManageAccountsView', () => {
       },
     ])('ignores removal when $description', ({ getGroupId }) => {
       const base = createBaseState();
-      const navigateToDeleteAccount = jest.fn();
-      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {
-        // No-op
-      });
+      const navigateToRemoveAccount = jest.fn();
       const { result } = renderUseManageAccountsView({
         state: base.state,
-        navigateToDeleteAccount,
+        navigateToRemoveAccount,
       });
 
       act(() => {
         result.current.onRemoveAccount(getGroupId(base));
       });
 
-      expect(alertSpy).not.toHaveBeenCalled();
-      expect(navigateToDeleteAccount).not.toHaveBeenCalled();
+      expect(navigateToRemoveAccount).not.toHaveBeenCalled();
     });
   });
 

@@ -89,15 +89,12 @@ export const mapTransactionToActivityItem = ({
 
   const prepared = prepareLocalTransactionGroup(transactionGroup);
 
-  return {
-    ...enrichLocalActivity(
-      mapLocalTransaction(
-        prepared as Parameters<typeof mapLocalTransaction>[0],
-      ) as ActivityListItem,
-      prepared,
-    ),
-    raw: { type: 'localTransaction' as const, data: transactionGroup },
-  };
+  return enrichLocalActivity(
+    mapLocalTransaction(
+      prepared as Parameters<typeof mapLocalTransaction>[0],
+    ) as ActivityListItem,
+    prepared,
+  );
 };
 
 export const getTransactionDetailsParams = ({

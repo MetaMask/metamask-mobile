@@ -1,4 +1,4 @@
-import { handlePerpsUrl } from '../handlePerpsUrl';
+import { handlePerpsUrl, createPerpsDeeplinkIntent } from '../handlePerpsUrl';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
@@ -9,7 +9,9 @@ import {
 } from '../../../../../components/UI/Perps/selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../../../../components/UI/Perps/selectors/featureFlags';
 import { PerpsMode } from '@metamask/perps-controller';
-
+import { analytics } from '../../../../../util/analytics/analytics';
+import { PriceAlertAnalytics } from '../../../../../components/UI/Assets/PriceAlerts/constants';
+import { MetaMetricsEvents } from '../../../../Analytics';
 // Mock dependencies
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
@@ -38,7 +40,9 @@ jest.mock('../../../../../core/Engine', () => ({
     },
   },
 }));
-
+jest.mock('../../../../../util/analytics/analytics', () => ({
+  analytics: { trackEvent: jest.fn() },
+}));
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;
   let mockSetParams: jest.Mock;
@@ -547,6 +551,61 @@ describe('handlePerpsUrl', () => {
 
       expect(market.symbol).toBe('BTC');
       expect(market.marketSource).toBeUndefined();
+    });
+  });
+
+  describe('price alert notification tracking', () => {
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED exactly once when source=price_alert_notification and screen=asset (warm path)', async () => {
+      const perpsPath =
+        'perps?screen=asset&symbol=xyz%3AXYZ100&source=price_alert_notification&alert_type=threshold&price_at_trigger=150.25&triggered_at=1758624000000';
+
+      await handlePerpsUrl({ perpsPath });
+
+      // Must fire exactly once — createPerpsDeeplinkIntent owns tracking for all paths.
+      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            alert_type: 'threshold',
+            alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
+            price_at_trigger: 150.25,
+            token_symbol: 'XYZ100',
+          }),
+        }),
+      );
+    });
+
+    it('fires PRICE_ALERT_NOTIFICATION_OPENED via createPerpsDeeplinkIntent (cold/startup path)', () => {
+      const perpsPath =
+        'perps?screen=asset&symbol=BTC&source=price_alert_notification&alert_type=threshold&price_at_trigger=95000&triggered_at=1758624000000';
+
+      createPerpsDeeplinkIntent({ perpsPath });
+
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            alert_type: 'threshold',
+            alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
+            price_at_trigger: 95000,
+            token_symbol: 'BTC',
+            asset_id: 'BTC',
+          }),
+        }),
+      );
+    });
+
+    it('does not fire PRICE_ALERT_NOTIFICATION_OPENED for non-notification deeplinks', async () => {
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=BTC' });
+
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not fire PRICE_ALERT_NOTIFICATION_OPENED when screen is not asset', async () => {
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=home&source=price_alert_notification',
+      });
+
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
   });
 });

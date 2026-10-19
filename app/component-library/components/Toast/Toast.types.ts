@@ -47,6 +47,11 @@ export interface ToastLinkButtonOptions {
  */
 interface BaseToastVariants {
   hasNoTimeout: boolean;
+  /**
+   * How long the toast stays visible before auto-dismiss, in milliseconds.
+   * Ignored when `hasNoTimeout` is true. Defaults to the shared toast duration.
+   */
+  timeoutMs?: number;
   labelOptions: ToastLabelOptions;
   descriptionOptions?: ToastDescriptionOptions;
   linkButtonOptions?: ToastLinkButtonOptions;

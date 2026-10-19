@@ -8,7 +8,7 @@ import {
   resetSocialV1ComposedFeedStore,
   submitSocialV1ComposedPost,
 } from '../store/socialV1ComposedFeedStore';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import SocialFeedPostingBanner from './SocialFeedPostingBanner';
 import { SocialFeedPostingBannerSelectorsIDs } from './SocialFeedPostingBanner.testIds';
 
@@ -66,8 +66,23 @@ describe('SocialFeedPostingBanner', () => {
 
     expect(
       screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.AVATAR),
-    ).toBeOnTheScreen();
+    ).toHaveProp('source', { uri: 'https://cdn.test/avatar.png' });
     expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+  });
+
+  it('renders the chosen fox preset when the profile has no photo', () => {
+    renderWithProvider(
+      <SocialFeedPostingBanner
+        authorHandle="wen-cat"
+        avatarPresetId="zombie"
+        avatarBackgroundId="lime"
+        startedAtMs={1_000_000}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostingBannerSelectorsIDs.AVATAR}-art`),
+    ).toBeOnTheScreen();
   });
 
   it('starts the countdown when it mounts before the clock is set', () => {
@@ -75,8 +90,7 @@ describe('SocialFeedPostingBanner', () => {
       id: 'composed-1',
       authorHandle: 'giga-whale',
       timestampMs: 1_000_000,
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       item: mockOpenPerpsFeedItem({ comment: 'this is alpha' }),
     });
 
@@ -95,8 +109,7 @@ describe('SocialFeedPostingBanner', () => {
       id: 'composed-1',
       authorHandle: 'giga-whale',
       timestampMs: 1_000_000,
-      likeCount: 0,
-      commentCount: 0,
+      reactions: [],
       item: mockOpenPerpsFeedItem({ comment: 'this is alpha' }),
     });
 

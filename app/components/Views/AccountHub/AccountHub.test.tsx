@@ -5,6 +5,7 @@ import AccountHub from './AccountHub';
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 import Routes from '../../../constants/navigation/Routes';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -22,6 +23,10 @@ import {
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
+
+jest.mock('../../hooks/useNonTokenBalance', () => ({
+  useAccountListBalance: jest.fn(() => () => undefined),
+}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -244,6 +249,19 @@ describe('AccountHub', () => {
     fireEvent.press(getByTestId(AccountHubSelectorsIDs.MENU_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
+  });
+
+  it('opens Manage Accounts from the gear icon', () => {
+    const { getByTestId } = render(<AccountHub />);
+    const manageAccountsButton = getByTestId(
+      AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON,
+    );
+
+    fireEvent.press(manageAccountsButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   });
 
   it('opens account group details from Info', () => {

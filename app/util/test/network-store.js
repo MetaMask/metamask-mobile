@@ -4,6 +4,10 @@ import { getFixturesServerPortInApp } from './utils';
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
 
+// `jest` is injected into every module executed by jest-runtime and is
+// undefined in the app bundle, so this stays false on device.
+const isJestRuntime = typeof jest !== 'undefined';
+
 // Configure Axios with CORS headers
 axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
 axios.defaults.headers.common['Access-Control-Allow-Methods'] =
@@ -13,13 +17,19 @@ axios.defaults.headers.common['Access-Control-Allow-Headers'] =
 
 const fetchWithTimeout = (url) =>
   new Promise((resolve, reject) => {
+    // The timer must be cleared once the request settles. Otherwise every
+    // attempt keeps a FETCH_TIMEOUT-long timer alive, which under Jest pins the
+    // whole module registry of the test file (hundreds of MB) long after the
+    // suite finished and fires callbacks into a torn-down environment.
+    const timeoutId = setTimeout(() => {
+      reject(new Error('Request timeout'));
+    }, FETCH_TIMEOUT);
+
     axios
       .get(url)
       .then((response) => resolve(response))
-      .catch((error) => reject(error));
-    setTimeout(() => {
-      reject(new Error('Request timeout'));
-    }, FETCH_TIMEOUT);
+      .catch((error) => reject(error))
+      .finally(() => clearTimeout(timeoutId));
   });
 
 class ReadOnlyNetworkStore {
@@ -82,6 +92,17 @@ class ReadOnlyNetworkStore {
   }
 
   async _init() {
+    // Jest runs with HAS_TEST_OVERRIDES=true (see jest.config.view.js) so that
+    // build-time feature gates behave like an E2E build, but there is no
+    // fixture server listening. Every request would therefore hang until the
+    // FETCH_TIMEOUT, keeping the test file's module registry (and its pending
+    // async chain) alive well past teardown. Skip the network entirely: the
+    // store stays empty, exactly as it ends up today once the requests fail.
+    if (isJestRuntime) {
+      this._initialized = true;
+      return;
+    }
+
     // Dynamically get the port (works on iOS via LaunchArgs, fallback on Android)
     const port = getFixturesServerPortInApp();
     const isAndroid = Platform.OS === 'android';

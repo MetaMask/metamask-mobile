@@ -14,9 +14,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  SelectButton,
-  SelectButtonSize,
-  SelectButtonVariant,
   Skeleton,
   Tag,
   TagSeverity,
@@ -28,14 +25,28 @@ import type { OrderType } from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
+import PerpsSwapIcon from '../PerpsSwapIcon';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
+import { typography } from '@metamask/design-tokens';
+import {
+  LIMIT_PRICE_CONFIG,
+  MAX_PERPS_INPUT_DIGITS,
+} from '../../constants/perpsConfig';
+import { useAssetAmountDraft } from '../../hooks/useAssetAmountDraft';
+import {
+  convertAssetAmountToUsd,
+  limitAssetAmountDecimals,
+} from '../../utils/assetAmountInput';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -50,6 +61,8 @@ interface PerpsTradeScreenProps {
   oiCapSymbol: string;
   direction: 'long' | 'short';
   leverage: number;
+  /** Market maximum, shown as a header tag; `null` while market data loads. */
+  maxLeverage: number | null;
   currentPrice: number;
   percentChange24h: number | null;
   orderType: Extract<OrderType, 'market' | 'limit'>;
@@ -58,14 +71,23 @@ interface PerpsTradeScreenProps {
   autoCloseText: string;
   showAutoClose: boolean;
   margin: string;
+  /** Formatted liquidation price, or a fallback when there is nothing to show. */
+  liquidationPrice: string;
+  /** Formatted distance from the entry price to liquidation (e.g. `30.05%`). */
+  liquidationDistance?: string;
   amount: string;
   tokenAmount?: string;
+  /** USD price used to turn a typed coin amount into the canonical USD size. */
+  amountPrice: number;
+  /** Market size decimals for the coin keypad. */
+  sizeDecimals: number;
   sliderMaximum: number;
   isAmountDisabled: boolean;
   isAmountLoading: boolean;
   isHeaderLoading: boolean;
   isPayWithLoading: boolean;
   isMarginLoading: boolean;
+  isLiquidationLoading: boolean;
   isFeeLoading: boolean;
   isOrderTypeDisabled: boolean;
   areLimitPricePresetsDisabled: boolean;
@@ -76,9 +98,14 @@ interface PerpsTradeScreenProps {
   isLimitPriceFocused: boolean;
   payWithName: string;
   payWithBalance: string;
+  /** Asset icon for the selected payment source, matching the full-screen row. */
+  payWithIcon?: React.ReactNode;
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   feePercentage?: string;
+  /** Formatted fiat bridge fee, shown when the user pays with a token. */
+  bridgeFee?: string;
+  feeDiscountPercentage?: number;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -88,11 +115,20 @@ interface PerpsTradeScreenProps {
   onAmountPress: () => void;
   onSliderValueChange: (value: number) => void;
   onSliderDragEnd: (value: number) => void;
-  onKeypadChange: (value: { value: string; valueAsNumber: number }) => void;
+  onKeypadChange: (value: {
+    value: string;
+    valueAsNumber: number;
+    /**
+     * True when `value` is USD converted from a coin keypad entry. That string
+     * can exceed the typed-digit cap, which already applied to the coin entry.
+     */
+    isAssetAmount?: boolean;
+  }) => void;
   onPercentagePress: (percentage: number) => void;
   onMaxPress: () => void;
   onDonePress: () => void;
-  onOrderTypePress: () => void;
+  /** Swaps between market and limit; the sheet offers no other order types. */
+  onOrderTypeToggle: () => void;
   onLimitPricePress: () => void;
   onLimitPriceKeypadChange: (value: {
     value: string;
@@ -102,12 +138,11 @@ interface PerpsTradeScreenProps {
     preset: 'mid' | 'book' | 'percentage-1' | 'percentage-2',
   ) => void;
   onLimitPriceDonePress: () => void;
+  /**
+   * Fired before the sheet navigates to its inline `payWith` screen so the
+   * parent can record the picker being opened.
+   */
   onPayWithPress: () => void;
-  onMarginInfoPress: () => void;
-  showSlippage: boolean;
-  slippageText: string;
-  exceedsMaxSlippage: boolean;
-  onSlippagePress: () => void;
   onSubmit: () => void;
 }
 
@@ -115,6 +150,24 @@ export interface PerpsTradeError {
   key: string;
   message: React.ReactNode;
 }
+
+/**
+ * Five equal-width buttons share the limit-price preset row. The design
+ * system's default `px-4` leaves too little room for labels like "Done" or
+ * "Mid" on narrow screens (the label is clipped, not wrapped), so the
+ * horizontal padding is tightened.
+ */
+const LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME = 'flex-1 px-1';
+
+/**
+ * Skeletons that stand in for a single line of text take that text's line
+ * height. A shorter placeholder makes the layout jump when the value arrives:
+ * the header centres its text column, so a shorter price line moved the title,
+ * and the fee line sits at the bottom of a bottom-anchored sheet, so a shorter
+ * placeholder moved the whole sheet.
+ */
+const HEADER_PRICE_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
+const FEE_SKELETON_HEIGHT = typography.sBodyXS.lineHeight;
 
 interface ActionRowProps {
   label: string;
@@ -218,6 +271,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   oiCapSymbol,
   direction,
   leverage,
+  maxLeverage,
   currentPrice,
   percentChange24h,
   orderType,
@@ -226,14 +280,19 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   autoCloseText,
   showAutoClose,
   margin,
+  liquidationPrice,
+  liquidationDistance,
   amount,
   tokenAmount,
+  amountPrice,
+  sizeDecimals,
   sliderMaximum,
   isAmountDisabled,
   isAmountLoading,
   isHeaderLoading,
   isPayWithLoading,
   isMarginLoading,
+  isLiquidationLoading,
   isFeeLoading,
   isOrderTypeDisabled,
   areLimitPricePresetsDisabled,
@@ -244,9 +303,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   isLimitPriceFocused,
   payWithName,
   payWithBalance,
+  payWithIcon,
   showPayWith,
   isPayWithDisabled,
   feePercentage,
+  bridgeFee,
+  feeDiscountPercentage,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -260,33 +322,68 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onPercentagePress,
   onMaxPress,
   onDonePress,
-  onOrderTypePress,
+  onOrderTypeToggle,
   onLimitPricePress,
   onLimitPriceKeypadChange,
   onLimitPricePresetPress,
   onLimitPriceDonePress,
   onPayWithPress,
-  onMarginInfoPress,
-  showSlippage,
-  slippageText,
-  exceedsMaxSlippage,
-  onSlippagePress,
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const { fireImpact } = useHaptics();
   const [showAssetValue, setShowAssetValue] = useState(false);
+  const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
+    fireImpact(ImpactMoment.PageNavigation);
+    navigateTo(screen);
+  };
+  const { draft: assetDraft, setDraftFromKeypad } = useAssetAmountDraft({
+    isActive: showAssetValue,
+    usdAmount: amount,
+    assetAmount: tokenAmount,
+  });
+  const handleAmountKeypadChange = (input: {
+    value: string;
+    valueAsNumber: number;
+  }) => {
+    if (!showAssetValue) {
+      onKeypadChange(input);
+      return;
+    }
+
+    const nextAsset = limitAssetAmountDecimals(
+      input.value || '0',
+      sizeDecimals,
+    );
+    const digitCount = (nextAsset.match(/\d/g) || []).length;
+    if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+      return;
+    }
+
+    const usd = convertAssetAmountToUsd(nextAsset, amountPrice);
+    setDraftFromKeypad(nextAsset, usd);
+    onKeypadChange({
+      value: usd,
+      valueAsNumber: Number(usd),
+      isAssetAmount: true,
+    });
+  };
   const directionLabel =
     direction === 'long'
       ? strings('perps.order.button.long', { asset })
       : strings('perps.order.button.short', { asset });
   const payWithLabel = `${payWithName} (${payWithBalance})`;
-  const orderTypeLabel =
-    orderType === 'market'
-      ? strings('perps.order.market')
-      : strings('perps.order.limit');
   const isEditing = isInputFocused || isLimitPriceFocused;
+  // The payment token picker replaces the sheet content instead of stacking
+  // another bottom sheet; the parent only records the press for analytics.
+  const handlePayWithPress = () => {
+    onPayWithPress();
+    navigateWithHaptic('payWith');
+  };
   const limitPriceDisplay = limitPrice
-    ? formatPerpsFiat(limitPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+    ? isLimitPriceFocused
+      ? `$${limitPrice}`
+      : formatPerpsFiat(limitPrice, { ranges: PRICE_RANGES_UNIVERSAL })
     : strings('perps.order.set_price');
 
   return (
@@ -318,13 +415,26 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               <Text variant={TextVariant.HeadingSm} twClassName="shrink">
                 {directionLabel}
               </Text>
-              <Tag severity={TagSeverity.Neutral}>{leverage}x</Tag>
+              {maxLeverage !== null ? (
+                <Tag
+                  severity={TagSeverity.Neutral}
+                  accessible
+                  accessibilityLabel={strings(
+                    'perps.trade_sheet.max_leverage_accessibility_label',
+                    { maxLeverage },
+                  )}
+                  testID={PerpsTradeSheetSelectorsIDs.MAX_LEVERAGE_TAG}
+                >
+                  {/* Must be a single string: Tag only wraps string children in <Text>. */}
+                  {`${maxLeverage}x`}
+                </Tag>
+              ) : null}
             </Box>
             {isHeaderLoading ? (
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.HEADER_SKELETON}
                 width={112}
-                height={18}
+                height={HEADER_PRICE_SKELETON_HEIGHT}
               />
             ) : (
               <LivePriceHeader
@@ -337,27 +447,12 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             )}
           </Box>
         </Box>
-        <Box
-          accessible={false}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <SelectButton
-            testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
-            variant={SelectButtonVariant.Primary}
-            size={SelectButtonSize.Md}
-            placeholder={orderTypeLabel}
-            value={orderTypeLabel}
-            accessibilityLabel={strings(
-              'perps.trade_sheet.order_type_accessibility_label',
-              { orderType: orderTypeLabel },
-            )}
-            isDisabled={isOrderTypeDisabled}
-            onPress={onOrderTypePress}
-            endArrowDirection="down"
-          />
-        </Box>
+        <PerpsMarketLimitToggle
+          testID={PerpsTradeSheetSelectorsIDs.ORDER_TYPE_BUTTON}
+          orderType={orderType}
+          isDisabled={isOrderTypeDisabled}
+          onPress={onOrderTypeToggle}
+        />
       </Box>
 
       <PerpsTradeSheetTitleBanner title={title} banner={banner} />
@@ -366,7 +461,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
         <Box accessible={false} paddingHorizontal={4} gap={4}>
           <PerpsAmountDisplay
             amount={amount}
-            tokenAmount={tokenAmount}
+            tokenAmount={
+              showAssetValue && isInputFocused ? assetDraft : tokenAmount
+            }
             tokenSymbol={asset}
             showTokenAmount={showAssetValue}
             variant="tradeSheet"
@@ -381,6 +478,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 : 'perps.trade_sheet.show_asset_value',
             )}
             displayToggleTestID={PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE}
+            // Figma uses the Material swap glyph here, which MMDS does not
+            // publish; other Trade-sheet-style callers keep the MMDS icon.
+            displayToggleIcon={<PerpsSwapIcon direction="vertical" />}
             isActive={isInputFocused}
             isLoading={isAmountLoading}
             hasError={hasAmountError}
@@ -429,13 +529,15 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 </Button>
               </Box>
               <Keypad
-                value={amount}
-                onChange={onKeypadChange}
-                currency="USD"
-                decimals={0}
+                value={showAssetValue ? assetDraft : amount}
+                onChange={handleAmountKeypadChange}
+                currency={showAssetValue ? 'ASSET' : 'USD'}
+                decimals={showAssetValue ? sizeDecimals : 0}
               />
             </Box>
           ) : (
+            // The same full-size slider as the close-position sheet, so both
+            // A/B bottom sheets share one control.
             <PerpsSlider
               value={Number.parseFloat(amount || '0')}
               onValueChange={onSliderValueChange}
@@ -445,7 +547,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
-              variant="compact"
               accessibilityLabel={strings(
                 'perps.trade_sheet.amount_slider_accessibility_label',
               )}
@@ -469,7 +570,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   {leverage}x
                 </Text>
               }
-              onPress={() => navigateTo('leverage')}
+              onPress={() => navigateWithHaptic('leverage')}
             />
             {orderType === 'limit' ? (
               <>
@@ -484,7 +585,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
                       color={
-                        limitPrice ? TextColor.TextDefault : TextColor.TextMuted
+                        limitPrice
+                          ? TextColor.TextDefault
+                          : TextColor.ErrorDefault
                       }
                     >
                       {limitPriceDisplay}
@@ -521,7 +624,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                         {autoCloseText}
                       </Text>
                     }
-                    onPress={() => navigateTo('tpsl')}
+                    onPress={() => navigateWithHaptic('tpsl')}
                   />
                 ) : null}
                 {showPayWith ? (
@@ -539,48 +642,30 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                           height={20}
                         />
                       ) : (
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
+                        <Box
+                          accessible={false}
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          gap={2}
                         >
-                          {payWithName}{' '}
+                          {payWithIcon}
                           <Text
                             variant={TextVariant.BodyMd}
-                            color={TextColor.TextAlternative}
+                            fontWeight={FontWeight.Medium}
                           >
-                            ({payWithBalance})
+                            {payWithName}{' '}
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              color={TextColor.TextAlternative}
+                            >
+                              ({payWithBalance})
+                            </Text>
                           </Text>
-                        </Text>
+                        </Box>
                       )
                     }
                     isDisabled={isPayWithDisabled}
-                    onPress={onPayWithPress}
-                  />
-                ) : null}
-                {showSlippage ? (
-                  <ActionRow
-                    testID={PerpsTradeSheetSelectorsIDs.SLIPPAGE_ROW}
-                    label={strings('perps.slippage.slippage')}
-                    accessibilityLabel={`${strings(
-                      'perps.slippage.slippage',
-                    )}, ${slippageText}`}
-                    value={
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        fontWeight={FontWeight.Medium}
-                        color={
-                          exceedsMaxSlippage
-                            ? TextColor.ErrorDefault
-                            : TextColor.TextDefault
-                        }
-                      >
-                        {slippageText}
-                      </Text>
-                    }
-                    onPress={() => {
-                      onSlippagePress();
-                      navigateTo('settings');
-                    }}
+                    onPress={handlePayWithPress}
                   />
                 ) : null}
                 <ActionRow
@@ -588,7 +673,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   label={strings('perps.order.margin')}
                   accessibilityLabel={`${strings(
                     'perps.order.margin',
-                  )}, ${strings('perps.margin_mode.isolated_title')}, ${margin}`}
+                  )}, ${strings('perps.margin_mode.isolated_title')}, ${margin}. ${strings(
+                    'perps.trade_sheet.margin_info_accessibility_label',
+                  )}`}
                   labelEndAccessory={
                     <>
                       <Tag severity={TagSeverity.Neutral}>
@@ -618,7 +705,69 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                     )
                   }
                   showEndIcon={false}
-                  onPress={onMarginInfoPress}
+                  onPress={() => navigateTo('marginInfo')}
+                />
+                <ActionRow
+                  testID={PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW}
+                  label={strings('perps.order.liquidation_price')}
+                  accessibilityLabel={`${strings(
+                    'perps.order.liquidation_price',
+                  )}, ${liquidationPrice}${
+                    liquidationDistance ? `, ${liquidationDistance}` : ''
+                  }. ${strings(
+                    'perps.trade_sheet.liquidation_price_info_accessibility_label',
+                  )}`}
+                  showInfo
+                  value={
+                    isLiquidationLoading ? (
+                      <Skeleton
+                        testID={
+                          PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_SKELETON
+                        }
+                        width={112}
+                        height={20}
+                      />
+                    ) : (
+                      <>
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                          testID={
+                            PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE
+                          }
+                        >
+                          {liquidationPrice}
+                        </Text>
+                        {liquidationDistance ? (
+                          <>
+                            <Icon
+                              name={
+                                direction === 'long'
+                                  ? IconName.TrendDown
+                                  : IconName.TrendUp
+                              }
+                              size={IconSize.Sm}
+                              color={IconColor.IconAlternative}
+                              testID={
+                                PerpsTradeSheetSelectorsIDs.LIQUIDATION_TREND_ICON
+                              }
+                            />
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              color={TextColor.TextAlternative}
+                              testID={
+                                PerpsTradeSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+                              }
+                            >
+                              {liquidationDistance}
+                            </Text>
+                          </>
+                        ) : null}
+                      </>
+                    )
+                  }
+                  showEndIcon={false}
+                  onPress={() => navigateTo('liquidationInfo')}
                 />
               </>
             ) : null}
@@ -660,7 +809,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   }
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  twClassName={LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME}
                   isDisabled={areLimitPricePresetsDisabled}
                   onPress={() => onLimitPricePresetPress(preset)}
                 >
@@ -671,7 +820,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 testID={PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName="flex-1"
+                twClassName={LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME}
                 onPress={onLimitPriceDonePress}
               >
                 {strings('perps.deposit.done_button')}
@@ -681,7 +830,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               value={limitPrice || ''}
               onChange={onLimitPriceKeypadChange}
               currency="USD_PERPS"
-              decimals={5}
+              decimals={LIMIT_PRICE_CONFIG.KeypadDecimals}
             />
           </Box>
         ) : null}
@@ -732,7 +881,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               isLoading={isSubmitting}
               onPress={onSubmit}
               testID={PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON}
-              twClassName="rounded-xl"
             >
               {submitLabel ?? directionLabel}
             </ButtonSemantic>
@@ -740,17 +888,35 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               <Skeleton
                 testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
                 width={112}
-                height={16}
+                height={FEE_SKELETON_HEIGHT}
                 twClassName="self-center"
               />
             ) : feePercentage ? (
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                twClassName="text-center"
+              <Box
+                accessible={false}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                gap={2}
               >
-                {strings('perps.trade_sheet.includes_fee', { feePercentage })}
-              </Text>
+                {(feeDiscountPercentage ?? 0) > 0 ? (
+                  <MembershipVipBadge />
+                ) : null}
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
+                >
+                  {bridgeFee
+                    ? strings('perps.trade_sheet.includes_fee_with_bridge', {
+                        feePercentage,
+                        bridgeFee,
+                      })
+                    : strings('perps.trade_sheet.includes_fee', {
+                        feePercentage,
+                      })}
+                </Text>
+              </Box>
             ) : null}
           </Box>
         </Box>

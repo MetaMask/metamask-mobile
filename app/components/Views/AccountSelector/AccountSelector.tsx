@@ -15,7 +15,13 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  HeaderStandard,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
@@ -45,6 +51,7 @@ import {
   SearchInteractionType,
   buildSearchInteractedProperties,
 } from '../../../core/Analytics/events/navigation';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import {
   TraceName,
   TraceOperation,
@@ -54,6 +61,7 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import Routes from '../../../constants/navigation/Routes';
+import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const tw = useTailwind();
@@ -119,6 +127,12 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const handleClose = useCallback(() => {
     navigation.goBack();
+  }, [navigation]);
+
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   }, [navigation]);
 
   useEffect(() => {
@@ -219,15 +233,17 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <Fragment>
         {selectedAccountGroup ? (
-          <MultichainAccountSelectorList
-            onSelectAccount={_onSelectMultichainAccount}
-            selectedAccountGroups={selectedAccountGroups}
-            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-            setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
-            showFooter={!disableAddAccountButton}
-            onSearchFocus={handleSearchFocus}
-            onSearchSettled={handleSearchSettled}
-          />
+          <AccountListBalanceProviders>
+            <MultichainAccountSelectorList
+              onSelectAccount={_onSelectMultichainAccount}
+              selectedAccountGroups={selectedAccountGroups}
+              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+              setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
+              showFooter={!disableAddAccountButton}
+              onSearchFocus={handleSearchFocus}
+              onSearchSettled={handleSearchSettled}
+            />
+          </AccountListBalanceProviders>
         ) : null}
         {!disableAddAccountButton && (
           <AddWalletButton
@@ -247,6 +263,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       handleAddAccount,
       handleSearchFocus,
       handleSearchSettled,
+      setKeyboardAvoidingViewEnabled,
     ],
   );
 
@@ -283,6 +300,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             backButtonProps={{
               testID: CommonSelectorsIDs.BACK_ARROW_BUTTON,
             }}
+            endAccessory={
+              <ButtonIcon
+                iconName={IconName.Setting}
+                size={ButtonIconSize.Md}
+                onPress={handleManageAccountsPress}
+                testID={
+                  AccountListBottomSheetSelectorsIDs.MANAGE_ACCOUNTS_BUTTON
+                }
+                accessibilityLabel={strings(
+                  'multichain_accounts.manage_accounts.title',
+                )}
+                accessibilityRole="button"
+              />
+            }
           />
           {renderAccountSelector()}
         </Box>

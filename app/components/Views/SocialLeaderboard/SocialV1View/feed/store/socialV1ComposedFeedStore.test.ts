@@ -13,14 +13,13 @@ import {
   submitSocialV1ComposedPost,
   subscribeSocialV1ComposedFeed,
 } from './socialV1ComposedFeedStore';
-import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 
 const composedPost = {
   id: 'composed-1',
   authorHandle: 'giga-whale',
   timestampMs: Date.now(),
-  likeCount: 0,
-  commentCount: 0,
+  reactions: [],
   item: mockOpenPerpsFeedItem({ comment: 'this is alpha' }),
 };
 

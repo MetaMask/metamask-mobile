@@ -19,6 +19,9 @@ const defaultProps: WalletHeaderCompactProps = {
   displayName: 'Account 1',
   handleRewardsPress: jest.fn(),
   handleAccountHubPress: jest.fn(),
+  useSearchHeaderLayout: false,
+  showSearchPastePill: false,
+  handleSearchPastePress: jest.fn(),
   touchAreaSlop: { top: 8, bottom: 8, left: 8, right: 8 },
   scrollY: makeMutable(0),
   titleSectionHeight: makeMutable(0),
@@ -58,6 +61,22 @@ describe('WalletHeaderCompact', () => {
     expect(handleSearchPress).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the homepage search field when the search header is enabled', () => {
+    const handleSearchPress = jest.fn();
+
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact
+        {...defaultProps}
+        useSearchHeaderLayout
+        handleSearchPress={handleSearchPress}
+      />,
+    );
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SEARCH_BUTTON));
+
+    expect(handleSearchPress).toHaveBeenCalledTimes(1);
+  });
+
   it('opens the account hub from the collapsed header title', () => {
     const { getByTestId } = renderWithProvider(
       <WalletHeaderCompact {...defaultProps} />,
@@ -68,6 +87,14 @@ describe('WalletHeaderCompact', () => {
     );
 
     expect(defaultProps.handleAccountHubPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the account picker id on the avatar', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact {...defaultProps} />,
+    );
+
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
   });
 
   it('calls handleAccountHubPress when the avatar is pressed', () => {

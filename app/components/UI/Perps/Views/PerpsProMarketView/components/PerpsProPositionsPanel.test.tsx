@@ -24,6 +24,8 @@ import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
 import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
 import {
+  getPerpsProChaseRowSelector,
+  getPerpsProChaseTerminateSelector,
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProActivityViewSelector,
   getPerpsProOrderRowSelector,
@@ -290,6 +292,7 @@ describe('PerpsProPositionsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1164,6 +1167,7 @@ describe('PerpsProPositionsPanel', () => {
       deliveryRevision: 4,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [],
       isInitialLoading: false,
       deliveryRevision: 7,
@@ -1289,6 +1293,7 @@ describe('PerpsProPositionsPanel', () => {
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1317,6 +1322,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('shows the ticker-only checkbox on the orders tab and filters from there', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1370,6 +1376,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('uses filtered count and filtered empty copy for ticker-only orders with no match', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'btc-1', symbol: 'BTC' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1396,6 +1403,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('matches the ticker-only filter on the full market symbol for HIP-3 orders', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'dex-1', symbol: 'dex1:SOL' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1425,6 +1433,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('filters orders by side from the orders tab filter bar', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
         makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
@@ -1448,6 +1457,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('shows side-filter empty copy when no orders match', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1473,6 +1483,7 @@ describe('PerpsProPositionsPanel', () => {
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
         makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
@@ -1516,6 +1527,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('sorts orders by order value from the Orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({
           orderId: 'small',
@@ -1584,6 +1596,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('wires order cancel handler on the orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1608,6 +1621,7 @@ describe('PerpsProPositionsPanel', () => {
       reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
     } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: '59106897534', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1635,6 +1649,7 @@ describe('PerpsProPositionsPanel', () => {
       reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
     } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'unrelated-order', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1660,6 +1675,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('disables all order cancel buttons while any cancel is in flight', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1749,6 +1765,7 @@ describe('PerpsProPositionsPanel', () => {
   it('switches to the market of a tapped order row', () => {
     const onSelectMarket = jest.fn();
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'eth-1', symbol: 'ETH' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1766,6 +1783,128 @@ describe('PerpsProPositionsPanel', () => {
       { symbol: 'ETH' },
       PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     );
+  });
+
+  it('switches to the market of a tapped Chase row', () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProChaseRowSelector('ETH', chaseOrder.handle, true),
+      ),
+    );
+
+    // Assert
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      { symbol: 'ETH' },
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
+    expect(screen.getByLabelText('Switch to the ETH market')).toBeOnTheScreen();
+  });
+
+  it('switches to the full market data of a tapped Chase row', () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    const ethMarket = { symbol: 'ETH', maxLeverage: '25x' };
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [ethMarket],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProChaseRowSelector('ETH', chaseOrder.handle, true),
+      ),
+    );
+
+    // Assert
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      ethMarket,
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
+  });
+
+  it('keeps Chase cancel scoped to its own handler when the row is pressable', async () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    // Terminating settles asynchronously, so let its state update flush here
+    // instead of leaking an un-acted update into the next test.
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          getPerpsProChaseTerminateSelector(
+            chaseOrder.status,
+            'ETH',
+            chaseOrder.handle,
+            true,
+          ),
+        ),
+      );
+    });
+
+    // Assert
+    expect(onSelectMarket).not.toHaveBeenCalled();
+  });
+
+  it('leaves the Chase row non-interactive when no market switch handler is provided', () => {
+    // Arrange
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [{ ...chaseOrder, symbol: 'ETH' }],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL');
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+
+    // Assert
+    expect(screen.queryByLabelText('Switch to the ETH market')).toBeNull();
   });
 
   it('leaves rows non-interactive when no market switch handler is provided', () => {
@@ -1941,8 +2080,188 @@ describe('PerpsProPositionsPanel', () => {
     expect(screen.queryByText('No open SOL positions.')).toBeNull();
   });
 
+  it('shows the hidden positions count when the long filter hides a short', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the combined hidden count when ticker-only hides other markets', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'SOL', size: '1' }),
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'ETH', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 2,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the hidden caption when no filter is applied', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+  });
+
+  it('omits the hidden caption when the side filter hides no positions', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '2' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+  });
+
+  it('keeps the hidden caption when filters hide every position', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL', size: '-1' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(screen.getByText('No long positions.')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the orders hidden count from the orders filter only', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
+      orders: [
+        makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
+        makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
+        makeOrder({ orderId: 'short-2', symbol: 'ETH', side: 'sell' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+
+    applySideFilter('short');
+
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.orders_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.pro_positions_panel.positions_hidden_by_filters', {
+          count: 1,
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  it('omits the hidden caption on the unfiltered empty positions state', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(
+      screen.getByText('Your open positions will appear here.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.HIDDEN_BY_FILTERS_CAPTION,
+      ),
+    ).toBeNull();
+  });
+
   it('wires the bulk cancel handler on the orders tab', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLiveOrders>);
@@ -1963,6 +2282,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('labels the bulk cancel for the whole book when no order filter is applied', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -1985,6 +2305,7 @@ describe('PerpsProPositionsPanel', () => {
 
   it('narrows the summary count when ticker-only is enabled', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -2041,6 +2362,7 @@ describe('PerpsProPositionsPanel', () => {
       renderActionSheets,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
@@ -2094,6 +2416,7 @@ describe('PerpsProPositionsPanel', () => {
       renderActionSheets,
     });
     mockUsePerpsLiveOrders.mockReturnValue({
+      retry: jest.fn(),
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
         makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),

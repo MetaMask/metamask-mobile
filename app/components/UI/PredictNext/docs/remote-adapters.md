@@ -73,6 +73,8 @@ Contract-version header enforcement and cross-repository fixture tooling are def
 
 Market history uses `GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}` with the supported ranges `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response contains the Venue and Market identity, range, backend observation time, and canonical timestamp/Yes-price/No-price points. The backend derives each binary Market No price as the exact fixed-point complement of the authoritative Yes trade price. Every range is a REST history snapshot through the backend observation time; mobile does not poll, interpolate, or generate points. `LIVE` alone is extended on the client: while the Event Screen shows the `LIVE` range, mobile appends one point per streamed quote (see below) after the snapshot's last timestamp, using the quote's `lastPrice` as the Yes price and its exact complement as the No price. The appended points are server-observed trades, not client-generated values; the trail is bounded, in-memory only, and discarded when the range or Outcome changes.
 
+Search uses `GET /v1/venues/{venueId}/search?q={text}&limit={limit}`. The adapter validates the Venue identity of the response and of every returned Event; the response is an unpaginated `{ venueId, events }` page ranked by the backend.
+
 ### Live data stream
 
 The backend exposes one authenticated WebSocket at `/v1/stream/live-data` on the same base URL as REST. Mobile subscribes by Venue and topic: `game` for Event ids and `market` for Market ids. Frames carry canonical `PredictGame` and `PredictMarket` field names only; venue-native payloads never reach mobile. Two frame kinds patch the read model:

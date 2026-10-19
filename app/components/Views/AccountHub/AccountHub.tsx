@@ -35,6 +35,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
@@ -52,6 +53,7 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
 
 const AccountHub = () => {
@@ -123,6 +125,12 @@ const AccountHub = () => {
     );
     navigation.navigate(Routes.SETTINGS_VIEW);
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const handleManageAccountsPress = useCallback(() => {
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
+  }, [navigation]);
 
   const handleInfoPress = useCallback(() => {
     if (!selectedAccountGroup) {
@@ -258,6 +266,13 @@ const AccountHub = () => {
                 />
               </BadgeWrapper>
             )}
+            <ButtonIcon
+              iconName={IconName.Setting}
+              size={ButtonIconSize.Md}
+              onPress={handleManageAccountsPress}
+              testID={AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON}
+            />
+
             <BadgeWrapper
               position={BadgeWrapperPosition.TopRight}
               positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
@@ -283,13 +298,15 @@ const AccountHub = () => {
       />
 
       {selectedAccountGroup ? (
-        <MultichainAccountSelectorList
-          onSelectAccount={handleSelectAccount}
-          selectedAccountGroups={selectedAccountGroups}
-          hideSearch
-          ListHeaderComponent={listHeader}
-          testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
-        />
+        <AccountListBalanceProviders>
+          <MultichainAccountSelectorList
+            onSelectAccount={handleSelectAccount}
+            selectedAccountGroups={selectedAccountGroups}
+            hideSearch
+            ListHeaderComponent={listHeader}
+            testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
+          />
+        </AccountListBalanceProviders>
       ) : (
         <ScrollView style={tw.style('flex-1')}>{listHeader}</ScrollView>
       )}

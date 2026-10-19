@@ -11,6 +11,11 @@
 const { NativeModules } = require('react-native');
 // eslint-disable-next-line import-x/no-nodejs-modules
 const nodeCrypto = require('crypto');
+const { installTimerLeakGuard } = require('./timerLeakGuard');
+const { installSocketLeakGuard } = require('./socketLeakGuard');
+
+installTimerLeakGuard();
+installSocketLeakGuard();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>
@@ -54,13 +59,17 @@ jest.mock('react-native-mmkv', () => {
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
 
-// Mock unstable_batchedUpdates more reliably
-const mockBatchedUpdates = jest.fn((fn) => {
+// Mock unstable_batchedUpdates more reliably.
+// Plain function, NOT jest.fn(): RN 0.86 made `unstable_batchedUpdates`
+// writable so this shim is actually installed, and a jest.fn implementation
+// would be stripped by `jest.resetAllMocks()` in test files, turning every
+// batched callback into a silent no-op.
+const mockBatchedUpdates = (fn) => {
   if (typeof fn === 'function') {
     return fn();
   }
   return fn;
-});
+};
 
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
@@ -82,8 +91,6 @@ jest.mock('react-native', () => {
     style: true,
   };
 
-  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
-
   return originalModule;
 });
 
@@ -96,6 +103,10 @@ const ReactNativeView = require('react-native');
 if (!ReactNativeView.BackHandler.removeEventListener) {
   ReactNativeView.BackHandler.removeEventListener = jest.fn();
 }
+// Same post-require requirement as `BackHandler` above: the hoisted `jest.mock`
+// factory would store `undefined`, which RN 0.86 now lets through because
+// `unstable_batchedUpdates` became a writable method instead of a getter.
+ReactNativeView.unstable_batchedUpdates = mockBatchedUpdates;
 if (ReactNativeView.Platform.Version == null) {
   ReactNativeView.Platform.Version = '17.0';
 }
@@ -107,6 +118,40 @@ if (ReactNativeView.Platform.Version == null) {
 // 2. Perform async operations that cause "act()" warnings or flakiness (e.g., animations, analytics).
 // 3. Are not the focus of view tests and add unnecessary complexity.
 // --------------------------------------------------------------------------------
+
+// react-native-screens only emits onAppear from native code. Jest never does,
+// so @react-navigation/native-stack never emits transitionEnd. Screens that
+// gate their content on useScreenTransitionComplete (Explore search) then stay
+// on the loading skeleton until a 450ms fallback, and that fallback loses to
+// findBy/waitFor on a busy CI runner.
+//
+// native-stack 7 passes onAppear to ScreenStackItem, which forwards it to an
+// internal Screen. Wrapping the package Screen export does not intercept that.
+jest.mock('react-native-screens', () => {
+  const React = require('react');
+  const actual = jest.requireActual('react-native-screens');
+
+  const ScreenStackItem = React.forwardRef((props, ref) => {
+    const onAppearRef = React.useRef(props.onAppear);
+    onAppearRef.current = props.onAppear;
+
+    React.useEffect(() => {
+      const appearTimeout = setTimeout(() => {
+        onAppearRef.current?.({ nativeEvent: { target: null } });
+      }, 0);
+
+      return () => clearTimeout(appearTimeout);
+    }, []);
+
+    return React.createElement(actual.ScreenStackItem, { ...props, ref });
+  });
+  ScreenStackItem.displayName = 'ScreenStackItem';
+
+  return {
+    ...actual,
+    ScreenStackItem,
+  };
+});
 
 // Mock redux-devtools-expo-dev-plugin
 // eslint-disable-next-line no-empty-function
@@ -881,6 +926,12 @@ jest.mock('@metamask/design-system-react-native', () => {
       },
       ref,
     ) => {
+      // The real sheet animates itself open on first layout and then calls onOpen.
+      const onOpenRef = React.useRef(onOpen);
+      onOpenRef.current = onOpen;
+      React.useEffect(() => {
+        onOpenRef.current?.();
+      }, []);
       React.useImperativeHandle(ref, () => ({
         onOpenBottomSheet: (callback) => {
           onOpen?.();
@@ -988,6 +1039,7 @@ jest.mock('@braze/react-native-sdk', () => ({
   default: {
     changeUser: jest.fn(),
     enableSDK: jest.fn(),
+    disableSDK: jest.fn(),
     wipeData: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)
@@ -998,5 +1050,6 @@ jest.mock('@braze/react-native-sdk', () => ({
     addListener: jest.fn(() => ({
       remove: jest.fn(),
     })),
+    dismissBanner: jest.fn(),
   },
 }));

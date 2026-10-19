@@ -15,6 +15,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { BackHandler, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -25,7 +26,13 @@ import Animated, {
 import { AnimationDuration } from '@metamask/design-tokens';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 
-export type PerpsTradeSheetScreen = 'trade' | 'leverage' | 'tpsl' | 'settings';
+export type PerpsTradeSheetScreen =
+  | 'trade'
+  | 'leverage'
+  | 'tpsl'
+  | 'payWith'
+  | 'marginInfo'
+  | 'liquidationInfo';
 
 type ScreenDirection = 1 | -1;
 const SCREEN_SLIDE_OFFSET = 24;
@@ -129,6 +136,13 @@ export interface PerpsTradeBottomSheetProps<Screen extends string> {
   screens: Record<Screen, React.ReactNode>;
   rootScreen: Screen;
   screenDepth: Record<Screen, number>;
+  /**
+   * Nested screens that size to their own content instead of being locked to
+   * the measured root screen height (e.g. short explainer screens). Every
+   * other nested screen keeps the root height so the sheet does not jump
+   * while navigating.
+   */
+  contentSizedScreens?: readonly Screen[];
   /** Optional heading shown on the root screen. */
   title?: string;
   /** Optional banner rendered directly below `title` on the root screen. */
@@ -144,8 +158,10 @@ const PerpsTradeBottomSheet = <Screen extends string>({
   screens,
   rootScreen,
   screenDepth,
+  contentSizedScreens,
 }: PerpsTradeBottomSheetProps<Screen>) => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hasClosedRef = useRef(false);
   const isClosingRef = useRef(false);
@@ -184,12 +200,18 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
+        // A route stacked on the confirmation, such as the pay-with token
+        // list, owns this press. Consuming it here would dismiss the picker
+        // while that route is still showing.
+        if (!navigation.isFocused()) {
+          return false;
+        }
         goBack();
         return true;
       },
     );
     return () => subscription.remove();
-  }, [activeScreen, goBack, rootScreen]);
+  }, [activeScreen, goBack, navigation, rootScreen]);
 
   const handleContentLayout = useCallback(
     ({ nativeEvent }: LayoutChangeEvent) => {
@@ -203,7 +225,10 @@ const PerpsTradeBottomSheet = <Screen extends string>({
     },
     [activeScreen, onInteractive, rootScreen],
   );
-  const isHeightLocked = activeScreen !== rootScreen && rootHeight !== null;
+  const isHeightLocked =
+    activeScreen !== rootScreen &&
+    rootHeight !== null &&
+    !contentSizedScreens?.includes(activeScreen);
 
   const reportCancelBeforeInteractive = useCallback(() => {
     if (!hasReportedInteractiveRef.current) {

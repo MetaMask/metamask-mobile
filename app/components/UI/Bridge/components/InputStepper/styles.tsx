@@ -44,7 +44,7 @@ export const inputStepperDescriptionRow = StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   iconWrapper: {
     // Matches the design requirement: 8px gap between the warning icon and text.
@@ -54,6 +54,6 @@ export const inputStepperDescriptionRow = StyleSheet.create({
     flexShrink: 1,
   },
   descriptionText: {
-    textAlign: 'center',
+    textAlign: 'left',
   },
 });

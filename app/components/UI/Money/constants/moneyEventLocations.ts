@@ -14,9 +14,10 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
-  VBA_GET_PIX_KEY = 'vba_get_pix_key',
-  VBA_KYC_EMAIL = 'vba_kyc_email',
+  VBA_ONBOARDING = 'vba_onboarding',
   EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
+  PRO_SUBSCRIPTION = 'pro_subscription',
+  PRO_HUB = 'pro_hub',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -47,23 +48,40 @@ export enum MONEY_SURFACE_TYPES {
 }
 
 export enum COMPONENT_NAMES {
-  // — Section Headers —
-  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
-  MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
+  // — Money Balance Summary —
+  MONEY_BALANCE_SUMMARY_APY = 'money_balance_summary_apy',
 
   // — Onboarding —
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
 
+  // — VBA Home Cards —
+  /** GET_STARTED VBA identity-status card on Money Home (Figma node 2267-17522). */
+  MONEY_VBA_GET_STARTED_CARD = 'money_vba_get_started_card',
+  /** ACCOUNT_IS_READY VBA identity-status card on Money Home (Figma node 2158-5306). */
+  MONEY_VBA_ACCOUNT_READY_CARD = 'money_vba_account_ready_card',
+  /** KYC_PENDING VBA identity-status card on Money Home (Figma node 2254-13372). */
+  MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
+  /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */
+  MONEY_VBA_FINISH_VERIFICATION_CARD = 'money_vba_finish_verification_card',
+  /** KYC_DECISION (rejected / retry) VBA card on Money Home (Figma node 3841-39885, main file). */
+  MONEY_VBA_KYC_DECISION_CARD = 'money_vba_kyc_decision_card',
+
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
+  MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
+  MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
+  MONEY_POTENTIAL_EARNINGS_PROJECTED_AMOUNT = 'money_earn_crypto_projected_amount',
+
+  // — MetaMask Card —
+  MONEY_METAMASK_CARD_SECTION_HEADER = 'money_metamask_card_section_header',
 
   // — Activity —
-  MONEY_ACTIVITY_SECTION = 'money_activity_section',
+  MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
   MONEY_ACTIVITY_LIST_ITEM = 'money_activity_list_item',
 
   // — Activity Filter Buttons —
@@ -87,6 +105,7 @@ export enum COMPONENT_NAMES {
   MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS = 'money_transfer_money_sheet_between_accounts',
   MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT = 'money_transfer_money_sheet_perps_account',
   MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT = 'money_transfer_money_sheet_predictions_account',
+  MONEY_TRANSFER_MONEY_SHEET_SEND_EXTERNAL = 'money_transfer_money_sheet_send_external',
 
   // — More Sheet —
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',
@@ -94,6 +113,7 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
 
   // — Miscellaneous —
+  MONEY_HOW_IT_WORKS_SECTION_HEADER = 'money_how_it_works_section_header',
   MONEY_WHAT_YOU_GET_SECTION = 'money_what_you_get_section',
   MONEY_BALANCE_CARD = 'money_balance_card',
   MONEY_BALANCE_SUMMARY = 'money_balance_summary',
@@ -106,6 +126,7 @@ export enum COMPONENT_NAMES {
   MONEY_ASSET_OVERVIEW_BALANCE_CTA = 'money_asset_overview_balance_cta',
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
+  MONEY_HEADER = 'money_header',
 
   // — How It Works / FAQ —
   FAQ_ITEM = 'money_faq_item',

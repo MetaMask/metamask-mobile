@@ -15,6 +15,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextField,
   TextVariant,
@@ -39,10 +40,12 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsTPSLForm } from '../../hooks/usePerpsTPSLForm';
 import {
+  formatLiquidationDistance,
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -107,23 +110,101 @@ const RoeSign: React.FC<{ sign: '+' | '-'; testID: string }> = ({
   </Box>
 );
 
-const PriceRow: React.FC<{ label: string; value: string }> = ({
+interface ClearButtonProps {
+  onPress: () => void;
+  isDisabled: boolean;
+  accessibilityLabel: string;
+  testID: string;
+}
+
+/** Figma shows "Clear" as a plain primary-coloured text link, not a button. */
+const ClearButton: React.FC<ClearButtonProps> = ({
+  onPress,
+  isDisabled,
+  accessibilityLabel,
+  testID,
+}) => (
+  <TextButton
+    variant={TextVariant.BodySm}
+    accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel}
+    accessibilityState={{ disabled: isDisabled }}
+    disabled={isDisabled}
+    twClassName={isDisabled ? 'opacity-50' : undefined}
+    testID={testID}
+    onPress={onPress}
+  >
+    {strings('perps.tpsl.clear')}
+  </TextButton>
+);
+
+interface PriceRowProps {
+  label: string;
+  value: string;
+  /**
+   * Distance from the entry price (e.g. `30.05%`), shown after a trend icon
+   * pointing in the direction the price must move to reach `value`.
+   */
+  distance?: string;
+  distanceDirection?: 'long' | 'short';
+  testID?: string;
+  valueTestID?: string;
+  distanceTestID?: string;
+}
+
+const PriceRow: React.FC<PriceRowProps> = ({
   label,
   value,
+  distance,
+  distanceDirection,
+  testID,
+  valueTestID,
+  distanceTestID,
 }) => (
   <Box
     accessible
     accessibilityRole="text"
-    accessibilityLabel={`${label}, ${value}`}
+    accessibilityLabel={`${label}, ${value}${distance ? `, ${distance}` : ''}`}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
     paddingVertical={1}
+    testID={testID}
   >
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
       {label}
     </Text>
-    <Text variant={TextVariant.BodyMd}>{value}</Text>
+    <Box
+      accessible={false}
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+    >
+      <Text variant={TextVariant.BodyMd} testID={valueTestID}>
+        {value}
+      </Text>
+      {distance ? (
+        <>
+          <Icon
+            name={
+              distanceDirection === 'short'
+                ? IconName.TrendUp
+                : IconName.TrendDown
+            }
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+            testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_TREND_ICON}
+          />
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={distanceTestID}
+          >
+            {distance}
+          </Text>
+        </>
+      ) : null}
+    </Box>
   </Box>
 );
 
@@ -142,6 +223,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
   onSave,
 }) => {
   const { goBack } = usePerpsTradeSheet();
+  const { fireImpact } = useHaptics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [focusedInput, setFocusedInput] = useState<TPSLInput | null>(null);
   const inputRefs = useRef<Record<TPSLInput, TextInput | null>>({
@@ -212,6 +294,10 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
         ranges: PRICE_RANGES_UNIVERSAL,
       })
     : '--';
+  const liquidationDistanceDisplay = formatLiquidationDistance(
+    effectiveEntryPrice,
+    liquidationPrice,
+  );
   // Mirror the full-screen TP/SL view: a trigger-price message only surfaces
   // once the form as a whole is invalid, so a stale string can never block Save
   // on its own.
@@ -324,6 +410,11 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     }
     setFocusedInput(null);
   }, [focusedInput]);
+
+  const handleDonePillPress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
+    dismissKeypad();
+  }, [dismissKeypad, fireImpact]);
 
   const handleTakeProfitClear = useCallback(() => {
     dismissKeypad();
@@ -457,6 +548,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
       return;
     }
 
+    fireImpact(ImpactMoment.PrimaryCTA);
     dismissKeypad();
     setIsUpdating(true);
     try {
@@ -473,6 +565,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
     goBack,
     isUpdating,
     onSave,
+    fireImpact,
     hasChanges,
     isValid,
     stopLossPrice,
@@ -532,6 +625,13 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
           <PriceRow
             label={strings('perps.tpsl.liquidation_price')}
             value={liquidationPriceDisplay}
+            distance={liquidationDistanceDisplay}
+            distanceDirection={direction}
+            testID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_ROW}
+            valueTestID={PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
+            distanceTestID={
+              PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE
+            }
           />
         </Box>
 
@@ -553,18 +653,14 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 >
                   {strings('perps.order.take_profit')}
                 </Text>
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Sm}
+                <ClearButton
                   onPress={handleTakeProfitClear}
                   isDisabled={inputsDisabled}
                   accessibilityLabel={`${strings('perps.tpsl.clear')} ${strings(
                     'perps.order.take_profit',
                   )}`}
                   testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON}
-                >
-                  {strings('perps.tpsl.clear')}
-                </Button>
+                />
               </Box>
               <Box
                 accessible={false}
@@ -672,18 +768,14 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                 >
                   {strings('perps.order.stop_loss')}
                 </Text>
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  size={ButtonSize.Sm}
+                <ClearButton
                   onPress={handleStopLossClear}
                   isDisabled={inputsDisabled}
                   accessibilityLabel={`${strings('perps.tpsl.clear')} ${strings(
                     'perps.order.stop_loss',
                   )}`}
                   testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON}
-                >
-                  {strings('perps.tpsl.clear')}
-                </Button>
+                />
               </Box>
               <Box
                 accessible={false}
@@ -805,7 +897,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
                   key={percentage}
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
-                  twClassName="flex-1"
+                  twClassName="flex-1 px-1"
                   onPress={() => handlePresetPress(percentage)}
                   isDisabled={inputsDisabled}
                   testID={
@@ -824,8 +916,8 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName="flex-1"
-                onPress={dismissKeypad}
+                twClassName="flex-1 px-1"
+                onPress={handleDonePillPress}
                 testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
               >
                 {strings('perps.tpsl.done')}

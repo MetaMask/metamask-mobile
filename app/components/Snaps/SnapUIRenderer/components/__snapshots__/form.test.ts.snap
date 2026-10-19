@@ -522,9 +522,9 @@ exports[`SnapUIForm will render with fields 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#4459ff",
-                        "borderColor": "#4459ff",
-                        "borderRadius": 4,
+                        "backgroundColor": "#131416",
+                        "borderColor": "#131416",
+                        "borderRadius": 10,
                         "borderWidth": 2,
                         "height": 20,
                         "justifyContent": "center",

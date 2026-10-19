@@ -258,6 +258,7 @@ export const usePerpsProPositionsPanelActions =
               initialStopLossPrice: position.stopLossPrice,
               leverage: position.leverage.value,
               enableHaptics: true,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
               onConfirm: async (
                 positionFromRoute?: Position,
                 takeProfitPrice?: string,
@@ -276,7 +277,13 @@ export const usePerpsProPositionsPanelActions =
           },
         );
       },
-      [handleUpdateTPSL, navigation, playImpact, runGatedEligibleAction],
+      [
+        handleUpdateTPSL,
+        navigation,
+        playImpact,
+        runGatedEligibleAction,
+        useBottomSheet,
+      ],
     );
 
     const isPositionMarginEditable = useCallback(

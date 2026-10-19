@@ -635,15 +635,12 @@ describe('UnconnectedTransactions', () => {
   describe('grouped activity', () => {
     it('creates pending, date, and local transaction activity items', () => {
       const transaction = { id: 'transaction', time: 1 };
+      const activityItem = { type: 'activity' };
       const activityRow = {
         type: 'activity',
-        item: {
-          raw: {
-            data: { primaryTransaction: transaction },
-            type: 'localTransaction',
-          },
-        },
+        item: activityItem,
       };
+      mockMapTransactionToActivityItem.mockReturnValue(activityItem);
       mockGroupActivityListItems.mockReturnValue([
         { type: 'pending-header' },
         { date: 1, type: 'date-header' },

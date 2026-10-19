@@ -13,6 +13,7 @@ import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 
 export class WalletHomeSections {
@@ -70,10 +71,6 @@ export class WalletHomeSections {
   }
 
   get tokensSectionHeader(): Promise<AppiumElement> {
-    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
-  }
-
-  get tokensSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
     );
@@ -127,7 +124,7 @@ export class WalletHomeSections {
   }
 
   async tapOnTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSection, {
+    await Gestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'Tokens Section',
     });
@@ -152,31 +149,29 @@ export class WalletHomeSections {
     );
   }
 
-  async scrollAndTapPerpsSection(): Promise<void> {
-    try {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-      );
-    } catch {
-      await WalletHomeScroll.scrollAndTapSection(
-        this.perpsSectionHeader,
-        'Perpetuals section',
-        'up',
-      );
-    }
-  }
-
-  async scrollAndTapPredictionsSection(
+  async scrollAndTapPerpsSection(
     direction: 'up' | 'down' = 'down',
     options: {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
+    // Probe first. A displayed header can still sit under the tab bar, so a
+    // missed tap nudges it clear instead of waiting out a 30s tap timeout.
+    // `scrollAndTapSection`'s `timeout` is not a clock: 20s becomes 10
+    // scrollIntoView attempts, which is slower than the old 8-attempt burn.
+    // Four attempts is the actual wrong-direction cap.
+    const clippedHeaderNudge = options.overshootSwipe ?? {
+      direction: 'up' as const,
+      percentage: 0.2,
+    };
     if (
       await WalletHomeScroll.tapIfAlreadyVisible(
-        this.predictionsSectionHeader,
-        'Predictions section',
+        this.perpsSectionHeader,
+        'Perpetuals section',
+        {
+          tapTimeout: 5_000,
+          overshootSwipe: clippedHeaderNudge,
+        },
       )
     ) {
       return;
@@ -187,8 +182,8 @@ export class WalletHomeSections {
     await WalletHomeScroll.tryScrollDirections(
       (scrollDirection) =>
         WalletHomeScroll.scrollAndTapSection(
-          this.predictionsSectionHeader,
-          'Predictions section',
+          this.perpsSectionHeader,
+          'Perpetuals section',
           scrollDirection,
           {
             overshootSwipe: options.overshootSwipe ?? {
@@ -198,11 +193,71 @@ export class WalletHomeSections {
                   : ('down' as const),
               percentage: 0.15,
             },
-            timeout: 60_000,
+            // A miss runs every attempt. Four is half the old default, so a
+            // wrong direction returns in about half the previous ~30s.
+            // A hit still stops as soon as the header is in view.
+            maxAttempts: 4,
           },
         ),
       [direction, fallbackDirection],
     );
+  }
+
+  async scrollAndTapPredictionsSection(
+    direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
+  ): Promise<void> {
+    if (!isPerformanceSuiteActive()) {
+      if (
+        await WalletHomeScroll.tapIfAlreadyVisible(
+          this.predictionsSectionHeader,
+          'Predictions section',
+        )
+      ) {
+        return;
+      }
+
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+
+      await WalletHomeScroll.tryScrollDirections(
+        (scrollDirection) =>
+          WalletHomeScroll.scrollAndTapSection(
+            this.predictionsSectionHeader,
+            'Predictions section',
+            scrollDirection,
+            {
+              overshootSwipe: options.overshootSwipe ?? {
+                direction:
+                  scrollDirection === 'down'
+                    ? ('up' as const)
+                    : ('down' as const),
+                percentage: 0.15,
+              },
+              timeout: 60_000,
+            },
+          ),
+        [direction, fallbackDirection],
+      );
+      return;
+    }
+
+    try {
+      await WalletHomeScroll.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        'down',
+        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
+      );
+    } catch {
+      await WalletHomeScroll.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        'up',
+        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
+      );
+    }
   }
 
   async scrollPredictionsSectionIntoView(

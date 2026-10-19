@@ -1,5 +1,10 @@
 export const FeedViewSelectorsIDs = {
   CONTAINER: 'feed-view-container',
+  FILTER_ROW: 'feed-view-filter-row',
+  TYPE_FILTER_SLOT: 'feed-view-type-filter-slot',
+  // Deliberately not prefixed with AUDIENCE_TOGGLE: the toggle's own segment
+  // test IDs are matched by that prefix.
+  AUDIENCE_SLOT: 'feed-view-audience-slot',
   LIST: 'feed-view-list',
   EMPTY_STATE: 'feed-view-empty-state',
   TYPE_EMPTY_STATE: 'feed-view-type-empty-state',

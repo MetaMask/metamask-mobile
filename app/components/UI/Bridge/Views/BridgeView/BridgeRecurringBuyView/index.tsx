@@ -1,8 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
+  RefreshControl,
+  ScrollView,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -39,10 +41,7 @@ import {
 } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import {
-  formatPriceRangeBounds,
-  PRICE_RANGE_CURRENCY,
-} from '../../../utils/priceRange';
+import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import {
@@ -66,11 +65,13 @@ const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
-  const [activeOrdersTab, setActiveOrdersTab] = useState(
-    OrdersTabKey.OpenOrders,
-  );
-
-  const { latestSourceBalance } = useBridgeSession();
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+  const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
+  const {
+    latestSourceBalance,
+    recurringOrdersTab = OrdersTabKey.OpenOrders,
+    setRecurringOrdersTab = () => undefined,
+  } = useBridgeSession();
   const {
     destToken,
     destTokenAmount,
@@ -99,13 +100,13 @@ const BridgeRecurringBuyViewContent = () => {
     walletAddress,
     status: OPEN_ORDER_STATUSES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+    enabled: recurringOrdersTab === OrdersTabKey.OpenOrders,
   });
   const historyQuery = useRecurringOrders({
     walletAddress,
     status: HISTORY_ORDER_STATUSES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.History,
+    enabled: recurringOrdersTab === OrdersTabKey.History,
   });
 
   const {
@@ -123,6 +124,13 @@ const BridgeRecurringBuyViewContent = () => {
     inputRef.current?.blur();
     closeKeypad();
   }, [closeKeypad]);
+
+  const handleBannersLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHasVisibleBanner = event.nativeEvent.layout.height > 0;
+    setHasVisibleBanner((current) =>
+      current === nextHasVisibleBanner ? current : nextHasVisibleBanner,
+    );
+  }, []);
 
   const canPreviewOrder = Boolean(activeQuote) && scheduleValidation.isValid;
 
@@ -168,15 +176,29 @@ const BridgeRecurringBuyViewContent = () => {
         return;
       }
 
-      if (activeOrdersTab === OrdersTabKey.OpenOrders) {
+      if (recurringOrdersTab === OrdersTabKey.OpenOrders) {
         openOrdersQuery.fetchNextPage();
         return;
       }
 
       historyQuery.fetchNextPage();
     },
-    [activeOrdersTab, historyQuery, openOrdersQuery],
+    [recurringOrdersTab, historyQuery, openOrdersQuery],
   );
+
+  const handleOrdersRefresh = useCallback(async () => {
+    const activeOrdersQuery =
+      recurringOrdersTab === OrdersTabKey.OpenOrders
+        ? openOrdersQuery
+        : historyQuery;
+
+    setIsRefreshingOrders(true);
+    try {
+      await activeOrdersQuery.refresh();
+    } finally {
+      setIsRefreshingOrders(false);
+    }
+  }, [recurringOrdersTab, historyQuery, openOrdersQuery]);
 
   const priceRangeToken =
     priceRange?.tokenSide === 'source' ? sourceToken : destToken;
@@ -184,7 +206,7 @@ const BridgeRecurringBuyViewContent = () => {
     formatPriceRangeBounds(
       priceRange?.min ?? '',
       priceRange?.max ?? '',
-      PRICE_RANGE_CURRENCY,
+      priceRange?.currency ?? '',
     );
 
   const handlePriceRangePress = useCallback(() => {
@@ -222,6 +244,12 @@ const BridgeRecurringBuyViewContent = () => {
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleScroll}
           scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshingOrders}
+              onRefresh={handleOrdersRefresh}
+            />
+          }
         >
           <SwapsInputs
             inputRef={inputRef}
@@ -252,24 +280,34 @@ const BridgeRecurringBuyViewContent = () => {
             }
           />
 
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <SwapsBanners onAdjustSourceAmount={handleSourcePresetAmountSelect}>
-              <HardwareWalletUnsupportedBanner />
-              <QuoteErrorBanner />
-              <TokenWarningBanner />
-              <DestAssetRequireActivateBanner />
-              <InsufficientNativeReserveBanner />
-              <MissingQuoteAndAssetsPriceDataBanner />
-            </SwapsBanners>
-          </Box>
+          <Box twClassName="-mt-1">
+            <Box
+              testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
+              onLayout={handleBannersLayout}
+              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              onTouchEnd={dismissInputAndKeypad}
+            >
+              <SwapsBanners
+                gap={2}
+                onAdjustSourceAmount={handleSourcePresetAmountSelect}
+              >
+                <HardwareWalletUnsupportedBanner />
+                <QuoteErrorBanner />
+                <TokenWarningBanner />
+                <DestAssetRequireActivateBanner />
+                <InsufficientNativeReserveBanner />
+                <MissingQuoteAndAssetsPriceDataBanner />
+              </SwapsBanners>
+            </Box>
 
-          <RecurringScheduleFields
-            onEveryPress={focusEvery}
-            onRepeatPress={focusRepeat}
-            onDismissKeypad={dismissInputAndKeypad}
-            onUnitPress={handleUnitPress}
-            onRepeatInfoPress={handleRepeatInfoPress}
-          />
+            <RecurringScheduleFields
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+          </Box>
 
           <PriceRangeRow
             token={priceRange ? priceRangeToken : undefined}
@@ -283,7 +321,8 @@ const BridgeRecurringBuyViewContent = () => {
               enabledChainIds={enabledChainIds}
               openOrders={openOrders}
               history={history}
-              onTabChange={setActiveOrdersTab}
+              activeTab={recurringOrdersTab}
+              onTabChange={setRecurringOrdersTab}
             />
           </Box>
         </ScrollView>

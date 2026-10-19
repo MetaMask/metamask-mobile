@@ -2,6 +2,8 @@ import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import Engine from '../../../../../core/Engine';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderCardHomeView } from '../../../../../../tests/component-view/renderers/cardViewRenderer';
 import {
   createRouteParamsProbe,
@@ -16,11 +18,108 @@ import CardAuthentication from '../CardAuthentication/CardAuthentication';
 import { CashbackSelectors } from '../Cashback/Cashback.testIds';
 import { ChooseYourCardSelectors } from '../ChooseYourCard/ChooseYourCard.testIds';
 import { CardAuthenticationSelectors } from '../CardAuthentication/CardAuthentication.testIds';
+import { MoneyMetaMaskCardTestIds } from '../../../Money/components/MoneyMetaMaskCard/MoneyMetaMaskCard.testIds';
 
 const mockGetCapabilities = jest.mocked(
   Engine.context.CardController.getCapabilities,
 );
 const defaultCapabilities = mockGetCapabilities();
+
+const provisionedCardHomeData = {
+  walletProvisioning: {
+    eligible: true,
+    cardholderName: 'Test User',
+    lastFour: '1234',
+    network: 'MASTERCARD',
+  },
+};
+
+const LINKABLE_MONEY_ACCOUNT_ADDRESS =
+  '0x1234567890123456789012345678901234567890';
+const LINKABLE_VEDA_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const LINKABLE_DELEGATION_CONTRACT =
+  '0x9876543210987654321098765432109876543210';
+
+const linkableCardHomeOverrides = {
+  engine: {
+    backgroundState: {
+      GeolocationController: { location: 'US' },
+      KeyringController: {
+        keyrings: [
+          {
+            type: 'HD Key Tree',
+            metadata: { id: 'wallet1' },
+            accounts: [LINKABLE_MONEY_ACCOUNT_ADDRESS],
+          },
+        ],
+      },
+      MoneyAccountController: {
+        moneyAccounts: {
+          'account-1': {
+            id: 'account-1',
+            address: LINKABLE_MONEY_ACCOUNT_ADDRESS,
+            type: 'eip155:eoa',
+            scopes: [],
+            methods: [],
+            options: {
+              entropy: {
+                type: 'mnemonic',
+                id: 'wallet1',
+                derivationPath: "m/44'/60'/0'/0/0",
+                groupIndex: 0,
+              },
+              exportable: false,
+            },
+          },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          moneyEnableMoneyAccount: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+          moneyAccountVaultConfig: { chainId: '0x8f' },
+          gasFeesSponsoredNetwork: { '0x8f': true },
+          cardFeature: {
+            chains: {
+              'eip155:143': {
+                enabled: true,
+                tokens: [
+                  {
+                    address: LINKABLE_VEDA_ADDRESS,
+                    symbol: 'veda',
+                    decimals: 6,
+                    enabled: true,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      CardController: {
+        cardHomeData: {
+          delegationSettings: {
+            networks: [
+              {
+                network: 'monad',
+                chainId: '0x8f',
+                delegationContract: LINKABLE_DELEGATION_CONTRACT,
+                tokens: {
+                  veda: {
+                    address: LINKABLE_VEDA_ADDRESS,
+                    decimals: 6,
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+} satisfies DeepPartial<RootState>;
 
 describe('CardHome', () => {
   afterEach(() => {
@@ -70,7 +169,7 @@ describe('CardHome', () => {
         expect(params.screen).toBe(Routes.CARD.MODALS.ASSET_SELECTION);
       });
 
-      it('opens digital wallet instructions for an Immersve cardholder', async () => {
+      it('opens digital wallet instructions when the platform wallet is unsupported', async () => {
         const { findByTestId } = renderCardHomeView({
           overrides: {
             engine: {
@@ -107,7 +206,7 @@ describe('CardHome', () => {
         );
       });
 
-      it('opens digital wallet instructions for a Baanx international cardholder', async () => {
+      it('opens digital wallet instructions for Baanx when Apple Pay is unsupported', async () => {
         const { findByTestId } = renderCardHomeView({
           overrides: {
             engine: {
@@ -144,15 +243,20 @@ describe('CardHome', () => {
         );
       });
 
-      it('hides digital wallet instructions for a Baanx US cardholder', async () => {
-        const { queryByTestId } = renderCardHomeView({
+      it('keeps digital wallet instructions when Apple Pay is supported but the card cannot be added', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          pushProvisioning: { applePay: true, googlePay: true },
+        });
+
+        const { findByTestId } = renderCardHomeView({
           overrides: {
             engine: {
               backgroundState: {
                 CardController: {
-                  activeProviderId: 'baanx',
+                  activeProviderId: 'immersve',
                   providerData: {
-                    baanx: { location: 'us' },
+                    immersve: { location: 'international' },
                   },
                 },
               },
@@ -160,11 +264,36 @@ describe('CardHome', () => {
           },
         });
 
-        await waitFor(() => {
-          expect(
-            queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
-          ).not.toBeOnTheScreen();
+        expect(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      it('shows digital wallet instructions when the wallet does not report the card as provisioned', async () => {
+        mockGetCapabilities.mockReturnValue({
+          ...defaultCapabilities,
+          pushProvisioning: { applePay: true, googlePay: true },
         });
+
+        const { findByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  cardHomeData: provisionedCardHomeData,
+                },
+              },
+            },
+          },
+        });
+
+        expect(
+          await findByTestId(
+            CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('opens Spending Limit screen with flow=manage when Manage Spending Limit button is pressed', async () => {
@@ -365,6 +494,27 @@ describe('CardHome', () => {
       });
 
       expect(logoutMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account linking', () => {
+    it('navigates to the Link Card sheet when link-mode content is pressed', async () => {
+      mockGetCapabilities.mockReturnValue({
+        ...defaultCapabilities,
+        supportsMoneyAccountLinking: true,
+      });
+      const { findByTestId } = renderCardHomeView({
+        overrides: linkableCardHomeOverrides,
+        extraRoutes: [{ name: Routes.MONEY.MODALS.ROOT }],
+      });
+
+      fireEvent.press(
+        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      );
+
+      expect(
+        await findByTestId(getRouteProbeTestId(Routes.MONEY.MODALS.ROOT)),
+      ).toBeOnTheScreen();
     });
   });
 });

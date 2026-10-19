@@ -4,6 +4,7 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
@@ -43,6 +44,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
       predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
     });
   });
@@ -424,6 +426,123 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+  });
+
+  describe('predictHomeCategories', () => {
+    const remoteCategories = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      categories: [
+        { id: 'tech', tagSlug: 'tech', label: 'Tech', iconName: 'Data' },
+        { id: 'sports', tagSlug: 'sports', enabled: false },
+        { id: 'culture', tagSlug: 'pop-culture', label: 'Culture' },
+      ],
+    };
+
+    it('returns bundled categories when flag is missing', () => {
+      expect(resolvePredictFeatureFlags({}).predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    const passCategoriesVersionGate = () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'categories' in flag
+          ? Boolean((flag as { enabled?: boolean }).enabled)
+          : undefined,
+      );
+    };
+
+    it('returns remote categories in LD order with defaulted enabled flags', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: { predictHomeCategories: remoteCategories },
+      });
+
+      expect(result.predictHomeCategories.categories).toEqual([
+        {
+          id: 'tech',
+          tagSlug: 'tech',
+          label: 'Tech',
+          iconName: 'Data',
+          enabled: true,
+        },
+        { id: 'sports', tagSlug: 'sports', enabled: false },
+        {
+          id: 'culture',
+          tagSlug: 'pop-culture',
+          label: 'Culture',
+          enabled: true,
+        },
+      ]);
+    });
+
+    it('falls back to bundled categories when version requirement is not met', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'categories' in flag
+          ? false
+          : undefined,
+      );
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            ...remoteCategories,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when the flag is disabled', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: { ...remoteCategories, enabled: false },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when an entry is missing id or tagSlug', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            categories: [{ id: 'tech', label: 'Tech' }],
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when every entry is disabled', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            categories: [{ id: 'tech', tagSlug: 'tech', enabled: false }],
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
     });
   });
 

@@ -14,6 +14,14 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       response: [],
     },
     {
+      // v3 perpetuals (global snapshot) – return a valid empty snapshot so the
+      // controller does not error and withFixtures cleanup does not fail.
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v3\/perpetuals/,
+      responseCode: 200,
+      response: { schemaVersion: 3, markets: [] },
+    },
+    {
       // Perps Home / Market Details fetch this on mount. Hide the banner so
       // smoke flows are unchanged, and so withFixtures does not fail cleanup.
       urlEndpoint:

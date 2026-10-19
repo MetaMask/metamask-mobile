@@ -8,6 +8,7 @@ import {
   formatAmountForDisplay,
   getAvailableTokens,
   getBlockedTokensForTransactionType,
+  payBalanceUsd,
   getRequiredBalance,
   getTokenAddress,
   getTokenTransferData,
@@ -332,6 +333,40 @@ describe('Transaction Pay Utils', () => {
       });
 
       expect(result).toStrictEqual([]);
+    });
+
+    it('does not throw and excludes token with undefined address', () => {
+      const tokenWithoutAddress = {
+        ...TOKEN_MOCK,
+        address: undefined,
+      } as unknown as AssetType;
+
+      expect(() =>
+        getAvailableTokens({
+          tokens: [tokenWithoutAddress],
+        }),
+      ).not.toThrow();
+
+      const result = getAvailableTokens({
+        tokens: [tokenWithoutAddress],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('does not throw when payToken is undefined and a candidate token has undefined address', () => {
+      const tokenWithoutAddress = {
+        ...TOKEN_MOCK,
+        address: undefined,
+        balance: '0',
+      } as unknown as AssetType;
+
+      expect(() =>
+        getAvailableTokens({
+          payToken: undefined,
+          tokens: [tokenWithoutAddress, ERC20_TOKEN_MOCK],
+        }),
+      ).not.toThrow();
     });
 
     describe('disabled', () => {
@@ -1073,6 +1108,20 @@ describe('Transaction Pay Utils', () => {
 
     it('returns the input unchanged when it is not a parseable number', () => {
       expect(formatAmountForDisplay('1.2.3')).toBe('1.2.3');
+    });
+  });
+
+  describe('payBalanceUsd', () => {
+    it('returns the display-currency amount as a string', () => {
+      expect(payBalanceUsd(15)).toBe('15');
+    });
+
+    it('returns 0 when the amount is missing', () => {
+      expect(payBalanceUsd(undefined)).toBe('0');
+    });
+
+    it('returns 0 when the amount is not finite', () => {
+      expect(payBalanceUsd(Number.NaN)).toBe('0');
     });
   });
 });

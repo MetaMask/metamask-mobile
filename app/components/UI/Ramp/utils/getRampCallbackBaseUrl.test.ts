@@ -11,34 +11,25 @@ const DEVELOPMENT_CALLBACK =
   'https://on-ramp.dev-api.cx.metamask.io/regions/fake-callback';
 
 describe('getRampCallbackBaseUrl', () => {
-  const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
-  const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalApiEnv = process.env.MM_API_ENV;
 
   afterEach(() => {
-    process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
-    if (originalRampsEnvironment !== undefined) {
-      process.env.RAMPS_ENVIRONMENT = originalRampsEnvironment;
+    if (originalApiEnv !== undefined) {
+      process.env.MM_API_ENV = originalApiEnv;
     } else {
-      delete process.env.RAMPS_ENVIRONMENT;
+      delete process.env.MM_API_ENV;
     }
   });
 
-  beforeEach(() => {
-    delete process.env.RAMPS_ENVIRONMENT;
-  });
-
   it.each([
-    ['production', PRODUCTION_CALLBACK],
-    ['beta', PRODUCTION_CALLBACK],
-    ['rc', PRODUCTION_CALLBACK],
     ['dev', DEVELOPMENT_CALLBACK],
-    ['exp', STAGING_CALLBACK],
-    ['test', STAGING_CALLBACK],
-    ['e2e', STAGING_CALLBACK],
+    ['uat', STAGING_CALLBACK],
+    ['prod', PRODUCTION_CALLBACK],
   ] as const)(
-    'matches getDefaultRedirectCallbackUrl(getRampsEnvironment()) for METAMASK_ENVIRONMENT=%s',
-    (metamaskEnvironment, expected) => {
-      process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
+    'matches getDefaultRedirectCallbackUrl(getRampsEnvironment()) for MM_API_ENV=%s',
+    (apiEnv, expected) => {
+      process.env.MM_API_ENV = apiEnv;
+
       expect(getRampCallbackBaseUrl()).toBe(expected);
       expect(getRampCallbackBaseUrl()).toBe(
         getDefaultRedirectCallbackUrl(getRampsEnvironment()),
@@ -46,17 +37,9 @@ describe('getRampCallbackBaseUrl', () => {
     },
   );
 
-  it('returns staging content callback when METAMASK_ENVIRONMENT is unset', () => {
-    delete process.env.METAMASK_ENVIRONMENT;
-    expect(getRampCallbackBaseUrl()).toBe(STAGING_CALLBACK);
-    expect(getRampCallbackBaseUrl()).toBe(
-      getDefaultRedirectCallbackUrl(getRampsEnvironment()),
-    );
-  });
+  it('returns the production callback when MM_API_ENV is unset', () => {
+    delete process.env.MM_API_ENV;
 
-  it('prefers RAMPS_ENVIRONMENT over METAMASK_ENVIRONMENT', () => {
-    process.env.METAMASK_ENVIRONMENT = 'e2e';
-    process.env.RAMPS_ENVIRONMENT = 'production';
     expect(getRampCallbackBaseUrl()).toBe(PRODUCTION_CALLBACK);
     expect(getRampCallbackBaseUrl()).toBe(
       getDefaultRedirectCallbackUrl(getRampsEnvironment()),

@@ -21,10 +21,13 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
   perpsMobileTwap: mockEnabledPerpsLDFlag,
   perpsMobileScale: mockEnabledPerpsLDFlag,
   perpsPositionModifyPreviewEnabled: mockEnabledPerpsLDFlag,
+  perpsSocialEnabled: mockEnabledPerpsLDFlag,
   perpsMobileChase: mockEnabledPerpsLDFlag,
   perpsTerminalBackendEnabled: mockEnabledPerpsLDFlag,
   perpsRecentlyAddedEnabled: mockEnabledPerpsLDFlag,
   perpsShowFullAssetNames: mockEnabledPerpsLDFlag,
   perpsClosePositionLimitOrderEnabled: mockEnabledPerpsLDFlag,
   perpsCrossMarginEnabled: mockEnabledPerpsLDFlag,
+  perpsPriceAlertsEnabled: mockEnabledPerpsLDFlag,
+  perpsPriceAlertsPercentChangeEnabled: mockEnabledPerpsLDFlag,
 };

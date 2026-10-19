@@ -5,6 +5,7 @@ import { getNavbar } from '../../components/UI/navbar/navbar';
 import { useConfirmReject } from '../useConfirmReject';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import { useConfirmationContext } from '../../context/confirmation-context';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import useNavbar from './useNavbar';
 
 // Mock dependencies
@@ -28,7 +29,12 @@ jest.mock('../../context/confirmation-context', () => ({
   useConfirmationContext: jest.fn(),
 }));
 
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn(),
+}));
+
 const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
+const mockUseParams = jest.mocked(useParams);
 
 describe('useNavbar', () => {
   const mockSetOptions = jest.fn();
@@ -60,6 +66,8 @@ describe('useNavbar', () => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: mockMmPayRef,
     } as unknown as ReturnType<typeof useConfirmationContext>);
+
+    mockUseParams.mockReturnValue({});
   });
 
   it('calls setOptions with the correct navbar configuration for full screen confirmations', () => {
@@ -79,6 +87,7 @@ describe('useNavbar', () => {
       theme: expect.any(Object),
       overrides: undefined,
       mmPayRequestInProgressNavHandler: mockMmPayRef,
+      sheetPresentation: undefined,
     });
     expect(mockSetOptions).toHaveBeenCalled();
   });
@@ -132,6 +141,7 @@ describe('useNavbar', () => {
       theme: expect.any(Object),
       overrides: undefined,
       mmPayRequestInProgressNavHandler: mockMmPayRef,
+      sheetPresentation: undefined,
     });
   });
 
@@ -153,7 +163,18 @@ describe('useNavbar', () => {
       theme: expect.any(Object),
       overrides: undefined,
       mmPayRequestInProgressNavHandler: mockMmPayRef,
+      sheetPresentation: undefined,
     });
+  });
+
+  it('forwards sheetPresentation from the route params to getNavbar', () => {
+    mockUseParams.mockReturnValue({ sheetPresentation: true });
+
+    renderHook(() => useNavbar(mockTitle));
+
+    expect(getNavbar).toHaveBeenCalledWith(
+      expect.objectContaining({ sheetPresentation: true }),
+    );
   });
 
   describe('overrides parameter', () => {
@@ -178,6 +199,7 @@ describe('useNavbar', () => {
         theme: expect.any(Object),
         overrides,
         mmPayRequestInProgressNavHandler: mockMmPayRef,
+        sheetPresentation: undefined,
       });
     });
 
@@ -195,6 +217,7 @@ describe('useNavbar', () => {
         theme: expect.any(Object),
         overrides: undefined,
         mmPayRequestInProgressNavHandler: mockMmPayRef,
+        sheetPresentation: undefined,
       });
     });
   });

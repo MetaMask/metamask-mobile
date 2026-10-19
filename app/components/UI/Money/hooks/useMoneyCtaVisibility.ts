@@ -147,7 +147,9 @@ export const useMoneyAssetOverviewCtaVisibility = (
       isBaseEligible &&
       isDepositEligibleForBalance,
     isFooterCtaEligible:
-      isAssetOverviewFooterCtaEnabled && isBaseEligible && !isDepositBlocked,
+      isAssetOverviewFooterCtaEnabled &&
+      isBaseEligible &&
+      isDepositEligibleForBalance,
   };
 };
 

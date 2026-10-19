@@ -59,4 +59,18 @@ describe('ExplorePill', () => {
     );
     expect(queryByText('+1.00%')).toBeNull();
   });
+
+  it('renders a trailing accessory after the label', () => {
+    const { getByTestId } = render(
+      <ExplorePill
+        onPress={jest.fn()}
+        testID="pill"
+        leading={<Text>L</Text>}
+        title="BTC"
+        trailing={<Text testID="trailing">T</Text>}
+      />,
+    );
+
+    expect(getByTestId('trailing')).toBeTruthy();
+  });
 });

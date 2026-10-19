@@ -9,10 +9,10 @@ import type {
   PredictLiveDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictLiveDataService';
 import type {
-  PredictOrderPreviewServiceActions,
-  PredictOrderPreviewServiceEvents,
-  PredictOrderPreviewServiceMessenger,
-} from '../../../components/UI/PredictNext/services/PredictOrderPreviewService';
+  PredictOrderServiceActions,
+  PredictOrderServiceEvents,
+  PredictOrderServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictOrderService';
 import type {
   PredictMarketDataServiceActions,
   PredictMarketDataServiceEvents,
@@ -41,7 +41,7 @@ import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
-  predictOrderPreviewServiceInit,
+  predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
 
@@ -111,17 +111,16 @@ describe('Predict service initialization', () => {
     controller.destroy();
   });
 
-  it('registers authenticated Order Preview actions on the Engine root messenger', async () => {
+  it('registers authenticated Order actions on the Engine root messenger', async () => {
     const rootMessenger = new Messenger<
       MockAnyNamespace,
-      PredictOrderPreviewServiceActions,
-      PredictOrderPreviewServiceEvents
+      PredictOrderServiceActions,
+      PredictOrderServiceEvents
     >({ namespace: MOCK_ANY_NAMESPACE });
-    const controllerMessenger: PredictOrderPreviewServiceMessenger =
-      new Messenger({
-        namespace: 'PredictOrderPreviewService',
-        parent: rootMessenger,
-      });
+    const controllerMessenger: PredictOrderServiceMessenger = new Messenger({
+      namespace: 'PredictOrderService',
+      parent: rootMessenger,
+    });
     const call = jest.fn().mockResolvedValue('test-bearer-token');
     const request = {
       ...buildMessengerClientInitRequestMock(
@@ -130,10 +129,10 @@ describe('Predict service initialization', () => {
       controllerMessenger,
       initMessenger: { call } as never,
     };
-    const { controller } = predictOrderPreviewServiceInit(request);
+    const { controller } = predictOrderServiceInit(request);
 
     const result = rootMessenger.call(
-      'PredictOrderPreviewService:requestQuote',
+      'PredictOrderService:requestQuote',
       'kalshi' as never,
       { marketId: 'KXTEST-26-A', side: 'yes', amount: '20' } as never,
     );
@@ -145,19 +144,38 @@ describe('Predict service initialization', () => {
     controller.destroy();
   });
 
-  it('publishes socket updates on the live-data service messenger', () => {
+  it('publishes socket updates on the live-data service messenger', async () => {
     const rootMessenger = new ExtendedMessenger<
       MockAnyNamespace,
       PredictLiveDataServiceActions,
       PredictLiveDataServiceEvents
     >({ namespace: MOCK_ANY_NAMESPACE });
     const messenger = getPredictLiveDataServiceMessenger(rootMessenger);
+    const eventId = 'event-1' as PredictEntityId;
+    const event = {
+      venueId: KALSHI_VENUE_ID,
+      id: eventId,
+      title: 'Game',
+      sports: {
+        sport: { id: 'football', label: 'Football' },
+        game: {
+          status: 'in_progress',
+          homeTeam: { name: 'Home' },
+          awayTeam: { name: 'Away' },
+          observedAt: '2026-09-08T12:00:00.000Z',
+        },
+      },
+      markets: [],
+    };
+    const initCall = jest.fn((action: string) =>
+      action === 'PredictMarketDataService:getEvent'
+        ? Promise.resolve(event)
+        : Promise.resolve('test-bearer-token'),
+    );
     const request = {
       ...buildMessengerClientInitRequestMock(rootMessenger),
       controllerMessenger: messenger,
-      initMessenger: {
-        call: jest.fn().mockResolvedValue('test-bearer-token'),
-      },
+      initMessenger: { call: initCall },
     } as unknown as MessengerClientInitRequest<
       PredictLiveDataServiceMessenger,
       PredictLiveDataServiceInitMessenger
@@ -166,18 +184,24 @@ describe('Predict service initialization', () => {
     messenger.subscribe('PredictLiveDataService:gameLiveUpdated', listener);
     const update = {
       venueId: KALSHI_VENUE_ID,
-      eventId: 'event-1' as PredictEntityId,
+      eventId,
       type: 'football_game',
       status: 'in_progress' as const,
       observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
     };
 
     const { controller } = predictLiveDataServiceInit(request);
-    messenger.call('PredictLiveDataService:watchGames', KALSHI_VENUE_ID, [
-      update.eventId,
+    messenger.call('PredictLiveDataService:watchEvents', KALSHI_VENUE_ID, [
+      eventId,
     ]);
+    await Promise.resolve();
     controller.onGameUpdate(update);
 
+    expect(initCall).toHaveBeenCalledWith(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      eventId,
+    );
     expect(listener).toHaveBeenCalledWith({
       ...update,
       observedAtByField: { status: update.observedAt },

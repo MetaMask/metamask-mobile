@@ -39,9 +39,11 @@ import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import AppiumUtilities, { getDriver } from '../framework/AppiumUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import { isPerformanceSuiteActive } from '../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
+import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
 import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
@@ -113,13 +115,18 @@ export const ensureAccountListOpenPlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
 ): Promise<void> => {
   const deadline = Date.now() + timeout;
+  // Performance prefers the add-account control (more reliable with A/B chrome).
+  // Smoke keeps the classic account-list container selector.
+  const accountListVisibleMarker = isPerformanceSuiteActive()
+    ? AccountListBottomSheet.addAccountButton
+    : AccountListBottomSheet.accountList;
 
   while (Date.now() < deadline) {
     try {
-      await Assertions.expectElementToBeVisible(
-        AccountListBottomSheet.accountList,
-        { timeout: 1_500, description: 'Account list' },
-      );
+      await Assertions.expectElementToBeVisible(accountListVisibleMarker, {
+        timeout: 1_500,
+        description: 'Account list',
+      });
       return;
     } catch {
       // list not visible yet
@@ -132,13 +139,10 @@ export const ensureAccountListOpenPlaywright = async (
       await WalletView.tapIdenticon();
       try {
         // Keep each tap attempt short so we can re-tap if wallet chrome is still settling.
-        await Assertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
-          {
-            timeout: 3_000,
-            description: 'Account list should open from wallet home',
-          },
-        );
+        await Assertions.expectElementToBeVisible(accountListVisibleMarker, {
+          timeout: 3_000,
+          description: 'Account list should open from wallet home',
+        });
         return;
       } catch {
         await sleep(250);
@@ -356,7 +360,7 @@ export const dismissOnboardingInterestQuestionnaire =
           await Gestures.waitAndTap(
             OnboardingInterestQuestionnaireView.skipButton,
             {
-              timeout: 5000,
+              timeout: isPerformanceSuiteActive() ? 2000 : 5000,
               checkForDisplayed: true,
               checkEnabled: true,
             },
@@ -364,7 +368,7 @@ export const dismissOnboardingInterestQuestionnaire =
           await Assertions.expectElementToNotBeVisible(
             OnboardingInterestQuestionnaireView.skipButton,
             {
-              timeout: 5000,
+              timeout: isPerformanceSuiteActive() ? 2000 : 5000,
               description: 'Interest questionnaire skip should close',
             },
           );
@@ -433,8 +437,8 @@ export const importWalletWithRecoveryPhrase = async ({
 
   await CreatePasswordView.enterPassword(password ?? validAccount.password);
   await CreatePasswordView.reEnterPassword(password ?? validAccount.password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   if (!fromResetWallet) {
     await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
@@ -547,8 +551,8 @@ export const CreateNewWallet = async ({
 
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   // Check that we are on the Manual Backup Step 1 screen
   await Assertions.expectElementToBeVisible(ManualBackupStep1View.container, {
@@ -725,6 +729,18 @@ export const closePredictModal = async (
     return false;
   }
 };
+
+/**
+ * Taps through the Money intro onboarding modal if it appears, then waits for
+ * it to dismiss. Safe to call when the modal is not shown (returns false).
+ *
+ * Delegates to MoneyOnboardingView.dismissIfPresent().
+ *
+ * @returns true when dismissed, false when it did not appear in time
+ */
+export const dismissMoneyOnboardingIfPresent = async (
+  options: { timeoutMs?: number } = {},
+): Promise<boolean> => MoneyOnboardingView.dismissIfPresent(options);
 
 /**
  * Dismisses the marketing consent (Experience Enhancer) modal if it appears
@@ -989,8 +1005,8 @@ export const onboardingFlowImportSRPPlaywright = async (
   await CreatePasswordView.reEnterPassword(
     getPasswordForScenario('onboarding') ?? '',
   );
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
   await Assertions.expectElementToBeVisible(MetaMetricsOptInView.iAgreeButton);
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();

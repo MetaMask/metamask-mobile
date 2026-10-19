@@ -51,6 +51,8 @@ const GROUP_2 = '0x2222222222222222222222222222222222222222';
 const GROUP_3 = '0x3333333333333333333333333333333333333333';
 const EXTRA = '0x4444444444444444444444444444444444444444';
 
+let mockSelectedSignInAddress = '0x1111111111111111111111111111111111111111';
+
 jest.mock('react-redux', () => {
   const selected = '0x1111111111111111111111111111111111111111';
   const group2 = '0x2222222222222222222222222222222222222222';
@@ -65,7 +67,9 @@ jest.mock('react-redux', () => {
       { address: extra },
     ],
     accountGroups: [{ id: 'group-1' }, { id: 'group-2' }],
-    selectedAccount: { address: selected, type: 'eip155:eoa' },
+    get selectedAccount() {
+      return { address: mockSelectedSignInAddress, type: 'eip155:eoa' };
+    },
     accountsByGroupId: (groupId: string) => {
       if (groupId === 'group-1') {
         return [
@@ -115,6 +119,7 @@ describe('useCardSignIn', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedSignInAddress = SELECTED;
     mockResolveSignIn.mockResolvedValue({
       kind: 'email',
       option: {
@@ -212,6 +217,23 @@ describe('useCardSignIn', () => {
     await waitFor(() => {
       expect(mockResolveSignIn).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('does not resolve again when only the selected account changes', async () => {
+    const { result, rerender } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+    expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+
+    mockSelectedSignInAddress = GROUP_2;
+    rerender(undefined);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
   });
 
   it('does not resolve when country is null', () => {

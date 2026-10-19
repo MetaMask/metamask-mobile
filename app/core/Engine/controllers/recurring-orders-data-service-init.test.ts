@@ -9,6 +9,7 @@ import type {
   RecurringOrdersDataServiceMessenger,
 } from '../../../components/UI/Bridge/services/RecurringOrdersDataService';
 import { RecurringOrderStatus } from '../../../components/UI/Bridge/api/recurringOrders.types';
+import { resetRecurringOrdersMockState } from '../../../components/UI/Bridge/api/recurringOrders';
 import type { RootExtendedMessenger } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { recurringOrdersDataServiceInit } from './recurring-orders-data-service-init';
@@ -33,6 +34,10 @@ describe('recurringOrdersDataServiceInit', () => {
     };
 
     const { controller } = recurringOrdersDataServiceInit(request);
+    await rootMessenger.call(
+      'RecurringOrdersDataService:cancelRecurringOrder',
+      'mock-recurring-order-open',
+    );
     const result = await rootMessenger.call(
       'RecurringOrdersDataService:getRecurringOrders',
       {
@@ -40,8 +45,17 @@ describe('recurringOrdersDataServiceInit', () => {
         status: [RecurringOrderStatus.Expired],
       },
     );
+    const assetResult = await rootMessenger.call(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      {
+        walletAddress: '0x1234',
+        assetId: 'eip155:1/slip44:60',
+      },
+    );
 
     expect(result).toStrictEqual({ orders: [] });
+    expect(assetResult).toHaveLength(1);
     controller.destroy();
+    resetRecurringOrdersMockState();
   });
 });

@@ -6,7 +6,10 @@ import {
   parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
-import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
+import {
+  isMoneyAccountEnabled,
+  isMoneyMfaEnabled,
+} from '../../../../lib/Money/feature-flags';
 import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
@@ -105,21 +108,19 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
   },
 );
 
-/** Temporary flag: remote value is a boolean only. */
-export const selectMoneyActivityMockDataEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remote = remoteFeatureFlags?.moneyActivityMockDataEnabled;
-    if (typeof remote === 'boolean') {
-      return remote;
-    }
-    return process.env.MM_MONEY_ACTIVITY_MOCK_DATA_ENABLED === 'true';
-  },
-);
-
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+/**
+ * Selects whether Money MFA (MPC-backed 2FA) is enabled. Independent of
+ * `moneyEnableMoneyAccount` so MFA can be rolled out or killed without
+ * disabling the rest of Money. Remote flag: `isMoneyMfaEnabled`.
+ */
+export const selectMoneyEnableMfaFlag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyMfaEnabled,
 );
 
 /**

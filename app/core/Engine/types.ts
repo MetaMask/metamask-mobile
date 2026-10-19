@@ -8,14 +8,6 @@ import {
 ///: END:ONLY_INCLUDE_IF
 import { ExtendedMessenger } from '../ExtendedMessenger';
 import {
-  AccountTrackerController,
-  AccountTrackerControllerState,
-  AccountTrackerControllerActions,
-  AccountTrackerControllerEvents,
-  CurrencyRateController,
-  CurrencyRateState,
-  CurrencyRateControllerActions,
-  CurrencyRateControllerEvents,
   NftController,
   NftControllerState,
   NftControllerActions,
@@ -26,15 +18,6 @@ import {
   TokensControllerActions,
   TokensControllerEvents,
   TokensControllerState,
-  TokenBalancesController,
-  TokenBalancesControllerState,
-  TokenBalancesControllerActions,
-  TokenBalancesControllerEvents,
-  TokenDetectionController,
-  TokenRatesController,
-  TokenRatesControllerState,
-  TokenRatesControllerActions,
-  TokenRatesControllerEvents,
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
@@ -48,26 +31,19 @@ import {
   DeFiPositionsControllerV2Actions,
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesControllerState,
-  MultichainBalancesController,
-  MultichainBalancesControllerEvents,
-  MultichainBalancesControllerActions,
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerState,
   TokenSearchDiscoveryDataControllerActions,
   TokenSearchDiscoveryDataControllerEvents,
-  MultichainAssetsController,
-  MultichainAssetsControllerState,
-  MultichainAssetsControllerEvents,
-  MultichainAssetsControllerActions,
-  MultichainAssetsRatesController,
-  MultichainAssetsRatesControllerState,
-  MultichainAssetsRatesControllerEvents,
-  MultichainAssetsRatesControllerActions,
   CodefiTokenPricesServiceV2,
-  TokenDetectionControllerEvents,
-  TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
+  // Legacy asset controller actions still referenced by external messenger
+  // types. Only CurrencyRate and MultichainAssets have handlers
+  // (`legacy-asset-state-compat.ts`).
+  type AccountTrackerControllerGetStateAction,
+  // TransactionControllerInitMessenger uses the full actions union.
+  type CurrencyRateControllerActions,
+  type MultichainAssetsControllerGetStateAction,
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -399,15 +375,25 @@ import {
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import {
-  PredictOrderPreviewService,
-  type PredictOrderPreviewServiceActions,
-  type PredictOrderPreviewServiceEvents,
-} from '../../components/UI/PredictNext/services/PredictOrderPreviewService';
+  PredictOrderService,
+  type PredictOrderServiceActions,
+  type PredictOrderServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictOrderService';
 import {
   RecurringOrdersDataService,
   type RecurringOrdersDataServiceActions,
   type RecurringOrdersDataServiceEvents,
 } from '../../components/UI/Bridge/services/RecurringOrdersDataService';
+import {
+  LimitOrdersDataService,
+  type LimitOrdersDataServiceActions,
+  type LimitOrdersDataServiceEvents,
+} from '../../components/UI/Bridge/services/LimitOrdersDataService';
+import {
+  SentinelFeeTokensDataService,
+  type SentinelFeeTokensDataServiceActions,
+  type SentinelFeeTokensDataServiceEvents,
+} from '../../components/UI/Bridge/services/SentinelFeeTokensDataService';
 import type {
   CardControllerState,
   CardControllerActions,
@@ -451,6 +437,8 @@ import {
   type SubscriptionControllerActions,
   type SubscriptionControllerEvents,
   type SubscriptionControllerState,
+  type SubscriptionDelegationServiceActions,
+  SubscriptionDelegationService,
   SubscriptionService,
   type SubscriptionServiceActions,
   type SubscriptionServiceEvents,
@@ -495,17 +483,12 @@ import {
   GatorPermissionsControllerEvents,
   GatorPermissionsControllerState,
 } from '@metamask/gator-permissions-controller';
-import {
+import type {
   DelegationController,
   DelegationControllerActions,
   DelegationControllerEvents,
 } from '@metamask/delegation-controller';
-// `DelegationControllerState` isn't re-exported from the package's public
-// entry, so we go through the `@metamask/delegation-controller/types` path
-// alias declared in `tsconfig.json`. Once the upstream package re-exports it
-// (or we move to Node16/NodeNext module resolution), drop both the alias and
-// this dedicated import.
-import type { DelegationControllerState } from '@metamask/delegation-controller/types';
+type DelegationControllerState = DelegationController['state'];
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -564,6 +547,15 @@ import {
   type SocialServiceActions,
   type SocialServiceEvents,
 } from '@metamask/social-controllers';
+import {
+  ProfileController,
+  ProfileService,
+  type ProfileControllerActions,
+  type ProfileControllerEvents,
+  type ProfileControllerState,
+  type ProfileServiceActions,
+  type ProfileServiceEvents,
+} from '@metamask/profile-controller';
 import {
   AuthenticatedUserStorageService,
   type AuthenticatedUserStorageActions,
@@ -640,6 +632,19 @@ type OptionalControllers = Pick<
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
+/**
+ * Declared structurally to match `PerpsControllerAllowedActions`, which lists
+ * this action so clients that do expose it can serve it. Our
+ * `SubscriptionController` does not, so nothing delegates it and
+ * `RewardsIntegrationService` keeps using its injected `subscription`
+ * dependency. Remove once `@metamask/subscription-controller` exposes the
+ * action itself.
+ */
+interface SubscriptionControllerRegisterAddressAction {
+  type: `SubscriptionController:registerAddress`;
+  handler: (caipAccountId: string) => Promise<void>;
+}
+
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
@@ -659,13 +664,15 @@ export type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
-  | AccountTrackerControllerActions
   | AssetsControllerActions
+  | AccountTrackerControllerGetStateAction
+  | CurrencyRateControllerActions
+  | MultichainAssetsControllerGetStateAction
   | NftControllerActions
+  | TokensControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
   | ConnectivityControllerActions
-  | CurrencyRateControllerActions
   | GasFeeControllerActions
   | GatorPermissionsControllerActions
   | KeyringControllerActions
@@ -691,9 +698,6 @@ export type GlobalActions =
   | AccountActivityServiceActions
   | OHLCVServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  | MultichainBalancesControllerActions
-  | MultichainAssetsControllerActions
-  | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
   | SnapAccountServiceActions
@@ -701,10 +705,6 @@ export type GlobalActions =
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
-  | TokenBalancesControllerActions
-  | TokensControllerActions
-  | TokenDetectionControllerActions
-  | TokenRatesControllerActions
   | TransactionControllerActions
   | TransactionPayControllerActions
   | SelectedNetworkControllerActions
@@ -726,8 +726,10 @@ export type GlobalActions =
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
-  | PredictOrderPreviewServiceActions
+  | PredictOrderServiceActions
   | RecurringOrdersDataServiceActions
+  | LimitOrdersDataServiceActions
+  | SentinelFeeTokensDataServiceActions
   | CardControllerActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
@@ -743,6 +745,8 @@ export type GlobalActions =
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
   | SubscriptionControllerActions
+  | SubscriptionDelegationServiceActions
+  | SubscriptionControllerRegisterAddressAction
   | SubscriptionServiceActions
   | ShieldControllerActions
   | ShieldApiServiceActions
@@ -759,6 +763,8 @@ export type GlobalActions =
   | AiDigestControllerActions
   | SocialControllerActions
   | SocialServiceActions
+  | ProfileControllerActions
+  | ProfileServiceActions
   | AuthenticatedUserStorageActions
   | ComplianceControllerActions
   | ComplianceServiceActions
@@ -776,15 +782,14 @@ export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
-  | AccountTrackerControllerEvents
   | AssetsControllerEvents
   | NftControllerEvents
+  | TokensControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
   | ConfigRegistryControllerEvents
   | ConfigRegistryApiServiceEvents
-  | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
   | KeyringControllerEvents
@@ -806,9 +811,6 @@ export type GlobalEvents =
   | AccountActivityServiceEvents
   | OHLCVServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  | MultichainBalancesControllerEvents
-  | MultichainAssetsControllerEvents
-  | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
   | SnapAccountServiceEvents
@@ -825,10 +827,6 @@ export type GlobalEvents =
   | ClaimsServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
-  | TokenBalancesControllerEvents
-  | TokensControllerEvents
-  | TokenDetectionControllerEvents
-  | TokenRatesControllerEvents
   | TransactionControllerEvents
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
@@ -850,8 +848,10 @@ export type GlobalEvents =
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
-  | PredictOrderPreviewServiceEvents
+  | PredictOrderServiceEvents
   | RecurringOrdersDataServiceEvents
+  | LimitOrdersDataServiceEvents
+  | SentinelFeeTokensDataServiceEvents
   | CardControllerEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
@@ -873,6 +873,8 @@ export type GlobalEvents =
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
+  | ProfileControllerEvents
+  | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
   | ComplianceControllerEvents
   | ComplianceServiceEvents
@@ -927,7 +929,6 @@ export type MessengerClients = {
   ///: END:ONLY_INCLUDE_IF
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
-  AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
@@ -938,7 +939,6 @@ export type MessengerClients = {
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
-  CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -946,6 +946,7 @@ export type MessengerClients = {
   NetworkController: NetworkController;
   NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
+  TokensController: TokensController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
   // TODO: Replace "any" with type
@@ -956,10 +957,6 @@ export type MessengerClients = {
   PreferencesController: PreferencesControllerWithSavedGasFees;
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
-  TokenBalancesController: TokenBalancesController;
-  TokenDetectionController: TokenDetectionController;
-  TokenRatesController: TokenRatesController;
-  TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2;
   TransactionController: TransactionController;
@@ -968,6 +965,7 @@ export type MessengerClients = {
   SignatureController: SignatureController;
   StorageService: StorageService;
   SubscriptionController: SubscriptionController;
+  SubscriptionDelegationService: SubscriptionDelegationService;
   SubscriptionService: SubscriptionService;
   ShieldController: ShieldController;
   ShieldApiService: ShieldApiService;
@@ -990,9 +988,6 @@ export type MessengerClients = {
   AccountActivityService: AccountActivityService;
   OHLCVService: OHLCVService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesController: MultichainBalancesController;
-  MultichainAssetsRatesController: MultichainAssetsRatesController;
-  MultichainAssetsController: MultichainAssetsController;
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
@@ -1013,8 +1008,10 @@ export type MessengerClients = {
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
-  PredictOrderPreviewService: PredictOrderPreviewService;
+  PredictOrderService: PredictOrderService;
   RecurringOrdersDataService: RecurringOrdersDataService;
+  LimitOrdersDataService: LimitOrdersDataService;
+  SentinelFeeTokensDataService: SentinelFeeTokensDataService;
   CardController: CardController;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
@@ -1034,6 +1031,8 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  ProfileController: ProfileController;
+  ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
@@ -1057,7 +1056,6 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EngineState = {
-  AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
@@ -1065,7 +1063,6 @@ export type EngineState = {
   NetworkConnectionBannerController: NetworkConnectionBannerControllerState;
   ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
-  CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   NetworkEnablementController: NetworkEnablementControllerState;
@@ -1073,8 +1070,6 @@ export type EngineState = {
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
-  TokenBalancesController: TokenBalancesControllerState;
-  TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -1105,9 +1100,6 @@ export type EngineState = {
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesController: MultichainBalancesControllerState;
-  MultichainAssetsController: MultichainAssetsControllerState;
-  MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
@@ -1134,6 +1126,7 @@ export type EngineState = {
   ProfileMetricsController: ProfileMetricsControllerState;
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
+  ProfileController: ProfileControllerState;
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
@@ -1168,7 +1161,6 @@ export type MessengerClientsToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
-  | 'AccountTrackerController'
   | 'AssetsContractController'
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
@@ -1191,9 +1183,6 @@ export type MessengerClientsToInitialize =
   | 'AccountActivityService'
   | 'OHLCVService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  | 'MultichainAssetsController'
-  | 'MultichainAssetsRatesController'
-  | 'MultichainBalancesController'
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
@@ -1205,21 +1194,17 @@ export type MessengerClientsToInitialize =
   | 'MoneyAccountApiDataService'
   | 'LoggingController'
   | 'AccountTreeController'
-  | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'DeFiPositionsControllerV2'
   | 'GeolocationController'
   | 'GeolocationApiService'
   | 'MultichainNetworkController'
   | 'NftController'
+  | 'TokensController'
   | 'NftDetectionController'
   | 'PhishingController'
   | 'SignatureController'
   | 'SmartTransactionsController'
-  | 'TokenBalancesController'
-  | 'TokenDetectionController'
-  | 'TokenRatesController'
-  | 'TokensController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionPayController'
   | 'PermissionController'
@@ -1228,8 +1213,10 @@ export type MessengerClientsToInitialize =
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
-  | 'PredictOrderPreviewService'
+  | 'PredictOrderService'
   | 'RecurringOrdersDataService'
+  | 'LimitOrdersDataService'
+  | 'SentinelFeeTokensDataService'
   | 'CardController'
   | 'UiSlotsController'
   | 'QrSyncController'
@@ -1257,6 +1244,8 @@ export type MessengerClientsToInitialize =
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialController'
+  | 'ProfileService'
+  | 'ProfileController'
   | 'AuthenticatedUserStorageService'
   | 'ComplianceService'
   | 'ComplianceController'

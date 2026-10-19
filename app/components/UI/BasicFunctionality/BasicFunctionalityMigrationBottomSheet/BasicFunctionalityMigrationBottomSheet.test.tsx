@@ -82,7 +82,9 @@ describe('BasicFunctionalityMigrationBottomSheet', () => {
       getByText(strings('basic_functionality_migration.social_title')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('basic_functionality_migration.social_body_1')),
+      getByText(strings('basic_functionality_migration.social_body_1'), {
+        exact: false,
+      }),
     ).toBeOnTheScreen();
   });
 

@@ -232,7 +232,6 @@ export function mapPerpsTransaction({
       status: mapDepositWithdrawalStatus(dw.status),
       timestamp,
       hash: dw.txHash || id,
-      raw: { type: 'perpsTransaction', data: transaction },
       data: {
         token: {
           ...toAssetToken(
@@ -258,7 +257,6 @@ export function mapPerpsTransaction({
       status: 'success',
       timestamp,
       hash: id,
-      raw: { type: 'perpsTransaction', data: transaction },
       data: {
         token: toToken(f.feeNumber, direction, quoteAsset),
         // Market the funding accrued on (e.g. BTC) — rows render it as the
@@ -279,7 +277,6 @@ export function mapPerpsTransaction({
     }
     // Sign follows the displayed amount: opens show the fee paid (negative),
     // closes show net PnL which can be either sign (liquidations negative).
-    const direction: TokenAmount['direction'] = fill.isPositive ? 'in' : 'out';
     const isOpen = kind === 'perpsOpenLong' || kind === 'perpsOpenShort';
     return {
       type: kind,
@@ -287,9 +284,16 @@ export function mapPerpsTransaction({
       status: 'success',
       timestamp,
       hash: id,
-      raw: { type: 'perpsTransaction', data: transaction },
       data: {
-        token: toToken(fill.amountNumber, direction, quoteAsset),
+        ...(fill.amountNumber !== undefined && fill.isPositive !== undefined
+          ? {
+              token: toToken(
+                fill.amountNumber,
+                fill.isPositive ? 'in' : 'out',
+                quoteAsset,
+              ),
+            }
+          : {}),
         // Position leg (e.g. "2.01 ETH") — rows render it as the subtitle.
         sourceToken: {
           amount: fill.size,
@@ -339,7 +343,6 @@ export function mapPerpsTransaction({
       status,
       timestamp,
       hash: id,
-      raw: { type: 'perpsTransaction', data: transaction },
       data: {
         ...(perpsTriggerOrderType ? { perpsTriggerOrderType } : {}),
         token: toToken(Number(order.size), 'out', quoteAsset),
