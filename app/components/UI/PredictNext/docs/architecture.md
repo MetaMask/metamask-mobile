@@ -19,7 +19,17 @@ Kalshi product surface
           -> Kalshi
 ```
 
-The lanes remain independent during Kalshi delivery. A Kalshi rollback must not alter Polymarket. Polymarket migration begins only through explicit later work and uses seams proven in production by Kalshi.
+Execution and presentation lanes remain independent. A Kalshi rollback must not alter Polymarket. PRED-1340 now explicitly starts permanent PredictNext APIs for external callers, with private delegation to legacy Polymarket. It does not migrate legacy screens, internal hooks, or execution. PRED-1356 remains the later full Polymarket migration. See [ADR-0002](./adr/0002-permanent-public-api-private-legacy.md) and [the public API contract](./public-api-contract.md).
+
+```text
+External Home / Explore / Browser / Activity / Money / Rewards / confirmations
+  -> owning PredictNext public API, canonical inputs/results
+    -> resolved Active Venue
+      -> Kalshi services and presentation
+      -> private Polymarket delegation, conversions, and legacy presentation
+```
+
+External callers do not choose the lane. Legacy code may continue using its own types and hooks internally. Its UX must remain unchanged at Kalshi launch.
 
 Development proceeds in end-to-end vertical slices. A slice introduces only the types, adapter capability, service behavior, React integration, and UI it requires. The first read-only slice does not need account, portfolio, trading, funding, live-data, or compatibility modules.
 
@@ -94,13 +104,13 @@ A composition root may build the enabled graph and own initialization/teardown. 
 
 ### 3. React integration
 
-A query hook triggers one Venue-qualified query. A component needing only Balance must not also fetch Positions or Activity.
+An internal query hook triggers one Venue-qualified query. External hooks resolve Active Venue and account context inside their owning module rather than requiring callers to choose a Venue. A component needing only Balance must not also fetch Positions or Activity.
 
 Imperative hooks wrap service-owned workflows but do not recreate state machines, retry rules, or reconciliation. View-local presentation state remains local to React.
 
 ### 4. Product UI
 
-UI uses the MetaMask design system first and may reuse existing venue-neutral presentation. It consumes canonical models and user-meaningful states, not Venue DTOs, credentials, transport errors, or protocol steps.
+New UI uses the MetaMask design system first and may reuse existing venue-neutral presentation. External consumers use canonical models and user-meaningful states, not Venue DTOs, credentials, transport errors, or protocol steps. Private PredictNext wrappers may delegate to legacy Polymarket components and hooks to preserve existing presentation and interactions. This is not permission to rebuild or restyle Polymarket or require canonical types inside legacy Predict.
 
 Product UI is organized by owning feature or domain. Reusable primitives and views are extracted when real callers prove reuse; do not introduce a generic `widgets` tier. Cross-module consumers use deliberate module-root public APIs, while private composition stays under its owner's `internal/` directory. The architecture does not require a complete UI scaffold before implementation. See [`module-structure.md`](./module-structure.md).
 
@@ -140,7 +150,7 @@ View
           -> authenticated backend route
 ```
 
-The mobile scope selects local state and intent. The backend independently derives and authorizes the Predict User from authentication.
+The mobile scope selects local state and intent. The backend independently derives and authorizes the Predict User from authentication. PRED-1381 changes account cache keys from Venue-only identity to opaque process-local person/account scopes plus generation guards. Public market data stays Venue-scoped. True identity replacement clears account data and rejects late results; same-person selection changes do not rebind submitted operations. Exact keys and lifecycle rules are specified in [the public API contract](./public-api-contract.md#cache-and-context-lifetime).
 
 ### Financial write
 
@@ -161,7 +171,8 @@ Rules:
 - commit uses an opaque server-issued reference rather than a mutable client echo,
 - writes retry only with Venue-verified idempotency or lookup semantics,
 - ambiguous results remain observable and reconcile or block safely,
-- durable remote operation state lives on the backend; mobile persists only safe references needed to resume observation.
+- durable remote operation state lives on the backend; a workflow may persist safe references only when its own contract explicitly authorizes recovery.
+- Order completion observation remains process-local under PRED-1194/PRED-1374. Funding durability does not imply mobile Order restart recovery.
 
 ## State ownership
 
@@ -202,4 +213,4 @@ Follow the repository's canonical unit, component-view, and E2E testing guides. 
 
 Meaningful feature and domain modules export only stable product-facing views, selected reusable UI, hooks, selectors, domain types, and errors through deliberate module-root `index.ts` files. Services, concrete adapters, backend DTOs, sessions, query descriptors, private UI parts, and future compatibility code remain internal to their owners.
 
-Do not add barrels at every directory level or create a full PredictNext entrypoint allowlist before stable external consumers exist. Code and tests define the implemented public surface; [`module-structure.md`](./module-structure.md) records placement and import conventions as owners emerge.
+Do not add barrels at every directory level or a catch-all PredictNext root barrel. PRED-1374 records verified external consumers and proposed owning module APIs in [the public API contract](./public-api-contract.md). Create those exports only with their owning implementation tickets. Engine factories, messenger and route/provider registration, transaction-pay integration, signing/publish callbacks, and completion wiring are explicit removable composition exceptions, not permission for protocol decisions in shared product code. Code and tests define implemented interfaces; [`module-structure.md`](./module-structure.md) records placement and import conventions as owners emerge.

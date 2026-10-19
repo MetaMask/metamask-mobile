@@ -2,7 +2,9 @@
 
 - **Status:** Agreed working direction; implemented slices remain executable truth
 - **Scope:** Public, read-only Predict navigation and Event Screens
-- **Venues:** Kalshi first, with a future Polymarket backend mapping
+- **Venues:** Kalshi plus private legacy Polymarket adaptation for external consumers under PRED-1340; full Polymarket backend migration remains PRED-1356
+
+[The permanent public API contract](./public-api-contract.md) qualifies this earlier read-model direction for dual-Venue external consumers. Legacy Polymarket presentation and internal hooks remain unchanged. External APIs resolve Active Venue, retain immutable entity identity, and may preserve legacy rolling selection privately. PredictNext is unreleased; coordinated breaking changes do not require another API version or old-client support machinery.
 
 ## Recommendation
 
@@ -298,12 +300,12 @@ Series: btc-up-down-5m               Series: btc-up-down-5m
 Event:  btc-1200-1205       ->       Event:  btc-1205-1210
 ```
 
-For a rolling card or Event Screen:
+For an explicit follow-Series composition, not a fixed Event Screen:
 
 1. Render the Event returned by the Feed or current-Series endpoint.
 2. Revalidate at or shortly after the Event's `closesAt`.
 3. Revalidate when the app returns to the foreground after `closesAt`.
-4. Ask the backend for the Series' current Event; mobile never lists all Series Events and chooses one itself.
+4. Ask the owning current-Series capability for its selected Event. Kalshi selection belongs to the backend; temporary Polymarket adaptation preserves existing legacy selection privately. External callers never list Series Events and choose one themselves.
 5. Replace the rendered Event atomically only when the backend returns a different Event ID.
 6. Keep the old Event cached under its immutable Event ID.
 7. If the next Event is temporarily unavailable, retain the ended Event, show its ended state when designed, and retry safely.
@@ -416,7 +418,7 @@ Responses:
 - `204` when the Series exists but has no currently selectable Event;
 - `404` when the Series does not exist for that Venue.
 
-A card backed by a `rolling` Series opens detail in follow-Series mode and refreshes through this endpoint. A fixed Event link still uses the immutable Event endpoint.
+A rolling composition can express follow-Series intent and refresh through this capability. A fixed Event link, Position, or historical Activity still uses immutable Event identity. Temporary legacy Polymarket selection stays behind the same external API without rewriting legacy screens.
 
 ### Read Venue status
 

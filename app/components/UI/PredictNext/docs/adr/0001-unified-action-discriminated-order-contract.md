@@ -2,7 +2,13 @@
 
 One Preview/Commit route pair, one durable Order operation, and one canonical Order Receipt serve both buy and sell, discriminated by an `action: 'buy' | 'sell'` field, rather than growing separate sell endpoints. A sell intent (Cash Out) is expressed in whole contracts, bounded by the Position being reduced, not a USD spend: Positions are share-denominated, the venue matches whole contracts, and integer contract quoting mirrors the buy's integer-cent quote math. Action-specific fields are absent rather than null — a sell carries Proceeds fields and no debit/payout fields, and a buy the reverse — so `payoutExposure` stays semantically clean and the mobile `PredictOrderService` remains action-agnostic: quotes and Commits pass through unchanged, and buy and Cash Out cannot drift into separate orchestration modules.
 
-Status: accepted, 2026-09-28 (PRED-1195). Amended 2026-09-28 with the version-tolerance rule below.
+Status: accepted, 2026-09-28 (PRED-1195). Amended 2026-09-28 with the version-tolerance rule below; qualified by PRED-1374 for the permanent external contract.
+
+## PRED-1374 scope clarification
+
+[ADR-0002](./0002-permanent-public-api-private-legacy.md) keeps the single action-discriminated workflow but qualifies the whole-contract restriction as Kalshi-specific. The permanent external sell intent must preserve decimal share quantities and existing fractional Polymarket Cash Out. Legacy Polymarket execution stays unchanged. Kalshi's current integer request/parser remains executable truth until its own implementing slice changes it. This design task does not broaden Kalshi sell validation.
+
+PredictNext is unreleased. The historical version-tolerance rules below describe implemented behavior, not a requirement to keep older unreleased shapes forever. Coordinated breaking changes are allowed; do not add dual parsers or version negotiation without an actual released-client need.
 
 ## Considered options
 

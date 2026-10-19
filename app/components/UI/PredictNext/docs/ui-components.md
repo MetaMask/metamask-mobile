@@ -46,6 +46,10 @@ Do not add context merely to avoid passing one or two ordinary props. Do not cre
 
 Build the parts and variants required by the active vertical slice. Do not create widget registries, universal section schemas, speculative variants, or extension APIs for hypothetical callers.
 
+## Legacy Polymarket delegation
+
+PRED-1340 compatibility is an explicit exception to the rebuild guidance below. Production Polymarket keeps its existing legacy presentation and internal hooks with unchanged UX. A private PredictNext wrapper may delegate to those components/hooks while exposing canonical inputs and callback results to external consumers. Do not rebuild, copy, or restyle legacy screens as part of that migration. The normal rules above apply to new Kalshi UI. See [ADR-0002](./adr/0002-permanent-public-api-private-legacy.md).
+
 ## Visual reference when no designs exist
 
 When a ticket or slice ships without Figma designs, use the legacy Polymarket implementation under `../Predict/` as the visual and behavioral guideline for the equivalent surface (for example, `PredictPosition` and `PredictActivity` rows for portfolio lists). Treat it strictly as a reference:

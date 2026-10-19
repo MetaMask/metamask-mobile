@@ -147,8 +147,8 @@ The resolution of an ambiguous Order submission by looking up the stable Venue o
 _Avoid_: Retry, resubmit, duplicate order
 
 **Fill**:
-Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.
-_Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
+Execution of some or all of an Order against another order. Bought or sold direction is known only when authoritative execution evidence identifies the transacted action and Outcome; a reported exposure side alone does not establish it.
+_Avoid_: Order when referring to execution, inferred buy/sell direction
 
 **Cash Out**:
 Selling an existing Position before Market resolution by quoting and submitting an Immediate sell Order. A Cash Out may reduce the Position or close it entirely.
@@ -159,7 +159,7 @@ Collecting winnings from a resolved Market where the Venue requires explicit red
 _Avoid_: Redeem, collect
 
 **Settlement**:
-A payout or portfolio adjustment produced when a resolved Market is finalized by a Venue. A Settlement may be automatic, as with Kalshi, or may follow an explicit Claim, as with Polymarket.
+A payout or portfolio adjustment produced when a resolved Market is finalized by a Venue. A Settlement may be automatic, as with Kalshi, or may follow an explicit Claim, as with Polymarket; its historical record can remain valid when resolution or catalog metadata is unavailable.
 _Avoid_: Claim when no user action is required, payout without context
 
 **Activity**:
@@ -187,6 +187,10 @@ _Avoid_: UI request, transient loading state
 **Balance**:
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
+
+**Displayed Probability**:
+A Venue-provided probability or mark shown as odds for an Outcome, distinct from the executable Ask Price or Bid Price. Its source may be a midpoint, last trade, or Venue mark.
+_Avoid_: Ask Price, buy quote, guaranteed execution price
 
 **Ask Price**:
 The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
