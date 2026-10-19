@@ -129,9 +129,7 @@ describe('TestMuAIConfigBuilder', () => {
 
       const options = ltOptions(buildConfig());
 
-      expect(options.project).toBe(
-        'MetaMask Mobile Scheduled Performance',
-      );
+      expect(options.project).toBe('MetaMask Mobile Scheduled Performance');
       expect(options.build).toBe(
         'TestMu-Android-Performance-main-Scheduled-HyperExecute',
       );

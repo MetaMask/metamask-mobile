@@ -127,13 +127,13 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 
 Performance E2E never runs on push. On a PR it runs only when the PR has the `run-performance-tests` label. Coverage otherwise comes from the fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
 
-| Event                                 | Behavior                                                                                                                                                                                                                           |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                                                                                                                              |
-| PR without `run-performance-tests`   | No performance tests. Smart E2E Selection does not start them.                                                                                                                                                                     |
-| PR with `run-performance-tests`       | Full performance suite. Ignored on fork PRs and when the base branch is `stable`.                                                                                                                                                    |
-| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                                                                 |
-| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                                                                                                                                             |
+| Event                                 | Behavior                                                                                           |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Push to `main`, `stable`, `release/*` | No performance tests.                                                                              |
+| PR without `run-performance-tests`    | No performance tests. Smart E2E Selection does not start them.                                     |
+| PR with `run-performance-tests`       | Full performance suite. Ignored on fork PRs and when the base branch is `stable`.                  |
+| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only. |
+| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).             |
 
 Workflow layout:
 
