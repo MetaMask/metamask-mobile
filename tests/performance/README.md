@@ -141,6 +141,28 @@ Workflow layout:
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
 - `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` only when the PR has the `run-performance-tests` label, and then runs the full suite.
 
+### TestMu scheduled-performance dashboard
+
+The four daily scheduled runs (Monday–Saturday) use stable TestMu dimensions so
+their history is isolated from PR and manual traffic:
+
+- Project: `MetaMask Mobile Scheduled Performance`
+- Build: `TestMu-Android-Performance-main-Scheduled-HyperExecute`
+- Device: Google Pixel 8 Pro / Android 14
+- Test name: the Playwright performance scenario title
+
+In TestMu, open **Insights**, create an **App Automation** dashboard, and filter
+all widgets by that project and build. Useful widgets are pass/fail count and
+rate over `create_timestamp`, average/p90 `duration` grouped by `test_name`, and
+a failed-tests table with `failure_category`, device, and OS version. The
+**App Profiling** view uses the same sessions for CPU, memory, FPS, network,
+battery, and temperature trends; filter by the scenario names and Android
+device/build version.
+
+The TestMu duration is the full Appium session duration. Step timers and their
+quality gates remain in `performance-results.json`, the generated HTML report,
+and Sentry; they are not native TestMu widget metrics.
+
 For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
 
 `build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to BrowserStack. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.

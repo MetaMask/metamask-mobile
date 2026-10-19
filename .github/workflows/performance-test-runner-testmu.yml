@@ -34,6 +34,11 @@ on:
         required: true
         type: string
         description: 'Unified TestMu AI build name for all sessions'
+      testmu_project_name:
+        required: false
+        type: string
+        default: ''
+        description: 'TestMu AI project name. Empty keeps the provider default.'
       sentry_target:
         required: false
         type: string
@@ -134,6 +139,7 @@ jobs:
           TESTMU_APP_URL: ${{ inputs.testmu_app_url }}
           APP_VERSION: ${{ inputs.app_version }}
           TESTMU_BUILD_NAME_INPUT: ${{ inputs.testmu_build_name }}
+          TESTMU_PROJECT_NAME_INPUT: ${{ inputs.testmu_project_name }}
           HE_CONCURRENCY_INPUT: ${{ inputs.he_concurrency }}
           HE_REGION_INPUT: ${{ inputs.he_region }}
           COLLECT_HERMES_INPUT: ${{ inputs.collect_hermes_cpuprofiles == true && 'true' || 'false' }}
@@ -203,6 +209,9 @@ jobs:
             echo "TEST_PLATFORM=$PLATFORM"
             echo "QA_APP_VERSION=$APP_VERSION"
             echo "TESTMU_BUILD_NAME=${TESTMU_BUILD_NAME_INPUT}-HyperExecute"
+            if [ -n "$TESTMU_PROJECT_NAME_INPUT" ]; then
+              echo "TESTMU_PROJECT_NAME=$TESTMU_PROJECT_NAME_INPUT"
+            fi
             echo "TESTMU_GEO_LOCATION=$TESTMU_GEO_LOCATION"
             echo "LT_USERNAME=$LT_USERNAME_SECRET"
             echo "LT_ACCESS_KEY=$LT_ACCESS_KEY_SECRET"

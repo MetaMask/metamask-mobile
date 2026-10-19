@@ -97,6 +97,10 @@ jobs:
       sentry_target: test
       collect_hermes_cpuprofiles: true
       testmu_only: true
+      # Keep scheduled sessions in one dedicated TestMu project/build so
+      # Insights shows a clean six-hour history without PR/manual traffic.
+      testmu_project_name: MetaMask Mobile Scheduled Performance
+      testmu_build_name: TestMu-Android-Performance-main-Scheduled
     secrets: inherit
 
   # Detect whether the current branch has app-affecting changes vs main.
