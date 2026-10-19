@@ -190,7 +190,7 @@ describe('VbaSumSubKyc', () => {
     expect(mockKycService.createJourney).toHaveBeenCalledTimes(1);
   });
 
-  it('shows more information needed when SumSub is closed before submission', async () => {
+  it('returns to the caller when SumSub is closed before submission', async () => {
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
     const { getByTestId } = renderWithProvider(
@@ -198,27 +198,22 @@ describe('VbaSumSubKyc', () => {
     );
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-      ).toBeOnTheScreen();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
-    expect(
-      getByTestId(VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON),
-    ).toBeOnTheScreen();
+    expect(mockParentGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockOnSubmitted).not.toHaveBeenCalled();
+    expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('launches SumSub on mount without the more-info interstitial', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
     );
 
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
     });
-    expect(
-      queryByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-    ).not.toBeOnTheScreen();
     expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
@@ -281,70 +276,34 @@ describe('VbaSumSubKyc', () => {
     expect(mockOnSubmitted).not.toHaveBeenCalled();
   });
 
-  it('returns to the caller from the need-info screen', async () => {
-    mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
-
-    const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
-    );
-
-    await waitFor(() => {
-      expect(
-        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-      ).toBeOnTheScreen();
-    });
-
-    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('returns to Money home when the need-info screen has nothing to pop', async () => {
+  it('goes to Money home when an abandoned flow has nothing to pop', async () => {
     mockCanGoBack.mockReturnValue(false);
     mockParentCanGoBack.mockReturnValue(false);
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
-    const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
-    );
+    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-      ).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
-
-    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
-
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockParentGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
   });
 
-  it('leaves the more-info screen from the header', async () => {
+  it('falls back to the parent navigator when an abandoned flow cannot pop the current stack', async () => {
     mockCanGoBack.mockReturnValue(false);
     mockParentCanGoBack.mockReturnValue(true);
     mockKycController.launchProviderFlow.mockResolvedValue('abandoned');
 
-    const { getByTestId } = renderWithProvider(
-      <VbaSumSubKyc onSubmitted={mockOnSubmitted} />,
-    );
+    renderWithProvider(<VbaSumSubKyc onSubmitted={mockOnSubmitted} />);
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-      ).toBeOnTheScreen();
+      expect(mockParentGoBack).toHaveBeenCalledTimes(1);
     });
-
-    fireEvent.press(getByTestId(VbaSumSubKycSelectorsIDs.BACK_BUTTON));
-
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockParentGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('re-launches SumSub when the retry button is pressed', async () => {

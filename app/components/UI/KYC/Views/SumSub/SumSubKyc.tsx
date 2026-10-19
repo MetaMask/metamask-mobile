@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ActivityIndicator, Linking } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -11,7 +11,6 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -19,21 +18,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
 import type { VbaIdentityVerificationCompletion } from './types';
-import VbaIllustration, {
-  VbaIllustrationSource,
-} from '../../components/Illustration';
-import VbaOnboardingError from '../../components/OnboardingError';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
   BACK_BUTTON: 'vba-sumsub-kyc-back-button',
-  MORE_INFO_NEEDED: 'vba-sumsub-kyc-more-info-needed',
-  CONTINUE_BUTTON: 'vba-sumsub-kyc-continue-button',
-  HELP_BUTTON: 'vba-sumsub-kyc-help-button',
   ERROR: 'vba-sumsub-kyc-error',
   RETRY_BUTTON: 'vba-sumsub-kyc-retry-button',
 } as const;
@@ -43,9 +34,9 @@ export const VbaSumSubKycSelectorsIDs = {
  * (via {@link useLaunchSumSub}) and reports the KYC outcome. While
  * launching it shows a spinner (the SDK presents itself over this screen); if
  * the launch fails it surfaces a retryable error instead of bouncing back to
- * the previous screen. A half-completed (abandoned) KYC session re-enters here
- * and relaunches the provider directly. Provider terms are accepted earlier,
- * on Verify Identity.
+ * the previous screen. Closing the provider before submitting returns to the
+ * caller (money home); re-entry relaunches the provider directly. Provider
+ * terms are accepted earlier, on Verify Identity.
  */
 interface VbaSumSubKycProps {
   onSubmitted: (
@@ -56,8 +47,6 @@ interface VbaSumSubKycProps {
 const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { isLaunching, needsMoreInfo, hasError, retry } =
-    useLaunchSumSub(onSubmitted);
 
   const handleBack = useCallback(() => {
     // The onboarding stack is reset to this screen plus the caller, and
@@ -81,48 +70,10 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
     });
   }, [navigation]);
 
-  const handleHelp = useCallback(() => {
-    Linking.openURL(METAMASK_SUPPORT_URL).catch(() => undefined);
-  }, []);
-
-  if (needsMoreInfo) {
-    return (
-      <VbaOnboardingError
-        testID={VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED}
-        backButtonTestID={VbaSumSubKycSelectorsIDs.BACK_BUTTON}
-        onBack={handleBack}
-        illustration={
-          <VbaIllustration source={VbaIllustrationSource.scanner} />
-        }
-        title={strings('virtual_bank_account.sumsub_kyc.more_info_title')}
-        description={strings(
-          'virtual_bank_account.sumsub_kyc.more_info_description',
-        )}
-        items={[
-          {
-            id: 'proof-of-address',
-            icon: IconName.Home,
-            title: strings(
-              'virtual_bank_account.sumsub_kyc.more_info_item_title',
-            ),
-            description: strings(
-              'virtual_bank_account.sumsub_kyc.more_info_item_description',
-            ),
-          },
-        ]}
-        primaryAction={{
-          label: strings('virtual_bank_account.sumsub_kyc.more_info_button'),
-          onPress: retry,
-          testID: VbaSumSubKycSelectorsIDs.CONTINUE_BUTTON,
-        }}
-        secondaryAction={{
-          label: strings('virtual_bank_account.sumsub_kyc.more_info_help'),
-          onPress: handleHelp,
-          testID: VbaSumSubKycSelectorsIDs.HELP_BUTTON,
-        }}
-      />
-    );
-  }
+  const { isLaunching, hasError, retry } = useLaunchSumSub(
+    onSubmitted,
+    handleBack,
+  );
 
   return (
     <SafeAreaView

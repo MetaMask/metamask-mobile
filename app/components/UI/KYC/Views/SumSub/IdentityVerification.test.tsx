@@ -110,9 +110,7 @@ describe('VbaIdentityVerificationModule', () => {
     await waitFor(() => {
       expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
     });
-    expect(
-      queryByTestId(VbaSumSubKycSelectorsIDs.MORE_INFO_NEEDED),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
   it('launches SumSub through the same provider screen when terms are accepted', () => {
