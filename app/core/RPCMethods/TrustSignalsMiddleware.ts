@@ -158,7 +158,9 @@ export function createTrustSignalsMiddleware({
       }
 
       if (req.origin) {
-        scanUrl(phishingController, req.origin, getOriginScanFlow(req));
+        // Run the scan without blocking RPC processing; scanUrl handles failures.
+        // eslint-disable-next-line no-void
+        void scanUrl(phishingController, req.origin, getOriginScanFlow(req));
       }
 
       const chainId = getChainIdForRequest(req, networkController);
