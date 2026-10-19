@@ -21,6 +21,22 @@ export enum ActiveOrderState {
 }
 
 /**
+ * Authoritative order state for the retry guard, supplied by each screen
+ * from its own order-state source. Anything other than 'unknown' is in
+ * flight or terminal and must never be retried as a fresh failure:
+ *
+ * - 'pending'  — a submission is in flight
+ * - 'filled'   — the order actually filled
+ * - 'canceled' — the user rejected/canceled the order
+ * - 'unknown'  — no authoritative signal (a not-filled failure is retryable)
+ */
+export type PredictRetryOrderState =
+  | 'unknown'
+  | 'pending'
+  | 'filled'
+  | 'canceled';
+
+/**
  * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
  * existing failure UX (Retry-only) is preserved for non-payment failures.
  */

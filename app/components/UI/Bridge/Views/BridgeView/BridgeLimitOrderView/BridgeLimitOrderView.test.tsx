@@ -276,11 +276,13 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
       onMarketPresetPress,
       onCustomPresetPress,
       onLimitPriceInputPress,
+      isLimitPriceInputPressDisabled,
     }: {
       hasVisibleBanner: boolean;
       onMarketPresetPress?: () => void;
       onCustomPresetPress?: () => void;
       onLimitPriceInputPress?: () => void;
+      isLimitPriceInputPressDisabled?: boolean;
     }) => (
       <View
         testID={
@@ -292,6 +294,7 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
         <View
           testID="limit-order-limit-price-input"
           onTouchEnd={onLimitPriceInputPress}
+          pointerEvents={isLimitPriceInputPressDisabled ? 'none' : 'auto'}
         />
         <View
           testID="limit-order-market-preset"
@@ -356,6 +359,7 @@ const mockHandleCustomPress = jest.fn();
 const mockFocusCustomPercent = jest.fn();
 const mockFocusAmount = jest.fn();
 const mockFocusLimitPrice = jest.fn();
+const mockHandleKeypadClose = jest.fn();
 const mockHandleFlipTokensPress = jest.fn();
 
 let mockIsAmountFocused = false;
@@ -433,9 +437,11 @@ function buildKeypadMock() {
     focusLimitPrice: mockFocusLimitPrice,
     handleChange: jest.fn(),
     handleCustomPercentSelectionChange: jest.fn(),
+    handleKeypadClose: mockHandleKeypadClose,
     handleLimitPriceSelectionChange: jest.fn(),
     isAmountFocused: mockIsAmountFocused,
     isCustomPercentFocused: mockIsCustomPercentFocused,
+    isCustomPercentKeypadOpen: mockIsCustomPercentFocused,
     keypadProps: {
       value: mockSourceAmount,
       currency: 'ETH',
@@ -831,6 +837,34 @@ describe('BridgeLimitOrderView', () => {
 
     expect(mockCommitCustomPercent).toHaveBeenCalledTimes(1);
     expect(mockFocusLimitPrice).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables limit price input presses while the custom percent keypad is open', () => {
+    mockIsCustomPercentFocused = true;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId('limit-order-limit-price-input').props.pointerEvents,
+    ).toBe('none');
+  });
+
+  it('tells the keypad hook when the keypad closes', () => {
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('mock-swaps-keypad'), 'touchEnd');
+
+    expect(mockHandleKeypadClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables limit price input presses while the custom percent keypad is closed', () => {
+    mockIsCustomPercentFocused = false;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId('limit-order-limit-price-input').props.pointerEvents,
+    ).toBe('auto');
   });
 
   it('does not commit custom percent when source amount is pressed while custom percent is not focused', () => {

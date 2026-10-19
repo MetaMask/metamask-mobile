@@ -177,6 +177,45 @@ describe('useSwapsLimitOrderKeypad', () => {
     });
   });
 
+  it('reports the custom percent keypad as open until the keypad closes', () => {
+    const { result } = renderKeypadHook();
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(false);
+
+    act(() => {
+      result.current.keypadRef.current = {
+        open: jest.fn(),
+        close: jest.fn(),
+        isOpen: () => false,
+      };
+      result.current.focusCustomPercent();
+    });
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(true);
+
+    act(() => {
+      result.current.handleKeypadClose();
+    });
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(false);
+    expect(result.current.isCustomPercentFocused).toBe(true);
+  });
+
+  it('does not report the custom percent keypad as open for the limit price', () => {
+    const { result } = renderKeypadHook();
+
+    act(() => {
+      result.current.keypadRef.current = {
+        open: jest.fn(),
+        close: jest.fn(),
+        isOpen: () => false,
+      };
+      result.current.focusLimitPrice();
+    });
+
+    expect(result.current.isCustomPercentKeypadOpen).toBe(false);
+  });
+
   it('routes keypad changes to the amount handler by default', () => {
     const { result } = renderKeypadHook();
     const keypadData: KeypadChangeData = {
