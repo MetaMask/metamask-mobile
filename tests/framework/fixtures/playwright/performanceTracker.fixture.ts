@@ -158,6 +158,29 @@ export const performanceTrackerFixture = {
       }
     }
 
+    logger.debug('Looking for session ID');
+
+    // Attach before quality gates: a gate failure throws, and the reporter
+    // needs session-data (with projectName) to fetch the recording.
+    if (sessionId) {
+      await testInfo.attach('session-data', {
+        body: JSON.stringify({
+          sessionId,
+          testTitle: testInfo.title,
+          testFilePath: testInfo.file || '',
+          tags: testTags,
+          projectName: testInfo.project.name,
+          timestamp: new Date().toISOString(),
+          team: teamInfo,
+        }),
+        contentType: 'application/json',
+      });
+
+      logger.info(`Session data stored: ${sessionId}`);
+    } else {
+      logger.warn('No session ID found - video URL cannot be retrieved');
+    }
+
     const hasThresholds = performanceTracker.timers.some((t) =>
       t.hasThreshold(),
     );
@@ -180,27 +203,6 @@ export const performanceTrackerFixture = {
         }
         throw error;
       }
-    }
-
-    logger.debug('Looking for session ID');
-
-    if (sessionId) {
-      await testInfo.attach('session-data', {
-        body: JSON.stringify({
-          sessionId,
-          testTitle: testInfo.title,
-          testFilePath: testInfo.file || '',
-          tags: testTags,
-          projectName: testInfo.project.name,
-          timestamp: new Date().toISOString(),
-          team: teamInfo,
-        }),
-        contentType: 'application/json',
-      });
-
-      logger.info(`Session data stored: ${sessionId}`);
-    } else {
-      logger.warn('No session ID found - video URL cannot be retrieved');
     }
   },
 };
