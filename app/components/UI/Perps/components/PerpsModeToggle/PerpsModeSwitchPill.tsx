@@ -218,12 +218,10 @@ const PerpsModeSwitchPill = ({
   // Pro outlines in the accent gold; Lite follows `border/default`, which the
   // preset resolves per theme. `tw.color` is not usable here — it does not
   // resolve border token names.
-  // In a capsule the glass edge stands in for Lite's neutral outline.
-  const borderStyle = isPro
-    ? [styles.border, styles.proBorder]
-    : isCapsule
-      ? undefined
-      : [styles.border, tw.style('border-default')];
+  const borderStyle = [
+    styles.border,
+    isPro ? styles.proBorder : tw.style('border-default'),
+  ];
   const pillBorderRadius = (tw.style('rounded-full') as ViewStyle).borderRadius;
   const innerBorderRadius =
     typeof pillBorderRadius === 'number'
@@ -267,7 +265,13 @@ const PerpsModeSwitchPill = ({
       twClassName={isCapsule ? 'relative h-10' : 'relative h-8'}
       onLayout={(event) => setWidth(event.nativeEvent.layout.width)}
     >
-      {isCapsule ? <CapsuleGlass>{button}</CapsuleGlass> : button}
+      {isCapsule ? (
+        <CapsuleGlass nonGlassClassName="border-0" testID={`${testID}-capsule`}>
+          {button}
+        </CapsuleGlass>
+      ) : (
+        button
+      )}
 
       {isShimmering && width > 0 ? (
         <Animated.View

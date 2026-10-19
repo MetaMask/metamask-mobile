@@ -129,13 +129,21 @@ describe('PerpsModeSwitchPill', () => {
   });
 
   describe('capsule', () => {
-    it('drops the Lite outline so the capsule edge shows instead', () => {
+    it('keeps the Lite outline in the capsule', () => {
       renderPill({ isCapsule: true });
 
-      expect(screen.getByTestId(PILL_TEST_ID)).not.toHaveStyle({
+      expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({
         borderWidth: BORDER_WIDTH,
+        height: 40,
       });
-      expect(screen.getByTestId(PILL_TEST_ID)).toHaveStyle({ height: 40 });
+    });
+
+    it('leaves the outline to the pill, so the capsule draws no border of its own', () => {
+      renderPill({ isCapsule: true });
+
+      expect(screen.getByTestId(`${PILL_TEST_ID}-capsule`)).toHaveStyle({
+        borderWidth: 0,
+      });
     });
 
     it('keeps the Pro gold outline in the capsule', () => {
