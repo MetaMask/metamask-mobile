@@ -1,4 +1,6 @@
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BannerAlert,
   BannerAlertSeverity,
   Box,
@@ -25,6 +27,7 @@ import React, {
   useState,
 } from 'react';
 import { Pressable, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -74,6 +77,9 @@ import LiveTradesView from '../LiveTradesView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
+import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
@@ -148,6 +154,10 @@ const SocialV1View: React.FC = () => {
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
   const { profile: myProfile } = useMyProfile();
+  const accountAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
@@ -521,12 +531,21 @@ const SocialV1View: React.FC = () => {
               )}
             >
               <SocialHeaderGlassSurface twClassName="w-10 justify-center">
-                <ProfileAvatar
-                  imageUrl={myProfile?.imageUrl}
-                  avatarPresetId={myProfile?.avatarPresetId}
-                  avatarBackgroundId={myProfile?.avatarBackgroundId}
-                  size="sm"
-                />
+                {myProfile ? (
+                  <ProfileAvatar
+                    imageUrl={myProfile.imageUrl}
+                    avatarPresetId={myProfile.avatarPresetId}
+                    avatarBackgroundId={myProfile.avatarBackgroundId}
+                    size="sm"
+                  />
+                ) : (
+                  <AvatarAccount
+                    address={accountAddress ?? ''}
+                    variant={getAvatarAccountVariant(avatarAccountType)}
+                    size={AvatarAccountSize.Sm}
+                    testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
+                  />
+                )}
               </SocialHeaderGlassSurface>
             </Pressable>
           }

@@ -69,6 +69,8 @@ interface ProfileAvatarProps {
    */
   avatarBackgroundId?: string | null;
   size?: ProfileAvatarSize;
+  /** Overrides the named size, in points. */
+  diameter?: number;
   testID?: string;
   accessibilityLabel?: string;
 }
@@ -78,19 +80,24 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
   avatarPresetId,
   avatarBackgroundId,
   size = 'lg',
+  diameter,
   testID,
   accessibilityLabel,
 }) => {
   const tw = useTailwind();
   const preset = getProfileAvatarPreset(avatarPresetId);
-  const sizeClassName = SIZE_CLASS[size];
+  const diameterPx = diameter ?? SIZE_PX[size];
+  const sizeClassName = diameter ? '' : SIZE_CLASS[size];
+  const sizeStyle = diameter
+    ? { width: diameter, height: diameter }
+    : undefined;
 
   if (imageUrl) {
     return (
       <Image
         source={{ uri: imageUrl }}
         accessibilityLabel={accessibilityLabel}
-        style={tw.style(sizeClassName, 'rounded-full')}
+        style={tw.style(sizeClassName, 'rounded-full', sizeStyle)}
         testID={testID}
       />
     );
@@ -101,7 +108,7 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       <Image
         source={superheroAvatar}
         accessibilityLabel={accessibilityLabel}
-        style={tw.style(sizeClassName, 'rounded-full')}
+        style={tw.style(sizeClassName, 'rounded-full', sizeStyle)}
         testID={testID}
       />
     );
@@ -116,13 +123,13 @@ const ProfileAvatar: React.FC<ProfileAvatarProps> = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       twClassName={`${sizeClassName} rounded-full overflow-hidden`}
-      style={tw.style({ backgroundColor: background?.color })}
+      style={tw.style(sizeStyle, { backgroundColor: background?.color })}
       testID={testID}
       accessibilityLabel={accessibilityLabel}
     >
       <ProfileAvatarArt
         preset={preset}
-        sizePx={SIZE_PX[size] * ART_SCALE}
+        sizePx={diameterPx * ART_SCALE}
         testID={testID ? `${testID}-art` : undefined}
       />
     </Box>

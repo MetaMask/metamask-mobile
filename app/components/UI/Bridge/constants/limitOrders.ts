@@ -78,8 +78,22 @@ export const getSwapsLimitOrderExpirationLabel = (
 
 export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;
 
+export const LIMIT_ORDER_METAMASK_FEE_LEARN_MORE_URL = 'https://metamask.io/';
+
 export const LIMIT_ORDERS_STALE_TIME = 60 * 60 * 1000;
 export const LIMIT_ORDERS_PAGE_LIMIT = 20;
+
+/**
+ * How often the orders list of the selected orders tab is refetched while it
+ * is on screen.
+ */
+export const LIMIT_ORDERS_REFETCH_INTERVAL = 20 * 1000;
+
+/**
+ * Refetch interval used instead of `LIMIT_ORDERS_REFETCH_INTERVAL` on low-end
+ * hardware over a slow cellular connection.
+ */
+export const LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL = 60 * 1000;
 
 export const OPEN_LIMIT_ORDER_STATES = [
   LimitOrderState.Open,
