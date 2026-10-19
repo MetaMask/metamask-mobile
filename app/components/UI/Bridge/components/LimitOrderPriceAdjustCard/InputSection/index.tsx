@@ -64,6 +64,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
       onQuoteUnitPress,
       value,
       onInputPress,
+      isInputPressDisabled = false,
       onDismissKeypad,
       selection,
       onSelectionChange,
@@ -253,6 +254,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="min-w-0"
+            pointerEvents={isInputPressDisabled ? 'none' : 'auto'}
+            testID={LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW}
           >
             {inputPrefix ? (
               <Text
