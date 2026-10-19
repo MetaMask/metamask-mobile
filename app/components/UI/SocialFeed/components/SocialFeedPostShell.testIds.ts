@@ -12,4 +12,5 @@ export const SocialFeedPostShellSelectorsIDs = {
   MORE: 'social-v1-feed-post-more',
   TIMESTAMP: 'social-v1-feed-post-timestamp',
   IDENTITY_PRESS: 'social-v1-feed-post-trader',
+  POSITION_PRESS: 'social-v1-feed-post-position',
 } as const;

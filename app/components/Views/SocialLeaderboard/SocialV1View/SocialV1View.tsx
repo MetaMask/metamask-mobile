@@ -1,4 +1,6 @@
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BannerAlert,
   BannerAlertSeverity,
   Box,
@@ -25,6 +27,7 @@ import React, {
   useState,
 } from 'react';
 import { Pressable, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -74,8 +77,18 @@ import LiveTradesView from '../LiveTradesView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
+import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
+import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../../UI/QuickBuy';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 
 const LANDING_INDEX = 0;
 
@@ -141,6 +154,11 @@ const SocialV1View: React.FC = () => {
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
   const { profile: myProfile } = useMyProfile();
+  const accountAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+  const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
@@ -353,8 +371,8 @@ const SocialV1View: React.FC = () => {
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    navigation.navigate(Routes.SOCIAL.POST_COMPOSER);
-  }, [navigation]);
+    openComposer();
+  }, [openComposer]);
 
   const handleOpenRewards = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);
@@ -366,6 +384,21 @@ const SocialV1View: React.FC = () => {
   const [showNotificationsBanner, setShowNotificationsBanner] = useState(
     Boolean(route.params?.showNotificationsBanner),
   );
+
+  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
+  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
+  // inside a pager page it would be clipped by the collapsing header block and
+  // painted over by the page's own scroll content.
+  const [quickBuy, setQuickBuy] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+  } | null>(null);
+  const openQuickBuy = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
+      setQuickBuy({ target, copyTradeOrigin }),
+    [],
+  );
+  const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -498,11 +531,21 @@ const SocialV1View: React.FC = () => {
               )}
             >
               <SocialHeaderGlassSurface twClassName="w-10 justify-center">
-                <ProfileAvatar
-                  imageUrl={myProfile?.imageUrl}
-                  avatarPresetId={myProfile?.avatarPresetId}
-                  size="sm"
-                />
+                {myProfile ? (
+                  <ProfileAvatar
+                    imageUrl={myProfile.imageUrl}
+                    avatarPresetId={myProfile.avatarPresetId}
+                    avatarBackgroundId={myProfile.avatarBackgroundId}
+                    size="sm"
+                  />
+                ) : (
+                  <AvatarAccount
+                    address={accountAddress ?? ''}
+                    variant={getAvatarAccountVariant(avatarAccountType)}
+                    size={AvatarAccountSize.Sm}
+                    testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
+                  />
+                )}
               </SocialHeaderGlassSurface>
             </Pressable>
           }
@@ -628,6 +671,10 @@ const SocialV1View: React.FC = () => {
                             : undefined
                         }
                         isFilterActive={hasActiveFilters('following')}
+                        appliedFilters={
+                          tab === 'following' ? applied.following : undefined
+                        }
+                        onQuickBuy={openQuickBuy}
                       />
                     )}
                   </View>
@@ -647,6 +694,16 @@ const SocialV1View: React.FC = () => {
             onClose={closeSheet}
           />
         ) : null}
+
+        <QuickBuy.Root
+          isVisible={quickBuy !== null}
+          target={quickBuy?.target ?? null}
+          onClose={closeQuickBuy}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+          copyTradeOrigin={quickBuy?.copyTradeOrigin}
+        />
       </SafeAreaView>
     </SocialEntryOptionsProvider>
   );

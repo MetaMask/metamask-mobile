@@ -101,6 +101,7 @@ export const buildCardSupportUrl = (
 
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
+export const PERPS_TROUBLESHOOT_URL = `https://support.metamask.io/trade/perps/troubleshoot/${MOBILE_UTM}`;
 export const PERPS_ADL_URL = `https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/${MOBILE_UTM}#what-is-auto-deleveraging-adl`;
 
 // Troubleshooting

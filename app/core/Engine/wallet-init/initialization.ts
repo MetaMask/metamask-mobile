@@ -19,6 +19,9 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
+import { getPermissionControllerInstanceOptions } from './instance-options/permission-controller';
+import { getPermissionControllerInitMessenger } from './messengers/permission-controller-messenger';
+import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
@@ -77,6 +80,9 @@ export function initializeWallet({
       gasFeeController: getGasFeeControllerInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger, useDmk),
       networkController: getNetworkControllerInstanceOptions(),
+      permissionController: getPermissionControllerInstanceOptions(
+        getPermissionControllerInitMessenger(messenger),
+      ),
       remoteFeatureFlagController:
         getRemoteFeatureFlagControllerInstanceOptions({
           messenger,
@@ -84,6 +90,9 @@ export function initializeWallet({
         }),
       seedlessOnboardingController:
         getSeedlessOnboardingControllerInstanceOptions(),
+      selectedNetworkController: {
+        domainProxyMap: new DomainProxyMap(),
+      },
       storageService: getStorageServiceInstanceOptions(),
       subscriptionService: getSubscriptionServiceInstanceOptions(),
       shieldApiService: getShieldApiServiceInstanceOptions(),

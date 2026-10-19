@@ -43,9 +43,9 @@ import {
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
-  assetIdsMatch,
   FeatureId,
   formatChainIdToCaip,
+  isNativeAddress,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import {
@@ -84,10 +84,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
-import {
-  ARC_NATIVE_ASSET_ID,
-  ARC_NATIVE_ASSET_ID_LEGACY,
-} from '../../../../hooks/useArcDefaultTokens';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -103,6 +99,7 @@ import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/track
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
+import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -610,8 +607,7 @@ export const BridgeTokenSelectorContent: React.FC<
       )
       .filter(
         (token) =>
-          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
-          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY) &&
+          !isArcUsdcErc20AssetId(token.assetId) &&
           (!balanceOnly ||
             (token.balance !== undefined && parseFloat(token.balance) > 0)),
       );
@@ -917,6 +913,7 @@ export const BridgeTokenSelectorContent: React.FC<
       navigation.dispatch(
         StackActions.push('Asset', {
           ...item,
+          isNative: isNativeAddress(item.address),
           source: tokenDetailsSource,
         }),
       );

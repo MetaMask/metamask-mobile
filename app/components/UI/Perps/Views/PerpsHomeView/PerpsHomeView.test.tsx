@@ -149,11 +149,16 @@ jest.mock(
   '../../components/PerpsTopMoversSection',
   () => 'PerpsTopMoversSection',
 );
+jest.mock(
+  '../../components/PerpsSocialFeedSection',
+  () => 'PerpsSocialFeedSection',
+);
 
 // Mock hooks (consolidated to avoid conflicts)
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
 const mockNavigateToMarketList = jest.fn();
+const mockNavigateToMarketDetails = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
@@ -165,7 +170,7 @@ jest.mock('../../hooks', () => ({
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
     navigateTo: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToWallet: mockNavigateToWallet,
     navigateBack: mockNavigateBack,
@@ -217,6 +222,14 @@ jest.mock('../../hooks/usePerpsTopMovers', () => ({
 
 const mockUsePerpsTopMovers = jest.requireMock('../../hooks/usePerpsTopMovers')
   .usePerpsTopMovers as jest.Mock;
+
+jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
+  usePerpsSocialEnabled: jest.fn(() => false),
+}));
+
+const mockUsePerpsSocialEnabled = jest.requireMock(
+  '../../hooks/usePerpsSocialEnabled',
+).usePerpsSocialEnabled as jest.Mock;
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
@@ -430,6 +443,14 @@ jest.mock(
   () => 'PerpsMarketBalanceActions',
 );
 jest.mock('../../components/PerpsProducts', () => 'PerpsProducts');
+jest.mock('../../components/PerpsExploreSection', () => 'PerpsExploreSection');
+jest.mock('../../hooks/usePerpsHomeExploreAbTest', () => ({
+  usePerpsHomeExploreAbTest: jest.fn(() => ({
+    showExploreTable: false,
+    variantName: 'control',
+    isActive: false,
+  })),
+}));
 jest.mock('../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView', () => {
   const { View } = jest.requireActual('react-native');
   return function PerpsCloseAllPositionsView() {
@@ -576,6 +597,10 @@ jest.mock(
   () => 'TabBarItem',
 );
 
+const mockUsePerpsHomeExploreAbTest = jest.requireMock(
+  '../../hooks/usePerpsHomeExploreAbTest',
+).usePerpsHomeExploreAbTest as jest.Mock;
+
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
 const mockUseAnimatedScrollHandler = jest.requireMock('react-native-reanimated')
@@ -655,11 +680,19 @@ describe('PerpsHomeView', () => {
     mockRouteParams = { source: 'main_action_button' };
     mockPerpsModeValue = PerpsMode.Lite;
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsHomeExploreAbTest.mockReturnValue({
+      showExploreTable: false,
+      variantName: 'control',
+      isActive: false,
+    });
+    (usePerpsCategories as jest.Mock).mockReturnValue([]);
+    (useHasNewMarkets as jest.Mock).mockReturnValue(false);
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
       data: [],
       isLoading: false,
     });
+    mockUsePerpsSocialEnabled.mockReturnValue(false);
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         totalBalance: '0',
@@ -1602,6 +1635,40 @@ describe('PerpsHomeView', () => {
       );
     });
 
+    it('records the explore section instead of the stacked sections in treatment', () => {
+      (usePerpsCategories as jest.Mock).mockReturnValue([
+        { id: 'crypto', label: 'Crypto' },
+      ]);
+      mockUsePerpsHomeExploreAbTest.mockReturnValue({
+        showExploreTable: true,
+        variantName: 'treatment',
+        isActive: true,
+      });
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        hasMarkets: true,
+        perpsMarkets: [{ symbol: 'BTC' }],
+        stocksMarkets: [{ symbol: 'AAPL' }],
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toEqual(
+        expect.arrayContaining(['balance', 'explore']),
+      );
+      expect(properties?.sections_displayed).not.toContain('watchlist');
+      expect(properties?.sections_displayed).not.toContain('products');
+      expect(properties?.sections_displayed).not.toContain('explore_crypto');
+      expect(properties?.sections_displayed).not.toContain('explore_stocks');
+      expect(properties?.sections_displayed).not.toContain(
+        'explore_commodities',
+      );
+      expect(properties?.sections_displayed).not.toContain('explore_forex');
+    });
+
     it('includes watchlist_count and watchlist_markets from raw selector', () => {
       const mockWatchlist = ['BTC', 'ETH', 'SOL'];
       mockUseSelector.mockImplementation(() => mockWatchlist);
@@ -1649,6 +1716,22 @@ describe('PerpsHomeView', () => {
         ...mockDefaultData,
         orders: [],
         isLoading: { ...mockDefaultData.isLoading, orders: true },
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('orders');
+    });
+
+    it('includes orders in sections_displayed when orders failed and the array is empty', () => {
+      mockUseSelector.mockReturnValue(false);
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        orders: [],
+        ordersError: new Error('Trading key unavailable'),
       });
 
       render(<PerpsHomeView />);
@@ -1832,6 +1915,35 @@ describe('PerpsHomeView', () => {
       expect(properties?.sections_displayed).not.toContain('top_movers');
     });
 
+    it('includes social_feed after top_movers when Perps social is on', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [{ symbol: 'BTC' }],
+        isLoading: false,
+      });
+      mockUsePerpsSocialEnabled.mockReturnValue(true);
+
+      render(<PerpsHomeView />);
+
+      const sections = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      )?.sections_displayed as string[];
+      expect(sections.indexOf('social_feed')).toBe(
+        sections.indexOf('top_movers') + 1,
+      );
+    });
+
+    it('excludes social_feed when Perps social is off', () => {
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).not.toContain('social_feed');
+    });
+
     it('excludes recently_added when the feature flag is off even though data is present', () => {
       mockUseSelector.mockReturnValue(false);
       mockUsePerpsHomeData.mockReturnValue({
@@ -1905,6 +2017,36 @@ describe('PerpsHomeView', () => {
         defaultMarketTypeFilter: 'new',
         source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       });
+    });
+
+    it('navigates to market details with source_section=recently_added when a tile is pressed', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsRecentlyAddedEnabledFlag,
+      );
+      const recentlyAddedMarket = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        price: '$50000',
+        change24h: '+$1250',
+        change24hPercent: '+2.5%',
+        volume: '$1.2B',
+        listedAt: Date.now() - 3 * 60 * 60 * 1000,
+      };
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        recentlyAddedMarkets: [recentlyAddedMarket],
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      fireEvent.press(getByTestId('perps-recently-added-tile-BTC'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        recentlyAddedMarket,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        undefined,
+        'recently_added',
+      );
     });
   });
 });

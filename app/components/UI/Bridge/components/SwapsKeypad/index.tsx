@@ -6,6 +6,7 @@ import React, {
   useState,
   PropsWithChildren,
 } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import {
   BottomSheetDialog,
   type BottomSheetDialogRef,
@@ -25,6 +26,12 @@ interface SwapsKeypadProps {
   periodButtonProps?: KeypadComponentProps['periodButtonProps'];
   isInteractable?: boolean;
   onClose?: () => void;
+  /**
+   * Fired with the keypad's layout, relative to the view it is rendered in.
+   * `layout.y` is therefore the top edge of the keypad, which lets a parent
+   * keep content above it visible.
+   */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 export const SwapsKeypad = forwardRef<
@@ -41,6 +48,7 @@ export const SwapsKeypad = forwardRef<
       children,
       isInteractable = false,
       onClose,
+      onLayout,
     },
     ref,
   ) => {
@@ -78,6 +86,7 @@ export const SwapsKeypad = forwardRef<
         ref={bottomSheetRef}
         isInteractable={isInteractable}
         onClose={handleClose}
+        onLayout={onLayout}
         onStartShouldSetResponder={() =>
           // Prevents the native gesture system from bubbling up
           // the event to BottomSheetDialog, causing keypad to close

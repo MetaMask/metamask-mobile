@@ -1,4 +1,5 @@
 import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
+import type { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 import type { LimitOrderTriggerInput } from '../../utils/limitOrders/getLimitOrderTriggerParams';
@@ -67,6 +68,11 @@ export interface LimitOrderConfirmationModalProps
    */
   costTolerance: string;
   /**
+   * Which side of the trigger price fills the order, shown as a ≥ or ≤ sign
+   * before it. Read from the trigger input by the host screen.
+   */
+  triggerDirection: LimitOrderPriceComparisonDirection;
+  /**
    * Comparison against the current market price.
    */
   triggerComparison?: LimitOrderConfirmationMarketComparison;
@@ -91,6 +97,7 @@ export interface LimitOrderConfirmationModalProps
     onPress: () => void;
     label: string;
     isLoading?: boolean;
+    isDisabled?: boolean;
   };
   error?: string;
   /**

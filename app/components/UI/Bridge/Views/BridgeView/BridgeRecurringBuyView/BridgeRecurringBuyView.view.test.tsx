@@ -92,15 +92,6 @@ function renderRecurringPriceRangeView({
     overrides: {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: currentCurrency.toUpperCase(),
-            currencyRates: {
-              ETH: {
-                conversionRate: ethFiatRate,
-                usdConversionRate: ETH_USD_RATE,
-              },
-            },
-          },
           AssetsController: {
             selectedCurrency: currentCurrency,
             assetsInfo: {
@@ -486,6 +477,30 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).not.toHaveStyle({ color: errorColor });
   });
 
+  it('adds spacing below visible banners only', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    const bannersWrapper = renderResult.getByTestId(
+      BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER,
+    );
+
+    fireEvent(bannersWrapper, 'layout', {
+      nativeEvent: { layout: { height: 20, width: 0, x: 0, y: 0 } },
+    });
+    expect(bannersWrapper).toHaveStyle({ marginBottom: 8 });
+
+    fireEvent(bannersWrapper, 'layout', {
+      nativeEvent: { layout: { height: 20, width: 0, x: 0, y: 0 } },
+    });
+    expect(bannersWrapper).toHaveStyle({ marginBottom: 8 });
+
+    fireEvent(bannersWrapper, 'layout', {
+      nativeEvent: { layout: { height: 0, width: 0, x: 0, y: 0 } },
+    });
+    expect(bannersWrapper).not.toHaveStyle({ marginBottom: 8 });
+  });
+
   it('appends keypad digits to the every value', async () => {
     const renderResult = renderBridgeView();
 
@@ -693,7 +708,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toHaveDisplayValue('1');
   });
 
-  it('commits the selected interval unit on confirm', async () => {
+  it('commits the selected interval unit when an option is pressed', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -712,11 +727,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringIntervalSheetSelectorsIDs.OPTION('day'),
       ),
     );
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
-      ),
-    );
 
     await waitFor(() => {
       expect(
@@ -727,7 +737,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('commits month as the interval unit on confirm', async () => {
+  it('commits month as the interval unit when an option is pressed', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -744,11 +754,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent.press(
       renderResult.getByTestId(
         RecurringIntervalSheetSelectorsIDs.OPTION('month'),
-      ),
-    );
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
       ),
     );
 
@@ -823,11 +828,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
     });
     fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.OPTION('week'),
-      ),
-    );
-    fireEvent.press(
       renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.CLOSE_BUTTON),
     );
 
@@ -843,7 +843,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
   });
 
-  it('resets every to 1 when confirming a unit change', async () => {
+  it('resets every to 1 when the interval unit changes', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -875,11 +875,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         RecurringIntervalSheetSelectorsIDs.OPTION('day'),
       ),
     );
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
-      ),
-    );
 
     await waitFor(() => {
       expect(
@@ -891,6 +886,48 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveDisplayValue('1');
+  });
+
+  it('keeps every when the selected interval unit is pressed again', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('2');
+    });
+
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('hour'),
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('2');
+    });
   });
 
   it('shows Max is 24 when every exceeds the hour unit max', async () => {
@@ -946,11 +983,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent.press(
       renderResult.getByTestId(
         RecurringIntervalSheetSelectorsIDs.OPTION('day'),
-      ),
-    );
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
       ),
     );
     await waitFor(() => {

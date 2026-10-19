@@ -1,6 +1,11 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
-import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
+import {
+  isVersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+  type VersionGatedFeatureFlag,
+} from '../../../util/remoteFeatureFlag';
+import type { Hex } from '@metamask/utils';
 
 interface MoneyAccountFeatureFlag {
   moneyAccountDepositEnabled?: boolean;
@@ -25,28 +30,152 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
   },
 );
 
-export const MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY =
-  'moneyMovementBrazilNeobank' as const;
+/**
+ * LaunchDarkly key: `money-movement-neobank`.
+ * Client Config camelCases kebab-case keys before the app reads them, same as
+ * `tokenDetailsTechnicalIndicators`. This is the key in `remoteFeatureFlags`.
+ */
+export const MONEY_MOVEMENT_NEOBANK_FLAG_KEY = 'moneyMovementNeobank' as const;
 
-export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
+interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
+  regions?: unknown;
+}
+
+/**
+ * `validatedVersionGatedFeatureFlag` unwraps `{ name, value }` and then
+ * returns only a boolean, which drops `regions`. Recover the same payload
+ * here so the country list can be read after the enabled + minimumVersion gate.
+ *
+ * @param remoteFlag - Raw `moneyMovementNeobank` value from RemoteFeatureFlagController.
+ * @returns The version-gated object, including any extra fields, or undefined.
+ */
+function readMoneyMovementNeobankFlag(
+  remoteFlag: unknown,
+): MoneyMovementNeobankFlag | undefined {
+  if (isVersionGatedFeatureFlag(remoteFlag)) {
+    return remoteFlag;
+  }
+
+  if (
+    typeof remoteFlag === 'object' &&
+    remoteFlag !== null &&
+    'value' in remoteFlag
+  ) {
+    const wrappedValue = (remoteFlag as { value?: unknown }).value;
+    if (isVersionGatedFeatureFlag(wrappedValue)) {
+      return wrappedValue;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Uppercase, trim, and dedupe country codes. Non-strings and blanks are dropped.
+ * An empty result means no region is allowed.
+ *
+ * @param regions - Raw `regions` field from the flag payload.
+ * @returns ISO 3166-1 alpha-2 codes safe to compare with a geolocation country.
+ */
+function normalizeVbaRegionCodes(regions: unknown): string[] {
+  if (!Array.isArray(regions)) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  const codes: string[] = [];
+  for (const region of regions) {
+    if (typeof region !== 'string') {
+      continue;
+    }
+    const code = region.trim().toUpperCase();
+    if (!code || seen.has(code)) {
+      continue;
+    }
+    seen.add(code);
+    codes.push(code);
+  }
+  return codes;
+}
+
+export interface MoneyMovementNeobankRollout {
+  /**
+   * Whether this binary may offer Virtual Bank Accounts. False when the flag
+   * is missing, disabled, malformed, older than `minimumVersion`, or `regions`
+   * has no country codes.
+   */
+  isEnabled: boolean;
+  /** Uppercase ISO 3166-1 alpha-2 codes. Empty whenever `isEnabled` is false. */
+  regions: readonly string[];
+}
+
+const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
+  isEnabled: false,
+  regions: [],
+};
+
+/**
+ * Virtual Bank Account rollout from `moneyMovementNeobank`.
+ *
+ * The object is the only switch: `{ enabled, minimumVersion, regions }`.
+ * `validatedVersionGatedFeatureFlag` checks enabled and minimumVersion; regions
+ * are read from that same payload. A closed gate allows no country.
+ *
+ * @returns The enabled country list, or a disabled rollout.
+ */
+export const selectMoneyMovementNeobank = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag =
-      remoteFeatureFlags?.[MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY];
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  (remoteFeatureFlags): MoneyMovementNeobankRollout => {
+    const remoteFlag = remoteFeatureFlags?.[MONEY_MOVEMENT_NEOBANK_FLAG_KEY];
+    const payload = readMoneyMovementNeobankFlag(remoteFlag);
+    if (!payload || validatedVersionGatedFeatureFlag(payload) !== true) {
+      return NEOBANK_ROLLOUT_DISABLED;
+    }
+    const regions = normalizeVbaRegionCodes(payload.regions);
+    if (regions.length === 0) {
+      return NEOBANK_ROLLOUT_DISABLED;
+    }
+    return { isEnabled: true, regions };
   },
 );
 
 /**
  * Local escape hatch so engineers can open the live Bank account row from an
- * unsupported IP. The `moneyMovementBrazilNeobank` flag must still be on.
- * Set `MM_MONEY_VBA_GEO_BYPASS=true` in `.js.env` and restart Metro.
+ * IP outside `moneyMovementNeobank.regions`. The flag must still be enabled with
+ * a non-empty region list. Set `MM_MONEY_VBA_GEO_BYPASS=true` in `.js.env`
+ * and restart Metro.
  *
  * @returns Whether the VBA geolocation requirement is bypassed.
  */
 export function isVbaGeoBypassEnabled(): boolean {
   return process.env.MM_MONEY_VBA_GEO_BYPASS === 'true';
 }
+
+export const SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY =
+  'subscriptionMoneyAccountOrangeEnabled' as const;
+
+/**
+ * Gates the MetaMask Pro subscription flow (sign-up paywall, benefit sheets,
+ * success screen, Pro landing page, plan management, and cancel flow).
+ *
+ * Set `MM_PRO_SUBSCRIPTION_FLOW_ENABLED=true` to force it on locally.
+ */
+export const selectProSubscriptionEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const localOverrideEnabled =
+      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.[SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY];
+    if (localOverrideEnabled) {
+      return true;
+    }
+    if (typeof remoteFlag === 'boolean') {
+      return remoteFlag;
+    }
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
 
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
@@ -78,11 +207,11 @@ export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
 );
 
 export interface MoneyAccountVaultConfig {
-  chainId: string;
-  boringVault: string;
-  tellerAddress: string;
-  accountantAddress: string;
-  lensAddress: string;
+  chainId: Hex;
+  boringVault: Hex;
+  tellerAddress: Hex;
+  accountantAddress: Hex;
+  lensAddress: Hex;
 }
 
 export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {

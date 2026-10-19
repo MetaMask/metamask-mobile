@@ -16,13 +16,13 @@ import {
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
-import { PerpsInlineInfoScreen } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
@@ -42,10 +42,13 @@ const LIMIT_PRESET_TEST_IDS = {
 const PerpsClosePositionBottomSheet: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const { fireImpact } = useHaptics();
 
   const dismiss = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  const [showTokenAmount, setShowTokenAmount] = useState(false);
 
   const {
     position,
@@ -62,6 +65,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     liveCloseAmount,
     closeAmountUSDString,
     displayUSDString,
+    amountKeypadValue,
+    amountKeypadDecimals,
     isInputFocused,
     handleSliderValueChange,
     handleSliderDragEnd,
@@ -82,6 +87,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     dismiss,
     confirmButtonTestID:
       PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    amountInputUnit: showTokenAmount ? 'asset' : 'usd',
   });
 
   // The sheet has two modes: reviewing the close (slider, totals, CTA) and
@@ -92,8 +98,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
-  const [showTokenAmount, setShowTokenAmount] = useState(false);
-  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
 
   const handleDisplayToggle = useCallback(
     () => setShowTokenAmount((current) => !current),
@@ -112,9 +116,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   });
 
   const handleLimitPriceDone = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     limitPriceInput.trackInputMethod();
     setIsLimitPriceKeypadOpen(false);
-  }, [limitPriceInput]);
+  }, [limitPriceInput, fireImpact]);
 
   const handleOrderTypeChange = useCallback(
     (value: string) => {
@@ -141,24 +146,26 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [handleAmountPress, isEditingLimitPrice]);
 
   const handleLimitPriceRowPress = useCallback(() => {
+    fireImpact(ImpactMoment.SecondaryCTA);
     handleDonePress();
     setIsLimitPriceKeypadOpen(true);
-  }, [handleDonePress]);
+  }, [handleDonePress, fireImpact]);
 
   // Two order types, so the header control swaps between them on tap rather
   // than opening a picker.
   const handleOrderTypeToggle = useCallback(() => {
+    fireImpact(ImpactMoment.TabChange);
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
-  }, [effectiveOrderType, handleOrderTypeChange]);
-
-  const handleMarginTooltipPress = useCallback(() => {
-    setIsMarginInfoVisible(true);
-  }, []);
+  }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
   const totalFeeRate =
     (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
   const feePercentage =
     totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+  const summaryPnlPercentage =
+    summaryMargin !== 0
+      ? (summaryPnl / Math.abs(summaryMargin)) * 100
+      : undefined;
 
   const displayedErrors = useMemo(
     () =>
@@ -171,40 +178,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
-
-  const footerMessages = useMemo(() => {
-    const needsLimitPrice =
-      effectiveOrderType === 'limit' &&
-      !hasLimitPriceValue &&
-      !isEditingLimitPrice;
-
-    return needsLimitPrice
-      ? [
-          ...displayedErrors,
-          strings('perps.order.validation.please_set_a_limit_price'),
-        ]
-      : displayedErrors;
-  }, [
-    displayedErrors,
-    effectiveOrderType,
-    hasLimitPriceValue,
-    isEditingLimitPrice,
-  ]);
-
-  if (isMarginInfoVisible) {
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        goBack={navigation.goBack}
-        testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
-      >
-        <PerpsInlineInfoScreen
-          contentKey="margin"
-          onBack={() => setIsMarginInfoVisible(false)}
-        />
-      </BottomSheet>
-    );
-  }
+  const needsLimitPriceHint =
+    effectiveOrderType === 'limit' &&
+    !hasLimitPriceValue &&
+    !isEditingLimitPrice;
 
   return (
     <BottomSheet
@@ -231,7 +208,11 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         isActive={isInputFocused}
         accessibilityLabel={strings('perps.close_position.select_amount')}
         showTokenAmount={showTokenAmount}
-        tokenAmount={formatPositionSize(liveCloseAmount, szDecimals)}
+        tokenAmount={
+          showTokenAmount && isInputFocused
+            ? amountKeypadValue
+            : formatPositionSize(liveCloseAmount, szDecimals)
+        }
         hasError={displayedErrors.length > 0}
         tokenSymbol={position.symbol}
         onDisplayToggle={handleDisplayToggle}
@@ -267,11 +248,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
-          margin={summaryMargin}
-          marginMode={livePosition.leverage?.type}
           pnl={summaryPnl}
+          pnlPercentage={summaryPnlPercentage}
           receiveAmount={receiveAmount}
-          onMarginTooltipPress={handleMarginTooltipPress}
         />
       )}
 
@@ -287,13 +266,20 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           {/* One BodySm line stays reserved so an error appearing while the
               user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
-            errors={footerMessages}
+            errors={displayedErrors}
             alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
           />
 
           <BottomSheetFooter
-            primaryButtonProps={confirmButtonProps}
+            primaryButtonProps={{
+              ...confirmButtonProps,
+              ...(needsLimitPriceHint && {
+                accessibilityHint: strings(
+                  'perps.order.validation.please_set_a_limit_price',
+                ),
+              }),
+            }}
             twClassName="pt-3"
           />
 
@@ -303,7 +289,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
               {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <RewardsVipBadge />
+                <MembershipVipBadge />
               ) : null}
               <Text
                 variant={TextVariant.BodyXs}
@@ -356,10 +342,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
           <Box twClassName="mb-4 px-4">
             <Keypad
-              value={closeAmountUSDString}
+              value={showTokenAmount ? amountKeypadValue : closeAmountUSDString}
               onChange={handleKeypadChange}
-              currency="USD"
-              decimals={2}
+              currency={showTokenAmount ? 'ASSET' : 'USD'}
+              decimals={showTokenAmount ? amountKeypadDecimals : 2}
             />
           </Box>
         </>
@@ -374,7 +360,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
                 testID={preset.testID}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Md}
-                twClassName="flex-1"
+                twClassName="flex-1 rounded-xl"
                 onPress={preset.onPress}
               >
                 {preset.label}
@@ -383,6 +369,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
+              twClassName="rounded-xl"
               onPress={handleLimitPriceDone}
             >
               {strings('perps.deposit.done_button')}

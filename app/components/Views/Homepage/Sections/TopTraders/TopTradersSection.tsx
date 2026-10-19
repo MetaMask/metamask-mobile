@@ -30,6 +30,7 @@ import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
+import { TopTradersSectionSelectorsIDs } from './TopTradersSection.testIds';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import {
   DEFAULT_LEADERBOARD_SORT,
@@ -305,7 +306,7 @@ const TopTradersSection = forwardRef<
           <ViewMoreCard
             onPress={handleViewAll}
             twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
-            testID="top-traders-view-more-card"
+            testID={TopTradersSectionSelectorsIDs.VIEW_MORE_CARD}
           />
         );
       }
@@ -336,7 +337,7 @@ const TopTradersSection = forwardRef<
       <View
         ref={sectionViewRef}
         onLayout={handleSectionLayout}
-        testID="homepage-top-traders-section-root"
+        testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
           <SectionDivider />
@@ -364,7 +365,7 @@ const TopTradersSection = forwardRef<
       <View
         ref={sectionViewRef}
         onLayout={handleSectionLayout}
-        testID="homepage-top-traders-section-root"
+        testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
           <SectionDivider />
@@ -382,7 +383,7 @@ const TopTradersSection = forwardRef<
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={tw.style('px-4 gap-3')}
-                testID="homepage-top-traders-carousel"
+                testID={TopTradersSectionSelectorsIDs.CAROUSEL}
               >
                 {SKELETON_KEYS.map((key) => (
                   <TopTraderCardSkeleton key={key} />
@@ -396,7 +397,7 @@ const TopTradersSection = forwardRef<
                 keyExtractor={keyExtractor}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-                testID="homepage-top-traders-carousel"
+                testID={TopTradersSectionSelectorsIDs.CAROUSEL}
                 viewabilityConfig={viewabilityConfig}
                 onViewableItemsChanged={onViewableItemsChanged}
               />

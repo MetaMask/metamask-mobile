@@ -15,11 +15,6 @@ const pushedProps = {
   titleSectionHeight: sharedValue(0),
 };
 
-const proButton = {
-  label: strings('pro_subscription.join_pro'),
-  onPress: jest.fn(),
-};
-
 describe('MoneyHeader', () => {
   it('renders the menu button', () => {
     const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
@@ -106,62 +101,6 @@ describe('MoneyHeader', () => {
         strings('money.title'),
       );
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('keeps the Pro button alongside the back button', () => {
-      const { getByTestId } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          proButton={proButton}
-          onBack={jest.fn()}
-          {...pushedProps}
-        />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-  });
-
-  describe('Pro button', () => {
-    it('is not rendered without a proButton, leaving the menu in place', () => {
-      const { getByTestId, queryByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} />,
-      );
-
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('renders the caller-provided label alongside the menu', () => {
-      const { getByTestId, getByLabelText } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress: jest.fn() }}
-        />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        'Pro',
-      );
-      expect(getByLabelText('Pro')).toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('calls the provided onPress when pressed', () => {
-      const mockOnPress = jest.fn();
-      const { getByTestId } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress: mockOnPress }}
-        />,
-      );
-
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
-
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
   });
 });

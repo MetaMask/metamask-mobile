@@ -4,6 +4,7 @@ import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import { mapFeedItem } from './mapFeedItem';
 import { MOCK_MARKER } from '../mockMarker';
 import { toSocialV1FeedItem } from './toSocialV1FeedItem';
+import { formatAbbreviatedUsd, formatTradeUnitPrice } from './formatters';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -98,6 +99,38 @@ describe('toSocialV1FeedItem', () => {
       const result = toSocialV1FeedItem(row);
 
       expect(result.variant).toBe('perpsOpen');
+      expect(result.variant === 'perpsOpen' && result.leverage).toBe(8);
+    });
+
+    it('keeps the HIP-3 market id on an open perp and shows the stripped ticker', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          tokenSymbol: 'xyz:TSLA',
+          isOpen: true,
+          currentValueUSD: 60000,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50600,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xopen',
+              classification: 'perp',
+              perpPositionType: 'long',
+              perpLeverage: 8,
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant === 'perpsOpen' && result.tradeSymbol).toBe(
+        'xyz:TSLA',
+      );
+      expect(result.asset.symbol).toBe('TSLA');
     });
 
     it('maps a closed perp row to the closed perps card', () => {
@@ -168,10 +201,11 @@ describe('toSocialV1FeedItem', () => {
       );
     });
 
-    it('derives an unmarked average entry price from the entry fills', () => {
+    it('averages the entry fills, unmarked, when the row has no cost basis', () => {
       // Two entry fills: $50,000 for 10 and $60,000 for 10 -> $5,500 average.
       const row = buildRow(
         mockPerpFeedItem({
+          costBasis: null,
           trades: [
             {
               direction: 'buy',
@@ -405,27 +439,20 @@ describe('toSocialV1FeedItem', () => {
       expect(result.author.winRatePercent).toBeNull();
     });
 
-    it('marks the invented mark price on an open spot position', () => {
+    // Spot reads its current price straight off the position, so it is real.
+    it('derives an unmarked current price on an open spot position', () => {
       const row = buildRow(mockSpotFeedItem());
 
       const result = toSocialV1FeedItem(row);
 
       expect(result.variant).toBe('spotOpen');
       if (result.variant !== 'spotOpen') return;
-      expect(result.markPriceLabel).toContain(MOCK_MARKER);
-      expect(result.mockedFields).toContain('markPrice');
+      // currentValueUSD 123,000.5 over 1,000 tokens.
+      expect(result.markPriceLabel).toBe(formatTradeUnitPrice(123.0005));
+      expect(result.mockedFields).not.toContain('markPrice');
     });
 
-    // Spot carries no leverage, so it must never get an auto-close bracket.
-    it('omits the auto-close bracket on a spot position', () => {
-      const row = buildRow(mockSpotFeedItem());
-
-      const result = toSocialV1FeedItem(row);
-
-      expect(result.mockedFields).not.toContain('autoClose');
-    });
-
-    it('marks the invented mark price and auto-close pair on an open perp', () => {
+    it('marks the invented mark price on an open perp', () => {
       const row = buildRow(
         mockPerpFeedItem({
           isOpen: true,
@@ -453,15 +480,12 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('perpsOpen');
       if (result.variant !== 'perpsOpen') return;
       expect(result.markPriceLabel).toContain(MOCK_MARKER);
-      expect(result.autoCloseLabel).toContain(MOCK_MARKER);
-      expect(result.mockedFields).toEqual(
-        expect.arrayContaining(['markPrice', 'autoClose']),
-      );
+      expect(result.mockedFields).toStrictEqual(['markPrice']);
     });
 
     // Without a real entry to offset from, inventing a price outright would be
     // a number with no relationship to anything.
-    it('omits the mark and auto-close when there is no derivable entry', () => {
+    it('omits the mark when there is no derivable entry', () => {
       const row = buildRow(
         mockPerpFeedItem({
           isOpen: true,
@@ -477,9 +501,7 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('perpsOpen');
       if (result.variant !== 'perpsOpen') return;
       expect(result.markPriceLabel).toBeUndefined();
-      expect(result.autoCloseLabel).toBeUndefined();
       expect(result.mockedFields).not.toContain('markPrice');
-      expect(result.mockedFields).not.toContain('autoClose');
     });
 
     it('uses the author comment without marking it', () => {
@@ -535,12 +557,12 @@ describe('toSocialV1FeedItem', () => {
   });
 
   describe('stored position stats', () => {
-    it('prefers the stored entry price over an average of the fills', () => {
+    it('prices an open entry off its cost basis over an average of the fills', () => {
       const row = buildRow(
         mockPerpFeedItem({
           isOpen: true,
           positionAmount: 5,
-          entryPriceUsd: 9_000,
+          costBasis: 45_000,
           trades: [
             {
               direction: 'buy',
@@ -562,6 +584,42 @@ describe('toSocialV1FeedItem', () => {
       expect(result.variant).toBe('perpsOpen');
       if (result.variant !== 'perpsOpen') return;
       expect(result.entryPriceLabel).toBe('$9,000');
+    });
+
+    // Most of this holding was transferred in. The API's `entryPriceUsd`
+    // leaves out the received half of the cost basis and reads ~8x cheap,
+    // against a P&L that is flat.
+    it('ignores an entryPriceUsd that leaves out received tokens', () => {
+      const row = buildRow(
+        mockSpotFeedItem({
+          isOpen: true,
+          positionAmount: 1_000,
+          costBasis: 50_000,
+          entryPriceUsd: 6.45,
+          currentValueUSD: 49_760,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 129,
+              usdCost: 6_450,
+              marketCap: 600_000,
+              timestamp: 1_700_000_000,
+              transactionHash: '0xb',
+              classification: 'spot',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      expect(result.entryPriceLabel).toBe(formatTradeUnitPrice(50));
+      expect(result.entryMarketCapLabel).toBe(formatAbbreviatedUsd(600_000));
+      expect(result.marketCapLabel).toBe(formatAbbreviatedUsd(597_120));
     });
 
     // An open hold grows every second, so the API sends only the anchor and
@@ -706,7 +764,7 @@ describe('toSocialV1FeedItem', () => {
       expect(bob.author.winRatePercent).toBe(42);
     });
 
-    it('gives the same trader and symbol the same auto-close pair', () => {
+    it('gives the same trader and symbol the same mark price', () => {
       const openPosition = {
         isOpen: true,
         positionAmount: 5,
@@ -738,8 +796,144 @@ describe('toSocialV1FeedItem', () => {
       if (first.variant !== 'perpsOpen' || second.variant !== 'perpsOpen') {
         return;
       }
-      expect(second.autoCloseLabel).toBe(first.autoCloseLabel);
       expect(second.markPriceLabel).toBe(first.markPriceLabel);
+    });
+  });
+
+  // Market cap is recorded per fill; scaling it by price gives the market cap
+  // at any other price, since supply does not move with the price.
+  describe('spot market cap', () => {
+    const withMarketCap = (overrides = {}) =>
+      mockSpotFeedItem({
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            action: 'opened',
+            tokenAmount: 1000,
+            usdCost: 120_000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xa',
+            classification: 'spot',
+            marketCap: 1_200_000,
+          },
+        ],
+        ...overrides,
+      });
+
+    it('quotes current and entry market cap on an open spot card', () => {
+      const result = toSocialV1FeedItem(buildRow(withMarketCap()));
+
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      // $1.2M at $120 is $10,000 per dollar of price, and $100,000 of cost
+      // basis over 1,000 held is a $100 entry.
+      expect(result.entryMarketCapLabel).toBe(formatAbbreviatedUsd(1_000_000));
+      expect(result.marketCapLabel).toBe(formatAbbreviatedUsd(1_230_005));
+    });
+
+    it('quotes entry and exit market cap on a closed spot card', () => {
+      const result = toSocialV1FeedItem(
+        buildRow(
+          mockSpotFeedItem({
+            isOpen: false,
+            positionAmount: 0,
+            timestamp: 1_700_086_400,
+            trades: [
+              {
+                direction: 'buy',
+                intent: 'enter',
+                action: 'opened',
+                tokenAmount: 1000,
+                usdCost: 100_000,
+                timestamp: 1_700_000_000,
+                transactionHash: '0xa',
+                classification: 'spot',
+                marketCap: 1_000_000,
+              },
+              {
+                direction: 'sell',
+                intent: 'exit',
+                action: 'closed',
+                tokenAmount: 1000,
+                usdCost: 130_000,
+                timestamp: 1_700_086_400,
+                transactionHash: '0xb',
+                classification: 'spot',
+                marketCap: 1_300_000,
+              },
+            ],
+          }),
+        ),
+      );
+
+      expect(result.variant).toBe('spotClosed');
+      if (result.variant !== 'spotClosed') return;
+      expect(result.entryMarketCapLabel).toBe(formatAbbreviatedUsd(1_000_000));
+      expect(result.exitMarketCapLabel).toBe(formatAbbreviatedUsd(1_300_000));
+    });
+
+    it('leaves market cap out when no fill recorded one', () => {
+      const result = toSocialV1FeedItem(buildRow(mockSpotFeedItem()));
+
+      expect(result.variant).toBe('spotOpen');
+      if (result.variant !== 'spotOpen') return;
+      expect(result.marketCapLabel).toBeUndefined();
+      expect(result.entryMarketCapLabel).toBeUndefined();
+    });
+
+    it('never quotes a perp in market cap', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result).not.toHaveProperty('marketCapLabel');
+      expect(result).not.toHaveProperty('entryMarketCapLabel');
+    });
+  });
+
+  describe('closed time', () => {
+    it('carries the last fill time on a closed card', () => {
+      const result = toSocialV1FeedItem(
+        buildRow(
+          mockPerpFeedItem({ isOpen: false, lastTradeAt: 1_700_086_400 }),
+        ),
+      );
+
+      expect(result.variant).toBe('perpsClosed');
+      if (result.variant !== 'perpsClosed') return;
+      expect(result.closedAtMs).toBe(1_700_086_400_000);
+    });
+  });
+
+  describe('open perps hold time', () => {
+    it('counts the hold from the first fill on an open perp', () => {
+      const openedAt = 1_700_000_000;
+      const now = (openedAt + 3 * HOUR_IN_SECONDS) * 1000;
+      const row = buildRow(
+        mockPerpFeedItem({
+          isOpen: true,
+          positionAmount: 5,
+          trades: [
+            {
+              direction: 'buy',
+              intent: 'enter',
+              action: 'opened',
+              tokenAmount: 5,
+              usdCost: 50_000,
+              timestamp: openedAt,
+              transactionHash: '0xa',
+              classification: 'perp',
+              perpPositionType: 'long',
+            },
+          ],
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row, now);
+
+      expect(result.variant).toBe('perpsOpen');
+      if (result.variant !== 'perpsOpen') return;
+      expect(result.holdTimeLabel).toBe('3h');
+      expect(result).not.toHaveProperty('autoCloseLabel');
     });
   });
 });
