@@ -36,7 +36,7 @@ const SocialV1FeedEmptyState: React.FC<SocialV1FeedEmptyStateProps> = ({
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="flex-1 px-8 py-16 gap-3"
+      twClassName="w-full px-8 py-16 gap-3"
       testID={SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID}
     >
       <Icon
