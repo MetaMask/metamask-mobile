@@ -368,7 +368,30 @@ describe('EarningsTab', () => {
     expect(queryByText('rewards.kol.referrals')).toBeNull();
     expect(queryByText('rewards.kol.history_referrals')).toBeNull();
     expect(getByText('rewards.kol.trade_commissions')).toBeOnTheScreen();
-    expect(getByText('rewards.kol.trading_rebates')).toBeOnTheScreen();
+    expect(getByText('rewards.kol.breakdown_trading')).toBeOnTheScreen();
+  });
+
+  it('orders the breakdown as trading, referrals, then social with descriptions', () => {
+    const { getAllByText, getByText } = render(<EarningsTab />);
+
+    const titles = getAllByText(
+      /^rewards\.kol\.(breakdown_trading|referrals|trade_commissions)$/,
+    ).map((node) => node.props.children);
+
+    expect(titles).toEqual([
+      'rewards.kol.breakdown_trading',
+      'rewards.kol.referrals',
+      'rewards.kol.trade_commissions',
+    ]);
+    expect(
+      getByText('rewards.kol.breakdown_trading_description'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('rewards.kol.breakdown_referrals_description'),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('rewards.kol.breakdown_social_description'),
+    ).toBeOnTheScreen();
   });
 
   it('opens the invited earnings history list without referrals', () => {

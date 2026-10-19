@@ -56,23 +56,30 @@ import { useClaimEligibilityFlow } from './ClaimEligibilityFlow';
 
 const BREAKDOWN_ROWS: {
   kind: Extract<KolEarningsHistoryKind, 'referrals' | 'commission' | 'rebate'>;
-  labelKey: 'referrals' | 'trade_commissions' | 'trading_rebates';
+  labelKey: 'breakdown_trading' | 'referrals' | 'trade_commissions';
+  descriptionKey:
+    | 'breakdown_trading_description'
+    | 'breakdown_referrals_description'
+    | 'breakdown_social_description';
   amount: number;
 }[] = [
   {
+    kind: 'rebate',
+    labelKey: 'breakdown_trading',
+    descriptionKey: 'breakdown_trading_description',
+    amount: KOL_EARNINGS_FIXTURE.tradingRebates,
+  },
+  {
     kind: 'referrals',
     labelKey: 'referrals',
+    descriptionKey: 'breakdown_referrals_description',
     amount: KOL_EARNINGS_FIXTURE.referralsRecorded,
   },
   {
     kind: 'commission',
     labelKey: 'trade_commissions',
+    descriptionKey: 'breakdown_social_description',
     amount: KOL_EARNINGS_FIXTURE.tradeCommissionsRecorded,
-  },
-  {
-    kind: 'rebate',
-    labelKey: 'trading_rebates',
-    amount: KOL_EARNINGS_FIXTURE.tradingRebates,
   },
 ];
 
@@ -407,9 +414,17 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               twClassName="gap-3"
             >
               <HistoryKindAvatar kind={row.kind} />
-              <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-                {strings(`rewards.kol.${row.labelKey}`)}
-              </Text>
+              <Box twClassName="flex-1">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(`rewards.kol.${row.labelKey}`)}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings(`rewards.kol.${row.descriptionKey}`)}
+                </Text>
+              </Box>
               <Text variant={TextVariant.BodyMd}>{formatUsd(row.amount)}</Text>
             </Box>
           ))}
