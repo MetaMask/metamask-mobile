@@ -3493,6 +3493,13 @@
       "export_success": "Exported image",
       "referral_code_text": "Use my referral code to earn extra rewards."
     },
+    "share_position": {
+      "title": "Share position",
+      "post_to_metamask": "Post to MetaMask",
+      "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
+      "new_badge": "New",
+      "share_externally": "Share externally"
+    },
     "market_details": {
       "fullscreen_chart": "Fullscreen chart",
       "collapse_chart": "Collapse chart",

@@ -39,6 +39,7 @@ export type PerpsModalsNavigationParamList = {
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
   PerpsOutreachDetails: undefined;
+  PerpsSharePosition: PerpsStackParamList['PerpsPnlHeroCard'];
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;

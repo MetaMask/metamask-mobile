@@ -8,7 +8,10 @@
  * Uses the same spy/restore pattern as api-mocking/watchlist.ts.
  */
 
-import type { FeedItem as CoreFeedItem } from '@metamask/social-controllers';
+import type {
+  FeedItem as CoreFeedItem,
+  Position as SocialPosition,
+} from '@metamask/social-controllers';
 import Engine from '../../../app/core/Engine';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 
@@ -164,6 +167,7 @@ export interface LeaderboardApiMockOptions {
    * Default: 0 (every fetch succeeds).
    */
   feedFailuresBeforeSuccess?: number;
+  openPositions?: SocialPosition[];
 }
 
 const PERP_CHAIN = 'hyperliquid';
@@ -189,6 +193,7 @@ export function setupLeaderboardApiMock(
     feedItems = [],
     leaderboardFailuresBeforeSuccess = 0,
     feedFailuresBeforeSuccess = 0,
+    openPositions,
   } = options;
 
   const prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
@@ -225,6 +230,18 @@ export function setupLeaderboardApiMock(
       if (action === 'SocialService:fetchTokenFeed') {
         return Promise.resolve({
           items: [],
+        }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
+
+      if (
+        openPositions !== undefined &&
+        (action === 'SocialService:fetchOpenPositions' ||
+          action === 'SocialService:fetchClosedPositions')
+      ) {
+        return Promise.resolve({
+          positions:
+            action === 'SocialService:fetchOpenPositions' ? openPositions : [],
+          pagination: { hasMore: false },
         }) as ReturnType<typeof Engine.controllerMessenger.call>;
       }
 

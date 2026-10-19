@@ -173,6 +173,7 @@ import {
   getChartLimitOrderLines,
 } from '../../utils/chartOverlayLines';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import { usePerpsSharePosition } from '../../hooks/usePerpsSharePosition';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
@@ -327,6 +328,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<AppNavigationProp>();
+  const { sharePosition } = usePerpsSharePosition();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const {
@@ -1386,11 +1388,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const handleSharePress = useCallback(() => {
     if (!existingPosition) return;
 
-    navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
-      position: existingPosition,
-      marketPrice: currentPrice.toString(),
-    });
-  }, [existingPosition, currentPrice, navigation]);
+    sharePosition(existingPosition, currentPrice.toString());
+  }, [existingPosition, currentPrice, sharePosition]);
 
   // Stats card tooltip handler
   const handleTooltipPress = useCallback(
