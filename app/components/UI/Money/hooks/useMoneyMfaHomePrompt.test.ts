@@ -1,0 +1,180 @@
+import { act, renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
+import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
+import Routes from '../../../../constants/navigation/Routes';
+import { dismissBanner } from '../../../../reducers/banners';
+import { selectDismissedBanners } from '../../../../selectors/banner';
+import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
+import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
+import { useMoneyMfa, type MoneyMfaStatus } from './useMoneyMfa';
+import {
+  MONEY_MFA_HOME_PROMPT_ID,
+  useMoneyMfaHomePrompt,
+} from './useMoneyMfaHomePrompt';
+
+const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: (callback: () => void) => callback(),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
+}));
+
+jest.mock('./useMoneyMfa', () => ({
+  useMoneyMfa: jest.fn(),
+}));
+
+jest.mock('../../../../util/identity/mfa/bindings', () => ({
+  mobileMfaControllerAdapter: {
+    refreshEnrolledCredentials: jest.fn(),
+  },
+}));
+
+const mockUseSelector = jest.mocked(useSelector);
+const mockUseMoneyMfa = jest.mocked(useMoneyMfa);
+const mockRefreshEnrolledCredentials = jest.mocked(
+  mobileMfaControllerAdapter.refreshEnrolledCredentials,
+);
+
+const activePasskey: EnrolledCredential = {
+  type: 'passkey',
+  status: 'active',
+};
+
+const flushPromises = () => act(async () => undefined);
+
+const arrange = ({
+  status = 'not_set_up',
+  totalBalance = 10,
+  hasBalance = true,
+  dismissedBanners = [],
+  credentials = [],
+  refreshError,
+}: {
+  status?: MoneyMfaStatus;
+  totalBalance?: number;
+  hasBalance?: boolean;
+  dismissedBanners?: string[];
+  credentials?: EnrolledCredential[];
+  refreshError?: Error;
+} = {}) => {
+  mockUseMoneyMfa.mockReturnValue({
+    status,
+    turnOn: jest.fn(),
+    retry: jest.fn(),
+    turnOff: jest.fn(),
+    dismissFailure: jest.fn(),
+    refreshCredentials: jest.fn(),
+  });
+  mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectAccountGroupBalanceForEmptyState) {
+      return hasBalance
+        ? { totalBalanceInUserCurrency: totalBalance }
+        : undefined;
+    }
+    if (selector === selectDismissedBanners) {
+      return dismissedBanners;
+    }
+    return undefined;
+  });
+  if (refreshError) {
+    mockRefreshEnrolledCredentials.mockRejectedValue(refreshError);
+  } else {
+    mockRefreshEnrolledCredentials.mockResolvedValue(credentials);
+  }
+  return renderHook(() => useMoneyMfaHomePrompt());
+};
+
+describe('useMoneyMfaHomePrompt', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the passkey prompt and dismisses it for later when the funded wallet has no passkey', async () => {
+    arrange();
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      dismissBanner(MONEY_MFA_HOME_PROMPT_ID),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
+    });
+  });
+
+  it('skips the prompt when the refreshed credentials include an active passkey', async () => {
+    arrange({ credentials: [activePasskey] });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the prompt when the refreshed passkey is still pending', async () => {
+    arrange({ credentials: [{ type: 'passkey', status: 'pending' }] });
+
+    await flushPromises();
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips the prompt when refreshing credentials rejects', async () => {
+    arrange({ refreshError: new Error('offline') });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it.each<MoneyMfaStatus>([
+    'unavailable',
+    'setting_up',
+    'failed',
+    'enabled',
+    'off',
+  ])('does nothing when the status is %s', async (status) => {
+    arrange({ status });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when the wallet balance is zero', async () => {
+    arrange({ totalBalance: 0 });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when the wallet balance is unknown', async () => {
+    arrange({ hasBalance: false });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when the prompt was already dismissed', async () => {
+    arrange({ dismissedBanners: [MONEY_MFA_HOME_PROMPT_ID] });
+
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});

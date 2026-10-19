@@ -1,0 +1,159 @@
+import React from 'react';
+import { fireEvent, render } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
+import { useMoneyMfa } from '../../hooks/useMoneyMfa';
+import MoneyMfaEnabledSheet from './MoneyMfaEnabledSheet';
+import MoneyMfaSettingUpSheet from './MoneyMfaSettingUpSheet';
+import MoneyMfaTurnOffSheet from './MoneyMfaTurnOffSheet';
+import MoneyMfaPromptSheet from './MoneyMfaPromptSheet';
+import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
+const mockGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ goBack: mockGoBack }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = forwardRef(
+    (
+      { children, testID }: { children: React.ReactNode; testID?: string },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <View testID={testID}>{children}</View>;
+    },
+  );
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
+
+jest.mock('../../hooks/useMoneyMfa', () => ({
+  useMoneyMfa: jest.fn(),
+}));
+
+const mockTurnOn = jest.fn();
+const mockTurnOff = jest.fn();
+
+describe('Money 2-step verification sheets', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useMoneyMfa).mockReturnValue({
+      status: 'not_set_up',
+      turnOn: mockTurnOn,
+      retry: jest.fn(),
+      turnOff: mockTurnOff,
+      dismissFailure: jest.fn(),
+      refreshCredentials: jest.fn(),
+    });
+  });
+
+  describe('MoneyMfaEnabledSheet', () => {
+    it('renders the enabled title and description', () => {
+      const { getByTestId, getByText } = render(<MoneyMfaEnabledSheet />);
+
+      expect(getByTestId(MoneyMfaTestIds.ENABLED_SHEET)).toBeOnTheScreen();
+      expect(getByText(strings('money.mfa.enabled_title'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.enabled_description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the sheet when Got it is pressed', () => {
+      const { getByTestId } = render(<MoneyMfaEnabledSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.ENABLED_SHEET_BUTTON));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('MoneyMfaSettingUpSheet', () => {
+    it('renders the send blocked title and description', () => {
+      const { getByTestId, getByText } = render(<MoneyMfaSettingUpSheet />);
+
+      expect(getByTestId(MoneyMfaTestIds.SETTING_UP_SHEET)).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.send_blocked_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.send_blocked_description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the sheet when Got it is pressed', () => {
+      const { getByTestId } = render(<MoneyMfaSettingUpSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_SHEET_BUTTON));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('MoneyMfaTurnOffSheet', () => {
+    it('renders the turn off title and description', () => {
+      const { getByTestId, getByText } = render(<MoneyMfaTurnOffSheet />);
+
+      expect(getByTestId(MoneyMfaTestIds.TURN_OFF_SHEET)).toBeOnTheScreen();
+      expect(getByText(strings('money.mfa.turn_off_title'))).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.turn_off_description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('closes the sheet then turns off 2-step verification when Turn off is pressed', () => {
+      const { getByTestId } = render(<MoneyMfaTurnOffSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.TURN_OFF_BUTTON));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(mockTurnOff);
+      expect(mockTurnOff).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes the sheet without turning off when Cancel is pressed', () => {
+      const { getByTestId } = render(<MoneyMfaTurnOffSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.TURN_OFF_CANCEL_BUTTON));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockTurnOff).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('MoneyMfaPromptSheet', () => {
+    it('renders the passkey intro', () => {
+      const { getByTestId, getByText } = render(<MoneyMfaPromptSheet />);
+
+      expect(getByTestId(MoneyMfaTestIds.PROMPT_SHEET)).toBeOnTheScreen();
+      expect(getByText(strings('money.mfa.intro_title'))).toBeOnTheScreen();
+    });
+
+    it('closes the sheet then turns on 2-step verification when Add passkey is pressed', () => {
+      const { getByTestId } = render(<MoneyMfaPromptSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockTurnOn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not turn on 2-step verification before the sheet finishes closing', () => {
+      mockOnCloseBottomSheet.mockImplementationOnce(() => undefined);
+      const { getByTestId } = render(<MoneyMfaPromptSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
+
+      expect(mockTurnOn).not.toHaveBeenCalled();
+    });
+  });
+});

@@ -174,6 +174,7 @@ import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarni
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
+import MoneyMfaIntroView from '../../UI/Money/Views/MoneyMfaIntroView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -1281,6 +1282,10 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
               component={MoneyApiActivityDetailsView}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.MFA_INTRO}
+              component={MoneyMfaIntroView}
             />
           </NativeStack.Group>
           <NativeStack.Screen

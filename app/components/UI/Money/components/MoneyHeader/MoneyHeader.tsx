@@ -6,11 +6,15 @@ import {
   ButtonSize,
   HeaderRoot,
   HeaderStandardAnimated,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
 
 /** The Pro entry point, as resolved by the page that owns Pro access. */
 export interface MoneyHeaderProButton {
@@ -31,6 +35,8 @@ interface MoneyHeaderCommonProps {
    * button goes and what it is called.
    */
   proButton?: MoneyHeaderProButton;
+  /** Shows the green shield next to the title when 2-step verification is on. */
+  isMfaEnabled?: boolean;
 }
 
 /**
@@ -56,7 +62,7 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, proButton } = props;
+  const { onMenuPress, proButton, isMfaEnabled } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -111,6 +117,17 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       titleProps={{
         testID: MoneyHeaderTestIds.TITLE,
       }}
+      titleAccessory={
+        isMfaEnabled ? (
+          <Icon
+            name={IconName.SecurityTick}
+            size={IconSize.Md}
+            color={IconColor.SuccessDefault}
+            accessibilityLabel={strings('money.mfa.badge_label')}
+            testID={MoneyMfaTestIds.HEADER_BADGE}
+          />
+        ) : undefined
+      }
       endAccessory={
         endAccessory ?? (
           <Box twClassName="flex-row items-center gap-1">

@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const sharedValue = (value: number): SharedValue<number> =>
@@ -158,6 +159,30 @@ describe('MoneyHeader', () => {
       fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
 
       expect(onPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('2-step verification badge', () => {
+    it('renders the badge when isMfaEnabled is true', () => {
+      const { getByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} isMfaEnabled />,
+      );
+
+      expect(getByTestId(MoneyMfaTestIds.HEADER_BADGE)).toBeOnTheScreen();
+    });
+
+    it('omits the badge when isMfaEnabled is false', () => {
+      const { queryByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} isMfaEnabled={false} />,
+      );
+
+      expect(queryByTestId(MoneyMfaTestIds.HEADER_BADGE)).not.toBeOnTheScreen();
+    });
+
+    it('omits the badge when isMfaEnabled is not passed', () => {
+      const { queryByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
+
+      expect(queryByTestId(MoneyMfaTestIds.HEADER_BADGE)).not.toBeOnTheScreen();
     });
   });
 });

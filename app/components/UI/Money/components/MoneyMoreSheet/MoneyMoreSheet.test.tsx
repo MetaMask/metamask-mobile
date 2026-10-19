@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
@@ -10,6 +10,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useMoneyMfa, type MoneyMfaStatus } from '../../hooks/useMoneyMfa';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -41,6 +42,22 @@ const mockTrackOnboardingEvent = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
+
+jest.mock('../../hooks/useMoneyMfa', () => ({
+  useMoneyMfa: jest.fn(),
+}));
+
+const mockTurnOnMfa = jest.fn();
+
+const mockMfaStatus = (status: MoneyMfaStatus) =>
+  jest.mocked(useMoneyMfa).mockReturnValue({
+    status,
+    turnOn: mockTurnOnMfa,
+    retry: jest.fn(),
+    turnOff: jest.fn(),
+    dismissFailure: jest.fn(),
+    refreshCredentials: jest.fn(),
+  });
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -105,6 +122,7 @@ describe('MoneyMoreSheet', () => {
       trackComponentViewed: mockTrackComponentViewed,
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
+    mockMfaStatus('unavailable');
   });
 
   afterEach(() => {
@@ -259,6 +277,97 @@ describe('MoneyMoreSheet', () => {
         component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
         redirect_target: MONEY_URLS.METAMASK_SUPPORT,
       });
+    });
+  });
+
+  describe('2-step verification row', () => {
+    const getMfaSwitch = () =>
+      within(screen.getByTestId(MoneyMoreSheetTestIds.MFA_SWITCH)).getByRole(
+        'switch',
+      );
+
+    it('hides the row when 2-step verification is unavailable', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+      expect(
+        queryByTestId(MoneyMoreSheetTestIds.MFA_OPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the row title and description when 2-step verification is available', () => {
+      mockMfaStatus('not_set_up');
+
+      const { getByTestId, getByText } = renderWithProvider(<MoneyMoreSheet />);
+
+      expect(getByTestId(MoneyMoreSheetTestIds.MFA_OPTION)).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.more_sheet_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.mfa.more_sheet_description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the switch on when 2-step verification is enabled', () => {
+      mockMfaStatus('enabled');
+
+      renderWithProvider(<MoneyMoreSheet />);
+
+      expect(getMfaSwitch()).toHaveProp('value', true);
+    });
+
+    it.each<MoneyMfaStatus>(['not_set_up', 'off', 'failed'])(
+      'shows the switch off when the status is %s',
+      (status) => {
+        mockMfaStatus(status);
+
+        renderWithProvider(<MoneyMoreSheet />);
+
+        expect(getMfaSwitch()).toHaveProp('value', false);
+      },
+    );
+
+    it('disables the switch while the Money account is being set up', () => {
+      mockMfaStatus('setting_up');
+
+      renderWithProvider(<MoneyMoreSheet />);
+
+      expect(getMfaSwitch()).toBeDisabled();
+    });
+
+    it('closes the sheet then opens the turn off sheet when toggled while enabled', () => {
+      mockMfaStatus('enabled');
+      renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent(getMfaSwitch(), 'valueChange', false);
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
+      });
+      expect(mockTurnOnMfa).not.toHaveBeenCalled();
+    });
+
+    it('closes the sheet then opens the passkey intro when toggled before setup', () => {
+      mockMfaStatus('not_set_up');
+      renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent(getMfaSwitch(), 'valueChange', true);
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MFA_INTRO);
+      expect(mockTurnOnMfa).not.toHaveBeenCalled();
+    });
+
+    it('closes the sheet then turns 2-step verification back on when toggled while off', () => {
+      mockMfaStatus('off');
+      renderWithProvider(<MoneyMoreSheet />);
+
+      fireEvent(getMfaSwitch(), 'valueChange', true);
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockTurnOnMfa).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

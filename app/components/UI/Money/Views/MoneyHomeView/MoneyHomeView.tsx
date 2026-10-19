@@ -40,6 +40,11 @@ import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import {
+  MoneyMfaSetupCard,
+  MoneyMfaStatusBanner,
+} from '../../components/MoneyMfa';
+import { useMoneyMfa } from '../../hooks/useMoneyMfa';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -239,6 +244,18 @@ const MoneyHomeView = () => {
     selectMoneyEarningSectionEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const {
+    status: mfaStatus,
+    retry: retryMfaSetup,
+    dismissFailure: dismissMfaFailure,
+    refreshCredentials: refreshMfaCredentials,
+  } = useMoneyMfa();
+
+  useFocusEffect(refreshMfaCredentials);
+
+  const handleMfaSetUpPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MFA_INTRO);
+  }, [navigation]);
   const {
     getLinkFlowRedirectTarget,
     startLinkFlow,
@@ -465,6 +482,7 @@ const MoneyHomeView = () => {
     ? {
         onMenuPress: handleMenuPress,
         proButton,
+        isMfaEnabled: mfaStatus === 'enabled',
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
@@ -472,6 +490,7 @@ const MoneyHomeView = () => {
     : {
         onMenuPress: handleMenuPress,
         proButton,
+        isMfaEnabled: mfaStatus === 'enabled',
       };
 
   const handleAddPress = useCallback(
@@ -522,9 +541,12 @@ const MoneyHomeView = () => {
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      screen:
+        mfaStatus === 'setting_up'
+          ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
+          : Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation, trackButtonClicked]);
+  }, [navigation, trackButtonClicked, mfaStatus]);
 
   const navigateToCardHome = useCallback(() => {
     const isUpsell = metamaskCardMode === 'upsell';
@@ -1036,6 +1058,11 @@ const MoneyHomeView = () => {
           testID={MoneyHomeViewTestIds.TITLE_SECTION}
           onLayout={isPushed ? handleTitleSectionLayout : undefined}
         >
+          <MoneyMfaStatusBanner
+            status={mfaStatus}
+            onRetry={retryMfaSetup}
+            onDismissFailure={dismissMfaFailure}
+          />
           {showBalanceUnavailableBanner && (
             <Box twClassName="px-4 pt-2">
               <BannerAlert
@@ -1077,6 +1104,9 @@ const MoneyHomeView = () => {
         {vbaHomeCard.type !== 'none' && (
           <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
         )}
+        {mfaStatus === 'not_set_up' ? (
+          <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
+        ) : null}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>

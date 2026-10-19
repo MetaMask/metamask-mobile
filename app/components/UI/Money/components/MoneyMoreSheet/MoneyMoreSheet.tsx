@@ -10,7 +10,9 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Switch,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -25,6 +27,7 @@ import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import useMountEffect from '../../hooks/useMountEffect';
+import { useMoneyMfa } from '../../hooks/useMoneyMfa';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -50,6 +53,9 @@ const MoneyMoreSheet = () => {
   const { openSupportWithConsent } = useSupportConsent();
 
   useMountEffect(trackBottomSheetViewed);
+
+  const { status: mfaStatus, turnOn: turnOnMfa } = useMoneyMfa();
+  const isMfaOn = mfaStatus === 'enabled';
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -98,6 +104,20 @@ const MoneyMoreSheet = () => {
     openSupportWithConsent,
   ]);
 
+  const handleMfaToggle = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet(() => {
+      if (isMfaOn) {
+        navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
+        });
+      } else if (mfaStatus === 'not_set_up') {
+        navigation.navigate(Routes.MONEY.MFA_INTRO);
+      } else {
+        turnOnMfa();
+      }
+    });
+  }, [isMfaOn, mfaStatus, navigation, turnOnMfa]);
+
   const options: MenuOption[] = [
     {
       label: strings('money.more_sheet.how_it_works'),
@@ -132,6 +152,33 @@ const MoneyMoreSheet = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>
+        {mfaStatus === 'unavailable' ? null : (
+          <View style={styles.row} testID={MoneyMoreSheetTestIds.MFA_OPTION}>
+            <Icon
+              name={IconName.SecurityTick}
+              size={IconSize.Lg}
+              color={IconColor.IconDefault}
+            />
+            <View style={styles.rowText}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('money.mfa.more_sheet_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('money.mfa.more_sheet_description')}
+              </Text>
+            </View>
+            <Switch
+              isOn={isMfaOn}
+              isDisabled={mfaStatus === 'setting_up'}
+              onValueChange={handleMfaToggle}
+              accessibilityLabel={strings('money.mfa.more_sheet_title')}
+              testID={MoneyMoreSheetTestIds.MFA_SWITCH}
+            />
+          </View>
+        )}
         {options.map((item) => (
           <TouchableOpacity
             key={item.testID}
