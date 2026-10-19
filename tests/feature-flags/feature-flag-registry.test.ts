@@ -150,6 +150,21 @@ describe('Feature Flag Registry', () => {
       );
     });
 
+    it('registers the Predict subscription fee waiver default-off and out of production', () => {
+      expect(
+        getRegistryEntry('predictSubscriptionFeeWaiverEnabled'),
+      ).toMatchObject({
+        name: 'predictSubscriptionFeeWaiverEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
         enabled: false,
