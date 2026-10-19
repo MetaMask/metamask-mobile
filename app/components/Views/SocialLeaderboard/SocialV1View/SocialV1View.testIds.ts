@@ -11,6 +11,7 @@ export const SocialV1ViewSelectorsIDs = {
   LIVE_TRADES_PAGE: 'social-v1-view-live-trades-page',
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',
   AVATAR_BUTTON: 'social-v1-view-avatar-button',
+  ACCOUNT_AVATAR: 'social-v1-view-account-avatar',
   PLUS_BUTTON: 'social-v1-view-plus-button',
   REWARDS_BUTTON: 'social-v1-view-rewards-button',
   FOLLOWING_FILTER_BUTTON: 'social-v1-following-filter-button',

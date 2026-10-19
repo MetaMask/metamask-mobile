@@ -521,7 +521,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <Box twClassName="px-4">
                   <SocialFeedPostingBanner
                     authorHandle={pendingPost.authorHandle}
-                    authorImageUrl={pendingPost.authorImageUrl}
+                    authorImageUrl={myProfile?.imageUrl}
+                    avatarPresetId={myProfile?.avatarPresetId}
+                    avatarBackgroundId={myProfile?.avatarBackgroundId}
                     startedAtMs={pendingStartedAtMs}
                   />
                 </Box>
