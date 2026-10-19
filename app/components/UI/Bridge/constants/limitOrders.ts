@@ -27,20 +27,20 @@ export enum LimitOrderPriceComparisonDirection {
 export const LIMIT_ORDER_DIRECTION: Record<
   LimitOrderPriceComparisonDirection,
   {
-    /** 
-     * The Bridge API `trigger.threshold` for this direction. 
+    /**
+     * The Bridge API `trigger.threshold` for this direction.
      */
     threshold: 'above' | 'below';
-    /** 
-     * The direction a price reads in once inverted. 
+    /**
+     * The direction a price reads in once inverted.
      */
     opposite: LimitOrderPriceComparisonDirection;
-    /** 
+    /**
      * Sign shown before a trigger price, e.g. "≥ $2,200.00".
      */
     signKey: string;
-    /** 
-     * Comparison in the price input copy, e.g. "is at or above". 
+    /**
+     * Comparison in the price input copy, e.g. "is at or above".
      */
     labelKey: string;
   }

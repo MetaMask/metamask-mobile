@@ -43,8 +43,8 @@ function getFiatTriggerPrice(
  * The API reports a `ratio` as source tokens per destination token whichever
  * side the order was placed on, so it isn't necessarily the price as entered.
  * The order's amounts were derived from the price, so the price reads the way
- * the order's own rate does: both above 1, or both below it. At parity both
- * readings are alike, and the price is taken the way the API reports it.
+ * the order's own rate does: both above 1, or both below it. At parity the
+ * two readings can't be told apart, so neither is.
  */
 function isRatioQuotedPerSourceToken({ src, dest, trigger }: LimitOrder) {
   const price = new BigNumber(trigger.price);
@@ -128,7 +128,9 @@ export function getTriggerPrice(
       const [quotedToken, counterToken] = isSell
         ? [sourceToken, destinationToken]
         : [destinationToken, sourceToken];
-      const isShownAsReported = isRatioQuotedPerSourceToken(order) === isSell;
+      const isShownAsReported =
+        new BigNumber(trigger.price).eq(1) ||
+        isRatioQuotedPerSourceToken(order) === isSell;
       const price = isShownAsReported
         ? trigger.price
         : invertPrice(trigger.price);

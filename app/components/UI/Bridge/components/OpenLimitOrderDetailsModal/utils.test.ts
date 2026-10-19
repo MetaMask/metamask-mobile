@@ -401,7 +401,27 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('1', 'USDC'),
         triggerToken: sourceToken,
-        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      });
+    });
+
+    it('quotes a parity buy as one of the counter token', () => {
+      const order = createOrder({
+        srcAsset: USDT,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '1000000000000000000',
+        kind: 'ratio',
+        price: '1',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result).toStrictEqual({
+        triggerPrice: quote('1', 'USDT'),
+        triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -506,6 +526,27 @@ describe('getTriggerPrice', () => {
         triggerPrice: quote('817.501762', 'USDT'),
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      });
+    });
+
+    it('keeps a below threshold as at or below on a parity sell', () => {
+      const order = createOrder({
+        srcAsset: ETH,
+        srcAmount: '1000000000000000000',
+        destAsset: USDC,
+        destAmount: '1000000',
+        kind: 'ratio',
+        price: '1',
+        threshold: 'below',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result).toStrictEqual({
+        triggerPrice: quote('1', 'USDC'),
+        triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
