@@ -154,32 +154,19 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
-    const perpsAboveTokensCandidate = shouldPlacePerpsAboveTokens({
-      optionalSectionsCanMount:
-        sectionMountMode === 'immediate' && networkTierResolved,
-      isPerpsEnabled,
-      perpsAboveTokensEligible:
-        perpsSectionPriorityVariant.perpsAboveTokensEligible,
-      isActivePerpsTrader,
-    });
-    // Lock the Perps position to the first Homepage layout. Deferred Perps
-    // must not be inserted above Tokens after the user has started viewing or
-    // scrolling the primary surface.
-    const [perpsAboveTokensPlacement, setPerpsAboveTokensPlacement] = useState<
-      boolean | null
-    >(() => (canMountOptionalSections ? perpsAboveTokensCandidate : null));
-    useEffect(() => {
-      if (perpsAboveTokensPlacement === null && canMountOptionalSections) {
-        setPerpsAboveTokensPlacement(perpsAboveTokensCandidate);
-      }
-    }, [
-      canMountOptionalSections,
-      perpsAboveTokensCandidate,
-      perpsAboveTokensPlacement,
-    ]);
-    const showPerpsAboveTokens =
-      (perpsAboveTokensPlacement ?? perpsAboveTokensCandidate) &&
-      shouldRenderPerps;
+    // Decide the Perps position from the initial Homepage layout. Deferred
+    // sections must not move above Tokens after the primary surface renders.
+    const [perpsAboveTokensPlacement] = useState(() =>
+      shouldPlacePerpsAboveTokens({
+        optionalSectionsCanMount:
+          effectiveSectionMountMode === 'immediate' && networkTierResolved,
+        isPerpsEnabled,
+        perpsAboveTokensEligible:
+          perpsSectionPriorityVariant.perpsAboveTokensEligible,
+        isActivePerpsTrader,
+      }),
+    );
+    const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();

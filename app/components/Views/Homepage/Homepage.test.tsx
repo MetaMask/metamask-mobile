@@ -908,7 +908,7 @@ describe('Homepage', () => {
       expect(sectionIndexOf('tokens')).toBe(1);
     });
 
-    it('applies the priority experiment when NetInfo resolves before optional mount', () => {
+    it('keeps Tokens first when NetInfo resolves after the initial render', () => {
       mockNetworkTier = null;
       setVariant(PerpsSectionPriorityVariant.Treatment);
       perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
@@ -922,8 +922,24 @@ describe('Homepage', () => {
       mockNetworkTier = 'WIFI';
       rendered.rerender(<Homepage />);
 
-      expect(latestSectionIndexOf('perps')).toBe(0);
-      expect(latestSectionIndexOf('tokens')).toBe(1);
+      expect(latestSectionIndexOf('tokens')).toBe(0);
+      expect(latestSectionIndexOf('perps')).toBe(1);
+    });
+
+    it('does not mount Perps before primary content is ready after offline recovery', () => {
+      mockNetworkTier = 'NONE';
+      setVariant(PerpsSectionPriorityVariant.Treatment);
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+
+      const rendered = renderWithProvider(<Homepage />, {
+        state: stateWithPreferences,
+      });
+
+      mockNetworkTier = 'WIFI';
+      rendered.rerender(<Homepage />);
+
+      expect(latestSectionIndexOf('tokens')).toBe(0);
+      expect(latestSectionIndexOf('perps')).toBeUndefined();
     });
 
     it('keeps Tokens above Perps for the treatment variant when the user is not an active trader', () => {
