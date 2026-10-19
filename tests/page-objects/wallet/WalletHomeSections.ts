@@ -155,57 +155,46 @@ export class WalletHomeSections {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
-    // Homepage Perps can mount after tokens and predictions paint. Probe, then
-    // retry a bounded down/up scroll until the header is tappable.
+    // One short pass. The Perps flow owns retries so a late-mounted header can
+    // be probed again before this scroll burns the whole timeout.
     const clippedHeaderNudge = options.overshootSwipe ?? {
       direction: 'up' as const,
       percentage: 0.2,
     };
+    if (
+      await WalletHomeScroll.tapIfAlreadyVisible(
+        this.perpsSectionHeader,
+        'Perpetuals section',
+        {
+          tapTimeout: 5_000,
+          overshootSwipe: clippedHeaderNudge,
+        },
+      )
+    ) {
+      return;
+    }
+
     const fallbackDirection = direction === 'down' ? 'up' : 'down';
 
-    await Utilities.executeWithRetry(
-      async () => {
-        if (
-          await WalletHomeScroll.tapIfAlreadyVisible(
-            this.perpsSectionHeader,
-            'Perpetuals section',
-            {
-              tapTimeout: 5_000,
-              overshootSwipe: clippedHeaderNudge,
+    await WalletHomeScroll.tryScrollDirections(
+      (scrollDirection) =>
+        WalletHomeScroll.scrollAndTapSection(
+          this.perpsSectionHeader,
+          'Perpetuals section',
+          scrollDirection,
+          {
+            overshootSwipe: options.overshootSwipe ?? {
+              direction:
+                scrollDirection === 'down'
+                  ? ('up' as const)
+                  : ('down' as const),
+              percentage: 0.15,
             },
-          )
-        ) {
-          return;
-        }
-
-        await WalletHomeScroll.tryScrollDirections(
-          (scrollDirection) =>
-            WalletHomeScroll.scrollAndTapSection(
-              this.perpsSectionHeader,
-              'Perpetuals section',
-              scrollDirection,
-              {
-                overshootSwipe: options.overshootSwipe ?? {
-                  direction:
-                    scrollDirection === 'down'
-                      ? ('up' as const)
-                      : ('down' as const),
-                  percentage: 0.15,
-                },
-                // Four attempts caps a wrong direction well under the old ~30s
-                // burn. A hit still stops as soon as the header is in view.
-                maxAttempts: 4,
-              },
-            ),
-          [direction, fallbackDirection],
-        );
-      },
-      {
-        timeout: 45_000,
-        interval: 1_500,
-        description: 'scroll and tap Perpetuals section',
-        elemDescription: 'Perpetuals section',
-      },
+            maxAttempts: 2,
+            tapTimeout: 3_000,
+          },
+        ),
+      [direction, fallbackDirection],
     );
   }
 
