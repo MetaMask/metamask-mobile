@@ -184,6 +184,32 @@ describe('PredictAnalytics', () => {
       });
       expect(event.sensitiveProperties).toMatchObject({ amount_usd: 42 });
     });
+    it('copies retry properties onto the tracked event, keeping a zero retry count', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.RETRY_COMPLETED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        retryReason: PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED,
+        retryCount: 0,
+        oneTickDecision: PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK,
+        slippageBand: '5%',
+        retryOutcome: PredictEventValues.RETRY_OUTCOME.SUCCESS,
+      });
+
+      const event = getTrackedEvent();
+
+      // retry_count must survive the spread at 0: a truthy check would drop
+      // it and misreport the first retry in the Mixpanel board.
+      expect(event.properties).toMatchObject({
+        retry_reason: 'order_not_filled',
+        retry_count: 0,
+        one_tick_decision: 'within_one_tick',
+        slippage_band: '5%',
+        retry_outcome: 'success',
+      });
+    });
   });
 
   describe('trackTradeConsidered', () => {

@@ -1,5 +1,6 @@
 import QuickCrypto from 'react-native-quick-crypto';
 import { Side, type OrderPreview, type PredictFees } from '../types';
+import { getMinAmountReceivedWithSlippage } from '../providers/polymarket/protocol/slippage';
 
 const CENTS_PER_UNIT = 100;
 const CENT_ROUNDING_TOLERANCE = 1e-8;
@@ -79,6 +80,25 @@ export function getPredictSellNetProceeds(
     preview.minAmountReceived -
       (fees?.metamaskFee ?? 0) -
       getPredictExchangeFee(fees),
+  );
+}
+
+/**
+ * Worst-case cash-out proceeds net of fees: the signed order's slippage floor
+ * applied to the book proceeds, minus fees. This is the smallest amount the
+ * user can receive if the book fills at the slippage band limit, so it is the
+ * number disclosed before a sell retry is confirmed.
+ */
+export function getPredictSellWorstCaseProceeds(
+  preview?: OrderPreview | null,
+): number {
+  if (!preview) {
+    return 0;
+  }
+  const fees = preview.fees;
+  const worstCaseGross = getMinAmountReceivedWithSlippage(preview);
+  return roundDownToCents(
+    worstCaseGross - (fees?.metamaskFee ?? 0) - getPredictExchangeFee(fees),
   );
 }
 
