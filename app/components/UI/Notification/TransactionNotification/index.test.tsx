@@ -123,16 +123,30 @@ describe('TransactionNotification', () => {
   });
 
   it.each([
-    ['the transaction id', TRANSACTION_ID],
-    ['the transaction hash', TRANSACTION_HASH],
+    [
+      'Activity details by the transaction id',
+      Routes.ACTIVITY_DETAILS,
+      { chainId: 'eip155:59144', txIdentifier: TRANSACTION_ID },
+    ],
+    [
+      'Activity details by the transaction hash',
+      Routes.ACTIVITY_DETAILS,
+      { chainId: 'eip155:59144', txIdentifier: TRANSACTION_HASH },
+    ],
+    [
+      'Activity details by the hash in a different case',
+      Routes.ACTIVITY_DETAILS,
+      { chainId: 'eip155:59144', txIdentifier: '0xABC' },
+    ],
+    [
+      'the confirmations details by the transaction id',
+      Routes.TRANSACTION_DETAILS,
+      { transactionId: TRANSACTION_ID },
+    ],
   ])(
-    'does not navigate again when the details are already open by %s',
-    async (_label, txIdentifier) => {
-      mockGetCurrentRoute.mockReturnValue({
-        key: 'activity-details',
-        name: Routes.ACTIVITY_DETAILS,
-        params: { chainId: 'eip155:59144', txIdentifier },
-      });
+    'does not navigate again when %s is already open',
+    async (_label, name, params) => {
+      mockGetCurrentRoute.mockReturnValue({ key: 'details', name, params });
       const { findByTestId, onDismissComplete } =
         renderTransactionNotification();
 
@@ -142,6 +156,22 @@ describe('TransactionNotification', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     },
   );
+
+  it("navigates when another transaction's details are open", async () => {
+    mockGetCurrentRoute.mockReturnValue({
+      key: 'details',
+      name: Routes.ACTIVITY_DETAILS,
+      params: { chainId: 'eip155:59144', txIdentifier: '0xdef' },
+    });
+    const { findByTestId } = renderTransactionNotification();
+
+    await pressNotification(findByTestId);
+
+    expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.ACTIVITY_DETAILS, {
+      chainId: 'eip155:59144',
+      txIdentifier: TRANSACTION_ID,
+    });
+  });
 
   it('falls back to the confirmations details when the redesigned screen cannot resolve the transaction', async () => {
     mockSelectLocalActivityItemsByIdentifier.mockReturnValue(new Map());

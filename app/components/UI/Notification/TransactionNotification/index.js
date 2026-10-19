@@ -23,6 +23,16 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
 
+const getOpenTransactionIdentifier = (route) => {
+  if (route?.name === Routes.ACTIVITY_DETAILS) {
+    return route.params?.txIdentifier;
+  }
+  if (route?.name === Routes.TRANSACTION_DETAILS) {
+    return route.params?.transactionId;
+  }
+  return undefined;
+};
+
 function TransactionNotification(props) {
   const {
     currentNotification,
@@ -44,11 +54,13 @@ function TransactionNotification(props) {
     const transactionId = currentNotification.transaction.id;
     const transaction = transactions.find(({ id }) => id === transactionId);
 
-    const currentRoute = NavigationService.navigation.getCurrentRoute();
+    const openIdentifier = getOpenTransactionIdentifier(
+      NavigationService.navigation.getCurrentRoute(),
+    )?.toLowerCase();
     if (
-      currentRoute?.name === Routes.ACTIVITY_DETAILS &&
-      [transactionId, transaction?.hash].includes(
-        currentRoute.params?.txIdentifier,
+      openIdentifier &&
+      [transactionId, transaction?.hash].some(
+        (identifier) => identifier?.toLowerCase() === openIdentifier,
       )
     ) {
       return;
