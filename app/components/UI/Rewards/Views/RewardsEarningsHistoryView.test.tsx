@@ -205,6 +205,13 @@ describe('RewardsEarningsHistoryView', () => {
 
     expect(keyExtractor(earning)).toBe(`earning-${earning.id}`);
     expect(keyExtractor(claim)).toBe(`claim-${earning.id}`);
+    expect(
+      keyExtractor({
+        kind: 'pending-claim',
+        id: 'claim-open',
+        net_amount: '1000000',
+      }),
+    ).toBe('pending-claim-open');
   });
 
   it('opens the trade tray from the empty history action', () => {

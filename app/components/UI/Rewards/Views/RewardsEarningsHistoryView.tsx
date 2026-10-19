@@ -10,6 +10,7 @@ import { selectSessionProfileId } from '../../../../selectors/identity';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  isPendingClaimRow,
   mergeInFlightClaims,
   type EarningsHistoryListItem,
 } from '../utils/claimEarnings';
@@ -75,7 +76,11 @@ const RewardsEarningsHistoryView: React.FC = () => {
       testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
       list={{ ...list, items }}
       renderItem={renderItem}
-      keyExtractor={(item) => `${item.type}-${item.id}`}
+      keyExtractor={(item) =>
+        isPendingClaimRow(item)
+          ? `pending-${item.id}`
+          : `${item.type}-${item.id}`
+      }
       emptyDescription={localizedText?.tradingActivityEmptyDescription ?? ''}
       emptyActionLabel={localizedText?.tradingActivityEmptyAction}
       emptyOnAction={openTradeActions}
