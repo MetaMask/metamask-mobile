@@ -952,7 +952,7 @@ export class PolymarketProvider implements PredictProvider {
             {
               error: error instanceof Error ? error.message : 'Unknown error',
               eventId: event.id,
-              marketId: market.id,
+              conditionId: market.conditionId,
             },
           );
         }
