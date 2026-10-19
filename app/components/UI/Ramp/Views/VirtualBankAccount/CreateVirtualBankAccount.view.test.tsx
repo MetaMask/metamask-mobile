@@ -8,6 +8,7 @@ import { createStateFixture } from '../../../../../../tests/component-view/state
 import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { strings } from '../../../../../../locales/i18n';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
+import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../../../selectors/featureFlagController/moneyAccount';
 
 const mockGetPaymentMethodsForContext = jest.mocked(
   Engine.context.RampsController.getPaymentMethodsForContext,
@@ -33,13 +34,20 @@ const disclaimer = {
  * Renders the intro screen with real hooks and selectors; only Engine is
  * mocked (per the component-view rules). The geolocation location drives
  * `useVbaEligibility`, and the payment-methods spy drives the arrival row.
+ * `moneyMovementNeobank` must list the country or the arrival query stays off.
  */
 const renderScreen = ({ location }: { location?: string } = {}) => {
   const state = createStateFixture()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
     .withMinimalKeyringController()
-    .withRemoteFeatureFlags({})
+    .withRemoteFeatureFlags({
+      [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+        regions: ['BR'],
+      },
+    })
     .withOverrides({
       engine: {
         backgroundState: {
