@@ -78,17 +78,20 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
   });
 
   it('covers the adjust-margin sheet with the screen background', () => {
+    const screenBackground = 'screen-background';
     const options = getRedesignedConfirmationsHeaderOptions(
       { launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin },
-      '#000000',
+      screenBackground,
     );
 
     expect(options.presentation).toBe('fullScreenModal');
     expect(options.headerTransparent).toBe(false);
     expect(options.scrollEdgeEffects).toEqual({ top: 'hidden' });
     expect(options.headerShown).toBe(true);
-    expect(options.contentStyle).toEqual({ backgroundColor: '#000000' });
-    expect(options.headerStyle).toEqual({ backgroundColor: '#000000' });
+    expect(options.contentStyle).toEqual({
+      backgroundColor: screenBackground,
+    });
+    expect(options.headerStyle).toEqual({ backgroundColor: screenBackground });
   });
 
   it('defaults to showing perps header when no params provided', () => {

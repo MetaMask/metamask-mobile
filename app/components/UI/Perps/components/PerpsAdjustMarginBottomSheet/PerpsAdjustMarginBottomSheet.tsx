@@ -45,10 +45,11 @@ import React, {
 import { Modal, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
+import { useStyles } from '../../../../../component-library/hooks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Logger from '../../../../../util/Logger';
-import { useTheme } from '../../../../../util/theme';
+import type { Theme } from '../../../../../util/theme/models';
 import {
   ImpactMoment,
   playImpact,
@@ -107,6 +108,14 @@ const floorUsd = (value: number) => Math.floor(value * 100) / 100;
  */
 const HEADER_PRICE_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
+const styleSheet = ({ theme }: { theme: Theme }) =>
+  StyleSheet.create({
+    depositCover: {
+      backgroundColor: theme.colors.background.default,
+      zIndex: 2,
+    },
+  });
+
 const formatLiquidationDistance = (
   distance: number,
   liquidationPrice: number,
@@ -128,7 +137,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
 > = ({ position: routePosition, initialMode, enableHaptics = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isDepositCoverVisible, setIsDepositCoverVisible] = useState(false);
   const { handleAddFunds, isEligibilityModalVisible, closeEligibilityModal } =
@@ -818,10 +827,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
       {isDepositCoverVisible ? (
         <View
           pointerEvents="none"
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: colors.background.default, zIndex: 2 },
-          ]}
+          style={[StyleSheet.absoluteFill, styles.depositCover]}
         />
       ) : null}
       {isEligibilityModalVisible && (

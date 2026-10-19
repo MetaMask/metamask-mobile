@@ -9,7 +9,7 @@ import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
-import {
+import type {
   ConfirmationLaunchSource,
   ConfirmationLoader,
 } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -187,14 +187,14 @@ export const usePerpsHomeActions = (
           StackActions.push(
             Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             {
-              loader: ConfirmationLoader.CustomAmount,
-              launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+              loader: 'customAmount' as ConfirmationLoader,
+              launchedFrom: 'perps-adjust-margin' as ConfirmationLaunchSource,
             },
           ),
         );
       } else {
         navigateToConfirmation({
-          loader: ConfirmationLoader.CustomAmount,
+          loader: 'customAmount' as ConfirmationLoader,
           stack: Routes.PERPS.ROOT,
         });
       }
