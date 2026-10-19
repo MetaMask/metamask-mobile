@@ -5,7 +5,7 @@ import {
   formatHoldDuration,
   formatPercent,
   formatUnsignedFullUsdNoDecimals,
-} from '../../utils/formatters';
+} from '../../../../UI/SocialFeed/utils/formatters';
 import { MINUTE } from '../../../../../constants/time';
 
 /** Prefix for numbers that still come from a local mock, not the API. */

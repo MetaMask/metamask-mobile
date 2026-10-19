@@ -375,6 +375,9 @@ export function buildPerpsFlowHarness(
     subscribeToPrices: (
       params: Parameters<typeof harness.provider.subscribeToPrices>[0],
     ) => harness.provider.subscribeToPrices(params),
+    subscribeToOrderBook: (
+      params: Parameters<typeof harness.provider.subscribeToOrderBook>[0],
+    ) => harness.provider.subscribeToOrderBook(params),
     updatePositionTPSL: (
       params: Parameters<typeof harness.provider.updatePositionTPSL>[0],
     ) =>

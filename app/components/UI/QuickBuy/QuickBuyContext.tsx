@@ -4,9 +4,7 @@ import {
   type UseQuickBuyControllerResult,
 } from './hooks/useQuickBuyController';
 import {
-  getBuyQuickAmounts,
   getDefaultSellQuickPercentages,
-  type QuickBuyAmountTuple,
   type QuickBuySellPercentTuple,
 } from './utils/quickBuyQuickAmounts';
 import type {
@@ -16,15 +14,15 @@ import type {
   QuickBuyTarget,
   QuickBuyTradeMode,
 } from './types';
+import type { CopyTradeOrigin } from '../../../util/social/copyTradeIntent';
 
 export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   target: QuickBuyTarget;
   features: QuickBuyFeatures;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
-  buyQuickAmounts: QuickBuyAmountTuple;
   sellQuickPercentages: QuickBuySellPercentTuple;
   /**
    * Called by the Buy button. When the high-price-impact modal feature is
@@ -45,7 +43,9 @@ interface QuickBuyProviderProps {
   onClose: () => void;
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
+  postSwapShare?: boolean;
+  copyTradeOrigin?: CopyTradeOrigin;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
   children: React.ReactNode;
@@ -57,6 +57,8 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   features,
   initialTradeMode,
   analyticsContext,
+  postSwapShare,
+  copyTradeOrigin,
   activeScreen,
   setActiveScreen,
   children,
@@ -66,6 +68,8 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     analyticsContext,
     initialTradeMode,
+    postSwapShare,
+    copyTradeOrigin,
   );
   // Open the keypad by default so the sheet matches the taller Figma layout
   // (footer + keypad visible together).
@@ -78,21 +82,9 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   // dimmed/inert alongside the rest of the sheet instead, which keeps the height
   // constant no matter when the flag settles.
   const [isKeypadOpen, setIsKeypadOpen] = useState(true);
-  const {
-    currentCurrency,
-    usdToCurrentCurrencyRate,
-    isPriceImpactError,
-    isPresetAddFundsMode,
-    handleConfirm,
-  } = controller;
+  const { isPriceImpactError, isPresetAddFundsMode, handleConfirm } =
+    controller;
 
-  const buyQuickAmounts = useMemo(
-    () =>
-      getBuyQuickAmounts(currentCurrency, usdToCurrentCurrencyRate).map(
-        (option) => option.value,
-      ) as QuickBuyAmountTuple,
-    [currentCurrency, usdToCurrentCurrencyRate],
-  );
   const sellQuickPercentages = useMemo(
     () => getDefaultSellQuickPercentages(),
     [],
@@ -132,7 +124,6 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     activeScreen,
     setActiveScreen,
-    buyQuickAmounts,
     sellQuickPercentages,
     handleBuy,
     isKeypadOpen,

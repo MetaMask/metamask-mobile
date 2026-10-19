@@ -327,6 +327,7 @@ export const PredictCashOutSelectorsIDs = {
 export const PredictOrderRetrySheetSelectorsIDs = {
   CONTAINER: 'predict-order-retry-sheet-container',
   RETRY_BUTTON: 'predict-order-retry-sheet-retry-button',
+  TRY_LATER_BUTTON: 'predict-order-retry-sheet-try-later-button',
   CLOSE_BUTTON: 'predict-order-retry-sheet-close-button',
 } as const;
 
@@ -369,6 +370,8 @@ export const PredictActivityDetailsSelectorsIDs = {
   TITLE_TEXT: 'predict-activity-details-title',
   AMOUNT_SECTION: 'predict-activity-details-amount-section',
   AMOUNT_DISPLAY: 'predict-activity-details-amount',
+  MARKET_SECTION: 'predict-activity-details-market-section',
+  SECTION_DIVIDER: 'predict-activity-details-section-divider',
   TRANSACTION_SECTION: 'predict-activity-details-transaction-section',
   NET_PNL_DIVIDER: 'predict-activity-details-net-pnl-divider',
   MARKET_LABEL: 'predict-activity-details-market-label',

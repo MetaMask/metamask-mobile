@@ -1,7 +1,13 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
-import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  BtcScope,
+  SolAccountType,
+  EthScope,
+  SolScope,
+} from '@metamask/keyring-api';
 import { IconName, toast } from '@metamask/design-system-react-native';
 import { FlashList } from '@shopify/flash-list';
 
@@ -102,12 +108,27 @@ const mockSolAccount = {
 };
 const shortenedSolAddress = 'FcdCd3m...GPZgj';
 
-const renderWithAddressList = () => {
+const mockBtcAccount = {
+  ...createMockInternalAccount(
+    'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
+    'Btc Account 1',
+  ),
+  id: 'mock-btc-account-1',
+  scopes: [BtcScope.Mainnet],
+  type: BtcAccountType.P2wpkh,
+};
+
+const renderWithAddressList = ({ includeBtcAccount = false } = {}) => {
+  const btcAccounts = includeBtcAccount ? [mockBtcAccount] : [];
+
   const mockAccountsControllerState = {
     internalAccounts: {
       accounts: {
         [mockEthEoaAccount.id]: mockEthEoaAccount,
         [mockSolAccount.id]: mockSolAccount,
+        ...Object.fromEntries(
+          btcAccounts.map((account) => [account.id, account]),
+        ),
       },
     },
   };
@@ -120,7 +141,11 @@ const renderWithAddressList = () => {
           metadata: { name: 'Mock Wallet' },
           groups: {
             [ACCOUNT_GROUP_ID]: {
-              accounts: [mockEthEoaAccount.id, mockSolAccount.id],
+              accounts: [
+                mockEthEoaAccount.id,
+                mockSolAccount.id,
+                ...btcAccounts.map((account) => account.id),
+              ],
               id: ACCOUNT_GROUP_ID,
             },
           },
@@ -152,6 +177,11 @@ const renderWithAddressList = () => {
 
   const mockMultichainNetworkController = {
     multichainNetworkConfigurationsByChainId: {
+      [BtcScope.Mainnet]: {
+        name: 'Bitcoin',
+        chainId: BtcScope.Mainnet,
+        isTestnet: false,
+      },
       [SolScope.Mainnet]: {
         name: 'Solana Mainnet',
         chainId: SolScope.Mainnet,
@@ -217,6 +247,15 @@ describe('AddressList', () => {
 
     expect(getAllByText(shortenedSolAddress).length).toBe(1);
     expect(getByText('Solana Mainnet')).toBeDefined();
+  });
+
+  it('shows the Bitcoin account type label beside the plain network name', () => {
+    const { getByText, getAllByText } = renderWithAddressList({
+      includeBtcAccount: true,
+    });
+
+    expect(getByText('Bitcoin')).toBeDefined();
+    expect(getAllByText('Native SegWit')).toHaveLength(1);
   });
 
   it('sets navigation options when title is provided', () => {

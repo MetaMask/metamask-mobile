@@ -28,7 +28,6 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -1979,12 +1978,27 @@ describe('BridgeTokenSelector', () => {
       expect(getByTestId('token-USDC')).toBeTruthy();
     });
 
-    it('filters Arc native duplicate from watchlist tokens', async () => {
+    it('keeps Arc native USDC and filters its ERC20 duplicate from watchlist tokens', async () => {
       mockIsWatchlistEnabled = true;
+      mockBridgeFeatureFlags.chainRanking = [
+        ...(mockBridgeFeatureFlags.chainRanking ?? []),
+        { chainId: 'eip155:5042', name: 'Arc' },
+      ];
       mockUseTokenWatchlistQuery.mockReturnValue({
         data: [
           {
-            assetId: ARC_NATIVE_ASSET_ID,
+            assetId: 'eip155:5042/slip44:5042',
+            name: 'USDC',
+            symbol: 'USDC',
+            decimals: 18,
+            balance: '1',
+            balanceFiat: 1,
+            fiatCurrency: 'usd',
+            isInWallet: true,
+          },
+          {
+            assetId:
+              'eip155:5042/erc20:0x3600000000000000000000000000000000000000',
             name: 'USDC',
             symbol: 'USDC',
             decimals: 6,
@@ -2007,14 +2021,14 @@ describe('BridgeTokenSelector', () => {
         isLoading: false,
       });
 
-      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+      const { getAllByTestId, getByTestId } = renderWithReduxProvider(
         <BridgeTokenSelector />,
       );
 
       fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
 
       await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
-      expect(queryByTestId('token-USDC')).toBeNull();
+      expect(getAllByTestId('token-USDC')).toHaveLength(1);
     });
 
     it('keeps full watchlist list for queries below minimum length', async () => {

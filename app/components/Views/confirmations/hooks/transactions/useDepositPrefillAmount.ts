@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { Hex } from '@metamask/utils';
 import {
   TransactionMeta,
   TransactionType,
@@ -9,9 +10,9 @@ import { useSelector } from 'react-redux';
 import {
   selectDepositLimits,
   selectMetaMaskPayFlags,
-  selectRelayFixedSpread,
   PrefilledAmountConfig,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectStablecoins } from '../../../../../selectors/featureFlagController/stableTokens';
 import {
   selectFeatureFlagThresholdGroups,
   selectRemoteFeatureFlags,
@@ -19,7 +20,6 @@ import {
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
-import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
@@ -35,15 +35,40 @@ import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvaila
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
+/** Smallest fiat amount the input can display and a quote can be built for. */
+export const MIN_FIAT_AMOUNT = 0.01;
+
 function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
+}
+
+/**
+ * True when the pay token is listed for its chain in the `stableTokens` flag.
+ * Addresses and chain ids are compared case-insensitively because the flag
+ * stores them lowercased.
+ */
+function isListedStablecoin(
+  stablecoins: Record<Hex, Hex[]>,
+  chainId: string,
+  address: string,
+): boolean {
+  const listed = stablecoins[chainId.toLowerCase() as Hex];
+  if (!listed) {
+    return false;
+  }
+
+  const normalizedAddress = address.toLowerCase();
+  return listed.some(
+    (listedAddress) => listedAddress.toLowerCase() === normalizedAddress,
+  );
 }
 
 export interface DepositPrefillResult {
   prefillAmount: string | undefined;
   /**
-   * Percentage of balance used for the prefill (100 for stablecoins, 50
-   * otherwise). Undefined when there is no prefill amount.
+   * Percentage of balance used for the prefill. Money account deposits use
+   * 100 when the pay token is in the stableTokens flag, and 50 otherwise.
+   * Undefined when there is no prefill amount.
    */
   percentage: number | undefined;
   /**
@@ -74,7 +99,7 @@ export function useDepositPrefillAmount({
 
   const { prefilledAmount } = useSelector(selectMetaMaskPayFlags);
   const depositLimits = useSelector(selectDepositLimits);
-  const relayFixedSpread = useSelector(selectRelayFixedSpread);
+  const stablecoins = useSelector(selectStablecoins);
 
   const prefilledAmountConfig = useMemo((): PrefilledAmountConfig => {
     for (const [type, config] of Object.entries(prefilledAmount.overrides)) {
@@ -182,16 +207,28 @@ export function useDepositPrefillAmount({
       };
     }
 
-    const stable = isRouteToken(relayFixedSpread, {
-      chainId: payToken.chainId,
-      address: payToken.address,
-    });
-    const nextPercentage = stable ? 100 : 50;
+    const stable = isListedStablecoin(
+      stablecoins,
+      payToken.chainId,
+      payToken.address,
+    );
+    const nextPercentage = isMoneyAccountDeposit && stable ? 100 : 50;
 
     const raw = new BigNumber(nextPercentage)
       .dividedBy(100)
       .multipliedBy(balanceUsd)
       .decimalPlaces(2, BigNumber.ROUND_DOWN);
+
+    // Sub-cent dust renders as $0.00 and cannot produce a usable quote.
+    // `updatePendingAmountPercentage` refuses to apply it, which left the
+    // previous token's amount in place and quoted it against the new token.
+    if (raw.lt(MIN_FIAT_AMOUNT)) {
+      return {
+        prefillAmount: undefined,
+        percentage: undefined,
+        isLimitCapped: false,
+      };
+    }
 
     const capped =
       depositLimit !== undefined && raw.isGreaterThan(depositLimit);
@@ -210,7 +247,7 @@ export function useDepositPrefillAmount({
     balanceUsd,
     payToken,
     depositLimit,
-    relayFixedSpread,
+    stablecoins,
   ]);
 
   useEffect(() => {
@@ -243,10 +280,15 @@ export function useDepositPrefillAmount({
   // `NaN` produces no prefill amount and is not `<= 0`, so treating it as a
   // skip rather than waiting prevents an unbounded loader.
   const hasUsableBalance = Number.isFinite(balanceUsd) && balanceUsd > 0;
+  // With a pay token and a usable balance, the only way to have no prefill
+  // amount is a sub-cent dust balance, which is skipped like no balance.
+  const isDustBalance =
+    Boolean(payToken) && hasUsableBalance && prefillAmount === undefined;
   const isSkipped =
     enabled &&
     (isFiatPrefillSkipped ||
       (Boolean(payToken) && !hasUsableBalance) ||
+      isDustBalance ||
       (!payToken && !hasFundedToken));
 
   let status = DepositPrefillStatus.Loading;

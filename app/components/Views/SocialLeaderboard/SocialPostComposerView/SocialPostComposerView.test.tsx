@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
+import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialPostComposerView from './SocialPostComposerView';
@@ -8,19 +10,20 @@ import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.tes
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
 import {
   commitSocialV1PendingPost,
+  consumeSocialV1FocusTrending,
   getSocialV1ComposedPosts,
   getSocialV1PendingPost,
   resetSocialV1ComposedFeedStore,
 } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
 import { isComposerCommentValid } from './commentValidation';
-import { KLIPY_STATIC_GIF_EXAMPLE } from '../utils/klipyGifComment';
+import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
   default: () => true,
 }));
 
-jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -29,16 +32,17 @@ jest.mock('../SocialV1View/feed/components/SocialFeedPositionCard', () => {
   };
 });
 
-jest.mock('../utils/perp', () => ({
+jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string }) =>
     position.chain === 'hyperliquid',
   isClosedPosition: () => false,
   getPerpPositionDirection: () => null,
 }));
 
-jest.mock('../utils/formatters', () => ({
+jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
   formatPercent: () => '+0.02%',
   formatSignedUsd: () => '+$1',
+  formatSignedAbbreviatedUsd: () => '+$1',
   formatTradeUnitPrice: () => '$1,842',
   formatUsd: () => '$720.00',
   formatFeedTimestamp: () => 'Now',
@@ -46,12 +50,22 @@ jest.mock('../utils/formatters', () => ({
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
+let mockRouteParams: unknown;
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockCreateSwapComment = jest.fn();
 const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
 const mockShowToast = jest.fn();
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+const mockUseMyProfile = jest.fn();
+const linkedProfile = {
+  profileId: 'current-user',
+  displayName: 'Giga Whale',
+  handle: 'giga-whale',
+  shareUrl: 'https://metamask.io/social/giga-whale',
+  linkedAccountAddress: '0x1111111111111111111111111111111111111111',
 };
 
 const openSpot: Position = {
@@ -79,31 +93,22 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      dispatch: mockDispatch,
       isFocused: jest.fn(() => true),
       addListener: jest.fn(() => jest.fn()),
     }),
+    useRoute: () => ({ params: mockRouteParams }),
   };
 });
 
 jest.mock('../MyProfileView/hooks', () => ({
-  useMyProfile: () => ({
-    profile: {
-      profileId: 'current-user',
-      displayName: 'Giga Whale',
-      handle: 'giga-whale',
-      shareUrl: 'https://metamask.io/social/giga-whale',
-    },
-    isLoading: false,
-    error: null,
-    refresh: jest.fn(),
-  }),
+  useMyProfile: () => mockUseMyProfile(),
 }));
 
-const mockUseComposerSharePositions = jest.fn();
+const mockUseTraderPositions = jest.fn();
 
-jest.mock('./useComposerSharePositions', () => ({
-  useComposerSharePositions: (...args: unknown[]) =>
-    mockUseComposerSharePositions(...args),
+jest.mock('../TraderProfileView/hooks', () => ({
+  useTraderPositions: (...args: unknown[]) => mockUseTraderPositions(...args),
 }));
 
 jest.mock('../TraderProfileView/components/PositionRow', () => {
@@ -127,7 +132,7 @@ jest.mock('../TraderProfileView/components/PositionRow', () => {
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -135,7 +140,7 @@ jest.mock('../components/PositionTokenAvatar', () => ({
 jest.mock('./GifPickerSheet', () => {
   const { Pressable, View } = jest.requireActual('react-native');
   const { KLIPY_STATIC_GIF_EXAMPLE: gifUrl } = jest.requireActual(
-    '../utils/klipyGifComment',
+    '../../../UI/SocialFeed/utils/klipyGifComment',
   );
   return {
     __esModule: true,
@@ -171,6 +176,13 @@ jest.mock('../../../../core/ReactQueryService', () => ({
 describe('SocialPostComposerView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
+    mockUseMyProfile.mockReturnValue({
+      profile: linkedProfile,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
     jest.useFakeTimers();
     resetSocialV1ComposedFeedStore();
     mockCreateSwapComment.mockResolvedValue({
@@ -178,12 +190,14 @@ describe('SocialPostComposerView', () => {
       commentText: 'this is alpha',
       timestamp: 1700000000,
     });
-    mockUseComposerSharePositions.mockReturnValue({
+    mockUseTraderPositions.mockReturnValue({
       openPositions: [openSpot],
       closedPositions: [],
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });
@@ -193,7 +207,7 @@ describe('SocialPostComposerView', () => {
     jest.useRealTimers();
   });
 
-  it('keeps Post disabled until text and a position are valid', () => {
+  it('keeps Post disabled until a position is selected', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     expect(
@@ -208,6 +222,19 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('enables Post when a position is selected, even with an empty caption', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
   });
 
   it('clips typed text at 250 characters', () => {
@@ -370,6 +397,7 @@ describe('SocialPostComposerView', () => {
     });
     expect(getSocialV1PendingPost()).not.toBeNull();
     expect(mockGoBack).toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
 
     commitSocialV1PendingPost();
 
@@ -432,6 +460,44 @@ describe('SocialPostComposerView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the position card when opened with an attached position', () => {
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(screen.getByTestId('composer-position-preview')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    ).toBeNull();
+  });
+
+  it('replaces the composer with Social V1 Trending after posting when openFeedAfterPost is set', async () => {
+    mockRouteParams = {
+      position: openSpot,
+      entryPoint: 'perps',
+      openFeedAfterPost: true,
+    };
+
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.SOCIAL.V1),
+      );
+    });
+    expect(mockCreateSwapComment).toHaveBeenCalledWith({
+      commentText: '',
+      positionUid: 'eth-spot',
+      source: 'metamask-mobile',
+    });
+    expect(getSocialV1PendingPost()).not.toBeNull();
+    expect(consumeSocialV1FocusTrending()).toBe(true);
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('opens the share sheet from the Position chip', () => {
     renderWithProvider(<SocialPostComposerView />);
 
@@ -442,5 +508,98 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
+  });
+
+  it('closes when opened without a linked wallet or tradeInFlight', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...linkedProfile, linkedAccountAddress: undefined },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('stays open for tradeInFlight when the linked wallet is missing', () => {
+    mockUseMyProfile.mockReturnValue({
+      profile: { ...linkedProfile, linkedAccountAddress: undefined },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    mockRouteParams = {
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    };
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+  });
+
+  it('posts tradeInFlight without a position picker or trending overlay', async () => {
+    mockRouteParams = {
+      tradeInFlight: {
+        transactionHash: '0xabc',
+        chain: 'base',
+        tokenAddress: '0xpump',
+      },
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+        costLabel: '$329.47',
+      },
+    };
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    ).toBeEnabled();
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: '',
+        tradeInFlight: {
+          transactionHash: '0xabc',
+          chain: 'base',
+          tokenAddress: '0xpump',
+        },
+        source: 'metamask-mobile',
+      });
+    });
+
+    expect(getSocialV1PendingPost()).toBeNull();
+    expect(getSocialV1ComposedPosts()).toHaveLength(0);
+    expect(mockShowToast).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

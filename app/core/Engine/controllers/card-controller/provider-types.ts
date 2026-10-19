@@ -20,6 +20,7 @@ export enum CardProviderErrorCode {
   Forbidden = 'forbidden',
   NotFound = 'not_found',
   NoCard = 'no_card',
+  InvalidRequest = 'invalid_request',
   ServerError = 'server_error',
   Timeout = 'timeout',
   Network = 'network',
@@ -218,7 +219,7 @@ export interface CardProviderCapabilities {
   supportsFundingLimits: boolean;
   fundingChains: CaipChainId[];
   supportsFreeze: boolean;
-  supportsPushProvisioning: boolean;
+  pushProvisioning: { applePay: boolean; googlePay: boolean };
   onboarding: CardOnboardingCapability;
   supportsPinView: boolean;
   supportsPinSet: boolean;
@@ -301,7 +302,6 @@ export interface CardShippingAddress {
 
 export interface CardAccountStatus {
   verificationStatus: string | null;
-  provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
   countryOfResidence: string | null;
@@ -337,12 +337,22 @@ export type CardAction =
 
 // -- Card Home Data --
 
+export interface CardWalletProvisioningInfo {
+  eligible: boolean;
+  cardholderName: string;
+  lastFour: string;
+  network: 'MASTERCARD';
+  /** Opaque issuer id. Immersve seriesId. Absent for Baanx. */
+  primaryAccountIdentifier?: string;
+}
+
 export interface CardHomeData {
   primaryFundingAsset: CardFundingAsset | null;
   fundingAssets: CardFundingAsset[];
   availableFundingAssets: CardFundingAsset[];
   card: CardDetails | null;
   account: CardAccountStatus | null;
+  walletProvisioning: CardWalletProvisioningInfo | null;
   alerts: CardAlert[];
   actions: CardAction[];
   delegationSettings: DelegationSettingsResponse | null;
@@ -356,6 +366,7 @@ export function emptyCardHomeData(): CardHomeData {
     availableFundingAssets: [],
     card: null,
     account: null,
+    walletProvisioning: null,
     alerts: [],
     actions: [],
     delegationSettings: null,
@@ -410,10 +421,12 @@ export interface GoogleWalletProvisioningResponse {
 }
 
 export interface ApplePayProvisioningParams {
-  leafCertificate: string;
-  intermediateCertificate: string;
+  /** Base64, as delivered by PassKit. */
   nonce: string;
+  /** Base64. */
   nonceSignature: string;
+  /** Base64 certificate chain, leaf first. */
+  certificates: string[];
 }
 
 export interface ApplePayProvisioningResponse {

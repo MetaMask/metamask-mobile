@@ -1,15 +1,16 @@
 import { BigNumber } from 'bignumber.js';
 import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
 import {
+  LIMIT_ORDER_DIRECTION,
   LimitOrderExecutionType,
-  LimitOrderPriceComparisonDirection,
+  type LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import { formatLimitOrderFiatPrice } from './formatLimitOrderFiatPrice';
 import { trimTrailingZeros } from '../trimTrailingZeros';
 
 type LimitOrderTrigger = CreateLimitOrderParams['trigger'];
 
-interface GetLimitOrderTriggerParamsOptions {
+export interface GetLimitOrderTriggerParamsOptions {
   /**
    * Which side of the pair the limit price is quoted on. Selling quotes the
    * source token, buying quotes the destination token.
@@ -38,6 +39,16 @@ interface GetLimitOrderTriggerParamsOptions {
 }
 
 /**
+ * The limit price as entered on the limit order screen, i.e. everything a
+ * trigger is built from except the exchange rate, which is read when the order
+ * is created.
+ */
+export type LimitOrderTriggerInput = Omit<
+  GetLimitOrderTriggerParamsOptions,
+  'fiatToUsdRate'
+>;
+
+/**
  * Builds the `trigger` of a `POST /v2/limit-orders` request from the limit
  * order screen's price state.
  *
@@ -57,10 +68,7 @@ export function getLimitOrderTriggerParams({
     return undefined;
   }
 
-  const threshold =
-    priceComparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
-      ? 'above'
-      : 'below';
+  const { threshold } = LIMIT_ORDER_DIRECTION[priceComparisonDirection];
 
   // A price typed in counter token units is a price between the two tokens
   // (e.g. 1 ETH is worth 0.04 BTC), which the API takes as the token value.

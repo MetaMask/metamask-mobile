@@ -105,6 +105,23 @@ export const navigateToSocialLeaderboard = (
 };
 
 /**
+ * Navbar Social tab entry. Same onboarding gate as
+ * `navigateToSocialLeaderboard`, but lands on `SOCIAL.TAB` so the floating
+ * bar selects the tab. TSA-1122 chooses V1 vs V0 as that tab's mounted
+ * component, not as a root-stack push.
+ */
+export const navigateToSocialTab = (
+  navigate: SocialLeaderboardNavigate,
+  params?: SocialLeaderboardViewParams,
+): void => {
+  if (shouldShowSocialLeaderboardOnboarding()) {
+    navigate(Routes.SOCIAL.ONBOARDING);
+    return;
+  }
+  navigate(Routes.SOCIAL.TAB, toHomeRouteParams(params));
+};
+
+/**
  * Whether the onboarding has been persisted as "seen". Reads MMKV synchronously.
  * Exposed for the dev-options status readout (the navigation gate above owns the
  * real decision, which also factors in the flag and the skip-seen env var).

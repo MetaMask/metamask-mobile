@@ -55,8 +55,8 @@ describe('PerpsTPSLRouter', () => {
     expect(getByTestId('tpsl-screen')).toBeOnTheScreen();
   });
 
-  it('keeps the order flow on the screen', () => {
-    // The order flow omits the param: it already runs inside the trade sheet
+  it('keeps the Lite order flow on the screen', () => {
+    // Lite omits the param: its order flow already runs inside the trade sheet
     // under treatment, so converting it would stack a sheet on a sheet.
     useRouteMock.mockReturnValue({ params: { asset: 'ETH' } } as never);
 
@@ -65,10 +65,29 @@ describe('PerpsTPSLRouter', () => {
     expect(getByTestId('tpsl-screen')).toBeOnTheScreen();
   });
 
+  it('renders the sheet for a Pro order placement under treatment', () => {
+    // Pro's order form is an inline panel, so it passes the param with no
+    // position attached.
+    useRouteMock.mockReturnValue({
+      params: {
+        asset: 'ETH',
+        direction: 'long',
+        orderType: 'market',
+        leverage: 5,
+        amount: '100',
+        useBottomSheet: true,
+      },
+    } as never);
+
+    const { getByTestId } = render(<PerpsTPSLRouter />);
+
+    expect(getByTestId('tpsl-sheet')).toBeOnTheScreen();
+  });
+
   it('never reads the experiment itself', () => {
     // The navigator needs the arm before this mounts, so the caller owns the
-    // read. Reading it here too would expose the order flow, which is never
-    // treated.
+    // read. Reading it here too would expose every caller, including the Lite
+    // order flow that is never treated.
     useRouteMock.mockReturnValue({
       params: { position, useBottomSheet: true },
     } as never);

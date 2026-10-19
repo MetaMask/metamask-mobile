@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
-import { chainNameToId } from '../utils/chainMapping';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import { fetchHyperliquidHistoricalPrices } from '../utils/hyperliquidPrices';
 import { useSpotTraderPositionPrices } from './useSpotTraderPositionPrices';
 
@@ -16,7 +16,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'usd'),
 }));
 
-jest.mock('../utils/chainMapping', () => ({
+jest.mock('../../../UI/SocialFeed/utils/chainMapping', () => ({
   chainNameToId: jest.fn(() => 'eip155:8453'),
 }));
 

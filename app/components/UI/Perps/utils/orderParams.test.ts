@@ -32,6 +32,45 @@ describe('buildPerpsOrderParams', () => {
     trackingData,
   };
 
+  it.each([false, true])(
+    'omits unsupported fields from venue-sized Scale with reduce-only %s',
+    (reduceOnly) => {
+      const params = buildPerpsOrderParams({
+        ...base,
+        orderType: 'scale',
+        providerId: 'lighter',
+        reduceOnly,
+        isFullClose: reduceOnly,
+      });
+
+      expect(params).toEqual({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.001',
+        orderType: 'scale',
+        providerId: 'lighter',
+        currentPrice: 90000,
+        leverage: 5,
+        usdAmount: '100',
+        reduceOnly,
+        trackingData,
+      });
+    },
+  );
+
+  it('retains Hyperliquid Scale calculation and full-close fields', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'scale',
+      providerId: 'hyperliquid',
+      reduceOnly: true,
+      isFullClose: true,
+    });
+
+    expect(params.priceAtCalculation).toBe(90000);
+    expect(params.isFullClose).toBe(true);
+  });
+
   it('builds a market order without a price and with the user max slippage', () => {
     // Arrange / Act
     const params = buildPerpsOrderParams({ ...base, orderType: 'market' });
@@ -245,6 +284,22 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('triggerPrice');
     expect(params).not.toHaveProperty('takeProfitPrice');
     expect(params).not.toHaveProperty('stopLossPrice');
+  });
+
+  it('passes the margin mode through when provided', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      marginMode: 'cross',
+    });
+
+    expect(params.marginMode).toBe('cross');
+  });
+
+  it('omits the margin mode when not provided', () => {
+    const params = buildPerpsOrderParams({ ...base, orderType: 'market' });
+
+    expect(params).not.toHaveProperty('marginMode');
   });
 });
 

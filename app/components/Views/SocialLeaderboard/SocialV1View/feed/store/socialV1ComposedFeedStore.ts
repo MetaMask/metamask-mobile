@@ -1,7 +1,7 @@
 // Optimistic overlay so a post can appear on Social V1 while feed queries
 // refetch after POST /api/v1/swap-comments. The social-api remains the source
 // of truth; this store is not a substitute for that write.
-import type { SocialV1FeedPost } from '../types';
+import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
 
 export const COMPOSER_POSTING_DELAY_MS = 1500;
 

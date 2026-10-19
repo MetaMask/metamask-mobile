@@ -50,6 +50,11 @@ import {
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TAG,
 } from '../../constants/rampsBuyCufTags';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -97,6 +102,14 @@ const OrderDetails = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedFromCallback = useRef(false);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.ORDER_DETAILS,
+    contentReady: !isLoading && Boolean(order || error),
+    contentState: error
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const executeCallbackFetch = useCallback(
     async (

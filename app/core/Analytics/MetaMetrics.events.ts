@@ -423,6 +423,7 @@ enum EVENT_NAME {
   SEND_AMOUNT_SELECTED = 'Send Amount Selected',
   SEND_RECIPIENT_SELECTED = 'Send Recipient Selected',
   SEND_EXIT = 'Send Flow Exited',
+  SEND_FAILED = 'Send Failed',
 
   // Swaps
   SWAPS_OPENED = 'Swaps Opened',
@@ -702,6 +703,7 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
+  CARD_LINK_SEEDED = 'Card Link Seeded',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -2026,6 +2028,7 @@ const events = {
   CARD_REDEEM_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
+  CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -2596,6 +2599,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SEND,
     DESCRIPTION.SEND_EXIT,
   ),
+  SEND_FAILED: generateOpt(EVENT_NAME.SEND_FAILED),
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

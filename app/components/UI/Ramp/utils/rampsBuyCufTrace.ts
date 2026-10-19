@@ -1,7 +1,11 @@
+import { AppState, type AppStateStatus } from 'react-native';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   trace,
   endTrace,
+  getPerformanceTimestamp,
   getTraceContext,
+  setTraceMeasurement,
   TraceName,
   TraceOperation,
   type TraceContext,
@@ -13,9 +17,16 @@ import {
   RAMPS_BUY_CUF_SURFACE,
   RAMPS_BUY_CUF_PATH,
   RAMPS_BUY_CUF_END_REASON,
+  RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+  RAMPS_BUY_CUF_LOG_MARKER,
   RAMPS_BUY_CUF_TIMEOUT_MS,
+  RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
   type RampsBuyCufSurface,
 } from '../constants/rampsBuyCufTags';
+import {
+  getRampsBuyLifecycleContext,
+  settleRampsBuyForegroundOnSpan,
+} from './rampsBuyLifecycleContext';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
 
 const CUF_META = {
@@ -26,6 +37,13 @@ const pendingChildMeta = new Map<string, Record<string, TraceValue>>();
 let parentOpId: string | null = null;
 let parentSpan: TraceContext;
 let parentTimeoutId: ReturnType<typeof setTimeout> | null = null;
+let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null =
+  null;
+let currentAppState: AppStateStatus = AppState.currentState;
+let foregroundSegmentStartedAt: number | null = null;
+let foregroundActiveMs = 0;
+let backgroundCount = 0;
+let resumeCount = 0;
 let cufOpCounter = 0;
 
 function nextCufOpId(name: TraceName): string {
@@ -38,8 +56,65 @@ function clearStaleParentState(): void {
     clearTimeout(parentTimeoutId);
     parentTimeoutId = null;
   }
+  appStateSubscription?.remove();
+  appStateSubscription = null;
+  currentAppState = AppState.currentState;
+  foregroundSegmentStartedAt = null;
+  foregroundActiveMs = 0;
+  backgroundCount = 0;
+  resumeCount = 0;
   parentOpId = null;
   parentSpan = undefined;
+}
+
+function pauseForegroundSegment(now = getPerformanceTimestamp()): void {
+  if (foregroundSegmentStartedAt === null) {
+    return;
+  }
+  foregroundActiveMs += Math.max(0, now - foregroundSegmentStartedAt);
+  foregroundSegmentStartedAt = null;
+}
+
+function startForegroundSegment(now = getPerformanceTimestamp()): void {
+  if (foregroundSegmentStartedAt === null) {
+    foregroundSegmentStartedAt = now;
+  }
+}
+
+function handleAppStateChange(nextState: AppStateStatus): void {
+  // iOS `inactive` also covers Face ID, permission prompts, and the
+  // notification shade. Only `background` means the user left the app.
+  if (nextState === 'background' && currentAppState !== 'background') {
+    pauseForegroundSegment();
+    backgroundCount += 1;
+    endOpenRampsBuyCufChildrenByName(TraceName.RampBuyQuoteFetch, {
+      [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
+      [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.APP_BACKGROUNDED,
+    });
+  } else if (
+    nextState === 'active' &&
+    currentAppState === 'background' &&
+    foregroundSegmentStartedAt === null
+  ) {
+    if (backgroundCount > 0) {
+      resumeCount += 1;
+    }
+    startForegroundSegment();
+  }
+  currentAppState = nextState;
+}
+
+function startLifecycleAccounting(startTime?: number): void {
+  currentAppState = AppState.currentState;
+  // `inactive` and `unknown` are still in the app. Only a start that is
+  // already `background` waits for the first `active` event.
+  if (currentAppState !== 'background') {
+    startForegroundSegment(startTime);
+  }
+  appStateSubscription = AppState.addEventListener(
+    'change',
+    handleAppStateChange,
+  );
 }
 
 /** True if Buy E2E parent is still open (incl. consent-buffered starts). */
@@ -78,8 +153,21 @@ export function buildRampsBuyCufStartTags(
   return {
     [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
     [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
+    [RAMPS_BUY_CUF_TAG.LIFECYCLE_CONTEXT]: getRampsBuyLifecycleContext(),
     ...extra,
   };
+}
+
+export function logRampsBuyCufSpan(
+  phase: 'started' | 'completed',
+  name: TraceName,
+  fields?: Record<string, TraceValue>,
+): void {
+  DevLogger?.log?.(
+    `${RAMPS_BUY_CUF_LOG_MARKER} ${name} ${phase} ${JSON.stringify(
+      fields ?? {},
+    )}`,
+  );
 }
 
 function withStartSpanAttributes(
@@ -128,15 +216,18 @@ export function startRampsBuyCufTrace({
   });
 
   parentOpId = opId;
+  logRampsBuyCufSpan('started', TraceName.RampBuyToOrderDetails, startTags);
   parentSpan = trace({
     name: TraceName.RampBuyToOrderDetails,
     id: opId,
     op: TraceOperation.RampOperation,
     startTime,
     forceTransaction: true,
+    maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });
+  startLifecycleAccounting(startTime);
 
   endRampsBuyCufTraceAfter(
     {
@@ -167,14 +258,32 @@ export function endRampsBuyCufTrace({
     return;
   }
 
+  pauseForegroundSegment(timestamp);
+  const measuredForegroundMs = Math.round(foregroundActiveMs);
+  const lifecycleData = {
+    [RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS]: measuredForegroundMs,
+    [RAMPS_BUY_CUF_TAG.BACKGROUND_COUNT]: backgroundCount,
+    [RAMPS_BUY_CUF_TAG.RESUME_COUNT]: resumeCount,
+  };
+  setTraceMeasurement(
+    { name: TraceName.RampBuyToOrderDetails, id: targetId },
+    RAMPS_BUY_CUF_FOREGROUND_ACTIVE_MS,
+    measuredForegroundMs,
+    'millisecond',
+  );
   abandonOpenChildTraces(RAMPS_BUY_CUF_END_REASON.ABANDONED);
   clearStaleParentState();
+  const endData = { ...data, ...lifecycleData };
+  logRampsBuyCufSpan('completed', TraceName.RampBuyToOrderDetails, endData);
   endTrace({
     name: TraceName.RampBuyToOrderDetails,
     id: targetId,
-    data,
+    data: endData,
     timestamp,
   });
+  if (data?.[RAMPS_BUY_CUF_TAG.SUCCESS] !== false) {
+    settleRampsBuyForegroundOnSpan(TraceName.RampBuyToOrderDetails);
+  }
 }
 
 export function endRampsBuyCufTraceAfter(
@@ -228,6 +337,7 @@ export function startRampsBuyCufChildTrace({
     op: TraceOperation.RampOperation,
     parentContext,
     startTime,
+    maxLifetimeMs: RAMPS_BUY_CUF_TRACE_MAX_LIFETIME_MS,
     data: withStartSpanAttributes(startTags, data),
     tags: startTags,
   });

@@ -569,6 +569,20 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('retains a supplied definite refusal reason without changing default failure copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            undefined,
+            'Review existing Scale orders before placing another',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Review existing Scale orders before placing another',
+          isBold: false,
+        });
+      });
+
       it('strips hip3 prefix from asset symbol in limit order submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -1303,6 +1317,29 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions?.[0]).toMatchObject({
           isBold: true,
         });
+      });
+
+      it('returns remove amount changed configuration with the new max', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '7.00',
+          );
+
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({ isBold: true });
+        expect(config.labelOptions?.[2]).toMatchObject({ isBold: false });
+        expect(String(config.labelOptions?.[2]?.label)).toContain('7.00');
+      });
+
+      it('explains nothing is removable when the new max is zero', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '0.00',
+          );
+
+        expect(String(config.labelOptions?.[2]?.label)).not.toContain('0.00');
       });
 
       it('returns adjustment failed configuration with custom error', () => {

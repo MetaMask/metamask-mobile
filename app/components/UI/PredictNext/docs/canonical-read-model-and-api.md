@@ -434,6 +434,16 @@ GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}
 
 Supported ranges are `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response is Market-qualified and contains `venueId`, `marketId`, `range`, `observedAt`, and ordered `{ timestamp, yesPrice, noPrice }` points. `yesPrice` is the last traded Yes probability for the period, falling back to the previous trade when a period has no trade. For a binary Market, `noPrice` is the exact complementary representation of the same trade (`1 - yesPrice`), derived by the backend with fixed-point arithmetic. Every range, including `LIVE`, is an authoritative REST snapshot through `observedAt`; continuous updates and client-generated points are not part of this route. Mobile extends the `LIVE` series on screen with streamed quote points (see [Live data stream](#live-data-stream)); those points come from the stream, not from this route.
 
+### Search Events
+
+```http
+GET /v1/venues/{venueId}/search?q={text}&limit={limit}
+```
+
+Response: `{ venueId, events: PredictEvent[] }`
+
+Every whitespace-separated term in `q` must match the Event title, subtitle, or a Market question case-insensitively. Only Events with at least one browsable Market are returned, ranked by dollar volume and capped at `limit` (default 20, max 50). Search is not paginated; mobile debounces input and never filters or ranks results itself.
+
 ### Refresh Game snapshots
 
 No Game-specific endpoint is required initially. Feed and immutable Event reads return the complete embedded Game snapshot. REST clients refresh the existing Feed or Event query according to the product's snapshot policy. The live data stream patches the same canonical Game shape while REST remains the recovery path.

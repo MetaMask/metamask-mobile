@@ -21,6 +21,11 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+jest.mock('../../Bridge/components/RebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('./QuickBuyQuickAmounts', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -144,7 +149,7 @@ describe('QuickBuyActionFooter', () => {
     expect(screen.getByText('confirm-button:loading')).toBeOnTheScreen();
   });
 
-  it('renders quick-amount pills when the feature flag is enabled', () => {
+  it('renders quick-amount pills in place of the CTA while the amount is empty', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,
       features: {
@@ -155,6 +160,22 @@ describe('QuickBuyActionFooter', () => {
     });
     render(<QuickBuyActionFooter />);
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-confirm-button')).toBeNull();
+  });
+
+  it('replaces the quick-amount pills with the CTA once an amount is entered', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      hasValidAmount: true,
+      features: {
+        payWithSheet: true,
+        quickAmountPills: true,
+        quoteDetails: true,
+      },
+    });
+    render(<QuickBuyActionFooter />);
+    expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
   });
 
   it('hides quick-amount pills when the feature flag is disabled', () => {
@@ -222,7 +243,6 @@ describe('QuickBuyActionFooter', () => {
 
     expect(screen.queryByTestId('quick-buy-footer-reveal')).toBeNull();
     expect(screen.getByTestId('quick-buy-pay-with-button')).toBeOnTheScreen();
-    expect(screen.getByTestId('quick-buy-confirm-button')).toBeOnTheScreen();
     expect(screen.getByTestId('quick-buy-quick-amounts')).toBeOnTheScreen();
   });
 
@@ -246,9 +266,7 @@ describe('QuickBuyActionFooter', () => {
 
       const disabled = screen.getByTestId('quick-buy-disabled-footer');
       expect(disabled.props.pointerEvents).toBe('none');
-      expect(
-        within(disabled).getByTestId('quick-buy-quick-amounts'),
-      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('quick-buy-quick-amounts')).toBeNull();
       expect(
         within(disabled).getByTestId('quick-buy-pay-with-button'),
       ).toBeOnTheScreen();

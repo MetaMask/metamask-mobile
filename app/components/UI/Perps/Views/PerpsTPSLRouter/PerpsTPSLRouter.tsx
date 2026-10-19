@@ -11,11 +11,11 @@ import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
  * cannot be resolved here: the navigator needs it before this mounts, to drop
  * the stack animation that would otherwise slide the sheet's backdrop in.
  *
- * Only the position-edit entry points pass it. The order-placement callers
- * reach this same route while the trade flow is itself a bottom sheet under
- * treatment, so converting them would stack a sheet on a sheet — they omit the
- * param and never read the experiment, which also keeps them out of its
- * exposure count.
+ * The Lite order-placement callers omit it: they reach this same route while
+ * the trade flow is itself a bottom sheet under treatment, so converting them
+ * would stack a sheet on a sheet. They never read the experiment, which also
+ * keeps them out of its exposure count. Pro's order form is an inline panel
+ * rather than a sheet, so it has no such conflict and does pass the param.
  */
 const PerpsTPSLRouter: React.FC = () => {
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();

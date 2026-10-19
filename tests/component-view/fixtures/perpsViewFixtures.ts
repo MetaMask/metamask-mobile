@@ -5,7 +5,9 @@ import type {
   Position,
 } from '@metamask/perps-controller';
 import {
+  PERPS_HOME_EXPLORE_AB_TEST_KEY,
   PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+  type PerpsHomeExploreVariant,
   type ScreenVsBottomSheetVariant,
 } from '../../../app/components/UI/Perps/abTestConfig';
 
@@ -126,6 +128,20 @@ export const createLimitOrderForViews = (
 ): Order => ({
   ...defaultLimitOrderForViews,
   ...overrides,
+});
+
+export const createHomeExploreAssignmentForViews = (
+  variant: PerpsHomeExploreVariant,
+) => ({
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          [PERPS_HOME_EXPLORE_AB_TEST_KEY]: variant,
+        },
+      },
+    },
+  },
 });
 
 export const createScreenVsBottomSheetAssignmentForViews = (

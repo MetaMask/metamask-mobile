@@ -39,9 +39,11 @@ const StatusIcon = ({ iconName, color, background }: StatusIconProps) => (
   </Box>
 );
 
-/** The execution values the Venue reported, rendered only when reported. */
+/** The execution values the Venue reported, rendered only when reported.
+ * Fill fields are projected as fixed-point decimal strings, identical
+ * across actions; only the spend and proceeds rows are action-specific. */
 const FillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => (
-  <Box twClassName="gap-2">
+  <>
     {receipt.filledContracts !== null && (
       <OrderDataRow
         label={strings('predict_next.order_receipt.filled_contracts')}
@@ -56,14 +58,6 @@ const FillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => (
         testID={PredictOrderFlowTestIds.AVERAGE_FILL_PRICE}
       />
     )}
-    {receipt.actualSpend !== null && (
-      <OrderDataRow
-        label={strings('predict_next.order_receipt.actual_spend')}
-        value={formatUsd(receipt.actualSpend)}
-        testID={PredictOrderFlowTestIds.ACTUAL_SPEND}
-        bold
-      />
-    )}
     {receipt.fee !== null && (
       <OrderDataRow
         label={strings('predict_next.order_preview.fee')}
@@ -71,22 +65,53 @@ const FillRows = ({ receipt }: { receipt: PredictOrderReceipt }) => (
         testID={PredictOrderFlowTestIds.FEE}
       />
     )}
-    {receipt.payoutExposure !== null && (
-      <OrderDataRow
-        label={strings('predict_next.order_receipt.payout_exposure')}
-        value={formatUsd(receipt.payoutExposure)}
-        valueColor={TextColor.SuccessDefault}
-        testID={PredictOrderFlowTestIds.PAYOUT_EXPOSURE}
-      />
+    {receipt.action === 'buy' ? (
+      <>
+        {receipt.actualSpend !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_receipt.actual_spend')}
+            value={formatUsd(receipt.actualSpend)}
+            testID={PredictOrderFlowTestIds.ACTUAL_SPEND}
+            bold
+          />
+        )}
+        {receipt.payoutExposure !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_receipt.payout_exposure')}
+            value={formatUsd(receipt.payoutExposure)}
+            valueColor={TextColor.SuccessDefault}
+            testID={PredictOrderFlowTestIds.PAYOUT_EXPOSURE}
+          />
+        )}
+      </>
+    ) : (
+      // What was sold and what it credited, never a profit figure.
+      <>
+        {receipt.actualProceeds !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_preview.proceeds')}
+            value={formatUsd(receipt.actualProceeds)}
+            testID={PredictOrderFlowTestIds.PROCEEDS}
+          />
+        )}
+        {receipt.netProceeds !== null && (
+          <OrderDataRow
+            label={strings('predict_next.order_preview.net_proceeds')}
+            value={formatUsd(receipt.netProceeds)}
+            testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+            bold
+          />
+        )}
+      </>
     )}
-  </Box>
+  </>
 );
 
 interface OrderReceiptOutcomeProps {
   receipt: PredictOrderReceipt;
-  /** The Outcome label the committed Order bought, for position context. */
+  /** The Outcome label the committed Order transacted, for position context. */
   outcomeLabel: string;
-  /** The quoted average price the Order tried to buy at, for the
+  /** The quoted average price the Order tried to execute at, for the
    * not-filled copy. */
   quotedPrice: string;
   isRechecking: boolean;
@@ -97,17 +122,20 @@ interface OrderReceiptOutcomeProps {
 
 /**
  * The receipt-driven Order outcomes. One Order produces exactly one Order
- * Receipt; every status renders honestly:
+ * Receipt; every status renders honestly, for either Order Action.
  *
- * - `filled` and `partially_filled` are successes; the partial copy always
- * states the filled quantity and the canceled remainder.
- * - `not_filled` reuses the legacy Order-not-filled treatment (market busy,
- * nothing spent) with a re-quote affordance.
- * - `rejected` states that the venue refused the Order and the balance is
- * untouched, with a re-quote affordance.
- * - `pending`, `submitted`, and `reconciliation_required` mean the backend
- * is still resolving the true outcome; the keep-checking affordance
- * re-POSTs the idempotent Commit to observe it.
+ * `filled` and `partially_filled` are successes; the partial copy always
+ * states the filled quantity and what became of the rest — canceled for a
+ * buy, still held in the Position for a sell. `not_filled` reuses the
+ * legacy Order-not-filled treatment (market busy, nothing moved) with a
+ * re-quote affordance. `rejected` states that the venue refused the Order
+ * and nothing changed, with a re-quote affordance. `pending`, `submitted`,
+ * and `reconciliation_required` mean the backend is still resolving the
+ * true outcome; the keep-checking affordance re-POSTs the idempotent Commit
+ * to observe it.
+ *
+ * A sell never renders a profit or loss figure: canonical Positions carry
+ * no cost basis.
  */
 export const OrderReceiptOutcome = ({
   receipt,
@@ -118,11 +146,15 @@ export const OrderReceiptOutcome = ({
   onRequote,
   onDone,
 }: OrderReceiptOutcomeProps): React.JSX.Element => {
+  const isSell = receipt.action === 'sell';
   switch (receipt.status) {
     case 'filled':
     case 'partially_filled': {
       const isPartial = receipt.status === 'partially_filled';
+      // Fill fields are fixed-point decimal strings for either action;
+      // '7.00' renders as the bare count 7.
       const filled = Number(receipt.filledContracts ?? '0');
+      const filledLabel = formatContracts(receipt.filledContracts ?? '0');
       const remainder = Math.max(receipt.quotedContracts - filled, 0);
       return (
         <Box
@@ -141,8 +173,12 @@ export const OrderReceiptOutcome = ({
           <Text variant={TextVariant.HeadingSm}>
             {strings(
               isPartial
-                ? 'predict_next.order_receipt.partial_title'
-                : 'predict_next.order_receipt.filled_title',
+                ? isSell
+                  ? 'predict_next.order_receipt.sell_partial_title'
+                  : 'predict_next.order_receipt.partial_title'
+                : isSell
+                  ? 'predict_next.order_receipt.sell_filled_title'
+                  : 'predict_next.order_receipt.filled_title',
             )}
           </Text>
           {isPartial && (
@@ -152,21 +188,31 @@ export const OrderReceiptOutcome = ({
               twClassName="text-center"
               testID={PredictOrderFlowTestIds.REMAINDER}
             >
-              {strings('predict_next.order_receipt.partial_description', {
-                filled: formatContracts(receipt.filledContracts ?? '0'),
-                quoted: receipt.quotedContracts,
-                remainder,
-              })}
+              {strings(
+                isSell
+                  ? 'predict_next.order_receipt.sell_partial_description'
+                  : 'predict_next.order_receipt.partial_description',
+                {
+                  filled: filledLabel,
+                  quoted: receipt.quotedContracts,
+                  remainder,
+                },
+              )}
             </Text>
           )}
           <Text
             variant={TextVariant.BodyMd}
             testID={PredictOrderFlowTestIds.POSITION_CONTEXT}
           >
-            {strings('predict_next.order_receipt.position_context', {
-              contracts: formatContracts(receipt.filledContracts ?? '0'),
-              outcome: outcomeLabel,
-            })}
+            {strings(
+              isSell
+                ? 'predict_next.order_receipt.sold_context'
+                : 'predict_next.order_receipt.position_context',
+              {
+                contracts: filledLabel,
+                outcome: outcomeLabel,
+              },
+            )}
           </Text>
           <Box twClassName="w-full gap-2">
             <FillRows receipt={receipt} />
@@ -202,9 +248,12 @@ export const OrderReceiptOutcome = ({
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {strings('predict_next.order_receipt.not_filled_description', {
-              price: quotedPrice,
-            })}
+            {strings(
+              isSell
+                ? 'predict_next.order_receipt.sell_not_filled_description'
+                : 'predict_next.order_receipt.not_filled_description',
+              { price: quotedPrice },
+            )}
           </Text>
           <Button
             variant={ButtonVariant.Primary}
@@ -236,7 +285,11 @@ export const OrderReceiptOutcome = ({
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {strings('predict_next.order_receipt.rejected_description')}
+            {strings(
+              isSell
+                ? 'predict_next.order_receipt.sell_rejected_description'
+                : 'predict_next.order_receipt.rejected_description',
+            )}
           </Text>
           <Button
             variant={ButtonVariant.Primary}

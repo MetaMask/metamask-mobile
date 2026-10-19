@@ -100,6 +100,21 @@ describe('useStickyQuickBuy', () => {
       expect(sheet.props.source).toBe('security_trust');
     });
 
+    it('opens the sheet in the requested trade mode', () => {
+      const { result } = renderHook(() =>
+        useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),
+      );
+
+      act(() => {
+        result.current.openQuickBuy('sell');
+      });
+
+      const sheet = result.current
+        .quickBuySheet as React.ReactElement<AssetDetailsQuickBuyProps>;
+      expect(sheet.props.initialTradeMode).toBe('sell');
+      expect(sheet.props.isVisible).toBe(true);
+    });
+
     it('passes the token to the sheet element', () => {
       const { result } = renderHook(() =>
         useStickyQuickBuy({ token: defaultToken, source: 'asset_details' }),

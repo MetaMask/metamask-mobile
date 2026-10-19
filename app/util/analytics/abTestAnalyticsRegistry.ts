@@ -13,6 +13,7 @@ import {
 } from '../../components/Views/Homepage/abTestConfig';
 import {
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
@@ -20,10 +21,14 @@ import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../componen
 import { LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV0View/abTestConfig';
 import { SOCIAL_V1_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
-import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
+import {
+  EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
+  HOMEPAGE_SEARCH_AB_TEST_ANALYTICS_MAPPING,
+} from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import {
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/Perps/abTestConfig';
 import { PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/ProSubscription/abTestConfig';
@@ -45,6 +50,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_EARN_SECTION_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING,
+  HOMEPAGE_SEARCH_AB_TEST_ANALYTICS_MAPPING,
   PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Onboarding interest questionnaire
@@ -56,6 +62,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Token Details
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Quick Buy
@@ -69,6 +76,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Perps
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
 
   // Pro Subscription
   PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING,

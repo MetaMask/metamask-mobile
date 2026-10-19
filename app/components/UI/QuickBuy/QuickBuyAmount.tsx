@@ -20,6 +20,7 @@ const QuickBuyAmount: React.FC = () => {
     estimatedReceiveAmount,
     hasInsufficientBalance,
     sourceBalanceDisplay,
+    sourceBalanceFiat,
     destToken,
     isBlockingQuoteLoad,
     hiddenInputRef,
@@ -60,7 +61,11 @@ const QuickBuyAmount: React.FC = () => {
       isQuoteLoading={isBlockingQuoteLoad}
       hasInsufficientBalance={hasInsufficientBalance}
       sourceBalanceDisplay={
-        tradeMode === 'sell' ? sourceBalanceDisplay : undefined
+        tradeMode === 'sell'
+          ? hasSourcePrice
+            ? sourceBalanceFiat
+            : sourceBalanceDisplay
+          : undefined
       }
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}

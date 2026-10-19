@@ -153,6 +153,9 @@ test-reports/
 appwright/reporters/reports/*
 tests/reporters/reports/
 *.apk
+tmp/hyperexecute/
+tests/hyperexecute/discovered-*.txt
+/.hyperexecuteignore
 
 # anvil binaries
 .metamask/*
@@ -162,6 +165,9 @@ ccache
 
 # eslint cache
 .eslintcache
+
+# WDA DerivedData for iOS Appium. CI caches this inside the workspace.
+.cache/
 
 # open-rpc/test-coverage
 html-report/

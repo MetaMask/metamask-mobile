@@ -13,27 +13,71 @@ import type { TokenAmountValueProps } from './types';
 
 export const TokenAmountValue = ({
   amount,
+  prefix,
   token,
   withNetworkBadge,
   error,
-}: TokenAmountValueProps) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    gap={1}
-    twClassName="shrink"
-    testID={TokenAmountValueSelectorsIDs.CONTAINER}
-  >
-    {token ? (
-      <TokenAvatar token={token} withNetworkBadge={withNetworkBadge} />
-    ) : null}
-    <Text
-      variant={TextVariant.BodyMd}
-      color={error ? TextColor.ErrorDefault : TextColor.TextDefault}
-      twClassName="text-right"
-      testID={TokenAmountValueSelectorsIDs.AMOUNT}
+  showTokenSymbol,
+  fontWeight,
+}: TokenAmountValueProps) => {
+  const amountColor = error ? TextColor.ErrorDefault : TextColor.TextDefault;
+  const avatar = token ? (
+    <TokenAvatar token={token} withNetworkBadge={withNetworkBadge} />
+  ) : null;
+  const amountText = (
+    <>
+      {prefix ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={fontWeight}
+          color={amountColor}
+          twClassName="-top-[1.5px]"
+          testID={TokenAmountValueSelectorsIDs.PREFIX}
+        >
+          {prefix}
+        </Text>
+      ) : null}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={fontWeight}
+        color={amountColor}
+        twClassName="text-right"
+        testID={TokenAmountValueSelectorsIDs.AMOUNT}
+      >
+        {amount}
+      </Text>
+    </>
+  );
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={1}
+      twClassName="shrink"
+      testID={TokenAmountValueSelectorsIDs.CONTAINER}
     >
-      {amount}
-    </Text>
-  </Box>
-);
+      {showTokenSymbol ? (
+        <>
+          {amountText}
+          {avatar}
+          {token ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={fontWeight}
+              color={amountColor}
+              testID={TokenAmountValueSelectorsIDs.SYMBOL}
+            >
+              {token.symbol}
+            </Text>
+          ) : null}
+        </>
+      ) : (
+        <>
+          {avatar}
+          {amountText}
+        </>
+      )}
+    </Box>
+  );
+};

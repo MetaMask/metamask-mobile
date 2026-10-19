@@ -6,6 +6,7 @@ import TronStakePreview from './TronStakePreview';
 import {
   selectTronSpecialAssetsBySelectedAccountGroup,
   TronSpecialAssetsMap,
+  TronSpecialAssetsStatus,
 } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../utils/tron-staking-snap';
 
@@ -56,6 +57,7 @@ const createMockSpecialAssetsMap = (
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx,
+  status: TronSpecialAssetsStatus.Ready,
   trxReadyForWithdrawal: undefined,
   trxStakingRewards: undefined,
   trxInLockPeriod: undefined,
@@ -194,6 +196,37 @@ describe('TronStakePreview', () => {
     expect(queryByText(/\d+[,.]?\d* TRX/)).toBeNull();
   });
 
+  it('hides the annual reward when the staked total could not be fetched', () => {
+    const mockResourcesMap = {
+      ...createMockSpecialAssetsMap(15),
+      stakedTrxForEnergy: {
+        assetId: 'tron:728126428/slip44:195-staked-for-energy',
+        balance: '15',
+        fiat: undefined,
+      },
+      stakedTrxForBandwidth: {
+        assetId: 'tron:728126428/slip44:195-staked-for-bandwidth',
+        balance: '0',
+        fiat: undefined,
+        unknown: true,
+      },
+    };
+
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
+        return mockResourcesMap;
+      }
+      return undefined;
+    });
+
+    const { getByText, queryByText } = render(
+      <TronStakePreview stakeAmount="5" mode="stake" />,
+    );
+
+    expect(getByText('Est. annual reward')).toBeOnTheScreen();
+    expect(queryByText(/\d+[,.]?\d* TRX/)).toBeNull();
+  });
+
   it.each([
     [
       'array fee',
@@ -221,5 +254,24 @@ describe('TronStakePreview', () => {
 
     expect(getByText('Fee')).toBeOnTheScreen();
     expect(getByText(/1[,.]234 TRX/)).toBeOnTheScreen();
+  });
+
+  it('returns empty reward while the balance request has not completed', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectTronSpecialAssetsBySelectedAccountGroup) {
+        return {
+          ...createMockSpecialAssetsMap(15),
+          status: TronSpecialAssetsStatus.Loading,
+        };
+      }
+      return undefined;
+    });
+
+    const { getByText, queryByText } = render(
+      <TronStakePreview stakeAmount="5" mode="stake" />,
+    );
+
+    expect(getByText('Est. annual reward')).toBeOnTheScreen();
+    expect(queryByText(/\d+[,.]?\d* TRX/)).toBeNull();
   });
 });

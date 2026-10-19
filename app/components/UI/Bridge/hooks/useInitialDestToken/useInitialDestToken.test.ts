@@ -1,7 +1,8 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 import { useInitialDestToken } from '.';
-import { waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { getSwapDestToken } from '../../utils/getSwapDestToken';
 import { SolScope, BtcScope } from '@metamask/keyring-api';
@@ -10,6 +11,7 @@ import {
   selectBip44DefaultPair,
   selectBridgeViewMode,
   selectSourceToken,
+  setBridgeViewMode,
   setDestToken,
 } from '../../../../../core/redux/slices/bridge';
 
@@ -129,6 +131,28 @@ describe('useInitialDestToken', () => {
     });
   });
 
+  it('waits for the bridge view mode before initializing the destination', async () => {
+    (selectBridgeViewMode as unknown as jest.Mock).mockImplementation(
+      (state: RootState) => state.bridge.bridgeViewMode,
+    );
+    const { store } = renderHookWithProvider(
+      () => useInitialDestToken(mockSourceToken),
+      { state: initialState },
+    );
+
+    expect(setDestToken).not.toHaveBeenCalled();
+
+    act(() => {
+      store.dispatch(setBridgeViewMode(BridgeViewMode.Unified));
+    });
+
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(
+        getSwapDestToken(SolScope.Mainnet),
+      );
+    });
+  });
+
   it('derives the dest token from the selected source token when none comes in on the route', async () => {
     // A tab switch can leave the source token anchored to a chain other than
     // the wallet's selected one, so the dest default must follow the source.
@@ -175,10 +199,8 @@ describe('useInitialDestToken', () => {
   });
 
   it('keeps the dest token on the source chain when the source is only set in Redux', async () => {
-    // Switching Bridge tabs clears the dest token but leaves the source
-    // anchored to the previous tab's chain. The bip44 pair's dest asset always
-    // lives on Ethereum, so pairing it with such a source would silently turn a
-    // same-chain swap into a cross-chain bridge.
+    // A fresh entry can have a source token pre-seeded in Redux without a
+    // destination, so derive the destination from that source's chain.
     (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
       BridgeViewMode.Unified,
     );
@@ -201,6 +223,36 @@ describe('useInitialDestToken', () => {
     expect(setDestToken).not.toHaveBeenCalledWith(
       expect.objectContaining({ chainId: '0x1' }),
     );
+  });
+
+  it('consumes the initial destination token only once per mount', async () => {
+    const firstToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'FIRST',
+      name: 'First Token',
+      decimals: 18,
+      chainId: '0x1',
+    };
+    const secondToken: BridgeToken = {
+      ...firstToken,
+      address: '0x0000000000000000000000000000000000000002',
+      symbol: 'SECOND',
+      name: 'Second Token',
+    };
+    let initialDestToken = firstToken;
+    const { rerender } = renderHookWithProvider(
+      () => useInitialDestToken(mockSourceToken, initialDestToken),
+      { state: initialState },
+    );
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(firstToken);
+    });
+    jest.mocked(setDestToken).mockClear();
+
+    initialDestToken = secondToken;
+    rerender(undefined);
+
+    expect(setDestToken).not.toHaveBeenCalled();
   });
 
   describe('BIP44 Bitcoin functionality', () => {
