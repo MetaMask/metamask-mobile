@@ -1,7 +1,8 @@
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
+import { LoadMoreSentinel } from '../LoadMoreSentinel';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeed } from '../../../SocialFeed/data/useSocialFeed';
 import type { SocialFeedSource } from '../../../SocialFeed/data/socialFeedSource';
@@ -22,71 +23,13 @@ import SocialFeedPostShell, {
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
 
-/** How far past the screen a footer may sit and still count as reached. */
-const LOAD_MORE_THRESHOLD_PX = 600;
-
-/** How often a mounted feed checks whether its footer has scrolled into view. */
-const VISIBILITY_CHECK_MS = 400;
-
 const NEXT_PAGE_TEST_ID = 'token-details-feed-next-page';
-
-const styles = StyleSheet.create({
-  // An empty view measures as height 0, and the visibility check ignores that,
-  // so the footer would never ask for another page. One pixel is enough to
-  // measure, and `collapsable={false}` stops Android from dropping the view.
-  sentinel: {
-    height: 1,
-  },
-});
 
 export interface TokenDetailsFeedProps {
   source: SocialFeedSource;
   location: SocialSurfaceLocation;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
 }
-
-const LoadMoreSentinel: React.FC<{
-  enabled: boolean;
-  onVisible: () => void;
-}> = ({ enabled, onVisible }) => {
-  const ref = useRef<View>(null);
-  const onVisibleRef = useRef(onVisible);
-  onVisibleRef.current = onVisible;
-
-  const check = useCallback(() => {
-    ref.current?.measureInWindow((_x, y, _width, height) => {
-      if (height <= 0) {
-        return;
-      }
-      const screenHeight = Dimensions.get('window').height;
-      if (y < screenHeight + LOAD_MORE_THRESHOLD_PX && y + height > 0) {
-        onVisibleRef.current();
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
-    check();
-    const intervalId = setInterval(check, VISIBILITY_CHECK_MS);
-    return () => clearInterval(intervalId);
-  }, [check, enabled]);
-
-  if (!enabled) {
-    return null;
-  }
-
-  return (
-    <View
-      ref={ref}
-      collapsable={false}
-      style={styles.sentinel}
-      onLayout={check}
-    />
-  );
-};
 
 const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
   source,

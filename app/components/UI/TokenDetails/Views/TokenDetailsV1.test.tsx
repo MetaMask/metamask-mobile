@@ -28,7 +28,6 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
-import { SocialLeaderboard } from '../../SocialLeaderboard';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
@@ -47,8 +46,19 @@ jest.mock('react-redux', () => ({
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
-jest.mock('../../SocialLeaderboard', () => ({
-  SocialLeaderboard: jest.fn(() => null),
+// Keeps the Holders tab off React Query, like the other data hooks here. The
+// list itself is covered in `HoldersTab.test.tsx` / its integration test.
+jest.mock('../components/tabs/holders/useTokenHolders', () => ({
+  useTokenHolders: jest.fn(() => ({
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(),
+    isFixtureData: false,
+  })),
 }));
 
 jest.mock('../../SocialFeed', () => {
@@ -1054,7 +1064,7 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('shows the Social leaderboard on the Holders tab', () => {
+  it('shows the holders list on the Holders tab', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -1071,11 +1081,7 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId('token-details-v1-tab-holders'));
 
-    expect(jest.mocked(SocialLeaderboard).mock.calls[0][0]).toEqual({
-      source: { kind: 'all' },
-      location: 'token_details',
-      showViewerRow: true,
-    });
+    expect(getByTestId('token-details-v1-holders-list')).toBeTruthy();
   });
 
   it('anchors the scroll position to the docked tab bar when switching tabs from a scrolled-down state', () => {
