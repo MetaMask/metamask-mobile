@@ -248,6 +248,87 @@ describe('VbaDetails', () => {
     );
   });
 
+  describe('when NeoBankService reads every deposit rail', () => {
+    const mockGetDepositInstructions = jest.fn();
+    const usBankInstructions = {
+      type: 'UsBank',
+      rail: 'ACH',
+      accountHolder: 'Jane Doe',
+      routingNumber: '021000021',
+      accountNumber: '123456789',
+      bankName: 'Lead Bank',
+    };
+
+    beforeEach(() => {
+      (
+        Engine.context as unknown as {
+          NeoBankService: Record<string, jest.Mock>;
+        }
+      ).NeoBankService = {
+        getDepositInstructions: mockGetDepositInstructions,
+        getPixDepositInstructions: mockGetPix,
+        listAutorampTransactions: mockListTransactions,
+      };
+    });
+
+    it('shows the US bank transfer rows and copy', async () => {
+      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+      const { getByLabelText, getByTestId, getByText, queryByText } =
+        renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+        ).toBeOnTheScreen();
+      });
+      expect(getByText('Add money by bank transfer')).toBeOnTheScreen();
+      expect(queryByText('Add money with Pix')).toBeNull();
+      expect(getByText('Jane Doe')).toBeOnTheScreen();
+      expect(getByText('021000021')).toBeOnTheScreen();
+      expect(getByText('123456789')).toBeOnTheScreen();
+      expect(getByText('Lead Bank')).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      expect(mockGetPix).not.toHaveBeenCalled();
+
+      fireEvent.press(getByLabelText('Copy Routing number'));
+
+      expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+    });
+
+    it('shows the Pix rows when the autoramp has a Pix rail', async () => {
+      mockGetDepositInstructions.mockResolvedValue({
+        type: 'Pix',
+        ...pixInstructions,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+      });
+      expect(getByText('Add money with Pix')).toBeOnTheScreen();
+    });
+
+    it('shows rail-neutral waiting copy until a supported rail arrives', async () => {
+      mockGetDepositInstructions.mockResolvedValue(null);
+
+      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByText(
+          'Your account details appear here once the account is approved.',
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('shows a loading skeleton instead of the waiting copy until Pix loads', async () => {
     let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
     mockGetPix.mockReturnValue(
@@ -260,10 +341,10 @@ describe('VbaDetails', () => {
 
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toHaveProp(
       'accessibilityLabel',
-      'Loading PIX details',
+      'Loading account details',
     );
     expect(
-      queryByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+      queryByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
     ).not.toBeOnTheScreen();
 
     resolvePix(pixInstructions);
@@ -307,7 +388,7 @@ describe('VbaDetails', () => {
 
     await waitFor(() => {
       expect(
-        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
       ).toBeOnTheScreen();
     });
     expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
@@ -321,7 +402,7 @@ describe('VbaDetails', () => {
     expect(mockGetPix).not.toHaveBeenCalled();
     expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
     expect(
-      getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+      getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
     ).toBeOnTheScreen();
   });
 
@@ -559,7 +640,7 @@ describe('VbaDetails', () => {
 
     await waitFor(() => {
       expect(
-        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_PIX),
+        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
       ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();

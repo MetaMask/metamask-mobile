@@ -41,6 +41,7 @@ import {
 import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
+import bankTransferImage from '../../../../../images/bank-transfer.png';
 import {
   pickLatestTransaction,
   type AutorampTransactionSummary,
@@ -61,8 +62,12 @@ export const VbaDetailsSelectorsIDs = {
   DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
+  ACCOUNT_HOLDER: 'vba-details-account-holder',
+  ROUTING_NUMBER: 'vba-details-routing-number',
+  ACCOUNT_NUMBER: 'vba-details-account-number',
+  BANK_NAME: 'vba-details-bank-name',
   ROW_ICON: 'vba-details-row-icon',
-  WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
+  WAITING_FOR_DETAILS: 'vba-details-waiting-for-details',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   SETUP_ERROR: 'vba-details-setup-error',
@@ -82,13 +87,35 @@ interface PixDepositInstructions {
   pixKey?: string;
 }
 
+interface UsBankDepositInstructions {
+  accountHolder: string;
+  routingNumber: string;
+  accountNumber: string;
+  bankName: string;
+}
+
+type DepositInstructions =
+  | ({ type: 'Pix' } & PixDepositInstructions)
+  | ({ type: 'UsBank' } & UsBankDepositInstructions);
+
 interface DepositNeoBank {
-  getPixDepositInstructions: (
+  getDepositInstructions?: (
+    autorampId: string,
+  ) => Promise<DepositInstructions | null>;
+  getPixDepositInstructions?: (
     autorampId: string,
   ) => Promise<PixDepositInstructions | null>;
-  listAutorampTransactions: (
+  listAutorampTransactions?: (
     autorampId: string,
   ) => Promise<AutorampTransactionSummary[]>;
+}
+
+interface DetailRow {
+  id: string;
+  testID: string;
+  label: string;
+  value: string;
+  iconName: IconName;
 }
 
 interface DepositRamps {
@@ -102,6 +129,77 @@ const isTerminalStatus = (status: string): boolean =>
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
 
+// ramps-controller releases before 27.1 only expose the PIX reader.
+const loadDepositInstructions = async (
+  neoBank: DepositNeoBank,
+  autorampId: string,
+): Promise<DepositInstructions | null> => {
+  if (neoBank.getDepositInstructions) {
+    return neoBank.getDepositInstructions(autorampId);
+  }
+  const pix = await neoBank.getPixDepositInstructions?.(autorampId);
+  return pix?.brCode ? { type: 'Pix', ...pix } : null;
+};
+
+const buildDetailRows = (
+  instructions: DepositInstructions | null,
+): DetailRow[] => {
+  if (instructions?.type === 'UsBank') {
+    return [
+      {
+        id: 'account-holder',
+        testID: VbaDetailsSelectorsIDs.ACCOUNT_HOLDER,
+        label: strings('virtual_bank_account.vba_details.account_holder_label'),
+        value: instructions.accountHolder,
+        iconName: IconName.UserCircle,
+      },
+      {
+        id: 'routing-number',
+        testID: VbaDetailsSelectorsIDs.ROUTING_NUMBER,
+        label: strings('virtual_bank_account.vba_details.routing_number_label'),
+        value: instructions.routingNumber,
+        iconName: IconName.SwapHorizontal,
+      },
+      {
+        id: 'account-number',
+        testID: VbaDetailsSelectorsIDs.ACCOUNT_NUMBER,
+        label: strings('virtual_bank_account.vba_details.account_number_label'),
+        value: instructions.accountNumber,
+        iconName: IconName.Tag,
+      },
+      {
+        id: 'bank-name',
+        testID: VbaDetailsSelectorsIDs.BANK_NAME,
+        label: strings('virtual_bank_account.vba_details.bank_name_label'),
+        value: instructions.bankName,
+        iconName: IconName.Bank,
+      },
+    ];
+  }
+  if (instructions?.type !== 'Pix') {
+    return [];
+  }
+  const rows: DetailRow[] = [
+    {
+      id: 'copia-cola',
+      testID: VbaDetailsSelectorsIDs.PIX_CODE,
+      label: strings('virtual_bank_account.vba_details.copia_cola_label'),
+      value: instructions.brCode,
+      iconName: IconName.Key,
+    },
+  ];
+  if (instructions.pixKey) {
+    rows.push({
+      id: 'pix-key',
+      testID: VbaDetailsSelectorsIDs.PIX_KEY,
+      label: strings('virtual_bank_account.vba_details.pix_key_label'),
+      value: instructions.pixKey,
+      iconName: IconName.Key,
+    });
+  }
+  return rows;
+};
+
 /**
  * Virtual bank account screen. This is the only place that registers the
  * wallet and creates the autoramp, in the fiat mapped from the IP country.
@@ -109,7 +207,8 @@ const readAutoramps = (): AutorampCursor[] =>
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
- * onboarding. PIX values come from `NeoBankService.getPixDepositInstructions`.
+ * onboarding. PIX or US bank details come from
+ * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -124,8 +223,9 @@ const VbaDetails = () => {
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
-  const [instructions, setInstructions] =
-    useState<PixDepositInstructions | null>(null);
+  const [instructions, setInstructions] = useState<DepositInstructions | null>(
+    null,
+  );
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
@@ -208,20 +308,18 @@ const VbaDetails = () => {
         return;
       }
 
-      // Fetch PIX on its own so a flaky transaction poll cannot hide the code.
-      if (neoBank.getPixDepositInstructions) {
-        try {
-          const pix = await neoBank.getPixDepositInstructions(autoramp.id);
-          if (pix?.brCode) {
-            setInstructions(pix);
-            // Debug builds keep polling so the latest deposit stays visible.
-            pollingDoneRef.current = !debugEnabled;
-          }
-        } catch (error) {
-          Logger.error(error as Error, {
-            message: 'VbaDetails: failed to load PIX deposit instructions',
-          });
+      // Fetch details on their own so a flaky transaction poll cannot hide them.
+      try {
+        const details = await loadDepositInstructions(neoBank, autoramp.id);
+        if (details) {
+          setInstructions(details);
+          // Debug builds keep polling so the latest deposit stays visible.
+          pollingDoneRef.current = !debugEnabled;
         }
+      } catch (error) {
+        Logger.error(error as Error, {
+          message: 'VbaDetails: failed to load deposit instructions',
+        });
       }
 
       if (debugEnabled && neoBank.listAutorampTransactions) {
@@ -295,13 +393,13 @@ const VbaDetails = () => {
   const hasSetupError = (setupFailed || isTerminal) && !isApproved;
 
   useEffect(() => {
-    if (!loadError || !isApproved || instructions?.brCode) {
+    if (!loadError || !isApproved || instructions) {
       return;
     }
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.load_error'),
     );
-  }, [instructions?.brCode, isApproved, loadError]);
+  }, [instructions, isApproved, loadError]);
 
   useEffect(() => {
     if (!hasSetupError) {
@@ -351,24 +449,10 @@ const VbaDetails = () => {
     setIsDebugOpen(false);
   }, []);
 
-  const rows = [
-    instructions?.brCode
-      ? {
-          id: 'copia-cola',
-          testID: VbaDetailsSelectorsIDs.PIX_CODE,
-          label: strings('virtual_bank_account.vba_details.copia_cola_label'),
-          value: instructions.brCode,
-        }
-      : null,
-    instructions?.pixKey
-      ? {
-          id: 'pix-key',
-          testID: VbaDetailsSelectorsIDs.PIX_KEY,
-          label: strings('virtual_bank_account.vba_details.pix_key_label'),
-          value: instructions.pixKey,
-        }
-      : null,
-  ].filter((row): row is NonNullable<typeof row> => row !== null);
+  const rows = buildDetailRows(instructions);
+  const isBankTransfer =
+    instructions?.type === 'UsBank' ||
+    (!instructions && sourceCurrency === 'USD');
 
   // Offline never fetches, so it skips straight to the waiting copy.
   const isLoading = !hasLoaded && networkTier !== 'NONE';
@@ -390,7 +474,7 @@ const VbaDetails = () => {
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
           <Image
-            source={vbaPixLogo}
+            source={isBankTransfer ? bankTransferImage : vbaPixLogo}
             accessibilityIgnoresInvertColors
             accessible={false}
             importantForAccessibility="no"
@@ -399,14 +483,22 @@ const VbaDetails = () => {
           />
         </Box>
         <Text variant={TextVariant.HeadingLg} twClassName="mt-6 text-center">
-          {strings('virtual_bank_account.vba_details.title')}
+          {strings(
+            isBankTransfer
+              ? 'virtual_bank_account.vba_details.bank_transfer_title'
+              : 'virtual_bank_account.vba_details.title',
+          )}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="mt-2 text-center"
         >
-          {strings('virtual_bank_account.vba_details.description')}
+          {strings(
+            isBankTransfer
+              ? 'virtual_bank_account.vba_details.bank_transfer_description'
+              : 'virtual_bank_account.vba_details.description',
+          )}
         </Text>
         {hasSetupError ? null : isLoading ? (
           <Box
@@ -414,7 +506,7 @@ const VbaDetails = () => {
             accessible
             accessibilityRole="progressbar"
             accessibilityLabel={strings(
-              'virtual_bank_account.vba_details.loading',
+              'virtual_bank_account.vba_details.loading_details',
             )}
             testID={VbaDetailsSelectorsIDs.LOADING}
           >
@@ -479,7 +571,7 @@ const VbaDetails = () => {
                       testID={`${VbaDetailsSelectorsIDs.ROW_ICON}-${row.id}`}
                     >
                       <Icon
-                        name={IconName.Key}
+                        name={row.iconName}
                         size={IconSize.Md}
                         color={IconColor.IconAlternative}
                       />
@@ -507,12 +599,12 @@ const VbaDetails = () => {
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-6 text-center"
-            testID={VbaDetailsSelectorsIDs.WAITING_FOR_PIX}
+            testID={VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS}
           >
-            {strings('virtual_bank_account.vba_details.waiting_for_pix')}
+            {strings('virtual_bank_account.vba_details.waiting_for_details')}
           </Text>
         )}
-        {loadError && !instructions?.brCode ? (
+        {loadError && !instructions ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
