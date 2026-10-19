@@ -1,12 +1,9 @@
 import React, { useSyncExternalStore } from 'react';
-import { Platform } from 'react-native';
 import {
   FontFamily,
   Text,
-  TextVariant,
   type TextProps,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import I18n, { I18nEvents } from '../../../../locales/i18n';
 import {
   getMarketingMomentTitlePresentation,
@@ -22,12 +19,11 @@ const getLocaleSnapshot = () => I18n.locale || 'en';
 
 /**
  * Display title for a marketing moment. Grotzec languages use the hero face
- * and the tight metrics for the requested Display or Heading size. Every other
- * language uses the system face, and Display sizes step down one level.
+ * and the tight marketing metrics. Every other language uses the system face
+ * at DisplayLg.
  */
 const MarketingMomentTitle = ({
   accessibilityRole = 'header',
-  variant = TextVariant.DisplayXl,
   style,
   twClassName,
   children,
@@ -38,23 +34,9 @@ const MarketingMomentTitle = ({
     getLocaleSnapshot,
     getLocaleSnapshot,
   );
-  const tw = useTailwind();
   const presentation = getMarketingMomentTitlePresentation(
     supportsGrotzecLocale(locale),
-    Platform.OS,
-    variant,
   );
-  // Text paints the variant first, then this list. Later entries win.
-  const titleStyle = [
-    // Hero metrics. A style so leading and tracking replace the variant.
-    presentation.className ? tw.style(presentation.className) : undefined,
-    // System face. Not a Tailwind class, so it cannot go through tw.style.
-    presentation.style,
-    // Caller style last, so a screen can still override both.
-    style,
-  ]
-    .flat()
-    .filter((entry) => entry != null);
 
   return (
     <Text
@@ -62,8 +44,10 @@ const MarketingMomentTitle = ({
       {...props}
       variant={presentation.variant}
       fontFamily={presentation.fontFamily ?? FontFamily.Default}
-      twClassName={twClassName}
-      style={titleStyle.length > 0 ? titleStyle : undefined}
+      twClassName={`w-full text-center${
+        presentation.className ? ` ${presentation.className}` : ''
+      }${twClassName ? ` ${twClassName}` : ''}`}
+      style={[presentation.style, style]}
     >
       {children}
     </Text>

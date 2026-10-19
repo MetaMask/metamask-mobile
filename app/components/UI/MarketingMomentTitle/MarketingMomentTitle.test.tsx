@@ -18,14 +18,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     Text: ({ children, ...props }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, props, children),
     FontFamily: { Hero: 'hero', Default: 'default' },
-    TextVariant: {
-      DisplayXl: 'display-xl',
-      DisplayLg: 'display-lg',
-      DisplayMd: 'display-md',
-      HeadingLg: 'heading-lg',
-      HeadingMd: 'heading-md',
-      HeadingSm: 'heading-sm',
-    },
+    TextVariant: { DisplayXl: 'display-xl', DisplayLg: 'display-lg' },
   };
 });
 
@@ -51,16 +44,16 @@ describe('MarketingMomentTitle', () => {
     expect(title).toHaveTextContent('Perps are here');
     expect(title.props.variant).toBe('display-xl');
     expect(title.props.fontFamily).toBe('hero');
-    expect(title.props.twClassName).toBeUndefined();
-    expect(title.props.style).toEqual([
-      expect.objectContaining({
-        lineHeight: 48,
-        letterSpacing: -1.2,
-        marginBottom: -12,
-        paddingTop: 12,
-        paddingBottom: 12,
-      }),
-    ]);
+    expect(title.props.twClassName).toContain('py-3');
+    expect(title.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          lineHeight: 48,
+          letterSpacing: -1.2,
+          marginBottom: -6,
+        }),
+      ]),
+    );
   });
 
   it('switches to the system face at DisplayLg for an unsupported language', () => {
@@ -109,12 +102,11 @@ describe('MarketingMomentTitle', () => {
     );
 
     const title = getByTestId('marketing-title');
-    expect(title.props.twClassName).toBe('text-accent02-light');
+    expect(title.props.twClassName).toBe(
+      'w-full text-center py-3 text-accent02-light',
+    );
     expect(title.props.style).toEqual([
-      expect.objectContaining({
-        lineHeight: 48,
-        letterSpacing: -1.2,
-      }),
+      expect.objectContaining({ letterSpacing: -1.2 }),
       callerStyle,
     ]);
   });
