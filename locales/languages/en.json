@@ -9456,8 +9456,7 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date",
-      "amount_unavailable": "Amount unavailable"
+      "date": "Date"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
