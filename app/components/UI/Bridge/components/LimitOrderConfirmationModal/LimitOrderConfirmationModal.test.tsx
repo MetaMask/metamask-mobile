@@ -266,7 +266,7 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
   });
 
-  it('opens the cost tolerance tooltip when the info button is pressed', () => {
+  it('opens the cost tolerance tooltip when the cost tolerance label is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps({ costTolerance: '2%' })} />,
     );

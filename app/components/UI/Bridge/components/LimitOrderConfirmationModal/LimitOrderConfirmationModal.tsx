@@ -169,8 +169,7 @@ export const LimitOrderConfirmationModal = ({
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
-          label={strings('bridge.cost_tolerance')}
-          labelAccessory={
+          label={
             <LimitOrderCostToleranceTooltip
               testID={
                 LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
