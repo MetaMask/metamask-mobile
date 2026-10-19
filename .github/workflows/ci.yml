@@ -339,9 +339,11 @@ jobs:
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # Stay on 8x16: peak RAM above the 8 GB line.
-          - scripts: lint # 12.3 GB peak
-            profile: namespace-profile-metamask-ci-linux
+          # 16x32 (MCWP-812): the 12288 MB ceiling OOM'd lint on 8x16.
+          # LINT_HEAP_MB raises it here; local `yarn lint` stays at 12288.
+          - scripts: lint # was 12.3 GB peak on 8x16; now intermittently OOMs
+            profile: namespace-profile-metamask-ci-linux-large
+            heap_mb: 24576
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -389,6 +391,11 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
+        env:
+          # Only the `lint` entry defines `heap_mb`; it's blank for every other
+          # matrix entry, so `yarn lint`'s `${LINT_HEAP_MB:-12288}` fallback in
+          # package.json covers both local runs and these other CI scripts.
+          LINT_HEAP_MB: ${{ matrix.heap_mb }}
       - name: Require clean working directory
         shell: bash
         run: |
