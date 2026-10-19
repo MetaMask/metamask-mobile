@@ -751,6 +751,102 @@ describe('BrowserTab', () => {
     });
   });
 
+  describe('WebView onNavigationStateChange SPA URL resolution', () => {
+    const portfolioUrl = 'https://meyfi.meey.dev/portfolio';
+    const emailVerifyUrl = 'https://meyfi.meey.dev/portfolio/email-verify';
+
+    const commitPage = async (
+      webView: { props: Record<string, unknown> },
+      url: string,
+    ) => {
+      const onLoadEnd = webView.props.onLoadEnd as (event: {
+        nativeEvent: Record<string, unknown>;
+      }) => void;
+
+      await act(async () => {
+        onLoadEnd({
+          nativeEvent: {
+            url,
+            title: url,
+            canGoBack: false,
+            canGoForward: false,
+          },
+        });
+      });
+    };
+
+    it('updates the address bar when a same-origin path changes without a page load', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, portfolioUrl);
+
+      const bridge = mockBackgroundBridgeInstances.at(-1);
+      bridge?.onDisconnect.mockClear();
+      mockProps.updateTabInfo.mockClear();
+
+      const { onNavigationStateChange } = webView.props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: emailVerifyUrl,
+          title: 'Email verify',
+          loading: false,
+          canGoBack: true,
+          canGoForward: false,
+        });
+      });
+
+      expect(bridge?.onDisconnect).not.toHaveBeenCalled();
+      expect(mockProps.updateTabInfo).toHaveBeenCalledWith(1, {
+        url: emailVerifyUrl,
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('browser-url-display-text'),
+        ).toHaveTextContent(emailVerifyUrl);
+      });
+    });
+
+    it('leaves the address bar on the current path while a same-origin navigation is loading', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, portfolioUrl);
+
+      mockProps.updateTabInfo.mockClear();
+
+      const { onNavigationStateChange } = webView.props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: emailVerifyUrl,
+          title: 'Email verify',
+          loading: true,
+          canGoBack: true,
+          canGoForward: false,
+        });
+      });
+
+      expect(mockProps.updateTabInfo).not.toHaveBeenCalled();
+      expect(screen.getByTestId('browser-url-display-text')).toHaveTextContent(
+        portfolioUrl,
+      );
+    });
+  });
+
   describe('WebView onNavigationStateChange backforward URL resolution', () => {
     const extractRequestIdFromInjectScript = (): string => {
       const injectScript = mockInjectJavaScript.mock.calls[0]?.[0] as string;
