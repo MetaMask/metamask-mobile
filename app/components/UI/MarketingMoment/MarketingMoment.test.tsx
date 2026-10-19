@@ -24,7 +24,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
         children,
       ),
     useTailwind: () => ({
-      style: jest.fn(() => ({})),
+      style: (...inputs: unknown[]) => ({
+        twClassName: inputs
+          .filter((value) => typeof value === 'string')
+          .join(' '),
+      }),
     }),
   };
 });
@@ -60,15 +64,17 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID,
       accessibilityRole,
       twClassName,
+      style,
     }: {
       children?: React.ReactNode;
       testID?: string;
       accessibilityRole?: string;
       twClassName?: string;
+      style?: unknown;
     }) =>
       ReactActual.createElement(
         Text,
-        { testID, accessibilityRole, twClassName },
+        { testID, accessibilityRole, twClassName, style },
         children,
       ),
     Button: ({
@@ -157,8 +163,12 @@ describe('MarketingMoment', () => {
 
     expect(getByTestId('custom-title')).toHaveTextContent('Perps are here');
     expect(getByTestId('custom-title').props.twClassName).toBe(
-      'w-full text-center py-3 leading-[48px] tracking-[-1.2px] -mb-[12px] text-accent02-light',
+      'w-full text-center',
     );
+    expect(getByTestId('custom-title').props.style).toEqual([
+      { twClassName: 'py-3 leading-[48px] tracking-[-1.2px] -mb-[12px]' },
+      { twClassName: 'text-accent02-light' },
+    ]);
     expect(getByTestId('custom-description')).toHaveTextContent(
       'Long or short with up to 40x leverage.',
     );
