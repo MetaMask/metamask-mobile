@@ -8,6 +8,7 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/perps-controller';
 import type { Position as SocialPosition } from '@metamask/social-controllers';
 import {
@@ -92,6 +93,17 @@ const createParamsProbe = (routeName: string): ComponentType<unknown> => {
 
 const PERPS_POSITION_HOST = 'PerpsPositionHost';
 
+const ModalStack = createNativeStackNavigator();
+
+const ShareModalStack = () => (
+  <ModalStack.Navigator>
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.SHARE_POSITION}
+      component={PerpsSharePositionView as unknown as ComponentType<unknown>}
+    />
+  </ModalStack.Navigator>
+);
+
 const RootLauncher = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   useEffect(() => {
@@ -104,9 +116,9 @@ const createPositionHost = (position: Position): ComponentType<unknown> => {
   const PositionHost = () => {
     const navigation = useNavigation<NavigationProp<ParamListBase>>();
     useEffect(() => {
-      navigation.navigate(Routes.PERPS.MODALS.SHARE_POSITION, {
-        position,
-        marketPrice: MARKET_PRICE,
+      navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.SHARE_POSITION,
+        params: { position, marketPrice: MARKET_PRICE },
       });
     }, [navigation]);
     return (
@@ -130,8 +142,8 @@ const renderSharePositionSheet = (
         mount: 'perps-root',
       },
       {
-        name: Routes.PERPS.MODALS.SHARE_POSITION,
-        Component: PerpsSharePositionView as unknown as ComponentType<unknown>,
+        name: Routes.PERPS.MODALS.ROOT,
+        Component: ShareModalStack as ComponentType<unknown>,
         mount: 'perps-root',
       },
       {
