@@ -68,14 +68,26 @@ describe('ButtonGlass', () => {
     expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
   });
 
-  it('draws tertiary as clear glass, with no sheen or tint', () => {
-    const { UNSAFE_getByType, queryByTestId } = render(
-      <ButtonGlass variant={ButtonVariant.Tertiary} onPress={jest.fn()}>
-        Upgrade
-      </ButtonGlass>,
-    );
+  it('renders tertiary as the plain button, without glass', () => {
+    const onPress = jest.fn();
+    const { getByTestId, getByText, queryByTestId, UNSAFE_queryByType } =
+      render(
+        <ButtonGlass
+          isGlass
+          variant={ButtonVariant.Tertiary}
+          onPress={onPress}
+          testID="upgrade"
+        >
+          Upgrade
+        </ButtonGlass>,
+      );
 
-    expect(UNSAFE_getByType(GlassView).props.tintColor).toBeUndefined();
+    expect(getByText('Upgrade')).toBeOnTheScreen();
+    expect(UNSAFE_queryByType(GlassView)).toBeNull();
     expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('upgrade'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });
