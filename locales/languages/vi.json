@@ -1710,7 +1710,7 @@
     "available_balance": "Số dư khả dụng",
     "margin_used": "Ký quỹ đã sử dụng",
     "gtm_content": {
-      "title": "HỢP ĐỒNG VĨNH CỬU ĐÃ RA MẮT",
+      "title": "Hợp đồng vĩnh cửu đã ra mắt",
       "title_description": "Mua khống hoặc bán khống với đòn bẩy lên đến 40x. Nạp tiền vào tài khoản chỉ với một cú nhấp.",
       "not_now": "Không phải bây giờ",
       "try_now": "Bắt đầu"
@@ -8465,7 +8465,7 @@
         "failed": "Chuyển đổi mUSD thất bại"
       },
       "education": {
-        "heading": "NHẬN {{percentage}}%\nĐỒNG ỔN ĐỊNH",
+        "heading": "Nhận {{percentage}}% đồng ổn định",
         "description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm {{percentage}}%.",
         "terms_apply": "Áp dụng điều khoản.",
         "primary_button": "Bắt đầu",
@@ -10210,7 +10210,7 @@
       "payment_creation_error": "Không thể tạo thanh toán. Hãy thử lại."
     },
     "order_completed": {
-      "title": "THẺ CỦA BẠN\nĐÃ ĐƯỢC ĐẶT",
+      "title": "Thẻ của bạn đã được đặt",
       "subtitle": "Thẻ sẽ được gửi đến trong vòng 4 đến 6 tuần.",
       "description": "Thiết lập thẻ ảo và thêm vào ví kỹ thuật số để bắt đầu nhận hoàn tiền bằng mUSD.",
       "set_up_card_button": "Thiết lập thẻ",
@@ -10253,7 +10253,7 @@
       "try_again": "Thử lại"
     },
     "card_onboarding": {
-      "title": "Chi tiêu\nvà Nhận thưởng",
+      "title": "Chi tiêu và nhận thưởng",
       "description": "MetaMask Card là cách nhanh chóng\nvà dễ dàng để chi tiêu tiền mã hóa của bạn\nvà nhận hoàn tiền lên đến 3% bằng mUSD.",
       "apply_now_button": "Thiết lập ngay",
       "login_button": "Đăng nhập",
