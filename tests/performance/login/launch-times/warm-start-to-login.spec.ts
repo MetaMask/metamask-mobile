@@ -37,7 +37,7 @@ perfTest.describe(
         // The vault lock now runs after foreground, so it is inside this clock.
         const timer1 = new TimerHelper(
           'Time since the user open the app again and the login screen appears',
-          { ios: 2500, android: 1200 },
+          { ios: 2500, android: 2000 },
           currentDeviceDetails.platform,
         );
 
