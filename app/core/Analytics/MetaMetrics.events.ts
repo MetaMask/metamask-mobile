@@ -714,7 +714,6 @@ enum EVENT_NAME {
   REWARDS_ACTIVE_BOOST_CLICKED = 'Rewards Active Boost Clicked',
   REWARDS_BENEFIT_BUTTON_CLICKED = 'Rewards Benefit Button Clicked',
   REWARDS_BENEFIT_DETAIL_VIEWED = 'Rewards Benefit Detail Viewed',
-  REWARDS_DASHBOARD_TAB_VIEWED = 'Rewards Dashboard Tab Viewed',
   REWARDS_DASHBOARD_VIEWED = 'Rewards Dashboard Viewed',
   REWARDS_ONBOARDING_STARTED = 'Rewards Onboarding Started',
   REWARDS_ONBOARDING_COMPLETED = 'Rewards Onboarding Completed',
@@ -2057,9 +2056,6 @@ const events = {
   ),
   REWARDS_BENEFIT_DETAIL_VIEWED: generateOpt(
     EVENT_NAME.REWARDS_BENEFIT_DETAIL_VIEWED,
-  ),
-  REWARDS_DASHBOARD_TAB_VIEWED: generateOpt(
-    EVENT_NAME.REWARDS_DASHBOARD_TAB_VIEWED,
   ),
   REWARDS_DASHBOARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_DASHBOARD_VIEWED),
   REWARDS_ONBOARDING_STARTED: generateOpt(

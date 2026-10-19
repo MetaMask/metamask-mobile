@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -42,6 +42,11 @@ import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  RewardsDashboardKind,
+  trackRewardsDashboardViewed,
+} from '../utils/rewardsDashboardViewedTracking';
 
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   CONTAINER: 'rewards-money-dashboard',
@@ -175,6 +180,8 @@ const RewardsMoneyDashboard: React.FC = () => {
     selectEarningsSummaryEntry(state, profileId),
   );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const hasTrackedDashboardViewed = useRef(false);
+  const { createEventBuilder } = useAnalytics();
   const showEarningsDot = hasClaimableEarnings(
     earningsSummaryEntry?.data?.claimable,
   );
@@ -182,6 +189,18 @@ const RewardsMoneyDashboard: React.FC = () => {
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
+
+  useEffect(() => {
+    if (!profileId || !referralMe || hasTrackedDashboardViewed.current) {
+      return;
+    }
+    trackRewardsDashboardViewed(createEventBuilder, {
+      dashboard: RewardsDashboardKind.REWARDS_MONEY,
+      hasSubscription: Boolean(subscriptionId),
+      referralMe,
+    });
+    hasTrackedDashboardViewed.current = true;
+  }, [createEventBuilder, profileId, referralMe, subscriptionId]);
 
   const tabs = useMemo<TabItem[]>(
     () => [
