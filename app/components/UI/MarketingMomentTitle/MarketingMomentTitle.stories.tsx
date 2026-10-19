@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box, BoxBackgroundColor } from '@metamask/design-system-react-native';
 import I18n, { I18nEvents } from '../../../../locales/i18n';
 import MarketingMomentTitle from './MarketingMomentTitle';
 
@@ -11,13 +10,6 @@ const setLocale = (locale: string) => {
 const MarketingMomentTitleMeta = {
   title: 'Components / UI / MarketingMomentTitle',
   component: MarketingMomentTitle,
-  decorators: [
-    (Story: React.FC) => (
-      <Box backgroundColor={BoxBackgroundColor.BackgroundDefault} padding={4}>
-        <Story />
-      </Box>
-    ),
-  ],
 };
 
 export default MarketingMomentTitleMeta;
