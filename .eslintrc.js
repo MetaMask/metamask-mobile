@@ -61,8 +61,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
   'app/components/UI/Notification/TransactionNotification/index.js',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
-  'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
   'app/components/UI/Stake/hooks/useBalance.ts',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/GasEducationCarousel/index.js',

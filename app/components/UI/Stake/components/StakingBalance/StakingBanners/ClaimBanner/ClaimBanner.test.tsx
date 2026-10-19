@@ -1,5 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useFocusEffect } from '@react-navigation/native';
+import Routes from '../../../../../../../constants/navigation/Routes';
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import Engine from '../../../../../../../core/Engine';
@@ -167,8 +168,43 @@ describe('ClaimBanner', () => {
     ).toHaveBeenCalledWith('mainnet');
   });
 
+  it('navigates after the claim transaction is created', async () => {
+    let resolveClaimTransaction: (() => void) | undefined;
+    mockAttemptPoolStakedClaimTransaction.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveClaimTransaction = resolve;
+        }),
+    );
+
+    const { getByTestId } = renderWithProvider(
+      <ClaimBanner
+        claimableAmount={MOCK_CLAIM_AMOUNT}
+        asset={MOCK_ETH_MAINNET_ASSET}
+      />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId('claim-banner-claim-eth-button'));
+    });
+
+    expect(mockAttemptPoolStakedClaimTransaction).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveClaimTransaction?.();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      params: { amountWei: MOCK_CLAIM_AMOUNT },
+    });
+  });
+
   it('claim button is disabled on subsequent presses', async () => {
     jest.setTimeout(15000);
+    mockAttemptPoolStakedClaimTransaction.mockResolvedValue(undefined);
     const { getByTestId } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}
@@ -191,5 +227,10 @@ describe('ClaimBanner', () => {
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
     expect(mockAttemptPoolStakedClaimTransaction).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      params: { amountWei: MOCK_CLAIM_AMOUNT },
+    });
+    expect(Engine.controllerMessenger.subscribeOnceIf).not.toHaveBeenCalled();
   });
 });

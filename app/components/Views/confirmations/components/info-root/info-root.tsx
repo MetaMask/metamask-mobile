@@ -4,7 +4,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import React from 'react';
-import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
+import { StakingConfirmationProps } from '../../../../UI/Stake/types/confirmations';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
@@ -84,7 +84,7 @@ const ConfirmationInfoComponentMap = {
 };
 
 interface InfoProps {
-  route?: UnstakeConfirmationViewProps['route'];
+  route?: StakingConfirmationProps['route'];
 }
 
 const Info = ({ route }: InfoProps) => {
@@ -184,10 +184,10 @@ const Info = ({ route }: InfoProps) => {
     ].includes(transactionType)
   ) {
     const StakingComponentWithArgs =
-      InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
+      InfoComponent as React.ComponentType<StakingConfirmationProps>;
     return (
       <StakingComponentWithArgs
-        route={route as UnstakeConfirmationViewProps['route']}
+        route={route as StakingConfirmationProps['route']}
       />
     );
   }

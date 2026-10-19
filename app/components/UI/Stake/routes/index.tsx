@@ -2,8 +2,6 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
-import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
-import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
 import MaxInputModal from '../../Earn/components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
@@ -46,16 +44,6 @@ const StakeScreenStack = () => {
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE}
           component={EarnWithdrawInputView}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.STAKING.STAKE_CONFIRMATION}
-          component={StakeConfirmationView as ScreenComponent}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name={Routes.STAKING.UNSTAKE_CONFIRMATION}
-          component={UnstakeConfirmationView as ScreenComponent}
           options={{ headerShown: false }}
         />
         <Stack.Screen
