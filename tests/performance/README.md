@@ -125,13 +125,13 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 
 ## CI Triggers
 
-Performance E2E never runs on push. Coverage comes from PR selection on `main` plus a fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
+Performance E2E never runs on push. On a PR it runs only when the PR has the `run-performance-tests` label. Coverage otherwise comes from the fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
 
 | Event                                 | Behavior                                                                                                                                                                                                                           |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                                                                                                                              |
-| PR targeting `main`                   | Smart E2E Selection: `ALL` runs every performance test, specific tags run only those tests, and `[]`, a blank output, or a selection error runs none. The `run-performance-tests` label forces the full Android low-profile suite. |
-| PR targeting `release/*` or `stable`  | No automatic performance run — CI ignores AI performance selection for these base branches. The `run-performance-tests` label still forces a full run.                                                                             |
+| PR without `run-performance-tests`   | No performance tests. Smart E2E Selection does not start them.                                                                                                                                                                     |
+| PR with `run-performance-tests`       | Full performance suite. Ignored on fork PRs and when the base branch is `stable`.                                                                                                                                                    |
 | Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                                                                 |
 | Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                                                                                                                                             |
 
@@ -139,7 +139,7 @@ Workflow layout:
 
 - [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on BrowserStack, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
-- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
+- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` only when the PR has the `run-performance-tests` label, and then runs the full suite.
 
 For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
 

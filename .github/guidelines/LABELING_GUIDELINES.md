@@ -41,7 +41,7 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 ### Force Performance Tests
 
-- **run-performance-tests**: Forces the PR performance E2E workflow to run (all performance tests on Android low-profile devices), even when Smart E2E Selection would skip them (e.g. no performance-relevant changes detected, `skip-e2e`, or `pr-not-ready-for-e2e`). Adding or removing this label re-triggers CI. Not honored on fork PRs.
+- **run-performance-tests**: The only way to run performance E2E on a PR. Without this label, PR CI does not run performance tests. With it, CI runs the full performance suite. Adding or removing this label re-triggers CI. Not honored on fork PRs, or when the base branch is `stable`.
 
 ### Force Appium iOS Smoke Tests
 
