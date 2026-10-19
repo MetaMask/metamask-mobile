@@ -11,6 +11,8 @@ import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import { selectKycProviderFlowStatus } from '../../../../../../selectors/kycController';
+import { prefetchSumsubToken } from '../../../../KYC/hooks/sumsubTokenPrefetch';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -295,6 +297,19 @@ export const resolveVbaOnboarding = async (
     }
 
     await resumePersistedKycSession();
+
+    // A durable `abandoned` outcome always resumes at the provider screen,
+    // which launches SumSub. Start its `createJourney` round trip now so it
+    // overlaps hydration instead of gating the SDK launch. A missed prefetch
+    // (different destination, failed request) is harmless: the launch falls
+    // back to creating its own token.
+    if (
+      selectKycProviderFlowStatus(
+        ReduxService.store.getState() as RootState,
+      ) === 'abandoned'
+    ) {
+      prefetchSumsubToken();
+    }
 
     const hydratedSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({

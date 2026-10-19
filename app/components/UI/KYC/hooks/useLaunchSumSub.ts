@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
+  KycControllerState,
   KycCatalogDocument,
   KycConsentDocument,
   KycConsentRecord,
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { takePrefetchedSumsubToken } from './sumsubTokenPrefetch';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
 
 export interface UseLaunchSumSubResult {
@@ -53,14 +55,49 @@ async function recordSessionConsents(): Promise<void> {
 }
 
 /**
+ * True when the current KYC session already has server-recorded session
+ * consents (`consentStatus === 'given'`), so the record chain can be skipped
+ * and the launch can go straight to the provider.
+ *
+ * The check is gated on persisted accepted records in controller state: on a
+ * first launch there are none, and the verification GET would only add
+ * latency in front of the mandatory record call. A rejected or falsy check
+ * falls back to recording, which stays correct in every case.
+ */
+async function hasServerRecordedConsents(kycController: {
+  state?: KycControllerState;
+  hasCompletedSessionDisclaimers: () => Promise<boolean>;
+}): Promise<boolean> {
+  const state = kycController.state;
+  const hasPersistedRecords = Boolean(
+    state?.providerDisclaimersAccepted?.sumsub?.length ||
+      state?.idosDisclaimersAccepted?.length,
+  );
+  if (!hasPersistedRecords) {
+    return false;
+  }
+  try {
+    return await kycController.hasCompletedSessionDisclaimers();
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-kyc', provider: 'sumsub' },
+      context: { name: 'hasServerRecordedConsents' },
+    });
+    return false;
+  }
+}
+
+/**
  * On mount, records session-scoped idOS / SumSub consents and launches the
  * SumSub document-verification journey back-to-back, then reports the outcome
  * to the VBA coordinator.
  *
  * The UKYC session was created at the email step. The identity module displays
  * the session terms first, but records consent immediately before launch to
- * keep consent recording and provider launch atomic. Splitting those operations
- * across screens yields a "Failed to get applicant" error.
+ * keep consent recording and provider launch atomic. Splitting those
+ * operations across screens yields a "Failed to get applicant" error. A
+ * re-entry with consents already on the server verifies that with one GET and
+ * skips the record chain.
  *
  * A half-completed (abandoned) KYC session re-enters here too and relaunches
  * the provider directly instead of stopping at an interstitial.
@@ -105,12 +142,23 @@ export const useLaunchSumSub = (
           throw new Error('KYC controller is unavailable');
         }
 
-        await recordSessionConsents();
+        if (await hasServerRecordedConsents(KycController)) {
+          // Re-entry: consents are already on the server for this session.
+        } else {
+          await recordSessionConsents();
+        }
         if (cancelled) {
           return;
         }
 
-        const outcome = await KycController.launchProviderFlow({});
+        const applicantAccessToken = await takePrefetchedSumsubToken();
+        if (cancelled) {
+          return;
+        }
+
+        const outcome = await KycController.launchProviderFlow({
+          applicantAccessToken,
+        });
         if (cancelled) {
           return;
         }
