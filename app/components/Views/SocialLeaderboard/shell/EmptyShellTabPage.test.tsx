@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  act,
-  fireEvent,
-  screen,
-  within,
-  type ReactTestInstance,
-} from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
