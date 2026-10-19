@@ -70,7 +70,7 @@ const waitForAndroidTestDappHeadingViaCdp = async (
     // re-resolves the CDP endpoint instead of probing a dead forward.
     ChromeCdpHelpers.resetMetaMaskWebViewCache();
 
-    let text = await pollHeading(pollTimeoutMs);
+    const text = await pollHeading(pollTimeoutMs);
     if (headingReady(text)) {
       return text;
     }
