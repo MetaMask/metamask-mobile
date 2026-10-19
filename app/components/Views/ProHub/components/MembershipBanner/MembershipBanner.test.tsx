@@ -8,7 +8,7 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { ProHubTestIds } from '../../ProHub.testIds';
 import MembershipBanner from './MembershipBanner';
 import {
@@ -52,6 +52,16 @@ const renderBanner = (subscription: Subscription, onAction = jest.fn()) => {
 };
 
 describe('MembershipBanner', () => {
+  const originalLocale = I18n.locale;
+
+  beforeEach(() => {
+    I18n.locale = 'en';
+  });
+
+  afterEach(() => {
+    I18n.locale = originalLocale;
+  });
+
   it('renders Active with no alert and no status icon', () => {
     const { getByTestId, queryByTestId } = renderBanner(createSubscription());
 
@@ -132,7 +142,7 @@ describe('MembershipBanner', () => {
       ),
     ).toHaveTextContent(
       strings('pro_hub.membership_alert.low_balance.title', {
-        date: '10/12/2026',
+        date: 'Oct 12, 2026',
       }),
       { exact: false },
     );
@@ -152,7 +162,7 @@ describe('MembershipBanner', () => {
       ),
     ).toHaveTextContent(
       strings('pro_hub.membership_alert.cancelled.description', {
-        date: '10/12/2026',
+        date: 'Oct 12, 2026',
       }),
       { exact: false },
     );

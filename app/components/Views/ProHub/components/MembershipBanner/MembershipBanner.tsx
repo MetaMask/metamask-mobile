@@ -71,10 +71,14 @@ const MembershipBanner = ({
             membershipAlert.titleKey,
             membershipAlert.descriptionValues ?? {},
           )}
-          description={strings(
-            membershipAlert.descriptionKey,
-            membershipAlert.descriptionValues ?? {},
-          )}
+          description={
+            membershipAlert.descriptionKey
+              ? strings(
+                  membershipAlert.descriptionKey,
+                  membershipAlert.descriptionValues ?? {},
+                )
+              : undefined
+          }
           actionButtonLabel={strings(membershipAlert.actionKey)}
           actionButtonOnPress={() => onAction(membershipAlert.action)}
           actionButtonProps={{

@@ -108,20 +108,17 @@ const StatRow = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { model: membershipBanner, subscription } = useMembershipBannerModel();
+  const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
-  const showHubContent =
-    proAccess !== MoneyAccountPlusAccess.Disabled &&
-    (proAccess === MoneyAccountPlusAccess.Subscriber || Boolean(subscription));
+  const showHubContent = proAccess === MoneyAccountPlusAccess.Subscriber;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // A displayed plan stays on screen, including a cancelled last subscription.
-  // Unknown access waits for the first fetch. Disabled and eligible users with
-  // no plan leave.
+  // Subscriber access stays, including a paused plan. Unknown access waits for
+  // the first fetch. A cached last plan does not keep an eligible user here.
   useEffect(() => {
     if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
       return;

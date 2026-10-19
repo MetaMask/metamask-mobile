@@ -116,7 +116,9 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel();
+const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel(
+  createPlusSubscription(SUBSCRIPTION_STATUSES.active),
+);
 
 // Earnings are still mock data. Access and benefits still depend on the
 // subscriptions query, so this screen test mocks those hooks. The banner
@@ -175,7 +177,7 @@ describe('ProHub', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('stays open when a displayed plan remains after access lapses', () => {
+    it('leaves when only a cached plan remains after access lapses', () => {
       mockUseMoneyAccountPlusAccess.mockReturnValue(
         MoneyAccountPlusAccess.Eligible,
       );
@@ -187,10 +189,10 @@ describe('ProHub', () => {
         subscription: { id: 'sub-last' } as Subscription,
       });
 
-      const { getByTestId } = renderProHub();
+      const { queryByTestId } = renderProHub();
 
-      expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeOnTheScreen();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('leaves when Pro is disabled even if a plan is still displayed', () => {

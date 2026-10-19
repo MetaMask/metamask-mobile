@@ -11,8 +11,8 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
+import I18n from '../../../../../../locales/i18n';
 import {
-  formatMembershipDueDate,
   getMembershipBannerModel,
   MembershipAlertAction,
   MembershipStatusKind,
@@ -46,6 +46,16 @@ const createSubscription = (
 });
 
 describe('getMembershipBannerModel', () => {
+  const originalLocale = I18n.locale;
+
+  beforeEach(() => {
+    I18n.locale = 'en';
+  });
+
+  afterEach(() => {
+    I18n.locale = originalLocale;
+  });
+
   it.each([
     SUBSCRIPTION_STATUSES.active,
     SUBSCRIPTION_STATUSES.trialing,
@@ -66,10 +76,22 @@ describe('getMembershipBannerModel', () => {
     });
   });
 
-  it('shows Active when no subscription has loaded', () => {
+  it('shows Unavailable when no subscription has loaded', () => {
     expect(getMembershipBannerModel()).toEqual({
-      statusKind: MembershipStatusKind.Active,
-      statusKey: 'pro_hub.membership_status.active',
+      statusKind: MembershipStatusKind.Unavailable,
+      statusKey: 'pro_hub.membership_status.unavailable',
+    });
+  });
+
+  it.each([
+    SUBSCRIPTION_STATUSES.incomplete,
+    SUBSCRIPTION_STATUSES.incompleteExpired,
+  ])('shows Unavailable for an unmapped %s plan', (status) => {
+    const model = getMembershipBannerModel(createSubscription({ status }));
+
+    expect(model).toEqual({
+      statusKind: MembershipStatusKind.Unavailable,
+      statusKey: 'pro_hub.membership_status.unavailable',
     });
   });
 
@@ -127,7 +149,7 @@ describe('getMembershipBannerModel', () => {
       severity: BannerAlertSeverity.Warning,
       titleKey: 'pro_hub.membership_alert.cancelled.title',
       descriptionKey: 'pro_hub.membership_alert.cancelled.description',
-      descriptionValues: { date: '10/12/2026' },
+      descriptionValues: { date: 'Oct 12, 2026' },
       actionKey: 'pro_hub.membership_alert.cancelled.action',
       action: MembershipAlertAction.Renew,
     });
@@ -145,10 +167,10 @@ describe('getMembershipBannerModel', () => {
     expect(model.alert?.descriptionKey).toBe(
       'pro_hub.membership_alert.cancelled.description',
     );
-    expect(model.alert?.descriptionValues).toEqual({ date: '09/20/2026' });
+    expect(model.alert?.descriptionValues).toEqual({ date: 'Sep 20, 2026' });
   });
 
-  it('repeats the cancelled title when the plan has no date', () => {
+  it('omits the cancelled description when the plan has no date', () => {
     const subscription = createSubscription({
       status: SUBSCRIPTION_STATUSES.canceled,
       currentPeriodEnd: undefined,
@@ -157,9 +179,10 @@ describe('getMembershipBannerModel', () => {
 
     const model = getMembershipBannerModel(subscription);
 
-    expect(model.alert?.descriptionKey).toBe(
+    expect(model.alert?.titleKey).toBe(
       'pro_hub.membership_alert.cancelled.title',
     );
+    expect(model.alert?.descriptionKey).toBeUndefined();
     expect(model.alert?.descriptionValues).toBeUndefined();
   });
 
@@ -193,7 +216,7 @@ describe('getMembershipBannerModel', () => {
     expect(model.alert?.titleKey).toBe(
       'pro_hub.membership_alert.low_balance.title',
     );
-    expect(model.alert?.descriptionValues).toEqual({ date: '11/01/2026' });
+    expect(model.alert?.descriptionValues).toEqual({ date: 'Nov 1, 2026' });
   });
 
   it('uses the description as the title when an awaiting-funds plan has no date', () => {
@@ -208,6 +231,7 @@ describe('getMembershipBannerModel', () => {
     expect(model.alert?.titleKey).toBe(
       'pro_hub.membership_alert.low_balance.description',
     );
+    expect(model.alert?.descriptionKey).toBeUndefined();
     expect(model.alert?.descriptionValues).toBeUndefined();
   });
 
@@ -224,25 +248,9 @@ describe('getMembershipBannerModel', () => {
       severity: BannerAlertSeverity.Info,
       titleKey: 'pro_hub.membership_alert.low_balance.title',
       descriptionKey: 'pro_hub.membership_alert.low_balance.description',
-      descriptionValues: { date: '10/12/2026' },
+      descriptionValues: { date: 'Oct 12, 2026' },
       actionKey: 'pro_hub.membership_alert.low_balance.action',
       action: MembershipAlertAction.AddFunds,
     });
-  });
-});
-
-describe('formatMembershipDueDate', () => {
-  it('formats an ISO date as MM/DD/YYYY', () => {
-    expect(formatMembershipDueDate('2026-10-12')).toBe('10/12/2026');
-  });
-
-  it('formats an ISO timestamp from its calendar date', () => {
-    expect(formatMembershipDueDate('2026-10-12T12:00:00.000Z')).toBe(
-      '10/12/2026',
-    );
-  });
-
-  it('returns the original string when the date cannot be parsed', () => {
-    expect(formatMembershipDueDate('not-a-date')).toBe('not-a-date');
   });
 });

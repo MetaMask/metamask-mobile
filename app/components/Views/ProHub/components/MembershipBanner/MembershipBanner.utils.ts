@@ -8,14 +8,14 @@ import {
   type Subscription,
 } from '@metamask/subscription-controller';
 import { ACTIVE_SUBSCRIPTION_STATUSES } from '../../../../../selectors/subscriptionController';
-
-const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})/;
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 
 export const MembershipStatusKind = {
   Active: 'active',
   Overdue: 'overdue',
   Deactivated: 'deactivated',
   Cancelled: 'cancelled',
+  Unavailable: 'unavailable',
 } as const;
 
 export type MembershipStatusKind =
@@ -32,7 +32,8 @@ export type MembershipAlertAction =
 export interface MembershipAlert {
   severity: BannerAlertSeverity;
   titleKey: string;
-  descriptionKey: string;
+  /** Omitted when there is no second line, so the title is not repeated. */
+  descriptionKey?: string;
   /** Shared by the title and description. Either string may use `{{date}}`. */
   descriptionValues?: Record<string, string>;
   actionKey: string;
@@ -48,26 +49,14 @@ export interface MembershipBannerModel {
   alert?: MembershipAlert;
 }
 
-/** Formats a membership date as `MM/DD/YYYY`. */
-export const formatMembershipDueDate = (value: string): string => {
-  const isoMatch = ISO_DATE.exec(value);
-  if (isoMatch) {
-    return `${isoMatch[2]}/${isoMatch[3]}/${isoMatch[1]}`;
-  }
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  const month = String(parsed.getMonth() + 1).padStart(2, '0');
-  const day = String(parsed.getDate()).padStart(2, '0');
-  return `${month}/${day}/${parsed.getFullYear()}`;
-};
-
 const ACTIVE_MODEL: MembershipBannerModel = {
   statusKind: MembershipStatusKind.Active,
   statusKey: 'pro_hub.membership_status.active',
+};
+
+const UNAVAILABLE_MODEL: MembershipBannerModel = {
+  statusKind: MembershipStatusKind.Unavailable,
+  statusKey: 'pro_hub.membership_status.unavailable',
 };
 
 const overdueAlert = (): MembershipAlert => ({
@@ -87,14 +76,14 @@ const deactivatedAlert = (): MembershipAlert => ({
 });
 
 const cancelledAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = date ? formatMembershipDueDate(date) : undefined;
+  const formattedDate = formatSubscriptionPeriodEnd(date);
 
   return {
     severity: BannerAlertSeverity.Warning,
     titleKey: 'pro_hub.membership_alert.cancelled.title',
     descriptionKey: formattedDate
       ? 'pro_hub.membership_alert.cancelled.description'
-      : 'pro_hub.membership_alert.cancelled.title',
+      : undefined,
     descriptionValues: formattedDate ? { date: formattedDate } : undefined,
     actionKey: 'pro_hub.membership_alert.cancelled.action',
     action: MembershipAlertAction.Renew,
@@ -102,14 +91,16 @@ const cancelledAlert = (date: string | undefined): MembershipAlert => {
 };
 
 const addFundsAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = date ? formatMembershipDueDate(date) : undefined;
+  const formattedDate = formatSubscriptionPeriodEnd(date);
 
   return {
     severity: BannerAlertSeverity.Info,
     titleKey: formattedDate
       ? 'pro_hub.membership_alert.low_balance.title'
       : 'pro_hub.membership_alert.low_balance.description',
-    descriptionKey: 'pro_hub.membership_alert.low_balance.description',
+    descriptionKey: formattedDate
+      ? 'pro_hub.membership_alert.low_balance.description'
+      : undefined,
     descriptionValues: formattedDate ? { date: formattedDate } : undefined,
     actionKey: 'pro_hub.membership_alert.low_balance.action',
     action: MembershipAlertAction.AddFunds,
@@ -150,12 +141,13 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 };
 
 /**
- * Maps a Money Account Plus subscription onto the four Pro Hub status labels.
+ * Maps a Money Account Plus subscription onto the Pro Hub status labels.
  *
  * `active`, `trialing`, `provisional`, and `awaiting_funds` show Active. A
  * plan waiting for funds, or an active plan whose latest invoice failed, also
  * shows the existing add-funds or renewal-failed alert. `past_due` shows
  * Overdue. `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
+ * A missing plan, or a status this screen does not map, shows Unavailable.
  *
  * @param subscription - The displayed Plus subscription. Current wins over the last one.
  * @returns The status label, icon color, and alert for that status.
@@ -164,7 +156,7 @@ export const getMembershipBannerModel = (
   subscription?: Subscription,
 ): MembershipBannerModel => {
   if (!subscription) {
-    return ACTIVE_MODEL;
+    return UNAVAILABLE_MODEL;
   }
 
   if (subscription.status === SUBSCRIPTION_STATUSES.canceled) {
@@ -199,5 +191,12 @@ export const getMembershipBannerModel = (
     };
   }
 
-  return activeModel(subscription);
+  if (
+    ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) ||
+    subscription.status === SUBSCRIPTION_STATUSES.awaitingFunds
+  ) {
+    return activeModel(subscription);
+  }
+
+  return UNAVAILABLE_MODEL;
 };

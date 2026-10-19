@@ -12829,7 +12829,8 @@
       "active": "Active",
       "overdue": "Overdue",
       "deactivated": "Deactivated",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "unavailable": "Unavailable"
     },
     "lifetime_earnings": "Lifetime earnings",
     "money_balance": "{{apy}} APY on Money balance",

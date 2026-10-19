@@ -1,6 +1,5 @@
 export { default } from './MembershipBanner';
 export {
-  formatMembershipDueDate,
   getMembershipBannerModel,
   MembershipAlertAction,
   MembershipStatusKind,
