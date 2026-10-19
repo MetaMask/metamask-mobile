@@ -13,6 +13,11 @@ import {
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
 import { BridgeTabKey } from '../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
+import {
+  isSwapsLimitOrderExpirationMinutes,
+  type SwapsLimitOrderExpirationMinutes,
+} from '../../../../components/UI/Bridge/constants/limitOrders';
+import { parseLimitOrderCostTolerance } from '../../../../components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
@@ -177,6 +182,52 @@ function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
     : undefined;
 }
 
+function parseLimitOrderExpirationMinutes(
+  value: string | null,
+): SwapsLimitOrderExpirationMinutes | undefined {
+  if (!value || !/^\d+$/.test(value)) {
+    return undefined;
+  }
+
+  const expirationMinutes = Number(value);
+  return isSwapsLimitOrderExpirationMinutes(expirationMinutes)
+    ? expirationMinutes
+    : undefined;
+}
+
+function getInitialRouteParams(
+  urlParams: URLSearchParams,
+): Partial<
+  Pick<
+    BridgeRouteParams,
+    | 'initialTab'
+    | 'initialLimitOrderExpirationMinutes'
+    | 'initialLimitOrderPriceTolerance'
+  >
+> {
+  const initialTab = getInitialTab(urlParams);
+  if (initialTab !== BridgeTabKey.Limit) {
+    return {};
+  }
+
+  const initialLimitOrderExpirationMinutes = parseLimitOrderExpirationMinutes(
+    urlParams.get('expiresInMinutes'),
+  );
+  const initialLimitOrderPriceTolerance = parseLimitOrderCostTolerance(
+    urlParams.get('priceTolerance'),
+  );
+
+  return {
+    initialTab,
+    ...(initialLimitOrderExpirationMinutes && {
+      initialLimitOrderExpirationMinutes,
+    }),
+    ...(initialLimitOrderPriceTolerance && {
+      initialLimitOrderPriceTolerance,
+    }),
+  };
+}
+
 /**
  * Handles deeplinks for the unified swap/bridge experience
  *
@@ -191,6 +242,8 @@ function getInitialTab(urlParams: URLSearchParams): BridgeTabKey | undefined {
  * - from: CAIP-19 asset identifier for source token
  * - to: CAIP-19 asset identifier for destination token
  * - amount: Amount in minimal divisible units (e.g., 1000000 for 1.00 USDC)
+ * - expiresInMinutes: Optional Limit Order expiration preset, in minutes
+ * - priceTolerance: Optional Limit Order price tolerance percentage
  *
  * All parameters are optional, allows partial deep linking
  */
@@ -221,7 +274,7 @@ const resolveSwapTarget = async (
   const fromCaip = urlParams.get('from');
   const toCaip = urlParams.get('to');
   const atomicAmount = urlParams.get('amount');
-  const initialTab = getInitialTab(urlParams);
+  const initialRouteParams = getInitialRouteParams(urlParams);
 
   // Validate and lookup tokens
   const sourceToken =
@@ -262,7 +315,7 @@ const resolveSwapTarget = async (
     sourcePage: 'deeplink',
     bridgeViewMode: BridgeViewMode.Unified,
     location: MetaMetricsSwapsEventSource.MainView,
-    ...(initialTab && { initialTab }),
+    ...initialRouteParams,
   });
 };
 
@@ -274,7 +327,7 @@ export const createSwapDeeplinkIntent = async ({
 });
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
-  const initialTab = getInitialTab(getSwapUrlParams(swapPath));
+  const initialRouteParams = getInitialRouteParams(getSwapUrlParams(swapPath));
 
   try {
     await executeDeeplinkIntent(await createSwapDeeplinkIntent({ swapPath }));
@@ -286,7 +339,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
       location: MetaMetricsSwapsEventSource.MainView,
-      ...(initialTab && { initialTab }),
+      ...initialRouteParams,
     });
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,

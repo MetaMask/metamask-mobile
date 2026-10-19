@@ -2615,6 +2615,9 @@ describe('BridgeView', () => {
         bridgeViewMode: BridgeViewMode.Unified,
         location: MetaMetricsSwapsEventSource.MainView,
         initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+        swapViewTraceId: 'trace-1',
       };
 
       const { getByTestId } = renderScreen(

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import { FeatureId } from '@metamask/bridge-controller';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { createBridgeTestState } from '../../../testUtils';
@@ -451,24 +451,30 @@ function buildKeypadMock() {
   };
 }
 
+function getLimitOrderView(
+  props: React.ComponentProps<typeof BridgeLimitOrderView> = {},
+) {
+  return (
+    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+      <BridgeLimitOrderView {...props} />
+    </SwapsFeatureIdProvider>
+  );
+}
+
 function renderLimitOrderView(
   bridgeReducerOverrides: NonNullable<
     Parameters<typeof createBridgeTestState>[0]
   >['bridgeReducerOverrides'] = {},
+  props: React.ComponentProps<typeof BridgeLimitOrderView> = {},
 ) {
-  return renderWithProvider(
-    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
-      <BridgeLimitOrderView />
-    </SwapsFeatureIdProvider>,
-    {
-      state: createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: mockSourceToken,
-          ...bridgeReducerOverrides,
-        },
-      }),
-    },
-  );
+  return renderWithProvider(getLimitOrderView(props), {
+    state: createBridgeTestState({
+      bridgeReducerOverrides: {
+        sourceToken: mockSourceToken,
+        ...bridgeReducerOverrides,
+      },
+    }),
+  });
 }
 
 describe('BridgeLimitOrderView', () => {
@@ -973,6 +979,53 @@ describe('BridgeLimitOrderView', () => {
     );
   });
 
+  it('initializes expiration and price tolerance from deeplink values', () => {
+    const { getByText, store } = renderLimitOrderView(
+      {},
+      {
+        initialExpirationMinutes: 10080,
+        initialPriceTolerance: '0.5',
+        deeplinkInitializationKey: 'trace-1',
+      },
+    );
+
+    expect(
+      getByText(getSwapsLimitOrderExpirationLabel(10080)),
+    ).toBeOnTheScreen();
+    expect(getByText('0.5%')).toBeOnTheScreen();
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
+  });
+
+  it('reinitializes expiration and price tolerance for a warm deeplink', async () => {
+    const { getByText, queryByText, rerender, store } = renderLimitOrderView(
+      {},
+      {
+        initialExpirationMinutes: 60,
+        initialPriceTolerance: '2',
+        deeplinkInitializationKey: 'trace-1',
+      },
+    );
+
+    rerender(
+      getLimitOrderView({
+        initialExpirationMinutes: 43200,
+        initialPriceTolerance: '3',
+        deeplinkInitializationKey: 'trace-2',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(getSwapsLimitOrderExpirationLabel(43200)),
+      ).toBeOnTheScreen();
+      expect(getByText('3%')).toBeOnTheScreen();
+    });
+    expect(
+      queryByText(getSwapsLimitOrderExpirationLabel(60)),
+    ).not.toBeOnTheScreen();
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+  });
+
   it('navigates to the limit order default cost tolerance modal when the cost tolerance row is pressed', () => {
     const { getByTestId } = renderLimitOrderView();
 
@@ -1005,6 +1058,34 @@ describe('BridgeLimitOrderView', () => {
         onSelect: expect.any(Function),
       },
     });
+  });
+
+  it('submits the deeplink expiration to the confirmation modal', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    const { getByTestId } = renderLimitOrderView(
+      {},
+      {
+        initialExpirationMinutes: 10080,
+        initialPriceTolerance: '0.5',
+        deeplinkInitializationKey: 'trace-1',
+      },
+    );
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+        params: expect.objectContaining({
+          expiry: getSwapsLimitOrderExpirationLabel(10080),
+          order: expect.objectContaining({
+            expiresInMinutes: 10080,
+          }),
+        }),
+      }),
+    );
   });
 
   it('navigates to the confirmation modal with the fiat limit price as entered', () => {
