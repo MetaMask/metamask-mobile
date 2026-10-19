@@ -16,14 +16,16 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { SocialV1FeedTab } from '../types';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from './SocialV1FeedEmptyState.testIds';
 
+type SocialV1EmptyStateTab = SocialV1FeedTab | 'liveTrades';
+
 export interface SocialV1FeedEmptyStateProps {
-  /** Which Social V1 tab has no posts. */
-  tab: SocialV1FeedTab;
+  /** Which Social V1 tab has no content. */
+  tab: SocialV1EmptyStateTab;
 }
 
 /**
- * Empty state for a Social V1 tab whose feed loaded with no posts.
- * Same icon layout as the V0 feed empty state, with post-oriented copy.
+ * Empty state for a Social V1 tab whose feed loaded with no content.
+ * Same icon layout as the V0 feed empty state, with surface-specific copy.
  */
 const SocialV1FeedEmptyState: React.FC<SocialV1FeedEmptyStateProps> = ({
   tab,

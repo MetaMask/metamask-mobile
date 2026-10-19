@@ -35,4 +35,17 @@ describe('SocialV1FeedEmptyState', () => {
       screen.getByText('social_leaderboard.feed.v1_empty.trending.description'),
     ).toBeOnTheScreen();
   });
+
+  it('renders the Live trades copy', () => {
+    renderWithProvider(<SocialV1FeedEmptyState tab="liveTrades" />);
+
+    expect(
+      screen.getByText('social_leaderboard.feed.v1_empty.liveTrades.title'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        'social_leaderboard.feed.v1_empty.liveTrades.description',
+      ),
+    ).toBeOnTheScreen();
+  });
 });

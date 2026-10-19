@@ -1331,6 +1331,10 @@
         "following": {
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
+        },
+        "liveTrades": {
+          "title": "No trades yet",
+          "description": "Live trades will show up here."
         }
       },
       "empty_type": {
