@@ -97,7 +97,7 @@ const PredictMarketDetailsAbout = memo(
               </Text>
             </Pressable>
             <Icon
-              name={IconName.Export}
+              name={IconName.ArrowSquareOut}
               size={IconSize.Sm}
               color={IconColor.PrimaryDefault}
             />

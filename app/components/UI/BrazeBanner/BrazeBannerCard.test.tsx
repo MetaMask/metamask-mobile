@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import BrazeBannerCard from './BrazeBannerCard';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
-import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/GlassSurface';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../component-library/components-temp/BoxGlass';
 
 // ---------------------------------------------------------------------------
 // Mock: design-system
