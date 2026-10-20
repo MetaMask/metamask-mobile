@@ -17,10 +17,6 @@ import {
   getVbaDestinationForSnapshot,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
-import {
-  buildBrazilMusdAutorampRequest,
-  type VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot,
-} from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import {
   getVbaVendorTermsAcceptance,
@@ -166,6 +162,13 @@ export const navigateToVbaOnboardingDestination = (
     );
     return;
   }
+  if (destinationId === 'identityVerified') {
+    openAsOnlyOnboardingRoute(
+      navigation,
+      VbaOnboardingRoutes.IDENTITY_VERIFIED,
+    );
+    return;
+  }
 
   const screen = {
     vendorTerms: VbaOnboardingRoutes.VENDOR_TERMS,
@@ -193,50 +196,6 @@ export interface OpenVbaOnboardingRequest {
    */
   retryRejectedKyc?: boolean;
 }
-
-/**
- * v27 hydrate only reads status. Main still opens a BRL to mUSD route, so
- * register the wallet when needed and create that autoramp here.
- */
-const provisionBrazilMusdAutoramp = async (
-  walletAddress: string,
-  snapshot: RampsVbaOnboardingSnapshot,
-): Promise<RampsVbaOnboardingSnapshot> => {
-  if (
-    snapshot.kycStatus !== 'approved' ||
-    (snapshot.autorampStatus !== 'needs_wallet_registration' &&
-      snapshot.autorampStatus !== 'needs_source_currency')
-  ) {
-    return snapshot;
-  }
-
-  if (snapshot.autorampStatus === 'needs_wallet_registration') {
-    const registration =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address: walletAddress,
-      });
-    if (registration.type === 'lookupUnavailable') {
-      return { ...snapshot, autorampStatus: 'retryable_failure' };
-    }
-  }
-
-  try {
-    await Engine.context.RampsController.createAutoramp(
-      buildBrazilMusdAutorampRequest(walletAddress),
-    );
-  } catch (error) {
-    Logger.error(error as Error, {
-      tags: { feature: 'vba-onboarding' },
-      context: {
-        name: 'provisionBrazilMusdAutoramp',
-        data: { autorampStatus: snapshot.autorampStatus },
-      },
-    });
-    return { ...snapshot, autorampStatus: 'retryable_failure' };
-  }
-
-  return { ...snapshot, autorampStatus: 'ready' };
-};
 
 /**
  * Re-submits capability authorization for a KYC session that already exists.
@@ -278,8 +237,9 @@ export type ResolvedVbaOnboarding =
 
 /**
  * Resumes a persisted KYC session, hydrates VBA onboarding facts, and picks
- * the next destination. Does not navigate. A missing wallet, a failed session
- * resume, or a thrown hydrate returns `{ status: 'error' }`.
+ * the next destination. Does not navigate, sign, or create an autoramp. A
+ * missing wallet, a failed session resume, or a thrown hydrate returns
+ * `{ status: 'error' }`.
  *
  * @param source - Caller/entry point for error telemetry.
  */
@@ -296,16 +256,12 @@ export const resolveVbaOnboarding = async (
 
     await resumePersistedKycSession();
 
-    const hydratedSnapshot = applyVbaDevOverrides(
+    const accountSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({
         walletAddress,
         refreshKyc: true,
         refreshAutoramps: true,
       }),
-    );
-    const accountSnapshot = await provisionBrazilMusdAutoramp(
-      walletAddress,
-      hydratedSnapshot,
     );
     if (
       accountSnapshot.sessionExists &&

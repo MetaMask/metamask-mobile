@@ -16,7 +16,11 @@ import { PerpsConnectionManager } from '../../../app/components/UI/Perps/service
 import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import {
+  createComponentViewQueryClient,
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../render';
 import {
   initialStatePerps,
   initialStatePerpsPro,
@@ -83,13 +87,14 @@ import {
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
 
-const createPerpsQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
+const createPerpsQueryClient = () => {
+  const queryClient = createComponentViewQueryClient();
+  queryClient.setDefaultOptions({
+    ...queryClient.getDefaultOptions(),
+    mutations: { retry: false },
   });
+  return queryClient;
+};
 
 /** Connection context value for view tests: "connected" so views render content instead of loading skeleton */
 const testConnectionValue: PerpsConnectionContextValue = {
@@ -622,6 +627,7 @@ interface RenderPerpsViewOptions {
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
   crossMarginEnabled?: boolean;
+  socialEnabled?: boolean;
   /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
   connectionValue?: PerpsConnectionContextValue;
 }
@@ -651,11 +657,12 @@ export function renderPerpsView(
     connectionValue,
     includeToasts,
     crossMarginEnabled,
+    socialEnabled,
   } = options;
   const builder =
     mode === 'pro'
-      ? initialStatePerpsPro({ crossMarginEnabled })
-      : initialStatePerps({ crossMarginEnabled });
+      ? initialStatePerpsPro({ crossMarginEnabled, socialEnabled })
+      : initialStatePerps({ crossMarginEnabled, socialEnabled });
   if (overrides) {
     builder.withOverrides(overrides);
   }
