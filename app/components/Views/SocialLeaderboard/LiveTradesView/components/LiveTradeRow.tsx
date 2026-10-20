@@ -1,7 +1,8 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { useLiveCardHeader } from '../../../../UI/SocialFeed/live/useLiveCardHeader';
 import { useSocialEntryOptions } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { getSocialEntryOptionsTriggerTestId } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
 import PositionCardHeader from '../../../../UI/SocialFeed/components/PositionCardHeader';
@@ -45,6 +46,13 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
     postId: item.id,
     authorId: item.traderId,
     authorHandle: item.authorHandle,
+  });
+
+  const header = useLiveCardHeader(item.id, item.live, {
+    priceLabel: item.subtitleLabel,
+    pnlLabel: item.pnlLabel,
+    pnlValueLabel: item.pnlValueLabel,
+    isPnlPositive: item.isPnlPositive,
   });
 
   const handlePositionPress = useCallback(() => {
@@ -93,21 +101,24 @@ const LiveTradeRow: React.FC<LiveTradeRowProps> = ({
         }
       >
         <PositionCardShell tone={tone}>
-          <PositionCardHeader
-            layout={item.isClosed ? 'closed' : 'open'}
-            avatar={item.avatar}
-            symbol={item.symbol}
-            valueLabel={item.valueLabel}
-            pnlLabel={item.pnlLabel}
-            pnlValueLabel={item.pnlValueLabel}
-            isPnlPositive={item.isPnlPositive}
-            direction={item.direction}
-            leverageLabel={item.leverageLabel}
-            side={item.side}
-            subtitleLabel={item.subtitleLabel}
-            closedAgeLabel={closedAgeLabel(item.closedAtMs, now)}
-            testID={getLiveTradeHeaderTestId(item.id)}
-          />
+          <View ref={header.trackRef} collapsable={false}>
+            <PositionCardHeader
+              layout={item.isClosed ? 'closed' : 'open'}
+              avatar={item.avatar}
+              symbol={item.symbol}
+              valueLabel={item.valueLabel}
+              pnlLabel={header.pnlLabel}
+              pnlValueLabel={header.pnlValueLabel}
+              isPnlPositive={header.isPnlPositive}
+              direction={item.direction}
+              leverageLabel={item.leverageLabel}
+              side={item.side}
+              subtitleLabel={header.priceLabel}
+              closedAgeLabel={closedAgeLabel(item.closedAtMs, now)}
+              live={header.live}
+              testID={getLiveTradeHeaderTestId(item.id)}
+            />
+          </View>
         </PositionCardShell>
       </Pressable>
       {optionsSheet}

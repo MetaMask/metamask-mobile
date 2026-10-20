@@ -15,6 +15,7 @@ import { strings } from '../../../../../locales/i18n';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
+import RollingNumber, { type RollingNumberTrend } from './RollingNumber';
 import type { SocialV1PerpDirection, SocialV1SpotSide } from '../types';
 
 const DIRECTION_I18N: Record<SocialV1PerpDirection, string> = {
@@ -35,6 +36,15 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
+/** Set while an open card follows a streamed price. */
+export interface PositionCardHeaderLiveState {
+  /** Direction of the latest price tick, for the subtitle. */
+  priceTrend: RollingNumberTrend | null;
+  /** Direction the P&L moved; opposite to the price on a short. */
+  pnlTrend: RollingNumberTrend | null;
+  reduceMotion: boolean;
+}
+
 export interface PositionCardHeaderProps {
   layout: PositionCardHeaderLayout;
   avatar: PositionTokenAvatarData;
@@ -53,6 +63,8 @@ export interface PositionCardHeaderProps {
   side?: SocialV1SpotSide;
   /** `Closed 2 hr ago`, right-aligned on the closed card. */
   closedAgeLabel?: string;
+  /** Open layout only: roll the figures as live ticks arrive. */
+  live?: PositionCardHeaderLiveState;
   testID?: string;
 }
 
@@ -159,6 +171,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     pnlValueLabel,
     isPnlPositive,
     subtitleLabel,
+    live,
   } = props;
   const tagLabel = sideTagLabel(props);
 
@@ -197,7 +210,17 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             </Tag>
           ) : null}
         </Box>
-        {subtitleLabel ? (
+        {subtitleLabel && live ? (
+          <RollingNumber
+            value={subtitleLabel}
+            trend={live.priceTrend}
+            reduceMotion={live.reduceMotion}
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
+            testID={props.testID && `${props.testID}-subtitle`}
+          />
+        ) : subtitleLabel ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
@@ -214,7 +237,17 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
-        {pnlValueLabel ? (
+        {pnlValueLabel && live ? (
+          <RollingNumber
+            value={pnlValueLabel}
+            trend={live.pnlTrend}
+            reduceMotion={live.reduceMotion}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            twClassName={pnlClassName(isPnlPositive)}
+            testID={props.testID && `${props.testID}-pnl-value`}
+          />
+        ) : pnlValueLabel ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -224,7 +257,17 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlValueLabel}
           </Text>
         ) : null}
-        {pnlLabel ? (
+        {pnlLabel && live ? (
+          <RollingNumber
+            value={pnlLabel}
+            trend={live.pnlTrend}
+            reduceMotion={live.reduceMotion}
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            twClassName={pnlClassName(isPnlPositive)}
+            testID={props.testID && `${props.testID}-pnl`}
+          />
+        ) : pnlLabel ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
