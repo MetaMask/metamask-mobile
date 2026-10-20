@@ -4,6 +4,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -180,7 +181,11 @@ const QuickBuyActionFooter: React.FC = () => {
                   size={AvatarTokenSize.Sm}
                 />
               ) : null}
-              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
                 {pickerToken
                   ? pickerBalanceFiat
                     ? `${pickerToken.symbol} (${pickerBalanceFiat})`
