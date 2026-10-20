@@ -894,8 +894,106 @@ describe('PerpsHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
+          getPerpsMarketRowItemSelector.addButton(btcMarket.symbol),
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
           getPerpsMarketRowItemSelector.rowItem(appleMarket.symbol),
         ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.addButton(appleMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows suggested markets on an empty Watchlist and adds one', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        screen.queryByText(strings('perps.no_favorites_found')),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.addButton(btcMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+
+      await userEvent.press(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.addButton(btcMarket.symbol),
+        ),
+      );
+
+      expect(
+        Engine.context.PerpsController.toggleWatchlistMarket,
+      ).toHaveBeenCalledWith(btcMarket.symbol);
+    });
+
+    it('hides suggestions once the watchlist has five markets', async () => {
+      const savedMarkets = [
+        btcMarket,
+        createEthMarketForViews({ symbol: 'ETH', volume: '$1.8B' }),
+        createEthMarketForViews({ symbol: 'SOL', volume: '$1.2B' }),
+        createEthMarketForViews({ symbol: 'BNB', volume: '$900M' }),
+        createEthMarketForViews({ symbol: 'ARB', volume: '$700M' }),
+      ];
+      const unsavedMarket = createEthMarketForViews({
+        symbol: 'DOGE',
+        volume: '$100M',
+      });
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [...savedMarkets, unsavedMarket],
+        watchlistSymbols: savedMarkets.map((market) => market.symbol),
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
+      savedMarkets.forEach((market) => {
+        expect(
+          screen.getByTestId(
+            getPerpsMarketRowItemSelector.rowItem(market.symbol),
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(unsavedMarket.symbol),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
       ).toBeNull();
     });
 
