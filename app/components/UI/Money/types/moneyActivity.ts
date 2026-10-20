@@ -13,8 +13,6 @@ interface AccountsApiSettlement {
   /** Settlement time, epoch ms (parsed from the API's ISO timestamp). */
   time: number;
   chainId: Hex;
-  /** Block containing the settlement; omitted when Accounts API has no block. */
-  blockNumber?: number;
   /** The settlement token. */
   token: {
     address: Hex;
@@ -29,10 +27,6 @@ export type AccountsApiActivity =
   | (AccountsApiSettlement & {
       kind: 'card';
       paidTo: Hex;
-      /** True when the settlement transfer is denominated in configured vmUSD shares. */
-      isVaultShare?: boolean;
-      /** 18-decimal indexed rate selected at-or-before blockNumber, when available. */
-      historicalRate?: string;
     })
   | (AccountsApiSettlement & {
       kind: 'cashback';

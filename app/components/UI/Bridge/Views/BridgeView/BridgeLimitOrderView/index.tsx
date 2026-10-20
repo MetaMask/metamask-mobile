@@ -205,9 +205,11 @@ const BridgeLimitOrderViewContent = () => {
     focusLimitPrice,
     handleChange: handleKeypadChange,
     handleCustomPercentSelectionChange,
+    handleKeypadClose,
     handleLimitPriceSelectionChange,
     isAmountFocused,
     isCustomPercentFocused,
+    isCustomPercentKeypadOpen,
     keypadProps,
     keypadRef,
     limitPriceSelection,
@@ -239,6 +241,12 @@ const BridgeLimitOrderViewContent = () => {
     scrollViewRef,
     measureTarget: measureCustomPercentInput,
   });
+
+  const { onClose: onKeypadLayoutClose } = keypadLayoutProps;
+  const onKeypadClose = useCallback(() => {
+    onKeypadLayoutClose();
+    handleKeypadClose();
+  }, [handleKeypadClose, onKeypadLayoutClose]);
 
   // Limit orders are not quoted, so the destination amount is derived from the
   // amount being paid and the price the order would trigger at.
@@ -594,6 +602,7 @@ const BridgeLimitOrderViewContent = () => {
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}
+              isLimitPriceInputPressDisabled={isCustomPercentKeypadOpen}
               limitPriceSelection={limitPriceSelection}
               onLimitPriceSelectionChange={handleLimitPriceSelectionChange}
               secondaryLimitPrice={secondaryValue}
@@ -671,6 +680,7 @@ const BridgeLimitOrderViewContent = () => {
           onChange={handleKeypadChange}
           {...keypadLayoutProps}
           {...keypadProps}
+          onClose={onKeypadClose}
         >
           {hasNonZeroSourceAmount ? (
             <SwapsLimitOrderConfirmButton

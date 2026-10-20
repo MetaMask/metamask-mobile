@@ -9,10 +9,9 @@ import {
 import { RootState } from '../../../../reducers';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
-import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
 import {
   selectConversionRateBySymbol,
@@ -80,7 +79,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
   // For non evm assets, the resultChainId is equal to the asset.chainId; while for evm assets; the resultChainId === "eip155:1" !== asset.chainId
   const resultChainId = formatChainIdToCaip(asset.chainId as Hex);
   const isNonEvmAsset = resultChainId === asset.chainId;
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -248,16 +247,27 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
 
   const hasAddressAndDecimals =
     tokenDetails.contractAddress !== null && tokenDetails.tokenDecimal !== null;
+  const showTokenDetails =
+    asset.isETH || isNonEvmAsset || hasAddressAndDecimals;
+  const showMarketDetails = Boolean(marketData && marketDetails);
   return (
-    <View style={styles.tokenDetailsContainer}>
-      {(asset.isETH || isNonEvmAsset || hasAddressAndDecimals) && (
+    <View>
+      {showTokenDetails && (
         <TokenDetailsList
           tokenDetails={tokenDetails}
           onCopyAddress={onCopyAddress}
         />
       )}
-      {marketData && marketDetails && (
-        <MarketDetailsList marketDetails={marketDetails} />
+      {showMarketDetails && marketDetails && (
+        <View
+          style={
+            showTokenDetails
+              ? tw`-mx-4 mt-6 border-t border-muted px-4 pt-6`
+              : undefined
+          }
+        >
+          <MarketDetailsList marketDetails={marketDetails} />
+        </View>
       )}
     </View>
   );

@@ -1323,6 +1323,20 @@
         "title": "No activity yet",
         "description": "Trader activity will show up here as trades come in."
       },
+      "v1_empty": {
+        "trending": {
+          "title": "No posts yet",
+          "description": "Trader posts will show up here."
+        },
+        "following": {
+          "title": "No posts yet",
+          "description": "Follow traders to see their posts here."
+        },
+        "liveTrades": {
+          "title": "No trades yet",
+          "description": "Live trades will show up here."
+        }
+      },
       "empty_type": {
         "tokens": {
           "title": "No token activity"
@@ -1574,6 +1588,9 @@
       "win_rate": "Win rate",
       "pnl": "P&L",
       "hold_time": "Hold time",
+      "avg_hold_time": "Avg. hold time",
+      "volume": "Volume",
+      "performance_30d": "Performance (30d)",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
       "empty_trader_following": "Not following anyone yet.",
@@ -4165,8 +4182,22 @@
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Try again.",
       "market_busy_title": "Market busy",
-      "market_busy_body_buy": "The market is moving fast, so we couldn't buy at {{price}}. Try again at the best available price?",
-      "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
+      "getting_price_body": "The market is moving fast, so we couldn't fill your order. Getting the latest price…",
+      "price_updated_body": "Here's the latest price. Confirm to try again:",
+      "price_moved_title": "Price moved",
+      "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
+      "no_match_title": "No match",
+      "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "try_later": "Try later",
+      "retry_price_label": "Price",
+      "retry_proceeds_label": "You receive",
+      "retry_payout_label": "To win",
+      "retry_worst_case_label": "Worst case ({{band}} band)",
+      "retry_fees_label": "Fees",
+      "yes_buy_at": "Yes, buy at {{price}}",
+      "yes_sell_at": "Yes, sell at {{price}}",
+      "price_unavailable_title": "Price unavailable",
+      "price_unavailable_body": "We couldn't get the latest price. Check your connection and try again.",
       "order_failed_title": "Order failed",
       "order_failed_body": "Your order couldn't be filled. Try again?",
       "payment_failed_title": "Payment didn't go through",
@@ -4177,8 +4208,6 @@
       "retry": "Retry",
       "try_again": "Try again",
       "view": "View",
-      "yes_buy": "Yes, buy",
-      "yes_sell": "Yes, sell",
       "confirm": "Confirm",
       "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"
@@ -4939,6 +4968,8 @@
     "networks": "Networks",
     "log_out": "Log out",
     "notifications": "Notifications",
+    "metamask_orange": "MetaMask Orange",
+    "join_metamask_orange": "Join MetaMask Orange",
     "buy": "Buy",
     "scan": "Scan"
   },
@@ -8428,12 +8459,32 @@
       "title": "2-step verification",
       "description": "Used to confirm it's you before sensitive actions.",
       "manage": "Manage",
-      "email_linked": "Linked to your sign-in",
-      "email_pending": "Setup not finished",
-      "set_up": "Set up",
-      "finish_setup": "Finish setup",
-      "passkey_count": "{{count}} added",
-      "add_another": "Add another"
+      "notice": "The methods here can only protect your Money transactions, but cannot recover your entire wallet.",
+      "add": "Add",
+      "passkeys": "Passkeys",
+      "passkey_count": {
+        "one": "{{count}} passkey",
+        "other": "{{count}} passkeys"
+      },
+      "add_passkey": "Add passkey",
+      "passkey_name": "Passkey #{{number}}",
+      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
+      "added_on": "Added {{date}}",
+      "used_for": "Used for",
+      "used_for_money": "Verifying Money transactions",
+      "remove_passkey": "Remove passkey",
+      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
+      "remove_email": "Remove email",
+      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
+      "remove": "Remove",
+      "last_passkey_title": "Passkey can’t be deleted",
+      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
+      "last_email_title": "Email can’t be removed",
+      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
+      "got_it": "Got it",
+      "passkey_removed": "Passkey removed",
+      "email_removed": "Email verification removed",
+      "remove_failed": "Couldn’t remove this method. Try again later."
     }
   },
   "media_player": {
@@ -9192,7 +9243,8 @@
     "action": {
       "add": "Add",
       "transfer": "Send",
-      "card": "Card"
+      "card": "Card",
+      "details": "Details"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -9442,8 +9494,7 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date",
-      "amount_unavailable": "Amount unavailable"
+      "date": "Date"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -10087,7 +10138,8 @@
       "paying": "Paying",
       "est_receiving": "Est. receiving",
       "trigger_condition": "Trigger condition",
-      "trigger_condition_at": "@",
+      "trigger_condition_at_or_above": "≥",
+      "trigger_condition_at_or_below": "≤",
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
@@ -12825,6 +12877,13 @@
     },
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
+    "membership_status": {
+      "active": "Active",
+      "overdue": "Overdue",
+      "deactivated": "Deactivated",
+      "cancelled": "Cancelled",
+      "unavailable": "Unavailable"
+    },
     "lifetime_earnings": "Lifetime earnings",
     "money_balance": "{{apy}} APY on Money balance",
     "musd_back": "{{rate}} mUSD back",
@@ -12856,6 +12915,33 @@
       "trial_title": "Unlock {{rate}} mUSD back",
       "trial_description": "Unlock card when you complete your free trial"
     },
+    "membership_alert": {
+      "low_balance": {
+        "title": "Add funds by {{date}}",
+        "description": "Your Money account is low. Add funds to keep your membership.",
+        "action": "Try again"
+      },
+      "renewal_failed": {
+        "title": "Renewal failed",
+        "description": "Your balance is too low. Add to your Money account to restore membership.",
+        "action": "Add funds"
+      },
+      "payment_failed": {
+        "title": "Payment failed",
+        "description": "Add funds to your Money account to restore your membership.",
+        "action": "Add funds"
+      },
+      "inactive": {
+        "title": "Your membership is inactive",
+        "description": "Add funds to your Money account to regain access to your benefits.",
+        "action": "Add funds"
+      },
+      "cancelled": {
+        "title": "Your membership is cancelled",
+        "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
+        "action": "Renew membership"
+      }
+    },
     "earned": {
       "total_label": "Earned since joining Pro",
       "interest_title": "Interest",
@@ -12882,7 +12968,10 @@
       "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership"
+      "cancel_membership": "Cancel membership",
+      "resume_membership": "Resume membership",
+      "resume_in_progress": "Resuming membership",
+      "resume_failed": "We couldn't resume your membership. Please try again."
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",

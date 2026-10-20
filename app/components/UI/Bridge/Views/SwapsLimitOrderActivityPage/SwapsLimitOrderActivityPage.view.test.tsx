@@ -208,7 +208,7 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
       within(getByTestId(TRIGGER_CONDITION_ROW)).getByTestId(
         TokenAmountValueSelectorsIDs.PREFIX,
       ),
-    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at'));
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
     expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Ethereum', {
       exact: false,
     });

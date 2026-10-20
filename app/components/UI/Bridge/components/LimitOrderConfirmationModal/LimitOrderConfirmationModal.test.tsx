@@ -7,6 +7,7 @@ import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -71,6 +72,7 @@ function buildProps(
     payingAmount: '0.1 ETH',
     estReceivingAmount: '341.22 USDC',
     triggerPrice: '$3,412.20',
+    triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     expiry: '7 days',
     costTolerance: '2%',
     delegationFee: {
@@ -131,13 +133,32 @@ describe('LimitOrderConfirmationModal', () => {
     expect(within(receivingRow).getByText('341.22 USDC')).toBeOnTheScreen();
   });
 
-  it('displays the trigger price after an @', () => {
+  it('displays an at or above trigger price after a greater than or equal sign', () => {
     const { getByTestId, getByText } = render(
-      <LimitOrderConfirmationModal {...buildProps()} />,
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+        })}
+      />,
     );
 
     expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
-      strings('bridge.limit.trigger_condition_at'),
+      strings('bridge.limit.trigger_condition_at_or_above'),
+    );
+    expect(getByText('$3,412.20')).toBeOnTheScreen();
+  });
+
+  it('displays an at or below trigger price after a less than or equal sign', () => {
+    const { getByTestId, getByText } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+        })}
+      />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
+      strings('bridge.limit.trigger_condition_at_or_below'),
     );
     expect(getByText('$3,412.20')).toBeOnTheScreen();
   });
@@ -282,7 +303,7 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
   });
 
-  it('opens the cost tolerance tooltip when the info button is pressed', () => {
+  it('opens the cost tolerance tooltip when the cost tolerance label is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps({ costTolerance: '2%' })} />,
     );

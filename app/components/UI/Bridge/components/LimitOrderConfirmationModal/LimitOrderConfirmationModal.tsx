@@ -25,6 +25,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import DottedUnderline from '../../../DottedUnderline';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
 import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
@@ -37,6 +38,7 @@ export const LimitOrderConfirmationModal = ({
   payingAmount,
   estReceivingAmount,
   triggerPrice,
+  triggerDirection,
   triggerComparison,
   triggerToken,
   expiry,
@@ -146,7 +148,7 @@ export const LimitOrderConfirmationModal = ({
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
             <TokenAmountValue
               amount={triggerPrice}
-              prefix={strings('bridge.limit.trigger_condition_at')}
+              prefix={strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)}
               token={triggerToken}
             />
             {triggerComparison ? (
@@ -170,8 +172,7 @@ export const LimitOrderConfirmationModal = ({
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow
-          label={strings('bridge.cost_tolerance')}
-          labelAccessory={
+          label={
             <LimitOrderCostToleranceTooltip
               testID={
                 LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
