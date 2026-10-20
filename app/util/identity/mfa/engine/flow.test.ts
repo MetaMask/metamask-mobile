@@ -1018,6 +1018,47 @@ describe('createMfaFlow', () => {
       });
     });
 
+    it('offers to try again when the setup fails to start after confirming with email', async () => {
+      const fake = createFakeController([activeEmail]);
+      const { flow, outcome } = await startFlow(
+        { kind: 'enroll', method: 'totp' },
+        fake.controller,
+      );
+      // Adding a factor first confirms with the email.
+      expect(flow.getState().step).toMatchObject({
+        name: 'otp',
+        purpose: 'confirm',
+        method: 'email_otp',
+      });
+      fake.controller.beginCredentialEnrollment.mockRejectedValueOnce(
+        new MfaError('server_error', 'down'),
+      );
+
+      await act(flow, { type: 'submitCode', code: '111111' });
+
+      expect(flow.getState().step).toStrictEqual({
+        name: 'failure',
+        code: 'server_error',
+        canRetry: true,
+      });
+      // The accepted email code's screen is gone: nothing can resend it or
+      // start an email setup.
+      await act(flow, { type: 'resend' });
+      expect(fake.controller.beginCredentialVerification).toHaveBeenCalledTimes(
+        1,
+      );
+
+      await act(flow, { type: 'retry' });
+
+      expect(flow.getState().step).toMatchObject({ name: 'totpSetup' });
+      expect(
+        fake.controller.beginCredentialEnrollment,
+      ).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'totp' }));
+      await act(flow, { type: 'continue' });
+      await act(flow, { type: 'submitCode', code: '123456' });
+      expect(await outcome).toMatchObject({ ok: true });
+    });
+
     it('restarts an expired setup with a new secret, flagged as such', async () => {
       const fake = createFakeController([]);
       const { flow } = await startFlow(

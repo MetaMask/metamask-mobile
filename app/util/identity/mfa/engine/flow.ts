@@ -1,6 +1,7 @@
 import {
   getMfaRetryAfterMs,
   type EnrolledCredential,
+  type EnrollmentChallenge,
   type VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
 import {
@@ -237,16 +238,29 @@ export const createMfaFlow = ({
    * @param isRestart - Whether a previous setup in this flow expired.
    */
   const startTotpSetup = async (isRestart = false) => {
-    current = { method: 'totp', purpose: 'setup' };
-    const challenge = await controller.beginCredentialEnrollment({
-      type: 'totp',
-      reason: tokenReason,
-      maxSessionAgeMs: getEnrollmentMaxSessionAgeMs(flowStartedAt, now()),
-    });
+    let challenge: EnrollmentChallenge;
+    try {
+      challenge = await controller.beginCredentialEnrollment({
+        type: 'totp',
+        reason: tokenReason,
+        maxSessionAgeMs: getEnrollmentMaxSessionAgeMs(flowStartedAt, now()),
+      });
+    } catch (error) {
+      // Nothing on screen belongs to this setup yet: whatever step came
+      // before is still shown, and its actions would no longer apply. Show
+      // the failure screen with "Try again" instead, unless the error means
+      // the credentials are out of date: the refresh then re-plans.
+      const code = getFlowErrorCode(error);
+      if (getErrorHandling(code) !== 'refresh') {
+        show({ name: 'failure', code, canRetry: true });
+      }
+      throw error;
+    }
     if (challenge.type !== 'totp') {
       throw new MfaFlowError('invalid_response');
     }
-    current.flowId = challenge.flowId;
+    // Only a setup that started becomes the current step.
+    current = { method: 'totp', purpose: 'setup', flowId: challenge.flowId };
     show({
       name: 'totpSetup',
       secret: challenge.secret,
