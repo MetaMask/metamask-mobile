@@ -177,6 +177,12 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const shouldShowSecondaryRow = Boolean(
       shouldShowAmountTypeToggle || marketComparison?.label,
     );
+    const handleAmountTypeTogglePress = onAmountTypeTogglePress
+      ? () => {
+          onDismissKeypad?.();
+          onAmountTypeTogglePress();
+        }
+      : undefined;
 
     useImperativeHandle(ref, () => ({
       blur: () => inputRef.current?.blur(),
@@ -299,14 +305,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 testID={
                   LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE
                 }
-                onPress={
-                  onAmountTypeTogglePress
-                    ? () => {
-                        onDismissKeypad?.();
-                        onAmountTypeTogglePress();
-                      }
-                    : undefined
-                }
+                onPress={handleAmountTypeTogglePress}
+                suppressHighlighting
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
                 twClassName="leading-[16px]"
@@ -323,15 +323,21 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     ≈ {secondaryValue}
                   </Text>
                 ) : null}
-                {onAmountTypeTogglePress ? (
-                  <Icon
-                    name={IconName.SwapVertical}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                    // Inline views sit on the text baseline; this centers the
-                    // icon on the digits like the previous row layout did.
+                {handleAmountTypeTogglePress ? (
+                  <TouchableOpacity
+                    testID={
+                      LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON
+                    }
+                    onPress={handleAmountTypeTogglePress}
+                    hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                     style={{ transform: [{ translateY: 2 }] }}
-                  />
+                  >
+                    <Icon
+                      name={IconName.SwapVertical}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </TouchableOpacity>
                 ) : null}
               </Text>
             ) : null}
