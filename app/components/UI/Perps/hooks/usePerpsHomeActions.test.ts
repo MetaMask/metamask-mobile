@@ -111,7 +111,9 @@ describe('usePerpsHomeActions', () => {
         { name: 'RedesignedConfirmations' },
       ],
     })),
-    addListener: jest.fn(() => jest.fn()),
+    addListener: jest.fn<jest.Mock, [event: string, callback: () => void]>(() =>
+      jest.fn(),
+    ),
   };
 
   const mockDepositWithConfirmation = jest

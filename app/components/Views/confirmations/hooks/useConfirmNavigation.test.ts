@@ -224,7 +224,8 @@ describe('useConfirmNavigation', () => {
     // useSelector only re-reads the selector after the store state changes.
     jest.mocked(selectTransactions).mockReturnValue([]);
     act(() => {
-      view.store.replaceReducer(() => ({ tick: 1 }));
+      const state = view.store.getState();
+      view.store.replaceReducer(() => ({ ...state }));
       view.store.dispatch({ type: 'tick' });
     });
 
