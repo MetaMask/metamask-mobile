@@ -84,16 +84,16 @@ describe('parseSentinelFeeTokensResponse', () => {
   });
 
   it.each([
-    ['missing', undefined],
-    ['empty', ''],
-    ['non-string', 6],
-  ])('rejects a %s symbol', (_, symbol) => {
+    ['missing', undefined, 'Expected a string'],
+    ['empty', '', 'Expected a non-empty string'],
+    ['non-string', 6, 'Expected a string'],
+  ])('rejects a %s symbol', (_, symbol, expectedError) => {
     const response = {
       'eip155:1': [{ ...USDC_TOKEN, symbol }],
     };
 
     expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
-      `invalid symbol for ${USDC_ASSET_ID}`,
+      expectedError,
     );
   });
 
@@ -114,16 +114,6 @@ describe('parseSentinelFeeTokensResponse', () => {
 
     expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
       'Expected a non-empty string',
-    );
-  });
-
-  it('rejects a missing symbol', () => {
-    const response = {
-      'eip155:1': [{ ...USDC_TOKEN, symbol: undefined }],
-    };
-
-    expect(() => parseSentinelFeeTokensResponse(response)).toThrow(
-      'Expected a string',
     );
   });
 
