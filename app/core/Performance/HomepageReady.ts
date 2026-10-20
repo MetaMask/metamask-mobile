@@ -4,7 +4,10 @@ import {
   TraceName,
   TraceOperation,
   TRACES_CLEANUP_INTERVAL,
+  type TraceValue,
 } from '../../util/trace';
+import type { HardwareTier } from '../../util/deviceCapability';
+import type { NetworkTier } from '../../util/deviceCapability/types';
 
 export type HomepageReadyContentState = 'filled' | 'empty' | 'error';
 export type HomepageReadyStartSource = 'app_open' | 'unlock';
@@ -18,6 +21,8 @@ interface StartHomepageReadyTraceOptions {
 
 interface EndHomepageReadyTraceOptions {
   contentState: HomepageReadyContentState;
+  hardwareTier?: HardwareTier | null;
+  networkTier?: NetworkTier | null;
 }
 
 interface CancelHomepageReadyTraceOptions {
@@ -112,16 +117,27 @@ export const resolveColdHomepageReadyTrace = ({
  */
 export const endHomepageReadyTrace = ({
   contentState,
+  hardwareTier,
+  networkTier,
 }: EndHomepageReadyTraceOptions) => {
   if (startedAt === null) {
     return;
   }
+
+  const capabilityData: Record<string, TraceValue> =
+    hardwareTier !== undefined || networkTier !== undefined
+      ? {
+          hardware_tier: hardwareTier ?? 'unknown',
+          network_tier: networkTier ?? 'unknown',
+        }
+      : {};
 
   endTrace({
     name: TraceName.HomepageReady,
     data: {
       success: contentState !== 'error',
       content_state: contentState,
+      ...capabilityData,
     },
   });
   startedAt = null;

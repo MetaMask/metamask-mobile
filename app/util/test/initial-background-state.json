@@ -568,8 +568,7 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {},
-    "activeDappNetwork": null
+    "domains": {}
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -768,6 +767,10 @@
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null,
     "signInLink": null,
+    "cardLinks": null,
+    "cardLinksFetchedAt": null,
+    "cardLinksSeeded": false,
+    "cardLinkApiBlocked": false,
     "accountLookupCache": {}
   },
   "UiSlotsController": {

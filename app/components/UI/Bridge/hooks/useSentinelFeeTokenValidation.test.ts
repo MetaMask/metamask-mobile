@@ -20,7 +20,7 @@ const SOURCE_ASSET_ID =
 const DESTINATION_ASSET_ID =
   'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
 const SENTINEL_TOKENS: SentinelFeeTokensByChain = {
-  'eip155:1': [{ assetId: SOURCE_ASSET_ID, symbol: 'DUM8' }],
+  'eip155:1': [{ assetId: SOURCE_ASSET_ID, symbol: 'USDC' }],
 };
 const COMPLETE_INPUTS = {
   chainId: 'eip155:1',

@@ -155,11 +155,8 @@ export class WalletHomeSections {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
-    // Probe first. A displayed header can still sit under the tab bar, so a
-    // missed tap nudges it clear instead of waiting out a 30s tap timeout.
-    // `scrollAndTapSection`'s `timeout` is not a clock: 20s becomes 10
-    // scrollIntoView attempts, which is slower than the old 8-attempt burn.
-    // Four attempts is the actual wrong-direction cap.
+    // One short pass. The Perps flow owns retries so a late-mounted header can
+    // be probed again before this scroll burns the whole timeout.
     const clippedHeaderNudge = options.overshootSwipe ?? {
       direction: 'up' as const,
       percentage: 0.2,
@@ -171,7 +168,6 @@ export class WalletHomeSections {
         {
           tapTimeout: 5_000,
           overshootSwipe: clippedHeaderNudge,
-          clearTabBar: true,
         },
       )
     ) {
@@ -194,11 +190,8 @@ export class WalletHomeSections {
                   : ('down' as const),
               percentage: 0.15,
             },
-            // A miss runs every attempt. Four is half the old default, so a
-            // wrong direction returns in about half the previous ~30s.
-            // A hit still stops as soon as the header is in view.
-            maxAttempts: 4,
-            clearTabBar: true,
+            maxAttempts: 2,
+            tapTimeout: 3_000,
           },
         ),
       [direction, fallbackDirection],
@@ -331,6 +324,7 @@ export class WalletHomeSections {
           WalletHomeScroll.scrollAndTapSection(target, description, direction, {
             timeout: scrollAndTapPerDirectionMs,
             tapTimeout: tapTimeoutMs,
+            fullyVisible: true,
             overshootSwipe: {
               direction: direction === 'down' ? 'up' : 'down',
               percentage: 0.15,

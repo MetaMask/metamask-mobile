@@ -7,7 +7,6 @@ import { usePerpsConnection } from '../../../../../UI/Perps/hooks/usePerpsConnec
 import { selectPerpsEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
 import {
   selectPerpsBalances,
-  selectPerpsEligibility,
   selectPerpsProvider,
 } from '../../../../../UI/Perps/selectors/perpsController';
 import type { BalanceSlice, FiatConverter } from '../../types';
@@ -15,19 +14,19 @@ import { PERPS_HOMEPAGE_THROTTLE_MS } from '../../constants';
 
 export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
   const isEnabled = useSelector(selectPerpsEnabledFlag);
-  const isEligible = useSelector(selectPerpsEligibility);
   const perpsBalances = useSelector(selectPerpsBalances);
   const activeProvider = useSelector(selectPerpsProvider) as
     | PerpsActiveProviderMode
     | undefined;
   const { account, isInitialLoading } = usePerpsLiveAccount({
-    enabled: isEnabled && isEligible,
+    enabled: isEnabled,
     throttleMs: PERPS_HOMEPAGE_THROTTLE_MS,
   });
   const { error: connectionError } = usePerpsConnection();
 
-  // Perps is ineligible when the feature flag is off
-  const isIneligible = !isEnabled || !isEligible;
+  // Trading eligibility must not hide funds because geo-blocked users can
+  // still view and withdraw their Perps balance.
+  const isIneligible = !isEnabled;
 
   const totalBalanceUsd = parseFloat(account?.totalBalance ?? '0') || 0;
   const convertedValue = toUserCurrency(totalBalanceUsd);
