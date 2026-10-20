@@ -168,6 +168,7 @@ export class WalletHomeSections {
         {
           tapTimeout: 5_000,
           overshootSwipe: clippedHeaderNudge,
+          clearTabBar: true,
         },
       )
     ) {
@@ -192,6 +193,7 @@ export class WalletHomeSections {
             },
             maxAttempts: 2,
             tapTimeout: 3_000,
+            clearTabBar: true,
           },
         ),
       [direction, fallbackDirection],
