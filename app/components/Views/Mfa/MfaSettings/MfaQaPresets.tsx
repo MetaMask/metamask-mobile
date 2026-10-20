@@ -123,7 +123,10 @@ const MfaQaPresets = () => {
   };
 
   return (
-    <Box twClassName="gap-3" testID={MfaSettingsSelectorsIDs.QA_PRESETS}>
+    <Box
+      twClassName="px-4 pt-4 gap-3"
+      testID={MfaSettingsSelectorsIDs.QA_PRESETS}
+    >
       <Text variant={TextVariant.HeadingSm}>QA presets (non-production)</Text>
       {PRESETS.map((preset) => (
         <Button

@@ -7,15 +7,18 @@ import {
   LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
-import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { getLimitOrderFiatPriceDecimals } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { formatLimitOrderFiatUnitPrice } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderDefaultPriceMode } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import type { TriggerPriceDisplay } from './types';
 
 /**
- * Formats a USD trigger price in the given currency, to two decimal places.
- * Without a rate to convert with, the price shows in USD as is rather than a
- * guessed one.
+ * Formats a USD trigger price in the given currency with the precision it was
+ * placed with: cents, or more for a cheap token's sub-dollar price. Without a
+ * rate to convert with, the price shows in USD as is rather than a guessed
+ * one.
  */
 function getFiatTriggerPrice(
   usdPrice: string,
@@ -26,14 +29,19 @@ function getFiatTriggerPrice(
     const displayPrice = new BigNumber(usdPrice).dividedBy(fiatToUsdRate);
 
     if (displayPrice.isFinite() && displayPrice.gt(0)) {
-      return formatLimitOrderFiatValue(
+      return formatLimitOrderFiatUnitPrice(
         displayPrice.toNumber(),
         currentCurrency,
+        getLimitOrderFiatPriceDecimals(displayPrice),
       );
     }
   }
 
-  return formatLimitOrderFiatValue(usdPrice, 'usd');
+  return formatLimitOrderFiatUnitPrice(
+    usdPrice,
+    'usd',
+    getLimitOrderFiatPriceDecimals(usdPrice),
+  );
 }
 
 /**
@@ -134,10 +142,11 @@ export function getTriggerPrice(
       const price = isShownAsReported
         ? trigger.price
         : invertPrice(trigger.price);
+      const amount = formatLimitOrderQuickPrice(price) ?? price;
 
       return {
         triggerPrice: strings('bridge.limit.quote_unit', {
-          amount: formatLimitOrderQuickPrice(price) ?? price,
+          amount: formatSubscriptNotation(Number(amount)) ?? amount,
           symbol: counterToken.symbol,
         }),
         triggerToken: quotedToken,

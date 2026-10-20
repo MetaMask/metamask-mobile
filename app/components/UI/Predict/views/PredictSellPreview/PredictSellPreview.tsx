@@ -49,7 +49,7 @@ import {
 } from '../../utils/format';
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import {
-  buildPredictFeeBreakdownAmounts,
+  buildPredictFeeBreakdowns,
   estimatePredictSellNetValue,
   getPredictPositionDisplay,
   getPredictSellNetProceeds,
@@ -235,7 +235,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const total = currentValue;
-  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
     side: Side.SELL,
     order: preview?.minAmountReceived ?? 0,
     metamaskFee,
@@ -460,6 +461,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               disabled={!preview}
               loading={isPreviewLoading}
               total={total}
+              originalTotal={originalFeeBreakdown?.total}
+              feePolicyDiscountType={preview?.feePolicy?.discountType}
               handleFeesInfoPress={handleFeesInfoPress}
             />
             <View style={styles.cashOutButtonContainer}>
@@ -478,6 +481,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         <PredictFeeBreakdownSheet
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
+          feePolicyDiscountType={preview?.feePolicy?.discountType}
+          originalTotal={originalFeeBreakdown?.total}
           sharePrice={currentPrice}
           contractCount={preview?.maxAmountSpent ?? 0}
           betAmount={feeBreakdown.order}

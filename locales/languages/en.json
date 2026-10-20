@@ -1208,8 +1208,8 @@
       "button": "Try again"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Try again"
     },
     "vba_details": {
@@ -2309,7 +2309,8 @@
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
         "reduce_only_too_large": "Reduce only order is larger than your open position",
-        "twap_unavailable": "TWAP placement is not available for this provider."
+        "twap_unavailable": "TWAP placement is not available for this provider.",
+        "lighter_limit_tpsl_unsupported": "Take profit and stop loss can't both be set on a limit order for this provider yet"
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -5531,6 +5532,19 @@
         "onboarding_seen": "Onboarding seen: {{seen}}",
         "reset_onboarding": "Reset onboarding"
       },
+      "new_wallet": {
+        "title": "New wallet",
+        "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
+        "button": "Wipe and create new SRP",
+        "confirm_title": "Wipe wallet and create a new SRP?",
+        "confirm_message": "The current SRP, accounts and app data are deleted. Back up the SRP first if you need it.",
+        "confirm": "Wipe and create",
+        "cancel": "Cancel",
+        "no_password_title": "No saved password",
+        "no_password_message": "Set DEV_AUTO_UNLOCK_PASSWORD in .js.env, or enable remember me or biometrics so the keychain holds the password.",
+        "success": "New wallet ready",
+        "failure": "New wallet failed"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
@@ -6166,6 +6180,13 @@
       "security": "Security",
       "feed": "Feed",
       "holders": "Holders"
+    },
+    "holders_tab": {
+      "empty": "No holders to show yet",
+      "error": {
+        "title": "We couldn't load holders",
+        "retry": "Try again"
+      }
     },
     "performance": {
       "title": "Performance"
@@ -8459,12 +8480,32 @@
       "title": "2-step verification",
       "description": "Used to confirm it's you before sensitive actions.",
       "manage": "Manage",
-      "email_linked": "Linked to your sign-in",
-      "email_pending": "Setup not finished",
-      "set_up": "Set up",
-      "finish_setup": "Finish setup",
-      "passkey_count": "{{count}} added",
-      "add_another": "Add another"
+      "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "add": "Add",
+      "passkeys": "Passkeys",
+      "passkey_count": {
+        "one": "{{count}} passkey",
+        "other": "{{count}} passkeys"
+      },
+      "add_passkey": "Add passkey",
+      "passkey_name": "Passkey #{{number}}",
+      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
+      "added_on": "Added {{date}}",
+      "used_for": "Used for",
+      "used_for_money": "Verifying Money transactions",
+      "remove_passkey": "Remove passkey",
+      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
+      "remove_email": "Remove email",
+      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
+      "remove": "Remove",
+      "last_passkey_title": "Passkey can’t be deleted",
+      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
+      "last_email_title": "Email can’t be removed",
+      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
+      "got_it": "Got it",
+      "passkey_removed": "Passkey removed",
+      "email_removed": "Email verification removed",
+      "remove_failed": "Couldn’t remove this method. Try again later."
     }
   },
   "media_player": {
@@ -9446,6 +9487,7 @@
     },
     "transaction": {
       "deposited": "Deposited",
+      "bank_transfer": "Bank transfer",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
@@ -9474,8 +9516,7 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date",
-      "amount_unavailable": "Amount unavailable"
+      "date": "Date"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -10094,6 +10135,7 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "(-{{percent}}% from market)",
       "from_market_above": "(+{{percent}}% from market)",
+      "from_market_above_capped": "(>+{{percent}}% from market)",
       "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
       "market": "Market",
       "custom": "Custom",
@@ -10117,7 +10159,7 @@
       "create_order": "Create Order",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
-      "receiving": "Receiving",
+      "est_receiving": "Est. receiving",
       "trigger_condition": "Trigger condition",
       "trigger_condition_at_or_above": "≥",
       "trigger_condition_at_or_below": "≤",
@@ -10333,9 +10375,6 @@
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
-    "rebate_banner": "You’re getting {{percent}}% back on fees",
-    "rebate_tooltip_title": "Trading Rewards",
-    "rebate_tooltip_content": "Claim {{percent}}% of the eligible MetaMask fee on this trade in mUSD to your Money account. Network fees are not included. Check the Rewards tab to see your trading rewards and learn more.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "recipient": "Recipient",
@@ -11663,6 +11702,11 @@
     "close": "Close"
   },
   "rewards": {
+    "rebate": {
+      "banner": "You’re getting {{percent}}% back on fees",
+      "tooltip_title": "Trading Rewards",
+      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your Money account. Network fees aren’t included. See the Rewards tab for details."
+    },
     "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with MetaMask Rewards. Try again later.",
     "failed_to_authenticate": "Failed to authenticate with MetaMask Rewards",
@@ -12949,7 +12993,10 @@
       "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership"
+      "cancel_membership": "Cancel membership",
+      "resume_membership": "Resume membership",
+      "resume_in_progress": "Resuming membership",
+      "resume_failed": "We couldn't resume your membership. Please try again."
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",

@@ -324,6 +324,7 @@ export class WalletHomeSections {
           WalletHomeScroll.scrollAndTapSection(target, description, direction, {
             timeout: scrollAndTapPerDirectionMs,
             tapTimeout: tapTimeoutMs,
+            fullyVisible: true,
             overshootSwipe: {
               direction: direction === 'down' ? 'up' : 'down',
               percentage: 0.15,
