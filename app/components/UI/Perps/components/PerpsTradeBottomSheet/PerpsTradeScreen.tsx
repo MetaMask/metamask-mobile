@@ -36,6 +36,7 @@ import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
 import PerpsSlider from '../PerpsSlider';
 import PerpsSwapIcon from '../PerpsSwapIcon';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsRebateBanner from '../PerpsRebateBanner';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import { typography } from '@metamask/design-tokens';
 import {
@@ -769,6 +770,14 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   showEndIcon={false}
                   onPress={() => navigateTo('liquidationInfo')}
                 />
+                {!isAtOICap ? (
+                  <PerpsRebateBanner
+                    coin={asset}
+                    direction={direction}
+                    notionalUsd={amount}
+                    twClassName="mt-2"
+                  />
+                ) : null}
               </>
             ) : null}
           </Box>
