@@ -168,6 +168,7 @@ _secrets: &secrets # Infrastructure
   ANDROID_APPLE_CLIENT_ID: 'ANDROID_APPLE_CLIENT_ID'
   ANDROID_GOOGLE_CLIENT_ID: 'ANDROID_GOOGLE_CLIENT_ID'
   ANDROID_GOOGLE_SERVER_CLIENT_ID: 'ANDROID_GOOGLE_SERVER_CLIENT_ID'
+  E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
   # Card/Baanx
   MM_CARD_BAANX_API_CLIENT_KEY: 'MM_CARD_BAANX_API_CLIENT_KEY'
   # Braze
@@ -314,9 +315,7 @@ builds:
       # selector override so Telegram seedless onboarding performance coverage
       # (TO-916) can see the button without depending on remote test flags.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-    secrets:
-      <<: *secrets
-      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
+    secrets: *secrets
     code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
@@ -381,9 +380,7 @@ builds:
       # Keep Telegram seedless onboarding available for RC without-srp perf runs
       # even if remote flag delivery lags; selector reads MM_TELEGRAM_LOGIN_ENABLED.
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-    secrets:
-      <<: *secrets
-      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
+    secrets: *secrets
     code_fencing: *code_fencing_main
 
   # Test builds
@@ -469,9 +466,7 @@ builds:
       OAUTH_BUILD_TYPE: 'main_uat'
       MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS: 'true'
       MM_TELEGRAM_LOGIN_ENABLED: 'true'
-    secrets:
-      <<: *secrets
-      E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
+    secrets: *secrets
     code_fencing: *code_fencing_experimental
 
   # Local development / Expo development build (Runway .app for simulator)
