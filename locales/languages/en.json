@@ -10149,7 +10149,7 @@
       "create_order": "Create Order",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
-      "receiving": "Receiving",
+      "est_receiving": "Est. receiving",
       "trigger_condition": "Trigger condition",
       "trigger_condition_at_or_above": "≥",
       "trigger_condition_at_or_below": "≤",
