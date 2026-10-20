@@ -102,7 +102,7 @@ e2e_relevant_workflows:
   - '.github/workflows/run-performance-e2e*.yml'
   - '.github/workflows/update-e2e-fixtures.yml'
   - '.github/workflows/build.yml'
-  - '.github/workflows/performance-test-runner-testmu.yml'
+  - '.github/workflows/performance-test-runner.yml'
   - '.github/actions/download-e2e-artifact/**'
   - '.github/actions/dual-upload-e2e-artifact/**'
   - '.github/actions/setup-e2e-env/**'

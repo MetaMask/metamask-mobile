@@ -39,8 +39,8 @@ jobs:
       contents: read
       actions: read
       statuses: read
-      id-token: write # AWS OIDC for signing and keystores in build-android-performance-apks.yml
-    uses: ./.github/workflows/build-android-performance-apks.yml
+      id-token: write # AWS OIDC for signing and keystores in build-android-upload-to-testmu.yml
+    uses: ./.github/workflows/build-android-upload-to-testmu.yml
     if: >-
       github.event_name != 'workflow_dispatch'
         || (!inputs.browserstack_app_url_android

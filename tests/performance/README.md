@@ -592,11 +592,11 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # CI note: PR (main) and scheduled performance runs use build_variant=e2e
 # (GitHub environment build-e2e). Manual dispatch also supports build_variant=exp
 # or rc. E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately in
-# performance-test-runner-testmu for the flags API. See "CI Triggers".
+# performance-test-runner for the flags API. See "CI Triggers".
 #
 # Android performance dual builds (main-e2e-bs-*) follow the same fingerprint
 # procedure as main-e2e Android (build-android-e2e.yml), via find-reusable-build in
-# build-android-performance-apks.yml. Performance runs upload the staged
+# build-android-upload-to-testmu.yml. Performance runs upload the staged
 # APKs to TestMu only:
 #   - miss → fresh dual Gradle builds
 #   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is

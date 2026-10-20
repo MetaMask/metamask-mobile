@@ -1,4 +1,4 @@
-name: Performance Test Runner — TestMu AI HyperExecute (Reusable)
+name: Performance Test Runner (Reusable)
 
 # Runs Android performance specs on TestMu real devices, orchestrated by
 # TestMu HyperExecute.

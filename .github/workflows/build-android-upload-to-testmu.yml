@@ -17,7 +17,7 @@
 #      current JS, then upload the APKs and newly generated sourcemaps
 #      (fingerprint ignores JS-only changes).
 
-name: Build Android Dual Versions
+name: Build Android Dual Versions and Upload to TestMu
 
 on:
   workflow_call:

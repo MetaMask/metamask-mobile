@@ -296,7 +296,7 @@ jobs:
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Upload to TestMu
-    uses: ./.github/workflows/build-android-performance-apks.yml
+    uses: ./.github/workflows/build-android-upload-to-testmu.yml
     needs: [prepare, check-testmu-credentials]
     # Android runs without explicit TestMu app URLs go through this workflow.
     # It selects fingerprint reuse for app changes and latest-main artifact
@@ -330,7 +330,7 @@ jobs:
 
   run-android-onboarding-tests-testmu:
     name: Performance Test Android TestMu HyperExecute (Onboarding)
-    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    uses: ./.github/workflows/performance-test-runner.yml
     needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
@@ -362,7 +362,7 @@ jobs:
 
   run-android-imported-wallet-tests-testmu:
     name: Performance Test Android TestMu HyperExecute (Imported Wallet)
-    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    uses: ./.github/workflows/performance-test-runner.yml
     needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
