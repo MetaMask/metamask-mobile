@@ -10,7 +10,7 @@ import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateC
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
 import { Text } from '@metamask/design-system-react-native';
-import { formatAmountForDisplay } from '../../../utils/transaction-pay';
+import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -39,11 +39,13 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
 
-  const formattedAmount = formatAmountWithLocaleSeparators(
-    formatAmountForDisplay(amountFiat),
+  const isEditing = showCursor && !disabled;
+  const { typedText, assistiveText } = parseAmountWithAssistiveDecimals(
+    amountFiat,
+    isEditing,
   );
 
-  const amountLength = formattedAmount.length;
+  const amountLength = typedText.length + assistiveText.length;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -74,13 +76,22 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
         style={styles.input}
         onPress={disabled ? undefined : onPress}
       >
-        {formattedAmount}
+        {typedText}
       </Text>
       {cursorVisible && (
         <Animated.View
           testID="custom-amount-cursor"
           style={[styles.cursor, { opacity: cursorOpacity }]}
         />
+      )}
+      {Boolean(assistiveText) && (
+        <Text
+          testID="custom-amount-assistive"
+          style={[styles.input, styles.assistive]}
+          onPress={disabled ? undefined : onPress}
+        >
+          {assistiveText}
+        </Text>
       )}
     </View>
   );

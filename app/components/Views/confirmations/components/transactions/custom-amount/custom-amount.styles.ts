@@ -33,6 +33,9 @@ const styleSheet = (params: {
           ? params.theme.colors.text.muted
           : params.theme.colors.text.default,
     },
+    assistive: {
+      color: params.theme.colors.text.muted,
+    },
     cursor: {
       width: 1,
       height: Math.round(fontSize * 0.7),
