@@ -10,10 +10,26 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 
+let mockIsGlassEnabled = true;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
 const containerStyle = { marginTop: 8 };
 const contentStyle = { padding: 4 };
 
 describe('BoxGlass', () => {
+  beforeEach(() => {
+    mockIsGlassEnabled = true;
+  });
+
   it('renders its children on the glass', () => {
     const { getByTestId, getByText } = render(
       <BoxGlass radiusClassName="rounded-xl" testID="glass">
@@ -99,6 +115,20 @@ describe('BoxGlass', () => {
   });
 
   describe('opaque surface', () => {
+    it('draws the muted surface where the OS cannot draw glass', () => {
+      mockIsGlassEnabled = false;
+
+      const { getByTestId } = render(
+        <BoxGlass radiusClassName="rounded-xl" testID="s" />,
+      );
+
+      expect(getByTestId('s')).toHaveStyle({
+        backgroundColor: mockTheme.colors.background.muted,
+        borderRadius: 12,
+      });
+      expect(getByTestId('s').props.isInteractive).toBeUndefined();
+    });
+
     it('draws the muted surface in the same shape when glass is off', () => {
       const { getByTestId, getByText } = render(
         <BoxGlass isGlass={false} radiusClassName="rounded-xl" testID="s">
