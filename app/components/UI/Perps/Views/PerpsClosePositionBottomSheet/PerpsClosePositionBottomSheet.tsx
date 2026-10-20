@@ -21,7 +21,9 @@ import Keypad from '../../../../Base/Keypad';
 import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsSlider from '../../components/PerpsSlider';
+import PerpsSlider, {
+  SLIDER_HORIZONTAL_PADDING,
+} from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
@@ -226,12 +228,13 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       />
 
       {!isEditingLimitPrice && !isInputFocused && (
-        <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+        <Box twClassName="py-4" onTouchCancel={handleSliderDragCancel}>
           <PerpsSlider
             value={displayClosePercentage}
             onValueChange={handleSliderValueChange}
             onDragEnd={handleSliderDragEnd}
             disabled={isClosing}
+            trackInset={SLIDER_HORIZONTAL_PADDING}
           />
         </Box>
       )}
