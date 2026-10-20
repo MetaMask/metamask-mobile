@@ -152,6 +152,7 @@ jobs:
           TEST_SRP_3_SECRET: ${{ secrets.TEST_SRP_3 }}
           TEST_SRP_4_SECRET: ${{ secrets.TEST_SRP_4 }}
           E2E_PASSWORD_SECRET: ${{ secrets.E2E_PASSWORD }}
+          ANTHROPIC_API_KEY_SECRET: ${{ secrets.E2E_CLAUDE_API_KEY }}
         run: |
           echo "Setting TestMu HyperExecute $BUILD_TYPE environment for device: $DEVICE_NAME"
 
@@ -221,6 +222,10 @@ jobs:
             echo "TEST_SRP_3=$TEST_SRP_3_SECRET"
             echo "TEST_SRP_4=$TEST_SRP_4_SECRET"
             echo "E2E_PASSWORD=$E2E_PASSWORD_SECRET"
+            # AI locator recovery for broken Page Object taps / wallet-home scrolls.
+            # Stays off when the key is missing (for example on fork PRs).
+            echo "AI_LOCATOR_RECOVERY_ENABLED=true"
+            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY_SECRET"
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=$SENTRY_RELEASE"

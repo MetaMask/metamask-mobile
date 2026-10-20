@@ -79,6 +79,7 @@ write_secret "TEST_SRP_2" "${TEST_SRP_2:-}"
 write_secret "TEST_SRP_3" "${TEST_SRP_3:-}"
 write_secret "TEST_SRP_4" "${TEST_SRP_4:-}"
 write_secret "E2E_PASSWORD" "${E2E_PASSWORD:-}"
+write_secret "ANTHROPIC_API_KEY" "${ANTHROPIC_API_KEY:-}"
 write_secret "E2E_PERFORMANCE_SENTRY_DSN" "${E2E_PERFORMANCE_SENTRY_DSN:-}"
 
 RESOLVED_ANDROID_APP_URL="${TESTMU_ANDROID_APP_URL:-}"
@@ -173,6 +174,8 @@ env:
   TEST_SRP_3: \${{.secrets.TEST_SRP_3}}
   TEST_SRP_4: \${{.secrets.TEST_SRP_4}}
   E2E_PASSWORD: \${{.secrets.E2E_PASSWORD}}
+  ANTHROPIC_API_KEY: \${{.secrets.ANTHROPIC_API_KEY}}
+  AI_LOCATOR_RECOVERY_ENABLED: "$(yaml_escape "${AI_LOCATOR_RECOVERY_ENABLED:-false}")"
   E2E_PERFORMANCE_SENTRY_DSN: \${{.secrets.E2E_PERFORMANCE_SENTRY_DSN}}
   E2E_PERFORMANCE_SENTRY_ENVIRONMENT: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_ENVIRONMENT:-github-actions-performance-e2e-testmu-he}")"
   E2E_PERFORMANCE_SENTRY_RELEASE: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_RELEASE:-}")"
