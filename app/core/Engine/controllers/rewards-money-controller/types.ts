@@ -128,7 +128,7 @@ export type ReferralLocalizedTextKey =
   | 'copyLink'
   | 'messages'
   | 'telegram'
-  | 'last30DaysUpdatedDaily'
+  | 'updatedDaily'
   | 'eligibleFees'
   | 'funnelCodeUses'
   | 'funnelCodeUsesDescription'

@@ -41,7 +41,7 @@ const PROFILE_ID = 'profile-a';
 
 const LOCALIZED_TEXT = {
   referrals: 'Referrals',
-  last30DaysUpdatedDaily: 'Last 30 days · Updated daily',
+  updatedDaily: 'Updated daily',
   funnelConfirmed: 'Confirmed referrals',
   funnelConfirmedDescription: 'Friends who completed a first eligible action',
   funnelFeeGenerating: 'Fee-generating referrals',
@@ -201,6 +201,8 @@ describe('PerformanceTab', () => {
     expect(getByText('Fee-generating referrals')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
     expect(getByText('Eligible fees')).toBeOnTheScreen();
+    expect(getByText('Updated daily')).toBeOnTheScreen();
+    expect(queryByText('Last 30 days · Updated daily')).toBeNull();
     expect(queryByText('Code uses')).toBeNull();
     expect(queryByText('Active referrals')).toBeNull();
     expect(getByText('12')).toBeOnTheScreen();
