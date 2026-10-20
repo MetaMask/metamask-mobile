@@ -13,6 +13,7 @@ import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
+import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
 import { renderScreenWithRoutes } from '../render';
@@ -143,6 +144,10 @@ export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
         name: Routes.RAMP.VBA_ONBOARDING,
         Component:
           VbaOnboardingNavigator as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.RAMP.VBA_DETAILS,
+        Component: VbaDetails as unknown as React.ComponentType,
       },
     ],
     { state: buildVbaState(options) },
