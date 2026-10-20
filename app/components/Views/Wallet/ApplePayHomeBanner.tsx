@@ -14,8 +14,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import { useTheme } from '../../../util/theme';
-import { AppThemeKey } from '../../../util/theme/models';
 import { setApplePayHomeBannerDismissed } from '../../../core/redux/slices/card';
 import ManageCardListItem from '../../UI/Card/components/ManageCardListItem';
 import { AddToWalletButton } from '../../UI/Card/pushProvisioning/components/AddToWalletButton';
@@ -37,9 +35,6 @@ const ApplePayHomeBanner = ({
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { themeAppearance } = useTheme();
-  const addToWalletStyle =
-    themeAppearance === AppThemeKey.dark ? 'blackOutline' : 'black';
 
   const handlePress = useCallback(() => {
     if (eligibility.mode === 'none') {
@@ -58,50 +53,26 @@ const ApplePayHomeBanner = ({
 
   return (
     <Box
-      twClassName="mx-4 mt-4 flex-row items-center gap-3 rounded-xl bg-background-muted p-3"
+      twClassName="mx-4 mt-4 gap-4 rounded-xl bg-background-muted p-4"
       testID="apple-pay-home-banner"
     >
-      <Image
-        source={hero}
-        resizeMode="contain"
-        accessible={false}
-        style={tw.style('h-16 w-12')}
-      />
-      <Box twClassName="min-w-0 flex-1 gap-2">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('card.apple_pay_home_banner.description')}
-        </Text>
-        {eligibility.showRegionLine ? (
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {strings('banner.card.subtitle')}
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="items-start gap-4">
+        <Image
+          source={hero}
+          resizeMode="contain"
+          accessible={false}
+          style={tw.style('h-16 w-12')}
+        />
+        <Box twClassName="min-w-0 flex-1 gap-2">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('card.apple_pay_home_banner.description')}
           </Text>
-        ) : null}
-        {eligibility.mode === 'sign_in' ? (
-          <ManageCardListItem
-            title={strings('card.push_provisioning.add_to_wallet', {
-              walletName: getWalletName(),
-            })}
-            startAccessory={
-              <Image
-                source={applePayMark}
-                resizeMode="contain"
-                accessible={false}
-                style={tw.style('w-8 h-5')}
-              />
-            }
-            rightIcon={IconName.ArrowRight}
-            onPress={handlePress}
-            testID="apple-pay-home-banner-add-row"
-          />
-        ) : (
-          <AddToWalletButton
-            onPress={handlePress}
-            buttonStyle={addToWalletStyle}
-            testID="apple-pay-home-banner-add"
-          />
-        )}
-      </Box>
-      <Box flexDirection={BoxFlexDirection.Column}>
+          {eligibility.showRegionLine ? (
+            <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              {strings('banner.card.subtitle')}
+            </Text>
+          ) : null}
+        </Box>
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Sm}
@@ -110,6 +81,34 @@ const ApplePayHomeBanner = ({
           testID="apple-pay-home-banner-close"
         />
       </Box>
+      {eligibility.mode === 'sign_in' ? (
+        <ManageCardListItem
+          title={strings('card.push_provisioning.add_to_wallet', {
+            walletName: getWalletName(),
+          })}
+          startAccessory={
+            <Image
+              source={applePayMark}
+              resizeMode="contain"
+              accessible={false}
+              style={tw.style('w-8 h-5')}
+            />
+          }
+          rightIcon={IconName.ArrowRight}
+          onPress={handlePress}
+          testID="apple-pay-home-banner-add-row"
+        />
+      ) : (
+        <Box twClassName="items-center">
+          <AddToWalletButton
+            onPress={handlePress}
+            buttonStyle="blackOutline"
+            buttonType="basic"
+            borderRadius={4}
+            testID="apple-pay-home-banner-add"
+          />
+        </Box>
+      )}
     </Box>
   );
 };

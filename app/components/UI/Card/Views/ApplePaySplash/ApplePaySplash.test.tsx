@@ -1,7 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { AppThemeKey } from '../../../../../util/theme/models';
-import { mockTheme } from '../../../../../util/theme';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApplePaySplash from './ApplePaySplash';
 
@@ -83,19 +81,8 @@ describe('ApplePaySplash', () => {
     expect(mockInitiateProvisioning).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the solid black button in light mode', () => {
+  it('uses the same outlined button as Card Home', () => {
     const { getByTestId } = renderWithProvider(<ApplePaySplash />);
-
-    expect(getByTestId('apple-pay-splash-add')).toHaveProp(
-      'accessibilityHint',
-      'black',
-    );
-  });
-
-  it('uses the outlined button in dark mode', () => {
-    const { getByTestId } = renderWithProvider(<ApplePaySplash />, {
-      theme: { ...mockTheme, themeAppearance: AppThemeKey.dark },
-    });
 
     expect(getByTestId('apple-pay-splash-add')).toHaveProp(
       'accessibilityHint',

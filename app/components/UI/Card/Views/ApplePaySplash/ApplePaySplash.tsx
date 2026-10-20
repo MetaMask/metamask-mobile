@@ -18,8 +18,6 @@ import {
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
-import { useTheme } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
 import { selectCardHomeData } from '../../../../../selectors/cardController';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
@@ -44,9 +42,6 @@ const ApplePaySplash = () => {
   const route = useRoute<RouteProp<ApplePaySplashParams, 'ApplePaySplash'>>();
   const source = route.params?.source ?? 'card';
   const tw = useTailwind();
-  const { themeAppearance } = useTheme();
-  const addToWalletStyle =
-    themeAppearance === AppThemeKey.dark ? 'blackOutline' : 'black';
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const cardHomeData = useSelector(selectCardHomeData);
   const homeEligibility = useApplePayHomeEligibility();
@@ -123,28 +118,32 @@ const ApplePaySplash = () => {
         </Box>
       </ScrollView>
       <SafeAreaView edges={['bottom']}>
-        <Box twClassName="px-4 pb-4">
+        <Box twClassName="items-center px-4 pb-4">
           {source === 'home' && homeEligibility.mode === 'sign_in' ? (
-            <ManageCardListItem
-              title={strings('card.push_provisioning.add_to_wallet', {
-                walletName: getWalletName(),
-              })}
-              startAccessory={
-                <Image
-                  source={applePayMark}
-                  resizeMode="contain"
-                  accessible={false}
-                  style={tw.style('w-10 h-6')}
-                />
-              }
-              rightIcon={IconName.ArrowRight}
-              onPress={handleHomePress}
-              testID="apple-pay-splash-add-row"
-            />
+            <Box twClassName="w-full">
+              <ManageCardListItem
+                title={strings('card.push_provisioning.add_to_wallet', {
+                  walletName: getWalletName(),
+                })}
+                startAccessory={
+                  <Image
+                    source={applePayMark}
+                    resizeMode="contain"
+                    accessible={false}
+                    style={tw.style('w-10 h-6')}
+                  />
+                }
+                rightIcon={IconName.ArrowRight}
+                onPress={handleHomePress}
+                testID="apple-pay-splash-add-row"
+              />
+            </Box>
           ) : (
             <AddToWalletButton
               onPress={source === 'home' ? handleHomePress : handleCardPress}
-              buttonStyle={addToWalletStyle}
+              buttonStyle="blackOutline"
+              buttonType="basic"
+              borderRadius={4}
               testID="apple-pay-splash-add"
             />
           )}

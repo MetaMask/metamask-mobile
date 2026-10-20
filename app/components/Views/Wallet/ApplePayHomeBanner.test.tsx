@@ -1,6 +1,4 @@
 import React from 'react';
-import { AppThemeKey } from '../../../util/theme/models';
-import { mockTheme } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApplePayHomePrompt from './ApplePayHomeBanner';
 
@@ -59,19 +57,8 @@ describe('ApplePayHomePrompt', () => {
     expect(queryByTestId('apple-pay-home-banner-add-row')).toBeNull();
   });
 
-  it('uses the solid black button in light mode', () => {
+  it('uses the same outlined button as Card Home', () => {
     const { getByTestId } = renderWithProvider(<ApplePayHomePrompt />);
-
-    expect(getByTestId('apple-pay-home-banner-add')).toHaveProp(
-      'accessibilityHint',
-      'black',
-    );
-  });
-
-  it('uses the outlined button in dark mode', () => {
-    const { getByTestId } = renderWithProvider(<ApplePayHomePrompt />, {
-      theme: { ...mockTheme, themeAppearance: AppThemeKey.dark },
-    });
 
     expect(getByTestId('apple-pay-home-banner-add')).toHaveProp(
       'accessibilityHint',
