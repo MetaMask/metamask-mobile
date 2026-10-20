@@ -12968,7 +12968,10 @@
       "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership"
+      "cancel_membership": "Cancel membership",
+      "resume_membership": "Resume membership",
+      "resume_in_progress": "Resuming membership",
+      "resume_failed": "We couldn't resume your membership. Please try again."
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",
