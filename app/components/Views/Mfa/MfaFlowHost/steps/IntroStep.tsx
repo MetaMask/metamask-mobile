@@ -21,6 +21,7 @@ import StepLayout, { MfaShield, type StepProps } from './StepLayout';
 const METHOD_ICONS: Record<MfaMethod, IconName> = {
   email_otp: IconName.Mail,
   passkey: IconName.Key,
+  totp: IconName.QrCode,
 };
 
 /**
@@ -39,6 +40,11 @@ const getDescription = (
   if (method === 'passkey') {
     return strings(
       isDone ? 'mfa.intro.passkey_done' : 'mfa.intro.passkey_description',
+    );
+  }
+  if (method === 'totp') {
+    return strings(
+      isDone ? 'mfa.intro.totp_done' : 'mfa.intro.totp_description',
     );
   }
   if (isDone) {

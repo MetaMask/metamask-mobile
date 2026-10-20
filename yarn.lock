@@ -11553,9 +11553,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^34.1.0":
-  version: 34.1.0
-  resolution: "@metamask/profile-sync-controller@npm:34.1.0"
+"@metamask/profile-sync-controller@npm:@metamask-previews/profile-sync-controller@34.1.0-preview-e4c191e3a":
+  version: 34.1.0-preview-e4c191e3a
+  resolution: "@metamask-previews/profile-sync-controller@npm:34.1.0-preview-e4c191e3a"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11575,7 +11575,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/d2771b885918f2c96b2513b421a108eda9276996d6864dece4abd2eed17e2b4a70ecbabb1f026978a6f96872ddddc02c64215ab7818ed9e7735128d0d19c41bb
+  checksum: 10/32a4b853ac52f19d0d9a2f926b2c98945cced219944e8ce62ad29973a9b0b82acd2ccc943b60774e552d7058514fd0d4960a8cf0f17915bc2ef9fb7f40b3b50b
   languageName: node
   linkType: hard
 
@@ -39263,7 +39263,7 @@ __metadata:
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-controller": "npm:^1.1.0"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "npm:^34.1.0"
+    "@metamask/profile-sync-controller": "npm:@metamask-previews/profile-sync-controller@34.1.0-preview-e4c191e3a"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^27.0.1"
     "@metamask/react-data-query": "npm:^1.0.0"
