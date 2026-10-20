@@ -118,6 +118,7 @@ export class WalletHomeScroll {
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
+    options: { fullyVisible?: boolean } = {},
   ): Promise<void> {
     await Assertions.expectElementToBeVisible(this.walletScrollView, {
       timeout: resolveE2EWaitTimeoutMs(10_000),
@@ -129,22 +130,20 @@ export class WalletHomeScroll {
         this.walletScrollView,
       )) as AppiumElement;
       const freshTarget = await this.resolveFreshWalletHomeTarget(target);
-      const scrollDirection = direction === 'down' ? 'up' : 'down';
-      if (isPerformanceSuiteActive()) {
-        // Android reports a header behind the floating tab bar as displayed, so
-        // scrollIntoView alone stops with it unreachable.
-        await Gestures.scrollIntoViewFullyVisible(freshTarget, {
-          scrollableElement: scrollView,
-          direction: scrollDirection,
-          percent: WALLET_HOME_SWIPE_PERCENT,
-          maxScrolls: maxAttempts,
-        });
+      const scrollDirection: 'up' | 'down' =
+        direction === 'down' ? 'up' : 'down';
+      const scrollOptions = {
+        scrollableElement: scrollView,
+        direction: scrollDirection,
+        percent: WALLET_HOME_SWIPE_PERCENT,
+        maxScrolls: maxAttempts,
+      };
+      // scrollIntoView stops on the first visible pixel, which leaves rows
+      // clipped under the floating tab bar. Fully-visible is the shared nudge.
+      if (options.fullyVisible || isPerformanceSuiteActive()) {
+        await Gestures.scrollIntoViewFullyVisible(freshTarget, scrollOptions);
       } else {
-        await Gestures.scrollIntoView(freshTarget, {
-          scrollableElement: scrollView,
-          direction: scrollDirection,
-          maxScrolls: maxAttempts,
-        });
+        await Gestures.scrollIntoView(freshTarget, scrollOptions);
       }
       await Assertions.expectElementToBeVisible(
         await this.resolveFreshWalletHomeTarget(target),
@@ -318,6 +317,8 @@ export class WalletHomeScroll {
       tapTimeout?: number;
       /** Scroll clear of the floating tab bar before tapping. */
       clearTabBar?: boolean;
+      /** Use scrollIntoViewFullyVisible so the row clears the tab bar. */
+      fullyVisible?: boolean;
     } = {},
   ): Promise<void> {
     const {
@@ -326,6 +327,7 @@ export class WalletHomeScroll {
       maxAttempts: maxAttemptsOverride,
       tapTimeout = 30_000,
       clearTabBar = false,
+      fullyVisible = false,
     } = options;
     const maxAttempts =
       maxAttemptsOverride ?? Math.max(8, Math.ceil(timeout / 2_000));
@@ -340,8 +342,11 @@ export class WalletHomeScroll {
         description,
         scrollDirection,
         maxAttempts,
+        { fullyVisible },
       );
-      if (overshootSwipe) {
+      // Android fully-visible already nudges clear of the tab bar.
+      // iOS ignores fullyVisible, so it still needs the overshoot swipe.
+      if (overshootSwipe && !(fullyVisible && this.isAndroidAppium())) {
         await this.applySectionOvershoot(overshootSwipe, description);
       }
       return this.resolveFreshWalletHomeTarget(sectionTarget);
