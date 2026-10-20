@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   TokenDetailsActions,
   TokenDetailsActionsProps,
@@ -7,6 +7,7 @@ import {
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { TokenDetailsAction } from '../constants/constants';
+import { TOKEN_DETAILS_ACTIONS_MENU_BUTTON_TEST_ID } from './TokenDetailsActionsMenu';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -323,6 +324,48 @@ describe('TokenDetailsActions', () => {
       expect(mockOnActionTapped).toHaveBeenCalledWith(
         TokenDetailsAction.MoreOpened,
       );
+    });
+  });
+
+  describe('menu presentation', () => {
+    it('opens the actions from the icon button instead of a row', async () => {
+      const mockOnActionTapped = jest.fn();
+      const { getByTestId, queryByTestId, findByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          onActionTapped={mockOnActionTapped}
+          presentation="menu"
+          hasPerpsMarket={false}
+          isBuyable
+          hasBalance={false}
+        />,
+        { state: mockInitialState },
+      );
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIONS_MENU_BUTTON_TEST_ID));
+
+      expect(
+        await findByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.MORE_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.MoreOpened,
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+
+      await waitFor(() => {
+        expect(defaultProps.onBuy).toHaveBeenCalledTimes(1);
+      });
     });
   });
 });

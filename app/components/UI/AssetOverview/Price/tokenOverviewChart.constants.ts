@@ -12,6 +12,16 @@ import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
 export const TOKEN_OVERVIEW_CHART_HEIGHT =
   Dimensions.get('screen').height * 0.3;
 
+/**
+ * Shorter chart for the token details page, where the action row no longer
+ * sits under the chart.
+ */
+export const TOKEN_OVERVIEW_COMPACT_CHART_HEIGHT =
+  Dimensions.get('screen').height * 0.2;
+
+/** Space between the compact chart and whatever follows it. */
+export const TOKEN_OVERVIEW_COMPACT_CHART_BOTTOM_SPACING = 12;
+
 /** Minimum distributed price points to draw the legacy line chart (matches advanced fallback). */
 export const CHART_DATA_THRESHOLD = 5;
 

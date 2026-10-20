@@ -13,6 +13,10 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenI } from '../../Tokens/types';
 import { TokenDetailsAction } from '../constants/constants';
+import TokenDetailsActionsMenu from './TokenDetailsActionsMenu';
+import { useMoreTokenActions } from '../hooks/useMoreTokenActions';
+
+const runImmediately = (callback: () => void) => callback();
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
 const SKELETON_BUTTON_HEIGHT = 74;
@@ -50,6 +54,8 @@ export interface TokenDetailsActionsProps {
   /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
   resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
   onActionTapped?: (action: TokenDetailsAction) => void;
+  /** `menu` puts the actions behind an icon button instead of a row of buttons. */
+  presentation?: 'buttons' | 'menu';
 }
 
 /**
@@ -87,6 +93,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   isLoading = false,
   resetNavigationLockRef,
   onActionTapped,
+  presentation = 'buttons',
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -297,6 +304,40 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     onLong,
     onShort,
   ]);
+
+  const moreActions = useMoreTokenActions({
+    hasPerpsMarket,
+    hasBalance,
+    isBuyable,
+    isNativeCurrency,
+    asset: token,
+    onBuy,
+    onReceive,
+    onActionTapped,
+    closeAndRun: runImmediately,
+  });
+
+  const menuActions = useMemo(
+    () => [
+      ...buttons.filter((button) => button.key !== 'more'),
+      ...moreActions.map((action) => ({ ...action, key: action.type })),
+    ],
+    [buttons, moreActions],
+  );
+
+  const handleMenuOpen = useCallback(() => {
+    onActionTapped?.(TokenDetailsAction.MoreOpened);
+  }, [onActionTapped]);
+
+  if (presentation === 'menu') {
+    return (
+      <TokenDetailsActionsMenu
+        actions={menuActions}
+        isLoading={isLoading}
+        onOpen={handleMenuOpen}
+      />
+    );
+  }
 
   if (isLoading) {
     return <TokenDetailsActionsSkeleton />;

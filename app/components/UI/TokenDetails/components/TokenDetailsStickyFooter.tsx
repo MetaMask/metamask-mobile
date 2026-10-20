@@ -152,6 +152,8 @@ interface TokenStickyFooterProps {
   isTokenDetailsV1?: boolean;
   /** Optional trader position header rendered above the footer actions. */
   traderPositionPnl?: TraderPositionPnlProps;
+  /** Rendered at the end of the CTA row, such as the token actions menu. */
+  actionsMenu?: React.ReactNode;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -176,6 +178,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   useAmbientColor = false,
   isTokenDetailsV1 = false,
   traderPositionPnl,
+  actionsMenu,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
@@ -710,6 +713,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             />
           </ButtonAnimated>
         )}
+        {actionsMenu}
       </Box>
       {isMoneyDepositCtaActive && !moneyDepositCta?.isLoading && (
         <Text

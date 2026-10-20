@@ -144,6 +144,8 @@ export interface TokenDetailsActionsSectionProps {
   onActionTapped?: (action: TokenDetailsAction) => void;
   resetNavigationLockRef?: React.RefObject<(() => void) | null>;
   onExitAction?: () => void;
+  /** `menu` renders an icon button that opens the actions, instead of the row. */
+  presentation?: 'buttons' | 'menu';
 }
 
 const TokenDetailsActionsSection = ({
@@ -159,6 +161,7 @@ const TokenDetailsActionsSection = ({
   onActionTapped,
   resetNavigationLockRef,
   onExitAction,
+  presentation = 'buttons',
 }: TokenDetailsActionsSectionProps) => {
   const selfPerpsMarket = usePerpsActions({
     symbol: perpsMarket ? null : token.symbol,
@@ -200,25 +203,37 @@ const TokenDetailsActionsSection = ({
   });
   const effectiveOnActionTapped = onActionTapped ?? sectionOnActionTapped;
 
+  const actions = (
+    <TokenDetailsActions
+      hasPerpsMarket={hasPerpsMarket}
+      hasBalance={effectiveHasBalance}
+      isBuyable={isBuyable}
+      isNativeCurrency={isNativeCurrency}
+      token={token}
+      onBuy={onBuy ?? defaultOnBuy}
+      onLong={handlePerpsAction ? onLong : undefined}
+      onShort={handlePerpsAction ? onShort : undefined}
+      onSend={onSend ?? defaultOnSend}
+      onReceive={onReceive ?? defaultOnReceive}
+      isLoading={isBuyableLoading || isPerpsLoading}
+      resetNavigationLockRef={resetNavigationLockRef}
+      onActionTapped={effectiveOnActionTapped}
+      presentation={presentation}
+    />
+  );
+
+  if (presentation === 'menu') {
+    return (
+      <>
+        {actions}
+        {geoBlockTooltip}
+      </>
+    );
+  }
+
   return (
     <>
-      <Box testID={TOKEN_DETAILS_ACTIONS_SECTION_TEST_ID}>
-        <TokenDetailsActions
-          hasPerpsMarket={hasPerpsMarket}
-          hasBalance={effectiveHasBalance}
-          isBuyable={isBuyable}
-          isNativeCurrency={isNativeCurrency}
-          token={token}
-          onBuy={onBuy ?? defaultOnBuy}
-          onLong={handlePerpsAction ? onLong : undefined}
-          onShort={handlePerpsAction ? onShort : undefined}
-          onSend={onSend ?? defaultOnSend}
-          onReceive={onReceive ?? defaultOnReceive}
-          isLoading={isBuyableLoading || isPerpsLoading}
-          resetNavigationLockRef={resetNavigationLockRef}
-          onActionTapped={effectiveOnActionTapped}
-        />
-      </Box>
+      <Box testID={TOKEN_DETAILS_ACTIONS_SECTION_TEST_ID}>{actions}</Box>
       {geoBlockTooltip}
     </>
   );

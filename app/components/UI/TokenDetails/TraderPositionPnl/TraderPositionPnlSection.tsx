@@ -21,6 +21,8 @@ interface TraderPositionPnlSectionProps {
   token: TokenDetailsRouteParams;
   tokenKey: string;
   securityData?: TokenSecurityData | null;
+  /** Rendered at the end of the footer CTA row. */
+  actionsMenu?: React.ReactNode;
 }
 
 /**
@@ -33,6 +35,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
   token,
   tokenKey,
   securityData,
+  actionsMenu,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
@@ -104,6 +107,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
         quickBuyEntrypointLayout="buy_sell"
         onOpenQuickBuy={openQuickBuy}
         traderPositionPnl={traderPositionPnl}
+        actionsMenu={actionsMenu}
       />
       {quickBuySheet}
     </>

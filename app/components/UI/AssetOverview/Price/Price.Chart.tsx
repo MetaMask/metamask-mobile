@@ -14,6 +14,7 @@ import type { TimePeriod } from '../../../../components/hooks/useTokenHistorical
 import {
   LINE_CHART_TIME_RANGES,
   TIME_PERIOD_MS,
+  TOKEN_OVERVIEW_COMPACT_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { usePriceChartContext } from './Price.context';
 
@@ -56,7 +57,11 @@ const IntervalBarRow = () => {
  * off, the indicator bar when they are on, and height-matched spacers so
  * switching modes never shifts the content underneath.
  */
-const BottomChrome = () => {
+const BottomChrome = ({
+  compactBottom = false,
+}: {
+  compactBottom?: boolean;
+}) => {
   const {
     activeIndicators,
     chartType,
@@ -77,15 +82,28 @@ const BottomChrome = () => {
     toggleChartType,
   } = usePriceChartContext();
 
+  // The extra top and bottom margins clear the action row on the legacy page.
+  // Compact mode keeps a single 12px gap under the chart.
+  const bottomChromeClassName = compactBottom ? 'w-full' : 'w-full mt-4 mb-6';
+  const reservedBottomStyle = compactBottom
+    ? styles.compactChartBottomSpacing
+    : styles.indicatorBarSpacer;
+  const indicatorBarStyle = compactBottom
+    ? styles.compactChartBottomMargin
+    : undefined;
+  const timeRangeStyle = compactBottom
+    ? [styles.timeRangeContainer, styles.timeRangeContainerCompact]
+    : styles.timeRangeContainer;
+
   if (isLineMode) {
     if (isTechnicalIndicatorsEnabled) {
-      // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
+      // Reserve the indicator row on the legacy page. Compact mode is a 12px gap.
       return (
-        <Box twClassName="w-full mt-4 mb-6" style={styles.indicatorBarSpacer} />
+        <Box twClassName={bottomChromeClassName} style={reservedBottomStyle} />
       );
     }
     return (
-      <View style={styles.timeRangeContainer}>
+      <View style={timeRangeStyle}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
             isChartLoading={isLoading}
@@ -103,13 +121,13 @@ const BottomChrome = () => {
   if (showCandleEmptyState && isTechnicalIndicatorsEnabled) {
     // Match the IndicatorBar / Skeleton height so switching modes doesn't shift buttons
     return (
-      <Box twClassName="w-full mt-4 mb-6" style={styles.indicatorBarSpacer} />
+      <Box twClassName={bottomChromeClassName} style={reservedBottomStyle} />
     );
   }
 
   if (shouldShowTechnicalIndicators && chartType === ChartType.Candles) {
     return (
-      <Box twClassName="w-full mt-4 mb-6">
+      <Box twClassName={bottomChromeClassName} style={indicatorBarStyle}>
         <IndicatorBar
           maLabel={maLabel}
           onMAPress={handleMAPress}
@@ -126,7 +144,10 @@ const BottomChrome = () => {
     !shouldShowTechnicalIndicators
   ) {
     return (
-      <Box twClassName="w-full px-4 mt-4 mb-6">
+      <Box
+        twClassName={compactBottom ? 'w-full px-4' : 'w-full px-4 mt-4 mb-6'}
+        style={indicatorBarStyle}
+      >
         <Skeleton height={37} width="100%" />
       </Box>
     );
@@ -134,7 +155,7 @@ const BottomChrome = () => {
 
   if (!shouldShowTechnicalIndicators && !isTechnicalIndicatorsEnabled) {
     return (
-      <View style={styles.timeRangeContainer}>
+      <View style={timeRangeStyle}>
         <View style={styles.timeRangeSelectorWrap}>
           <TimeRangeSelector
             isChartLoading={isInitialChartPending}
@@ -149,7 +170,11 @@ const BottomChrome = () => {
     );
   }
 
-  return <Box twClassName="pb-4" />;
+  return compactBottom ? (
+    <Box style={styles.compactChartBottomSpacing} />
+  ) : (
+    <Box twClassName="pb-4" />
+  );
 };
 
 /**
@@ -157,7 +182,17 @@ const BottomChrome = () => {
  * even in line mode or the candle empty state so the WebView is not torn down
  * and rebuilt every time the user toggles.
  */
-export const PriceChartSection = () => {
+export interface PriceChartSectionProps {
+  /**
+   * Uses the shorter chart and a 12px gap below it. The legacy page keeps the
+   * taller chart and the clearance above its action row.
+   */
+  compactBottom?: boolean;
+}
+
+export const PriceChartSection = ({
+  compactBottom = false,
+}: PriceChartSectionProps = {}) => {
   const {
     activeIndicators,
     ambientSuccessGreen,
@@ -200,6 +235,12 @@ export const PriceChartSection = () => {
     visibleToMs,
   } = usePriceChartContext();
 
+  // Compact height is a screen ratio, so this page's chart can shrink
+  // without changing the legacy token chart.
+  const resolvedChartHeight = compactBottom
+    ? TOKEN_OVERVIEW_COMPACT_CHART_HEIGHT
+    : chartHeight;
+
   const showVolume = isTechnicalIndicatorsEnabled
     ? chartType === ChartType.Candles && activeIndicators.has('Volume')
     : chartType === ChartType.Candles;
@@ -234,12 +275,13 @@ export const PriceChartSection = () => {
               ? 'w-full overflow-hidden'
               : 'mt-3 w-full overflow-hidden'
           }
-          style={{ height: chartHeight }}
+          style={{ height: resolvedChartHeight }}
         >
           <LinePriceChart
             prices={distributedRealtimePrices}
             priceDiff={priceDiff}
             isLoading={isLoading}
+            chartHeight={resolvedChartHeight}
             onChartIndexChange={handleLineChartInteraction}
             chartColorOverride={initialAmbientColor ?? undefined}
             hasInsufficientCoverage={hasInsufficientCoverage}
@@ -254,10 +296,10 @@ export const PriceChartSection = () => {
       {showCandleEmptyState && (
         <Box
           twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
-          style={{ height: chartHeight }}
+          style={{ height: resolvedChartHeight }}
         >
           <NoDataOverlay
-            chartHeight={chartHeight}
+            chartHeight={resolvedChartHeight}
             chartPlaceholderFill={theme.colors.border.muted}
           />
         </Box>
@@ -274,7 +316,7 @@ export const PriceChartSection = () => {
       >
         <View
           testID="advanced-chart-touch-container"
-          style={[styles.chartContainer, { height: chartHeight }]}
+          style={[styles.chartContainer, { height: resolvedChartHeight }]}
         >
           {Platform.OS === 'ios' && (
             <View style={styles.edgeOverlay} pointerEvents="box-only" />
@@ -286,7 +328,7 @@ export const PriceChartSection = () => {
               isTechnicalIndicatorsEnabled ? chartWebViewSessionKey : undefined
             }
             realtimeBar={realtimeBar}
-            height={chartHeight}
+            height={resolvedChartHeight}
             showVolume={showVolume}
             volumeOverlay
             chartType={chartType}
@@ -326,7 +368,7 @@ export const PriceChartSection = () => {
       </Box>
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
-      <BottomChrome />
+      <BottomChrome compactBottom={compactBottom} />
     </>
   );
 };

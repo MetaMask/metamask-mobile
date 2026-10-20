@@ -640,14 +640,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   />
                 </Box>
 
-                <Price.Chart />
+                <Price.Chart compactBottom />
               </Price.Provider>
-
-              <TokenDetailsActionsSection
-                token={token}
-                networkName={networkConfigurationByChainId?.name}
-                severity={securityData?.resultType}
-              />
 
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
@@ -685,6 +679,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           tokenKey={traderPositionTokenKey}
           securityData={securityData}
+          actionsMenu={
+            <TokenDetailsActionsSection
+              token={token}
+              networkName={networkConfigurationByChainId?.name}
+              severity={securityData?.resultType}
+              presentation="menu"
+            />
+          }
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

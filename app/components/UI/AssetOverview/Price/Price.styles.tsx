@@ -1,6 +1,9 @@
 import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, ViewStyle } from 'react-native';
-import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
+import {
+  TOKEN_OVERVIEW_COMPACT_CHART_BOTTOM_SPACING,
+  TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT,
+} from './tokenOverviewChart.constants';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -38,6 +41,11 @@ const styleSheet = (params: { theme: Theme }) =>
       flexDirection: 'column',
       alignItems: 'flex-start',
       gap: 10,
+    } as ViewStyle,
+    /** Token details keeps a 12px gap under the chart and nothing below the selector. */
+    timeRangeContainerCompact: {
+      paddingTop: TOKEN_OVERVIEW_COMPACT_CHART_BOTTOM_SPACING,
+      paddingBottom: 0,
     } as ViewStyle,
     /** Container for IntervalBar above chart (technical indicators flag ON) - exactly 16px spacing to chart */
     intervalBarContainer: {
@@ -82,6 +90,13 @@ const styleSheet = (params: { theme: Theme }) =>
     /** Spacer matching IndicatorBar / Skeleton height so mode switches don't shift buttons */
     indicatorBarSpacer: {
       height: 37,
+    } as ViewStyle,
+    /** Fixed gap under the chart on the token details page. */
+    compactChartBottomSpacing: {
+      height: TOKEN_OVERVIEW_COMPACT_CHART_BOTTOM_SPACING,
+    } as ViewStyle,
+    compactChartBottomMargin: {
+      marginTop: TOKEN_OVERVIEW_COMPACT_CHART_BOTTOM_SPACING,
     } as ViewStyle,
   });
 
