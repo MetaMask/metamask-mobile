@@ -52,7 +52,19 @@ const abandonedRoute = {
   params: { snapshot: abandonedSnapshot },
 } as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
 
-const abandonedNavigation = {} as React.ComponentProps<
+// Terms were accepted earlier, on Verify Identity; re-entry lands on the
+// provider screen without an abandoned flow behind it.
+const termsAcceptedSnapshot = {
+  ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+  sessionDisclaimersComplete: true,
+};
+
+const termsAcceptedRoute = {
+  key: 'VbaIdentityVerificationKey',
+  params: { snapshot: termsAcceptedSnapshot },
+} as React.ComponentProps<typeof VbaIdentityVerificationModule>['route'];
+
+const moduleNavigation = {} as React.ComponentProps<
   typeof VbaIdentityVerificationModule
 >['navigation'];
 
@@ -103,7 +115,7 @@ describe('VbaIdentityVerificationModule', () => {
     const { queryByTestId } = renderWithProvider(
       <VbaIdentityVerificationModule
         route={abandonedRoute}
-        navigation={abandonedNavigation}
+        navigation={moduleNavigation}
       />,
     );
 
@@ -113,14 +125,17 @@ describe('VbaIdentityVerificationModule', () => {
     expect(queryByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('launches SumSub through the same provider screen when terms are accepted', () => {
+  it('launches SumSub through the same provider screen when terms are accepted', async () => {
     const { getByTestId } = renderWithProvider(
       <VbaIdentityVerificationModule
-        route={abandonedRoute}
-        navigation={abandonedNavigation}
+        route={termsAcceptedRoute}
+        navigation={moduleNavigation}
       />,
     );
 
+    await waitFor(() => {
+      expect(mockKycController.launchProviderFlow).toHaveBeenCalledWith({});
+    });
     expect(getByTestId(VbaSumSubKycSelectorsIDs.CONTAINER)).toBeOnTheScreen();
   });
 });
