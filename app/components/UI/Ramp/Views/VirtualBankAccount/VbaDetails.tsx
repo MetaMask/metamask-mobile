@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
+import { AccessibilityInfo, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,10 +15,7 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
   Text,
   TextColor,
@@ -57,7 +54,7 @@ export const VbaDetailsSelectorsIDs = {
   COPY_BUTTON: 'vba-details-copy-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
-  ROW_ICON: 'vba-details-row-icon',
+  HELPER_TEXT: 'vba-details-helper-text',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   SETUP_ERROR: 'vba-details-setup-error',
@@ -369,20 +366,6 @@ const VbaDetails = () => {
                     color: TextColor.TextDefault,
                     numberOfLines: 1,
                   }}
-                  startAccessory={
-                    <View
-                      accessible={false}
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      testID={`${VbaDetailsSelectorsIDs.ROW_ICON}-${row.id}`}
-                    >
-                      <Icon
-                        name={IconName.Key}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
-                    </View>
-                  }
                   endAccessory={
                     <ButtonIcon
                       iconName={IconName.Copy}
@@ -462,6 +445,14 @@ const VbaDetails = () => {
             ))}
           </Box>
         )}
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="mt-auto pt-6 text-center"
+          testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+        >
+          {strings('virtual_bank_account.vba_details.helper_text')}
+        </Text>
       </ScrollView>
       {showSetupRetry || debugEnabled ? (
         <Box twClassName="gap-4 px-4 pb-2 pt-4">

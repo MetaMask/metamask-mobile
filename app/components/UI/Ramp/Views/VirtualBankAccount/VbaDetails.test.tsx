@@ -154,6 +154,9 @@ describe('VbaDetails', () => {
       'no',
     );
     expect(getByText('Add money with Pix')).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.helper_text'),
+    );
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
     });
@@ -175,12 +178,11 @@ describe('VbaDetails', () => {
     expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
   });
 
-  it('shows both Pix rows with a key icon', async () => {
+  it('shows both Pix rows without leading key icons', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
 
-    const { getByLabelText, getByTestId, getByText } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const { getByLabelText, getByTestId, getByText, queryByTestId } =
+      renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
@@ -190,22 +192,10 @@ describe('VbaDetails', () => {
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     expect(getByText('PIX key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
-    const copiaColaIcon = getByTestId(
-      `${VbaDetailsSelectorsIDs.ROW_ICON}-copia-cola`,
-      { includeHiddenElements: true },
-    );
-    const pixKeyIcon = getByTestId(
-      `${VbaDetailsSelectorsIDs.ROW_ICON}-pix-key`,
-      { includeHiddenElements: true },
-    );
-    expect(copiaColaIcon).toHaveProp(
-      'importantForAccessibility',
-      'no-hide-descendants',
-    );
-    expect(pixKeyIcon).toHaveProp(
-      'importantForAccessibility',
-      'no-hide-descendants',
-    );
+    expect(
+      queryByTestId('vba-details-row-icon-copia-cola'),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('vba-details-row-icon-pix-key')).not.toBeOnTheScreen();
     expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
     expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
