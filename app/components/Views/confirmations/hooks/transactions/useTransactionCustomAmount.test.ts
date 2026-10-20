@@ -13,6 +13,7 @@ import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
+import { usePerpsWithdrawMaxAmountRefresh } from './usePerpsWithdrawMaxAmountRefresh';
 import {
   TransactionMeta,
   TransactionType,
@@ -79,6 +80,7 @@ jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
 jest.mock('../pay/useMMPayFiatConfig');
 jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
+jest.mock('./usePerpsWithdrawMaxAmountRefresh');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
@@ -207,6 +209,9 @@ describe('useTransactionCustomAmount', () => {
   const useTransactionPayHasSourceAmountMock = jest.mocked(
     useTransactionPayHasSourceAmount,
   );
+  const usePerpsWithdrawMaxAmountRefreshMock = jest.mocked(
+    usePerpsWithdrawMaxAmountRefresh,
+  );
   const setTransactionConfigMock = jest.mocked(
     Engine.context.TransactionPayController.setTransactionConfig,
   );
@@ -266,6 +271,7 @@ describe('useTransactionCustomAmount', () => {
     useTransactionPayQuotesLastUpdatedMock.mockReturnValue(undefined);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    usePerpsWithdrawMaxAmountRefreshMock.mockReturnValue(undefined);
     useMMPayFiatConfigMock.mockReturnValue({
       enabledTransactionTypes: [],
     } as unknown as ReturnType<typeof useMMPayFiatConfig>);
@@ -466,6 +472,23 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('30000');
     });
+  });
+
+  it('calls the perps max refresh hook with the transaction meta and max flag', () => {
+    runHook({
+      transactionMeta: {
+        type: TransactionType.perpsWithdraw,
+      },
+    });
+
+    expect(usePerpsWithdrawMaxAmountRefreshMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isMaxAmount: false,
+        transactionMeta: expect.objectContaining({
+          type: TransactionType.perpsWithdraw,
+        }),
+      }),
+    );
   });
 
   it('updateTokenAmount delegates to updateTransactionPayAmount with the human amount', async () => {

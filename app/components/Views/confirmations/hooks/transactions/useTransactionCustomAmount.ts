@@ -18,6 +18,7 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
+import { usePerpsWithdrawMaxAmountRefresh } from './usePerpsWithdrawMaxAmountRefresh';
 import { getTokenAddress } from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
@@ -142,6 +143,10 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
+  usePerpsWithdrawMaxAmountRefresh({
+    transactionMeta,
+    isMaxAmount,
+  });
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
   }`;
