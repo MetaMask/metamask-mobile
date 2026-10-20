@@ -233,6 +233,10 @@ jobs:
       - name: Setup Node.js
         if: env.REPACK_ENABLED == 'true'
         uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job only has
+        # statuses: write and actions: read, so the worst case is forged statuses or a fingerprint that
+        # reuses native artifacts from an earlier RC run. Production builds rebuild without caches.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -529,6 +533,10 @@ jobs:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 0
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64, which this job runs), which have no yarn.lock checksum. That
+        # could expose the E2E Claude, OpenAI and Gemini API keys and this job's token (contents and
+        # pull-requests: write). Release branches only change through approved PRs.
         with:
           node-version-file: '.nvmrc'
           cache: yarn

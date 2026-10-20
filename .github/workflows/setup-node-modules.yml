@@ -141,11 +141,19 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      # The Namespace cache is not governed by the caller's `cache-mode`.
+      - name: Resolve cache mode
+        id: cache-mode
+        run: |
+          mode="${ACTIONS_CACHE_MODE:-write}"
+          echo "Cache mode: ${mode}"
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
+
       # node_modules must not be cached here: nscloud-cache-action mounts cached paths as
       # symlinks into /Volumes/cache, and the cache/tarball this workflow produces would
       # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode != 'none' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |

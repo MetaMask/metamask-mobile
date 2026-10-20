@@ -105,6 +105,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job has no secrets
+        # and only checks that the working tree stays clean.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -119,6 +122,9 @@ jobs:
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: the cached Foundry binaries are not verified after
+        # restore. Only this job uses this key (it includes runner.os), and the job has no secrets and
+        # only checks that the working tree stays clean.
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -181,6 +187,9 @@ jobs:
           ref: main
           fetch-depth: 1
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job only has
+        # statuses: write, and its fingerprint only picks which native build the E2E tests reuse.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -236,6 +245,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
+        # This job has no secrets and only checks for duplicate dependencies.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -295,6 +307,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
+        # This job has no secrets and only reports on git dependencies.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -378,6 +393,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
+        # This job has no secrets and only runs lint and check scripts.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -423,6 +441,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job's only credential
+        # is a read-only token for MetaMask/ai-analyzer, and it produces nothing that ships.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -495,6 +516,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
+        # This job has no secrets, and its audit result is advisory.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -601,6 +625,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
+        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
+        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
+        # This job only has statuses: write, and the bundles it builds never ship.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -953,7 +980,10 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+        # actionlint 1.7.1 predates the `cache-mode` workflow key.
+        run: >-
+          ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+          -ignore 'unexpected key "cache-mode" for "(workflow|job)" section'
         shell: bash
 
   deploy-platform-api-docs:
@@ -1625,6 +1655,7 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
 
       - name: Fetch and freeze E2E timings
         id: fetch
@@ -1890,6 +1921,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
+          package-manager-cache: false
       - name: Download lcov.info (Namespace)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
