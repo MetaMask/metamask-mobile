@@ -130,7 +130,8 @@ export class WalletHomeScroll {
         this.walletScrollView,
       )) as AppiumElement;
       const freshTarget = await this.resolveFreshWalletHomeTarget(target);
-      const scrollDirection = direction === 'down' ? 'up' : 'down';
+      const scrollDirection: 'up' | 'down' =
+        direction === 'down' ? 'up' : 'down';
       const scrollOptions = {
         scrollableElement: scrollView,
         direction: scrollDirection,
