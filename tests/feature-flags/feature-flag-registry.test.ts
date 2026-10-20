@@ -12,13 +12,13 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
-    it('registers Chase as in-prod, version-gated and default-off', () => {
+    it('registers Chase as in-prod, version-gated and default-on', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
         name: 'perpsMobileChase',
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.13.0',
+          enabled: true,
+          minimumVersion: '8.15.0',
         },
       });
     });
@@ -60,8 +60,8 @@ describe('Feature Flag Registry', () => {
         type: FeatureFlagType.Remote,
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.13.0',
+          enabled: true,
+          minimumVersion: '8.15.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -76,7 +76,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.11.0',
+          minimumVersion: '8.15.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -150,10 +150,10 @@ describe('Feature Flag Registry', () => {
       );
     });
 
-    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+    it('keeps Perps Mobile TWAP default-on and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
-        enabled: false,
-        minimumVersion: '8.13.0',
+        enabled: true,
+        minimumVersion: '8.15.0',
       });
     });
 
