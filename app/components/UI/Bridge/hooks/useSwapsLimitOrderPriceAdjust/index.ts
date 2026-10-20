@@ -5,7 +5,11 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
-import { formatLimitOrderFiatPriceFromTokenAmount } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import {
+  formatLimitOrderFiatInputPriceFromTokenAmount,
+  formatLimitOrderFiatPriceFromTokenAmount,
+  roundLimitOrderMarketFiatToInput,
+} from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import {
   getIsSwapsLimitOrderStablecoin,
   getSwapsLimitOrderDefaultPriceMode,
@@ -21,7 +25,6 @@ import {
   limitOrderPriceAdjustReducer,
 } from '../../reducers/limitOrderPriceAdjustReducer';
 import {
-  LIMIT_ORDER_CUSTOM_PERCENT_MAX,
   LIMIT_ORDER_NEAR_MARKET_PERCENT,
   LimitOrderExecutionType,
 } from '../../constants/limitOrders';
@@ -128,17 +131,8 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
-    // Cap the custom percent offset, discarding any larger value the user typed.
-    const cappedMagnitude = magnitude.isGreaterThan(
-      LIMIT_ORDER_CUSTOM_PERCENT_MAX,
-    )
-      ? new BigNumber(LIMIT_ORDER_CUSTOM_PERCENT_MAX)
-      : magnitude;
-
     const nextLimitPrice = getLimitPriceFromSignedPercent(
-      isSell
-        ? cappedMagnitude.toNumber()
-        : cappedMagnitude.negated().toNumber(),
+      isSell ? magnitude.toNumber() : magnitude.negated().toNumber(),
     );
     if (nextLimitPrice === undefined) {
       return;
@@ -148,8 +142,8 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'commitCustomPercent',
       limitPrice: nextLimitPrice,
-      isTrackingMarket: cappedMagnitude.isZero(),
-      customValue: cappedMagnitude.toString(),
+      isTrackingMarket: magnitude.isZero(),
+      customValue: magnitude.toString(),
     });
   }, [customValue, getLimitPriceFromSignedPercent, isCustomActive, isSell]);
 
@@ -220,7 +214,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
                 tokenFiatRate: counterFiatRate,
                 tokenDecimals: counterToken?.decimals,
               })
-            : formatLimitOrderFiatPriceFromTokenAmount(
+            : formatLimitOrderFiatInputPriceFromTokenAmount(
                 currentLimitPrice,
                 counterFiatRate,
               ),
@@ -245,20 +239,23 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const limitFiat = isLimitFiatMode
     ? limitPrice
     : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
+  const comparisonMarketFiat = isLimitFiatMode
+    ? roundLimitOrderMarketFiatToInput(quotedFiatRate)
+    : quotedFiatRate;
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
-    marketFiat: quotedFiatRate,
+    marketFiat: comparisonMarketFiat,
   });
   const isTriggerPriceNearMarket =
     hasUserEditedLimitPrice &&
     isSwapsLimitOrderPriceWithinMarketPercent({
       price: limitFiat,
-      marketPrice: quotedFiatRate,
+      marketPrice: comparisonMarketFiat,
       percent: LIMIT_ORDER_NEAR_MARKET_PERCENT,
     });
   const priceComparisonDirection = getSwapsLimitOrderPriceComparisonDirection({
     limitFiat,
-    marketFiat: quotedFiatRate,
+    marketFiat: comparisonMarketFiat,
     executionType,
   });
 

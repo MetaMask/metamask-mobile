@@ -47,11 +47,14 @@ const PositionRowComponent: React.FC<PositionRowProps> = ({
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
   const isClosed =
-    isClosedProp ?? (position.positionAmount === 0 && position.soldUsd > 0);
+    isClosedProp ??
+    (position.positionAmount === 0 && (position.soldUsd ?? 0) > 0);
   const isPerp = isPerpPosition(position);
 
   const closedPnlPercent =
-    position.boughtUsd > 0
+    position.boughtUsd != null &&
+    position.boughtUsd > 0 &&
+    position.realizedPnl != null
       ? (position.realizedPnl / position.boughtUsd) * 100
       : null;
 

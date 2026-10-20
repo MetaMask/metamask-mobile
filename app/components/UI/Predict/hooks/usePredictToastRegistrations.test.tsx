@@ -1,4 +1,5 @@
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,6 +18,11 @@ import { selectTickerByChainId } from '../../../../selectors/networkController';
 const mockInvalidateQueries = jest.fn();
 jest.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: mockInvalidateQueries }),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => ({
+  ...jest.requireActual('@metamask/design-system-react-native'),
+  toast: jest.fn(),
 }));
 
 const mockDeposit = jest.fn();
@@ -291,18 +297,20 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(showToast).toHaveBeenCalledWith(
+      expect(showToast).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          iconName: 'Error',
-          linkButtonOptions: expect.objectContaining({
-            onPress: expect.any(Function),
-          }),
+          title: 'predict.deposit.error_title',
+          description: 'predict.deposit.error_description',
+          severity: ToastSeverity.Danger,
+          actionButtonLabel: 'predict.deposit.try_again',
+          actionButtonOnPress: expect.any(Function),
         }),
       );
 
-      const onRetry = showToast.mock.calls[0][0].linkButtonOptions.onPress;
+      const onRetry = jest.mocked(toast).mock.calls[0][0].actionButtonOnPress;
       await act(async () => {
-        await onRetry();
+        await onRetry?.({} as never);
       });
 
       expect(mockDeposit).toHaveBeenCalledTimes(1);
@@ -320,9 +328,11 @@ describe('usePredictToastRegistrations', () => {
         showToast,
       );
 
-      expect(showToast).toHaveBeenCalledWith(
+      expect(showToast).not.toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
         expect.not.objectContaining({
-          linkButtonOptions: expect.anything(),
+          actionButtonLabel: expect.anything(),
+          actionButtonOnPress: expect.anything(),
         }),
       );
     });

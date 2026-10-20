@@ -22,4 +22,5 @@ export const traderProfileResponseToMySocialProfile = (
   volumeUsd30d: live.stats.volumeUsd30d ?? null,
   tradeCount30d: live.stats.tradeCount30d ?? null,
   linkedAccountAddress: live.profile.address,
+  joinedAt: (live.profile as { createdAt?: string | null }).createdAt ?? null,
 });

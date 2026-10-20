@@ -120,7 +120,7 @@ const NftOptions = () => {
               style={styles.optionButton}
               onPress={gotToOpensea}
             >
-              <Icon name={IconName.Export} style={styles.iconOs} />
+              <Icon name={IconName.ArrowSquareOut} style={styles.iconOs} />
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('nft_details.options.view_on_os')}
               </Text>

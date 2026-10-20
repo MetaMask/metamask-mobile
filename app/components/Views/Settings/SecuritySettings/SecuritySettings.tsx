@@ -28,6 +28,7 @@ import {
   ProtectYourWallet,
   DeviceSecurityToggle,
   ChangePassword,
+  MfaSection,
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
@@ -390,6 +391,7 @@ const Settings: React.FC = () => {
             toggleHint={toggleHint}
           />
           <ChangePassword />
+          <MfaSection />
           <AutoLock />
           <DeviceSecurityToggle />
           {!isBasicFunctionalityConsolidationEnabled && <BlockaidSettings />}

@@ -82,14 +82,15 @@ _api_dev: &api_dev
   CARD_API_URL: 'https://card.dev-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-  PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
+  PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.dev-api.cx.metamask.io'
   MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.dev-api.cx.metamask.io/v1'
-  IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
-  IDOS_RELAY_URL: 'https://relay.playground.idos.network'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.staging.idos.network'
+  IDOS_RELAY_URL: 'https://relay.staging.idos.network'
 
 # UAT hosts. Portfolio, digest, social, price alerts, and Baanx have no UAT
-# host, so this group keeps their dev URLs. IDOS stays on its staging host.
+# host, so this group keeps their dev URLs. The idOS enclave stays on
+# staging; the relay uses the playground host.
 _api_uat: &api_uat
   <<: *public_envs
   MM_API_ENV: 'uat'
@@ -101,11 +102,11 @@ _api_uat: &api_uat
   CARD_API_URL: 'https://card.uat-api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.dev-api.cx.metamask.io/api/v1'
   SOCIAL_API_URL: 'https://social.dev-api.cx.metamask.io'
-  PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
+  PRICE_ALERTS_API_URL: 'https://price-alerts.dev-api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.uat-api.cx.metamask.io'
   MM_BACKEND_WEBSOCKET_URL: 'wss://gateway.uat-api.cx.metamask.io/v1'
-  IDOS_ENCLAVE_URL: 'https://enclave.staging.sandbox.fractal.id'
-  IDOS_RELAY_URL: 'https://relay.staging.idos.network'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.staging.idos.network'
+  IDOS_RELAY_URL: 'https://relay.playground.idos.network'
 
 _main_dev_env: &main_dev_env
   <<: *api_dev

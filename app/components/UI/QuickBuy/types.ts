@@ -6,6 +6,8 @@ import type {
   QuickBuySheetSource,
 } from './analytics';
 import { chainNameToId } from '../SocialFeed/utils/chainMapping';
+import { TokenDetailsSource } from '../TokenDetails/constants/constants';
+import type { CopyTradeOrigin } from '../../../util/social/copyTradeIntent';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {
@@ -13,6 +15,7 @@ export interface QuickBuyTarget {
   tokenSymbol: string;
   tokenName: string;
   chain: CaipChainId;
+  source?: TokenDetailsSource;
 }
 
 export type QuickBuyTradeMode = 'buy' | 'sell';
@@ -44,7 +47,7 @@ export interface QuickBuyFeatures {
 export interface QuickBuyAnalyticsContext {
   traderAddress?: string;
   marketCap?: number;
-  source?: QuickBuySheetSource;
+  source: QuickBuySheetSource;
   /**
    * How the user reached the trade screen before opening Quick Buy. Only set
    * when Quick Buy is hosted on `TraderPositionView`.
@@ -68,7 +71,14 @@ export interface QuickBuyRootProps {
   onClose: () => void;
   features?: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  analyticsContext: QuickBuyAnalyticsContext;
+  /**
+   * When true, a confirmed swap opens the Social post-swap share sheet instead
+   * of Quick Buy's pending/complete/failed toasts.
+   */
+  postSwapShare?: boolean;
+  /** Social post being copied; a submitted swap records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   children?: ReactNode;
 }
 

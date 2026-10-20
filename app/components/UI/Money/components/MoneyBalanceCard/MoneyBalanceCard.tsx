@@ -28,14 +28,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import styleSheet from './MoneyBalanceCard.styles';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import {
@@ -50,11 +50,14 @@ import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../sel
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { useMoneyAddMoney } from '../../hooks/useMoneyAddMoney';
 
-const MoneyBalanceCard = () => {
+export interface MoneyBalanceCardProps {
+  isGlass?: boolean;
+}
+
+const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
-  const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
     totalFiatFormatted,
@@ -262,18 +265,8 @@ const MoneyBalanceCard = () => {
     );
   };
 
-  return (
-    <Pressable
-      testID={containerTestId}
-      onPress={handleCardPress}
-      style={({ pressed }) => [
-        styles.container,
-        tw.style(
-          'flex-row items-center justify-between gap-3 bg-muted',
-          pressed && 'opacity-80',
-        ),
-      ]}
-    >
+  const content = (
+    <>
       <Box twClassName="w-0 min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -350,15 +343,50 @@ const MoneyBalanceCard = () => {
         justifyContent={BoxJustifyContent.End}
         twClassName="shrink-0"
       >
-        <Button
-          testID={buttonTestId}
-          variant={buttonVariant}
-          size={ButtonSize.Md}
-          onPress={handleAddPress}
-        >
-          {strings(buttonLabelKey)}
-        </Button>
+        {buttonVariant === ButtonVariant.Secondary ? (
+          <ButtonGlass
+            isGlass={isGlass}
+            testID={buttonTestId}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </ButtonGlass>
+        ) : (
+          <Button
+            testID={buttonTestId}
+            variant={buttonVariant}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </Button>
+        )}
       </Box>
+    </>
+  );
+
+  return (
+    <Pressable
+      testID={containerTestId}
+      onPress={handleCardPress}
+      style={({ pressed }) => [
+        tw.style('mx-4'),
+        !isGlass && pressed && tw.style('opacity-80'),
+      ]}
+    >
+      <BoxGlass
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        testID={MoneyBalanceCardTestIds.SURFACE}
+        style={tw.style(
+          'min-h-[82px] flex-row items-center justify-between gap-3 p-4',
+        )}
+      >
+        {content}
+      </BoxGlass>
     </Pressable>
   );
 };

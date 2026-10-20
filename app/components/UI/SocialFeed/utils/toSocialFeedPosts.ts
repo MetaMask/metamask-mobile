@@ -1,6 +1,7 @@
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
+import { readTriggeringTradeMarketCapUsd } from './mapFeedItem';
 import { toSocialV1FeedItem } from './toSocialV1FeedItem';
 
 /**
@@ -9,8 +10,9 @@ import { toSocialV1FeedItem } from './toSocialV1FeedItem';
  * The shell reads the avatar, handle and time off the envelope, so the real
  * actor has to be copied up here; the trader's stats stay on `item.author`,
  * where the header's rotating stat line reads them. Reactions come from the
- * Call (`authorComment`). Posts without a Call still show the empty heart;
- * picks stay session-local until a comment id exists.
+ * Call (`authorComment`). Posts without a Call still show the add-reaction
+ * button; picks stay session-local until a comment id exists. The copy count
+ * is passed through only when the API sent it.
  */
 export const toSocialFeedPosts = (
   rows: TraderFeedRow[],
@@ -35,6 +37,11 @@ export const toSocialFeedPosts = (
         }),
       ),
       userReaction: authorComment?.engagement.userReaction ?? null,
+      ...(row.core.copyCount !== undefined
+        ? { copyCount: row.core.copyCount }
+        : {}),
+      marketCapUsd: readTriggeringTradeMarketCapUsd(row.core),
       item,
+      position: row.core,
     };
   });

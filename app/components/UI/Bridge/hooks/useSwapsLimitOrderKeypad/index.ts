@@ -5,7 +5,8 @@ import type { SwapsKeypadRef } from '../../components/SwapsKeypad/types';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import type { useSourceAmountInput } from '../useSourceAmountInput';
 import type { BridgeToken } from '../../types';
-import { LIMIT_ORDER_FIAT_PRICE_DECIMALS } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH } from '../../constants/limitOrders';
+import { FIAT_INPUT_DECIMALS } from '../../utils/sourceAmountInputMode';
 
 export enum LimitOrderKeypadField {
   Amount = 'amount',
@@ -42,7 +43,7 @@ export const useSwapsLimitOrderKeypad = ({
   );
 
   const limitPriceDecimals = isLimitFiatMode
-    ? LIMIT_ORDER_FIAT_PRICE_DECIMALS
+    ? FIAT_INPUT_DECIMALS
     : (nativeToken?.decimals ?? Infinity);
 
   const {
@@ -65,16 +66,21 @@ export const useSwapsLimitOrderKeypad = ({
   } = useSourceAmountCursor({
     sourceAmount: customPercent,
     sourceTokenDecimals: CUSTOM_PERCENT_DECIMALS,
-    maxInputLength: MAX_INPUT_LENGTH,
+    maxInputLength: LIMIT_ORDER_CUSTOM_PERCENT_MAX_INPUT_LENGTH,
     onSourceAmountChange: onCustomPercentChange,
   });
 
   const { handleKeypadChange: handleAmountKeypadChange } = sourceAmountInput;
 
+  const [isOpen, setIsOpen] = useState(false);
+
   const focusField = useCallback((field: LimitOrderKeypadField) => {
     setFocusedField(field);
+    setIsOpen(true);
     keypadRef.current?.open();
   }, []);
+
+  const handleKeypadClose = useCallback(() => setIsOpen(false), []);
 
   const focusAmount = useCallback(
     () => focusField(LimitOrderKeypadField.Amount),
@@ -118,6 +124,8 @@ export const useSwapsLimitOrderKeypad = ({
   const isAmountFocused = focusedField === LimitOrderKeypadField.Amount;
   const isCustomPercentFocused =
     focusedField === LimitOrderKeypadField.CustomPercent;
+  // The focused field outlives the keypad, so open state is tracked separately.
+  const isCustomPercentKeypadOpen = isOpen && isCustomPercentFocused;
 
   const keypadProps = useMemo(() => {
     if (isAmountFocused) {
@@ -165,9 +173,11 @@ export const useSwapsLimitOrderKeypad = ({
     focusLimitPrice,
     handleChange,
     handleCustomPercentSelectionChange,
+    handleKeypadClose,
     handleLimitPriceSelectionChange,
     isAmountFocused,
     isCustomPercentFocused,
+    isCustomPercentKeypadOpen,
     keypadProps,
     keypadRef,
     limitPriceSelection,

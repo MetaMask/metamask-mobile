@@ -138,6 +138,7 @@ describe('bridge slice', () => {
         destToken: undefined,
         isGasIncludedSTXSendBundleSupported: false,
         isGasIncluded7702Supported: false,
+        isNativeGasIncludedSupported: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
