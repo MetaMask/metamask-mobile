@@ -12,6 +12,10 @@ import { TimePeriod } from '../../../hooks/useTokenHistoricalPrices';
 export const TOKEN_OVERVIEW_CHART_HEIGHT =
   Dimensions.get('screen').height * 0.3;
 
+/** Shorter chart on Token Details V1 so the tab bar shows above the fold. */
+export const TOKEN_DETAILS_V1_CHART_HEIGHT =
+  Dimensions.get('screen').height * 0.25;
+
 /** Minimum distributed price points to draw the legacy line chart (matches advanced fallback). */
 export const CHART_DATA_THRESHOLD = 5;
 

@@ -188,15 +188,18 @@ export interface PriceChartSectionProps {
    * the chart chrome and the content below.
    */
   uniformSpacing?: boolean;
+  /** Overrides the default chart height from the price chart context. */
+  chartHeight?: number;
 }
 
 export const PriceChartSection = ({
   uniformSpacing = false,
+  chartHeight: chartHeightOverride,
 }: PriceChartSectionProps) => {
   const {
     activeIndicators,
     ambientSuccessGreen,
-    chartHeight,
+    chartHeight: contextChartHeight,
     chartLoading,
     chartPresets,
     chartType,
@@ -234,6 +237,8 @@ export const PriceChartSection = ({
     visibleFromMs,
     visibleToMs,
   } = usePriceChartContext();
+
+  const chartHeight = chartHeightOverride ?? contextChartHeight;
 
   // The interval bar above the chart already adds 8px of bottom padding.
   let chartMarginTop = 'mt-3 ';
@@ -280,6 +285,7 @@ export const PriceChartSection = ({
             onChartIndexChange={handleLineChartInteraction}
             chartColorOverride={initialAmbientColor ?? undefined}
             hasInsufficientCoverage={hasInsufficientCoverage}
+            chartHeight={chartHeight}
             timePeriodMs={
               TIME_PERIOD_MS[timeRange.toLowerCase() as TimePeriod] ?? undefined
             }

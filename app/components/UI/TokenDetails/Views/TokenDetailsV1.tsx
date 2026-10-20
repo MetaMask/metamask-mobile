@@ -49,6 +49,7 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
+import { TOKEN_DETAILS_V1_CHART_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -649,7 +650,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   />
                 </Box>
 
-                <Price.Chart uniformSpacing />
+                <Price.Chart
+                  uniformSpacing
+                  chartHeight={TOKEN_DETAILS_V1_CHART_HEIGHT}
+                />
               </Price.Provider>
 
               <TokenDetailsActionsSection

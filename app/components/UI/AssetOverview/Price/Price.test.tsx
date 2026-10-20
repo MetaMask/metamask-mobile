@@ -387,6 +387,18 @@ describe('Price Component', () => {
       });
     });
 
+    it('sizes the chart with the chartHeight override', () => {
+      const { getByTestId } = renderWithProviders(
+        <Price.Provider {...unifiedProps}>
+          <Price.Chart chartHeight={123} />
+        </Price.Provider>,
+      );
+
+      expect(getByTestId('advanced-chart-touch-container')).toHaveStyle({
+        height: 123,
+      });
+    });
+
     it('renders a single chart when the parts share one provider', () => {
       const { getAllByTestId } = renderWithProviders(
         <Price.Provider {...unifiedProps}>
