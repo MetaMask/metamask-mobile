@@ -97,7 +97,6 @@ describe('EarnAssetIcon', () => {
       expect.objectContaining({
         name: asset.metadata.chainId,
         src: { uri: 'https://example.com/polygon.png' },
-        twClassName: 'rounded-1',
       }),
       undefined,
     );

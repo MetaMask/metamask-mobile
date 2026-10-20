@@ -10,7 +10,10 @@ import {
   mockRelayQuoteWith,
   mockRelayStatusSuccess,
 } from './relay-mocks';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  TX_SENTINEL_SIGNERS_MOCK,
+} from '../tx-sentinel-networks-map';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
 import { MUSD_MAINNET } from '../../../constants/musd-mainnet';
@@ -1018,6 +1021,7 @@ async function mockSentinelNetworks(
         ...(TX_SENTINEL_NETWORKS_MAP[
           String(chainId) as keyof typeof TX_SENTINEL_NETWORKS_MAP
         ] || {}),
+        cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
         relayTransactions: true,
       },
     }),

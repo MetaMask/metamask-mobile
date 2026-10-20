@@ -533,7 +533,7 @@ jobs:
             echo "| iOS Onboarding | $(format_status "$STATUS_IOS_ONBOARDING") |"
             echo ""
             echo "**Trigger:** ${{ github.event_name }}"
-            echo "**Branch:** ${{ github.ref_name }}"
+            echo "**Branch:** ${GITHUB_REF_NAME}"
             echo "**Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           } >> "$GITHUB_STEP_SUMMARY"
 

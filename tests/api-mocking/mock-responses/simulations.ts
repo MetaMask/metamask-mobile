@@ -119,6 +119,7 @@ export const SIMULATION_ENABLED_NETWORKS_MOCK = {
       network: 'localhost',
       explorer: 'http://localhost:8545/explorer',
       confirmations: true,
+      cubistSigners: ['0xB01caEa8c6C47bbf4F4b4c5080Ca642043359C2E'],
       smartTransactions: true,
       relayTransactions: false,
       hidden: false,

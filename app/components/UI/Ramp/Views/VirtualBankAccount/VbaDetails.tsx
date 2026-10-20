@@ -19,6 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
+  BACK_BUTTON: 'vba-details-back-button',
   DONE_BUTTON: 'vba-details-done-button',
 } as const;
 
@@ -38,12 +39,18 @@ const VbaDetails = () => {
     });
   }, [navigation]);
 
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard includesTopInset />
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+      />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}

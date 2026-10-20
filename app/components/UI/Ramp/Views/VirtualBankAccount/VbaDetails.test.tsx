@@ -5,11 +5,13 @@ import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    goBack: mockGoBack,
   }),
 }));
 
@@ -33,5 +35,14 @@ describe('VbaDetails', () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
+  });
+
+  it('returns to the caller when back is pressed', () => {
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

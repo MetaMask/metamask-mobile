@@ -56,8 +56,10 @@ export const usePerpsMarketData = (
 
   const fetchMarketData = useCallback(async () => {
     if (!asset) {
+      // The order sheet defers the fetch with an empty symbol until first
+      // paint. That is still in-flight, not a finished empty result.
       setMarketData(null);
-      setIsLoading(false);
+      setIsLoading(true);
       return;
     }
 

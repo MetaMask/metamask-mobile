@@ -142,6 +142,7 @@ import {
 } from './controllers/predict-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
+import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
 import { rewardsControllerInit } from './controllers/rewards-controller';
 import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
 import { GatorPermissionsControllerInit } from './controllers/gator-permissions-controller';
@@ -401,6 +402,7 @@ export class Engine {
         PredictOrderService: predictOrderServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
+        SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         RewardsMoneyController: rewardsMoneyControllerInit,
@@ -713,6 +715,8 @@ export class Engine {
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
       LimitOrdersDataService: messengerClientsByName.LimitOrdersDataService,
+      SentinelFeeTokensDataService:
+        messengerClientsByName.SentinelFeeTokensDataService,
       RewardsController: rewardsController,
       RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,

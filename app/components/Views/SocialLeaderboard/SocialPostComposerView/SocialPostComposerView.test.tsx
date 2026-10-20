@@ -184,6 +184,8 @@ describe('SocialPostComposerView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetch,
     });
   });

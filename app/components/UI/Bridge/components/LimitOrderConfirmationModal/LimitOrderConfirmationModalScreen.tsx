@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { formatChainIdToDec } from '@metamask/bridge-controller';
+import { parseCaipAssetType } from '@metamask/utils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
@@ -25,6 +26,7 @@ import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrde
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import type { LimitOrderConfirmationModalParams } from './types';
 import { strings } from '../../../../../../locales/i18n';
+import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -54,6 +56,11 @@ export const LimitOrderConfirmationModalScreen = () => {
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const delegationFee = useEIP7702UpgradeFee();
+  const feeTokenValidation = useSentinelFeeTokenValidation({
+    chainId: parseCaipAssetType(params.order.sourceAssetId).chainId,
+    sourceAssetId: params.order.sourceAssetId,
+    destinationAssetId: params.order.destAssetId,
+  });
   const sourceChainId = params.sourceToken?.chainId;
   const feeToken = useMemo(
     () => (sourceChainId ? getNativeSourceToken(sourceChainId) : undefined),
@@ -93,6 +100,18 @@ export const LimitOrderConfirmationModalScreen = () => {
   const createLimitOrder = useCreateLimitOrder();
 
   const error = useMemo(() => {
+    if (feeTokenValidation.reason === 'unsupported-pair') {
+      return {
+        bannerMessage: strings('bridge.limit.unsupported_fee_token_pair'),
+      };
+    }
+
+    if (feeTokenValidation.reason === 'unavailable') {
+      return {
+        bannerMessage: strings('bridge.limit.fee_tokens_unavailable'),
+      };
+    }
+
     if (delegationFee.status === 'error') {
       return {
         bannerMessage: strings('bridge.limit.error_calculation_network_fees'),
@@ -106,9 +125,13 @@ export const LimitOrderConfirmationModalScreen = () => {
         primaryButtonLabel: strings('bridge.limit.try_again'),
       };
     }
-  }, [delegationFee, confirmError]);
+  }, [delegationFee, confirmError, feeTokenValidation.reason]);
 
   const handleConfirm = useCallback(async () => {
+    if (!feeTokenValidation.isValid) {
+      return;
+    }
+
     if (delegationFee.status === 'error') {
       delegationFee.retry();
       return;
@@ -205,6 +228,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     createLimitOrder,
     delegationFee,
     fetchLimitOrdersDelegations,
+    feeTokenValidation.isValid,
     navigation,
     params.order.destAmount,
     trigger,
@@ -226,6 +250,7 @@ export const LimitOrderConfirmationModalScreen = () => {
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
         isLoading: delegationFee.status === 'loading' || isCreatingOrder,
+        isDisabled: !feeTokenValidation.isValid,
       }}
     />
   );

@@ -163,7 +163,7 @@ describe('PerpsProSizeInput', () => {
 
     expect(screen.getByTestId(ids.SIZE_SLIDER_SECTION)).toHaveStyle({
       overflow: 'visible',
-      paddingTop: 24,
+      paddingTop: 16,
       paddingBottom: 16,
       paddingLeft: 12,
       paddingRight: 12,
