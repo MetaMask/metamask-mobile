@@ -10795,17 +10795,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/marketing-consent-controller@npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-7ef511c85":
-  version: 0.0.0-preview-7ef511c85
-  resolution: "@metamask-previews/marketing-consent-controller@npm:0.0.0-preview-7ef511c85"
+"@metamask/marketing-consent-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/marketing-consent-controller@npm:1.0.0"
   dependencies:
     "@metamask/analytics-controller": "npm:^4.0.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/profile-sync-controller": "npm:^34.0.3"
-  checksum: 10/a8e3b128f71c18caf3cdedba3426c7bb0ec61b0b1dbef795cfe63b457f1f2c3709e85b6d640fece9c4219660ca726b041c3daf261ab295df7c4da98cd505c7b3
+  checksum: 10/f1da70e4df8414e823095d9635aa3b2be24b37d35100d0d6a75f5a386a1171a335ad33f9e3d689b2430e1d051890a2996c2f9dcc3fbc476a24619332267dec4a
   languageName: node
   linkType: hard
 
@@ -11265,14 +11265,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:@metamask-previews/notification-services-controller@29.0.3-preview-7ef511c85":
-  version: 29.0.3-preview-7ef511c85
-  resolution: "@metamask-previews/notification-services-controller@npm:29.0.3-preview-7ef511c85"
+"@metamask/notification-services-controller@npm:^30.0.0":
+  version: 30.0.0
+  resolution: "@metamask/notification-services-controller@npm:30.0.0"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.6.10"
     "@metamask/analytics-controller": "npm:^4.0.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
@@ -11284,7 +11284,7 @@ __metadata:
     loglevel: "npm:^1.9.2"
     semver: "npm:^7.8.5"
     uuid: "npm:^11.1.1"
-  checksum: 10/1eb9d176d861a38a18c79fc951657943a1ef4f97080e2bc5315fe3b6ebdb445245b61d24951169918b602682ac7b3ae90a8de3cf4c94fe7b2f206bbcc78379da
+  checksum: 10/a9bf8d895f7288a45cde75544a0dc886220fecf64e65928ea7b16904b0baa2f4a86f1ceae256008a9ad84a01a1c4a9b5e9872ec35361a7c99349527a3bba42a2
   languageName: node
   linkType: hard
 
@@ -39255,7 +39255,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^5.0.0"
     "@metamask/kyc-controller": "npm:^0.10.0"
     "@metamask/logging-controller": "npm:^9.0.0"
-    "@metamask/marketing-consent-controller": "npm:@metamask-previews/marketing-consent-controller@0.0.0-preview-7ef511c85"
+    "@metamask/marketing-consent-controller": "npm:^1.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
@@ -39277,7 +39277,7 @@ __metadata:
     "@metamask/network-connection-banner-controller": "npm:^0.2.0"
     "@metamask/network-controller": "npm:^37.0.0"
     "@metamask/network-enablement-controller": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch"
-    "@metamask/notification-services-controller": "npm:^29.0.1"
+    "@metamask/notification-services-controller": "npm:^30.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/perps-controller": "npm:^20.1.0"
