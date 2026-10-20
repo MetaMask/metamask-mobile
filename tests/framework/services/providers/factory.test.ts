@@ -1,10 +1,12 @@
 jest.mock('./emulator', () => ({ EmulatorProvider: jest.fn() }));
+jest.mock('./browserstack', () => ({ BrowserStackProvider: jest.fn() }));
 jest.mock('./testmu', () => ({ TestMuAIProvider: jest.fn() }));
 
 import { ProviderName } from '../../types.ts';
 import type { ProjectConfig } from '../common/types.ts';
 import { createServiceProvider } from './factory';
 import { EmulatorProvider } from './emulator';
+import { BrowserStackProvider } from './browserstack';
 import { TestMuAIProvider } from './testmu';
 
 const createProject = (provider?: string): ProjectConfig =>
@@ -20,6 +22,7 @@ describe('createServiceProvider', () => {
   it.each([
     [ProviderName.EMULATOR, EmulatorProvider],
     [ProviderName.SIMULATOR, EmulatorProvider],
+    [ProviderName.BROWSERSTACK, BrowserStackProvider],
     [ProviderName.TESTMU, TestMuAIProvider],
   ])('creates the matching provider for %s', (provider, ProviderClass) => {
     const project = createProject(provider);
@@ -36,14 +39,6 @@ describe('createServiceProvider', () => {
     const create = () => createServiceProvider(project);
 
     expect(create).toThrow('Device provider is not specified');
-  });
-
-  it('throws when the project asks for BrowserStack', () => {
-    const project = createProject(ProviderName.BROWSERSTACK);
-
-    const create = () => createServiceProvider(project);
-
-    expect(create).toThrow('BrowserStack is no longer available');
   });
 
   it('throws for a provider that is not supported', () => {
