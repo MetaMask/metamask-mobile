@@ -163,7 +163,12 @@ const ConfirmEmail = () => {
         const navigateToAuthentication = () => {
           navigation.reset({
             index: 0,
-            routes: [{ name: Routes.CARD.AUTHENTICATION }],
+            routes: [
+              {
+                name: Routes.CARD.AUTHENTICATION,
+                params: { autoSignIn: false },
+              },
+            ],
           });
         };
 

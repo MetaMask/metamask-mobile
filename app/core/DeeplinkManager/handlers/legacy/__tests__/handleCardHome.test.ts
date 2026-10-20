@@ -188,11 +188,15 @@ describe('handleCardHome', () => {
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
       });
 
-      it('navigates to Card Welcome', () => {
+      it('navigates to Card sign-in', () => {
         handleCardHome();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
+          },
         });
       });
 
@@ -202,11 +206,11 @@ describe('handleCardHome', () => {
         expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
       });
 
-      it('logs navigation to Card Welcome', () => {
+      it('logs navigation to Card sign-in', () => {
         handleCardHome();
 
         expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardHome] User not authenticated and no card-linked account, navigating to Card Welcome',
+          '[handleCardHome] User not authenticated and no card-linked account, navigating to Card sign-in',
         );
       });
     });
@@ -267,11 +271,15 @@ describe('handleCardHome', () => {
         );
       });
 
-      it('falls back to Card Welcome navigation', () => {
+      it('falls back to Card sign-in navigation', () => {
         handleCardHome();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
+          },
         });
       });
     });
@@ -332,11 +340,15 @@ describe('handleCardHome', () => {
         expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
       });
 
-      it('still navigates to Card Welcome', () => {
+      it('still navigates to Card sign-in', () => {
         handleCardHome();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
+          },
         });
       });
     });
@@ -412,11 +424,15 @@ describe('handleCardHome', () => {
         );
       });
 
-      it('still navigates to Card Welcome', () => {
+      it('still navigates to Card sign-in', () => {
         handleCardHome();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
+          },
         });
       });
     });

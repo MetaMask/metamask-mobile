@@ -1188,7 +1188,6 @@ export type RootStackParamList = {
   CardHome: CardScreensStackParamList['CardHome'];
   CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
   CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
-  CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
   CardMfaMethod: CardScreensStackParamList['CardMfaMethod'];
   CardMfaCode: CardScreensStackParamList['CardMfaCode'];

@@ -7,7 +7,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import ApplePaySplash from '../Views/ApplePaySplash';
 import ApplePayConfirmation from '../Views/ApplePayConfirmation';
-import CardWelcome from '../Views/CardWelcome/CardWelcome';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import CardMfaMethod from '../Views/CardMfa/CardMfaMethod';
 import CardMfaCode from '../Views/CardMfa/CardMfaCode';
@@ -88,7 +87,9 @@ const MainRoutes = () => {
 
   const initialRouteName = useMemo(
     () =>
-      isAuthenticated || isCardholder ? Routes.CARD.HOME : Routes.CARD.WELCOME,
+      isAuthenticated || isCardholder
+        ? Routes.CARD.HOME
+        : Routes.CARD.AUTHENTICATION,
     [isAuthenticated, isCardholder],
   );
 
@@ -108,7 +109,6 @@ const MainRoutes = () => {
         component={ApplePayConfirmation}
         options={{ gestureEnabled: false }}
       />
-      <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
       <ScreensStack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
         component={ChooseYourCard}

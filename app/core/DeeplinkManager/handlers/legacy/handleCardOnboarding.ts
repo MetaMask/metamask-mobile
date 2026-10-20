@@ -22,7 +22,7 @@ import {
  * - User is logged in or has a card-linked account: Switch to first card-linked account,
  * navigate to Card Home, and show a toast notification
  * - User is not logged in and has no card-linked account: Remain in current account and
- * navigate to Card Welcome/onboarding screen
+ * navigate to Card sign-in
  *
  * Supported URL formats:
  * - https://link.metamask.io/card-onboarding
@@ -81,12 +81,13 @@ export const handleCardOnboarding = () => {
       }, 500);
     } else {
       // User is not logged in AND has no card-linked account
-      // Navigate to Card Welcome/onboarding screen
-      DevLogger.log(
-        '[handleCardOnboarding] Navigating to Card Welcome (onboarding)',
-      );
+      DevLogger.log('[handleCardOnboarding] Navigating to Card sign-in');
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { autoSignIn: true },
+        },
       });
     }
 
@@ -100,10 +101,14 @@ export const handleCardOnboarding = () => {
       '[handleCardOnboarding] Error handling card onboarding deeplink',
     );
 
-    // Fallback: Navigate to Card Welcome screen
+    // Fallback: Navigate to Card sign-in
     try {
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { autoSignIn: true },
+        },
       });
     } catch (navError) {
       Logger.error(

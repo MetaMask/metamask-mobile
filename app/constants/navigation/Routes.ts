@@ -593,7 +593,6 @@ const Routes = {
     HOME: 'CardHome',
     APPLE_PAY_SPLASH: 'CardApplePaySplash',
     APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
-    WELCOME: 'CardWelcome',
     AUTHENTICATION: 'CardAuthentication',
     MFA_METHOD: 'CardMfaMethod',
     MFA_CODE: 'CardMfaCode',

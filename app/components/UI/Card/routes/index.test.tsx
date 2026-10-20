@@ -66,11 +66,6 @@ jest.mock('../Views/CardHome/CardHome', () => {
   return () => <View testID="card-home" />;
 });
 
-jest.mock('../Views/CardWelcome/CardWelcome', () => {
-  const { View } = require('react-native');
-  return () => <View testID="card-welcome" />;
-});
-
 jest.mock('../Views/CardAuthentication/CardAuthentication', () => {
   const { View } = require('react-native');
   return () => <View testID="card-authentication" />;
@@ -222,7 +217,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     HOME: 'CardHome',
     APPLE_PAY_SPLASH: 'CardApplePaySplash',
     APPLE_PAY_CONFIRMATION: 'CardApplePayConfirmation',
-    WELCOME: 'CardWelcome',
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
@@ -341,6 +335,16 @@ describe('CardRoutes', () => {
       expect(initialRoutes.some((el) => el.children[0] === 'CardHome')).toBe(
         true,
       );
+    });
+
+    it('opens sign-in when the user is signed out', () => {
+      const store = createMockStore(false, false);
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />, store);
+
+      const initialRoutes = getAllByTestId('initial-route');
+      expect(
+        initialRoutes.some((el) => el.children[0] === 'CardAuthentication'),
+      ).toBe(true);
     });
 
     it('navigates to Home when is cardholder', () => {

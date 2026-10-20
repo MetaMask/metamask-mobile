@@ -74,12 +74,13 @@ export const handleCardKycNotification = async () => {
 
     // Fallback: User is not in onboarding and not authenticated
     Logger.log(
-      '[handleCardKycNotification] No onboarding or auth state, navigating to Welcome',
+      '[handleCardKycNotification] No onboarding or auth state, navigating to Card sign-in',
     );
     NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.AUTHENTICATION,
+        params: { autoSignIn: true },
       },
     });
   } catch (error) {
@@ -89,12 +90,13 @@ export const handleCardKycNotification = async () => {
       '[handleCardKycNotification] Error handling card KYC notification deeplink',
     );
 
-    // Fallback: Navigate to Card Welcome screen
+    // Fallback: Navigate to Card sign-in
     try {
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { autoSignIn: true },
         },
       });
     } catch (navError) {

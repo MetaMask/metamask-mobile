@@ -47,10 +47,14 @@ export interface CardPostAuthRedirect {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardScreensStackParamList = {
-  CardHome: { fromCardOnboarding?: boolean } | undefined;
+  CardHome:
+    | {
+        fromCardOnboarding?: boolean;
+        showDeeplinkToast?: boolean;
+      }
+    | undefined;
   CardApplePaySplash: undefined;
   CardApplePayConfirmation: undefined;
-  CardWelcome: undefined;
   ChooseYourCard: ChooseYourCardParams | undefined;
   ReviewOrder: ReviewOrderParams | undefined;
   OrderCompleted: OrderCompletedParams | undefined;
@@ -71,6 +75,7 @@ export type CardScreensStackParamList = {
   CardAuthentication:
     | {
         showAuthPrompt?: boolean;
+        autoSignIn?: boolean;
         postAuthRedirect?: CardPostAuthRedirect;
       }
     | undefined;

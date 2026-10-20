@@ -364,7 +364,11 @@ const CardHome = () => {
     wasAuthenticated.current = isAuthenticated;
     if (pendingAuthRedirect.current && isFocused) {
       pendingAuthRedirect.current = false;
-      navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
+      navigation.dispatch(
+        StackActions.replace(Routes.CARD.AUTHENTICATION, {
+          autoSignIn: false,
+        }),
+      );
     }
   }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
 
@@ -391,7 +395,9 @@ const CardHome = () => {
     navigation.dispatch(
       CommonActions.reset({
         index: 0,
-        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+        routes: [
+          { name: Routes.CARD.AUTHENTICATION, params: { autoSignIn: false } },
+        ],
       }),
     );
     Engine.context.CardController.clearLastUnauthenticatedReason();

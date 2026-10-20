@@ -70,6 +70,11 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     reset: jest.fn(),
     dispatch: jest.fn(),
+    getParent: () => undefined,
+    getState: () => ({
+      routes: [{ name: 'CardHome' }, { name: 'CardAuthentication' }],
+      index: 1,
+    }),
     isFocused: () => true,
     addListener: jest.fn(() => jest.fn()),
   }),

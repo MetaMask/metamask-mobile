@@ -176,11 +176,15 @@ describe('handleCardOnboarding', () => {
         (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
       });
 
-      it('navigates to Card Welcome', () => {
+      it('navigates to Card sign-in', () => {
         handleCardOnboarding();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
+          },
         });
       });
 
@@ -190,11 +194,11 @@ describe('handleCardOnboarding', () => {
         expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
       });
 
-      it('logs navigation to Card Welcome', () => {
+      it('logs navigation to Card sign-in', () => {
         handleCardOnboarding();
 
         expect(mockDevLogger).toHaveBeenCalledWith(
-          '[handleCardOnboarding] Navigating to Card Welcome (onboarding)',
+          '[handleCardOnboarding] Navigating to Card sign-in',
         );
       });
     });
@@ -251,11 +255,15 @@ describe('handleCardOnboarding', () => {
         );
       });
 
-      it('falls back to Card Welcome navigation', () => {
+      it('falls back to Card sign-in navigation', () => {
         handleCardOnboarding();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
+          },
         });
       });
     });

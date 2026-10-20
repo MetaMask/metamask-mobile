@@ -25,11 +25,11 @@ import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
  * - User is not logged in but has a card-linked account: Auto-switch to first card-linked
  * account and navigate to Card Home
  * - User is not logged in and has no card-linked account: Remain in current account and
- * navigate to Card Welcome/onboarding screen
+ * navigate to Card sign-in
  *
  * Error fallback:
  * - Switch to first account
- * - Navigate to Card Welcome screen
+ * - Navigate to Card sign-in
  *
  * Supported URL formats:
  * - https://link.metamask.io/card-home
@@ -79,10 +79,14 @@ export const handleCardHome = () => {
       navigateToCardHome();
     } else {
       DevLogger.log(
-        '[handleCardHome] User not authenticated and no card-linked account, navigating to Card Welcome',
+        '[handleCardHome] User not authenticated and no card-linked account, navigating to Card sign-in',
       );
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { autoSignIn: true },
+        },
       });
     }
 
@@ -114,7 +118,11 @@ export const handleCardHome = () => {
 
     try {
       NavigationService.navigation?.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.WELCOME,
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { autoSignIn: true },
+        },
       });
     } catch (navError) {
       Logger.error(

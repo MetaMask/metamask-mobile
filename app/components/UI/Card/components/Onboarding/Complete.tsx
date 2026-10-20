@@ -110,7 +110,11 @@ const Complete = () => {
         );
       } else {
         dispatch(resetOnboardingState());
-        navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
+        navigation.dispatch(
+          StackActions.replace(Routes.CARD.AUTHENTICATION, {
+            autoSignIn: false,
+          }),
+        );
       }
     } catch (error) {
       Logger.log('Complete::handleContinue error', error);

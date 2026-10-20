@@ -46,7 +46,7 @@ import NavigationService from '../../../../../core/NavigationService';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { safeToChecksumAddress } from '../../../../../util/address';
+import { safeToChecksumAddress , isHardwareAccount } from '../../../../../util/address';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
@@ -81,12 +81,15 @@ import SignInBanner from './components/SignInBanner';
 import SignInOtpFields, { CODE_LENGTH } from './components/SignInOtpFields';
 import { useResetOnResolvedKind } from './useResetOnResolvedKind';
 import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
+import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
+import { resolveAutoSignIn } from './resolveAutoSignIn';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
   CardAuthentication:
     | {
         showAuthPrompt?: boolean;
+        autoSignIn?: boolean;
         postAuthRedirect?: { screen: string; params?: object };
       }
     | undefined;
@@ -149,7 +152,8 @@ const CardAuthentication = () => {
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
-  const postAuthRedirect = route.params?.postAuthRedirect;
+  const parentRedirect = useCardPostAuthRedirect();
+  const postAuthRedirect = route.params?.postAuthRedirect ?? parentRedirect;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -603,6 +607,39 @@ const CardAuthentication = () => {
     signInWithWallet,
     trackEvent,
     createEventBuilder,
+  ]);
+
+  const autoSignInAttempted = useRef(false);
+  useEffect(() => {
+    if (autoSignInAttempted.current || isResolving || !resolution) {
+      return;
+    }
+    const navigationState = navigation.getState?.();
+    const shouldAutoSignIn = resolveAutoSignIn({
+      autoSignIn: route.params?.autoSignIn,
+      showAuthPrompt,
+      isLoneRoute: navigationState?.routes.length === 1,
+    });
+    if (!shouldAutoSignIn || resolution.kind !== 'wallet') {
+      return;
+    }
+    if (isHardwareAccount(resolution.address)) {
+      autoSignInAttempted.current = true;
+      return;
+    }
+    if (!countryKey) {
+      return;
+    }
+    autoSignInAttempted.current = true;
+    handleWalletSignIn().catch(() => undefined);
+  }, [
+    countryKey,
+    handleWalletSignIn,
+    isResolving,
+    navigation,
+    resolution,
+    route.params?.autoSignIn,
+    showAuthPrompt,
   ]);
 
   const handleSignUpPress = useCallback(() => {

@@ -409,13 +409,14 @@ describe('handleCardKycNotification', () => {
       );
     });
 
-    it('navigates to Welcome when no onboardingId and not authenticated', async () => {
+    it('navigates to Card sign-in when no onboardingId and not authenticated', async () => {
       await handleCardKycNotification();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
         params: {
-          screen: Routes.CARD.WELCOME,
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { autoSignIn: true },
         },
       });
     });
@@ -424,7 +425,7 @@ describe('handleCardKycNotification', () => {
       await handleCardKycNotification();
 
       expect(mockLoggerLog).toHaveBeenCalledWith(
-        '[handleCardKycNotification] No onboarding or auth state, navigating to Welcome',
+        '[handleCardKycNotification] No onboarding or auth state, navigating to Card sign-in',
       );
     });
   });
@@ -457,13 +458,14 @@ describe('handleCardKycNotification', () => {
         );
       });
 
-      it('falls back to Card Welcome navigation', async () => {
+      it('falls back to Card sign-in navigation', async () => {
         await handleCardKycNotification();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.WELCOME,
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
           },
         });
       });
@@ -479,7 +481,7 @@ describe('handleCardKycNotification', () => {
         mockGetRegistrationStatus.mockRejectedValue(apiError);
       });
 
-      it('logs the error and falls back to Welcome', async () => {
+      it('logs the error and falls back to Card sign-in', async () => {
         await handleCardKycNotification();
 
         expect(mockLoggerError).toHaveBeenCalledWith(
@@ -489,7 +491,8 @@ describe('handleCardKycNotification', () => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.WELCOME,
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
           },
         });
       });
@@ -505,7 +508,7 @@ describe('handleCardKycNotification', () => {
         mockGetUserDetails.mockRejectedValue(apiError);
       });
 
-      it('logs the error and falls back to Welcome', async () => {
+      it('logs the error and falls back to Card sign-in', async () => {
         await handleCardKycNotification();
 
         expect(mockLoggerError).toHaveBeenCalledWith(
@@ -515,7 +518,8 @@ describe('handleCardKycNotification', () => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.WELCOME,
+            screen: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: true },
           },
         });
       });
