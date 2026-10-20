@@ -5,7 +5,10 @@ import type {
 } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
 import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
-import { FEED_PAGE_LIMIT } from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import {
+  FEED_PAGE_LIMIT,
+  INFINITE_FEED_QUERY_KEY_SUFFIX,
+} from '../../../../UI/SocialFeed/data/socialFeedQueries';
 import {
   toFeedScope,
   type FeedScope,
@@ -27,9 +30,11 @@ export const buildTraderFeedQueryKey = (
 ): [
   string,
   { scope: FeedScope; chains: typeof FEED_CAIP2_CHAINS; limit: number },
+  typeof INFINITE_FEED_QUERY_KEY_SUFFIX,
 ] => [
   'SocialService:fetchFeed',
   { scope, chains: FEED_CAIP2_CHAINS, limit: FEED_PAGE_LIMIT },
+  INFINITE_FEED_QUERY_KEY_SUFFIX,
 ];
 
 /**

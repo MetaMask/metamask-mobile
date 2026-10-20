@@ -1,3 +1,4 @@
+import { hashKey } from '@tanstack/react-query';
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import {
   FEED_PAGE_LIMIT,
@@ -49,7 +50,19 @@ describe('socialFeedQueries', () => {
       expect(buildSocialFeedQueryKey(traderRequest, 3)).toStrictEqual([
         'SocialService:fetchTraderFeed',
         { addressOrId: '0xab/cd', commentedOnly: true, limit: 3 },
+        'pages',
       ]);
+    });
+
+    it('never hashes like the SocialService first-page cache key', () => {
+      const serviceFirstPageKey = [
+        traderRequest.action,
+        { ...traderRequest.options, limit: 3 },
+      ];
+
+      expect(hashKey(buildSocialFeedQueryKey(traderRequest, 3))).not.toBe(
+        hashKey(serviceFirstPageKey),
+      );
     });
   });
 
