@@ -109,7 +109,7 @@ describe('getTriggerPrice', () => {
       });
     });
 
-    it('keeps four significant digits of a sub-cent price instead of showing <$0.01', () => {
+    it('condenses the leading zeros of a sub-cent price instead of showing <$0.01', () => {
       const order = createOrder({
         srcAsset: USDC,
         srcAmount: '1000000',
@@ -122,10 +122,10 @@ describe('getTriggerPrice', () => {
 
       const result = getTriggerPrice(order, sourceToken, destinationToken);
 
-      expect(result.triggerPrice).toBe('$0.000004212');
+      expect(result.triggerPrice).toBe('$0.0₅4212');
     });
 
-    it('keeps four significant digits of a sub-cent price in the display currency', () => {
+    it('condenses the leading zeros of a sub-cent price in the display currency', () => {
       const order = createOrder({
         srcAsset: USDC,
         srcAmount: '1000000',
@@ -144,9 +144,7 @@ describe('getTriggerPrice', () => {
         1.1,
       );
 
-      expect(result.triggerPrice).toBe(
-        formatLimitOrderFiatValue(0.000004, 'EUR', 9),
-      );
+      expect(result.triggerPrice).toBe('€0.0₅4');
     });
 
     it('converts a fiat price into the display currency', () => {
@@ -303,6 +301,22 @@ describe('getTriggerPrice', () => {
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
+    });
+
+    it('condenses the leading zeros of a tiny ratio price', () => {
+      const order = createOrder({
+        srcAsset: BNB,
+        srcAmount: '1000000000000000000',
+        destAsset: BSC_USDT,
+        destAmount: '1746970000',
+        kind: 'ratio',
+        price: '0.00000000174697',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerPrice).toBe(quote('0.0₈1746', 'USDT'));
     });
 
     it('quotes a buy at the reported price when it reads per destination token', () => {

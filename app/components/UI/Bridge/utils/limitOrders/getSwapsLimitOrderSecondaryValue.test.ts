@@ -110,14 +110,33 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
       expect(result).toBe('0.0561234 ETH');
     });
 
-    it('keeps a cheap token amount instead of rounding it to zero', () => {
+    it('condenses the leading zeros of a cheap token amount instead of rounding it to zero', () => {
       const result = getSwapsLimitOrderSecondaryValue({
         ...fiatModeDefaults,
         counterFiatRate: 4000,
         limitPrice: '0.0000038',
       });
 
-      expect(result).toBe('0.00000000095 ETH');
+      expect(result).toBe('0.0₉95 ETH');
+    });
+
+    it('keeps at most four digits after the condensed leading zeros', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...fiatModeDefaults,
+        counterFiatRate: 2389.6,
+        limitPrice: '0.000003747',
+      });
+
+      expect(result).toBe('0.0₈1568 ETH');
+    });
+
+    it('does not condense a token amount with fewer than four leading zeros', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...fiatModeDefaults,
+        limitPrice: '0.2',
+      });
+
+      expect(result).toBe('0.0001 ETH');
     });
   });
 
@@ -184,7 +203,7 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
       expect(result).toBe('$0');
     });
 
-    it('keeps a sub-cent fiat price of a cheap token instead of rounding it to zero', () => {
+    it('condenses the leading zeros of a sub-cent fiat price of a cheap token', () => {
       const result = getSwapsLimitOrderSecondaryValue({
         ...tokenModeDefaults,
         counterFiatRate: 0.9998,
@@ -193,13 +212,38 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
         limitPrice: '0.0000038',
       });
 
-      expect(result).toBe('$0.000003799');
+      expect(result).toBe('$0.0₅3799');
+    });
+
+    it('places the currency code after a condensed fiat price when the currency has no symbol', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...tokenModeDefaults,
+        counterFiatRate: 0.9998,
+        counterTokenSymbol: 'mUSD',
+        currentCurrency: 'xyz',
+        fiatDecimals: 9,
+        limitPrice: '0.0000038',
+      });
+
+      expect(result).toBe('0.0₅3799 xyz');
+    });
+
+    it('keeps a sub-cent fiat price with fewer than four leading zeros uncondensed', () => {
+      const result = getSwapsLimitOrderSecondaryValue({
+        ...tokenModeDefaults,
+        counterFiatRate: 0.9998,
+        counterTokenSymbol: 'mUSD',
+        fiatDecimals: 6,
+        limitPrice: '0.0038',
+      });
+
+      expect(result).toBe('$0.003799');
       expect(mockGetIntlNumberFormatter).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           style: 'currency',
           minimumFractionDigits: 2,
-          maximumFractionDigits: 9,
+          maximumFractionDigits: 6,
         }),
       );
     });

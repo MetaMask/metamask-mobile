@@ -74,6 +74,7 @@ import {
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { formatSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
 import {
   formatMinimumReceived,
   getCurrencySymbol,
@@ -459,7 +460,9 @@ const BridgeLimitOrderViewContent = () => {
   const costToleranceLabel = `${
     costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
   }%`;
-  const formattedLimitPrice = formatAmountWithLocaleSeparators(value);
+  const formattedLimitPrice =
+    formatSubscriptNotation(Number(value)) ??
+    formatAmountWithLocaleSeparators(value);
   let triggerPrice = formattedLimitPrice;
   if (isLimitFiatMode) {
     triggerPrice = `${getCurrencySymbol(currentCurrency || 'usd')}${formattedLimitPrice}`;

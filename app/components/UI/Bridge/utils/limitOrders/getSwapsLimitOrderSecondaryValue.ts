@@ -1,3 +1,4 @@
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { formatAmountWithLocaleSeparators } from '../formatAmountWithLocaleSeparators';
 import { formatTokenInputAmountFromFiat } from '../sourceAmountInputMode';
 import { formatCurrency } from '../currencyUtils';
@@ -5,7 +6,7 @@ import {
   LIMIT_ORDER_PRICE_DECIMALS,
   formatLimitOrderFiatInputPriceFromTokenAmount,
 } from './formatLimitOrderFiatPrice';
-import { formatLimitOrderFiatValue } from './formatLimitOrderFiatValue';
+import { formatLimitOrderFiatUnitPrice } from './formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from './formatLimitOrderQuickPrice';
 
 /**
@@ -13,7 +14,8 @@ import { formatLimitOrderQuickPrice } from './formatLimitOrderQuickPrice';
  *
  * Reads as the limit price would after toggling to the other denomination, so
  * a cheap quoted token (e.g. PEPE) follows the limit price instead of reading
- * as zero.
+ * as zero. Leading zeros of a very small value are condensed, e.g.
+ * `0.0₈1568 ETH`.
  */
 export const getSwapsLimitOrderSecondaryValue = ({
   counterFiatRate,
@@ -49,9 +51,11 @@ export const getSwapsLimitOrderSecondaryValue = ({
     );
 
     if (counterFromFiat && Number(counterFromFiat) > 0) {
-      return `${formatAmountWithLocaleSeparators(
-        counterFromFiat,
-      )} ${counterTokenSymbol}`;
+      const amount =
+        formatSubscriptNotation(Number(counterFromFiat)) ??
+        formatAmountWithLocaleSeparators(counterFromFiat);
+
+      return `${amount} ${counterTokenSymbol}`;
     }
 
     return `0 ${counterTokenSymbol}`;
@@ -63,7 +67,11 @@ export const getSwapsLimitOrderSecondaryValue = ({
     fiatDecimals,
   );
   if (fiatFromCounter) {
-    return formatLimitOrderFiatValue(fiatFromCounter, currency, fiatDecimals);
+    return formatLimitOrderFiatUnitPrice(
+      fiatFromCounter,
+      currency,
+      fiatDecimals,
+    );
   }
 
   return formatCurrency(0, currency, {

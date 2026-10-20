@@ -7,8 +7,9 @@ import {
   LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { getLimitOrderFiatPriceDecimals } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
-import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
+import { formatLimitOrderFiatUnitPrice } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderDefaultPriceMode } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import type { TriggerPriceDisplay } from './types';
@@ -28,7 +29,7 @@ function getFiatTriggerPrice(
     const displayPrice = new BigNumber(usdPrice).dividedBy(fiatToUsdRate);
 
     if (displayPrice.isFinite() && displayPrice.gt(0)) {
-      return formatLimitOrderFiatValue(
+      return formatLimitOrderFiatUnitPrice(
         displayPrice.toNumber(),
         currentCurrency,
         getLimitOrderFiatPriceDecimals(displayPrice),
@@ -36,7 +37,7 @@ function getFiatTriggerPrice(
     }
   }
 
-  return formatLimitOrderFiatValue(
+  return formatLimitOrderFiatUnitPrice(
     usdPrice,
     'usd',
     getLimitOrderFiatPriceDecimals(usdPrice),
@@ -141,10 +142,11 @@ export function getTriggerPrice(
       const price = isShownAsReported
         ? trigger.price
         : invertPrice(trigger.price);
+      const amount = formatLimitOrderQuickPrice(price) ?? price;
 
       return {
         triggerPrice: strings('bridge.limit.quote_unit', {
-          amount: formatLimitOrderQuickPrice(price) ?? price,
+          amount: formatSubscriptNotation(Number(amount)) ?? amount,
           symbol: counterToken.symbol,
         }),
         triggerToken: quotedToken,

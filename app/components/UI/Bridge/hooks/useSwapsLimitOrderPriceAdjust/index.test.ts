@@ -730,7 +730,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
         expect(result.current.counterToken).toEqual(musd);
         expect(result.current.limitPrice).toBe('0.0000040006');
         expect(result.current.marketComparison).toBeUndefined();
-        expect(result.current.secondaryValue).toBe('$0.000004');
+        expect(result.current.secondaryValue).toBe('$0.0₅4');
       });
 
       it.each([
@@ -837,7 +837,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
           result.current.handlePercentPress(5);
         });
 
-        expect(result.current.secondaryValue).toBe('0.00000000095 ETH');
+        expect(result.current.secondaryValue).toBe('0.0₉95 ETH');
       });
 
       it('keeps the price when toggling to the counter token and back', () => {

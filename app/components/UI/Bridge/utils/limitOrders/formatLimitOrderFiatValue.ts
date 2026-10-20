@@ -1,3 +1,6 @@
+import { BigNumber } from 'bignumber.js';
+import { addCurrencySymbol } from '../../../../../util/number/bigint';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { formatCurrency } from '../currencyUtils';
 
 /**
@@ -37,4 +40,30 @@ export const formatLimitOrderFiatValue = (
   }
 
   return formatCurrency(value, currency, options);
+};
+
+/**
+ * Formats the fiat unit price of a token like {@link formatLimitOrderFiatValue},
+ * except that the leading zeros of a cheap token's price are condensed, e.g.
+ * `$0.0₅3799` rather than `$0.000003799`.
+ *
+ * @param value - The fiat price of 1 unit of the token.
+ * @param currency - The ISO 4217 code of the currency, e.g. "usd".
+ * @param maximumFractionDigits - Decimal places the price is rounded to.
+ * @returns The formatted price.
+ */
+export const formatLimitOrderFiatUnitPrice = (
+  value: number | string,
+  currency: string,
+  maximumFractionDigits: number = LIMIT_ORDER_FIAT_VALUE_DECIMALS,
+): string => {
+  const rounded = new BigNumber(value)
+    .decimalPlaces(
+      Math.max(maximumFractionDigits, LIMIT_ORDER_FIAT_VALUE_DECIMALS),
+    )
+    .toNumber();
+
+  return formatSubscriptNotation(rounded)
+    ? addCurrencySymbol(rounded, currency, false, true)
+    : formatLimitOrderFiatValue(value, currency, maximumFractionDigits);
 };
