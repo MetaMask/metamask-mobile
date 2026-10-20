@@ -68,11 +68,6 @@ export const selectGasFeeControllerEstimates = createDeepEqualSelector(
   (gasFeeEstimates) => gasFeeEstimates,
 );
 
-export const selectGasFeeControllerEstimateType = createSelector(
-  selectGasFeeControllerState,
-  (gasFeeControllerState: GasFeeState) => gasFeeControllerState.gasEstimateType,
-);
-
 export const selectGasFeeEstimatesByChainId = createSelector(
   getGasFeeControllerEstimatesByChainId,
   getTransactionGasFeeEstimatesByChainId,

@@ -556,10 +556,6 @@ export const selectCurrentTransaction = createSelector(
   },
 );
 
-export const makeSelectTransactionMetadataById =
-  (id: string) => (state: RootState) =>
-    selectTransactionMetadataById(state, id);
-
 /**
  * Local `TransactionMeta` for an on-chain hash. Needed by callers that only
  * hold a hash — e.g. provider-backed activity rows (Perps) whose feed entry

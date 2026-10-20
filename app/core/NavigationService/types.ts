@@ -279,7 +279,6 @@ import type {
   OptionsSheetParams,
   SelectSRPParams,
   SeedphraseModalParams,
-  TransactionDetailsSheetParams,
   ShowNftDisplayMediaParams,
   OriginSpamModalParams,
   RegionSelectorParams,
@@ -465,7 +464,6 @@ export type RootModalFlowParamList = {
   Pna25BottomSheet: undefined;
   ReturnToDappToast: ReturnToDappNotificationParams | undefined;
   MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;
-  TransactionDetailsSheet: TransactionDetailsSheetParams | undefined;
   ImportWalletTipSheet: undefined;
   SimpleWebview: WebviewStackParamList['SimpleWebview'];
 };
@@ -838,7 +836,6 @@ export type RootStackParamList = {
   EligibilityFailedModal: undefined;
   UnsupportedRegionModal: undefined;
   MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;
-  TransactionDetailsSheet: TransactionDetailsSheetParams | undefined;
 
   // Multichain account details sheet routes
   MultichainAccountActions: MultichainAccountActionsParams | undefined;
