@@ -14,6 +14,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
 import { setApplePayHomeBannerDismissed } from '../../../core/redux/slices/card';
 import ManageCardListItem from '../../UI/Card/components/ManageCardListItem';
 import { AddToWalletButton } from '../../UI/Card/pushProvisioning/components/AddToWalletButton';
@@ -35,6 +37,9 @@ const ApplePayHomeBanner = ({
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
+  const addToWalletStyle =
+    themeAppearance === AppThemeKey.dark ? 'blackOutline' : 'black';
 
   const handlePress = useCallback(() => {
     if (eligibility.mode === 'none') {
@@ -91,7 +96,7 @@ const ApplePayHomeBanner = ({
         ) : (
           <AddToWalletButton
             onPress={handlePress}
-            buttonStyle="black"
+            buttonStyle={addToWalletStyle}
             testID="apple-pay-home-banner-add"
           />
         )}

@@ -1,4 +1,6 @@
 import React from 'react';
+import { AppThemeKey } from '../../../util/theme/models';
+import { mockTheme } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ApplePayHomePrompt from './ApplePayHomeBanner';
 
@@ -28,8 +30,17 @@ jest.mock('../../UI/Card/pushProvisioning/components/AddToWalletButton', () => {
   const { Pressable } =
     jest.requireActual<typeof import('react-native')>('react-native');
   return {
-    AddToWalletButton: ({ testID }: { testID?: string }) =>
-      ReactActual.createElement(Pressable, { testID }),
+    AddToWalletButton: ({
+      testID,
+      buttonStyle,
+    }: {
+      testID?: string;
+      buttonStyle?: string;
+    }) =>
+      ReactActual.createElement(Pressable, {
+        testID,
+        accessibilityHint: buttonStyle,
+      }),
   };
 });
 
@@ -46,6 +57,26 @@ describe('ApplePayHomePrompt', () => {
 
     expect(getByTestId('apple-pay-home-banner-add')).toBeOnTheScreen();
     expect(queryByTestId('apple-pay-home-banner-add-row')).toBeNull();
+  });
+
+  it('uses the solid black button in light mode', () => {
+    const { getByTestId } = renderWithProvider(<ApplePayHomePrompt />);
+
+    expect(getByTestId('apple-pay-home-banner-add')).toHaveProp(
+      'accessibilityHint',
+      'black',
+    );
+  });
+
+  it('uses the outlined button in dark mode', () => {
+    const { getByTestId } = renderWithProvider(<ApplePayHomePrompt />, {
+      theme: { ...mockTheme, themeAppearance: AppThemeKey.dark },
+    });
+
+    expect(getByTestId('apple-pay-home-banner-add')).toHaveProp(
+      'accessibilityHint',
+      'blackOutline',
+    );
   });
 
   it('renders the row selector when sign-in comes first', () => {

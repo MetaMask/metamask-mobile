@@ -1,5 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { mockTheme } from '../../../../../util/theme';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApplePaySplash from './ApplePaySplash';
 
@@ -32,17 +34,24 @@ jest.mock('../CardHome/hooks/useCardWalletProvisioning', () => ({
 }));
 
 jest.mock('../../pushProvisioning/components/AddToWalletButton', () => {
-  const React = jest.requireActual<typeof import('react')>('react');
+  const ReactActual = jest.requireActual<typeof import('react')>('react');
   const { Pressable } =
     jest.requireActual<typeof import('react-native')>('react-native');
   return {
     AddToWalletButton: ({
       onPress,
       testID,
+      buttonStyle,
     }: {
       onPress?: () => void;
       testID?: string;
-    }) => React.createElement(Pressable, { testID, onPress }),
+      buttonStyle?: string;
+    }) =>
+      ReactActual.createElement(Pressable, {
+        testID,
+        onPress,
+        accessibilityHint: buttonStyle,
+      }),
   };
 });
 
@@ -72,6 +81,26 @@ describe('ApplePaySplash', () => {
     fireEvent.press(getByTestId('apple-pay-splash-add'));
 
     expect(mockInitiateProvisioning).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the solid black button in light mode', () => {
+    const { getByTestId } = renderWithProvider(<ApplePaySplash />);
+
+    expect(getByTestId('apple-pay-splash-add')).toHaveProp(
+      'accessibilityHint',
+      'black',
+    );
+  });
+
+  it('uses the outlined button in dark mode', () => {
+    const { getByTestId } = renderWithProvider(<ApplePaySplash />, {
+      theme: { ...mockTheme, themeAppearance: AppThemeKey.dark },
+    });
+
+    expect(getByTestId('apple-pay-splash-add')).toHaveProp(
+      'accessibilityHint',
+      'blackOutline',
+    );
   });
 
   it('returns to Card Home when closed', () => {

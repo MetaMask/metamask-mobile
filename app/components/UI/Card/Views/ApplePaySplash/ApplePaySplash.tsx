@@ -18,6 +18,8 @@ import {
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import { selectCardHomeData } from '../../../../../selectors/cardController';
 import ManageCardListItem from '../../components/ManageCardListItem';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
@@ -42,6 +44,9 @@ const ApplePaySplash = () => {
   const route = useRoute<RouteProp<ApplePaySplashParams, 'ApplePaySplash'>>();
   const source = route.params?.source ?? 'card';
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
+  const addToWalletStyle =
+    themeAppearance === AppThemeKey.dark ? 'blackOutline' : 'black';
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const cardHomeData = useSelector(selectCardHomeData);
   const homeEligibility = useApplePayHomeEligibility();
@@ -139,7 +144,7 @@ const ApplePaySplash = () => {
           ) : (
             <AddToWalletButton
               onPress={source === 'home' ? handleHomePress : handleCardPress}
-              buttonStyle="black"
+              buttonStyle={addToWalletStyle}
               testID="apple-pay-splash-add"
             />
           )}
