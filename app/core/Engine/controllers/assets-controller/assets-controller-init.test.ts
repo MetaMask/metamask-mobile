@@ -26,6 +26,7 @@ jest.mock('@metamask/core-backend', () => ({
 jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(),
+    subscribe: jest.fn(() => jest.fn()),
   },
 }));
 
@@ -201,6 +202,7 @@ describe('assetsControllerInit', () => {
       expect.objectContaining({
         messenger: expect.any(Object),
         isBasicFunctionality: expect.any(Function),
+        subscribeToBasicFunctionalityChange: expect.any(Function),
         isEnabled: expect.any(Function),
         isOnboarded: expect.any(Function),
         queryApiClient: expect.any(Object),
@@ -494,6 +496,56 @@ describe('assetsControllerInit', () => {
         | undefined;
       expect(isBasicFunctionality).toBeDefined();
       expect(isBasicFunctionality?.()).toBe(false);
+    });
+  });
+
+  describe('subscribeToBasicFunctionalityChange', () => {
+    const getSubscription = () => {
+      assetsControllerInit(getInitRequestMock());
+      return jest.mocked(AssetsController).mock.calls[0][0]
+        .subscribeToBasicFunctionalityChange;
+    };
+
+    it('notifies when basic functionality is turned off', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+      } as ReturnType<typeof store.getState>);
+
+      const onChange = jest.fn();
+      getSubscription()?.(onChange);
+
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as ReturnType<typeof store.getState>);
+      const listener = jest.mocked(store.subscribe).mock.calls.at(-1)?.[0];
+      listener?.();
+
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(false);
+    });
+
+    it('does not notify when the setting is unchanged', () => {
+      jest.mocked(store.getState).mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+      } as ReturnType<typeof store.getState>);
+
+      const onChange = jest.fn();
+      getSubscription()?.(onChange);
+
+      const listener = jest.mocked(store.subscribe).mock.calls.at(-1)?.[0];
+      listener?.();
+
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('returns the store unsubscribe function', () => {
+      const unsubscribe = jest.fn();
+      jest.mocked(store.subscribe).mockReturnValueOnce(unsubscribe);
+
+      const onChange = jest.fn();
+      const returnedUnsubscribe = getSubscription()?.(onChange);
+
+      expect(returnedUnsubscribe).toBe(unsubscribe);
     });
   });
 
