@@ -52,7 +52,9 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
       testID={testID}
       style={({ pressed }) =>
         tw.style(
-          'flex-1 items-center justify-center rounded-2xl px-1 py-3 min-w-[68px]',
+          'items-center justify-center rounded-2xl px-1 py-3',
+          // `flex-1` in the glass column sizes the tile from zero height.
+          isGlass ? 'grow' : 'flex-1 min-w-[68px]',
           // On glass the surface draws the fill and the press response.
           !isGlass && (pressed && !disabled ? 'bg-muted-pressed' : 'bg-muted'),
           disabled ? 'opacity-50' : 'opacity-100',
@@ -104,7 +106,7 @@ const PredictPortfolioAction: React.FC<PredictPortfolioActionProps> = ({
       isInteractive={!disabled}
       hasSheen
       containerStyle={tw.style('flex-1 min-w-[68px]')}
-      style={tw.style('flex-1')}
+      style={tw.style('grow')}
     >
       {button}
     </BoxGlass>

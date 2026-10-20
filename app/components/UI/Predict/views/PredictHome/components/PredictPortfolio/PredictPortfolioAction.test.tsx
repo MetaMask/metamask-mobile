@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -79,6 +80,22 @@ describe('PredictPortfolioAction', () => {
       fireEvent.press(screen.getByTestId(defaultProps.testID));
 
       expect(defaultProps.onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('sizes the glass tile from its content instead of a zero flex basis', () => {
+      const { UNSAFE_getByType } = renderWithProvider(
+        <PredictPortfolioAction {...defaultProps} isGlass />,
+      );
+
+      const glassStyle = StyleSheet.flatten(
+        UNSAFE_getByType(GlassView).props.style,
+      );
+      const tileStyle = StyleSheet.flatten(
+        screen.getByTestId(defaultProps.testID).props.style,
+      );
+
+      expect(glassStyle.flexBasis).toBeUndefined();
+      expect(tileStyle.flexBasis).toBeUndefined();
     });
 
     it('stops the glass reacting to touch while disabled', () => {
