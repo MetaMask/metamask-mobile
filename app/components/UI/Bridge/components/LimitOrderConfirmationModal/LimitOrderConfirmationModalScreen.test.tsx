@@ -29,7 +29,6 @@ import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
-import { strings } from '../../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
