@@ -9348,7 +9348,7 @@
       "intro_cta": "Add passkey",
       "setting_up_title": "Setting up 2-step verification",
       "setting_up_description": "This takes a few seconds. Keep the app open until it's done.",
-      "failed_title": "Failed to set up passkey",
+      "failed_title": "Failed to set up 2FA method",
       "failed_description": "Something went wrong.",
       "failed_retry": "Try again",
       "enabled_title": "2-step verification is on",
