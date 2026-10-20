@@ -152,10 +152,7 @@ const mockPerpsProChartPanel = jest.fn(
     onMorePress,
   }: MockChartPanelProps) => (
     <>
-      <Box
-        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
-        twClassName="h-[76px]"
-      />
+      <Box testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY} />
       <Box
         testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
         accessibilityLabel={symbol}
@@ -1176,9 +1173,6 @@ describe('PerpsProMarketView', () => {
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.HEADER)).toHaveStyle({
       height: 64,
     });
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
-    ).toHaveStyle({ height: 76 });
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });
