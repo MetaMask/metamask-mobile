@@ -104,8 +104,10 @@ export class SocialLivePriceStore {
     if (previous?.price === price) {
       return;
     }
-    const trend =
-      previous == null ? null : price > previous.price ? 'up' : 'down';
+    let trend: SocialLivePriceTrend | null = null;
+    if (previous != null) {
+      trend = price > previous.price ? 'up' : 'down';
+    }
     this.#entries.set(key, { price, trend });
     this.#listeners.get(key)?.forEach((listener) => listener());
   }

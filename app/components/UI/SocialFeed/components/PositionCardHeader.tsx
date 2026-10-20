@@ -220,7 +220,8 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             twClassName="text-alternative"
             testID={props.testID && `${props.testID}-subtitle`}
           />
-        ) : subtitleLabel ? (
+        ) : null}
+        {subtitleLabel && !live ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
@@ -247,7 +248,8 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             twClassName={pnlClassName(isPnlPositive)}
             testID={props.testID && `${props.testID}-pnl-value`}
           />
-        ) : pnlValueLabel ? (
+        ) : null}
+        {pnlValueLabel && !live ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -267,7 +269,8 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             twClassName={pnlClassName(isPnlPositive)}
             testID={props.testID && `${props.testID}-pnl`}
           />
-        ) : pnlLabel ? (
+        ) : null}
+        {pnlLabel && !live ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}

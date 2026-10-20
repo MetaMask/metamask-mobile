@@ -55,22 +55,18 @@ const ohlcvChannel = (assetId: string) =>
   `market-data.v1.${assetId}.${OHLCV_INTERVAL}.${OHLCV_CURRENCY}`;
 
 const subscribeSpot = (assetId: string) =>
-  Engine.controllerMessenger
-    .call('OHLCVService:subscribe', {
-      assetId,
-      interval: OHLCV_INTERVAL,
-      currency: OHLCV_CURRENCY,
-    })
-    .catch(() => undefined);
+  Engine.controllerMessenger.call('OHLCVService:subscribe', {
+    assetId,
+    interval: OHLCV_INTERVAL,
+    currency: OHLCV_CURRENCY,
+  });
 
 const unsubscribeSpot = (assetId: string) =>
-  Engine.controllerMessenger
-    .call('OHLCVService:unsubscribe', {
-      assetId,
-      interval: OHLCV_INTERVAL,
-      currency: OHLCV_CURRENCY,
-    })
-    .catch(() => undefined);
+  Engine.controllerMessenger.call('OHLCVService:unsubscribe', {
+    assetId,
+    interval: OHLCV_INTERVAL,
+    currency: OHLCV_CURRENCY,
+  });
 
 const measureCard = ({
   key,
@@ -146,13 +142,13 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     spotChannelsRef.current.forEach((key, channel) => {
       if (!nextChannels.has(channel)) {
         spotChannelsRef.current.delete(channel);
-        unsubscribeSpot(key.slice('spot:'.length));
+        unsubscribeSpot(key.slice('spot:'.length)).catch(() => undefined);
       }
     });
     nextChannels.forEach(({ assetId, key }, channel) => {
       if (!spotChannelsRef.current.has(channel)) {
         spotChannelsRef.current.set(channel, key);
-        subscribeSpot(assetId);
+        subscribeSpot(assetId).catch(() => undefined);
       }
     });
 
@@ -224,7 +220,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
       visibilityTimerRef.current = setTimeout(() => {
         visibilityTimerRef.current = null;
         if (isLiveRef.current) {
-          measureVisibleKeys();
+          measureVisibleKeys().catch(() => undefined);
         }
       }, delayMs);
     },
@@ -303,7 +299,9 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
         clearTimeout(syncTimerRef.current);
       }
       store.cancelPending();
-      spotChannels.forEach((key) => unsubscribeSpot(key.slice('spot:'.length)));
+      spotChannels.forEach((key) =>
+        unsubscribeSpot(key.slice('spot:'.length)).catch(() => undefined),
+      );
       spotChannels.clear();
       perpUnsubscribeRef.current?.();
       perpUnsubscribeRef.current = null;

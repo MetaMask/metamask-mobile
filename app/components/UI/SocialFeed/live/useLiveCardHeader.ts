@@ -21,8 +21,15 @@ export interface UseLiveCardHeaderResult extends LiveCardHeaderLabels {
 
 const flipTrend = (
   trend: SocialLivePriceTrend | null,
-): SocialLivePriceTrend | null =>
-  trend === 'up' ? 'down' : trend === 'down' ? 'up' : null;
+): SocialLivePriceTrend | null => {
+  if (trend === 'up') {
+    return 'down';
+  }
+  if (trend === 'down') {
+    return 'up';
+  }
+  return null;
+};
 
 /**
  * Open card header labels, following the live price once one arrives and the
