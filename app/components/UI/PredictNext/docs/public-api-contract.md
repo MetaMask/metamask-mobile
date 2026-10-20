@@ -92,4 +92,5 @@ PRED-1374 found these legacy client-mapping issues. They belong to the backend a
 
 - Which external surfaces must show Kalshi at launch? Those surfaces migrate first. The rest can wait for PRED-1356.
 - Will the Homepage owners accept a Predict-owned Predictions section component?
-- Can PRED-1376 Venue descriptors stay Kalshi-only until PRED-1356, with Polymarket availability resolved on the client from today's legacy flags and eligibility?
+
+Resolved: under PRED-1376, the Polymarket Venue descriptor comes from client configuration and implemented behavior during staged delivery. The backend descriptor covers Kalshi until PRED-1356.
