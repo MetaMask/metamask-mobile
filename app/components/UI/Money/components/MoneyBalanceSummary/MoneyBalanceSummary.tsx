@@ -118,8 +118,6 @@ const MoneyBalanceSummary = ({
           <SensitiveText
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-[48px] leading-[52.8px]"
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
@@ -144,8 +142,6 @@ const MoneyBalanceSummary = ({
           <SensitiveText
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
-            fontWeight={FontWeight.Regular}
-            twClassName="text-[48px] leading-[52.8px]"
             color={TextColor.TextAlternative}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
