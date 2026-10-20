@@ -76,10 +76,10 @@ const HomepageBalanceBreakdownHero = ({
                 ? TextColor.TextMuted
                 : TextColor.TextDefault
             }
-            fontFamily={FontFamily.Hero}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+            fontFamily={FontFamily.Hero}
             variant={TextVariant.AmountDisplayLg}
           >
             {displayBalance}
