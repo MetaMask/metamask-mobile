@@ -15,6 +15,11 @@ export interface AnimatedBalanceTextProps {
   testID?: string;
   value: string;
   animated?: boolean;
+  /**
+   * Tailwind typography classes for the balance. Defaults to DisplayLg in the
+   * default bold face.
+   */
+  typographyClassName?: string;
 }
 
 const styles = StyleSheet.create({
@@ -39,13 +44,14 @@ const AnimatedBalanceText = ({
   testID,
   value,
   animated,
+  typographyClassName = 'text-display-lg font-default-bold',
 }: AnimatedBalanceTextProps) => {
   const [animatedValue, setAnimatedValue] = useState(loadingValue);
   const tw = useTailwind();
   const reduceMotion = useReducedMotion();
   const balanceColor = isLoading ? TextColor.TextMuted : color;
   const textStyle = StyleSheet.flatten([
-    tw.style('text-display-lg', 'font-default-bold', balanceColor) as TextStyle,
+    tw.style(typographyClassName, balanceColor) as TextStyle,
     styles.text,
   ]) as TextStyle;
   const motionEnabled = animated !== false && !reduceMotion;

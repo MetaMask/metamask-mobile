@@ -21,6 +21,8 @@ import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import {
+  FontFamily,
+  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   TextVariant,
@@ -186,10 +188,13 @@ const AccountGroupBalance = ({
       >
         {privacyMode ? (
           <SensitiveText
+            fontFamily={FontFamily.Hero}
+            fontWeight={FontWeight.Bold}
+            twClassName="text-[48px] leading-[52.8px]"
             isHidden
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.AmountDisplayLg}
           >
             {displayBalance}
           </SensitiveText>
@@ -202,6 +207,7 @@ const AccountGroupBalance = ({
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
             value={displayBalance}
             animated={!skipBalanceAnimation}
+            typographyClassName="font-hero-bold text-[48px] leading-[52.8px]"
           />
         )}
 
