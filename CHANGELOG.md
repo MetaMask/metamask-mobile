@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a bank details button to the Money home action row for virtual bank account users. (#37736)
+
 ## [8.15.0]
 
 ### Added
