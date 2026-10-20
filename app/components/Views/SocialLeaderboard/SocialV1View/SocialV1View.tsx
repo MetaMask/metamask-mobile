@@ -13,6 +13,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -413,7 +414,8 @@ const SocialV1View: React.FC = () => {
     },
     [],
   );
-  usePostTradeShareReopen(handlePostTradeReopen);
+  const isFocused = useIsFocused();
+  usePostTradeShareReopen(handlePostTradeReopen, isFocused);
 
   useEffect(() => {
     if (!showNotificationsBanner) {

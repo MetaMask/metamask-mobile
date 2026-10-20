@@ -62,6 +62,25 @@ describe('usePostTradeShareReopen', () => {
     expect(onReopen).toHaveBeenCalledWith(target, copyTradeOrigin);
   });
 
+  it('leaves the retry for a later listener when this screen is not focused', () => {
+    const hiddenReopen = jest.fn();
+    const visibleReopen = jest.fn();
+    renderHook(() => usePostTradeShareReopen(hiddenReopen, false));
+    renderHook(() => usePostTradeShareReopen(visibleReopen, true));
+
+    act(() => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        preview,
+      });
+      requestPostTradeShareReopen();
+    });
+
+    expect(hiddenReopen).not.toHaveBeenCalled();
+    expect(visibleReopen).toHaveBeenCalledWith(target, undefined);
+  });
+
   it('does not call onReopen when the session is cleared', () => {
     const onReopen = jest.fn();
     renderHook(() => usePostTradeShareReopen(onReopen));
