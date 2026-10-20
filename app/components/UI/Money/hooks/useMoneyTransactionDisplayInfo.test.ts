@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
+import { act } from '@testing-library/react-native';
 import {
   renderHookWithProvider,
   type ProviderValues,
@@ -253,7 +254,9 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
       () => useMoneyTransactionDisplayInfo(tx, recipient),
       { state },
     );
-    store.dispatch(updateBgState('RemoteFeatureFlagController'));
+    act(() => {
+      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
+    });
 
     expect(result.current.label).toBe('money.transaction.deposited');
     expect(result.current.description).toBe('money.transaction.bank_transfer');
@@ -324,7 +327,9 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
       ...engineWithState.state,
       RemoteFeatureFlagController: { remoteFeatureFlags: {} },
     };
-    store.dispatch(updateBgState('RemoteFeatureFlagController'));
+    act(() => {
+      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
+    });
 
     expect(result.current.label).toBe('money.transaction.received');
     expect(result.current.showPrimaryAmount).toBeUndefined();
