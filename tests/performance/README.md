@@ -327,7 +327,7 @@ The performance tracking system consists of three main components:
 `TimerHelper` is the core class for measuring performance. It supports:
 
 - Platform-specific thresholds (iOS vs Android)
-- Automatic 10% margin on thresholds
+- Automatic 15% margin on thresholds
 - Multiple measurement patterns
 
 ```typescript
@@ -411,7 +411,7 @@ perfTest(
 ### How Thresholds Work
 
 1. **Base Threshold**: The target time you define per platform
-2. **Effective Threshold**: Base + 10% margin (automatic)
+2. **Effective Threshold**: Base + 15% margin (automatic)
 3. **Validation**: Test fails if any timer exceeds its effective threshold
 
 ```typescript
@@ -454,12 +454,12 @@ When thresholds are defined, you'll see console output like:
 Test: My Performance Test
 Status: ✅ PASSED
 ───────────────────────────────────────────────────────────────
-✅ Step 1: 850ms [threshold: 1100ms (base: 1000ms +10%)]
+✅ Step 1: 850ms [threshold: 1150ms (base: 1000ms +15%)]
    └─ Time for button tap to screen load
-✅ Step 2: 1200ms [threshold: 1650ms (base: 1500ms +10%)]
+✅ Step 2: 1200ms [threshold: 1725ms (base: 1500ms +15%)]
    └─ Time for data to load
 ───────────────────────────────────────────────────────────────
-✅ Total: 2050ms [threshold: 2750ms]
+✅ Total: 2050ms [threshold: 2875ms]
 ═══════════════════════════════════════════════════════════════
 ```
 
@@ -529,7 +529,7 @@ await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
 
 ### `selectAccountByDevice(deviceName)`
 
-Select the account mapped to the current device for parallel testing:
+Select the account mapped to the current device for parallel testing. The device is looked up in `device-matrix.json` without its brand, so `Pixel 8 Pro` and `Google Pixel 8 Pro` resolve to the same entry. A device that is not in the matrix throws `Account name not found for device`:
 
 ```typescript
 import { selectAccountByDevice } from '../../flows/wallet.flow';
@@ -688,7 +688,7 @@ For CI/CD pipelines, the aggregation script combines results from multiple test 
 ### Running Aggregation
 
 ```bash
-node tests/scripts/aggregate-performance-reports.mjs
+node .github/scripts/qa-automation/performance-tests/aggregate-performance-reports.mjs
 ```
 
 ### Generated Files
@@ -710,7 +710,7 @@ without a prior baseline are omitted from that block.
 
 Baselines come from the scheduled `main` runs of
 [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml)
-(`BASELINE_WORKFLOW` in `tests/scripts/diff-app-profiling.mjs`). The reusable
+(`BASELINE_WORKFLOW` in `.github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs`). The reusable
 `run-performance-e2e.yml` cannot be used as the baseline source: it is
 `workflow_call` only, so its invocations are jobs of the caller run and never
 appear in `gh run list --workflow run-performance-e2e.yml`.
@@ -733,7 +733,7 @@ This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
 
-Both paths share `tests/scripts/diff-app-profiling.mjs`, so a `--workflow`
+Both paths share `.github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs`, so a `--workflow`
 override on the manual command also changes where baselines are looked up.
 
 ### Weekly app profiling report (Cursor Automation)
@@ -742,7 +742,7 @@ For a weekly rollup of BrowserStack app-profiling averages across merged PRs
 that ran performance tests:
 
 ```bash
-node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
+node .github/scripts/qa-automation/performance-tests/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
 ```
 
 Outputs:
@@ -893,7 +893,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
 **Quality gates failing unexpectedly**
 
-- Review threshold values (remember +10% margin)
+- Review threshold values (remember +15% margin)
 - Check if platform-specific threshold is appropriate
 - Consider network/device variability
 

@@ -63,6 +63,7 @@ import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/compon
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import MyProfileCompactStats from './components/MyProfileCompactStats';
+import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
 import ProfileAvatar from './components/ProfileAvatar';
@@ -261,12 +262,12 @@ const MyProfileView: React.FC = () => {
     openComposer();
   }, [openComposer]);
 
-  const handleResetProfile = useCallback(() => {
-    resetLocalSocialProfile();
+  const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
-  const handleCreateProfile = useCallback(() => {
+  const handleResetProfile = useCallback(() => {
+    resetLocalSocialProfile();
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
@@ -423,7 +424,17 @@ const MyProfileView: React.FC = () => {
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           endAccessory={
             isOwner && displayProfile ? (
-              <SocialHeaderGlassSurface twClassName="px-1">
+              <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+                <ButtonIcon
+                  iconName={IconName.Refresh}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleResetProfile}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.debug_reset_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
+                />
                 <ButtonIcon
                   iconName={IconName.Edit}
                   iconProps={{ color: IconColor.IconDefault }}
@@ -505,11 +516,16 @@ const MyProfileView: React.FC = () => {
                 isOwner={isOwner}
                 onFollowersPress={handleFollowersPress}
                 onFollowingPress={handleFollowingPress}
-                onStatsPress={() => setIsStatsSheetOpen(true)}
               />
             </Box>
 
-            <Box gap={2} paddingHorizontal={4} paddingBottom={8}>
+            <Box
+              gap={2}
+              paddingHorizontal={4}
+              paddingBottom={
+                overlayedStats.performanceCells.length === 0 ? 8 : undefined
+              }
+            >
               <Box flexDirection={BoxFlexDirection.Row} gap={2}>
                 {isOwner ? (
                   <>
@@ -553,21 +569,16 @@ const MyProfileView: React.FC = () => {
                   </Box>
                 )}
               </Box>
-              {isOwner ? (
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  isFullWidth
-                  onPress={handleResetProfile}
-                  testID={MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON}
-                >
-                  {strings('social_leaderboard.my_profile.debug_reset_profile')}
-                </Button>
-              ) : null}
             </Box>
+
+            <MyProfilePerformanceStats
+              cells={overlayedStats.performanceCells}
+              onPress={() => setIsStatsSheetOpen(true)}
+            />
 
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="border-b border-muted px-4 gap-4"
+              twClassName="px-4 gap-4"
               accessibilityRole="tablist"
             >
               <ProfileTabButton
@@ -631,6 +642,9 @@ const MyProfileView: React.FC = () => {
               <ProfilePostsEmptyState
                 isOwner={isOwner}
                 onShareFirstTrade={handleShareFirstTrade}
+                imageUrl={displayProfile.imageUrl}
+                avatarPresetId={displayProfile.avatarPresetId}
+                avatarBackgroundId={displayProfile.avatarBackgroundId}
               />
             ) : postsError && posts.length === 0 ? (
               <Box

@@ -42,6 +42,7 @@ import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1Feed
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
+import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import {
   DEFAULT_FEED_SORT,
   FeedSortFilterSelector,
@@ -454,6 +455,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showInitialFeedSkeletons = visibleAssetFeed
     ? visibleAssetFeed.isLoading && visibleAssetFeed.posts.length === 0
     : isLoading && posts.length === 0;
+  // The tab feed itself came back empty. A selected token, Following filters,
+  // or hidden posts can also leave the list blank; those stay quiet.
+  const showTrueEmptyFeed =
+    !isLoading && error == null && posts.length === 0 && pendingPost == null;
   const visibleError = visibleAssetFeed ? visibleAssetFeed.error : error;
   const visibleFeedEmpty = visibleAssetFeed
     ? visibleAssetFeed.posts.length === 0
@@ -521,7 +526,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <Box twClassName="px-4">
                   <SocialFeedPostingBanner
                     authorHandle={pendingPost.authorHandle}
-                    authorImageUrl={pendingPost.authorImageUrl}
+                    authorImageUrl={myProfile?.imageUrl}
+                    avatarPresetId={myProfile?.avatarPresetId}
+                    avatarBackgroundId={myProfile?.avatarBackgroundId}
                     startedAtMs={pendingStartedAtMs}
                   />
                 </Box>
@@ -529,27 +536,32 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               {showInitialFeedSkeletons ? (
                 <SocialFeedSkeleton />
               ) : (
-                feedBlocks.map((block, blockIndex) => (
-                  <Fragment key={block.key}>
-                    {blockIndex > 0 ? (
-                      <SectionDivider
-                        marginVertical={1}
-                        testID={getSocialV1FeedEntryDividerTestId(
-                          `block-${block.key}`,
-                        )}
-                      />
-                    ) : null}
-                    {block.kind === 'posts' ? (
-                      <SocialV1FeedPostList
-                        posts={block.posts}
-                        dividerKeyPrefix={block.key}
-                        renderPost={renderPost}
-                      />
-                    ) : (
-                      <PopularTradersCarousel />
-                    )}
-                  </Fragment>
-                ))
+                <>
+                  {showTrueEmptyFeed ? (
+                    <SocialV1FeedEmptyState tab={tab} />
+                  ) : null}
+                  {feedBlocks.map((block, blockIndex) => (
+                    <Fragment key={block.key}>
+                      {blockIndex > 0 ? (
+                        <SectionDivider
+                          marginVertical={1}
+                          testID={getSocialV1FeedEntryDividerTestId(
+                            `block-${block.key}`,
+                          )}
+                        />
+                      ) : null}
+                      {block.kind === 'posts' ? (
+                        <SocialV1FeedPostList
+                          posts={block.posts}
+                          dividerKeyPrefix={block.key}
+                          renderPost={renderPost}
+                        />
+                      ) : (
+                        <PopularTradersCarousel />
+                      )}
+                    </Fragment>
+                  ))}
+                </>
               )}
               {showNextPageSpinner ? (
                 <Box
