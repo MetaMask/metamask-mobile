@@ -13,16 +13,19 @@ import {
   SOCIAL_V1_AB_KEY,
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
+import type { SocialShellTab } from '../shell/types';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
- * `landingTab` is only meaningful on the legacy `SocialV0View` (TSA-1042).
+ * `landingTab` is only meaningful on the legacy `SocialV0View` (TSA-1042), and
+ * `initialTab` only on `SocialV1View`.
  */
 interface SocialLeaderboardViewParams {
   source?: string;
   landingTab?: 'leaderboard' | 'feed';
   landingFeedAudience?: 'all' | 'following';
   showNotificationsBanner?: boolean;
+  initialTab?: SocialShellTab;
 }
 
 /**
@@ -79,6 +82,7 @@ const toHomeRouteParams = (
     return {
       source: params.source,
       showNotificationsBanner: params.showNotificationsBanner,
+      initialTab: params.initialTab,
     };
   }
   return params;
