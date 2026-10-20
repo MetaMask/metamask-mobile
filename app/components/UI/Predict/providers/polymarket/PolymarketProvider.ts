@@ -194,6 +194,13 @@ import {
 /** Page size for Data API v2 paginated reads (positions). */
 const PREDICT_POSITIONS_PAGE_SIZE = 100;
 /**
+ * Maximum age of an execution-marked sell preview at signing time. A preview
+ * older than this window is rejected before any signing or encoding work so
+ * the caller can revalidate with a fresh execution preview; it matches the
+ * one-second book polling cadence the user was looking at.
+ */
+const PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS = 1_000;
+/**
  * Upper bound on empty-page cursor hops per activity read. Data API v2 has no
  * server-side lost-redeem filter, so a fetched page can map to zero visible
  * rows while its envelope still carries a `next_cursor`. The provider follows
@@ -701,6 +708,20 @@ export class PolymarketProvider implements PredictProvider {
     preview: OrderPreview;
     protocol: PolymarketProtocolDefinition;
   }) {
+    // Signing freshness guard: `fetchedAt` is populated only by the pre-submit
+    // execution-preview operation, so its presence marks a preview whose
+    // freshness was validated against the user's approval. A sell preview
+    // older than the freshness window is rejected before any signing or order
+    // encoding work. Ordinary polled previews never set `fetchedAt`, so
+    // existing buy and sell flows are unaffected.
+    if (
+      preview.side === Side.SELL &&
+      preview.fetchedAt !== undefined &&
+      Date.now() - preview.fetchedAt > PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS
+    ) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE);
+    }
+
     const accountState = await this.getAccountState({
       ownerAddress: signer.address,
     });

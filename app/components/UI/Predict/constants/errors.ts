@@ -35,6 +35,13 @@ export const PREDICT_ERROR_CODES = {
   MARKET_PENDING_RESOLUTION: 'PREDICT_MARKET_PENDING_RESOLUTION',
   MARKET_NOT_ACCEPTING_BETS: 'PREDICT_MARKET_NOT_ACCEPTING_BETS',
   MARKET_BETTABLE_CHECK_FAILED: 'PREDICT_MARKET_BETTABLE_CHECK_FAILED',
+  /**
+   * An execution-marked preview crossed the one-second signing freshness
+   * window before signing. Not a market outcome and not a technical CLOB
+   * failure: the placement is rejected before any signing work so the caller
+   * can revalidate with a fresh execution preview.
+   */
+  PREVIEW_EXECUTION_STALE: 'PREDICT_PREVIEW_EXECUTION_STALE',
 } as const;
 
 export const PREDICT_BUY_CANCELLATION_REASONS = {

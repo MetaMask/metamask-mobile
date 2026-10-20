@@ -84,6 +84,15 @@ export type PlaceOrderOutcome =
       status: 'order_not_filled';
     }
   | {
+      /**
+       * The preview crossed the signing freshness window before signing.
+       * The provider rejected it before any signing work; the caller must
+       * revalidate with a fresh execution preview, not treat it as a market
+       * or technical failure.
+       */
+      status: 'preview_stale';
+    }
+  | {
       status: 'error';
       error: string;
     };

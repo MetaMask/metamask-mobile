@@ -182,6 +182,13 @@ export const getPlaceOrderErrorOutcome = ({
     return { status: 'order_not_filled' };
   }
 
+  // The provider's signing freshness guard rejected the preview before any
+  // signing work: the caller revalidates with a fresh execution preview
+  // instead of surfacing a market or technical error.
+  if (rawMessage === PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE) {
+    return { status: 'preview_stale' };
+  }
+
   return { status: 'error', error: parsedErrorMessage };
 };
 

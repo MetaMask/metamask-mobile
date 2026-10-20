@@ -13,6 +13,7 @@ import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
 
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { mockTheme } from '../../../../util/theme';
 // Mock dependencies
 jest.mock('../../../../component-library/components/Toast');
@@ -401,6 +402,28 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('Failed to place order');
       expect(result.current.result).toBeNull();
+    });
+
+    it("returns 'preview_stale' without error state when the signing freshness guard rejects the preview", async () => {
+      mockPlaceOrder.mockRejectedValue(
+        new Error(PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE),
+      );
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let outcome: PlaceOrderOutcome | undefined;
+      await act(async () => {
+        outcome = await result.current.placeOrder({
+          ...mockOrderParams,
+          preview: createMockOrderPreview({ side: Side.SELL }),
+        });
+      });
+
+      expect(outcome).toEqual({ status: 'preview_stale' });
+      // A stale rejection is a recovery signal for the caller, not a user
+      // error: no error state, no toast.
+      expect(result.current.error).toBeUndefined();
+      expect(result.current.isLoading).toBe(false);
+      expect(mockToastRef.current?.showToast).not.toHaveBeenCalled();
     });
 
     it('does not show toast when order placement fails', async () => {

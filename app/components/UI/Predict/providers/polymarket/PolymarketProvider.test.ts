@@ -19,6 +19,7 @@ import {
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ACCOUNT_STATE_CACHE_TTL_MS,
   ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS,
@@ -1812,6 +1813,69 @@ describe('PolymarketProvider', () => {
       }),
     );
     expect('preview' in result).toBe(false);
+  });
+
+  it('rejects a stale execution-marked sell preview before any signing work', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        side: Side.SELL,
+        slippage: 0.05,
+        fetchedAt: Date.now() - 2_000,
+      },
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('expected a failure result');
+    }
+    expect(result.error).toBe(PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE);
+    // The guard rejects before any signing or order encoding work.
+    expect(signer.signTypedMessage).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+  });
+
+  it('signs a fresh execution-marked sell preview', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        side: Side.SELL,
+        slippage: 0.05,
+        fetchedAt: Date.now(),
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      expect.any(Object),
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalled();
+  });
+
+  it('signs an ordinary sell preview without a freshness marker', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        side: Side.SELL,
+        slippage: 0.05,
+      },
+    });
+
+    // Ordinary polled previews never set fetchedAt, so the signing freshness
+    // guard does not apply to them.
+    expect(result.success).toBe(true);
+    expect(signer.signTypedMessage).toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalled();
   });
 
   it('submits orders through the protocol CLOB v2 relayer path', async () => {
