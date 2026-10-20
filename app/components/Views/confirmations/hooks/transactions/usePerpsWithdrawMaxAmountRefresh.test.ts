@@ -7,7 +7,6 @@ import {
 } from '../pay/useTransactionPayData';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { TransactionType } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 
 jest.mock('../pay/useTransactionPayBalance');
 jest.mock('../pay/useTransactionPayData');
@@ -50,14 +49,14 @@ function setup({
     updateTransactionPayAmount: updateTransactionPayAmountMock,
   } as never);
 
-  const hook = renderHookWithProvider(() =>
+  renderHookWithProvider(() =>
     usePerpsWithdrawMaxAmountRefresh({
       transactionMeta,
       isMaxAmount,
     }),
   );
 
-  return { hook, updateTransactionPayAmountMock };
+  return { updateTransactionPayAmountMock };
 }
 
 describe('usePerpsWithdrawMaxAmountRefresh', () => {
@@ -71,28 +70,20 @@ describe('usePerpsWithdrawMaxAmountRefresh', () => {
   });
 
   it('does not update when the committed amount matches the live balance', () => {
-    setup();
+    const { updateTransactionPayAmountMock } = setup();
 
-    expect(useUpdateTransactionPayAmount).toHaveBeenCalled();
-    expect(console.log).not.toHaveBeenCalled();
+    expect(updateTransactionPayAmountMock).not.toHaveBeenCalled();
   });
 
   it('updates the committed amount when the live balance changes', () => {
     const { updateTransactionPayAmountMock } = setup({
       balanceRaw: '487358299',
       balanceUsd: 4.873582999999998,
-      committedAmountRaw: '487358300',
+      committedAmountRaw: '487358301',
     });
 
     expect(updateTransactionPayAmountMock).toHaveBeenCalledWith(
       '4.873582999999998',
-    );
-    expect(console.log).toHaveBeenCalledWith(
-      '[OGP-PerpsWithdrawable] perpsWithdraw amount updating',
-      expect.objectContaining({
-        oldValue: '4.873583',
-        newValue: '4.873582999999998',
-      }),
     );
   });
 

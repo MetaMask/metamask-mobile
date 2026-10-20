@@ -36,16 +36,14 @@ export function usePerpsWithdrawMaxAmountRefresh({
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
   const lastPerpsMaxBalanceRef = useRef<string | undefined>(undefined);
 
-  const committedAmountHuman = (() => {
-    const sourceAmount = sourceAmounts?.[0]?.sourceAmountRaw;
-    const decimals = requiredTokens?.[0]?.decimals;
+  const sourceAmount = sourceAmounts?.[0]?.sourceAmountRaw;
+  const decimals = requiredTokens?.[0]?.decimals;
+  const committedAmountHuman =
+    sourceAmount && decimals !== undefined
+      ? new BigNumber(sourceAmount).shiftedBy(-decimals).toFixed()
+      : undefined;
 
-    if (!sourceAmount || decimals === undefined) {
-      return undefined;
-    }
-
-    return new BigNumber(sourceAmount).shiftedBy(-decimals).toFixed();
-  })();
+  const liveAmountHuman = new BigNumber(balanceUsd).toFixed();
 
   useEffect(() => {
     if (
@@ -71,18 +69,17 @@ export function usePerpsWithdrawMaxAmountRefresh({
       return;
     }
 
-    const nextAmountHuman = new BigNumber(balanceUsd).toFixed();
-
-    if (nextAmountHuman === committedAmountHuman) {
+    if (liveAmountHuman === committedAmountHuman) {
       return;
     }
 
-    updateTransactionPayAmount(nextAmountHuman);
+    updateTransactionPayAmount(liveAmountHuman);
   }, [
     balanceRaw,
     balanceUsd,
     committedAmountHuman,
     isMaxAmount,
+    liveAmountHuman,
     transactionMeta,
     updateTransactionPayAmount,
   ]);
