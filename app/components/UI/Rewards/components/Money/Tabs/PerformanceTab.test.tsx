@@ -178,7 +178,7 @@ const renderTab = (
                     REFERRAL_REV_SHARE: { lifetime: '41750000' },
                   },
                 },
-              } as EarningsSummaryDto,
+              } as unknown as EarningsSummaryDto,
             },
           },
         },
