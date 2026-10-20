@@ -1,258 +1,143 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { makeMutable } from 'react-native-reanimated';
 
 import HeaderStandardGlass from './HeaderStandardGlass';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../HeaderGlass';
+import { backdropFadeOpacity } from '../HeaderGlass/test-utils';
 
-const mockUseLiquidGlass = jest.fn();
-jest.mock('../../hooks/useLiquidGlass', () => ({
-  useLiquidGlass: () => mockUseLiquidGlass(),
-}));
-
-const TITLE = 'Accounts';
-const BACK_BUTTON_TEST_ID = 'header-standard-glass-back';
-const CLOSE_BUTTON_TEST_ID = 'header-standard-glass-close';
-const BACK_CAPSULE_TEST_ID = 'header-standard-glass-back-capsule';
-const CLOSE_CAPSULE_TEST_ID = 'header-standard-glass-close-capsule';
-
-const glassOff = {
-  isGlassEnabled: false,
-  glassColorScheme: 'light',
-  isBlurEnabled: false,
-  blurTint: 'systemChromeMaterialLight',
-};
+jest.mock('../CapsuleGlass', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View testID="capsule">{children}</View>
+    ),
+  };
+});
 
 describe('HeaderStandardGlass', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseLiquidGlass.mockReturnValue(glassOff);
-  });
-
-  it('renders the title', () => {
-    const { getByText } = render(<HeaderStandardGlass title={TITLE} />);
-
-    expect(getByText(TITLE)).toBeOnTheScreen();
-  });
-
-  it('renders the subtitle under the title', () => {
-    const { getByText } = render(
-      <HeaderStandardGlass title={TITLE} subtitle="3 accounts" />,
+  it('renders the plain MMDS header when glass is off', () => {
+    const { getByText, getByTestId, queryByTestId } = render(
+      <HeaderStandardGlass
+        title="Accounts"
+        subtitle="3 accounts"
+        onBack={jest.fn()}
+        backButtonProps={{ testID: 'back' }}
+        isGlass={false}
+      />,
     );
 
+    expect(getByText('Accounts')).toBeOnTheScreen();
     expect(getByText('3 accounts')).toBeOnTheScreen();
+    expect(getByTestId('back')).toBeOnTheScreen();
+    expect(queryByTestId('capsule')).toBeNull();
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
   });
 
   it('renders children in place of the title', () => {
     const { getByText, queryByText } = render(
-      <HeaderStandardGlass title={TITLE}>
+      <HeaderStandardGlass title="Accounts">
         <Text>Custom title</Text>
       </HeaderStandardGlass>,
     );
 
     expect(getByText('Custom title')).toBeOnTheScreen();
-    expect(queryByText(TITLE)).not.toBeOnTheScreen();
+    expect(queryByText('Accounts')).not.toBeOnTheScreen();
   });
 
-  it('renders a back button from onBack and calls it', () => {
+  it('floats the header on its backdrop with its icons in capsules', () => {
     const onBack = jest.fn();
-    const { getByTestId } = render(
+    const { getByText, getByTestId, getAllByTestId } = render(
       <HeaderStandardGlass
-        title={TITLE}
+        title="Accounts"
         onBack={onBack}
-        backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
-      />,
-    );
-
-    fireEvent.press(getByTestId(BACK_BUTTON_TEST_ID));
-
-    expect(onBack).toHaveBeenCalledTimes(1);
-  });
-
-  it('uses backButtonProps.onPress over onBack', () => {
-    const onBack = jest.fn();
-    const onPress = jest.fn();
-    const { getByTestId } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onBack={onBack}
-        backButtonProps={{ onPress, testID: BACK_BUTTON_TEST_ID }}
-      />,
-    );
-
-    fireEvent.press(getByTestId(BACK_BUTTON_TEST_ID));
-
-    expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onBack).not.toHaveBeenCalled();
-  });
-
-  it('renders startButtonIconProps in place of the back button', () => {
-    const { getByTestId, queryByTestId } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onBack={jest.fn()}
-        backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
-        startButtonIconProps={{
-          iconName: IconName.Menu,
-          onPress: jest.fn(),
-          testID: 'custom-start-button',
-        }}
-      />,
-    );
-
-    expect(getByTestId('custom-start-button')).toBeOnTheScreen();
-    expect(queryByTestId(BACK_BUTTON_TEST_ID)).not.toBeOnTheScreen();
-  });
-
-  it('renders startAccessory in place of the start icon button', () => {
-    const { getByTestId, queryByTestId } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onBack={jest.fn()}
-        backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
-        startAccessory={<Text testID="custom-start">Start</Text>}
-      />,
-    );
-
-    expect(getByTestId('custom-start')).toBeOnTheScreen();
-    expect(queryByTestId(BACK_BUTTON_TEST_ID)).not.toBeOnTheScreen();
-  });
-
-  it('renders a close button from onClose and calls it', () => {
-    const onClose = jest.fn();
-    const { getByTestId } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onClose={onClose}
-        closeButtonProps={{ testID: CLOSE_BUTTON_TEST_ID }}
-      />,
-    );
-
-    fireEvent.press(getByTestId(CLOSE_BUTTON_TEST_ID));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('places the close button to the right of other end buttons', () => {
-    const { getByTestId, toJSON } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onClose={jest.fn()}
-        closeButtonProps={{ testID: CLOSE_BUTTON_TEST_ID }}
+        backButtonProps={{ testID: 'back' }}
         endButtonIconProps={[
+          { iconName: IconName.Search, onPress: jest.fn(), testID: 'search' },
           {
-            iconName: IconName.Search,
+            iconName: IconName.MoreVertical,
             onPress: jest.fn(),
-            testID: 'search-button',
+            testID: 'more',
           },
         ]}
       />,
     );
 
-    expect(getByTestId('search-button')).toBeOnTheScreen();
-    expect(getByTestId(CLOSE_BUTTON_TEST_ID)).toBeOnTheScreen();
+    expect(getByText('Accounts')).toBeOnTheScreen();
+    expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+    expect(getAllByTestId('capsule')).toHaveLength(3);
+    expect(
+      getAllByTestId(/^(search|more)$/).map((icon) => icon.props.testID),
+    ).toEqual(['more', 'search']);
 
-    const serialized = JSON.stringify(toJSON());
-    const searchIndex = serialized.indexOf('"search-button"');
-    const closeIndex = serialized.indexOf(`"${CLOSE_BUTTON_TEST_ID}"`);
-
-    expect(searchIndex).toBeGreaterThan(-1);
-    expect(closeIndex).toBeGreaterThan(searchIndex);
-  });
-
-  it('renders endAccessory in place of the end icon buttons', () => {
-    const { getByTestId, queryByTestId } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onClose={jest.fn()}
-        closeButtonProps={{ testID: CLOSE_BUTTON_TEST_ID }}
-        endAccessory={<Text testID="custom-end">End</Text>}
-      />,
-    );
-
-    expect(getByTestId('custom-end')).toBeOnTheScreen();
-    expect(queryByTestId(CLOSE_BUTTON_TEST_ID)).not.toBeOnTheScreen();
-  });
-
-  it('leaves icon buttons uncapsuled when glass is off', () => {
-    const { getByTestId, queryByTestId } = render(
-      <HeaderStandardGlass
-        isGlass={false}
-        title={TITLE}
-        onBack={jest.fn()}
-        backButtonProps={{
-          testID: BACK_BUTTON_TEST_ID,
-          capsuleTestID: BACK_CAPSULE_TEST_ID,
-        }}
-      />,
-    );
-
-    expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeOnTheScreen();
-    expect(queryByTestId(BACK_CAPSULE_TEST_ID)).not.toBeOnTheScreen();
-  });
-
-  it('seats icon buttons in capsules when glass is on', () => {
-    const onBack = jest.fn();
-    const { getByTestId } = render(
-      <HeaderStandardGlass
-        isGlass
-        title={TITLE}
-        onBack={onBack}
-        onClose={jest.fn()}
-        backButtonProps={{
-          testID: BACK_BUTTON_TEST_ID,
-          capsuleTestID: BACK_CAPSULE_TEST_ID,
-        }}
-        closeButtonProps={{
-          testID: CLOSE_BUTTON_TEST_ID,
-          capsuleTestID: CLOSE_CAPSULE_TEST_ID,
-        }}
-      />,
-    );
-
-    expect(getByTestId(BACK_CAPSULE_TEST_ID)).toBeOnTheScreen();
-    expect(getByTestId(CLOSE_CAPSULE_TEST_ID)).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(BACK_BUTTON_TEST_ID));
+    fireEvent.press(getByTestId('back'));
 
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it('seats icon buttons in capsules when Liquid Glass is available', () => {
-    mockUseLiquidGlass.mockReturnValue({
-      ...glassOff,
-      isGlassEnabled: true,
-    });
-
+  it.each([
+    [0, 0],
+    [128, 1],
+  ])('fades the backdrop with scrollY at %ipx', (offset, opacity) => {
     const { getByTestId } = render(
-      <HeaderStandardGlass
-        title={TITLE}
-        onBack={jest.fn()}
-        backButtonProps={{
-          testID: BACK_BUTTON_TEST_ID,
-          capsuleTestID: BACK_CAPSULE_TEST_ID,
-        }}
-      />,
+      <HeaderStandardGlass title="Accounts" scrollY={makeMutable(offset)} />,
     );
 
-    expect(getByTestId(BACK_CAPSULE_TEST_ID)).toBeOnTheScreen();
+    expect(backdropFadeOpacity(getByTestId(FLOATING_HEADER_FADE_TEST_ID))).toBe(
+      opacity,
+    );
   });
 
-  it('keeps a button uncapsuled when its own isCapsule is false', () => {
-    const { getByTestId, queryByTestId } = render(
+  it('drops the backdrop for none', () => {
+    const { queryByTestId } = render(
+      <HeaderStandardGlass title="Accounts" backdrop="none" />,
+    );
+
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+  });
+
+  it('passes custom accessories through', () => {
+    const { getByText, queryByTestId } = render(
       <HeaderStandardGlass
-        isGlass
-        title={TITLE}
-        onBack={jest.fn()}
-        backButtonProps={{
-          isCapsule: false,
-          testID: BACK_BUTTON_TEST_ID,
-          capsuleTestID: BACK_CAPSULE_TEST_ID,
-        }}
+        title="Accounts"
+        startAccessory={<Text>Start</Text>}
+        endAccessory={<Text>End</Text>}
       />,
     );
 
-    expect(getByTestId(BACK_BUTTON_TEST_ID)).toBeOnTheScreen();
-    expect(queryByTestId(BACK_CAPSULE_TEST_ID)).not.toBeOnTheScreen();
+    expect(getByText('Start')).toBeOnTheScreen();
+    expect(getByText('End')).toBeOnTheScreen();
+    expect(queryByTestId('capsule')).toBeNull();
+  });
+
+  it('seats a lone close button in a capsule', () => {
+    const { getByTestId } = render(
+      <HeaderStandardGlass
+        title="Accounts"
+        onClose={jest.fn()}
+        closeButtonProps={{ testID: 'close' }}
+      />,
+    );
+
+    expect(within(getByTestId('capsule')).getByTestId('close')).toBeTruthy();
+  });
+
+  it('reports the floating header layout so the screen can inset its content', () => {
+    const onLayout = jest.fn();
+    const { getByTestId } = render(
+      <HeaderStandardGlass
+        title="Accounts"
+        onLayout={onLayout}
+        testID="header"
+      />,
+    );
+    const event = { nativeEvent: { layout: { height: 103 } } };
+
+    fireEvent(getByTestId('header'), 'layout', event);
+
+    expect(onLayout).toHaveBeenCalledWith(event);
   });
 });
