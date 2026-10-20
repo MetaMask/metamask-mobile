@@ -31,7 +31,6 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
@@ -52,13 +51,12 @@ const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   HEADER: 'vba-details-header',
+  BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
   COPY_BUTTON: 'vba-details-copy-button',
-  DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
   ROW_ICON: 'vba-details-row-icon',
-  WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   SETUP_ERROR: 'vba-details-setup-error',
@@ -95,9 +93,9 @@ interface DepositRamps {
 /**
  * Virtual bank account screen. This is the only place that registers the
  * wallet and creates the BRL autoramp. Until a PIX rail exists, the existing
- * waiting state stays on screen. Pushed on the root stack
+ * loading state stays on screen. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
- * onboarding. The header stays, without a back button. PIX values come from
+ * onboarding. PIX values come from
  * `NeoBankService.getPixDepositInstructions`.
  */
 const VbaDetails = () => {
@@ -116,7 +114,6 @@ const VbaDetails = () => {
   );
   const [loadError, setLoadError] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
 
@@ -226,12 +223,6 @@ const VbaDetails = () => {
         });
       } finally {
         inFlight = false;
-        // A network-tier change cancels this effect while the request is
-        // still in flight. The response can still store Pix instructions, so
-        // finish the load unless the screen itself has unmounted.
-        if (isMountedRef.current) {
-          setHasLoaded(true);
-        }
       }
     };
     tick().catch(() => undefined);
@@ -271,12 +262,7 @@ const VbaDetails = () => {
     refreshDeposit().catch(() => undefined);
   }, [refreshDeposit]);
 
-  const handleDone = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
@@ -317,16 +303,25 @@ const VbaDetails = () => {
       : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null);
 
-  // Offline never fetches, so it skips straight to the waiting copy.
-  const isLoading = !hasLoaded && networkTier !== 'NONE';
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+  const showSetupRetry = setupFailed && !instructions?.brCode;
+  const errorMessage = setupFailed
+    ? strings('virtual_bank_account.vba_details.setup_error')
+    : loadError
+      ? strings('virtual_bank_account.vba_details.load_error')
+      : null;
 
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard includesTopInset testID={VbaDetailsSelectorsIDs.HEADER} />
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+        testID={VbaDetailsSelectorsIDs.HEADER}
+      />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
@@ -351,53 +346,7 @@ const VbaDetails = () => {
         >
           {strings('virtual_bank_account.vba_details.description')}
         </Text>
-        {isLoading ? (
-          <Box
-            twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
-            accessible
-            accessibilityRole="progressbar"
-            accessibilityLabel={strings(
-              'virtual_bank_account.vba_details.loading',
-            )}
-            testID={VbaDetailsSelectorsIDs.LOADING}
-          >
-            {['copia-cola', 'pix-key'].map((id) => (
-              <Box
-                key={id}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-3 px-4 py-3"
-              >
-                <Skeleton
-                  width={20}
-                  height={20}
-                  twClassName="rounded-full"
-                  {...skeletonMotion}
-                />
-                <Box twClassName="flex-1 gap-2">
-                  <Skeleton
-                    width={96}
-                    height={14}
-                    twClassName="rounded"
-                    {...skeletonMotion}
-                  />
-                  <Skeleton
-                    width="85%"
-                    height={18}
-                    twClassName="rounded"
-                    {...skeletonMotion}
-                  />
-                </Box>
-                <Skeleton
-                  width={24}
-                  height={24}
-                  twClassName="rounded"
-                  {...skeletonMotion}
-                />
-              </Box>
-            ))}
-          </Box>
-        ) : rows.length > 0 ? (
+        {rows.length > 0 ? (
           <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
             {rows.map((row) => (
               <Box key={row.id} testID={row.testID}>
@@ -445,74 +394,95 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : (
+        ) : errorMessage ? (
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
+            color={TextColor.ErrorDefault}
             twClassName="mt-6 text-center"
-            testID={VbaDetailsSelectorsIDs.WAITING_FOR_PIX}
+            testID={
+              setupFailed
+                ? VbaDetailsSelectorsIDs.SETUP_ERROR
+                : VbaDetailsSelectorsIDs.LOAD_ERROR
+            }
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
           >
-            {strings('virtual_bank_account.vba_details.waiting_for_pix')}
+            {errorMessage}
           </Text>
+        ) : (
+          <Box
+            twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={strings(
+              'virtual_bank_account.vba_details.loading',
+            )}
+            testID={VbaDetailsSelectorsIDs.LOADING}
+          >
+            {['copia-cola', 'pix-key'].map((id) => (
+              <Box
+                key={id}
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-3 px-4 py-3"
+              >
+                <Skeleton
+                  width={20}
+                  height={20}
+                  twClassName="rounded-full"
+                  {...skeletonMotion}
+                />
+                <Box twClassName="flex-1 gap-2">
+                  <Skeleton
+                    width={96}
+                    height={14}
+                    twClassName="rounded"
+                    {...skeletonMotion}
+                  />
+                  <Skeleton
+                    width="85%"
+                    height={18}
+                    twClassName="rounded"
+                    {...skeletonMotion}
+                  />
+                </Box>
+                <Skeleton
+                  width={24}
+                  height={24}
+                  twClassName="rounded"
+                  {...skeletonMotion}
+                />
+              </Box>
+            ))}
+          </Box>
         )}
-        {loadError && !instructions?.brCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.load_error')}
-          </Text>
-        ) : null}
-        {setupFailed && !instructions?.brCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.SETUP_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.setup_error')}
-          </Text>
-        ) : null}
       </ScrollView>
-      <Box twClassName="gap-4 px-4 pb-2 pt-4">
-        {setupFailed && !instructions?.brCode ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleRetrySetup}
-            testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
-          >
-            {strings('virtual_bank_account.vba_details.retry')}
-          </Button>
-        ) : null}
-        {debugEnabled ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleOpenDebug}
-            testID={VbaDetailsSelectorsIDs.DEBUG_BUTTON}
-          >
-            {'Debug'}
-          </Button>
-        ) : null}
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleDone}
-          testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
-        >
-          {strings('virtual_bank_account.vba_details.button')}
-        </Button>
-      </Box>
+      {showSetupRetry || debugEnabled ? (
+        <Box twClassName="gap-4 px-4 pb-2 pt-4">
+          {showSetupRetry ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleRetrySetup}
+              testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
+            >
+              {strings('virtual_bank_account.vba_details.retry')}
+            </Button>
+          ) : null}
+          {debugEnabled ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleOpenDebug}
+              testID={VbaDetailsSelectorsIDs.DEBUG_BUTTON}
+            >
+              {'Debug'}
+            </Button>
+          ) : null}
+        </Box>
+      ) : null}
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet
           autorampId={autorampId}
