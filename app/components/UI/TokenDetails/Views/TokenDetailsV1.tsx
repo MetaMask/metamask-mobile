@@ -111,7 +111,7 @@ import {
 import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
-export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID };
+export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip';
 export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
   'token-details-v1-scroll-view';
 export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
