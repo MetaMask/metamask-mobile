@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { useSelector } from 'react-redux';
@@ -124,6 +124,20 @@ export const usePerpsHomeActions = (
     onBeforeOpenConfirmation,
   } = options || {};
   const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
+  // Blocks a second in-place push until this screen is focused again.
+  // StackActions.push always adds a route, and dismissing the deposit only
+  // goes back once.
+  const inPlaceConfirmationOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (!openConfirmationInPlace) {
+      return undefined;
+    }
+
+    return navigation.addListener('focus', () => {
+      inPlaceConfirmationOpenRef.current = false;
+    });
+  }, [navigation, openConfirmationInPlace]);
 
   const clearDepositPrepSession = useCallback(() => {
     depositPrepSessionRef.current?.dispose();
@@ -148,7 +162,18 @@ export const usePerpsHomeActions = (
   );
 
   const handleAddFunds = useCallback(() => {
+    // Set this before `gate` awaits, so a second tap during compliance or
+    // the paint delay cannot push another confirmation.
+    if (openConfirmationInPlace) {
+      if (inPlaceConfirmationOpenRef.current) {
+        return Promise.resolve();
+      }
+      inPlaceConfirmationOpenRef.current = true;
+    }
+
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+
+    let didOpenConfirmation = false;
 
     return gate(async () => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -181,17 +206,12 @@ export const usePerpsHomeActions = (
             });
           });
         }
-        // Push on this stack. navigate() from the transparent adjust-margin
-        // modal is handled by a parent and comes back as a page sheet.
-        navigation.dispatch(
-          StackActions.push(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            {
-              loader: 'customAmount' as ConfirmationLoader,
-              launchedFrom: 'perps-adjust-margin' as ConfirmationLaunchSource,
-            },
-          ),
-        );
+        navigateToConfirmation({
+          loader: 'customAmount' as ConfirmationLoader,
+          launchedFrom: 'perps-adjust-margin' as ConfirmationLaunchSource,
+          pushOnCurrentStack: true,
+        });
+        didOpenConfirmation = true;
       } else {
         navigateToConfirmation({
           loader: 'customAmount' as ConfirmationLoader,
@@ -242,6 +262,10 @@ export const usePerpsHomeActions = (
           },
         },
       );
+    }).finally(() => {
+      if (openConfirmationInPlace && !didOpenConfirmation) {
+        inPlaceConfirmationOpenRef.current = false;
+      }
     });
   }, [
     gate,

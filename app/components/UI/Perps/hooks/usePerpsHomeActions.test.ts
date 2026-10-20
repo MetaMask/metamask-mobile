@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   ConfirmationLaunchSource,
@@ -219,16 +219,12 @@ describe('usePerpsHomeActions', () => {
           await result.current.handleAddFunds();
         });
 
-        expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
-        expect(mockNavigation.dispatch).toHaveBeenCalledWith(
-          StackActions.push(
-            Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-            {
-              loader: ConfirmationLoader.CustomAmount,
-              launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
-            },
-          ),
-        );
+        expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: ConfirmationLoader.CustomAmount,
+          launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin,
+          pushOnCurrentStack: true,
+        });
 
         await act(async () => {
           await jest.runAllTimersAsync();
@@ -238,6 +234,74 @@ describe('usePerpsHomeActions', () => {
       } finally {
         jest.useRealTimers();
       }
+    });
+
+    it('opens one in-place confirmation when add funds is pressed twice before it appears', async () => {
+      jest.useFakeTimers();
+      const onBeforeOpenConfirmation = jest.fn();
+      try {
+        const { result } = renderHook(() =>
+          usePerpsHomeActions({
+            openConfirmationInPlace: true,
+            onBeforeOpenConfirmation,
+          }),
+        );
+
+        let firstTap: Promise<void> = Promise.resolve();
+        let secondTap: Promise<void> = Promise.resolve();
+
+        act(() => {
+          firstTap = result.current.handleAddFunds();
+          secondTap = result.current.handleAddFunds();
+        });
+
+        expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+
+        await act(async () => {
+          await jest.runAllTimersAsync();
+          await Promise.all([firstTap, secondTap]);
+        });
+
+        expect(onBeforeOpenConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('opens another in-place confirmation after the sheet is focused again', async () => {
+      let focusListener: (() => void) | undefined;
+      mockNavigation.addListener.mockImplementation(
+        (event: string, callback: () => void) => {
+          if (event === 'focus') {
+            focusListener = callback;
+          }
+          return jest.fn();
+        },
+      );
+
+      const { result } = renderHook(() =>
+        usePerpsHomeActions({ openConfirmationInPlace: true }),
+      );
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        focusListener?.();
+      });
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(2);
     });
 
     describe('deferred deposit prep', () => {
@@ -395,6 +459,28 @@ describe('usePerpsHomeActions', () => {
 
       expect(result.current.isEligibilityModalVisible).toBe(true);
       expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('opens the eligibility modal again on a later in-place tap', async () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        usePerpsHomeActions({ openConfirmationInPlace: true }),
+      );
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      const depositClicks = mockTrack.mock.calls.filter(
+        ([event, properties]) =>
+          event === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+          properties?.[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
+      );
+      expect(depositClicks).toHaveLength(2);
     });
 
     it('tracks geo-block screen viewed event for deposit action', async () => {
