@@ -34,37 +34,35 @@ const knownCurrency = (autoramp: AutorampCursor): string | undefined =>
 
 /**
  * First autoramp for this wallet that is not Rejected or Cancelled.
- * When `sourceCurrency` is set, an autoramp whose fiat is already known only
- * matches that fiat. An autoramp with no fiat yet still matches, so a create
- * that has not received deposit rails is not repeated.
+ * An exact fiat match wins over an earlier autoramp whose fiat is not known
+ * yet. An autoramp with no fiat still matches when nothing else does, so a
+ * create that has not received deposit rails is not repeated.
  */
 export const findUsableAutoramp = <T extends AutorampCursor>(
   autoramps: readonly T[],
   walletAddress: string,
   sourceCurrency?: string,
-): T | undefined =>
-  autoramps.find((autoramp) => {
-    if (!isForWallet(autoramp, walletAddress) || isTerminal(autoramp)) {
-      return false;
-    }
-    if (!sourceCurrency) {
-      return true;
-    }
-    const currency = knownCurrency(autoramp);
-    return !currency || currency === sourceCurrency;
-  });
+): T | undefined => {
+  const usable = autoramps.filter(
+    (autoramp) => isForWallet(autoramp, walletAddress) && !isTerminal(autoramp),
+  );
+  if (!sourceCurrency) {
+    return usable[0];
+  }
+  return (
+    usable.find((autoramp) => knownCurrency(autoramp) === sourceCurrency) ??
+    usable.find((autoramp) => !knownCurrency(autoramp))
+  );
+};
 
 const isTerminalForCurrency = (
   autoramp: AutorampCursor,
   walletAddress: string,
   sourceCurrency: string,
-): boolean => {
-  if (!isForWallet(autoramp, walletAddress) || !isTerminal(autoramp)) {
-    return false;
-  }
-  const currency = knownCurrency(autoramp);
-  return !currency || currency === sourceCurrency;
-};
+): boolean =>
+  isForWallet(autoramp, walletAddress) &&
+  isTerminal(autoramp) &&
+  knownCurrency(autoramp) === sourceCurrency;
 
 const readAutoramps = (): AutorampCursor[] =>
   Engine.context.RampsController.state?.autoramps ?? [];

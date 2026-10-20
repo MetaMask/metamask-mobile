@@ -113,12 +113,14 @@ interface TestAutoramp {
   id: string;
   walletAddress: string;
   status: string;
+  depositRailsSummary?: { currency?: string };
 }
 
 const approvedAutoramp: TestAutoramp = {
   id: 'ar-1',
   walletAddress: '0xabc',
   status: 'Approved',
+  depositRailsSummary: { currency: 'BRL' },
 };
 
 const pixInstructions = {
@@ -306,6 +308,14 @@ describe('VbaDetails', () => {
 
     it('shows the Pix title when the loaded rail is Pix, even if USD was requested', async () => {
       mockRouteParams = { sourceCurrency: 'USD' };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD' },
+        },
+      ]);
       mockGetDepositInstructions.mockResolvedValue({
         type: 'Pix',
         ...pixInstructions,
@@ -598,7 +608,12 @@ describe('VbaDetails', () => {
 
   it('shows retry instead of replacing a rejected autoramp, and replaces it on retry', async () => {
     setAutoramps([
-      { id: 'ar-old', walletAddress: '0xabc', status: 'Rejected' },
+      {
+        id: 'ar-old',
+        walletAddress: '0xabc',
+        status: 'Rejected',
+        depositRailsSummary: { currency: 'BRL' },
+      },
     ]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockCreateAutoramp.mockImplementation(async () => {
@@ -701,6 +716,104 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-new');
     });
+  });
+
+  it('refreshes an unlabeled approved account and creates USD when it is BRL', async () => {
+    mockLocation = 'US';
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Approved' }]);
+    mockRefreshAutoramp.mockImplementation(async () => {
+      const stamped: TestAutoramp = {
+        id: 'ar-1',
+        walletAddress: '0xabc',
+        status: 'Approved',
+        depositRailsSummary: { currency: 'BRL' },
+      };
+      setAutoramps([stamped]);
+      return stamped;
+    });
+    mockHydrate.mockResolvedValue({ autorampStatus: 'ready' });
+    mockCreateAutoramp.mockImplementation(async () => {
+      const created: TestAutoramp = {
+        id: 'ar-usd',
+        walletAddress: '0xabc',
+        status: 'Created',
+        depositRailsSummary: { currency: 'USD' },
+      };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        },
+        created,
+      ]);
+      return created;
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+    });
+    expect(mockCreateAutoramp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
+  });
+
+  it('drops a details response that belongs to the previous currency', async () => {
+    let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
+    mockGetPix.mockImplementation(
+      (autorampId: string) =>
+        new Promise((resolve) => {
+          if (autorampId === 'ar-1') {
+            resolvePix = resolve;
+            return;
+          }
+          resolve(null);
+        }),
+    );
+    mockRefreshAutoramp.mockImplementation(async (autorampId: string) => {
+      const current = (
+        Engine.context.RampsController.state as { autoramps: TestAutoramp[] }
+      ).autoramps.find((autoramp) => autoramp.id === autorampId);
+      return (
+        current ?? { id: autorampId, walletAddress: '0xabc', status: 'Created' }
+      );
+    });
+    const view = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    });
+
+    mockRouteParams = { sourceCurrency: 'USD' };
+    mockLocation = 'US';
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+    mockCreateAutoramp.mockImplementation(async () => {
+      const created: TestAutoramp = {
+        id: 'ar-usd',
+        walletAddress: '0xabc',
+        status: 'Created',
+        depositRailsSummary: { currency: 'USD' },
+      };
+      setAutoramps([created]);
+      return created;
+    });
+    view.rerender(<VbaDetails />);
+    resolvePix(pixInstructions);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'USD' }],
+        }),
+      );
+    });
+    expect(view.queryByText('00020126')).toBeNull();
+    expect(view.queryByText('Add money with Pix')).toBeNull();
   });
 
   it('creates the autoramp in the currency picked on Choose Currency', async () => {

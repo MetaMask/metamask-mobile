@@ -90,6 +90,7 @@ interface AutorampCursor {
   id: string;
   walletAddress: string;
   status: string;
+  depositRailsSummary?: { currency?: string };
 }
 
 interface PixDepositInstructions {
@@ -286,14 +287,39 @@ const VbaDetails = () => {
       if (!walletAddress) {
         return;
       }
+      const requestKey = `${walletAddress}:${sourceCurrency ?? ''}`;
+      const stillCurrent = () =>
+        isMountedRef.current && accountKeyRef.current === requestKey;
       const ramps = Engine.context.RampsController as DepositRamps;
       let autoramp = findUsableAutoramp(
         readAutoramps(),
         walletAddress,
         sourceCurrency,
       );
+      // An Approved account from before currency was stored must be refreshed
+      // before it can satisfy this fiat. Otherwise a BRL account is reused for USD.
+      if (
+        autoramp &&
+        sourceCurrency &&
+        autoramp.status === 'Approved' &&
+        !autoramp.depositRailsSummary?.currency &&
+        ramps.refreshAutoramp
+      ) {
+        await ramps.refreshAutoramp(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
+        autoramp = findUsableAutoramp(
+          readAutoramps(),
+          walletAddress,
+          sourceCurrency,
+        );
+      }
       if (!autoramp) {
         if (!sourceCurrency) {
+          if (!stillCurrent()) {
+            return;
+          }
           setSetupFailed(true);
           return;
         }
@@ -302,7 +328,7 @@ const VbaDetails = () => {
           sourceCurrency,
           { replaceTerminal },
         );
-        if (!isMountedRef.current) {
+        if (!stillCurrent()) {
           return;
         }
         autoramp = findUsableAutoramp(
@@ -320,11 +346,17 @@ const VbaDetails = () => {
           return;
         }
       }
+      if (!stillCurrent()) {
+        return;
+      }
       setSetupFailed(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
         const refreshed = await ramps.refreshAutoramp(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
         status = refreshed.status;
       }
       setAutorampId(autoramp.id);
@@ -350,6 +382,9 @@ const VbaDetails = () => {
       // Fetch details on their own so a flaky transaction poll cannot hide them.
       try {
         const details = await loadDepositInstructions(neoBank, autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
         if (details) {
           setInstructions(details);
           // Debug builds keep polling so the latest deposit stays visible.
@@ -410,17 +445,18 @@ const VbaDetails = () => {
     let cancelled = false;
     let inFlight = false;
     const tick = async () => {
+      const requestKey = accountKeyRef.current;
       if (cancelled || inFlight || pollingDoneRef.current) {
         return;
       }
       inFlight = true;
       try {
         await refreshDeposit();
-        if (!cancelled) {
+        if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(false);
         }
       } catch (error) {
-        if (!cancelled) {
+        if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(true);
         }
         Logger.error(error as Error, {
@@ -430,8 +466,9 @@ const VbaDetails = () => {
         inFlight = false;
         // A network-tier change cancels this effect while the request is
         // still in flight. The response can still store Pix instructions, so
-        // finish the load unless the screen itself has unmounted.
-        if (isMountedRef.current) {
+        // finish the load unless the screen itself has unmounted or the
+        // wallet or currency changed while this request was running.
+        if (isMountedRef.current && accountKeyRef.current === requestKey) {
           setHasLoaded(true);
         }
       }

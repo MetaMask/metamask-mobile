@@ -3,6 +3,7 @@ import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 import {
   ensureMusdAutoramp,
+  findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
 
@@ -142,6 +143,19 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
+  it('uses an exact currency match ahead of an earlier unlabeled autoramp', async () => {
+    const autoramps = [
+      { walletAddress: '0xabc', status: 'Approved' },
+      {
+        walletAddress: '0xabc',
+        status: 'Approved',
+        depositRailsSummary: { currency: 'USD' },
+      },
+    ];
+
+    expect(findUsableAutoramp(autoramps, '0xabc', 'USD')).toBe(autoramps[1]);
+  });
+
   it('does not treat a rejected BRL autoramp as terminal for a USD request', async () => {
     setAutoramps([
       {
@@ -158,12 +172,28 @@ describe('ensureMusdAutoramp', () => {
 
   it('does not replace rejected or cancelled routes on its own', async () => {
     setAutoramps([
-      { walletAddress: '0xabc', status: 'Rejected' },
-      { walletAddress: '0xabc', status: 'Cancelled' },
+      {
+        walletAddress: '0xabc',
+        status: 'Rejected',
+        depositRailsSummary: { currency: 'BRL' },
+      },
+      {
+        walletAddress: '0xabc',
+        status: 'Cancelled',
+        depositRailsSummary: { currency: 'BRL' },
+      },
     ]);
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('terminal');
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('does not let a rejected autoramp with no currency block another fiat', async () => {
+    setAutoramps([{ walletAddress: '0xabc', status: 'Rejected' }]);
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+    expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
   it('replaces a rejected route when asked to', async () => {
