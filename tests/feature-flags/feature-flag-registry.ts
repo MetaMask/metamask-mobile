@@ -4693,16 +4693,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Sender addresses are operationally managed and must not be bundled.
-  // The flag is not in production yet, so an empty list keeps classification off.
-  moneyVbaActivityDepositFromAddresses: {
-    name: 'moneyVbaActivityDepositFromAddresses',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: [],
-    status: FeatureFlagStatus.Active,
-  },
-
   moneyEnableActivityDetails: {
     name: 'moneyEnableActivityDetails',
     type: FeatureFlagType.Remote,
