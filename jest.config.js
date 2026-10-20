@@ -94,6 +94,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
+  // ESM-only; the Money MPC keyring V2 adapter.
+  '@metamask/eth-money-mpc-keyring',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.
   '@metamask/geolocation-controller',
