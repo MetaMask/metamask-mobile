@@ -4998,17 +4998,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  perpsRebatesEnabled: {
-    name: 'perpsRebatesEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   perpsProTriggeredOrdersEnabled: {
     name: 'perpsProTriggeredOrdersEnabled',
     type: FeatureFlagType.Remote,
