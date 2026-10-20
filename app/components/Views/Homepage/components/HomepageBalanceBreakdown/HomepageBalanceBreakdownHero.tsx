@@ -97,8 +97,6 @@ const HomepageBalanceBreakdownHero = ({
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
             value={displayBalance}
             animated={!skipBalanceAnimation}
-            fontFamily={FontFamily.Hero}
-            variant={TextVariant.AmountDisplayLg}
           />
         )}
       </Animated.View>

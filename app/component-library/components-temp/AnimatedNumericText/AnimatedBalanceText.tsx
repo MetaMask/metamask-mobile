@@ -20,12 +20,11 @@ export interface AnimatedBalanceTextProps {
   value: string;
   animated?: boolean;
   /**
-   * Design-system face. Defaults to the default family. Hero always uses the
-   * bold cut, which is the only Hero face the preset ships.
+   * Design-system face. Defaults to Hero, which always uses the bold cut.
    */
   fontFamily?: FontFamily;
   /**
-   * Design-system text variant. Defaults to DisplayLg.
+   * Design-system text variant. Defaults to AmountDisplayLg.
    */
   variant?: TextVariant;
 }
@@ -52,8 +51,8 @@ const AnimatedBalanceText = ({
   testID,
   value,
   animated,
-  fontFamily = FontFamily.Default,
-  variant = TextVariant.DisplayLg,
+  fontFamily = FontFamily.Hero,
+  variant = TextVariant.AmountDisplayLg,
 }: AnimatedBalanceTextProps) => {
   const [animatedValue, setAnimatedValue] = useState(loadingValue);
   const tw = useTailwind();
