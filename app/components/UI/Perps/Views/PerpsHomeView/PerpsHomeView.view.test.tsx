@@ -766,7 +766,7 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('opens the Social V1 home route from See more with the perps_home source', async () => {
+    it('opens Social V1 on the Leaderboard tab from Top traders See more with the perps_home source', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
       const { store } = renderPerpsHomeView({
@@ -796,6 +796,7 @@ describe('PerpsHomeView', () => {
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
           source: 'perps_home',
+          initialTab: 'leaderboard',
         });
       } finally {
         unwire();
