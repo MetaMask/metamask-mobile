@@ -151,10 +151,10 @@ export function areAddressesEqual(address1: string, address2: string) {
 export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
-  const startChars = isEthAddress(formattedAddress) ? chars + 2 : chars;
-  return `${formattedAddress.substr(0, startChars)}...${formattedAddress.substr(
-    -chars,
-  )}`;
+  const start = isEthAddress(formattedAddress)
+    ? `0x${stripHexPrefix(formattedAddress).slice(0, chars)}`
+    : formattedAddress.slice(0, chars);
+  return `${start}...${formattedAddress.slice(-chars)}`;
 }
 
 /**
