@@ -1323,6 +1323,20 @@
         "title": "No activity yet",
         "description": "Trader activity will show up here as trades come in."
       },
+      "v1_empty": {
+        "trending": {
+          "title": "No posts yet",
+          "description": "Trader posts will show up here."
+        },
+        "following": {
+          "title": "No posts yet",
+          "description": "Follow traders to see their posts here."
+        },
+        "liveTrades": {
+          "title": "No trades yet",
+          "description": "Live trades will show up here."
+        }
+      },
       "empty_type": {
         "tokens": {
           "title": "No token activity"
@@ -1574,6 +1588,9 @@
       "win_rate": "Win rate",
       "pnl": "P&L",
       "hold_time": "Hold time",
+      "avg_hold_time": "Avg. hold time",
+      "volume": "Volume",
+      "performance_30d": "Performance (30d)",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
       "empty_trader_following": "Not following anyone yet.",
@@ -5514,6 +5531,19 @@
         "onboarding_seen": "Onboarding seen: {{seen}}",
         "reset_onboarding": "Reset onboarding"
       },
+      "new_wallet": {
+        "title": "New wallet",
+        "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
+        "button": "Wipe and create new SRP",
+        "confirm_title": "Wipe wallet and create a new SRP?",
+        "confirm_message": "The current SRP, accounts and app data are deleted. Back up the SRP first if you need it.",
+        "confirm": "Wipe and create",
+        "cancel": "Cancel",
+        "no_password_title": "No saved password",
+        "no_password_message": "Set DEV_AUTO_UNLOCK_PASSWORD in .js.env, or enable remember me or biometrics so the keychain holds the password.",
+        "success": "New wallet ready",
+        "failure": "New wallet failed"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
@@ -8442,12 +8472,32 @@
       "title": "2-step verification",
       "description": "Used to confirm it's you before sensitive actions.",
       "manage": "Manage",
-      "email_linked": "Linked to your sign-in",
-      "email_pending": "Setup not finished",
-      "set_up": "Set up",
-      "finish_setup": "Finish setup",
-      "passkey_count": "{{count}} added",
-      "add_another": "Add another"
+      "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "add": "Add",
+      "passkeys": "Passkeys",
+      "passkey_count": {
+        "one": "{{count}} passkey",
+        "other": "{{count}} passkeys"
+      },
+      "add_passkey": "Add passkey",
+      "passkey_name": "Passkey #{{number}}",
+      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
+      "added_on": "Added {{date}}",
+      "used_for": "Used for",
+      "used_for_money": "Verifying Money transactions",
+      "remove_passkey": "Remove passkey",
+      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
+      "remove_email": "Remove email",
+      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
+      "remove": "Remove",
+      "last_passkey_title": "Passkey can’t be deleted",
+      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
+      "last_email_title": "Email can’t be removed",
+      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
+      "got_it": "Got it",
+      "passkey_removed": "Passkey removed",
+      "email_removed": "Email verification removed",
+      "remove_failed": "Couldn’t remove this method. Try again later."
     }
   },
   "media_player": {
@@ -9206,7 +9256,8 @@
     "action": {
       "add": "Add",
       "transfer": "Send",
-      "card": "Card"
+      "card": "Card",
+      "details": "Details"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -9457,8 +9508,7 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date",
-      "amount_unavailable": "Amount unavailable"
+      "date": "Date"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -10100,7 +10150,7 @@
       "create_order": "Create Order",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
-      "receiving": "Receiving",
+      "est_receiving": "Est. receiving",
       "trigger_condition": "Trigger condition",
       "trigger_condition_at_or_above": "≥",
       "trigger_condition_at_or_below": "≤",
@@ -12932,7 +12982,10 @@
       "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership"
+      "cancel_membership": "Cancel membership",
+      "resume_membership": "Resume membership",
+      "resume_in_progress": "Resuming membership",
+      "resume_failed": "We couldn't resume your membership. Please try again."
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",

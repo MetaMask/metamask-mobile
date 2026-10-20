@@ -6,6 +6,10 @@ import type {
 } from '../../../Views/Asset/Asset.types';
 import type { TokenDetailsRouteParams } from '../../../UI/TokenDetails/constants/constants';
 import type {
+  TdpVersion,
+  TdpTokenCategory,
+} from '../../../UI/TokenDetails/analytics/getTdpAnalyticsBase';
+import type {
   CreatePriceAlertRouteParams,
   PriceAlertRouteParams,
 } from '../../../UI/Assets/PriceAlerts/constants';
@@ -44,7 +48,11 @@ export type AssetStackParamList = {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
   };
-  ContractSecurity: { token: TokenDetailsRouteParams };
+  ContractSecurity: {
+    token: TokenDetailsRouteParams;
+    tdpVersion?: TdpVersion;
+    tokenCategory?: TdpTokenCategory;
+  };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
 };

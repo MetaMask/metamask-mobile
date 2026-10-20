@@ -41,6 +41,7 @@ import {
   GetSeriesParams,
   PredictActivityPage,
   PredictCategory,
+  PredictFeePolicy,
   PredictMarket,
   PredictPosition,
   PredictPositionStatus,
@@ -557,11 +558,13 @@ export class PolymarketProvider implements PredictProvider {
     feeCollection,
     fakOrdersEnabled,
     signer,
+    feePolicy,
   }: {
     preview: OrderPreview;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     signer: Signer;
+    feePolicy?: PredictFeePolicy;
   }): OrderPreview {
     const orderType = this.#shouldUseFakOrderType({
       permit2Enabled: feeCollection.permit2Enabled,
@@ -575,6 +578,7 @@ export class PolymarketProvider implements PredictProvider {
       ...preview,
       feeRateBps: getPreviewFeeRateBpsForProtocol(),
       orderType,
+      ...(feePolicy ? { feePolicy } : {}),
     };
 
     return this.isRateLimited(signer.address)
@@ -725,6 +729,7 @@ export class PolymarketProvider implements PredictProvider {
       signerAddress: isDepositWallet
         ? tradingWalletAddress
         : getAddress(signer.address),
+      builderCode: preview.feePolicy?.builderCode,
       signatureType: isDepositWallet
         ? SignatureType.POLY_1271
         : SignatureType.POLY_GNOSIS_SAFE,
@@ -765,11 +770,7 @@ export class PolymarketProvider implements PredictProvider {
     let executor: string | undefined;
     let permit2FeeReady = false;
 
-    if (
-      preview.fees !== undefined &&
-      preview.fees.totalFee > 0 &&
-      shouldUsePermit2
-    ) {
+    if (shouldUsePermit2 && preview.fees && preview.fees.totalFee > 0) {
       const feeAmount = BigInt(
         parseUnits(preview.fees.totalFee.toString(), 6).toString(),
       );
@@ -2297,6 +2298,7 @@ export class PolymarketProvider implements PredictProvider {
       feeCollection,
       fakOrdersEnabled,
       signer: params.signer,
+      feePolicy: params.feePolicy,
     });
   }
 
@@ -2321,6 +2323,7 @@ export class PolymarketProvider implements PredictProvider {
       feeCollection,
       fakOrdersEnabled,
       signer,
+      feePolicy: params.feePolicy,
     });
   }
 
