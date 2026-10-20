@@ -485,6 +485,10 @@ const BridgeLimitOrderViewContent = () => {
         sourceToken,
         destToken,
         payingAmount: formatTokenAmountValue(sourceAmount, sourceToken?.symbol),
+        estReceivingAmount: formatTokenAmountValue(
+          destTokenAmount,
+          destToken?.symbol,
+        ),
         triggerPrice,
         triggerToken: quotedToken,
         expiry: expiration,

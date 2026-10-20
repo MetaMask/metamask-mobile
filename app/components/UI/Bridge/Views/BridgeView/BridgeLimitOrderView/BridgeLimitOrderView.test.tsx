@@ -1137,6 +1137,33 @@ describe('BridgeLimitOrderView', () => {
     );
   });
 
+  it('navigates to the confirmation modal with the destination amount estimated at the limit price', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
+      executionType: LimitOrderExecutionType.SELL,
+      isLimitFiatMode: false,
+      limitPrice: '0.04',
+      value: '0.04',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+        params: expect.objectContaining({
+          estReceivingAmount: '0.08 USDC',
+        }),
+      }),
+    );
+  });
+
   it('saves the selected expiration in minutes when the modal selects an option', () => {
     const { getByTestId, getByText, queryByText } = renderLimitOrderView();
 
