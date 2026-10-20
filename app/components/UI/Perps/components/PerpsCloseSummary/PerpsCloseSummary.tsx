@@ -47,7 +47,6 @@ export interface PerpsCloseSummaryProps {
   protocolFeeRate?: number;
   /** Original MetaMask fee rate before discounts - undefined means unavailable/error state */
   originalMetamaskFeeRate?: number;
-
   /** Amount user will receive after closing */
   receiveAmount: number;
 
@@ -72,7 +71,8 @@ export interface PerpsCloseSummaryProps {
 
   /** Whether to enable tooltips (default: true) */
   enableTooltips?: boolean;
-
+  /** Optional content rendered immediately after the fees row. */
+  afterFees?: React.ReactNode;
   /** Optional test IDs for tooltips */
   testIDs?: {
     feesTooltip?: string;
@@ -116,6 +116,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
   rewardsAccount = undefined,
   style,
   enableTooltips = true,
+  afterFees,
   testIDs,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
@@ -237,6 +238,8 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
         })}
         value={feesValue}
       />
+
+      {afterFees}
 
       <SectionDivider marginVertical={1} twClassName="mx-4" />
 

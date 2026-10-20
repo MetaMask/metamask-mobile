@@ -48,6 +48,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
+import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -528,6 +529,7 @@ const PerpsProOrderForm = ({
   onTPSLPress,
   notices,
   summary,
+  rebateQuote,
   placeOrderLabel,
   placeOrderIntent,
   isPlaceOrderDisabled = false,
@@ -1037,6 +1039,12 @@ const PerpsProOrderForm = ({
             }
           />
         ) : null}
+        <PerpsRebateBanner
+          coin={rebateQuote?.coin}
+          direction={rebateQuote?.direction}
+          notionalUsd={rebateQuote?.notionalUsd}
+          textTwClassName="text-body-xs leading-[16px]"
+        />
       </Box>
       <PerpsProInputKeyboardAccessory
         inputTestID={ids.SIZE_INPUT}

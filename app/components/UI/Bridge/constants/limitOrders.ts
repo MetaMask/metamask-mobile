@@ -95,6 +95,14 @@ export const SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS = 250;
 export type SwapsLimitOrderExpirationMinutes =
   (typeof SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES)[number];
 
+export function isSwapsLimitOrderExpirationMinutes(
+  value: number,
+): value is SwapsLimitOrderExpirationMinutes {
+  return SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES.some(
+    (option) => option === value,
+  );
+}
+
 export const SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES: SwapsLimitOrderExpirationMinutes = 60;
 
 export const SWAPS_LIMIT_ORDER_EXPIRATION_LABEL: Record<

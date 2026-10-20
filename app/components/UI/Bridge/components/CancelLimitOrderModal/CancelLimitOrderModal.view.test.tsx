@@ -237,11 +237,11 @@ describeForPlatforms('CancelLimitOrderModal — orders tabs', () => {
           await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
-        return {
-          orders: states?.some((state) => state === currentOrder.state)
-            ? [currentOrder]
-            : [],
-        };
+        const orders = states?.some((state) => state === currentOrder.state)
+          ? [currentOrder]
+          : [];
+
+        return { orders, total: orders.length };
       },
     });
   });

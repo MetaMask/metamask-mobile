@@ -87,10 +87,22 @@ function createApiOrder(id: string) {
 }
 
 function createPageResponse(
-  body: { orders: unknown[]; endCursor?: string; hasNextPage: boolean },
+  {
+    total,
+    ...body
+  }: {
+    orders: unknown[];
+    endCursor?: string;
+    hasNextPage: boolean;
+    total?: number;
+  },
   { ok = true, status = 200 } = {},
 ) {
-  return { ok, status, json: async () => body } as Response;
+  return {
+    ok,
+    status,
+    json: async () => ({ ...body, total: total ?? body.orders.length }),
+  } as Response;
 }
 
 describe('getLimitOrders', () => {
@@ -191,6 +203,24 @@ describe('getLimitOrders', () => {
 
     // USDC comes back without a name or icon, which still validates.
     expect(result.orders).toStrictEqual([createApiOrder('order-1')]);
+  });
+
+  it('returns the total number of orders matching the query, across every page', async () => {
+    globalFetchSpy.mockResolvedValue(
+      createPageResponse({
+        orders: [createApiOrder('order-1')],
+        endCursor: '42',
+        hasNextPage: true,
+        total: 57,
+      }),
+    );
+
+    const result = await getLimitOrders({
+      walletAddress: WALLET_ADDRESS,
+      states: OPEN_STATES,
+    });
+
+    expect(result.total).toBe(57);
   });
 
   it('returns the end cursor while another page exists', async () => {

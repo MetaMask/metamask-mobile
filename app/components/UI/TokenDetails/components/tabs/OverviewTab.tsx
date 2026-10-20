@@ -8,7 +8,11 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
-import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
+// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+import {
+  DEV_TOKEN_API_BASE_URL,
+  useTokenAssetDetails,
+} from '../../queries/tokenAssetQuery';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -85,7 +89,8 @@ const OverviewTab = ({
   securityData,
   marketData,
 }: OverviewTabProps) => {
-  const { asset } = useTokenAssetDetails(assetId);
+  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  const { asset } = useTokenAssetDetails(assetId, DEV_TOKEN_API_BASE_URL);
   const assetDescription = asset?.launchpadData?.description?.trim();
   const tokenDescription = token.description?.trim();
   // Hide the block when neither source has text. A blank string is not a description.
