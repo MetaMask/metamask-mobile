@@ -22,6 +22,7 @@ import {
   type TokenCaipAssetIdInput,
 } from '../hooks/useTokenCaipAssetId';
 import { prefetchTokenSecurity } from '../../Tokens/queries/prefetchTokenSecurity';
+import { tokenAssetQueryOptions } from './tokenAssetQuery';
 
 export const prefetchTokenDetailsQueries = (
   queryClient: QueryClient,
@@ -42,7 +43,15 @@ export const prefetchTokenDetailsQueries = (
   );
   // Resolved through the same helper the page uses rather than reusing
   // `assetId` above, which is the chart's asset id and not always the same.
-  prefetchTokenSecurity(queryClient, resolveTokenCaipAssetId(token));
+  const caipAssetId = resolveTokenCaipAssetId(token);
+  prefetchTokenSecurity(queryClient, caipAssetId);
+
+  // Warm the /v2/assets cache so `useIsMemeToken` and the Overview tab's
+  // description resolve without a visible loading flash.
+  if (caipAssetId) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- prefetchQuery is the correct fire-and-forget API; suppress until TanStack v5 migration
+    queryClient.prefetchQuery(tokenAssetQueryOptions(caipAssetId));
+  }
 };
 
 export const usePrefetchTokenDetails = (

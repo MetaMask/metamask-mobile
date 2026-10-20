@@ -97,6 +97,8 @@ import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
 export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
@@ -114,12 +116,6 @@ export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
  * tab content scroll under it.
  */
 export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
-
-/**
- * TODO(ASSETS-4016): replace with the token's real age once the API platform
- * exposes it. Change locally to preview other labels ("5h", "3w", …).
- */
-const MOCK_TOKEN_AGE_LABEL = '3d';
 
 const AGE_EXPLAINER_COPY: ExplainerCopy = {
   title: 'token_details_v1.age.explainer.title',
@@ -258,6 +254,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   }, [navigation]);
 
   const caip19AssetId = useTokenCaipAssetId(token);
+
+  const { asset: tokenAsset } = useTokenAssetDetails(caip19AssetId);
+  const tokenAgeLabel = useMemo(
+    () => formatTokenAge(tokenAsset?.launchpadData?.launchedAt),
+    [tokenAsset?.launchpadData?.launchedAt],
+  );
 
   const shareUrl = useMemo(
     () =>
@@ -672,22 +674,24 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            <Pressable
-              onPress={handleAgePress}
-              accessibilityRole="button"
-              accessibilityLabel={strings(
-                'token_details_v1.age.accessibility_label',
-                { age: MOCK_TOKEN_AGE_LABEL },
-              )}
-              testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-            >
-              <Tag
-                severity={TagSeverity.Neutral}
-                twClassName="self-center shrink-0"
+            tokenAgeLabel ? (
+              <Pressable
+                onPress={handleAgePress}
+                accessibilityRole="button"
+                accessibilityLabel={strings(
+                  'token_details_v1.age.accessibility_label',
+                  { age: tokenAgeLabel },
+                )}
+                testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
               >
-                {MOCK_TOKEN_AGE_LABEL}
-              </Tag>
-            </Pressable>
+                <Tag
+                  severity={TagSeverity.Neutral}
+                  twClassName="self-center shrink-0"
+                >
+                  {tokenAgeLabel}
+                </Tag>
+              </Pressable>
+            ) : undefined
           }
         />
         {/* The tab bar is a direct ScrollView child registered in

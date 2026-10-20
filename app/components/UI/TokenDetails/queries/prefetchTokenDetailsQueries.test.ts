@@ -13,6 +13,8 @@ jest.mock('../../Tokens/util/tokenSecurityBadgeBatch', () => ({
 }));
 
 const assetId = 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
+const checksumAssetId =
+  'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F';
 
 const queryKeyName = (options: { queryKey: readonly unknown[] }): string =>
   String(options.queryKey[1]);
@@ -23,7 +25,8 @@ const prefetch = (
   nextAssetId: string | null = assetId,
 ) => {
   const query = jest.fn().mockResolvedValue(undefined);
-  const queryClient = { query } as unknown as QueryClient;
+  const prefetchQuery = jest.fn().mockResolvedValue(undefined);
+  const queryClient = { query, prefetchQuery } as unknown as QueryClient;
   prefetchTokenDetailsQueries(
     queryClient,
     token,
@@ -32,22 +35,26 @@ const prefetch = (
     marketDataMissing,
     hasNativeConversionRate,
   );
-  return query.mock.calls.map(
+  const queryCalls = query.mock.calls.map(
     (call) => call[0] as { queryKey: readonly unknown[] },
   );
+  const prefetchCalls = prefetchQuery.mock.calls.map(
+    (call) => call[0] as { queryKey: readonly unknown[] },
+  );
+  return { queryCalls, prefetchCalls };
 };
 
 describe('prefetchTokenDetailsQueries', () => {
   it('prefetches historical prices, ohlcv, spot and security together', () => {
-    const calls = prefetch(true, true);
+    const { queryCalls } = prefetch(true, true);
 
-    expect(calls.map(queryKeyName)).toStrictEqual([
+    expect(queryCalls.map(queryKeyName)).toStrictEqual([
       'historical-prices',
       'ohlcv-chart',
       'spot-price',
       'securityBadge',
     ]);
-    expect(calls[1]?.queryKey).toEqual([
+    expect(queryCalls[1]?.queryKey).toEqual([
       'token-details',
       'ohlcv-chart',
       assetId,
@@ -55,7 +62,7 @@ describe('prefetchTokenDetailsQueries', () => {
       null,
       'usd',
     ]);
-    expect(calls[2]?.queryKey).toEqual(
+    expect(queryCalls[2]?.queryKey).toEqual(
       expect.arrayContaining([
         '0x1',
         '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -65,9 +72,9 @@ describe('prefetchTokenDetailsQueries', () => {
   });
 
   it('skips spot when market data is already in state', () => {
-    const calls = prefetch(false, true);
+    const { queryCalls } = prefetch(false, true);
 
-    expect(calls.map(queryKeyName)).toStrictEqual([
+    expect(queryCalls.map(queryKeyName)).toStrictEqual([
       'historical-prices',
       'ohlcv-chart',
       'securityBadge',
@@ -75,9 +82,9 @@ describe('prefetchTokenDetailsQueries', () => {
   });
 
   it('skips the ohlcv prefetch when the asset id is missing', () => {
-    const calls = prefetch(false, true, null);
+    const { queryCalls } = prefetch(false, true, null);
 
-    expect(calls.map(queryKeyName)).toStrictEqual([
+    expect(queryCalls.map(queryKeyName)).toStrictEqual([
       'historical-prices',
       'securityBadge',
     ]);
@@ -86,8 +93,23 @@ describe('prefetchTokenDetailsQueries', () => {
   // Keyed through the same helper the page uses, not the chart's asset id,
   // which is a different identifier for some tokens.
   it('warms security under the key the page will read', () => {
-    const calls = prefetch(true, true);
+    const { queryCalls } = prefetch(true, true);
 
-    expect(calls[3]?.queryKey).toEqual(['tokenList', 'securityBadge', assetId]);
+    expect(queryCalls[3]?.queryKey).toEqual([
+      'tokenList',
+      'securityBadge',
+      assetId,
+    ]);
+  });
+
+  it('prefetches /v2/assets so the meme-token check and description are warm', () => {
+    const { prefetchCalls } = prefetch(true, true);
+
+    expect(prefetchCalls).toHaveLength(1);
+    expect(prefetchCalls[0]?.queryKey).toEqual([
+      'token-details',
+      'v2-assets',
+      checksumAssetId,
+    ]);
   });
 });

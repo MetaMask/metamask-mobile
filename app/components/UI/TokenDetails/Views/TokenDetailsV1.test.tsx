@@ -156,6 +156,20 @@ jest.mock('../hooks/useTokenMarketData', () => ({
   useTokenMarketData: () => ({ marketData: null, isLoading: false }),
 }));
 
+const mockUseTokenAssetDetails = jest.fn(() => ({
+  asset: null as Record<string, unknown> | null,
+  isLoading: false,
+  isError: false,
+}));
+jest.mock('../queries/tokenAssetQuery', () => ({
+  useTokenAssetDetails: () => mockUseTokenAssetDetails(),
+}));
+
+let mockTokenAgeLabel: string | null = null;
+jest.mock('../utils/formatTokenAge', () => ({
+  formatTokenAge: () => mockTokenAgeLabel,
+}));
+
 // Stands in for the shared query entry so these tests need no QueryClient.
 // The entry itself, including the key normalization that lets the token list
 // and this page share it, is covered in `useTokenSecurityQuery.test.ts`.
@@ -408,6 +422,12 @@ describe('TokenDetailsV1', () => {
     };
     useSelector.mockImplementation(() => undefined);
     mockCurrentPrice = 1;
+    mockUseTokenAssetDetails.mockReturnValue({
+      asset: null,
+      isLoading: false,
+      isError: false,
+    });
+    mockTokenAgeLabel = null;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockUseTokenBalance.mockReturnValue({ balance: undefined });
     mockUseSocialFeed.mockImplementation(() => ({
@@ -452,7 +472,9 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('renders the age chip in the header with the mocked token age', () => {
+  it('renders the age chip when launchedAt is available', () => {
+    mockTokenAgeLabel = '3d';
+
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -467,7 +489,20 @@ describe('TokenDetailsV1', () => {
     ).toBe('Token age 3d. Learn about token age.');
   });
 
+  it('hides the age chip when launchedAt is unavailable', () => {
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId(TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID)).toBeNull();
+  });
+
   it('opens the token age explainer from the age chip', () => {
+    mockTokenAgeLabel = '3d';
+
     const { getByTestId, queryByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
