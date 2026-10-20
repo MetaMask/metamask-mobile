@@ -1,17 +1,29 @@
 import { BigNumber } from 'bignumber.js';
 import { getSwapsLimitOrderPriceFromMarketPercent } from './getSwapsLimitOrderPriceFromMarketPercent';
 import { getSwapsLimitOrderPriceMarketComparison } from './getSwapsLimitOrderPriceMarketComparison';
-import { roundLimitOrderMarketFiatToInput } from './formatLimitOrderFiatPrice';
+import {
+  LIMIT_ORDER_PRICE_DECIMALS,
+  roundLimitOrderMarketFiatToInput,
+} from './formatLimitOrderFiatPrice';
 
 const tokenModeDefaults = {
   counterFiatRate: 2000,
-  counterTokenDecimals: 18,
+  decimals: LIMIT_ORDER_PRICE_DECIMALS,
   isLimitFiatMode: false,
   marketFiat: 100,
 };
 
-// A quoted token worth a fraction of a cent, like PEPE.
+const fiatModeDefaults = {
+  counterFiatRate: 2000,
+  decimals: 2,
+  isLimitFiatMode: true,
+  marketFiat: 100,
+};
+
+// A quoted token worth a fraction of a cent, like PEPE, and the decimal places
+// that keep four significant digits of its fiat price.
 const CHEAP_MARKET_FIAT = 0.0000039998;
+const CHEAP_FIAT_DECIMALS = 9;
 
 describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
   describe('returns undefined for invalid market fiat', () => {
@@ -54,10 +66,7 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
   describe('fiat limit price mode', () => {
     it('returns market fiat when signed percent is zero', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
-        counterFiatRate: 2000,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: true,
-        marketFiat: 100,
+        ...fiatModeDefaults,
         signedPercent: 0,
       });
 
@@ -66,10 +75,7 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
 
     it('returns fiat above market when signed percent is positive', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
-        counterFiatRate: 2000,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: true,
-        marketFiat: 100,
+        ...fiatModeDefaults,
         signedPercent: 10,
       });
 
@@ -78,21 +84,18 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
 
     it('returns fiat below market when signed percent is negative', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
-        counterFiatRate: 2000,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: true,
-        marketFiat: 100,
+        ...fiatModeDefaults,
         signedPercent: -5,
       });
 
       expect(result).toBe('95');
     });
 
-    it('keeps four significant digits of a sub-dollar market fiat', () => {
+    it('rounds a sub-dollar market fiat to the given decimal places', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
+        ...fiatModeDefaults,
         counterFiatRate: 2448.4,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: true,
+        decimals: 4,
         marketFiat: 0.10298176120674981,
         signedPercent: 0,
       });
@@ -102,9 +105,7 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
 
     it('rounds fiat to two decimal places when a percent is applied', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
-        counterFiatRate: 2000,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: true,
+        ...fiatModeDefaults,
         marketFiat: 2345.6789,
         signedPercent: 5,
       });
@@ -114,9 +115,8 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
 
     it('keeps a sub-cent market fiat instead of rounding it to zero', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
-        counterFiatRate: 2000,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: true,
+        ...fiatModeDefaults,
+        decimals: 6,
         marketFiat: 0.004,
         signedPercent: 0,
       });
@@ -132,9 +132,8 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       'keeps $signedPercent% of a cheap token apart from market',
       ({ signedPercent, expected }) => {
         const result = getSwapsLimitOrderPriceFromMarketPercent({
-          counterFiatRate: 2000,
-          counterTokenDecimals: 18,
-          isLimitFiatMode: true,
+          ...fiatModeDefaults,
+          decimals: CHEAP_FIAT_DECIMALS,
           marketFiat: CHEAP_MARKET_FIAT,
           signedPercent,
         });
@@ -151,9 +150,8 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       'compares $signedPercent% of a cheap token with market as $expectedLabel',
       ({ signedPercent, expectedLabel }) => {
         const result = getSwapsLimitOrderPriceFromMarketPercent({
-          counterFiatRate: 2000,
-          counterTokenDecimals: 18,
-          isLimitFiatMode: true,
+          ...fiatModeDefaults,
+          decimals: CHEAP_FIAT_DECIMALS,
           marketFiat: CHEAP_MARKET_FIAT,
           signedPercent,
         });
@@ -161,7 +159,10 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
         expect(
           getSwapsLimitOrderPriceMarketComparison({
             limitFiat: result,
-            marketFiat: roundLimitOrderMarketFiatToInput(CHEAP_MARKET_FIAT),
+            marketFiat: roundLimitOrderMarketFiatToInput(
+              CHEAP_MARKET_FIAT,
+              CHEAP_FIAT_DECIMALS,
+            ),
           })?.label,
         ).toBe(expectedLabel);
       },
@@ -201,9 +202,8 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       const counterFiatRate = 2448.4;
 
       const result = getSwapsLimitOrderPriceFromMarketPercent({
+        ...tokenModeDefaults,
         counterFiatRate,
-        counterTokenDecimals: 18,
-        isLimitFiatMode: false,
         marketFiat,
         signedPercent: 0,
       });
@@ -219,11 +219,10 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       ).toBeUndefined();
     });
 
-    describe('cheap quoted token priced in a 6-decimal stablecoin', () => {
+    describe('cheap quoted token priced in a stablecoin', () => {
       const cheapTokenInStablecoin = {
+        ...tokenModeDefaults,
         counterFiatRate: 0.9998,
-        counterTokenDecimals: 6,
-        isLimitFiatMode: false,
         marketFiat: CHEAP_MARKET_FIAT,
       };
 
@@ -232,10 +231,11 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
         { signedPercent: -5, expected: '0.00000380057' },
         { signedPercent: -10, expected: '0.00000360054' },
       ])(
-        'keeps $signedPercent% from market beyond the counter token decimals',
+        'rounds $signedPercent% from market down to the given decimal places',
         ({ signedPercent, expected }) => {
           const result = getSwapsLimitOrderPriceFromMarketPercent({
             ...cheapTokenInStablecoin,
+            decimals: 11,
             signedPercent,
           });
 
@@ -267,11 +267,10 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       );
     });
 
-    it('keeps a price worth less than the smallest unit of an 8-decimal counter token', () => {
+    it('keeps a price worth a tiny fraction of an expensive counter token', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
+        ...tokenModeDefaults,
         counterFiatRate: 100000,
-        counterTokenDecimals: 8,
-        isLimitFiatMode: false,
         marketFiat: CHEAP_MARKET_FIAT,
         signedPercent: -5,
       });
@@ -283,16 +282,6 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       const result = getSwapsLimitOrderPriceFromMarketPercent({
         ...tokenModeDefaults,
         counterFiatRate: undefined,
-        signedPercent: 0,
-      });
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when counter token decimals are unavailable', () => {
-      const result = getSwapsLimitOrderPriceFromMarketPercent({
-        ...tokenModeDefaults,
-        counterTokenDecimals: undefined,
         signedPercent: 0,
       });
 

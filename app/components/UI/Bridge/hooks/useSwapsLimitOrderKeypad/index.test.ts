@@ -73,8 +73,7 @@ function renderKeypadHook(
       customPercent: overrides.customPercent ?? '5',
       isLimitFiatMode: overrides.isLimitFiatMode ?? true,
       limitPrice: overrides.limitPrice ?? '100',
-      limitPriceDecimals:
-        'limitPriceDecimals' in overrides ? overrides.limitPriceDecimals : 2,
+      limitPriceDecimals: overrides.limitPriceDecimals ?? 2,
       nativeToken: overrides.nativeToken ?? nativeToken,
       onCustomPercentChange: mockOnCustomPercentChange,
       onLimitPriceChange: mockOnLimitPriceChange,
@@ -310,24 +309,6 @@ describe('useSwapsLimitOrderKeypad', () => {
         sourceTokenDecimals: 9,
       }),
     );
-  });
-
-  it('does not bound limit price decimals when they are unknown', () => {
-    const { result } = renderKeypadHook({
-      isLimitFiatMode: false,
-      limitPrice: '0.05',
-      limitPriceDecimals: undefined,
-    });
-
-    act(() => {
-      result.current.focusLimitPrice();
-    });
-
-    expect(result.current.keypadProps).toEqual({
-      value: '0.05',
-      currency: 'ETH',
-      decimals: Infinity,
-    });
   });
 
   it('closes the keypad through the keypad ref', () => {

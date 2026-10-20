@@ -779,7 +779,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
           destToken: pepe,
         });
 
-        expect(result.current.limitPriceDecimals).toBe(11);
+        expect(result.current.limitPriceDecimals).toBe(18);
       });
     });
 
@@ -876,7 +876,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.limitPriceDecimals).toBe(2);
     });
 
-    it('is the counter token decimals for a counter-token price', () => {
+    it('is 18 decimal places for a counter-token price', () => {
       const { result } = renderPriceAdjustHook();
 
       act(() => {

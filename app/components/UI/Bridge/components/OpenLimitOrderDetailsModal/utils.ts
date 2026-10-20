@@ -7,15 +7,17 @@ import {
   LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
+import { getLimitOrderFiatPriceDecimals } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderDefaultPriceMode } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import type { TriggerPriceDisplay } from './types';
 
 /**
- * Formats a USD trigger price in the given currency, to two decimal places.
- * Without a rate to convert with, the price shows in USD as is rather than a
- * guessed one.
+ * Formats a USD trigger price in the given currency with the precision it was
+ * placed with: cents, or more for a cheap token's sub-dollar price. Without a
+ * rate to convert with, the price shows in USD as is rather than a guessed
+ * one.
  */
 function getFiatTriggerPrice(
   usdPrice: string,
@@ -29,11 +31,16 @@ function getFiatTriggerPrice(
       return formatLimitOrderFiatValue(
         displayPrice.toNumber(),
         currentCurrency,
+        getLimitOrderFiatPriceDecimals(displayPrice),
       );
     }
   }
 
-  return formatLimitOrderFiatValue(usdPrice, 'usd');
+  return formatLimitOrderFiatValue(
+    usdPrice,
+    'usd',
+    getLimitOrderFiatPriceDecimals(usdPrice),
+  );
 }
 
 /**

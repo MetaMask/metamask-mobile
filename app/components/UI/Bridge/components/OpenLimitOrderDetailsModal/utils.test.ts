@@ -109,6 +109,46 @@ describe('getTriggerPrice', () => {
       });
     });
 
+    it('keeps four significant digits of a sub-cent price instead of showing <$0.01', () => {
+      const order = createOrder({
+        srcAsset: USDC,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '237000000000000000000000',
+        kind: 'dest_price',
+        price: '0.0000042123456',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerPrice).toBe('$0.000004212');
+    });
+
+    it('keeps four significant digits of a sub-cent price in the display currency', () => {
+      const order = createOrder({
+        srcAsset: USDC,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '237000000000000000000000',
+        kind: 'dest_price',
+        price: '0.0000044',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(
+        order,
+        sourceToken,
+        destinationToken,
+        'EUR',
+        1.1,
+      );
+
+      expect(result.triggerPrice).toBe(
+        formatLimitOrderFiatValue(0.000004, 'EUR', 9),
+      );
+    });
+
     it('converts a fiat price into the display currency', () => {
       const order = createOrder({
         srcAsset: ETH,

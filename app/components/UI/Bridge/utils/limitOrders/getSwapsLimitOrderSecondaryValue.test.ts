@@ -29,22 +29,19 @@ const fiatModeDefaults = {
   counterFiatRate: 2000,
   counterTokenSymbol: 'ETH',
   currentCurrency: 'USD',
+  fiatDecimals: 2,
   isLimitFiatMode: true,
   limitPrice: '50',
-  marketFiat: 50,
 };
 
 const tokenModeDefaults = {
   counterFiatRate: 2000,
   counterTokenSymbol: 'ETH',
   currentCurrency: 'USD',
+  fiatDecimals: 2,
   isLimitFiatMode: false,
   limitPrice: '0.025',
-  marketFiat: 50,
 };
-
-// A quoted token worth a fraction of a cent, like PEPE.
-const CHEAP_MARKET_FIAT = 0.0000039998;
 
 describe('getSwapsLimitOrderSecondaryValue', () => {
   beforeEach(() => {
@@ -104,13 +101,13 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
       expect(result).toBe('0 ETH');
     });
 
-    it('keeps five decimal places for a regular token amount', () => {
+    it('shows the token amount the price reads as in counter token units', () => {
       const result = getSwapsLimitOrderSecondaryValue({
         ...fiatModeDefaults,
         limitPrice: '112.2468',
       });
 
-      expect(result).toBe('0.05612 ETH');
+      expect(result).toBe('0.0561234 ETH');
     });
 
     it('keeps a cheap token amount instead of rounding it to zero', () => {
@@ -118,7 +115,6 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
         ...fiatModeDefaults,
         counterFiatRate: 4000,
         limitPrice: '0.0000038',
-        marketFiat: CHEAP_MARKET_FIAT,
       });
 
       expect(result).toBe('0.00000000095 ETH');
@@ -193,8 +189,8 @@ describe('getSwapsLimitOrderSecondaryValue', () => {
         ...tokenModeDefaults,
         counterFiatRate: 0.9998,
         counterTokenSymbol: 'mUSD',
+        fiatDecimals: 9,
         limitPrice: '0.0000038',
-        marketFiat: CHEAP_MARKET_FIAT,
       });
 
       expect(result).toBe('$0.000003799');

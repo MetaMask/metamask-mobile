@@ -22,9 +22,9 @@ interface UseLimitOrderKeypadOptions {
   isLimitFiatMode: boolean;
   limitPrice: string | undefined;
   /**
-   * Decimal places the limit price accepts. Unbounded when undefined.
+   * Decimal places the limit price accepts.
    */
-  limitPriceDecimals: number | undefined;
+  limitPriceDecimals: number;
   nativeToken: BridgeToken | undefined;
   onCustomPercentChange: (value: string | undefined) => void;
   onLimitPriceChange: (value: string | undefined) => void;
@@ -35,7 +35,7 @@ export const useSwapsLimitOrderKeypad = ({
   customPercent,
   isLimitFiatMode,
   limitPrice,
-  limitPriceDecimals: limitPriceDecimalsOption,
+  limitPriceDecimals,
   nativeToken,
   onCustomPercentChange,
   onLimitPriceChange,
@@ -45,8 +45,6 @@ export const useSwapsLimitOrderKeypad = ({
   const [focusedField, setFocusedField] = useState(
     LimitOrderKeypadField.Amount,
   );
-
-  const limitPriceDecimals = limitPriceDecimalsOption ?? Infinity;
 
   const {
     sourceSelection: limitPriceSelection,

@@ -4,28 +4,27 @@ import {
   formatLimitOrderFiatInputPrice,
   formatLimitOrderFiatPrice,
 } from './formatLimitOrderFiatPrice';
-import {
-  getLimitOrderFiatPriceDecimals,
-  getLimitOrderTokenPriceDecimals,
-} from './getLimitOrderPriceDecimals';
 
 /**
  * Snapshot of the quoted-token market price after applying a signed percent
  * offset. `0` is market; negative is below market (buy presets); positive is
  * above market (sell presets).
  *
- * Rounded to the precision of the market price itself, so a cheap quoted
- * token keeps Market at 0% and every percent preset apart from it.
+ * Rounded to `decimals`, the precision the limit price is shown with, so a
+ * cheap quoted token keeps Market at 0% and every percent preset apart from it.
  */
 export const getSwapsLimitOrderPriceFromMarketPercent = ({
   counterFiatRate,
-  counterTokenDecimals,
+  decimals,
   isLimitFiatMode,
   marketFiat,
   signedPercent,
 }: {
   counterFiatRate?: number;
-  counterTokenDecimals?: number;
+  /**
+   * Decimal places of the limit price in its current denomination.
+   */
+  decimals: number;
   isLimitFiatMode: boolean;
   marketFiat: number | undefined;
   signedPercent: number;
@@ -44,19 +43,12 @@ export const getSwapsLimitOrderPriceFromMarketPercent = ({
   const adjustedFiatAmount = formatLimitOrderFiatPrice(adjustedMarketFiat);
 
   if (isLimitFiatMode) {
-    return formatLimitOrderFiatInputPrice(
-      adjustedMarketFiat,
-      getLimitOrderFiatPriceDecimals(marketFiat),
-    );
+    return formatLimitOrderFiatInputPrice(adjustedMarketFiat, decimals);
   }
 
   return formatTokenInputAmountFromFiat({
     fiatAmount: adjustedFiatAmount,
     tokenFiatRate: counterFiatRate,
-    tokenDecimals: getLimitOrderTokenPriceDecimals({
-      counterFiatRate,
-      counterTokenDecimals,
-      marketFiat,
-    }),
+    tokenDecimals: decimals,
   });
 };
