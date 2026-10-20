@@ -36,7 +36,6 @@ export interface RollingNumberProps {
 const useReducedMotion = useNativeReducedMotion ?? (() => false);
 
 const ROLL_DURATION_MS = 260;
-export const ROLLING_NUMBER_TINT_MS = 700;
 const ROLL_EASING = Easing.out(Easing.cubic);
 
 const ENTER_FROM_BELOW =
@@ -46,11 +45,6 @@ const ENTER_FROM_ABOVE =
   FadeInDown.duration(ROLL_DURATION_MS).easing(ROLL_EASING);
 const EXIT_DOWNWARD =
   FadeOutDown.duration(ROLL_DURATION_MS).easing(ROLL_EASING);
-
-const TINT_CLASS: Record<RollingNumberTrend, string> = {
-  up: 'text-success-default',
-  down: 'text-error-default',
-};
 
 const AnimatedText = Animated.createAnimatedComponent(Text);
 
@@ -82,7 +76,8 @@ export const getRollingGlyphs = (value: string): RollingGlyph[] => {
 /**
  * Formatted number whose changed digits roll vertically, like a slot reel.
  * Unchanged digits stay put; the first render and reduced motion swap
- * instantly, though a change still flashes the trend tint.
+ * instantly. The trend controls only the roll direction; the supplied text
+ * color remains stable throughout the update.
  */
 const RollingNumber: React.FC<RollingNumberProps> = ({
   value,
@@ -104,7 +99,6 @@ const RollingNumber: React.FC<RollingNumberProps> = ({
   // A glyph's exit animation is read from the props it last rendered with, so
   // a direction change is committed one render before the value it applies to.
   const [rollTrend, setRollTrend] = useState<RollingNumberTrend>(trend ?? 'up');
-  const [tint, setTint] = useState<RollingNumberTrend | null>(null);
 
   useEffect(() => {
     setHasRendered(true);
@@ -121,17 +115,7 @@ const RollingNumber: React.FC<RollingNumberProps> = ({
     setShown({ value, trend });
   }, [motionEnabled, rollTrend, shownValue, trend, value]);
 
-  useEffect(() => {
-    if (!shown.trend) {
-      return undefined;
-    }
-    setTint(shown.trend);
-    const timeout = setTimeout(() => setTint(null), ROLLING_NUMBER_TINT_MS);
-    return () => clearTimeout(timeout);
-  }, [shown]);
-
   const glyphs = useMemo(() => getRollingGlyphs(shownValue), [shownValue]);
-  const textClassName = tint ? TINT_CLASS[tint] : twClassName;
   const animate = motionEnabled && hasRendered;
   const entering = rollTrend === 'down' ? ENTER_FROM_ABOVE : ENTER_FROM_BELOW;
   const exiting = rollTrend === 'down' ? EXIT_DOWNWARD : EXIT_UPWARD;
@@ -151,7 +135,7 @@ const RollingNumber: React.FC<RollingNumberProps> = ({
             accessible={false}
             variant={variant}
             fontWeight={fontWeight}
-            twClassName={textClassName}
+            twClassName={twClassName}
             style={styles.glyph}
             entering={animate ? entering : undefined}
             exiting={animate ? exiting : undefined}

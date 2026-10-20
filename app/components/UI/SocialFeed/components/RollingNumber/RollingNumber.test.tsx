@@ -1,10 +1,7 @@
 import React from 'react';
 import { act, render, screen } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
-import RollingNumber, {
-  getRollingGlyphs,
-  ROLLING_NUMBER_TINT_MS,
-} from './RollingNumber';
+import RollingNumber, { getRollingGlyphs } from './RollingNumber';
 
 const TEST_ID = 'rolling-number';
 
@@ -71,7 +68,7 @@ describe('RollingNumber', () => {
     expect(screen.getByText('1')).toHaveProp('exiting', expect.anything());
   });
 
-  it('tints the change and then settles back to the resting color', () => {
+  it('keeps the resting color during a change', () => {
     const { rerender } = render(
       <RollingNumber
         value="$100.00"
@@ -90,14 +87,6 @@ describe('RollingNumber', () => {
         testID={TEST_ID}
       />,
     );
-
-    expect(screen.getAllByText('9')[0]).toHaveStyle({
-      color: lightTheme.colors.error.default,
-    });
-
-    act(() => {
-      jest.advanceTimersByTime(ROLLING_NUMBER_TINT_MS);
-    });
 
     expect(screen.getAllByText('9')[0]).toHaveStyle({
       color: lightTheme.colors.text.alternative,
