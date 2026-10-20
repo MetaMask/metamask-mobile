@@ -723,8 +723,6 @@ const Transactions = (props) => {
         chainId={chainId}
         tokenChainId={tokenChainId}
         navigation={navigation}
-        onSpeedUpAction={onSpeedUpAction}
-        onCancelAction={onCancelAction}
         accountImportTime={accountImportTime}
         groupEvmAccountAddress={groupEvmAccountAddress}
         networkConfigurations={networkConfigurationsByChainId}
