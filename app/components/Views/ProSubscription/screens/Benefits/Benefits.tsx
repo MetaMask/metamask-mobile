@@ -127,7 +127,9 @@ const Benefits = ({
     onCheckoutStart();
 
     try {
-      await startSubscription(checkoutPlan);
+      await startSubscription(checkoutPlan, {
+        isTrial: selectedPlanOffersTrial,
+      });
       onSuccess(checkoutPlan);
     } catch {
       // The hook logs the failure and exposes localized error state.
@@ -140,6 +142,7 @@ const Benefits = ({
     onSuccess,
     plusPricing,
     resolvedPlan,
+    selectedPlanOffersTrial,
     startSubscription,
   ]);
 

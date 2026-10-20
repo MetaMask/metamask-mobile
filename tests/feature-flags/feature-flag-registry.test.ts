@@ -150,6 +150,21 @@ describe('Feature Flag Registry', () => {
       );
     });
 
+    it('registers the Predict subscription fee waiver default-off and out of production', () => {
+      expect(
+        getRegistryEntry('predictSubscriptionFeeWaiverEnabled'),
+      ).toMatchObject({
+        name: 'predictSubscriptionFeeWaiverEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
         enabled: false,
@@ -260,12 +275,11 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('registers Money MFA default-off until LaunchDarkly rolls it out', () => {
+    it('registers Money MFA in production and default-off', () => {
       expect(getRegistryEntry('isMoneyMfaEnabled')).toMatchObject({
-        inProd: false,
+        inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.15.0',
         },
       });
     });
@@ -352,20 +366,15 @@ describe('Feature Flag Registry', () => {
       ).toBeUndefined();
     });
 
-    it('pins the homepage balance breakdown A/B test to control', () => {
+    it('registers the homepage balance breakdown flag default-off', () => {
       expect(
-        getRegistryEntry('homeTMCU1209AbtestHomepageBalanceBreakdownV2')
-          ?.productionDefault,
-      ).toEqual([
-        {
-          name: 'control',
-          scope: { type: 'percentage_rollout', value: 1 },
+        getRegistryEntry('homeTMCU1209AbtestHomepageBalanceBreakdown'),
+      ).toMatchObject({
+        inProd: true,
+        productionDefault: {
+          enabled: false,
         },
-        {
-          name: 'treatment',
-          scope: { type: 'percentage_rollout', value: 0 },
-        },
-      ]);
+      });
     });
 
     it('version-gates activity and transactions redesigns on at 8.5.0', () => {
