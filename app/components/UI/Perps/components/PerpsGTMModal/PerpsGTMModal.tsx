@@ -3,7 +3,7 @@ import NavigationService from '../../../../../core/NavigationService';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import React, { useState } from 'react';
-import { Image, View, useColorScheme } from 'react-native';
+import { Image, View, useColorScheme, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -53,9 +53,11 @@ const PerpsGTMModal = () => {
   const useSystemFont =
     hasNonLatinCharacters(titleText) || hasNonLatinCharacters(subtitleText);
 
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const styles = createStyles(
     theme,
     isDarkMode,
+    { width: windowWidth, height: windowHeight },
     titleFontSize,
     subtitleFontSize,
     useSystemFont,

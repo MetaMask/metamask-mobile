@@ -12,6 +12,7 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
@@ -43,7 +44,9 @@ import { throttle } from 'lodash';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();
-  const { styles } = useStyles(stylesheet, {});
+  const { height: windowHeight } = useWindowDimensions();
+  const styleVars = useMemo(() => ({ windowHeight }), [windowHeight]);
+  const { styles } = useStyles(stylesheet, styleVars);
   const webViewRef = useRef<WebView>(null);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();

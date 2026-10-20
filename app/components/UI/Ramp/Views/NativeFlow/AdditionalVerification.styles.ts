@@ -1,13 +1,21 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../util/theme/models';
 
-const screenWidth = Dimensions.get('window').width;
+export interface AdditionalVerificationStyleSheetVars {
+  /** Shorter window side: the width on portrait phones, the height in iPad landscape. */
+  shortSide: number;
+}
 
-const styleSheet = (_params: { theme: Theme }) =>
+const styleSheet = ({
+  vars,
+}: {
+  theme: Theme;
+  vars: AdditionalVerificationStyleSheetVars;
+}) =>
   StyleSheet.create({
     image: {
-      width: screenWidth,
-      height: screenWidth * 0.75,
+      width: vars.shortSide,
+      height: vars.shortSide * 0.75,
       alignSelf: 'center',
     },
     title: {

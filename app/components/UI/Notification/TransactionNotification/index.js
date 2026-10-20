@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, useWindowDimensions } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { useSharedValue } from 'react-native-reanimated';
@@ -32,7 +32,6 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 
-const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
 const ACTION_SPEEDUP = 'speedup';
 
@@ -115,6 +114,7 @@ function TransactionNotification(props) {
 
   const theme = useTheme();
   const styles = createStyles(theme);
+  const { width: windowWidth } = useWindowDimensions();
 
   const detailsFadeIn = useCallback(async () => {
     setTransactionDetailsIsVisible(true);
@@ -147,13 +147,14 @@ function TransactionNotification(props) {
     );
     setTransactionAction(ACTION_SPEEDUP);
     setTransactionActionDisabled(transactionActionDisabled);
-    animateActionTo(-WINDOW_WIDTH);
+    animateActionTo(-windowWidth);
   }, [
     setTransactionAction,
     setTransactionActionDisabled,
     animateActionTo,
     tx,
     accounts,
+    windowWidth,
   ]);
 
   const onCancelPress = useCallback(() => {
@@ -164,13 +165,14 @@ function TransactionNotification(props) {
     );
     setTransactionAction(ACTION_CANCEL);
     setTransactionActionDisabled(transactionActionDisabled);
-    animateActionTo(-WINDOW_WIDTH);
+    animateActionTo(-windowWidth);
   }, [
     setTransactionAction,
     setTransactionActionDisabled,
     animateActionTo,
     tx,
     accounts,
+    windowWidth,
   ]);
 
   const onActionFinish = useCallback(

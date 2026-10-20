@@ -1,10 +1,16 @@
-import { Dimensions, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { AppThemeKey, Theme } from '../../../util/theme/models';
 const marginWidth = 16;
-const notificationWidth = Dimensions.get('window').width - marginWidth * 2;
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+export interface BaseNotificationStyleSheetVars {
+  windowWidth: number;
+}
+
+const styleSheet = (params: {
+  theme: Theme;
+  vars: BaseNotificationStyleSheetVars;
+}) => {
+  const { theme, vars } = params;
   const { colors, shadows } = theme;
 
   return StyleSheet.create({
@@ -12,7 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
       top: 0,
       left: marginWidth,
-      width: notificationWidth,
+      width: vars.windowWidth - marginWidth * 2,
       backgroundColor:
         theme.themeAppearance === AppThemeKey.light
           ? colors.background.default

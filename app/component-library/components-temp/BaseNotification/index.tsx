@@ -10,6 +10,7 @@ import {
   LayoutChangeEvent,
   TextLayoutEvent,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -172,7 +173,9 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   dismissDuration,
   persistUntilDismiss = false,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { width: windowWidth } = useWindowDimensions();
+  const styleVars = useMemo(() => ({ windowWidth }), [windowWidth]);
+  const { styles } = useStyles(styleSheet, styleVars);
   const { top: topInset } = useSafeAreaInsets();
   const safeData: BaseNotificationData = data ?? {};
   const { description = null, title = null } = safeData;
