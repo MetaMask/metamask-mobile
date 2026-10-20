@@ -46,6 +46,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
 import {
@@ -452,6 +453,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
   const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
 
   const [copyTrade, setCopyTrade] = useState<{
@@ -796,7 +800,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     onSecurityPress={handleSecurityPress}
                   />
                 </Box>
-                <Box twClassName="py-4">
+                {/* The interval bar above the chart adds 8px of its own top padding. */}
+                <Box
+                  twClassName={
+                    isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
+                  }
+                >
                   <StatBar
                     variant={variant}
                     stats={tokenStats}
@@ -804,7 +813,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   />
                 </Box>
 
-                <Price.Chart />
+                <Price.Chart uniformSpacing />
               </Price.Provider>
 
               <TokenDetailsActionsSection
