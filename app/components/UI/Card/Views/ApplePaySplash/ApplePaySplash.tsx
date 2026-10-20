@@ -20,7 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectCardHomeData } from '../../../../../selectors/cardController';
 import ManageCardListItem from '../../components/ManageCardListItem';
-import AddToWalletButton from '../../pushProvisioning/components/AddToWalletButton';
+import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { getWalletName } from '../../pushProvisioning/constants';
 import { useCardWalletProvisioning } from '../CardHome/hooks/useCardWalletProvisioning';
 import applePayMark from '../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
@@ -28,9 +28,11 @@ import hero from './assets/hero.png';
 import { navigateToApplePayEntry } from './navigateToApplePayEntry';
 import { useApplePayHomeEligibility } from './useApplePayHomeEligibility';
 
-interface ApplePaySplashParams {
+// ParamListBase requires `type`; `interface` cannot satisfy it.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type ApplePaySplashParams = {
   ApplePaySplash?: { source?: 'home' | 'card' };
-}
+};
 
 const HERO_WIDTH = 874 / 3;
 const HERO_ASPECT_RATIO = 874 / 1209;

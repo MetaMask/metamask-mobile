@@ -385,13 +385,21 @@ const CardHome = () => {
     wasAuthenticated.current = isAuthenticated;
     if (pendingAuthRedirect.current && isFocused) {
       pendingAuthRedirect.current = false;
+      const continueProvisioning = route.params?.startProvisioning === true;
       navigation.dispatch(
         StackActions.replace(Routes.CARD.AUTHENTICATION, {
-          autoSignIn: false,
+          autoSignIn: continueProvisioning,
+          ...(continueProvisioning ? { startProvisioning: true } : {}),
         }),
       );
     }
-  }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
+  }, [
+    isAuthenticated,
+    isFocused,
+    lastUnauthenticatedReason,
+    navigation,
+    route.params?.startProvisioning,
+  ]);
 
   const hasHandledOnboardingTokenRevocation = useRef(false);
   useEffect(() => {

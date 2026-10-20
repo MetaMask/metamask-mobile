@@ -35,8 +35,15 @@ jest.mock('../../pushProvisioning/components/AddToWalletButton', () => {
   const React = jest.requireActual<typeof import('react')>('react');
   const { Pressable } =
     jest.requireActual<typeof import('react-native')>('react-native');
-  return ({ onPress, testID }: { onPress?: () => void; testID?: string }) =>
-    React.createElement(Pressable, { testID, onPress });
+  return {
+    AddToWalletButton: ({
+      onPress,
+      testID,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+    }) => React.createElement(Pressable, { testID, onPress }),
+  };
 });
 
 describe('ApplePaySplash', () => {

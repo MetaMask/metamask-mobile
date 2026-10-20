@@ -16,7 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { setApplePayHomeBannerDismissed } from '../../../core/redux/slices/card';
 import ManageCardListItem from '../../UI/Card/components/ManageCardListItem';
-import AddToWalletButton from '../../UI/Card/pushProvisioning/components/AddToWalletButton';
+import { AddToWalletButton } from '../../UI/Card/pushProvisioning/components/AddToWalletButton';
 import { getWalletName } from '../../UI/Card/pushProvisioning/constants';
 import applePayMark from '../../UI/Card/components/ApplePayUsageSheet/assets/apple-pay-mark.png';
 import hero from '../../UI/Card/Views/ApplePaySplash/assets/hero.png';

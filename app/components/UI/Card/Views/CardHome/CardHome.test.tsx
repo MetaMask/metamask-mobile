@@ -135,6 +135,7 @@ const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockNavigationDispatch = jest.fn();
 let mockIsFocused = true;
+let mockCardHomeRouteParams: { startProvisioning?: boolean } = {};
 
 import {
   useFocusEffect,
@@ -156,12 +157,13 @@ jest.mock('@react-navigation/native', () => {
       addListener: jest.fn(() => jest.fn()),
     }),
     useRoute: () => ({
-      params: {},
+      params: mockCardHomeRouteParams,
     }),
     StackActions: {
-      replace: jest.fn((routeName: string) => ({
+      replace: jest.fn((routeName: string, params?: object) => ({
         type: 'REPLACE',
         routeName,
+        params,
       })),
     },
     CommonActions: {
@@ -1514,6 +1516,7 @@ describe('CardHome Component', () => {
     });
 
     // Setup default selectors
+    mockCardHomeRouteParams = {};
     setupMockSelectors();
     mockUseMoneyAccountCardLinkage.mockReset();
     mockUseMoneyAccountCardLinkage.mockImplementation(
@@ -1567,14 +1570,24 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(CommonActions.reset).toHaveBeenCalledWith({
         index: 0,
-        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+        routes: [
+          {
+            name: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: false },
+          },
+        ],
       });
     });
     expect(mockNavigationDispatch).toHaveBeenCalledWith({
       type: 'RESET',
       payload: {
         index: 0,
-        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+        routes: [
+          {
+            name: Routes.CARD.AUTHENTICATION,
+            params: { autoSignIn: false },
+          },
+        ],
       },
     });
     expect(mockShowToast).toHaveBeenCalledWith(
@@ -1601,11 +1614,30 @@ describe('CardHome Component', () => {
 
     expect(StackActions.replace).toHaveBeenCalledWith(
       Routes.CARD.AUTHENTICATION,
+      { autoSignIn: false },
     );
     expect(mockNavigationDispatch).toHaveBeenCalledWith({
       type: 'REPLACE',
       routeName: Routes.CARD.AUTHENTICATION,
+      params: { autoSignIn: false },
     });
+  });
+
+  it('keeps provisioning when an expired session opens sign-in', () => {
+    mockIsFocused = true;
+    mockCardHomeRouteParams = { startProvisioning: true };
+    setupMockSelectors({ isAuthenticated: true });
+    const view = renderAuthTransition();
+    jest.mocked(StackActions.replace).mockClear();
+    mockNavigationDispatch.mockClear();
+
+    setupMockSelectors({ isAuthenticated: false });
+    view.update();
+
+    expect(StackActions.replace).toHaveBeenCalledWith(
+      Routes.CARD.AUTHENTICATION,
+      { autoSignIn: true, startProvisioning: true },
+    );
   });
 
   it('waits until Card Home is focused before replacing with authentication', () => {
@@ -1625,10 +1657,12 @@ describe('CardHome Component', () => {
 
     expect(StackActions.replace).toHaveBeenCalledWith(
       Routes.CARD.AUTHENTICATION,
+      { autoSignIn: false },
     );
     expect(mockNavigationDispatch).toHaveBeenCalledWith({
       type: 'REPLACE',
       routeName: Routes.CARD.AUTHENTICATION,
+      params: { autoSignIn: false },
     });
   });
 
