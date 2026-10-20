@@ -1,33 +1,70 @@
 import React, { useCallback } from 'react';
 import { Image, ScrollView, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
   HeaderStandard,
+  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
+import ManageCardListItem from '../../components/ManageCardListItem';
+import AddToWalletButton from '../../pushProvisioning/components/AddToWalletButton';
+import { getWalletName } from '../../pushProvisioning/constants';
+import { useCardWalletProvisioning } from '../CardHome/hooks/useCardWalletProvisioning';
+import applePayMark from '../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
 import hero from './assets/hero.png';
+import { navigateToApplePayEntry } from './navigateToApplePayEntry';
+import { useApplePayHomeEligibility } from './useApplePayHomeEligibility';
+
+interface ApplePaySplashParams {
+  ApplePaySplash?: { source?: 'home' | 'card' };
+}
 
 const HERO_WIDTH = 874 / 3;
 const HERO_ASPECT_RATIO = 874 / 1209;
 
 const ApplePaySplash = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
+  const route = useRoute<RouteProp<ApplePaySplashParams, 'ApplePaySplash'>>();
+  const source = route.params?.source ?? 'card';
   const tw = useTailwind();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const cardHomeData = useSelector(selectCardHomeData);
+  const homeEligibility = useApplePayHomeEligibility();
+  const { initiateProvisioning } = useCardWalletProvisioning(
+    source === 'card' ? cardHomeData : null,
+    { platformWalletSupported: true },
+  );
 
   const handleClose = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleHomePress = useCallback(() => {
+    if (homeEligibility.mode === 'none') {
+      navigation.goBack();
+      return;
+    }
+    navigateToApplePayEntry(navigation, homeEligibility.mode, {
+      dismissCurrentScreen: true,
+    });
+  }, [homeEligibility.mode, navigation]);
+
+  const handleCardPress = useCallback(() => {
+    initiateProvisioning().catch(() => undefined);
+  }, [initiateProvisioning]);
 
   const heroWidth = Math.min(HERO_WIDTH, screenWidth - 32);
   const heroHeight = Math.min(
@@ -80,15 +117,30 @@ const ApplePaySplash = () => {
       </ScrollView>
       <SafeAreaView edges={['bottom']}>
         <Box twClassName="px-4 pb-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonBaseSize.Lg}
-            isFullWidth
-            onPress={handleClose}
-            testID="apple-pay-splash-continue"
-          >
-            {strings('card.apple_pay_splash.continue')}
-          </Button>
+          {source === 'home' && homeEligibility.mode === 'sign_in' ? (
+            <ManageCardListItem
+              title={strings('card.push_provisioning.add_to_wallet', {
+                walletName: getWalletName(),
+              })}
+              startAccessory={
+                <Image
+                  source={applePayMark}
+                  resizeMode="contain"
+                  accessible={false}
+                  style={tw.style('w-10 h-6')}
+                />
+              }
+              rightIcon={IconName.ArrowRight}
+              onPress={handleHomePress}
+              testID="apple-pay-splash-add-row"
+            />
+          ) : (
+            <AddToWalletButton
+              onPress={source === 'home' ? handleHomePress : handleCardPress}
+              buttonStyle="black"
+              testID="apple-pay-splash-add"
+            />
+          )}
         </Box>
       </SafeAreaView>
     </Box>

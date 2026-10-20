@@ -6,6 +6,8 @@ export interface ShouldShowApplePaySplashParams {
   seen: boolean;
   canAddToWallet: boolean;
   isPushProvisioningLoading: boolean;
+  /** Wallet Home already showed its splash during this visit. */
+  homeSplashShownThisSession?: boolean;
 }
 
 /**
@@ -21,6 +23,7 @@ export function shouldShowApplePaySplash({
   seen,
   canAddToWallet,
   isPushProvisioningLoading,
+  homeSplashShownThisSession = false,
 }: ShouldShowApplePaySplashParams): boolean {
   return (
     isIos &&
@@ -28,6 +31,7 @@ export function shouldShowApplePaySplash({
     applePayCapability &&
     provisioningEnabled &&
     !seen &&
+    !homeSplashShownThisSession &&
     !isPushProvisioningLoading &&
     canAddToWallet
   );

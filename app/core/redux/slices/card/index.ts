@@ -21,6 +21,12 @@ export interface CardSliceState {
   cardArrivalPreviewRequested: boolean;
   /** One-time Apple Pay availability splash on Card Home. */
   applePaySplashSeen: boolean;
+  /** One-time Apple Pay splash on wallet Home. */
+  applePayHomeSplashSeen: boolean;
+  /** Set when the wallet-home splash is shown. Not persisted. */
+  applePayHomeSplashShownThisSession: boolean;
+  /** User dismissed the wallet-home Apple Pay banner. */
+  applePayHomeBannerDismissed: boolean;
 }
 
 export const initialState: CardSliceState = {
@@ -35,6 +41,9 @@ export const initialState: CardSliceState = {
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
   applePaySplashSeen: false,
+  applePayHomeSplashSeen: false,
+  applePayHomeSplashShownThisSession: false,
+  applePayHomeBannerDismissed: false,
 };
 
 const name = 'card';
@@ -84,6 +93,18 @@ const slice = createSlice({
     },
     setApplePaySplashSeen: (state, action: PayloadAction<boolean>) => {
       state.applePaySplashSeen = action.payload;
+    },
+    setApplePayHomeSplashSeen: (state, action: PayloadAction<boolean>) => {
+      state.applePayHomeSplashSeen = action.payload;
+    },
+    setApplePayHomeSplashShownThisSession: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.applePayHomeSplashShownThisSession = action.payload;
+    },
+    setApplePayHomeBannerDismissed: (state, action: PayloadAction<boolean>) => {
+      state.applePayHomeBannerDismissed = action.payload;
     },
   },
 });
@@ -140,6 +161,21 @@ export const selectApplePaySplashSeen = createSelector(
   (card) => card?.applePaySplashSeen ?? false,
 );
 
+export const selectApplePayHomeSplashSeen = createSelector(
+  selectCardState,
+  (card) => card?.applePayHomeSplashSeen ?? false,
+);
+
+export const selectApplePayHomeSplashShownThisSession = createSelector(
+  selectCardState,
+  (card) => card?.applePayHomeSplashShownThisSession ?? false,
+);
+
+export const selectApplePayHomeBannerDismissed = createSelector(
+  selectCardState,
+  (card) => card?.applePayHomeBannerDismissed ?? false,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -153,4 +189,7 @@ export const {
   setCardArrivalAnimationSeen,
   setCardArrivalPreviewRequested,
   setApplePaySplashSeen,
+  setApplePayHomeSplashSeen,
+  setApplePayHomeSplashShownThisSession,
+  setApplePayHomeBannerDismissed,
 } = actions;

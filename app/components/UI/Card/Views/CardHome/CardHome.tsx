@@ -133,6 +133,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
   fromCardOnboarding?: boolean;
+  startProvisioning?: boolean;
 }
 
 const SETUP_ALERT_TYPES = new Set([
@@ -251,6 +252,26 @@ const CardHome = () => {
     openInWallet,
     walletEntry,
   } = useCardWalletProvisioning(data, { platformWalletSupported });
+  const startedProvisioning = useRef(false);
+  useEffect(() => {
+    if (
+      !route.params?.startProvisioning ||
+      startedProvisioning.current ||
+      !canAddToWallet ||
+      isProvisioning
+    ) {
+      return;
+    }
+    startedProvisioning.current = true;
+    navigation.setParams({ startProvisioning: undefined });
+    initiateProvisioning().catch(() => undefined);
+  }, [
+    canAddToWallet,
+    initiateProvisioning,
+    isProvisioning,
+    navigation,
+    route.params?.startProvisioning,
+  ]);
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,

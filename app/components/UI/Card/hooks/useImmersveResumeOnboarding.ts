@@ -24,6 +24,7 @@ interface ResumeParams {
   /** Analytics entrypoint for the resume funnel (SIGN_UP | AUTHENTICATION). */
   entrypoint?: CardEntryPoint.SIGN_UP | CardEntryPoint.AUTHENTICATION;
   alreadyAuthenticated?: boolean;
+  startProvisioning?: boolean;
 }
 
 export const useImmersveResumeOnboarding = () => {
@@ -44,6 +45,7 @@ export const useImmersveResumeOnboarding = () => {
       navigateFromRoot,
       entrypoint = CardEntryPoint.SIGN_UP,
       alreadyAuthenticated = false,
+      startProvisioning,
     }: ResumeParams): Promise<void> => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -130,6 +132,7 @@ export const useImmersveResumeOnboarding = () => {
           navigateFromRoot,
           hasExistingCard: Boolean(resume),
           fundingAddress: address,
+          startProvisioning,
         });
       } catch (error) {
         // SIWE already emits CARD_SIWE_AUTH_FAILED (incl. user_cancelled).

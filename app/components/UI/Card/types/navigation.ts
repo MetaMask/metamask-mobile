@@ -51,9 +51,10 @@ export type CardScreensStackParamList = {
     | {
         fromCardOnboarding?: boolean;
         showDeeplinkToast?: boolean;
+        startProvisioning?: boolean;
       }
     | undefined;
-  CardApplePaySplash: undefined;
+  CardApplePaySplash: { source?: 'home' | 'card' } | undefined;
   CardApplePayConfirmation: undefined;
   ChooseYourCard: ChooseYourCardParams | undefined;
   ReviewOrder: ReviewOrderParams | undefined;
@@ -76,6 +77,7 @@ export type CardScreensStackParamList = {
     | {
         showAuthPrompt?: boolean;
         autoSignIn?: boolean;
+        startProvisioning?: boolean;
         postAuthRedirect?: CardPostAuthRedirect;
       }
     | undefined;

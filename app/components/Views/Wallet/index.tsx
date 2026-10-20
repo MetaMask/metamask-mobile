@@ -209,6 +209,7 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+import ApplePayHomePrompt from './ApplePayHomeBanner';
 
 // The floating header's account capsule (h-10) sits centred in its min-h-14
 // root, so the balance cap height lands the reference gap below the capsule.
@@ -1205,16 +1206,14 @@ const Wallet = ({
       ? homeGrowthBannerContent
       : null;
 
-  const hasContentBeforeBalanceBreakdown = Boolean(
-    walletHomeMainAssetDetailsActions || growthBanner || homepageDiscoveryPills,
-  );
-  const contentBeforeBalanceBreakdown = hasContentBeforeBalanceBreakdown ? (
+  const contentBeforeBalanceBreakdown = (
     <>
       {walletHomeMainAssetDetailsActions}
+      <ApplePayHomePrompt />
       {growthBanner}
       {homepageDiscoveryPills}
     </>
-  ) : null;
+  );
 
   const compactHeaderAccountName =
     (isCompactHeader || isSearchHeaderEnabled) &&
@@ -1283,6 +1282,7 @@ const Wallet = ({
       >
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
         {walletHomeMainAssetDetailsActions}
+        <ApplePayHomePrompt />
         {growthBanner}
         {homepageDiscoveryPills}
         {showMoneyBalanceCard && <MoneyBalanceCard isGlass={isHomeGlass} />}

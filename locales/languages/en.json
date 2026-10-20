@@ -11686,6 +11686,9 @@
       "close": "Close",
       "continue": "Continue"
     },
+    "apple_pay_home_banner": {
+      "description": "Set up your card with Apple Pay. It's easy, secure & private."
+    },
     "apple_pay_usage": {
       "learn_more": "Learn more about Apple Pay",
       "row_title": "How to use Apple Pay",

@@ -90,6 +90,7 @@ type CardAuthenticationParams = {
     | {
         showAuthPrompt?: boolean;
         autoSignIn?: boolean;
+        startProvisioning?: boolean;
         postAuthRedirect?: { screen: string; params?: object };
       }
     | undefined;
@@ -152,6 +153,7 @@ const CardAuthentication = () => {
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
+  const startProvisioning = route.params?.startProvisioning === true;
   const parentRedirect = useCardPostAuthRedirect();
   const postAuthRedirect = route.params?.postAuthRedirect ?? parentRedirect;
 
@@ -495,7 +497,14 @@ const CardAuthentication = () => {
 
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.HOME }],
+          routes: [
+            {
+              name: Routes.CARD.HOME,
+              params: startProvisioning
+                ? { startProvisioning: true }
+                : undefined,
+            },
+          ],
         });
       } catch (err) {
         Logger.log('CardAuthentication::Login failed', err);
@@ -522,6 +531,7 @@ const CardAuthentication = () => {
       trackEvent,
       createEventBuilder,
       postAuthRedirect,
+      startProvisioning,
     ],
   );
 
@@ -584,6 +594,7 @@ const CardAuthentication = () => {
         option: walletOption,
         address: signInAddress,
         country: countryKey,
+        startProvisioning,
       });
     } catch (err) {
       if (
@@ -605,6 +616,7 @@ const CardAuthentication = () => {
     displayAccountAddress,
     verifyAccount,
     signInWithWallet,
+    startProvisioning,
     trackEvent,
     createEventBuilder,
   ]);

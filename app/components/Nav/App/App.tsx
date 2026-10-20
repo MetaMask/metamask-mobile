@@ -43,6 +43,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -168,6 +169,7 @@ import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
+import ApplePaySplash from '../../UI/Card/Views/ApplePaySplash';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import Pna25BottomSheet from '../../Views/Pna25BottomSheet';
@@ -757,6 +759,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_INTRO}
       component={MultichainAccountsIntroModal}
       options={{ headerShown: false }}
+    />
+    <NativeStack.Screen
+      name={Routes.MODAL.APPLE_PAY_HOME_SPLASH}
+      component={ApplePaySplash}
+      options={fullScreenModalSlideFromBottomNativeOptions}
     />
     <NativeStack.Screen
       name={Routes.MODAL.MULTICHAIN_ACCOUNTS_LEARN_MORE}

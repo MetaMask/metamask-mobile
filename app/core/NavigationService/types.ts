@@ -466,6 +466,7 @@ export type RootModalFlowParamList = {
   tooltipModal: TooltipModalRouteParams | undefined;
   DeepLinkModal: DeepLinkModalParams | undefined;
   MultichainAccountsIntroModal: undefined;
+  ApplePayHomeSplash: { source: 'home' };
   MultichainAccountsLearnMoreBottomSheet: undefined;
   Pna25BottomSheet: undefined;
   ReturnToDappToast: ReturnToDappNotificationParams | undefined;

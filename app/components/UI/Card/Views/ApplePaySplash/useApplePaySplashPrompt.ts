@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
+  selectApplePayHomeSplashShownThisSession,
   selectApplePaySplashSeen,
   setApplePaySplashSeen,
 } from '../../../../../core/redux/slices/card';
@@ -34,6 +35,9 @@ export function useApplePaySplashPrompt({
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const seen = useSelector(selectApplePaySplashSeen);
+  const homeSplashShownThisSession = useSelector(
+    selectApplePayHomeSplashShownThisSession,
+  );
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const providerId = useSelector(selectCardActiveProviderId);
   const capabilities = useCardCapabilities();
@@ -52,6 +56,7 @@ export function useApplePaySplashPrompt({
     seen,
     canAddToWallet,
     isPushProvisioningLoading,
+    homeSplashShownThisSession,
   });
 
   useEffect(

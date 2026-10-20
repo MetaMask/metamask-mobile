@@ -28,6 +28,9 @@ const CARD_STATE_MOCK: CardSliceState = {
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
   applePaySplashSeen: false,
+  applePayHomeSplashSeen: false,
+  applePayHomeSplashShownThisSession: false,
+  applePayHomeBannerDismissed: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -43,6 +46,9 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
   applePaySplashSeen: false,
+  applePayHomeSplashSeen: false,
+  applePayHomeSplashShownThisSession: false,
+  applePayHomeBannerDismissed: false,
 };
 
 describe('Card Selectors', () => {
@@ -152,6 +158,9 @@ describe('Card Reducer', () => {
         cardArrivalAnimationSeen: true,
         cardArrivalPreviewRequested: false,
         applePaySplashSeen: false,
+        applePayHomeSplashSeen: false,
+        applePayHomeSplashShownThisSession: false,
+        applePayHomeBannerDismissed: false,
       };
 
       const state = cardReducer(currentState, resetCardState());

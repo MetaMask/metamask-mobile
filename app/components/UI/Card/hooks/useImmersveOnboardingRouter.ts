@@ -30,6 +30,8 @@ interface RouteContext {
   hasExistingCard?: boolean;
   /** Authenticated SIWE / funding wallet to use for approval transactions. */
   fundingAddress?: string;
+  /** Open PassKit as soon as Card Home is ready. */
+  startProvisioning?: boolean;
 }
 
 function destinationForAction(
@@ -84,6 +86,7 @@ export const useImmersveOnboardingRouter = () => {
         navigateFromRoot,
         hasExistingCard,
         fundingAddress,
+        startProvisioning,
       } = ctx;
 
       trackEvent(
@@ -112,7 +115,14 @@ export const useImmersveOnboardingRouter = () => {
       const goToCardHome = () => {
         navigation.reset({
           index: 0,
-          routes: [{ name: Routes.CARD.HOME }],
+          routes: [
+            {
+              name: Routes.CARD.HOME,
+              params: startProvisioning
+                ? { startProvisioning: true }
+                : undefined,
+            },
+          ],
         });
       };
 

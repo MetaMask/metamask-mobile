@@ -4,13 +4,40 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import ApplePaySplash from './ApplePaySplash';
 
 const mockGoBack = jest.fn();
+const mockInitiateProvisioning = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: jest.fn(),
+  }),
+  useRoute: () => ({ params: { source: 'card' } }),
+}));
+
+jest.mock('./useApplePayHomeEligibility', () => ({
+  useApplePayHomeEligibility: () => ({
+    mode: 'none',
+    showSplash: false,
+    showBanner: false,
+    showRegionLine: false,
   }),
 }));
+
+jest.mock('../CardHome/hooks/useCardWalletProvisioning', () => ({
+  useCardWalletProvisioning: () => ({
+    initiateProvisioning: mockInitiateProvisioning,
+    canAddToWallet: true,
+  }),
+}));
+
+jest.mock('../../pushProvisioning/components/AddToWalletButton', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  const { Pressable } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return ({ onPress, testID }: { onPress?: () => void; testID?: string }) =>
+    React.createElement(Pressable, { testID, onPress });
+});
 
 describe('ApplePaySplash', () => {
   beforeEach(() => {
@@ -34,11 +61,10 @@ describe('ApplePaySplash', () => {
     expect(getByText('Get set up in seconds.')).toBeOnTheScreen();
     expect(getByTestId('apple-pay-splash-hero')).toBeOnTheScreen();
     expect(queryByTestId('apple-pay-splash-lockup-light')).toBeNull();
-    expect(getByText('Continue')).toBeOnTheScreen();
 
-    fireEvent.press(getByTestId('apple-pay-splash-continue'));
+    fireEvent.press(getByTestId('apple-pay-splash-add'));
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockInitiateProvisioning).toHaveBeenCalledTimes(1);
   });
 
   it('returns to Card Home when closed', () => {

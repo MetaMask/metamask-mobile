@@ -1,5 +1,9 @@
 import { Platform } from 'react-native';
-import { getWalletName, getWalletTypeForPlatform } from './constants';
+import {
+  getWalletName,
+  getWalletTypeForPlatform,
+  isApplePayProvisioningCountry,
+} from './constants';
 
 describe('Push Provisioning Constants', () => {
   const originalPlatform = Platform.OS;
@@ -38,6 +42,19 @@ describe('Push Provisioning Constants', () => {
       });
 
       expect(getWalletName()).toBe('Google Wallet');
+    });
+  });
+
+  describe('isApplePayProvisioningCountry', () => {
+    it('accepts New Zealand', () => {
+      expect(isApplePayProvisioningCountry('NZ')).toBe(true);
+      expect(isApplePayProvisioningCountry('nz')).toBe(true);
+    });
+
+    it('rejects every other country', () => {
+      expect(isApplePayProvisioningCountry('US')).toBe(false);
+      expect(isApplePayProvisioningCountry(null)).toBe(false);
+      expect(isApplePayProvisioningCountry(undefined)).toBe(false);
     });
   });
 

@@ -183,6 +183,7 @@ const Routes = {
     DEEP_LINK_MODAL: 'DeepLinkModal',
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
     MULTICHAIN_ACCOUNTS_INTRO: 'MultichainAccountsIntroModal',
+    APPLE_PAY_HOME_SPLASH: 'ApplePayHomeSplash',
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',

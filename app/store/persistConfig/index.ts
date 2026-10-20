@@ -208,7 +208,9 @@ const persistOnboardingTransform = createTransform(
 
 type PersistedCardState = Omit<
   CardSliceState,
-  'pendingMoneyAccountCardLink' | 'cardArrivalPreviewRequested'
+  | 'pendingMoneyAccountCardLink'
+  | 'cardArrivalPreviewRequested'
+  | 'applePayHomeSplashShownThisSession'
 >;
 
 const persistCardTransform = createTransform<
@@ -219,6 +221,7 @@ const persistCardTransform = createTransform<
     const {
       pendingMoneyAccountCardLink: _omitSession,
       cardArrivalPreviewRequested: _omitPreview,
+      applePayHomeSplashShownThisSession: _omitHomeSplashSession,
       ...state
     } = inboundState;
     return state;
@@ -227,6 +230,7 @@ const persistCardTransform = createTransform<
     ...outboundState,
     pendingMoneyAccountCardLink: null,
     cardArrivalPreviewRequested: false,
+    applePayHomeSplashShownThisSession: false,
   }),
   { whitelist: ['card'] },
 );
