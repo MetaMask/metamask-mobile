@@ -59,7 +59,7 @@ import {
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
-import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
+import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
 import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 import {
   generateUsername,
@@ -311,7 +311,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
-  const accounts = useSocialOnboardingAccounts();
+  const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
   const { checkUsernameAvailability, createProfile } = useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
