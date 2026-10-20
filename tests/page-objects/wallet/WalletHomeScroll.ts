@@ -15,20 +15,15 @@ import {
   isPerformanceSuiteActive,
 } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { getWindowSize } from '../../framework/DeviceInfoCache.ts';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import TabBarComponent from './TabBarComponent';
 import { pixelsToClearTabBar } from './tabBarClearance';
 
-/**
- * WDIO derives the swipe coordinates from the scrollable element and defaults
- * to 0.95, which starts the gesture 2.5% above the bottom of the scroll view.
- * The floating tab bar overlays that strip and swallows the touch, so the
- * homepage never scrolls. 0.5 starts it at 75% of the container, clear of the
- * bar on both gesture and three-button navigation.
- */
-const WALLET_HOME_SWIPE_PERCENT = 0.5;
-
 const MAX_TAB_BAR_CLEARANCE_SCROLLS = 3;
+// The wallet tab button's top sits inside the floating bar, so measuring only
+// that edge leaves the header under the bar and the tap hits Money.
+const TAB_BAR_TOUCH_SLOP_PX = 96;
 
 const logger = createLogger({ name: 'WalletHomeScroll' });
 
@@ -133,14 +128,11 @@ export class WalletHomeScroll {
       const freshTarget = await this.resolveFreshWalletHomeTarget(target);
       const scrollDirection = direction === 'down' ? 'up' : 'down';
       if (isPerformanceSuiteActive()) {
-        // Android reports a header behind the floating tab bar as displayed, so
-        // scrollIntoView alone stops with it unreachable.
-        await Gestures.scrollIntoViewFullyVisible(freshTarget, {
-          scrollableElement: scrollView,
-          direction: scrollDirection,
-          percent: WALLET_HOME_SWIPE_PERCENT,
-          maxScrolls: maxAttempts,
-        });
+        // WDIO scrollIntoView swipes from 75% of this ScrollView. The view
+        // runs under the floating tab bar, so that gesture is swallowed and
+        // the list never moves. It also skips the swipe entirely once Android
+        // reports the header as displayed. Drag from mid-screen instead.
+        await this.scrollUntilVisible(target, description, direction, maxAttempts);
       } else {
         await Gestures.scrollIntoView(freshTarget, {
           scrollableElement: scrollView,
@@ -189,36 +181,72 @@ export class WalletHomeScroll {
    * less than requested, so the position is measured again after each scroll.
    * Leaves the target untouched when the tab bar is not on screen.
    */
+  async scrollUntilVisible(
+    target: Promise<AppiumElement>,
+    description: string,
+    direction: 'up' | 'down',
+    maxAttempts: number,
+  ): Promise<void> {
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      try {
+        await Assertions.expectElementToBeVisible(
+          await this.resolveFreshWalletHomeTarget(target),
+          {
+            timeout: 1_500,
+            description,
+          },
+        );
+        return;
+      } catch {
+        logger.info(
+          `Scrolling wallet home ${direction} to reveal "${description}" (${attempt + 1}/${maxAttempts})`,
+        );
+        await this.scrollWalletHome(direction, 0.45);
+      }
+    }
+  }
+
   async scrollClearOfTabBar(
     target: Promise<AppiumElement>,
     description: string,
   ): Promise<AppiumElement> {
+    const windowHeight = getWindowSize().height;
+    let tabBarTop = Math.floor(windowHeight * 0.82);
     const tabBarButton = TabBarComponent.tabBarWalletButton;
-    if (!(await Utilities.isElementVisible(tabBarButton, 1_000))) {
-      return target;
+    if (await Utilities.isElementVisible(tabBarButton, 1_000)) {
+      tabBarTop = (await (await tabBarButton).unwrap().getLocation()).y;
+    } else {
+      logger.info(
+        `Wallet tab button not found; clearing "${description}" against y=${tabBarTop}`,
+      );
     }
 
     let current = await this.resolveFreshWalletHomeTarget(target);
     for (let scroll = 1; scroll <= MAX_TAB_BAR_CLEARANCE_SCROLLS; scroll += 1) {
-      const [tabBarLocation, location, size, scrollView] = await Promise.all([
-        (await tabBarButton).unwrap().getLocation(),
+      const [location, size, scrollView] = await Promise.all([
         current.unwrap().getLocation(),
         current.unwrap().getSize(),
         Promise.resolve(this.walletScrollView),
       ]);
       const needed = pixelsToClearTabBar(
         { y: location.y, height: size.height },
-        tabBarLocation.y,
+        tabBarTop - TAB_BAR_TOUCH_SLOP_PX,
       );
       if (needed === 0) {
+        logger.info(
+          `"${description}" is clear of the tab bar (bottom=${location.y + size.height}, barTop=${tabBarTop})`,
+        );
         return current;
       }
 
       const viewHeight = (await scrollView.unwrap().getSize()).height;
-      logger.debug(
-        `Scrolling ${needed}px so "${description}" clears the floating tab bar (scroll ${scroll}/${MAX_TAB_BAR_CLEARANCE_SCROLLS})`,
+      logger.info(
+        `Scrolling ${needed}px so "${description}" clears the floating tab bar (${scroll}/${MAX_TAB_BAR_CLEARANCE_SCROLLS})`,
       );
-      await this.scrollWalletHome('down', needed / viewHeight);
+      await this.scrollWalletHome(
+        'down',
+        Math.max(needed / viewHeight, 0.22),
+      );
       current = await this.resolveFreshWalletHomeTarget(target);
     }
 
