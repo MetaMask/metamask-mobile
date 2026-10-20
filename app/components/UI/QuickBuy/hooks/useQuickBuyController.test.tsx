@@ -311,7 +311,7 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
   ) => {
     const utils = renderHook(
@@ -321,7 +321,7 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
-          postSwapShare,
+          postTradeShare,
           copyTradeOrigin,
         ),
       { initialProps },
@@ -392,7 +392,7 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
   ) => {
     const utils = renderHook(
@@ -402,7 +402,7 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
-          postSwapShare,
+          postTradeShare,
           copyTradeOrigin,
         ),
       {

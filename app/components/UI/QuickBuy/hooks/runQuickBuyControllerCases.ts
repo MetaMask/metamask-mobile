@@ -67,9 +67,9 @@ import {
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import {
-  clearPostSwapShareSession,
-  getPostSwapShareSession,
-} from '../../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
@@ -314,7 +314,7 @@ export const runQuickBuyControllerCases = ({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
   ) => {
     result: {
@@ -332,7 +332,7 @@ export const runQuickBuyControllerCases = ({
   describe(name, () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      clearPostSwapShareSession();
+      clearPostTradeShareSession();
       setupDefaultMocks();
       setupQuoteSourceMock({
         activeQuote: undefined,
@@ -4218,7 +4218,7 @@ export const runQuickBuyControllerCases = ({
             await result.current.handleConfirm();
           });
 
-          expect(getPostSwapShareSession()).toEqual(
+          expect(getPostTradeShareSession()).toEqual(
             expect.objectContaining({
               status: 'pending',
               tradeInFlightChain: 'ethereum',
@@ -4230,6 +4230,34 @@ export const runQuickBuyControllerCases = ({
           expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
             'pending',
             expect.anything(),
+          );
+        });
+
+        it('stores the copy-trade origin on the post-trade share session', async () => {
+          mockUsableQuote();
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+          const copyTradeOrigin: CopyTradeOrigin = {
+            commentId: 'comment-1',
+          };
+
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            'buy',
+            true,
+            copyTradeOrigin,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(getPostTradeShareSession()?.copyTradeOrigin).toEqual(
+            copyTradeOrigin,
           );
         });
 
@@ -4256,7 +4284,7 @@ export const runQuickBuyControllerCases = ({
             await result.current.handleConfirm();
           });
 
-          expect(getPostSwapShareSession()).toBeNull();
+          expect(getPostTradeShareSession()).toBeNull();
           expect(buildQuickBuyToastOptions).toHaveBeenCalledWith(
             'pending',
             expect.objectContaining({

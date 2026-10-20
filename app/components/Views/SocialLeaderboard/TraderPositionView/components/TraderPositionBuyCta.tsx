@@ -24,7 +24,7 @@ import TraderPositionQuickBuy, {
   type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
-import { usePostSwapShareReopen } from '../../PostSwapShareBottomSheet';
+import { usePostTradeShareReopen } from '../../PostTradeShareBottomSheet';
 import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
@@ -49,7 +49,7 @@ export interface TraderPositionBuyCtaProps {
   /** `true` when the trader has closed the position (sell); `false` when open. */
   isTraderPositionClosed?: boolean;
   /** Whether this position was opened from the Social V1 surface. */
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
   /**
    * Fires the follow-trading CTA-clicked analytics and marks the CTA as clicked
    * so the parent's "dismissed" event is suppressed. Called for both variants.
@@ -77,7 +77,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   source,
   originalEntryPoint,
   isTraderPositionClosed,
-  postSwapShare,
+  postTradeShare,
   onBuyCtaClicked,
   buyButtonTestID,
 }) => {
@@ -181,7 +181,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     },
     [target],
   );
-  usePostSwapShareReopen(handlePostSwapReopen);
+  usePostTradeShareReopen(handlePostSwapReopen);
 
   return (
     <>
@@ -207,7 +207,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         source={source}
         originalEntryPoint={originalEntryPoint}
         isTraderPositionClosed={isTraderPositionClosed}
-        postSwapShare={postSwapShare}
+        postTradeShare={postTradeShare}
       />
     </>
   );

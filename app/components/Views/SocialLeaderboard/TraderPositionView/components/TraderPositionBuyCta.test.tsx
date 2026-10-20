@@ -282,7 +282,7 @@ describe('TraderPositionBuyCta', () => {
       source: 'profile_position',
       originalEntryPoint: 'leaderboard',
       isTraderPositionClosed: true,
-      postSwapShare: true,
+      postTradeShare: true,
     });
 
     expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
@@ -293,7 +293,7 @@ describe('TraderPositionBuyCta', () => {
         source: 'profile_position',
         originalEntryPoint: 'leaderboard',
         isTraderPositionClosed: true,
-        postSwapShare: true,
+        postTradeShare: true,
       }),
     );
   });

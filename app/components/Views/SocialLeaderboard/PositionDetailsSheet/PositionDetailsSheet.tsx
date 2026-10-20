@@ -277,7 +277,7 @@ const PositionDetailsSheet = () => {
           source="trader_feed"
           originalEntryPoint="trader_feed"
           isTraderPositionClosed={data.isClosed}
-          postSwapShare
+          postTradeShare
           initialTradeMode={quickBuyMode ?? undefined}
         />
       ) : null}

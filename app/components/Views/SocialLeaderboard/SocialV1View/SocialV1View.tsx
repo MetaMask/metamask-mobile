@@ -89,6 +89,7 @@ import {
   type QuickBuyTarget,
 } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { usePostTradeShareReopen } from '../PostTradeShareBottomSheet';
 
 const LANDING_INDEX = 0;
 
@@ -406,6 +407,13 @@ const SocialV1View: React.FC = () => {
     [],
   );
   const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
+  const handlePostTradeReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setQuickBuy({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(handlePostTradeReopen);
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -709,6 +717,7 @@ const SocialV1View: React.FC = () => {
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           initialTradeMode="buy"
           analyticsContext={{ source: 'trader_feed' }}
+          postTradeShare
           copyTradeOrigin={quickBuy?.copyTradeOrigin}
         />
       </SafeAreaView>

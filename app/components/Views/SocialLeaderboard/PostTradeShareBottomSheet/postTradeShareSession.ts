@@ -1,26 +1,34 @@
 import type { QuickBuyTarget, QuickBuyTradeMode } from '../../../UI/QuickBuy';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import type { SocialPostTradePreview } from '../SocialPostComposerView/SocialPostComposerView.types';
 
-export type PostSwapShareStatus = 'pending' | 'complete' | 'failed';
+export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
 
-export interface PostSwapShareSession {
+export interface PostTradeShareSession {
   sessionId: string;
-  status: PostSwapShareStatus;
+  status: PostTradeShareStatus;
   pairLabel?: string;
   tradeInFlightChain?: string;
   transactionHash?: string;
   target: QuickBuyTarget;
   preview: SocialPostTradePreview;
   tradeMode: QuickBuyTradeMode;
+  /** Post being copied, so a failed swap can reopen Quick Buy with the same intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   reopenRequested: boolean;
+}
+
+export interface PostTradeShareReopen {
+  target: QuickBuyTarget;
+  copyTradeOrigin?: CopyTradeOrigin;
 }
 
 type Listener = () => void;
 
-const STORE_GLOBAL_KEY = '__mmPostSwapShareSession__';
+const STORE_GLOBAL_KEY = '__mmPostTradeShareSession__';
 
 interface StoreState {
-  session: PostSwapShareSession | null;
+  session: PostTradeShareSession | null;
   listeners: Set<Listener>;
 }
 
@@ -38,7 +46,7 @@ const notify = () => {
   state.listeners.forEach((listener) => listener());
 };
 
-export const subscribePostSwapShareSession = (
+export const subscribePostTradeShareSession = (
   listener: Listener,
 ): (() => void) => {
   state.listeners.add(listener);
@@ -47,15 +55,15 @@ export const subscribePostSwapShareSession = (
   };
 };
 
-export const getPostSwapShareSession = (): PostSwapShareSession | null =>
+export const getPostTradeShareSession = (): PostTradeShareSession | null =>
   state.session;
 
-export const beginPostSwapShareSession = (
+export const beginPostTradeShareSession = (
   session: Omit<
-    PostSwapShareSession,
+    PostTradeShareSession,
     'reopenRequested' | 'sessionId' | 'status'
   > & {
-    status?: PostSwapShareStatus;
+    status?: PostTradeShareStatus;
   },
 ): string => {
   const sessionId = String(nextSessionId++);
@@ -69,9 +77,9 @@ export const beginPostSwapShareSession = (
   return sessionId;
 };
 
-export const patchPostSwapShareSession = (
+export const patchPostTradeShareSession = (
   sessionId: string,
-  patch: Partial<PostSwapShareSession>,
+  patch: Partial<PostTradeShareSession>,
 ): boolean => {
   if (!state.session || state.session.sessionId !== sessionId) {
     return false;
@@ -81,12 +89,12 @@ export const patchPostSwapShareSession = (
   return true;
 };
 
-export const clearPostSwapShareSession = (): void => {
+export const clearPostTradeShareSession = (): void => {
   state.session = null;
   notify();
 };
 
-export const requestPostSwapShareReopen = (): void => {
+export const requestPostTradeShareReopen = (): void => {
   if (!state.session) {
     return;
   }
@@ -94,12 +102,12 @@ export const requestPostSwapShareReopen = (): void => {
   notify();
 };
 
-export const consumePostSwapShareReopen = (): QuickBuyTarget | null => {
+export const consumePostTradeShareReopen = (): PostTradeShareReopen | null => {
   if (!state.session?.reopenRequested) {
     return null;
   }
-  const { target } = state.session;
+  const { target, copyTradeOrigin } = state.session;
   state.session = null;
   notify();
-  return target;
+  return { target, copyTradeOrigin };
 };

@@ -1,13 +1,13 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import PostSwapShareBottomSheet from './PostSwapShareBottomSheet';
-import { PostSwapShareBottomSheetSelectorsIDs } from './PostSwapShareBottomSheet.testIds';
+import PostTradeShareBottomSheet from './PostTradeShareBottomSheet';
+import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {
-  beginPostSwapShareSession,
-  clearPostSwapShareSession,
-  getPostSwapShareSession,
-} from './postSwapShareSession';
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from './postTradeShareSession';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 
 const mockNavigate = jest.fn();
@@ -32,24 +32,24 @@ const target: QuickBuyTarget = {
   chain: 'eip155:8453',
 };
 
-describe('PostSwapShareBottomSheet', () => {
+describe('PostTradeShareBottomSheet', () => {
   afterEach(() => {
     act(() => {
-      clearPostSwapShareSession();
+      clearPostTradeShareSession();
     });
     jest.clearAllMocks();
   });
 
   it('renders nothing when there is no session', () => {
-    renderWithProvider(<PostSwapShareBottomSheet />);
+    renderWithProvider(<PostTradeShareBottomSheet />);
 
     expect(
-      screen.queryByTestId(PostSwapShareBottomSheetSelectorsIDs.SHEET),
+      screen.queryByTestId(PostTradeShareBottomSheetSelectorsIDs.SHEET),
     ).toBeNull();
   });
 
   it('disables Share while the swap is in progress', () => {
-    beginPostSwapShareSession({
+    beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       pairLabel: '1 USDC → 100 PUMP',
@@ -62,18 +62,18 @@ describe('PostSwapShareBottomSheet', () => {
       },
     });
 
-    renderWithProvider(<PostSwapShareBottomSheet />);
+    renderWithProvider(<PostTradeShareBottomSheet />);
 
     expect(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_swap_share.in_progress');
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.in_progress');
     expect(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
     ).toBeDisabled();
   });
 
   it('navigates to the composer with tradeInFlight on Share', () => {
-    beginPostSwapShareSession({
+    beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       status: 'complete',
@@ -87,10 +87,10 @@ describe('PostSwapShareBottomSheet', () => {
       },
     });
 
-    renderWithProvider(<PostSwapShareBottomSheet />);
+    renderWithProvider(<PostTradeShareBottomSheet />);
 
     fireEvent.press(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith('SocialPostComposerView', {
@@ -109,7 +109,7 @@ describe('PostSwapShareBottomSheet', () => {
   });
 
   it('renders a failure state with a retry action', () => {
-    beginPostSwapShareSession({
+    beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       status: 'failed',
@@ -121,24 +121,24 @@ describe('PostSwapShareBottomSheet', () => {
       },
     });
 
-    renderWithProvider(<PostSwapShareBottomSheet />);
+    renderWithProvider(<PostTradeShareBottomSheet />);
 
     expect(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_swap_share.failed');
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.failed');
     expect(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
-    ).toHaveTextContent('social_leaderboard.post_swap_share.try_again');
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.try_again');
 
     fireEvent.press(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
     );
 
-    expect(getPostSwapShareSession()?.reopenRequested).toBe(true);
+    expect(getPostTradeShareSession()?.reopenRequested).toBe(true);
   });
 
   it('disables Share when a completed session has no transaction hash', () => {
-    beginPostSwapShareSession({
+    beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       status: 'complete',
@@ -151,15 +151,15 @@ describe('PostSwapShareBottomSheet', () => {
       },
     });
 
-    renderWithProvider(<PostSwapShareBottomSheet />);
+    renderWithProvider(<PostTradeShareBottomSheet />);
 
     expect(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
     ).toBeDisabled();
   });
 
   it('clears the session when the close button is pressed', () => {
-    beginPostSwapShareSession({
+    beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       preview: {
@@ -170,12 +170,12 @@ describe('PostSwapShareBottomSheet', () => {
       },
     });
 
-    renderWithProvider(<PostSwapShareBottomSheet />);
+    renderWithProvider(<PostTradeShareBottomSheet />);
 
     fireEvent.press(
-      screen.getByTestId(PostSwapShareBottomSheetSelectorsIDs.CLOSE_BUTTON),
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(getPostSwapShareSession()).toBeNull();
+    expect(getPostTradeShareSession()).toBeNull();
   });
 });

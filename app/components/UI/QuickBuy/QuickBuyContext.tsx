@@ -44,7 +44,7 @@ interface QuickBuyProviderProps {
   features: QuickBuyFeatures;
   initialTradeMode?: QuickBuyTradeMode;
   analyticsContext: QuickBuyAnalyticsContext;
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
   copyTradeOrigin?: CopyTradeOrigin;
   activeScreen: QuickBuyScreen;
   setActiveScreen: (screen: QuickBuyScreen) => void;
@@ -57,7 +57,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   features,
   initialTradeMode,
   analyticsContext,
-  postSwapShare,
+  postTradeShare,
   copyTradeOrigin,
   activeScreen,
   setActiveScreen,
@@ -68,7 +68,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     onClose,
     analyticsContext,
     initialTradeMode,
-    postSwapShare,
+    postTradeShare,
     copyTradeOrigin,
   );
   // Open the keypad by default so the sheet matches the taller Figma layout
