@@ -894,6 +894,58 @@ export interface PreviewMaxBuyOrderParams {
   feePolicy?: PredictFeePolicy;
 }
 
+/**
+ * Decision-only execution facts gathered from a fresh order book immediately
+ * before submission. Carried beside the signable `OrderPreview` rather than on
+ * it: an ordinary polled preview was never checked against an approved price,
+ * so it must not appear to carry execution facts.
+ */
+export interface PredictExecutionMetadata {
+  /**
+   * Client clock when the fresh preview finished building. Signing freshness
+   * is measured from this value, never from the exchange book timestamp.
+   */
+  fetchedAt: number;
+  /** Exchange timestamp of the order-book snapshot the preview was built from. */
+  sourceBookTimestamp?: number;
+  /** Unit matches the side: SELL shares, BUY dollars. */
+  requestedSize: number;
+  /** Same unit as `requestedSize`; how much is executable inside the band. */
+  executableSize: number;
+  /** Displayed share price the user approved; the band is measured from it. */
+  approvedPrice: number;
+  /** Best book level price (displayed-price convention) from the fresh book. */
+  refreshedPrice?: number;
+  /**
+   * Worst price still inside the approved slippage band: the lowest
+   * acceptable bid for SELL, the highest acceptable ask for BUY.
+   */
+  bandFloorPrice: number;
+  /** Deepest in-band book level consumed while filling the requested size. */
+  worstExecutablePrice?: number;
+  /** Market tick size from the fresh book; one tick is the consent threshold. */
+  tickSize: number;
+}
+
+/**
+ * Typed outcome of a pre-submit execution-preview fetch. `no_match` covers an
+ * empty book and insufficient depth inside the approved band — expected market
+ * outcomes, not technical failures — so it still carries `execution` facts
+ * (including partial `executableSize`) for analytics.
+ */
+export type PredictExecutionPreviewResult =
+  | {
+      status: 'executable';
+      preview: OrderPreview;
+      execution: PredictExecutionMetadata;
+    }
+  | {
+      status: 'no_match';
+      execution: PredictExecutionMetadata;
+    }
+  | { status: 'timeout' }
+  | { status: 'unavailable' };
+
 export type PredictWalletType = 'safe' | 'deposit-wallet';
 
 export interface AccountState {

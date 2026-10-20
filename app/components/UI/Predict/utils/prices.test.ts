@@ -8,6 +8,7 @@ import {
   getDisplayBuyPrice,
   getPredictBuyPrice,
   getPredictMidPrice,
+  getPredictPriceConsent,
   getPredictTicksWorse,
 } from './prices';
 
@@ -232,5 +233,63 @@ describe('getPredictTicksWorse', () => {
         tickSize: 0.01,
       }),
     ).toBe(0);
+  });
+});
+
+describe('getPredictPriceConsent', () => {
+  it('grants consent for a better or equal sell price', () => {
+    expect(
+      getPredictPriceConsent({
+        side: Side.SELL,
+        approvedPrice: 0.65,
+        refreshedPrice: 0.65,
+        tickSize: 0.01,
+      }),
+    ).toEqual({ ticksWorse: 0, withinOneTick: true });
+  });
+
+  it('grants consent for exactly one tick worse', () => {
+    expect(
+      getPredictPriceConsent({
+        side: Side.SELL,
+        approvedPrice: 0.65,
+        refreshedPrice: 0.64,
+        tickSize: 0.01,
+      }),
+    ).toEqual({ ticksWorse: 1, withinOneTick: true });
+  });
+
+  it('denies consent beyond one tick', () => {
+    expect(
+      getPredictPriceConsent({
+        side: Side.SELL,
+        approvedPrice: 0.65,
+        refreshedPrice: 0.62,
+        tickSize: 0.01,
+      }),
+    ).toEqual({ ticksWorse: 3, withinOneTick: false });
+  });
+
+  it('measures with the fresh tick size on a finer book', () => {
+    // 2 ticks of 0.001 stays within one tick only when measured honestly.
+    expect(
+      getPredictPriceConsent({
+        side: Side.SELL,
+        approvedPrice: 0.1,
+        refreshedPrice: 0.098,
+        tickSize: 0.001,
+      }),
+    ).toEqual({ ticksWorse: 2, withinOneTick: false });
+  });
+
+  it('treats a higher price as worse for a buy', () => {
+    expect(
+      getPredictPriceConsent({
+        side: Side.BUY,
+        approvedPrice: 0.6,
+        refreshedPrice: 0.63,
+        tickSize: 0.01,
+      }),
+    ).toEqual({ ticksWorse: 3, withinOneTick: false });
   });
 });
