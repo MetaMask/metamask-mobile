@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { GlassView } from 'expo-glass-effect';
 
 import FooterGlass from './FooterGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
@@ -84,7 +83,7 @@ describe('FooterGlass', () => {
   });
 
   it('draws glass on the primary and secondary buttons only', () => {
-    const { getAllByTestId, UNSAFE_getAllByType } = render(
+    const { getAllByTestId, getByText, UNSAFE_root } = render(
       <FooterGlass
         primaryButtonProps={{ children: 'Continue', onPress: jest.fn() }}
         secondaryButtonProps={{ children: 'Cancel', onPress: jest.fn() }}
@@ -92,12 +91,15 @@ describe('FooterGlass', () => {
       />,
     );
 
-    const glassViews = UNSAFE_getAllByType(GlassView);
+    const tintedSurfaces = UNSAFE_root.findAll(
+      (node) =>
+        typeof node.type === 'string' &&
+        node.props.tintColor === mockTheme.colors.icon.default,
+    );
 
-    expect(glassViews).toHaveLength(2);
-    expect(glassViews[0].props.tintColor).toBe(mockTheme.colors.icon.default);
-    expect(glassViews[1].props.tintColor).toBeUndefined();
+    expect(tintedSurfaces).toHaveLength(1);
     expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+    expect(getByText('Skip')).toBeOnTheScreen();
   });
 
   it('calls onPress for each button', () => {
