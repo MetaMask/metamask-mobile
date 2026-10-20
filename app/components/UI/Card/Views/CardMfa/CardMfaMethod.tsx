@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -10,6 +9,7 @@ import {
   IconName,
   IconSize,
   Label,
+  ListItemSelect,
   Text,
   TextField,
   TextVariant,
@@ -246,8 +246,10 @@ const CardMfaMethod = () => {
       {options.map((option) => {
         const isSelected = selectedMethod === option.method;
         return (
-          <Pressable
+          <ListItemSelect
             key={option.method}
+            isSelected={isSelected}
+            showSelectedIcon
             accessibilityRole="radio"
             accessibilityState={{ selected: isSelected }}
             onPress={() => {
@@ -256,29 +258,24 @@ const CardMfaMethod = () => {
               setNeedsRestart(false);
             }}
             testID={`card-mfa-option-${option.method}`}
-          >
-            <Box twClassName="flex-row items-center gap-3 rounded-xl border border-border-muted px-4 py-3">
+            startAccessory={
               <Icon
                 name={option.method === 'phone' ? IconName.Call : IconName.Mail}
                 size={IconSize.Md}
               />
-              <Box>
-                <Text variant={TextVariant.BodyMd}>
-                  {strings(
-                    option.method === 'phone'
-                      ? 'card.mfa.method_phone'
-                      : 'card.mfa.method_email',
-                  )}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-text-alternative"
-                >
-                  {option.maskedDestination}
-                </Text>
-              </Box>
-            </Box>
-          </Pressable>
+            }
+            title={strings(
+              option.method === 'phone'
+                ? 'card.mfa.method_phone'
+                : 'card.mfa.method_email',
+            )}
+            description={option.maskedDestination}
+            twClassName={
+              isSelected
+                ? 'rounded-xl border border-primary-default bg-background-muted'
+                : 'rounded-xl border border-border-muted'
+            }
+          />
         );
       })}
 

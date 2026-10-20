@@ -167,6 +167,43 @@ describe('CardMfaMethod', () => {
     );
   });
 
+  it('lets the user switch from phone to email', () => {
+    const { getByTestId, queryByTestId } = render(<CardMfaMethod />);
+
+    fireEvent.press(getByTestId('card-mfa-option-phone'));
+
+    expect(getByTestId('card-mfa-phone-input')).toBeOnTheScreen();
+    expect(getByTestId('card-mfa-option-phone')).toHaveProp(
+      'accessibilityState',
+      {
+        selected: true,
+      },
+    );
+    expect(getByTestId('card-mfa-option-email')).toHaveProp(
+      'accessibilityState',
+      {
+        selected: false,
+      },
+    );
+
+    fireEvent.press(getByTestId('card-mfa-option-email'));
+
+    expect(queryByTestId('card-mfa-phone-input')).toBeNull();
+    expect(getByTestId('card-mfa-email-input')).toBeOnTheScreen();
+    expect(getByTestId('card-mfa-option-email')).toHaveProp(
+      'accessibilityState',
+      {
+        selected: true,
+      },
+    );
+    expect(getByTestId('card-mfa-option-phone')).toHaveProp(
+      'accessibilityState',
+      {
+        selected: false,
+      },
+    );
+  });
+
   it('submits a lowercased email', async () => {
     mockSubmitCredentials.mockResolvedValue({
       done: false,
