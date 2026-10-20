@@ -770,8 +770,8 @@ describe('PerpsMarketBalanceActions', () => {
   });
 
   describe('glass', () => {
-    it('draws Withdraw with the sheen and Add funds tinted on glass', () => {
-      const { UNSAFE_getAllByType, getAllByTestId, getByTestId } =
+    it('draws Withdraw with the sheen and keeps Add funds plain', () => {
+      const { UNSAFE_queryAllByType, getAllByTestId, getByTestId } =
         renderWithProvider(
           <PerpsMarketBalanceActions
             hideBalanceSection
@@ -782,14 +782,14 @@ describe('PerpsMarketBalanceActions', () => {
           false,
         );
 
-      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(2);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
       expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
       expect(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeOnTheScreen();
     });
 
-    it('passes glass to the empty-balance Add funds', () => {
+    it('keeps the empty-balance Add funds as the plain primary button', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
           ...defaultPerpsAccount,
@@ -802,13 +802,14 @@ describe('PerpsMarketBalanceActions', () => {
         error: null,
       });
 
-      const { UNSAFE_getAllByType } = renderWithProvider(
+      const { UNSAFE_queryAllByType, queryByTestId } = renderWithProvider(
         <PerpsMarketBalanceActions hideBalanceSection isGlass />,
         { state: createMockState() },
         false,
       );
 
-      expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeNull();
     });
 
     it('keeps the original buttons by default', () => {

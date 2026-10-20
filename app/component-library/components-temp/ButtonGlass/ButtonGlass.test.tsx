@@ -84,17 +84,16 @@ describe('ButtonGlass', () => {
     expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('tints primary glass with the primary fill instead of the sheen', () => {
-    const { UNSAFE_getByType, queryByTestId } = render(
+  it('renders primary as the plain button, without the sheen', () => {
+    const { getByText, queryByTestId, UNSAFE_queryAllByType } = render(
       <ButtonGlass variant={ButtonVariant.Primary} onPress={jest.fn()}>
         Add funds
       </ButtonGlass>,
     );
 
-    expect(UNSAFE_getByType(GlassView).props.tintColor).toBe(
-      mockTheme.colors.icon.default,
-    );
+    expect(getByText('Add funds')).toBeOnTheScreen();
     expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
   });
 
   it('renders tertiary as the plain button, without glass', () => {

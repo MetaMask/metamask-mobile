@@ -1257,12 +1257,10 @@ describe('MoneyBalanceCard', () => {
       expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
     });
 
-    it('draws the card on an interactive glass surface', () => {
+    it('draws the card on the sheen surface', () => {
       const { getByTestId } = renderWithProvider(<MoneyBalanceCard isGlass />);
 
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.SURFACE).props.isInteractive,
-      ).toBe(true);
+      expect(getByTestId(MoneyBalanceCardTestIds.SURFACE)).toBeOnTheScreen();
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
       expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
     });

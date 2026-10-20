@@ -477,15 +477,15 @@ describe('PerpsCompetitionBanner', () => {
       expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
     });
 
-    it('draws the card on an interactive glass surface', async () => {
+    it('draws the card on the sheen surface', async () => {
       setupSelector(true, [buildCampaign()]);
 
       const { getByTestId } = render(<PerpsCompetitionBanner isGlass />);
 
       await waitFor(() => {
         expect(
-          getByTestId('perps-competition-banner-surface').props.isInteractive,
-        ).toBe(true);
+          getByTestId('perps-competition-banner-surface'),
+        ).toBeOnTheScreen();
       });
       expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
     });

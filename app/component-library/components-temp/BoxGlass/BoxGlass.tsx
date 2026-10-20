@@ -3,12 +3,10 @@ import {
   PixelRatio,
   StyleSheet,
   View,
-  type ColorValue,
   type StyleProp,
   type ViewProps,
   type ViewStyle,
 } from 'react-native';
-import { GlassView } from 'expo-glass-effect';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -39,16 +37,10 @@ export interface BoxGlassProps extends ViewProps {
   radiusClassName: `rounded-${string}`;
   /** Layout for the bordered outer wrapper, e.g. margins or flex. */
   containerStyle?: StyleProp<ViewStyle>;
-  /** Lets the glass react to touch; set it on pressable surfaces. */
+  /** @deprecated No effect: CTA and banner surfaces no longer draw glass. */
   isInteractive?: boolean;
-  /**
-   * Covers the glass with the brand refresh sheen so the surface reads at
-   * rest; the glass then shows in its press response. Glass alone renders
-   * lighter than the sheen, so the sheen cannot sit behind it.
-   */
+  /** Draws the brand refresh sheen: a muted gradient on the screen colour. */
   hasSheen?: boolean;
-  /** Fills the glass with a colour, e.g. a primary button's background. */
-  tintColor?: ColorValue;
   /** The screen's flag; the surface turns opaque where the OS can't draw glass. */
   isGlass?: boolean;
 }
@@ -60,7 +52,6 @@ const OpaqueSurface = ({
   containerStyle,
   isInteractive: _isInteractive,
   hasSheen: _hasSheen,
-  tintColor: _tintColor,
   style,
   children,
   ...props
@@ -76,19 +67,17 @@ const OpaqueSurface = ({
   );
 };
 
-const LiquidGlassSurface = ({
+const SheenSurface = ({
   radiusClassName,
   containerStyle,
-  isInteractive = false,
-  hasSheen = false,
-  tintColor,
+  isInteractive: _isInteractive,
+  hasSheen: _hasSheen,
   style,
   children,
   ...props
 }: SurfaceProps) => {
   const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
-  const { glassColorScheme } = useLiquidGlass();
 
   const sheenColors = useMemo(
     () =>
@@ -98,71 +87,53 @@ const LiquidGlassSurface = ({
     [colors.background.muted, themeAppearance],
   );
   const borderStyle = useMemo(
-    () =>
-      hasSheen
-        ? {
-            borderWidth: SHEEN_BORDER_WIDTH,
-            borderColor:
-              themeAppearance === AppThemeKey.dark
-                ? colorWithOpacity(
-                    colors.border.muted,
-                    DARK_SHEEN_BORDER_OPACITY,
-                  )
-                : colors.border.muted,
-          }
-        : { borderWidth: StyleSheet.hairlineWidth },
-    [hasSheen, colors.border.muted, themeAppearance],
+    () => ({
+      borderWidth: SHEEN_BORDER_WIDTH,
+      borderColor:
+        themeAppearance === AppThemeKey.dark
+          ? colorWithOpacity(colors.border.muted, DARK_SHEEN_BORDER_OPACITY)
+          : colors.border.muted,
+    }),
+    [colors.border.muted, themeAppearance],
   );
 
   return (
-    <View
-      style={[
-        tw.style('border-muted', radiusClassName),
-        borderStyle,
-        containerStyle,
-      ]}
-    >
-      <GlassView
-        glassEffectStyle="regular"
-        colorScheme={glassColorScheme}
-        isInteractive={isInteractive}
-        tintColor={tintColor}
-        // The native glass only takes the surface's corners when clipped.
+    <View style={[tw.style(radiusClassName), borderStyle, containerStyle]}>
+      <View
         style={[tw.style('overflow-hidden', radiusClassName), style]}
         {...props}
       >
-        {hasSheen && (
-          // The sheen tints are translucent, so they sit on the screen colour.
-          <View
-            pointerEvents="none"
-            style={[StyleSheet.absoluteFill, tw.style('bg-default')]}
-            testID={GLASS_SURFACE_SHEEN_TEST_ID}
-          >
-            <LinearGradient
-              colors={sheenColors}
-              locations={SHEEN_LOCATIONS}
-              start={SHEEN_START}
-              end={SHEEN_END}
-              style={StyleSheet.absoluteFill}
-              testID={GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID}
-            />
-          </View>
-        )}
+        {/* The sheen tints are translucent, so they sit on the screen colour. */}
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, tw.style('bg-default')]}
+          testID={GLASS_SURFACE_SHEEN_TEST_ID}
+        >
+          <LinearGradient
+            colors={sheenColors}
+            locations={SHEEN_LOCATIONS}
+            start={SHEEN_START}
+            end={SHEEN_END}
+            style={StyleSheet.absoluteFill}
+            testID={GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID}
+          />
+        </View>
         {children}
-      </GlassView>
+      </View>
     </View>
   );
 };
 
 /**
- * An iOS 26 Liquid Glass surface with a hairline border, or the opaque muted
- * surface when `isGlass` is false or the OS can't draw glass. `style` lays out
- * the content on it.
+ * The brand refresh surface for CTAs and banners: the sheen gradient on the
+ * screen colour, with a fine border. Glass is kept for elevated chrome such as
+ * headers. Without a sheen, with `isGlass` off, or where the OS can't draw
+ * glass, it is the opaque muted surface. `style` lays out the content on it.
  */
 const BoxGlass = ({ isGlass = true, ...props }: BoxGlassProps) => {
   const { isGlassEnabled } = useLiquidGlass();
-  return isGlass && isGlassEnabled ? (
-    <LiquidGlassSurface {...props} />
+  return isGlass && isGlassEnabled && props.hasSheen ? (
+    <SheenSurface {...props} />
   ) : (
     <OpaqueSurface {...props} />
   );

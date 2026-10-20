@@ -8,7 +8,6 @@ import {
 
 import BoxGlass from '../BoxGlass';
 import { useLiquidGlass } from '../../hooks/useLiquidGlass';
-import { useTheme } from '../../../util/theme';
 
 export type ButtonGlassVariant =
   | typeof ButtonVariant.Primary
@@ -18,15 +17,16 @@ export type ButtonGlassVariant =
 export type ButtonGlassProps = ButtonBaseProps & {
   /** The screen's flag. False, or an OS without glass, renders the plain `Button`. */
   isGlass?: boolean;
-  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: the plain button. */
+  /** Secondary: the brand sheen. Primary and Tertiary: the plain button. */
   variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
- * The design-system `Button` drawn on Liquid Glass, kept out of the package
- * until the design system takes it. Callers pass their screen flag as `isGlass`.
- * Tertiary stays the plain button: a ghost control has no glass container.
+ * The design-system `Button` on the brand refresh sheen, kept out of the
+ * package until the design system takes it. Callers pass their screen flag as
+ * `isGlass`. Only Secondary takes the sheen: Primary keeps its own fill, and
+ * Tertiary is a ghost control.
  */
 const ButtonGlass = ({
   isGlass = true,
@@ -35,10 +35,9 @@ const ButtonGlass = ({
   twClassName,
   ...props
 }: ButtonGlassProps) => {
-  const { colors } = useTheme();
   const { isGlassEnabled } = useLiquidGlass();
 
-  if (!isGlass || !isGlassEnabled || variant === ButtonVariant.Tertiary) {
+  if (!isGlass || !isGlassEnabled || variant !== ButtonVariant.Secondary) {
     return (
       <Button
         {...props}
@@ -49,14 +48,10 @@ const ButtonGlass = ({
     );
   }
 
-  const isPrimary = variant === ButtonVariant.Primary;
-
   return (
     <BoxGlass
       radiusClassName="rounded-full"
-      isInteractive={!props.isDisabled}
-      hasSheen={variant === ButtonVariant.Secondary}
-      tintColor={isPrimary ? colors.icon.default : undefined}
+      hasSheen
       containerStyle={containerStyle}
     >
       <Button
