@@ -107,7 +107,7 @@ function claimsPausedLabels(
 ): ClaimsPausedLabels {
   return {
     breakdown: localizedText.breakdown,
-    recordedEarningsLabel: localizedText.recordedEarningsLabel,
+    recordedEarningsLabel: localizedText.recordedEarnings,
     availableToClaim: localizedText.availableToClaim,
     held: localizedText.held,
     blocked: localizedText.blocked,

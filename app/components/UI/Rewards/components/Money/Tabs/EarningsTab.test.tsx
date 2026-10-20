@@ -78,6 +78,7 @@ const LOCALIZED_TEXT = {
   rewardsPausedBanner: '{amount} of rewards paused.',
   rewardsPausedLearnMore: 'Learn more',
   last7Days: 'Last 7 days',
+  recordedEarnings: 'Recorded earnings',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
   referrals: 'Referrals',
