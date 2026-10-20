@@ -1087,6 +1087,29 @@ describe('createMfaFlow', () => {
       });
     });
 
+    it('starts a verification that failed to start again', async () => {
+      const fake = createFakeController([authenticatorApp]);
+      fake.controller.beginCredentialVerification.mockRejectedValueOnce(
+        new MfaError('server_error', 'down'),
+      );
+      const { flow } = await startFlow(TOTP_ONLY, fake.controller);
+
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'otp', method: 'totp', codeSent: false },
+        error: 'server_error',
+      });
+
+      await act(flow, { type: 'resend' });
+
+      expect(fake.controller.beginCredentialVerification).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(flow.getState()).toMatchObject({
+        step: { name: 'otp', method: 'totp', codeSent: true },
+        error: undefined,
+      });
+    });
+
     it('prefers the app over an email code when both can verify', async () => {
       const fake = createFakeController([activeEmail, authenticatorApp]);
       const { flow } = await startFlow(

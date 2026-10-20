@@ -594,6 +594,32 @@ describe('CodeStep', () => {
     });
   });
 
+  it('offers to try again when the app verification failed to start', () => {
+    const { onAction, getByTestId, getByText } = renderCode(
+      { ...totpCode, codeSent: false },
+      { error: 'server_error' },
+    );
+
+    expect(getByText('Something went wrong. Try again.')).toBeOnTheScreen();
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
+  });
+
+  it('shows a cooldown and its countdown before trying again', () => {
+    const { getByTestId, getByText } = renderCode(
+      { ...totpCode, codeSent: false },
+      { error: 'rate_limited', resendAvailableAt: 1_000_000 + 30_000 },
+    );
+
+    expect(
+      getByText('Too many requests. Wait a moment and try again.'),
+    ).toBeOnTheScreen();
+    expect(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON)).toHaveTextContent(
+      'Try again in 30s',
+    );
+    expect(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON)).toBeDisabled();
+  });
+
   it.each([
     [
       'flow_expired',

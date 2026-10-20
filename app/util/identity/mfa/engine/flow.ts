@@ -628,8 +628,12 @@ export const createMfaFlow = ({
         }
         return;
       case 'resend':
-        // Authenticator app codes are not sent: the app shows a new one.
-        if (step.name === 'otp' && step.method === 'email_otp') {
+        // Authenticator app codes are not sent, as the app shows a new one:
+        // only a verification that failed to start is started again.
+        if (
+          step.name === 'otp' &&
+          (step.method === 'email_otp' || !step.codeSent)
+        ) {
           await run(beginCodeChallenge);
         }
         return;

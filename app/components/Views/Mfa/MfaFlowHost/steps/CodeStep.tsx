@@ -133,10 +133,11 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
 
   const paste = async () => handleChange(await Clipboard.getString());
 
-  // A cooldown with a wait time shows as the countdown, also once it ended.
+  // An email cooldown with a wait time shows as the countdown on the resend
+  // button, also once it ended. Authenticator app errors always show.
   const showError =
     error !== undefined &&
-    !(resendAvailableAt !== undefined && COOLDOWN_CODES.has(error));
+    (isTotp || !(resendAvailableAt !== undefined && COOLDOWN_CODES.has(error)));
   // The code on screen can no longer be used: the main action is a new one.
   const needsNewCode =
     showError && error !== undefined && getErrorHandling(error) === 'restart';
@@ -167,14 +168,30 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
       title={strings('mfa.otp.title')}
       description={getDescription()}
       footer={
-        isTotp ? (
+        isTotp && !codeSent && !busy ? (
+          // The verification failed to start: start it again, after any
+          // cooldown.
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            // A complete code is submitted as it is typed; this shows it being
-            // checked, or submits it again after an error.
-            isLoading={busy && codeSent}
+            isDisabled={isCoolingDown}
+            onPress={() => onAction({ type: 'resend' })}
+            testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
+          >
+            {isCoolingDown
+              ? strings('mfa.otp.retry_in', { seconds: secondsLeft })
+              : strings('mfa.otp.retry')}
+          </Button>
+        ) : isTotp ? (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            // A complete code is submitted as it is typed; this shows the
+            // verification starting or the code being checked, or submits it
+            // again after an error.
+            isLoading={busy}
             isDisabled={!codeSent || code.length < CELL_COUNT}
             onPress={() => onAction({ type: 'submitCode', code })}
             testID={MfaFlowSelectorsIDs.PRIMARY_BUTTON}
