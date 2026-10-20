@@ -82,15 +82,6 @@ const createStyles = (
           fontWeight: '500',
         }
       : {},
-    amountCursor: {
-      width: 1,
-      height: 32,
-      marginTop: 2,
-      marginLeft: 5,
-      marginRight: 5,
-      opacity: 1,
-      backgroundColor: colors.border.default,
-    },
     maxWithdrawalContainer: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -220,22 +211,15 @@ const InputDisplay = ({
           accessibilityLabel={`${isFiat ? amountFiatNumber : amountToken} ${
             isFiat ? currentCurrency.toUpperCase() : ticker
           }`}
+          animated
           color={DesignTextColor.TextDefault}
           containerStyle={styles.amountRow}
-          cursor={
-            isStablecoinLendingEnabled ? { style: styles.amountCursor } : false
-          }
+          cursor={{ animated: true }}
           onPress={onPressAmount}
           style={styles.amountText}
-          suffix={
-            <Text
-              style={styles.amountText}
-              color={TextColor.Muted}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? currentCurrency.toUpperCase() : ticker}
-            </Text>
-          }
+          suffix={isFiat ? currentCurrency.toUpperCase() : ticker}
+          suffixColor={DesignTextColor.TextMuted}
+          suffixStyle={styles.amountText}
           value={isFiat ? amountFiatNumber : amountToken}
           variant={DesignTextVariant.DisplayMd}
         />

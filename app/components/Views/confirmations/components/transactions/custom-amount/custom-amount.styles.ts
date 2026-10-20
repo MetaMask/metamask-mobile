@@ -1,18 +1,12 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
-
-function getFontSize(length: number) {
-  if (length <= 8) return 64;
-  if (length <= 13) return 40;
-  if (length <= 18) return 30;
-  return 20;
-}
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) => {
-  const fontSize = getFontSize(params.vars.amountLength);
+  const fontSize = getFontSizeForInputLength(params.vars.amountLength + 2);
 
   return StyleSheet.create({
     container: {

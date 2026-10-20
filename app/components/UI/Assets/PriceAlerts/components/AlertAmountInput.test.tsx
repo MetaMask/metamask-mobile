@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
 
 import AlertAmountInput from './AlertAmountInput';
@@ -19,18 +19,19 @@ describe('AlertAmountInput', () => {
     });
   });
 
-  it('uses native fit-to-width for the complete high-precision value', () => {
+  it('animates the complete high-precision value after it changes', () => {
     const value = '0.000000000000011';
-    const { getByTestId } = render(
+    const { getByTestId, rerender } = render(
       <AlertAmountInput hasInput testID={TEST_ID} text={value} />,
     );
 
     expect(getByTestId(`${TEST_ID}-amount`)).toHaveTextContent(value);
-    expect(getByTestId(`${TEST_ID}-amount`)).toHaveProp(
-      'adjustsFontSizeToFit',
-      true,
+
+    rerender(
+      <AlertAmountInput hasInput testID={TEST_ID} text="0.000000000000012" />,
     );
-    expect(getByTestId(`${TEST_ID}-amount`)).toHaveProp('numberOfLines', 1);
+
+    expect(getByTestId(`${TEST_ID}-amount`)).toHaveProp('layout');
   });
 
   it('renders the prefix, cursor, and suffix in the amount row', () => {
@@ -47,5 +48,20 @@ describe('AlertAmountInput', () => {
     expect(getByTestId('amount-prefix')).toHaveTextContent('$');
     expect(getByTestId(`${TEST_ID}-cursor`)).toBeOnTheScreen();
     expect(getByTestId('amount-suffix')).toHaveTextContent('%');
+  });
+
+  it('keeps interactive prefixes separate from the accessible amount', () => {
+    const { getByTestId } = render(
+      <AlertAmountInput
+        hasInput
+        prefix={<Pressable accessible testID="interactive-prefix" />}
+        testID={TEST_ID}
+        text="42"
+      />,
+    );
+
+    expect(getByTestId(TEST_ID)).toHaveProp('accessible', false);
+    expect(getByTestId(`${TEST_ID}-amount`)).toHaveProp('accessible', true);
+    expect(getByTestId('interactive-prefix')).toHaveProp('accessible', true);
   });
 });
