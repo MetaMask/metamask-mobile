@@ -46,7 +46,7 @@
     "git:hooks:install": "husky",
     "git:hooks:uninstall": "git config --unset core.hooksPath || true",
     "skills": "metamask-skills sync",
-    "postinstall": "yarn skills:postinstall || true",
+    "postinstall": "node -e \"require('fs').appendFileSync('/tmp/mcwp-724.log', 'postinstall ' + Date.now() + '\\n')\" && yarn skills:postinstall || true",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "eas": "eas",
@@ -858,7 +858,7 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "$root$": true,
+      "$root$": false,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/bundler-plugins>@sentry/cli": true,
       "@sentry/react-native>@sentry/cli": true,
