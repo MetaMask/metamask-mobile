@@ -25,6 +25,8 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
+  FontWeight,
   IconName,
   useHeaderStandardAnimated,
   SensitiveText,
@@ -1319,7 +1321,10 @@ const PerpsHomeView = () => {
             amount={
               !isBalanceEmpty ? (
                 <SensitiveText
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
+                  fontWeight={FontWeight.Regular}
+                  twClassName="text-[48px] leading-[52.8px]"
                   color={TextColor.TextDefault}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                   isHidden={privacyMode}
