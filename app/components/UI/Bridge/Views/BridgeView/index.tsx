@@ -87,6 +87,10 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const initialLimitOrderExpirationMinutes =
+    route.params?.initialLimitOrderExpirationMinutes;
+  const initialLimitOrderPriceTolerance =
+    route.params?.initialLimitOrderPriceTolerance;
 
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
@@ -323,7 +327,13 @@ const BridgeView = () => {
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
           {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <BridgeLimitOrderView
+              initialExpirationMinutes={initialLimitOrderExpirationMinutes}
+              initialPriceTolerance={initialLimitOrderPriceTolerance}
+              deeplinkInitializationKey={route.params?.swapViewTraceId}
+            />
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
             <BridgeRecurringBuyView />
           ) : null}

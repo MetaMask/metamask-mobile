@@ -7,7 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
@@ -40,6 +40,9 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 
 import {
   PerpsOrderViewSelectorsIDs,
@@ -48,6 +51,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
+  useBottomSafeAreaInset,
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
@@ -882,6 +886,13 @@ jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
 jest.mock('../../components/PerpsBottomSheetTooltip', () =>
   createBottomSheetMock('perps-order-view-bottom-sheet-tooltip'),
 );
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 interface MockTradeScreenProps {
   orderType: 'market' | 'limit';
@@ -1464,6 +1475,46 @@ describe('PerpsOrderView', () => {
     await waitFor(() => {
       expect(screen.getByText('Leverage')).toBeDefined();
     });
+  });
+
+  it('renders the Perps rebate banner with the order metadata', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coin: 'ETH',
+        direction: 'long',
+      }),
+    );
+  });
+
+  it('does not reserve fixed-footer space inside the scroll content', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const scrollView = screen.getByTestId(
+      PerpsOrderViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    expect(StyleSheet.flatten(scrollView.props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ paddingBottom: 0 }),
+    );
+  });
+
+  it('does not apply the bottom safe-area inset twice', () => {
+    const mockUseBottomSafeAreaInset = jest.mocked(useBottomSafeAreaInset);
+    mockUseBottomSafeAreaInset.mockReturnValue(34);
+
+    try {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const footer = screen.getByTestId(PerpsOrderViewSelectorsIDs.FOOTER);
+
+      expect(StyleSheet.flatten(footer.props.style)).toEqual(
+        expect.objectContaining({ paddingBottom: 16 }),
+      );
+    } finally {
+      mockUseBottomSafeAreaInset.mockReturnValue(0);
+    }
   });
 
   it('renders the Trade bottom sheet for the treatment route', async () => {

@@ -23,6 +23,8 @@ import {
   qrKeyringBridge,
 } from './keyrings';
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
+import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
+import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -250,6 +252,52 @@ describe('wallet-init/keyrings', () => {
         name: 'money',
       });
       expect(moneyV2).toBeInstanceOf(MoneyKeyring);
+    });
+  });
+
+  describe('MPC money keyring registration', () => {
+    const originalFlag = process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+
+    afterEach(() => {
+      if (originalFlag === undefined) {
+        delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+      } else {
+        process.env.MM_MONEY_MPC_KEYRING_ENABLED = originalFlag;
+      }
+    });
+
+    it('does not register the MPC money keyring builders when the build flag is off', () => {
+      delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
+
+      const v1Types = (getKeyringBuilders(getRootMessenger(), false) ?? []).map(
+        (builder) => builder.type,
+      );
+      const v2Types = (getKeyringV2Builders() ?? []).map(
+        (builder) => builder.type,
+      );
+
+      expect(v1Types).not.toContain(MpcMoneyKeyring.type);
+      expect(v2Types).not.toContain(MpcMoneyKeyring.type);
+    });
+
+    it('registers the MPC money keyring builders when the build flag is on', () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+
+      const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+      const byV1Type = Object.fromEntries(
+        v1Builders.map((builder) => [builder.type, builder]),
+      );
+      expect(byV1Type[MpcMoneyKeyring.type]()).toBeInstanceOf(MpcMoneyKeyring);
+
+      const v2Builders = getKeyringV2Builders() ?? [];
+      const byV2Type = Object.fromEntries(
+        v2Builders.map((builder) => [builder.type, builder]),
+      );
+      const wrapper = byV2Type[MpcMoneyKeyring.type](
+        new MpcMoneyKeyring() as never,
+        { id: 'metadata-id', name: 'name' },
+      );
+      expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
     });
   });
 });

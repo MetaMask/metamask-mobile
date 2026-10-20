@@ -34,4 +34,8 @@ export interface GetLimitOrdersQuery {
 export interface GetLimitOrdersResponse {
   orders: LimitOrder[];
   nextCursor?: string;
+  /**
+   * How many orders match the query across every page, not just this one.
+   */
+  total: number;
 }

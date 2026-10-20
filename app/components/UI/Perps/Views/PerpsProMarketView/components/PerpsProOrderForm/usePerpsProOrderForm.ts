@@ -161,6 +161,7 @@ import {
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
+  PerpsProRebateQuote,
   PerpsProOrderSummaryProps,
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
@@ -554,6 +555,7 @@ export interface UsePerpsProOrderFormResult {
   onTPSLPress: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   scaleOrder: PerpsProScaleOrderModel;
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
@@ -1675,7 +1677,6 @@ export const usePerpsProOrderForm = ({
   });
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-
   // Scale endpoints are compared against the side of the book they would hit:
   // best ask for a long, best bid for a short. Top-of-book arrives on its own
   // stream and can be absent for the first frames; mid is not a substitute,
@@ -4685,6 +4686,11 @@ export const usePerpsProOrderForm = ({
     onTPSLPress,
     notices,
     summary,
+    rebateQuote: {
+      coin: orderForm.asset,
+      direction: orderForm.direction,
+      notionalUsd: calculationUsdAmount,
+    },
     scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading:

@@ -212,6 +212,7 @@ function SwapsLimitOrderActivityPage() {
                 // An order that never filled sent nothing, which reads as
                 // `0 ETH` rather than an outgoing `-0 ETH`.
                 signZeroAmounts={false}
+                useSubscriptNotation
               />
             }
             metadata={
