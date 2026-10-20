@@ -189,7 +189,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          marginBottom={3}
+          marginBottom={4}
           twClassName="flex-wrap"
         >
           <Text
@@ -291,7 +291,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
             alignItems={BoxAlignItems.Center}
             gap={1}
             marginBottom={3}
-            twClassName="self-start"
+            twClassName="mt-0.5 self-start"
           >
             {secondaryValue || onAmountTypeTogglePress ? (
               <TouchableOpacity
