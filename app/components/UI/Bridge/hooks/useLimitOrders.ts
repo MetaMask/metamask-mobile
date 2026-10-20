@@ -77,6 +77,9 @@ export function useLimitOrders({
 
   return {
     orders: query.data?.pages.flatMap((page) => page.orders) ?? [],
+    // Each page reports the total as of when it was fetched, so the latest
+    // page has the freshest one.
+    total: query.data?.pages.at(-1)?.total,
     isLoading: query.isLoading,
     isError: query.isError,
     hasNextPage: Boolean(query.hasNextPage),
