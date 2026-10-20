@@ -30,6 +30,7 @@ import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
 
 export const INPUT_DISPLAY_TEST_IDS = {
+  AMOUNT_CURSOR: 'EarnAmountCursor',
   LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
     'LendingMaxSafeWithdrawalTooltipIcon',
 };
@@ -214,7 +215,11 @@ const InputDisplay = ({
           animated
           color={DesignTextColor.TextDefault}
           containerStyle={styles.amountRow}
-          cursor={{ animated: true }}
+          cursor={
+            isStablecoinLendingEnabled
+              ? { animated: true, testID: INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR }
+              : false
+          }
           onPress={onPressAmount}
           style={styles.amountText}
           suffix={isFiat ? currentCurrency.toUpperCase() : ticker}

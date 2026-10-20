@@ -23,9 +23,11 @@ describe('CustomAmount', () => {
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-      '123.45',
-    );
+    const amountValue = getByTestId('custom-amount-input-value');
+
+    expect(amountValue).toHaveTextContent('123.45');
+    expect(amountValue).toHaveProp('accessible', true);
+    expect(amountValue).toHaveProp('accessibilityLabel', '123.45');
   });
 
   it('renders the amount formatted with thousand separators', () => {

@@ -74,6 +74,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   return (
     <AnimatedAmountDisplay
       accessibilityLabel={`${fiatSymbol}${typedText}${assistiveText}`}
+      amountAccessible
       amountTestID="custom-amount-input-value"
       animated
       color={amountColor}

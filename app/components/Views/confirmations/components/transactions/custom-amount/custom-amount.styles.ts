@@ -1,12 +1,19 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
-import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+
+/** Returns the legacy font size breakpoints used by confirmation amounts. */
+export const getFontSizeForConfirmationAmount = (length: number): number => {
+  if (length <= 8) return 64;
+  if (length <= 13) return 40;
+  if (length <= 18) return 30;
+  return 20;
+};
 
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) => {
-  const fontSize = getFontSizeForInputLength(params.vars.amountLength + 2);
+  const fontSize = getFontSizeForConfirmationAmount(params.vars.amountLength);
 
   return StyleSheet.create({
     container: {
