@@ -1,10 +1,10 @@
 import React from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import {
-  Icon,
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,6 +27,8 @@ interface MoneyHeaderCommonProps {
   onLayout?: (event: LayoutChangeEvent) => void;
   /** Shows the green shield next to the title when 2-step verification is on. */
   isMfaEnabled?: boolean;
+  /** Opens the 2-step verification sheet from the shield. */
+  onMfaBadgePress?: () => void;
 }
 
 /**
@@ -53,7 +55,13 @@ export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, isGlass = false, onLayout, isMfaEnabled } = props;
+  const {
+    onMenuPress,
+    isGlass = false,
+    onLayout,
+    isMfaEnabled,
+    onMfaBadgePress,
+  } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -99,10 +107,11 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       }}
       titleAccessory={
         isMfaEnabled ? (
-          <Icon
-            name={IconName.SecurityTick}
-            size={IconSize.Md}
-            color={IconColor.SuccessDefault}
+          <ButtonIcon
+            iconName={IconName.SecurityTick}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.SuccessDefault }}
+            onPress={onMfaBadgePress}
             accessibilityLabel={strings('money.mfa.badge_label')}
             testID={MoneyMfaTestIds.HEADER_BADGE}
           />

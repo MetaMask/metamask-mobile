@@ -271,6 +271,12 @@ const MoneyHomeView = () => {
   const handleMfaSetUpPress = useCallback(() => {
     void turnOnMfa();
   }, [turnOnMfa]);
+
+  const handleMfaBadgePress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+    });
+  }, [navigation]);
   const {
     getLinkFlowRedirectTarget,
     startLinkFlow,
@@ -481,6 +487,7 @@ const MoneyHomeView = () => {
     : {
         onMenuPress: handleMenuPress,
         isMfaEnabled: mfaStatus === 'enabled',
+        onMfaBadgePress: handleMfaBadgePress,
         scrollY,
       };
 
