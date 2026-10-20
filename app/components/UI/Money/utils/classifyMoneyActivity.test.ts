@@ -76,6 +76,138 @@ describe('classifyMoneyActivity', () => {
     expect(classifyMoneyActivity(makeTx({ type }))).toBe('received');
   });
 
+  const VBA_SENDER = '0x000000000000000000000000000000000000000a';
+  const MONEY_ADDRESS = '0x000000000000000000000000000000000000000b';
+  const makeIncomingMusdTx = (extra: Record<string, unknown> = {}) =>
+    makeTx({
+      type: TransactionType.incoming,
+      status: TransactionStatus.confirmed,
+      chainId: CHAIN_IDS.MONAD,
+      txParams: { from: VBA_SENDER, to: MONEY_ADDRESS },
+      transferInformation: {
+        amount: '1230000',
+        symbol: 'mUSD',
+        decimals: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+      },
+      ...extra,
+    });
+
+  it('classifies a confirmed incoming mUSD transaction from an allowlisted sender as VBA', () => {
+    const transaction = makeIncomingMusdTx();
+
+    const result = classifyMoneyActivity(
+      transaction,
+      [VBA_SENDER.toUpperCase().replace('0X', '0x')],
+      MONEY_ADDRESS,
+    );
+
+    expect(result).toBe('vba_deposit');
+  });
+
+  it('preserves explicit title overrides ahead of sender matching', () => {
+    const transaction = makeIncomingMusdTx({
+      moneyActivityTitleKey: 'received',
+    });
+
+    const result = classifyMoneyActivity(
+      transaction,
+      [VBA_SENDER],
+      MONEY_ADDRESS,
+    );
+
+    expect(result).toBe('received');
+  });
+
+  it('keeps an incoming mUSD transaction as received when the sender is not allowlisted', () => {
+    const transaction = makeIncomingMusdTx();
+
+    const result = classifyMoneyActivity(transaction, [], MONEY_ADDRESS);
+
+    expect(result).toBe('received');
+  });
+
+  it('keeps an incoming transfer as received when the sender is missing', () => {
+    const transaction = makeIncomingMusdTx({ txParams: { to: MONEY_ADDRESS } });
+
+    const result = classifyMoneyActivity(
+      transaction,
+      [VBA_SENDER],
+      MONEY_ADDRESS,
+    );
+
+    expect(result).toBe('received');
+  });
+
+  it('keeps an incoming transfer as received when its token is not mUSD', () => {
+    const transaction = makeIncomingMusdTx({
+      transferInformation: {
+        amount: '1230000',
+        symbol: 'USDC',
+        decimals: 6,
+        contractAddress: USDC_ADDRESS,
+      },
+    });
+
+    const result = classifyMoneyActivity(
+      transaction,
+      [VBA_SENDER],
+      MONEY_ADDRESS,
+    );
+
+    expect(result).toBe('received');
+  });
+
+  it('keeps an incoming transfer as received when its chain is not supported', () => {
+    const transaction = makeIncomingMusdTx({ chainId: CHAIN_ID });
+
+    const result = classifyMoneyActivity(
+      transaction,
+      [VBA_SENDER],
+      MONEY_ADDRESS,
+    );
+
+    expect(result).toBe('received');
+  });
+
+  it('keeps an incoming mUSD transaction as received when the Money recipient differs', () => {
+    const transaction = makeIncomingMusdTx({
+      txParams: {
+        from: VBA_SENDER,
+        to: '0x000000000000000000000000000000000000000c',
+      },
+    });
+
+    const result = classifyMoneyActivity(
+      transaction,
+      [VBA_SENDER],
+      MONEY_ADDRESS,
+    );
+
+    expect(result).toBe('received');
+  });
+
+  it.each([
+    TransactionStatus.submitted,
+    TransactionStatus.approved,
+    TransactionStatus.signed,
+    TransactionStatus.failed,
+    undefined,
+  ])(
+    'keeps an incoming mUSD transaction with status %s as received',
+    (status) => {
+      const transaction = makeIncomingMusdTx({ status });
+
+      const result = classifyMoneyActivity(
+        transaction,
+        [VBA_SENDER],
+        MONEY_ADDRESS,
+      );
+
+      expect(result).toBe('received');
+    },
+  );
+
   it.each([TransactionType.moneyAccountWithdraw, TransactionType.simpleSend])(
     'classifies %s as sent',
     (type) => {
@@ -190,6 +322,7 @@ describe('getMoneyActivityStatus', () => {
 describe('moneyActivityLabel — confirmed labels + icons', () => {
   const cases: [MoneyActivityKind, string, IconName][] = [
     ['deposited', 'money.transaction.deposited', IconName.Add],
+    ['vba_deposit', 'money.transaction.deposited', IconName.Add],
     ['received', 'money.transaction.received', IconName.Arrow2Down],
     ['converted', 'money.transaction.converted', IconName.Refresh],
     ['sent', 'money.transaction.sent', IconName.Arrow2UpRight],

@@ -17,7 +17,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useContext,
@@ -48,6 +52,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ReactQueryService from '../../../../core/ReactQueryService';
+import Routes from '../../../../constants/navigation/Routes';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useTheme } from '../../../../util/theme';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
@@ -136,22 +141,26 @@ const SocialPostComposerView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
-  const tradeInFlightParams = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.tradeInFlight;
-  const tradeInFlightPreview = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.preview;
+  const routeParams = route.params as SocialPostComposerViewParams | undefined;
+  const tradeInFlightParams = routeParams?.tradeInFlight;
+  const tradeInFlightPreview = routeParams?.preview;
+  const routedPosition = routeParams?.position;
+  const openFeedAfterPost = routeParams?.openFeedAfterPost === true;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
+  const linkedAccountAddress = profile?.linkedAccountAddress?.trim() ?? '';
   const inputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<{
     position: Position;
     isClosed: boolean;
-  } | null>(null);
+  } | null>(
+    routedPosition
+      ? { position: routedPosition, isClosed: routedPosition.isOpen === false }
+      : null,
+  );
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
@@ -237,6 +246,15 @@ const SocialPostComposerView: React.FC = () => {
     setIsGifSheetOpen(false);
   }, []);
 
+  useEffect(() => {
+    // Swap-share opens this screen with `tradeInFlight` and never goes
+    // through `useOpenSocialPostComposer`. Do not bounce that path — posting
+    // does not need the position picker or a linked onboarding address.
+    if (!linkedAccountAddress && !tradeInFlightParams) {
+      navigation.goBack();
+    }
+  }, [linkedAccountAddress, navigation, tradeInFlightParams]);
+
   // Focusing mid-transition drops the keyboard on the native stack push, so
   // wait until the screen has settled before raising it.
   useEffect(() => {
@@ -309,7 +327,12 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
-      navigation.goBack();
+      if (openFeedAfterPost) {
+        // Replace so Back from the feed skips this already-posted composer.
+        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
+      } else {
+        navigation.goBack();
+      }
     } catch {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -331,6 +354,7 @@ const SocialPostComposerView: React.FC = () => {
     gifUri,
     isSubmitting,
     navigation,
+    openFeedAfterPost,
     profile?.handle,
     profile?.imageUrl,
     selectedPosition,
@@ -407,6 +431,7 @@ const SocialPostComposerView: React.FC = () => {
               <ProfileAvatar
                 imageUrl={profile?.imageUrl}
                 avatarPresetId={profile?.avatarPresetId}
+                avatarBackgroundId={profile?.avatarBackgroundId}
                 size="sm"
               />
               <TextInput
@@ -519,6 +544,7 @@ const SocialPostComposerView: React.FC = () => {
 
         {isShareSheetOpen ? (
           <SharePositionBottomSheet
+            address={linkedAccountAddress}
             onSelect={handleSelectPosition}
             onClose={() => setIsShareSheetOpen(false)}
           />

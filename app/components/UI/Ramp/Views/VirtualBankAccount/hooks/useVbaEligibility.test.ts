@@ -5,6 +5,7 @@ const base = {
   isFlagEnabled: true,
   geolocationStatus: 'complete' as const,
   isDevBypassEnabled: false,
+  regions: ['BR'],
 };
 
 describe('getVbaEligibility', () => {
@@ -32,18 +33,61 @@ describe('getVbaEligibility', () => {
       location: 'BR',
       geolocationStatus: 'complete',
       isDevBypassEnabled: true,
+      regions: ['BR'],
     });
 
     expect(result.isEligible).toBe(false);
     expect(result.isRegionEligible).toBe(true);
   });
 
-  it('is not eligible when IP geolocation is outside Brazil', () => {
+  it('is not eligible when IP geolocation is outside the allowed regions', () => {
     const result = getVbaEligibility({ ...base, location: 'ES' });
 
     expect(result.isEligible).toBe(false);
     expect(result.isRegionEligible).toBe(false);
     expect(result.isLoading).toBe(false);
+  });
+
+  it('is eligible in the US when US is in the region list', () => {
+    const result = getVbaEligibility({
+      ...base,
+      location: 'US-NY',
+      regions: ['BR', 'US'],
+    });
+
+    expect(result.isEligible).toBe(true);
+    expect(result.isRegionEligible).toBe(true);
+  });
+
+  it('is disabled in Brazil when the region list is empty', () => {
+    const result = getVbaEligibility({ ...base, location: 'BR', regions: [] });
+
+    expect(result.isEligible).toBe(false);
+    expect(result.isFlagEnabled).toBe(false);
+    expect(result.isRegionEligible).toBe(false);
+  });
+
+  it('stays disabled when the region list is empty even with the dev bypass', () => {
+    const result = getVbaEligibility({
+      ...base,
+      location: 'US',
+      regions: [],
+      isDevBypassEnabled: true,
+    });
+
+    expect(result.isEligible).toBe(false);
+    expect(result.isFlagEnabled).toBe(false);
+  });
+
+  it('is not eligible in Brazil when only US is listed', () => {
+    const result = getVbaEligibility({
+      ...base,
+      location: 'BR',
+      regions: ['US'],
+    });
+
+    expect(result.isEligible).toBe(false);
+    expect(result.isRegionEligible).toBe(false);
   });
 
   it('is eligible outside Brazil when the flag is on and the dev bypass is set', () => {

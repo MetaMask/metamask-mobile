@@ -310,7 +310,9 @@ export const PredictEventScreen = () => {
       return [];
     }
     const marketIds = new Set(liveEvent.markets.map((market) => market.id));
-    return positions.filter((position) => marketIds.has(position.marketId));
+    return positions.filter(
+      (position) => position != null && marketIds.has(position.marketId),
+    );
   }, [positionsQuery.data, liveEvent]);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,

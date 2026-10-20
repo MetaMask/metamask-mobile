@@ -15,7 +15,6 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SubscriptionDelegationService',
   'ShieldApiService',
   'ClaimsService',
-  'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
@@ -51,7 +50,6 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountsController:stateChange',
   'AccountTreeController:stateChange',
-  'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
   'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
@@ -59,7 +57,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ConnectivityController:stateChange',
   'ConfigRegistryController:stateChanged',
   'ApprovalController:stateChange',
-  'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
   'GeolocationController:stateChange',
   'KeyringController:stateChange',
@@ -77,8 +74,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SubscriptionController:stateChange',
   'ShieldController:stateChange',
   'ClaimsController:stateChange',
-  'TokenBalancesController:stateChange',
-  'TokenRatesController:stateChange',
   'TokensController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
@@ -93,10 +88,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
   'CronjobController:stateChange',
-  'MultichainBalancesController:stateChange',
-  'MultichainAssetsRatesController:stateChange',
-  // TODO: Export this from the assets controller
-  'MultichainAssetsController:stateChange',
   'MultichainTransactionsController:stateChange',
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
@@ -123,7 +114,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ComplianceController:stateChange',
   'KycController:stateChange',
   'SocialController:stateChange',
-  'ProfileController:stateChange',
+  'ProfileController:stateChanged',
   'QrSyncController:stateChange',
 ] as const;
 

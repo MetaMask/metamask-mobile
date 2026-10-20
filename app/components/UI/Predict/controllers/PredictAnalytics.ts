@@ -12,7 +12,10 @@ import {
   PredictEventValues,
   PredictFailureCategoryValue,
   PredictFailureStageValue,
+  PredictOneTickDecisionValue,
   PredictPaymentMethodValue,
+  PredictRetryOutcomeValue,
+  PredictRetryReasonValue,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
@@ -45,6 +48,16 @@ export interface TrackPredictOrderEventArgs {
   paymentMethod?: PredictPaymentMethodValue;
   failureStage?: PredictFailureStageValue;
   failureCategory?: PredictFailureCategoryValue;
+  /** Why the retry exists — always the not-filled failure for now. */
+  retryReason?: PredictRetryReasonValue;
+  /** User-initiated retry submission number within this not-filled episode. */
+  retryCount?: number;
+  /** How the 1-tick rule classified the fresh quote. */
+  oneTickDecision?: PredictOneTickDecisionValue;
+  /** Applied band as a percentage string, e.g. '5%' (sell) / '3%' (buy). */
+  slippageBand?: string;
+  /** Terminal outcome of a retry submission. */
+  retryOutcome?: PredictRetryOutcomeValue;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -238,6 +251,11 @@ export class PredictAnalytics {
     paymentMethod,
     failureStage,
     failureCategory,
+    retryReason,
+    retryCount,
+    oneTickDecision,
+    slippageBand,
+    retryOutcome,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -342,6 +360,21 @@ export class PredictAnalytics {
       }),
       ...(failureCategory && {
         [PredictEventProperties.FAILURE_CATEGORY]: failureCategory,
+      }),
+      ...(retryReason && {
+        [PredictEventProperties.RETRY_REASON]: retryReason,
+      }),
+      ...(retryCount !== undefined && {
+        [PredictEventProperties.RETRY_COUNT]: retryCount,
+      }),
+      ...(oneTickDecision && {
+        [PredictEventProperties.ONE_TICK_DECISION]: oneTickDecision,
+      }),
+      ...(slippageBand && {
+        [PredictEventProperties.SLIPPAGE_BAND]: slippageBand,
+      }),
+      ...(retryOutcome && {
+        [PredictEventProperties.RETRY_OUTCOME]: retryOutcome,
       }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {

@@ -321,7 +321,7 @@ const AccountActions = () => {
             actionTitle={`${strings('drawer.view_in')} ${
               blockExplorer.blockExplorerName
             }`}
-            iconName={IconName.Export}
+            iconName={IconName.ArrowSquareOut}
             onPress={viewOnBlockExplorer}
             testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
