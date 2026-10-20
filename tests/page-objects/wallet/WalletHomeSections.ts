@@ -250,14 +250,20 @@ export class WalletHomeSections {
         this.predictionsSectionHeader,
         'Predictions section',
         'down',
-        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
+        {
+          overshootSwipe: { direction: 'up', percentage: 0.2 },
+          clearTabBar: true,
+        },
       );
     } catch {
       await WalletHomeScroll.scrollAndTapSection(
         this.predictionsSectionHeader,
         'Predictions section',
         'up',
-        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
+        {
+          overshootSwipe: { direction: 'down', percentage: 0.2 },
+          clearTabBar: true,
+        },
       );
     }
   }
