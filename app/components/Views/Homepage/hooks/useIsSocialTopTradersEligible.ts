@@ -2,12 +2,17 @@ import { useCallback, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks';
-import { hasRecentSocialTrade } from '../../../../util/social/socialActivityStorage';
+import {
+  hasRecentSocialTrade,
+  isRecentSocialActivityTimestamp,
+} from '../../../../util/social/socialActivityStorage';
 
 export const evaluateIsSocialTopTradersEligible = (
   profile: ReturnType<typeof useMyProfile>['profile'],
   now: number = Date.now(),
-): boolean => Boolean(profile) || hasRecentSocialTrade(now);
+): boolean =>
+  isRecentSocialActivityTimestamp(profile?.joinedAt, now) ||
+  hasRecentSocialTrade(now);
 
 /**
  * Resolves Top Traders priority without waiting for an asynchronous request.

@@ -33,6 +33,7 @@ import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import {
   getHomepageSectionMountMode,
   shouldPlacePerpsAboveTokens,
+  shouldPlaceTopTradersAboveAllocation,
 } from './hooks/homepageSectionMountPolicy';
 import { useIsSocialTopTradersEligible } from './hooks/useIsSocialTopTradersEligible';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -188,10 +189,16 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       isSocialV1PriorityEnabled,
       shouldHydrateSocialProfile,
     );
+    const [topTradersAboveAllocationPlacement] = useState(() =>
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount:
+          effectiveSectionMountMode === 'immediate' && networkTierResolved,
+        isSocialV1PriorityEnabled,
+        isSocialTopTradersEligible,
+      }),
+    );
     const showTopTradersAboveAllocation =
-      isSocialV1PriorityEnabled &&
-      shouldMountOptionalSections &&
-      isSocialTopTradersEligible;
+      topTradersAboveAllocationPlacement && shouldMountOptionalSections;
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();

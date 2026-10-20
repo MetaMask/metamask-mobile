@@ -22,6 +22,19 @@ export const shouldPlacePerpsAboveTokens = ({
   perpsAboveTokensEligible &&
   isActivePerpsTrader;
 
+export const shouldPlaceTopTradersAboveAllocation = ({
+  optionalSectionsCanMount,
+  isSocialV1PriorityEnabled,
+  isSocialTopTradersEligible,
+}: {
+  optionalSectionsCanMount: boolean;
+  isSocialV1PriorityEnabled: boolean;
+  isSocialTopTradersEligible: boolean;
+}): boolean =>
+  optionalSectionsCanMount &&
+  isSocialV1PriorityEnabled &&
+  isSocialTopTradersEligible;
+
 /**
  * Selects when non-primary Homepage sections may mount.
  *

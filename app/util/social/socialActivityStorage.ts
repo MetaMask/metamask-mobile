@@ -4,6 +4,23 @@ import StorageWrapper from '../../store/storage-wrapper';
 
 export const SOCIAL_RECENT_ACTIVITY_WINDOW_MS = 48 * 60 * 60 * 1000;
 
+export const isRecentSocialActivityTimestamp = (
+  timestamp?: string | null,
+  now: number = Date.now(),
+): boolean => {
+  if (!timestamp) {
+    return false;
+  }
+
+  const parsedTimestamp = Date.parse(timestamp);
+  if (!Number.isFinite(parsedTimestamp)) {
+    return false;
+  }
+
+  const elapsed = now - parsedTimestamp;
+  return elapsed >= 0 && elapsed < SOCIAL_RECENT_ACTIVITY_WINDOW_MS;
+};
+
 const SOCIAL_TRADE_SOURCES = new Set<string>([
   'notification',
   'profile_position',

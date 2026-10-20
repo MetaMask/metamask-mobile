@@ -15,6 +15,7 @@ jest.mock('../../SocialLeaderboard/MyProfileView/hooks', () => ({
 }));
 
 jest.mock('../../../../util/social/socialActivityStorage', () => ({
+  ...jest.requireActual('../../../../util/social/socialActivityStorage'),
   hasRecentSocialTrade: jest.fn(),
 }));
 
@@ -26,9 +27,14 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (callback: () => void) => mockFocusEffect(callback),
 }));
 
-const NOW = 1_760_000_000_000;
+const NOW = Date.now();
 const socialProfile = {
   profileId: 'profile-1',
+  joinedAt: new Date(NOW - 1000).toISOString(),
+} as MySocialProfile;
+const staleSocialProfile = {
+  profileId: 'profile-1',
+  joinedAt: new Date(NOW - 48 * 60 * 60 * 1000).toISOString(),
 } as MySocialProfile;
 
 const setProfile = (profile: MySocialProfile | null) => {
@@ -48,11 +54,21 @@ describe('useIsSocialTopTradersEligible', () => {
   });
 
   describe('evaluateIsSocialTopTradersEligible', () => {
-    it('returns true for any social profile', () => {
+    it('returns true for a recently created social profile', () => {
       const result = evaluateIsSocialTopTradersEligible(socialProfile, NOW);
 
       expect(result).toBe(true);
       expect(mockHasRecentSocialTrade).not.toHaveBeenCalled();
+    });
+
+    it('returns false for a stale social profile without a recent trade', () => {
+      const result = evaluateIsSocialTopTradersEligible(
+        staleSocialProfile,
+        NOW,
+      );
+
+      expect(result).toBe(false);
+      expect(mockHasRecentSocialTrade).toHaveBeenCalledWith(NOW);
     });
 
     it('returns true for a recent social trade without a profile', () => {
@@ -68,6 +84,16 @@ describe('useIsSocialTopTradersEligible', () => {
       const result = evaluateIsSocialTopTradersEligible(null, NOW);
 
       expect(result).toBe(false);
+    });
+
+    it('returns false for a profile without a creation timestamp', () => {
+      const result = evaluateIsSocialTopTradersEligible(
+        { profileId: 'profile-without-date' } as MySocialProfile,
+        NOW,
+      );
+
+      expect(result).toBe(false);
+      expect(mockHasRecentSocialTrade).toHaveBeenCalledWith(NOW);
     });
   });
 

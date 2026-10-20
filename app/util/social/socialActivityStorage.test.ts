@@ -3,6 +3,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import {
   hasRecentSocialTrade,
   isSocialTradeSource,
+  isRecentSocialActivityTimestamp,
   recordSocialTrade,
   SOCIAL_RECENT_ACTIVITY_WINDOW_MS,
 } from './socialActivityStorage';
@@ -102,5 +103,32 @@ describe('socialActivityStorage', () => {
         SOCIAL_LAST_TRADE_AT,
       );
     });
+  });
+
+  describe('isRecentSocialActivityTimestamp', () => {
+    it('returns true for a timestamp inside the recency window', () => {
+      expect(
+        isRecentSocialActivityTimestamp(
+          new Date(NOW - 1000).toISOString(),
+          NOW,
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false after the recency window', () => {
+      expect(
+        isRecentSocialActivityTimestamp(
+          new Date(NOW - SOCIAL_RECENT_ACTIVITY_WINDOW_MS).toISOString(),
+          NOW,
+        ),
+      ).toBe(false);
+    });
+
+    it.each([undefined, null, 'not-a-date'])(
+      'returns false for an unusable timestamp %p',
+      (timestamp) => {
+        expect(isRecentSocialActivityTimestamp(timestamp, NOW)).toBe(false);
+      },
+    );
   });
 });

@@ -1,6 +1,7 @@
 import {
   getHomepageSectionMountMode,
   shouldPlacePerpsAboveTokens,
+  shouldPlaceTopTradersAboveAllocation,
 } from './homepageSectionMountPolicy';
 
 describe('getHomepageSectionMountMode', () => {
@@ -78,4 +79,39 @@ describe('shouldPlacePerpsAboveTokens', () => {
       ).toBe(false);
     },
   );
+});
+
+describe('shouldPlaceTopTradersAboveAllocation', () => {
+  it('keeps deferred Top Traders below allocation even when eligible', () => {
+    expect(
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount: false,
+        isSocialV1PriorityEnabled: true,
+        isSocialTopTradersEligible: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('places eligible Top Traders above allocation when mounted immediately', () => {
+    expect(
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount: true,
+        isSocialV1PriorityEnabled: true,
+        isSocialTopTradersEligible: true,
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['Social V1 disabled', false, true],
+    ['user ineligible', true, false],
+  ])('%s keeps Top Traders below allocation', (_label, enabled, eligible) => {
+    expect(
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount: true,
+        isSocialV1PriorityEnabled: enabled,
+        isSocialTopTradersEligible: eligible,
+      }),
+    ).toBe(false);
+  });
 });

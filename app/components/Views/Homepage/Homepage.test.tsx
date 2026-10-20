@@ -845,6 +845,36 @@ describe('Homepage', () => {
       expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, true);
     });
 
+    it('keeps Top Traders below allocation when network capability resolves after the first render', () => {
+      mockHardwareTier = 'MID';
+      mockNetworkTier = null;
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      const rendered = renderWithProvider(<Homepage />, {
+        state: stateWithPreferences,
+      });
+
+      mockNetworkTier = 'WIFI';
+      rendered.rerender(<Homepage />);
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+    });
+
     it('uses cached eligibility without profile hydration on low-end devices', () => {
       mockHardwareTier = 'LOW';
       mockUseSocialTopTradersEligible.mockReturnValue(true);
