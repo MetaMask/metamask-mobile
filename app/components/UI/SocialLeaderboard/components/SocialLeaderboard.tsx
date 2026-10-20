@@ -51,6 +51,7 @@ import {
   useReportTopTradersContent,
   useTopTradersContentFromCache,
 } from '../../../Views/SocialLeaderboard/perf/useTopTradersNavigationPerf';
+import { useTopTradersFirstRows } from '../../../Views/SocialLeaderboard/perf/useTopTradersLandingQueryPerf';
 
 /**
  * Slide a row runs when the ranking reshuffles, matched to the row's own
@@ -168,6 +169,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
         .slice(0, limit),
     [cohort, limit, rowsWithoutViewer],
   );
+
+  useTopTradersFirstRows(freshTraders.length > 0);
 
   const contentFromCache = useTopTradersContentFromCache(
     rows.length > 0 || isShowingSnapshot,

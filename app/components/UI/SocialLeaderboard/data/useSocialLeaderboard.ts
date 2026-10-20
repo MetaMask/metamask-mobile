@@ -19,6 +19,9 @@ import {
   type SocialLeaderboardSource,
 } from './socialLeaderboardSource';
 import type { RankedTrader, SocialLeaderboardFilters } from '../types';
+import { useTopTradersLandingQueryPerf } from '../../../Views/SocialLeaderboard/perf/useTopTradersLandingQueryPerf';
+
+const NO_CHAINS: readonly string[] = [];
 
 /**
  * Rows fetched per ranking. Fixed rather than taken from the host's `limit`,
@@ -74,6 +77,15 @@ export const useSocialLeaderboard = (
   });
 
   const { traders: loadedTraders, refresh: refetch } = result;
+  useTopTradersLandingQueryPerf({
+    limit: LEADERBOARD_FETCH_LIMIT,
+    chains: resolution.status === 'ready' ? resolution.chains : NO_CHAINS,
+    sort,
+    timeframe,
+    hasData: isReady && !result.isLoading && result.hasFetched,
+    isFetching: isReady && result.isFetching,
+    hasFetched: isReady && result.hasFetched,
+  });
   const traders = useMemo<RankedTrader[]>(
     () =>
       isReady

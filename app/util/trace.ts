@@ -313,6 +313,10 @@ export enum TraceName {
   TopTradersNavigationToFirstCommit = 'Top Traders Navigation To First Commit',
   TopTradersNavigationToTransitionEnd = 'Top Traders Navigation To Transition End',
   TopTradersNavigationToContentReady = 'Top Traders Navigation To Content Ready',
+  /** Tap until the landing leaderboard paints query rows, not skeletons. */
+  TopTradersNavigationToFirstRows = 'Top Traders Navigation To First Rows',
+  /** Landing-tab GET /leaderboard, child of the tap-to-rows span. */
+  TopTradersLeaderboardFetch = 'Top Traders Leaderboard Fetch',
   // Money Home Performance
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',

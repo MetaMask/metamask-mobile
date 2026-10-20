@@ -80,6 +80,10 @@ import {
   useReportTopTradersContent,
   useTopTradersContentFromCache,
 } from '../perf/useTopTradersNavigationPerf';
+import {
+  useTopTradersFirstRows,
+  useTopTradersLandingQueryPerf,
+} from '../perf/useTopTradersLandingQueryPerf';
 import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
 import { useLeaderboardReveal } from './components/useLeaderboardReveal';
 import {
@@ -374,6 +378,21 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     (isPerpsEnabled ? (shellTypeFilter ?? renderedTab) : 'all');
   const activeResult = resultsByTab[activeTab];
   const { traders: loadedTraders, isLoading, toggleFollow } = activeResult;
+  const landingChains =
+    activeTab === 'perps'
+      ? PERP_CHAINS
+      : activeTab === 'tokens'
+        ? SPOT_CHAINS
+        : allChains;
+  useTopTradersLandingQueryPerf({
+    limit: LEADERBOARD_LIMIT,
+    chains: landingChains,
+    sort,
+    timeframe: queryTimeframe,
+    hasData: !activeResult.isLoading && activeResult.hasFetched,
+    isFetching: activeResult.isFetching,
+    hasFetched: activeResult.hasFetched,
+  });
   // The API ranks on its own (30-day) window, so the selected time frame is
   // only honoured once the loaded page is re-ranked here.
   const freshTraders = useMemo<RankedTrader[]>(
@@ -410,6 +429,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     enabled: revealPreviousOrder,
     hydrateRow: hydrateSnapshotRow,
   });
+  useTopTradersFirstRows(loadedTraders.length > 0 && !isShowingSnapshot);
 
   const isViewerTrader = useCallback(
     (trader: TopTrader) => {

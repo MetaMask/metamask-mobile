@@ -15,6 +15,7 @@ import Engine from '../Engine/Engine';
 import { RootMessenger } from '../Engine/types';
 import { DATA_SERVICES } from '../../constants/data-services';
 import { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
+import { maybeTraceLeaderboardFetch } from '../../util/leaderboardFetchSpan';
 
 type ActionType = MessengerActions<RootMessenger>['type'];
 type EventType = MessengerEvents<RootMessenger>['type'];
@@ -24,9 +25,18 @@ type DataServiceHandler = (
 ) => void;
 
 const adapter = {
-  call: async (method: string, ...params: Json[]) =>
-    // @ts-expect-error Target requires 1 element(s) but source may have fewer.
-    Engine.controllerMessenger.call(method as ActionType, ...params) as Json,
+  call: async (method: string, ...params: Json[]) => {
+    const invoke = () =>
+      // @ts-expect-error Target requires 1 element(s) but source may have fewer.
+      Engine.controllerMessenger.call(
+        method as ActionType,
+        ...params,
+      ) as Promise<Json>;
+    if (method === 'SocialService:fetchLeaderboard') {
+      return maybeTraceLeaderboardFetch(params[0], invoke);
+    }
+    return invoke();
+  },
   subscribe: (event: string, callback: DataServiceHandler) => {
     Engine.controllerMessenger.subscribe(event as EventType, callback);
   },
