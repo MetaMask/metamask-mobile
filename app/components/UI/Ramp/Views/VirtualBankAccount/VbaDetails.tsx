@@ -31,6 +31,7 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
@@ -262,7 +263,12 @@ const VbaDetails = () => {
     refreshDeposit().catch(() => undefined);
   }, [refreshDeposit]);
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const handleBack = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {

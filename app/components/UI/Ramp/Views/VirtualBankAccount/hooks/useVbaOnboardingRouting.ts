@@ -31,8 +31,7 @@ type VbaOnboardingScreenName =
 
 type StackNavigationAction =
   | ReturnType<typeof CommonActions.reset>
-  | ReturnType<typeof CommonActions.navigate>
-  | ReturnType<typeof StackActions.replace>;
+  | ReturnType<typeof CommonActions.navigate>;
 
 interface StackController {
   dispatch: (action: StackNavigationAction) => void;
@@ -121,8 +120,9 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Replaces onboarding with the completed account on the root stack. Back then
- * returns to the screen that opened onboarding instead of revealing its loader.
+ * Pushes the completed account on the same stack as onboarding, with the same
+ * horizontal transition. The screen handles returning to Money from its header,
+ * so this does not replace the route underneath.
  */
 const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
   let current: StackController | undefined =
@@ -131,7 +131,7 @@ const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      current.dispatch(StackActions.replace(Routes.RAMP.VBA_DETAILS));
+      current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
       return;
     }
 

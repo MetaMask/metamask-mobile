@@ -9,8 +9,9 @@ import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetBrazilMusdAutorampSetupGuard } from './ensureBrazilMusdAutoramp';
+import Routes from '../../../../../constants/navigation/Routes';
 
-const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
@@ -29,7 +30,7 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -159,7 +160,7 @@ describe('VbaDetails', () => {
     expect(mockListTransactions).not.toHaveBeenCalled();
   });
 
-  it('navigates back from the header', async () => {
+  it('returns to Money home from the header', async () => {
     const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
@@ -167,7 +168,10 @@ describe('VbaDetails', () => {
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
     expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
   });
 

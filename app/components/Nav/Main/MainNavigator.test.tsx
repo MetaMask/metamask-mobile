@@ -942,13 +942,10 @@ describe('MainNavigator', () => {
           name: Routes.RAMP.VBA_DETAILS,
           options: expect.objectContaining({
             animation: 'ios_from_right',
+            gestureEnabled: false,
             headerShown: false,
           }),
         }),
-      );
-      expect(vbaDetailsScreen?.options).not.toHaveProperty(
-        'gestureEnabled',
-        false,
       );
     });
 
