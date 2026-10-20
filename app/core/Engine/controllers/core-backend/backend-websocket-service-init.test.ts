@@ -170,21 +170,6 @@ describe('backendWebSocketServiceInit', () => {
       expect(getIsEnabledCallback()()).toBe(false);
     });
 
-    it('returns false when basic functionality is off even if the feature flag is on', () => {
-      jest.mocked(store.getState).mockReturnValue({
-        settings: { basicFunctionalityEnabled: false },
-      } as ReturnType<typeof store.getState>);
-      const mocks = arrangeMocks();
-      (mocks.initMessenger.call as jest.Mock).mockReturnValue({
-        remoteFeatureFlags: { backendWebSocketConnection: true },
-      });
-
-      backendWebSocketServiceInit(mocks);
-
-      expect(getIsEnabledCallback()()).toBe(false);
-      expect(mocks.initMessenger.call).not.toHaveBeenCalled();
-    });
-
     it('returns false and logs error when feature flag check throws', () => {
       const mocks = arrangeMocks();
       const testError = new Error('Feature flag check failed');

@@ -148,9 +148,6 @@ export const backendWebSocketServiceInit: MessengerClientInitFunction<
     // Feature flag AND app lifecycle integration
     // Service will check this callback before connecting/reconnecting
     isEnabled: () => {
-      if (!isBasicFunctionality()) {
-        return false;
-      }
       try {
         const remoteFeatureFlagState = initMessenger?.call(
           'RemoteFeatureFlagController:getState',
