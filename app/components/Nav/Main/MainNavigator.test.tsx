@@ -924,6 +924,21 @@ describe('MainNavigator', () => {
           }),
         }),
       );
+
+      const vbaDetailsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_DETAILS,
+      );
+
+      expect(vbaDetailsScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+          options: expect.objectContaining({
+            animation: 'ios_from_right',
+            gestureEnabled: false,
+            headerShown: false,
+          }),
+        }),
+      );
     });
 
     it('shares slide-from-right options on one Group for trending and RWA full views', () => {
@@ -2488,6 +2503,9 @@ describe('MainNavigator', () => {
         expect(getScreenComponent(assetStackRoot, 'Asset')).toBeTruthy();
         expect(
           getScreenComponent(assetStackRoot, Routes.SECURITY_TRUST),
+        ).toBeTruthy();
+        expect(
+          getScreenComponent(assetStackRoot, Routes.CONTRACT_SECURITY),
         ).toBeTruthy();
       });
 

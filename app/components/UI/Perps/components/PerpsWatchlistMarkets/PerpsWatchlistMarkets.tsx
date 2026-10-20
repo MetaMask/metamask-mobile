@@ -89,6 +89,8 @@ interface PerpsWatchlistMarketsProps {
    * so watchlist rows display the same field the user sorted by.
    */
   displayMetric?: SortField;
+  /** Section container test ID. Defaults to the home watchlist section. */
+  testID?: string;
 }
 
 // ─── Legacy (flag OFF) ──────────────────────────────────────────────────────
@@ -110,6 +112,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   onMarketPress,
   showLeadingDivider = true,
   displayMetric,
+  testID = PerpsWatchlistSelectorsIDs.SECTION,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -172,7 +175,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   }
 
   return (
-    <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
+    <Box style={sectionStyle} testID={testID}>
       {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader title={strings('perps.home.watchlist')} />
       <Box style={contentContainerStyle}>
@@ -214,6 +217,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   enableShowMore = true,
   showLeadingDivider = true,
   displayMetric,
+  testID = PerpsWatchlistSelectorsIDs.SECTION,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -293,7 +297,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
 
   if (isLoading) {
     return (
-      <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
+      <Box style={sectionStyle} testID={testID}>
         {watchlistHeader}
         <Box style={[styles.skeletonContainer, contentContainerStyle]}>
           <PerpsRowSkeleton count={3} />
@@ -335,7 +339,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   );
 
   return (
-    <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
+    <Box style={sectionStyle} testID={testID}>
       {watchlistHeader}
       <Box style={contentContainerStyle}>
         <Animated.View layout={LinearTransition.duration(ANIMATION_DURATION)}>

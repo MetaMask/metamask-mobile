@@ -66,14 +66,17 @@ import {
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
@@ -111,6 +114,10 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
+  // Legacy page is always `v2` / `standard`; computed from the shared helper so
+  // both pages derive these the same way.
+  const { tdp_version, token_category } = getTdpAnalyticsBase(params, null);
+
   return useCallback(
     ({
       isMarketInsightsDisplayed,
@@ -146,6 +153,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       const eventProperties = {
         source,
         chain_id: params.chainId,
+        tdp_version,
+        token_category,
         token_symbol: params.symbol,
         token_address: params.address,
         token_name: params.name,
@@ -171,6 +180,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.name,
       params.source,
       params.symbol,
+      tdp_version,
+      token_category,
       trackEvent,
     ],
   );
@@ -416,6 +427,15 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
+  const refreshTronAssets = useFreshTronAssets(token.chainId);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTronNativeToken(token)) {
+        refreshTronAssets().catch(() => undefined);
+      }
+    }, [refreshTronAssets, token]),
+  );
+
   const {
     balance,
     fiatBalance,
@@ -447,6 +467,7 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    tdpVersion: 'v2',
   });
 
   const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
@@ -637,6 +658,7 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
+        tdpVersion="v2"
         onBackPress={handleBackPress}
         onSharePress={handleShare}
         starButton={starButton}

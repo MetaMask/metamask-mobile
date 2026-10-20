@@ -1,5 +1,5 @@
 import type { QuickBuyTarget, QuickBuyTradeMode } from '../../../UI/QuickBuy';
-import type { SocialPostComposerViewParams } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialPostTradePreview } from '../SocialPostComposerView/SocialPostComposerView.types';
 
 export type PostSwapShareStatus = 'pending' | 'complete' | 'failed';
 
@@ -10,7 +10,7 @@ export interface PostSwapShareSession {
   tradeInFlightChain?: string;
   transactionHash?: string;
   target: QuickBuyTarget;
-  preview: SocialPostComposerViewParams['preview'];
+  preview: SocialPostTradePreview;
   tradeMode: QuickBuyTradeMode;
   reopenRequested: boolean;
 }

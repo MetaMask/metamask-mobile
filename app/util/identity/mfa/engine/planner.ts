@@ -31,7 +31,7 @@ const PLATFORM_METHODS: Record<MfaPlatform, readonly MfaMethod[]> = {
   extension: ['email_otp'],
 };
 
-const isMethodSupported = (method: MfaMethod, platform: MfaPlatform) =>
+export const isMethodSupported = (method: MfaMethod, platform: MfaPlatform) =>
   PLATFORM_METHODS[platform].includes(method);
 
 const sortByCost = (methods: Iterable<MfaMethod>): MfaMethod[] => {
@@ -104,7 +104,13 @@ export const getEnrollmentMaxSessionAgeMs = (
   now: number,
 ): number => Math.max(now - flowStartedAt, ENROLLMENT_MAX_SESSION_AGE_MS);
 
-const toList = (verifyWith: VerifyOrEnrollRequest['verifyWith']) => {
+/**
+ * Normalizes `verifyWith` to a list.
+ *
+ * @param verifyWith - The methods a feature verifies with, if any.
+ * @returns Those methods, as a list.
+ */
+export const toList = (verifyWith: VerifyOrEnrollRequest['verifyWith']) => {
   if (verifyWith === undefined) {
     return [];
   }
@@ -220,7 +226,7 @@ export const planVerifyOrEnroll = (
 
   const steps: PlanStep[] = [];
   if (missing.length > 0 && !context.introShown) {
-    steps.push({ kind: 'intro', missing });
+    steps.push({ kind: 'intro', methods: request.methods, missing });
   }
 
   const simulation = startSimulation(statuses, context);
