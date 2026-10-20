@@ -132,6 +132,7 @@ describe('getLimitOrders', () => {
       walletAddress: WALLET_ADDRESS,
       states: OPEN_STATES,
       chainId: 'eip155:56',
+      assetId: 'eip155:56/slip44:60',
       limit: 20,
     });
 
@@ -143,6 +144,7 @@ describe('getLimitOrders', () => {
       accountAddress: `eip155:1:${WALLET_ADDRESS}`,
       states: 'OPEN',
       chainIds: 'eip155:56',
+      assetId: 'eip155:56/slip44:60',
       limit: '20',
     });
     expect(globalFetchSpy.mock.calls[0][1]).toMatchObject({

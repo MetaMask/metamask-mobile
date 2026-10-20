@@ -28,16 +28,23 @@ import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.tes
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../selectors/bridge/featureFlags';
 import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
-const mockUseLatestOpenRecurringOrderForAsset = jest.fn();
+const mockUseMostRecentOrder = jest.fn();
 
-jest.mock('../../Bridge/hooks/useLatestOpenRecurringOrderForAsset', () => ({
-  useLatestOpenRecurringOrderForAsset: (params: unknown) =>
-    mockUseLatestOpenRecurringOrderForAsset(params),
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../Bridge/hooks/useMostRecentOrder', () => ({
+  useMostRecentOrder: (params: unknown) => mockUseMostRecentOrder(params),
 }));
 
 jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
@@ -481,8 +488,8 @@ describe('TokenDetails', () => {
       onFooterPress: jest.fn(),
       projectedEarningsFormatted: undefined,
     });
-    mockUseLatestOpenRecurringOrderForAsset.mockReturnValue({
-      order: undefined,
+    mockUseMostRecentOrder.mockReturnValue({
+      mostRecentOrder: undefined,
       isLoading: false,
       isError: false,
     });
@@ -549,18 +556,19 @@ describe('TokenDetails', () => {
       if (selector === selectDepositMinimumVersionFlag) return null;
       if (selector === selectSelectedInternalAccountFormattedAddress)
         return '0x1234567890123456789012345678901234567890';
-      if (selector === selectBridgeRecurringBuyFeatureFlags)
+      if (selector === selectBridgeLimitOrderFeatureFlags)
         return { enabled: true, enabledChainIds: ['eip155:1'] };
       return undefined;
     });
   });
 
-  it('loads the latest open recurring order for the current asset', () => {
+  it('loads the most recent order for the current asset', () => {
     render(<TokenDetails />);
 
-    expect(mockUseLatestOpenRecurringOrderForAsset).toHaveBeenCalledWith({
+    expect(mockUseMostRecentOrder).toHaveBeenCalledWith({
       walletAddress: '0x1234567890123456789012345678901234567890',
       assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      isLimitOrderEnabled: true,
       enabled: true,
     });
   });
@@ -1711,7 +1719,7 @@ describe('TokenDetails', () => {
         if (selector === selectDepositMinimumVersionFlag) return null;
         if (selector === selectSelectedInternalAccountFormattedAddress)
           return '0x1234567890123456789012345678901234567890';
-        if (selector === selectBridgeRecurringBuyFeatureFlags)
+        if (selector === selectBridgeLimitOrderFeatureFlags)
           return { enabled: true, enabledChainIds: ['eip155:1'] };
         return undefined;
       });

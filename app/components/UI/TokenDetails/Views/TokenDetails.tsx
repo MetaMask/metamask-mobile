@@ -28,6 +28,7 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { RootState } from '../../../../reducers';
 import {
@@ -36,6 +37,7 @@ import {
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
@@ -91,10 +93,10 @@ import {
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectBridgeRecurringBuyFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../selectors/bridge/featureFlags';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
-import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
+import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 
 import TokenDetailsPagePending from './TokenDetailsPagePending';
 
@@ -271,27 +273,23 @@ const TokenDetails: React.FC<{
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const recurringBuyFeatureFlags = useSelector(
-    selectBridgeRecurringBuyFeatureFlags,
+  const limitOrderFeatureFlags = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
   );
-  const isRecurringOrderLookupEnabled = useMemo(() => {
-    if (!recurringBuyFeatureFlags?.enabled || !caip19AssetId) {
+  const isLimitOrderLookupEnabled = useMemo(() => {
+    if (!limitOrderFeatureFlags?.enabled || !caip19AssetId) {
       return false;
     }
 
     try {
       const { chainId } = parseCaipAssetType(caip19AssetId);
-      return recurringBuyFeatureFlags.enabledChainIds?.includes(chainId);
+      return limitOrderFeatureFlags.enabledChainIds?.includes(chainId);
     } catch {
       return false;
     }
-  }, [caip19AssetId, recurringBuyFeatureFlags]);
-  const { order: latestOpenRecurringOrder } =
-    useLatestOpenRecurringOrderForAsset({
-      walletAddress,
-      assetId: caip19AssetId,
-      enabled: isRecurringOrderLookupEnabled,
-    });
+  }, [caip19AssetId, limitOrderFeatureFlags]);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
 
   const handleShare = useCallback(() => {
     if (!shareUrl) {
@@ -354,6 +352,17 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
   } = useTokenPrice({ token });
+  const isOrderLookupEnabled = !(
+    hardwareTier === 'LOW' &&
+    networkTier === 'SLOW_CELLULAR' &&
+    isLoading
+  );
+  const { mostRecentOrder } = useMostRecentOrder({
+    walletAddress,
+    assetId: caip19AssetId,
+    isLimitOrderEnabled: isLimitOrderLookupEnabled,
+    enabled: isOrderLookupEnabled,
+  });
 
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
@@ -643,7 +652,7 @@ const TokenDetails: React.FC<{
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
-        recurringOrder={latestOpenRecurringOrder}
+        mostRecentOrder={mostRecentOrder}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
