@@ -130,12 +130,10 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       await findByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON),
     );
 
-    await waitFor(() => {
-      expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(2);
-    });
     expect(
-      queryByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
+      await findByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
     ).toBeOnTheScreen();
+    expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(2);
     expect(
       queryByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
