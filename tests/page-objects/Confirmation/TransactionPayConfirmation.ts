@@ -79,6 +79,10 @@ class TransactionPayConfirmation {
     );
   }
 
+  get amountValue(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TransactionPayComponentIDs.AMOUNT_VALUE);
+  }
+
   get payWithRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH);
   }
@@ -459,7 +463,7 @@ class TransactionPayConfirmation {
   }
 
   async verifyCustomAmount(amount: string, description: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.keyboardContainer, amount, {
+    await Assertions.expectElementToHaveLabel(this.amountValue, amount, {
       description,
     });
   }
