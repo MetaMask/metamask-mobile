@@ -96,9 +96,7 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
 
-const loadingStyle = StyleSheet.create({
-  container: { flex: 1 },
-}).container;
+import TokenDetailsPagePending from './TokenDetailsPagePending';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -970,7 +968,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   usePrefetchTokenDetails(token);
 
   if (isLoading) {
-    return <View style={loadingStyle} />;
+    return <TokenDetailsPagePending token={token} />;
   }
 
   return variant ? (
