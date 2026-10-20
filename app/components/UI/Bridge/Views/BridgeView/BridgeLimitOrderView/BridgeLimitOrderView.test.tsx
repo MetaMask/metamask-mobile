@@ -415,6 +415,7 @@ function buildPriceAdjustMock() {
     isLimitFiatMode: false,
     executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
+    limitPriceDecimals: 18,
     marketComparison: undefined,
     isTriggerPriceNearMarket: false,
     priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
@@ -519,6 +520,19 @@ describe('BridgeLimitOrderView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('lets the limit price keypad take the decimals the limit price is set with', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPriceDecimals: 11,
+    }));
+
+    renderLimitOrderView();
+
+    expect(useSwapsLimitOrderKeypad).toHaveBeenCalledWith(
+      expect.objectContaining({ limitPriceDecimals: 11 }),
+    );
   });
 
   it('renders the destination amount the source amount buys at the limit price', () => {
@@ -1150,6 +1164,55 @@ describe('BridgeLimitOrderView', () => {
             priceComparisonDirection:
               LimitOrderPriceComparisonDirection.AT_OR_BELOW,
           }),
+        }),
+      }),
+    );
+  });
+
+  it('condenses the leading zeros of a tiny limit price quoted in token units', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
+      isLimitFiatMode: false,
+      limitPrice: '0.00000000174697',
+      value: '0.00000000174697',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          triggerPrice: '0.0₈1746 USDC',
+        }),
+      }),
+    );
+  });
+
+  it('condenses the leading zeros of a tiny fiat limit price', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      isLimitFiatMode: true,
+      limitPrice: '0.000003747',
+      value: '0.000003747',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          triggerPrice: '$0.0₅3747',
         }),
       }),
     );
