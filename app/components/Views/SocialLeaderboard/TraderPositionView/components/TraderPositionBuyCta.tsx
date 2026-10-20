@@ -23,6 +23,7 @@ import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
   type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
+import type { QuickBuyTradeMode } from '../../../../UI/QuickBuy/types';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
 import {
   PostTradeShareOwner,
@@ -93,6 +94,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
   const isFocused = useIsFocused();
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [retryTradeMode, setRetryTradeMode] = useState<
+    QuickBuyTradeMode | undefined
+  >();
   // Treatment tapped Buy before the destination metadata finished resolving —
   // hold the intent and navigate once it settles (rather than falling back).
   const [isSwapPending, setIsSwapPending] = useState(false);
@@ -170,15 +174,21 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
+    setRetryTradeMode(undefined);
   }, []);
 
   const handlePostSwapReopen = useCallback(
-    (reopenTarget: QuickBuyTarget) => {
+    (
+      reopenTarget: QuickBuyTarget,
+      _copyTradeOrigin?: unknown,
+      tradeMode?: QuickBuyTradeMode,
+    ) => {
       if (
         target &&
         target.tokenAddress === reopenTarget.tokenAddress &&
         target.chain === reopenTarget.chain
       ) {
+        setRetryTradeMode(tradeMode);
         setIsQuickBuyVisible(true);
       }
     },
@@ -217,6 +227,7 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         postTradeShareOwner={
           postTradeShare ? PostTradeShareOwner.traderPosition : undefined
         }
+        initialTradeMode={retryTradeMode}
       />
     </>
   );
