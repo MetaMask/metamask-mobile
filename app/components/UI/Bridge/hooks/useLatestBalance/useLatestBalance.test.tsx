@@ -97,6 +97,9 @@ describe('useLatestBalance', () => {
         isNative: true,
       },
       startTime: expect.any(Number),
+      tags: {
+        feature: 'swap',
+      },
     });
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TraceName.BridgeBalancesUpdated,

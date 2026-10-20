@@ -115,6 +115,9 @@ describe('useSearchTokens', () => {
           query_length_bucket: '6-10',
         },
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
       const traceId = mockTrace.mock.calls[0][0].id;
       expect(mockEndTrace).toHaveBeenCalledWith({

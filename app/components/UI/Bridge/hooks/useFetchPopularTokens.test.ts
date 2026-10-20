@@ -114,6 +114,9 @@ describe('useFetchPopularTokens', () => {
         chain_ids: MOCK_CHAIN_IDS.ethereum,
       },
       startTime: expect.any(Number),
+      tags: {
+        feature: 'swap',
+      },
     });
     const traceId = mockTrace.mock.calls[0][0].id;
     expect(mockEndTrace).toHaveBeenCalledWith({

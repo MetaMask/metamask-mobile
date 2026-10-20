@@ -255,6 +255,9 @@ export const runQuoteRequestCases = ({
         },
         id: started.id,
         startTime: Date.now(),
+        tags: {
+          feature: 'swap',
+        },
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
@@ -412,6 +415,9 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 
@@ -438,6 +444,9 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 
