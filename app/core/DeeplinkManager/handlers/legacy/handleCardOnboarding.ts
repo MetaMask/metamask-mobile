@@ -74,7 +74,10 @@ export const handleCardOnboarding = () => {
 
       DevLogger.log('[handleCardOnboarding] Navigating to Card Home');
       if (hasCardLinkedAccount && routing.source === 'card_links') {
-        switchToLinkedCardAccount().finally(navigateToCardHomeWithToast);
+        switchToLinkedCardAccount().then(
+          navigateToCardHomeWithToast,
+          navigateToCardHomeWithToast,
+        );
       } else {
         navigateToCardHomeWithToast();
       }

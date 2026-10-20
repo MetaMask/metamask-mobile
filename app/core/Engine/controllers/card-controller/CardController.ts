@@ -1664,6 +1664,37 @@ export class CardController extends BaseController<
     }
   }
 
+  #resolveSignInFromRecord(
+    record: CardSignInLink,
+    walletOption: CardSignInOption,
+    deviceAddresses: string[],
+  ): CardSignInResolution | null {
+    if (!this.#isAddressInList(record.address, deviceAddresses)) {
+      return {
+        kind: 'wallet_account_missing',
+        option: walletOption,
+        address: record.address,
+      };
+    }
+    if (record.status === 'completed' || record.status === 'linked') {
+      return {
+        kind: 'wallet',
+        option: walletOption,
+        address: record.address,
+        source: 'record',
+      };
+    }
+    if (record.status === 'started') {
+      return {
+        kind: 'resume',
+        option: walletOption,
+        address: record.address,
+        stage: record.stage ?? null,
+      };
+    }
+    return null;
+  }
+
   async resolveSignIn({
     country,
     candidateAddresses,
@@ -1686,39 +1717,22 @@ export class CardController extends BaseController<
     const emailOption = options.find((o) => o.method === 'email_password');
 
     if (routingEnabled && record && walletOption) {
-      if (!this.#isAddressInList(record.address, deviceAddresses)) {
-        return {
-          kind: 'wallet_account_missing',
-          option: walletOption,
-          address: record.address,
-        };
-      }
-      if (record.status === 'completed' || record.status === 'linked') {
-        return {
-          kind: 'wallet',
-          option: walletOption,
-          address: record.address,
-          source: 'record',
-        };
-      }
-      if (record.status === 'started') {
-        return {
-          kind: 'resume',
-          option: walletOption,
-          address: record.address,
-          stage: record.stage ?? null,
-        };
-      }
+      const fromRecord = this.#resolveSignInFromRecord(
+        record,
+        walletOption,
+        deviceAddresses,
+      );
+      if (fromRecord) return fromRecord;
     }
 
     const linkedProviderId = this.#getLinkedCardProviderId();
-    if (linkedProviderId) {
-      const linkedResolution = await this.#resolveSignInForLinkedProvider(
-        linkedProviderId,
-        deviceAddresses,
-      );
-      if (linkedResolution) return linkedResolution;
-    }
+    const linkedResolution = linkedProviderId
+      ? await this.#resolveSignInForLinkedProvider(
+          linkedProviderId,
+          deviceAddresses,
+        )
+      : null;
+    if (linkedResolution) return linkedResolution;
 
     if (options.length === 1 && emailOption) {
       return { kind: 'email', option: emailOption };

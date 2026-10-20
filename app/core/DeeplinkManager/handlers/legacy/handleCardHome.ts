@@ -83,7 +83,10 @@ export const handleCardHome = () => {
 
       DevLogger.log('[handleCardHome] Navigating to Card Home');
       if (shouldSwitchAccount && routing.source === 'card_links') {
-        switchToLinkedCardAccount().finally(navigateToCardHome);
+        switchToLinkedCardAccount().then(
+          navigateToCardHome,
+          navigateToCardHome,
+        );
       } else {
         navigateToCardHome();
       }
