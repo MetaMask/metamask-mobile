@@ -858,7 +858,7 @@
   },
   "lavamoat": {
     "allowScripts": {
-      "$root$": true,
+      "$root$": false,
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
       "@sentry/react-native>@sentry/bundler-plugins>@sentry/cli": true,
       "@sentry/react-native>@sentry/cli": true,
