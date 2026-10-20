@@ -55,7 +55,7 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   invitedBenefitTitle: 'Your referral benefit',
   invitedReferredBy: 'Referred by',
   invitedOptInDescription: 'Opt in to Rewards to start earning.',

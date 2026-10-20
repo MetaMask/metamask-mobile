@@ -107,7 +107,7 @@ const ClaimableRewardsCardSkeleton: React.FC<{
         <Box twClassName="my-3 w-px bg-border-muted" />
         <Box twClassName="flex-1 p-4">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.recordedEarningsLabel}
+            {localizedText.totalEarningsLabel}
           </Text>
           <Skeleton style={tw.style('mt-1 h-5 w-16 rounded-md')} />
         </Box>
@@ -202,7 +202,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
         <Box twClassName="my-3 w-px bg-border-muted" />
         <Box twClassName="flex-1 p-4">
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.recordedEarningsLabel}
+            {localizedText.totalEarningsLabel}
           </Text>
           <Text
             variant={TextVariant.BodyMd}

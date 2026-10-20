@@ -207,6 +207,7 @@ interface BreakdownRow {
   key: string;
   iconName: IconName;
   label: string;
+  description: string;
   amount: string;
 }
 
@@ -219,45 +220,38 @@ function breakdownRows(
     return [];
   }
 
+  const trading: BreakdownRow = {
+    key: 'trading',
+    iconName: IconName.Coin,
+    label: localizedText.breakdownTrading,
+    description: localizedText.breakdownTradingDescription,
+    amount: musdAmount(
+      selfEarnedLifetime(summary, 'REFERRAL_TRADE_FEE_CASHBACK'),
+    ),
+  };
+  const referrals: BreakdownRow = {
+    key: 'referrals',
+    iconName: IconName.UserCircleAdd,
+    label: localizedText.referrals,
+    description: localizedText.breakdownReferralsDescription,
+    amount: musdAmount(earnedByOthersLifetime(summary, 'REFERRAL_REV_SHARE')),
+  };
+  const social: BreakdownRow = {
+    key: 'social',
+    iconName: IconName.Copy,
+    label:
+      persona === 'referrer'
+        ? localizedText.tradeCommissions
+        : localizedText.tradingCommissionsSection,
+    description: localizedText.breakdownSocialDescription,
+    amount: musdAmount(earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE')),
+  };
+
   if (persona === 'referrer') {
-    return [
-      {
-        key: 'referrals',
-        iconName: IconName.UserCircleAdd,
-        label: localizedText.referrals,
-        amount: musdAmount(
-          earnedByOthersLifetime(summary, 'REFERRAL_REV_SHARE'),
-        ),
-      },
-      {
-        key: 'commissions',
-        iconName: IconName.Copy,
-        label: localizedText.tradeCommissions,
-        amount: musdAmount(
-          earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE'),
-        ),
-      },
-    ];
+    return [trading, referrals, social];
   }
 
-  return [
-    {
-      key: 'commissions',
-      iconName: IconName.Copy,
-      label: localizedText.tradingCommissionsSection,
-      amount: musdAmount(
-        earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE'),
-      ),
-    },
-    {
-      key: 'rebates',
-      iconName: IconName.Coin,
-      label: localizedText.tradingRebates,
-      amount: musdAmount(
-        selfEarnedLifetime(summary, 'REFERRAL_TRADE_FEE_CASHBACK'),
-      ),
-    },
-  ];
+  return [trading, social];
 }
 
 const BreakdownSkeleton: React.FC<{ rows: number }> = ({ rows }) => {
@@ -317,9 +311,15 @@ const BreakdownSection: React.FC<{
                 severity={AvatarIconSeverity.Neutral}
                 iconProps={{ color: IconColor.IconDefault }}
               />
-              <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-                {row.label}
-              </Text>
+              <Box twClassName="flex-1">
+                <Text variant={TextVariant.BodyMd}>{row.label}</Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {row.description}
+                </Text>
+              </Box>
               <Text variant={TextVariant.BodyMd}>{row.amount}</Text>
             </Box>
           ))}

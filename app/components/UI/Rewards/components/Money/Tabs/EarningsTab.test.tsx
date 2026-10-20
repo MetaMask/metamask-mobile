@@ -45,7 +45,7 @@ const LOCALIZED_TEXT = {
   claim: 'Claim',
   claimed: 'Claimed',
   last7Days: 'Last 7 days',
-  recordedEarningsLabel: 'Recorded earnings',
+  totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
   referrals: 'Referrals',
   tradeCommissions: 'Trade commissions',

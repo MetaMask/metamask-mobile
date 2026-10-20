@@ -11,7 +11,7 @@ const LOCALIZED_TEXT = {
   claim: 'Claim',
   claimed: 'Claimed',
   last7Days: 'Last 7 days',
-  recordedEarningsLabel: 'Recorded earnings',
+  totalEarningsLabel: 'Total earnings',
 } as unknown as ReferralLocalizedText;
 
 const renderCard = (
