@@ -96,6 +96,8 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
 
+import TokenDetailsPagePending from './TokenDetailsPagePending';
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -962,8 +964,12 @@ export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const variant = useTokenDetailsVariant(token);
+  const { variant, isLoading } = useTokenDetailsVariant(token);
   usePrefetchTokenDetails(token);
+
+  if (isLoading) {
+    return <TokenDetailsPagePending token={token} />;
+  }
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />

@@ -98,6 +98,10 @@ import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
 } from '../../../../util/social/copyTradeIntent';
+import {
+  isSocialTradeSource,
+  recordSocialTrade,
+} from '../../../../util/social/socialActivityStorage';
 import { useTheme } from '../../../../util/theme';
 import { calcTokenValue } from '../../../../util/transactions';
 import { useRefreshSmartTransactionsLiveness } from '../../../hooks/useRefreshSmartTransactionsLiveness';
@@ -1729,19 +1733,34 @@ export function useQuickBuyController(
           { surface: 'quick_buy', source: 'useQuickBuyController' },
         );
       }
-      const submitResult = await Engine.context.BridgeStatusController.submitTx(
-        walletAddress,
-        activeQuote,
-        stxEnabled,
-        undefined, // quotesReceivedContext
-        undefined, // location
-        undefined, // abTests
-        undefined, // mergedActiveAbTests
-        undefined, // tokenSecurityTypeDestination
-        undefined, // batchSellTrades
-        undefined, // inputPrimaryDenomination
-        BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-      );
+      const submitResult = activeQuote.quote.intent
+        ? await Engine.context.BridgeStatusController.submitIntent({
+            quoteResponse: activeQuote,
+            accountAddress: walletAddress,
+            location: undefined,
+            abTests: undefined,
+            activeAbTests: undefined,
+            tokenSecurityTypeDestination: destToken?.securityData?.type ?? null,
+            inputPrimaryDenomination: 'token_amount',
+            quotesReceivedContext: undefined,
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+          })
+        : await Engine.context.BridgeStatusController.submitTx(
+            walletAddress,
+            activeQuote,
+            stxEnabled,
+            undefined, // quotesReceivedContext
+            undefined, // location
+            undefined, // abTests
+            undefined, // mergedActiveAbTests
+            undefined, // tokenSecurityTypeDestination
+            undefined, // batchSellTrades
+            undefined, // inputPrimaryDenomination
+            BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+          );
+      if (isSocialTradeSource(analyticsContext.source)) {
+        recordSocialTrade();
+      }
       const txHash =
         submitResult &&
         typeof (submitResult as { hash?: unknown }).hash === 'string'
@@ -1832,6 +1851,7 @@ export function useQuickBuyController(
     goToBuy,
     handleClose,
     activeQuote,
+    destToken?.securityData?.type,
     walletAddress,
     stxEnabled,
     dispatch,
@@ -1860,6 +1880,7 @@ export function useQuickBuyController(
     sourceTokenAmount,
     estimatedReceiveAmount,
     target,
+    analyticsContext.source,
   ]);
 
   // Preformatted headline value in the user's display currency (correct symbol
