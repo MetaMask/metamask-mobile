@@ -44,9 +44,13 @@ const MarketingMomentTitle = ({
     Platform.OS,
     variant,
   );
+  // Text paints the variant first, then this list. Later entries win.
   const titleStyle = [
+    // Hero metrics. A style so leading and tracking replace the variant.
     presentation.className ? tw.style(presentation.className) : undefined,
+    // System face. Not a Tailwind class, so it cannot go through tw.style.
     presentation.style,
+    // Caller style last, so a screen can still override both.
     style,
   ]
     .flat()

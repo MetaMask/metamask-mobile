@@ -23,7 +23,10 @@ jest.mock('../../../../../util/theme', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
+  I18nEvents: new (jest.requireActual('events').EventEmitter)(),
 }));
 
 jest.mock('../../../../../store/storage-wrapper', () => ({
