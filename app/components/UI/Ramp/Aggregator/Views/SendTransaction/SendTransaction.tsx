@@ -98,6 +98,7 @@ function SendTransaction() {
       !assetChainId.startsWith('eip155:'),
     [assetChainId],
   );
+  const isStellar = assetChainId?.startsWith('stellar:') ?? false;
 
   const fromAccount = useSelector((state: RootState) =>
     orderData?.walletAddress
@@ -466,7 +467,9 @@ function SendTransaction() {
               onPress={handleSend}
               accessibilityRole="button"
               accessible
-              isDisabled={isConfirming || (!isNonEvm && !networkClientId)}
+              isDisabled={
+                isConfirming || isStellar || (!isNonEvm && !networkClientId)
+              }
               label={
                 <Text
                   variant={TextVariant.BodyLGMedium}

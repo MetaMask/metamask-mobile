@@ -34,7 +34,7 @@ const defaultReturn = {
 
 interface Asset {
   address?: string;
-  decimals: number;
+  decimals?: number;
   chainId?: string;
   assetId?: string;
 }
@@ -98,11 +98,14 @@ export default function useBalance(asset?: Asset) {
     // compared against it. EVM tokens are not tracked here (assetBalance is
     // undefined) and fall through to the EVM logic below.
     if (assetBalance?.amount != null && assetBalance.amount !== '') {
+      // Decimals are chain-specific (SOL 9, TRX 6, XLM 7). Guessing a fallback
+      // could produce a dangerously incorrect available balance.
+      if (asset.decimals == null) {
+        return { balance, balanceFiat, balanceBN: null };
+      }
+
       try {
-        balanceBN = toTokenMinimalUnit(
-          assetBalance.amount,
-          asset.decimals ?? 0,
-        );
+        balanceBN = toTokenMinimalUnit(assetBalance.amount, asset.decimals);
       } catch {
         balanceBN = null;
       }

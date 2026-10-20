@@ -330,7 +330,10 @@ describe('useBalance', () => {
     expect(result.current.balanceBN?.toString()).toBe('550000000');
   });
 
-  it('returns a null minimal balance when the amount has more decimals than the asset', async () => {
+  it.each([
+    ['decimals are missing', undefined],
+    ['the amount has more decimals than the asset', 0],
+  ])('returns a null minimal balance when %s', async (_scenario, decimals) => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue((scope) => {
       if (scope === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
         return {
@@ -355,7 +358,7 @@ describe('useBalance', () => {
         useBalance({
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           assetId: 'slip44:501',
-          decimals: 0,
+          decimals,
         }),
       {
         state: {

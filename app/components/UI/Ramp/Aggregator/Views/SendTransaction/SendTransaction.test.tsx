@@ -346,12 +346,57 @@ const mockTronOrder = {
   } as DeepPartial<SellOrder>,
 } as FiatOrder;
 
+const STELLAR_WALLET_ADDRESS =
+  'GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF';
+
+const mockStellarAccount = {
+  id: 'stellar-account-id',
+  address: STELLAR_WALLET_ADDRESS,
+  type: 'stellar:account',
+  metadata: {
+    name: 'Stellar Account',
+    snap: { id: 'npm:@metamask/stellar-wallet-snap' },
+  },
+};
+
+const mockStellarOrder = {
+  ...mockOrder,
+  id: 'test-id-stellar',
+  cryptocurrency: 'XLM',
+  network: 'stellar:pubnet',
+  account: STELLAR_WALLET_ADDRESS,
+  cryptoAmount: '1.5',
+  data: {
+    ...mockOrder.data,
+    id: 'test-id-stellar',
+    providerOrderId: 'test-id-stellar',
+    cryptoAmount: '1.5',
+    cryptoCurrency: {
+      id: '/currencies/crypto/stellar/xlm',
+      network: {
+        active: true,
+        chainId: 'stellar:pubnet',
+        chainName: 'Stellar',
+        shortName: 'Stellar',
+      },
+      decimals: 7,
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'XLM',
+      name: 'Stellar',
+      assetId: 'slip44:148',
+    },
+    network: 'stellar:pubnet',
+    walletAddress: STELLAR_WALLET_ADDRESS,
+  } as DeepPartial<SellOrder>,
+} as FiatOrder;
+
 const mockedOrders = [
   mockOrder,
   mockOrder2,
   mockOrder3,
   mockSolanaOrder,
   mockTronOrder,
+  mockStellarOrder,
 ];
 
 function render(Component: React.ComponentType, orders = mockedOrders) {
@@ -841,6 +886,20 @@ describe('SendTransaction View', () => {
           ],
         ]
       `);
+    });
+
+    it('blocks Stellar sends until provider memo support is wired', async () => {
+      mockUseParamsValues = { orderId: 'test-id-stellar' };
+      mockGetInternalAccountByAddress.mockReturnValue(mockStellarAccount);
+
+      render(SendTransaction);
+      const nextButton = screen.getByRole('button', { name: 'Next' });
+
+      expect(nextButton).toBeDisabled();
+      fireEvent.press(nextButton);
+      expect(mockSendMultichainTransactionForReview).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('does not call the Snap when the asset id is missing', async () => {
