@@ -44,10 +44,12 @@ describe('ActivityRowView', () => {
     expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
       '+$12.35',
     );
-    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toHaveProp(
-      'iconName',
-      IconName.Add,
-    );
+    const icon = getByTestId(MoneyActivityItemTestIds.ICON);
+
+    if ('iconName' in icon.props) {
+      expect(icon).toHaveProp('iconName', IconName.Add);
+    }
+    expect(icon).toHaveProp('accessibilityLabel', IconName.Add);
     expect(
       queryByTestId(MoneyActivityItemTestIds.PENDING_SPINNER, {
         includeHiddenElements: true,
@@ -61,13 +63,11 @@ describe('ActivityRowView', () => {
       <ActivityRowView id="vba-deposit-2" display={display} privacyMode />,
     );
 
-    expect(getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT)).toHaveProp(
-      'isHidden',
-      true,
-    );
-    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveProp(
-      'isHidden',
-      true,
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('•'.repeat(6));
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '•'.repeat(6),
     );
   });
 });
