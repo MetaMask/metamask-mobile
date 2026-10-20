@@ -38,7 +38,7 @@ import { isAsiaGeolocationLocation } from '../../../../util/region/isAsiaGeoloca
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import ButtonGlass from '../../../../component-library/components-temp/ButtonGlass';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
-import FooterGlass from '../../../../component-library/components-temp/FooterGlass';
+import StickyFooterGlass from '../../../../component-library/components-temp/StickyFooterGlass';
 import { useTokenDetailsGlassFooter } from '../hooks/useTokenDetailsGlassFooter';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -842,14 +842,14 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : isRefreshed ? (
-    <FooterGlass
+    <StickyFooterGlass
       isOverlay={isOverlay}
       onLayout={onLayout}
       style={legacyFooterStyle}
       testID="token-details-glass-footer"
     >
       {footerActions}
-    </FooterGlass>
+    </StickyFooterGlass>
   ) : (
     <View style={legacyFooterStyle}>{footerActions}</View>
   );
