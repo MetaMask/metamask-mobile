@@ -415,7 +415,7 @@ export class A2tSession {
     this.#assertCurrent(generation);
     const challenge = await this.#postJson<unknown>(
       issuerUrl,
-      '/a2t/challenge',
+      '/venues/kalshi/a2t/challenge',
       ready.accessToken,
       {
         srpIdentifier: ready.srpIdentifier,
@@ -438,11 +438,16 @@ export class A2tSession {
 
     this.#assertCurrent(generation);
     const issued = parseIssued(
-      await this.#postJson<unknown>(issuerUrl, '/a2t', ready.accessToken, {
-        challengeId: parsed.challengeId,
-        srpSignature,
-        devicePop,
-      }),
+      await this.#postJson<unknown>(
+        issuerUrl,
+        '/venues/kalshi/a2t',
+        ready.accessToken,
+        {
+          challengeId: parsed.challengeId,
+          srpSignature,
+          devicePop,
+        },
+      ),
     );
     this.#assertCurrent(generation);
     this.#cached = {

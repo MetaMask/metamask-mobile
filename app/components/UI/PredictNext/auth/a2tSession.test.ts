@@ -131,7 +131,7 @@ describe('A2tSession', () => {
     expect(deviceReads).toBe(2);
     expect(harness.fetchMock).toHaveBeenNthCalledWith(
       1,
-      'http://127.0.0.1:4445/a2t/challenge',
+      'http://127.0.0.1:4445/venues/kalshi/a2t/challenge',
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
@@ -147,7 +147,7 @@ describe('A2tSession', () => {
     const signature = Uint8Array.from({ length: 64 }, () => 7);
     expect(harness.fetchMock).toHaveBeenNthCalledWith(
       2,
-      'http://127.0.0.1:4445/a2t',
+      'http://127.0.0.1:4445/venues/kalshi/a2t',
       expect.objectContaining({
         body: JSON.stringify({
           challengeId: CHALLENGE_ID,
@@ -303,7 +303,7 @@ describe('A2tSession', () => {
     expect(a2t).toBe(issuedToken);
     expect(harness.fetchMock).toHaveBeenCalledTimes(3);
     expect(harness.fetchMock.mock.calls[1]?.[0]).toBe(
-      'http://127.0.0.1:4445/a2t/challenge',
+      'http://127.0.0.1:4445/venues/kalshi/a2t/challenge',
     );
   });
 
