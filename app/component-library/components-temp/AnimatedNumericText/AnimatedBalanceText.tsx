@@ -1,7 +1,11 @@
 import React, { memo, useLayoutEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, type TextStyle, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
-import { TextColor } from '@metamask/design-system-react-native';
+import {
+  FontFamily,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Laminar } from 'react-native-laminar';
 
@@ -16,10 +20,14 @@ export interface AnimatedBalanceTextProps {
   value: string;
   animated?: boolean;
   /**
-   * Tailwind typography classes for the balance. Defaults to DisplayLg in the
-   * default bold face.
+   * Design-system face. Defaults to the default family. Hero always uses the
+   * bold cut, which is the only Hero face the preset ships.
    */
-  typographyClassName?: string;
+  fontFamily?: FontFamily;
+  /**
+   * Design-system text variant. Defaults to DisplayLg.
+   */
+  variant?: TextVariant;
 }
 
 const styles = StyleSheet.create({
@@ -44,14 +52,17 @@ const AnimatedBalanceText = ({
   testID,
   value,
   animated,
-  typographyClassName = 'text-display-lg font-default-bold',
+  fontFamily = FontFamily.Default,
+  variant = TextVariant.DisplayLg,
 }: AnimatedBalanceTextProps) => {
   const [animatedValue, setAnimatedValue] = useState(loadingValue);
   const tw = useTailwind();
   const reduceMotion = useReducedMotion();
   const balanceColor = isLoading ? TextColor.TextMuted : color;
+  const fontClass =
+    fontFamily === FontFamily.Hero ? 'font-hero-bold' : 'font-default-bold';
   const textStyle = StyleSheet.flatten([
-    tw.style(typographyClassName, balanceColor) as TextStyle,
+    tw.style(`text-${variant}`, fontClass, balanceColor) as TextStyle,
     styles.text,
   ]) as TextStyle;
   const motionEnabled = animated !== false && !reduceMotion;
