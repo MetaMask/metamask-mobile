@@ -92,8 +92,12 @@ jest.mock('../../UI/Perps/hooks/usePerpsChaseOrders', () => ({
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
 let mockMoneyAccountEnabled = false;
+let mockMoneyDepositBrazeCampaignEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
+  selectIsMoneyDepositBrazeCampaignEnabledFlag: jest.fn(
+    () => mockMoneyDepositBrazeCampaignEnabled,
+  ),
 }));
 
 let mockMoneyAccountVisible = false;
@@ -113,6 +117,21 @@ jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
       }),
   };
 });
+
+jest.mock(
+  '../../UI/Money/components/MoneyDepositBrazeCampaignObserver/MoneyDepositBrazeCampaignObserver',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactMock.createElement(View, {
+          testID: 'money-deposit-braze-campaign-observer-mock',
+        }),
+    };
+  },
+);
 
 // Mock NetworkConnectionBanner so the Wallet view's render does not depend on
 // NetworkController / controllerMessenger APIs. Without this, the banner hook
@@ -880,6 +899,7 @@ beforeEach(() => {
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
+  mockMoneyDepositBrazeCampaignEnabled = false;
   mockMoneyAccountVisible = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
@@ -1979,20 +1999,38 @@ describe('MoneyBalanceCard slot', () => {
 
   it('shows the standalone MoneyBalanceCard when breakdown is disabled', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyDepositBrazeCampaignEnabled = true;
     mockMoneyAccountVisible = true;
 
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
+    expect(
+      getByTestId('money-deposit-braze-campaign-observer-mock'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not mount the campaign observer when its feature flag is disabled', () => {
+    mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
+
+    const { queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId('money-deposit-braze-campaign-observer-mock'),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the standalone MoneyBalanceCard when breakdown is disabled and Money is geo-ineligible', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = false;
 
-    const { getByTestId } = render(Wallet);
+    const { getByTestId, queryByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
+    expect(
+      queryByTestId('money-deposit-braze-campaign-observer-mock'),
+    ).not.toBeOnTheScreen();
   });
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {

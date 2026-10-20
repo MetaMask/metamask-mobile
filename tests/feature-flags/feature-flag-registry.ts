@@ -4052,6 +4052,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyDepositBrazeCampaignEnabled: {
+    name: 'earnMoneyDepositBrazeCampaignEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   musd1313AbtestEarnSectionOnHomepage: {
     name: 'musd1313AbtestEarnSectionOnHomepage',
     type: FeatureFlagType.Remote,

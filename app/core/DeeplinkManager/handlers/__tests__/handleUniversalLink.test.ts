@@ -22,6 +22,7 @@ import { handleSwapUrl } from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
+import { handleMoneyDeposit } from '../legacy/handleMoneyDeposit';
 import {
   handlePerpsUrl,
   createPerpsDeeplinkIntent,
@@ -72,6 +73,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../legacy/handleMoneyDeposit');
 jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
 jest.mock('../intent/handleDappUrl', () => {
@@ -158,6 +160,9 @@ describe('handleUniversalLink', () => {
   const mockBrowserCallBack = jest.fn();
   const mockHandleBrowserUrl = handleBrowserUrl as jest.MockedFunction<
     typeof handleBrowserUrl
+  >;
+  const mockHandleMoneyDeposit = handleMoneyDeposit as jest.MockedFunction<
+    typeof handleMoneyDeposit
   >;
   const mockCreateDappDeeplinkIntent =
     createDappDeeplinkIntent as jest.MockedFunction<
@@ -1829,6 +1834,30 @@ describe('handleUniversalLink', () => {
         expect(handled).toHaveBeenCalled();
       },
     );
+  });
+
+  describe('ACTIONS.MONEY_ACCOUNT_DEPOSIT', () => {
+    it('dispatches to handleMoneyDeposit for the Money deposit deeplink', async () => {
+      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`;
+      const depositUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`,
+        href: depositUrl,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: depositUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: depositUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleMoneyDeposit).toHaveBeenCalledTimes(1);
+      expect(handled).toHaveBeenCalled();
+    });
   });
 
   describe('signature verification', () => {
