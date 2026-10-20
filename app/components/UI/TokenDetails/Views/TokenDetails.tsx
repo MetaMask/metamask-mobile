@@ -93,7 +93,10 @@ import {
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectBridgeLimitOrderFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import {
+  selectBridgeLimitOrderFeatureFlags,
+  selectBridgeRecurringBuyFeatureFlags,
+} from '../../../../selectors/bridge/featureFlags';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
@@ -276,18 +279,27 @@ const TokenDetails: React.FC<{
   const limitOrderFeatureFlags = useSelector(
     selectBridgeLimitOrderFeatureFlags,
   );
-  const isLimitOrderLookupEnabled = useMemo(() => {
-    if (!limitOrderFeatureFlags?.enabled || !caip19AssetId) {
-      return false;
-    }
-
+  const recurringBuyFeatureFlags = useSelector(
+    selectBridgeRecurringBuyFeatureFlags,
+  );
+  const orderAssetChainId = useMemo(() => {
+    if (!caip19AssetId) return undefined;
     try {
-      const { chainId } = parseCaipAssetType(caip19AssetId);
-      return limitOrderFeatureFlags.enabledChainIds?.includes(chainId);
+      return parseCaipAssetType(caip19AssetId).chainId;
     } catch {
-      return false;
+      return undefined;
     }
-  }, [caip19AssetId, limitOrderFeatureFlags]);
+  }, [caip19AssetId]);
+  const isLimitOrderLookupEnabled = Boolean(
+    limitOrderFeatureFlags?.enabled &&
+      orderAssetChainId &&
+      limitOrderFeatureFlags.enabledChainIds?.includes(orderAssetChainId),
+  );
+  const isRecurringOrderLookupEnabled = Boolean(
+    recurringBuyFeatureFlags?.enabled &&
+      orderAssetChainId &&
+      recurringBuyFeatureFlags.enabledChainIds?.includes(orderAssetChainId),
+  );
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
 
@@ -360,8 +372,9 @@ const TokenDetails: React.FC<{
   const { mostRecentOrder } = useMostRecentOrder({
     walletAddress,
     assetId: caip19AssetId,
-    isLimitOrderEnabled: isLimitOrderLookupEnabled,
-    enabled: isOrderLookupEnabled,
+    isLimitOrderEnabled: isOrderLookupEnabled && isLimitOrderLookupEnabled,
+    isRecurringOrderEnabled:
+      isOrderLookupEnabled && isRecurringOrderLookupEnabled,
   });
 
   const { description: headerDescription, onScrollOffset } =

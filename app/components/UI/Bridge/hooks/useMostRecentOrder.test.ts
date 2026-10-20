@@ -55,6 +55,7 @@ function renderMostRecentOrder(
       walletAddress: WALLET_ADDRESS,
       assetId: ASSET_ID,
       isLimitOrderEnabled: true,
+      isRecurringOrderEnabled: true,
       ...overrides,
     }),
   );
@@ -99,6 +100,26 @@ describe('useMostRecentOrder', () => {
     );
     expect(mockUseLimitOrders).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('keeps limit lookup enabled when recurring orders are disabled', () => {
+    setupRecurringOrderQuery({ order: MOCK_RECURRING_OPEN_ORDER });
+    setupLimitOrdersQuery({ orders: [MOCK_LIMIT_OPEN_ORDER] });
+
+    const { result } = renderMostRecentOrder({
+      isRecurringOrderEnabled: false,
+    });
+
+    expect(result.current.mostRecentOrder).toStrictEqual({
+      type: BridgeTabKey.Limit,
+      order: MOCK_LIMIT_OPEN_ORDER,
+    });
+    expect(mockUseLatestOpenRecurringOrderForAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUseLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
     );
   });
 

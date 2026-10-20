@@ -20,7 +20,7 @@ interface UseMostRecentOrderParams {
   walletAddress?: string;
   assetId?: CaipAssetType | null;
   isLimitOrderEnabled: boolean;
-  enabled?: boolean;
+  isRecurringOrderEnabled: boolean;
 }
 
 function getMostRecentOrder(
@@ -50,14 +50,13 @@ export function useMostRecentOrder({
   walletAddress,
   assetId,
   isLimitOrderEnabled,
-  enabled = true,
+  isRecurringOrderEnabled,
 }: UseMostRecentOrderParams) {
-  const isLimitOrderLookupEnabled =
-    enabled && isLimitOrderEnabled && Boolean(assetId);
+  const isLimitOrderLookupEnabled = isLimitOrderEnabled && Boolean(assetId);
   const recurringOrderQuery = useLatestOpenRecurringOrderForAsset({
     walletAddress,
     assetId,
-    enabled,
+    enabled: isRecurringOrderEnabled,
   });
   const limitOrdersQuery = useLimitOrders({
     walletAddress,

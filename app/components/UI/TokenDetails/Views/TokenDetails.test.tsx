@@ -28,7 +28,10 @@ import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.tes
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectBridgeLimitOrderFeatureFlags } from '../../../../selectors/bridge/featureFlags';
+import {
+  selectBridgeLimitOrderFeatureFlags,
+  selectBridgeRecurringBuyFeatureFlags,
+} from '../../../../selectors/bridge/featureFlags';
 import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 
 const mockUseSelector = jest.fn();
@@ -558,6 +561,8 @@ describe('TokenDetails', () => {
         return '0x1234567890123456789012345678901234567890';
       if (selector === selectBridgeLimitOrderFeatureFlags)
         return { enabled: true, enabledChainIds: ['eip155:1'] };
+      if (selector === selectBridgeRecurringBuyFeatureFlags)
+        return { enabled: true, enabledChainIds: ['eip155:1'] };
       return undefined;
     });
   });
@@ -569,7 +574,7 @@ describe('TokenDetails', () => {
       walletAddress: '0x1234567890123456789012345678901234567890',
       assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
       isLimitOrderEnabled: true,
-      enabled: true,
+      isRecurringOrderEnabled: true,
     });
   });
 
@@ -1720,6 +1725,8 @@ describe('TokenDetails', () => {
         if (selector === selectSelectedInternalAccountFormattedAddress)
           return '0x1234567890123456789012345678901234567890';
         if (selector === selectBridgeLimitOrderFeatureFlags)
+          return { enabled: true, enabledChainIds: ['eip155:1'] };
+        if (selector === selectBridgeRecurringBuyFeatureFlags)
           return { enabled: true, enabledChainIds: ['eip155:1'] };
         return undefined;
       });

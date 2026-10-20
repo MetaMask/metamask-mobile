@@ -188,9 +188,11 @@ function buildTokenDetailsMarketInsightsState(
 
 function buildTokenDetailsOrdersState({
   isRecurringBuyEnabled = true,
+  recurringBuyEnabledChainIds = ['eip155:1'],
   isLimitOrderEnabled = true,
 }: {
   isRecurringBuyEnabled?: boolean;
+  recurringBuyEnabledChainIds?: string[];
   isLimitOrderEnabled?: boolean;
 } = {}) {
   return merge({}, buildTokenDetailsMarketInsightsState(false), {
@@ -206,7 +208,7 @@ function buildTokenDetailsOrdersState({
             ...remoteFeatureFlagMarketInsightsEnabled(false),
             swapsRecurringBuy: {
               enabled: isRecurringBuyEnabled,
-              enabledChainIds: ['eip155:1'],
+              enabledChainIds: recurringBuyEnabledChainIds,
             },
             swapsLimitOrder: {
               enabled: isLimitOrderEnabled,
@@ -335,10 +337,12 @@ describeForPlatforms('Token Details Orders section', () => {
   function renderTokenDetails({
     token = ethMainnetToken,
     isRecurringBuyEnabled = true,
+    recurringBuyEnabledChainIds = ['eip155:1'],
     isLimitOrderEnabled = true,
   }: {
     token?: TokenI;
     isRecurringBuyEnabled?: boolean;
+    recurringBuyEnabledChainIds?: string[];
     isLimitOrderEnabled?: boolean;
   } = {}) {
     return renderScreenWithRoutes(
@@ -348,6 +352,7 @@ describeForPlatforms('Token Details Orders section', () => {
       {
         state: buildTokenDetailsOrdersState({
           isRecurringBuyEnabled,
+          recurringBuyEnabledChainIds,
           isLimitOrderEnabled,
         }),
       },
@@ -395,21 +400,42 @@ describeForPlatforms('Token Details Orders section', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows recurring orders when recurring buy is disabled', async () => {
+  it('does not query recurring orders when recurring buy is disabled', async () => {
     renderTokenDetails({ isRecurringBuyEnabled: false });
 
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'LimitOrdersDataService:getLimitOrders',
+        expect.anything(),
+      );
+    });
     expect(
-      await screen.findByTestId(
+      screen.queryByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
           MOCK_RECURRING_OPEN_ORDER_3.orderId,
         ),
       ),
-    ).toBeOnTheScreen();
-    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+    ).toBeNull();
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
       'RecurringOrdersDataService:getRecurringOrdersByAsset',
-      expect.objectContaining({
-        assetId: 'eip155:1/slip44:60',
-      }),
+      expect.anything(),
+    );
+  });
+
+  it('does not query recurring orders when the asset chain is disabled', async () => {
+    renderTokenDetails({
+      recurringBuyEnabledChainIds: ['eip155:137'],
+    });
+
+    await waitFor(() => {
+      expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'LimitOrdersDataService:getLimitOrders',
+        expect.anything(),
+      );
+    });
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalledWith(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      expect.anything(),
     );
   });
 
