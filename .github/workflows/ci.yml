@@ -105,9 +105,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job has no secrets
-        # and only checks that the working tree stays clean.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
+        # Impact: it can fake the clean-working-tree check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -122,9 +122,9 @@ jobs:
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: the cached Foundry binaries are not verified after
-        # restore. Only this job uses this key (it includes runner.os), and the job has no secrets and
-        # only checks that the working tree stays clean.
+        # zizmor: ignore[cache-poisoning] The Foundry binaries restored from this cache are not
+        # verified, so a tampered cache can run code here with a read-only token and no secrets. Only
+        # this job uses this key. Impact: it can fake the clean-working-tree check.
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -187,9 +187,10 @@ jobs:
           ref: main
           fetch-depth: 1
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job only has
-        # statuses: write, and its fingerprint only picks which native build the E2E tests reuse.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with statuses: write and no secrets.
+        # Impact: forged commit statuses (they can look like passing checks), including a fingerprint
+        # that makes E2E tests reuse a stale native build. Merging still needs an approving review.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -245,9 +246,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
-        # This job has no secrets and only checks for duplicate dependencies.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
+        # Impact: it can fake the duplicate-dependency check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -307,9 +308,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
-        # This job has no secrets and only reports on git dependencies.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
+        # Impact: it can fake the git-dependency check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -393,9 +394,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
-        # This job has no secrets and only runs lint and check scripts.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
+        # Impact: it can fake the result of this job's script.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -441,9 +442,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job's only credential
-        # is a read-only token for MetaMask/ai-analyzer, and it produces nothing that ships.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with a read-only token and id-token:
+        # write. Impact: it can read the private MetaMask/ai-analyzer repo through the token exchange
+        # this job uses, and fake the contract test results.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -516,9 +518,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
-        # This job has no secrets, and its audit result is advisory.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
+        # Impact: it can hide or invent advisories, which only decide whether the escalation job runs.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -625,9 +627,10 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum.
-        # This job only has statuses: write, and the bundles it builds never ship.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with statuses: write and no secrets.
+        # Impact: forged commit statuses (they can look like passing checks) and a fake bundle size
+        # recorded from main. Merging still needs an approving review.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}

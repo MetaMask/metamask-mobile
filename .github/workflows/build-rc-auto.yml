@@ -233,10 +233,10 @@ jobs:
       - name: Setup Node.js
         if: env.REPACK_ENABLED == 'true'
         uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64), which have no yarn.lock checksum. This job only has
-        # statuses: write and actions: read, so the worst case is forged statuses or a fingerprint that
-        # reuses native artifacts from an earlier RC run. Production builds rebuild without caches.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with statuses: write and no secrets.
+        # Impact: forged commit statuses, or a fingerprint that makes this RC reuse native artifacts
+        # from an earlier RC run. Production builds rebuild from source without caches.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -507,6 +507,8 @@ jobs:
       build_attribution: official
     secrets: inherit
 
+  # TODO: In a follow-up PR, move AI test plan generation into its own workflow that installs
+  # without the Yarn cache, so the AI keys and the write token no longer share a job.
   post-rc-build-comment:
     name: Post RC Build Comment with Test Plan
     runs-on: ubuntu-latest
@@ -533,10 +535,11 @@ jobs:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 0
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Risk accepted: a poisoned Yarn cache can swap platform-specific
-        # packages (e.g. @esbuild/linux-x64, which this job runs), which have no yarn.lock checksum. That
-        # could expose the E2E Claude, OpenAI and Gemini API keys and this job's token (contents and
-        # pull-requests: write). Release branches only change through approved PRs.
+        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
+        # this cache, so a tampered cache can run code here with the E2E Claude, OpenAI and Gemini API
+        # keys and a contents and pull-requests: write token. Impact: those keys leak, and the token
+        # can push to branches without rulesets, create tags and releases, and edit PRs. Main and
+        # release branches only change through approved PRs.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
