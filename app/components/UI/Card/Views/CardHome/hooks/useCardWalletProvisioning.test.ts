@@ -156,6 +156,24 @@ describe('useCardWalletProvisioning', () => {
     );
   });
 
+  it('hides every wallet entry when Immersve Apple Pay is switched off', () => {
+    mockUsePushProvisioning.mockReturnValue({
+      initiateProvisioning: jest.fn(),
+      isProvisioning: false,
+      isLoading: false,
+      canAddToWallet: false,
+      isCardInWallet: false,
+      pendingVerificationDevices: [],
+      canOpenInWallet: false,
+      openInWallet: jest.fn(),
+      hideProvisioningUi: true,
+    });
+
+    const { result } = renderProvisioning(homeData(walletProvisioning));
+
+    expect(result.current.walletEntry).toBe('none');
+  });
+
   it('opens the Apple Pay confirmation screen without a success toast', () => {
     renderProvisioning(homeData(walletProvisioning));
 
