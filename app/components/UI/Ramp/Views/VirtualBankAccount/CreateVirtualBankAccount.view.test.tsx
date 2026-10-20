@@ -190,6 +190,28 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
     );
   });
 
+  it('opens the generic error route when continuing vendor terms fails', async () => {
+    mockHydrateVbaOnboarding.mockRejectedValue(new Error('hydrate failed'));
+    const { findByTestId, getByTestId, queryByTestId } = renderVbaVendorTerms();
+    const continueButton = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+    await waitFor(() => expect(continueButton).toBeEnabled());
+
+    fireEvent.press(continueButton);
+
+    expect(
+      await findByTestId(
+        getRouteProbeTestId(VbaOnboardingRoutes.ERROR),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
   it('retries loading vendor disclaimers after a request failure', async () => {
     mockFetchVendorDisclaimers
       .mockRejectedValueOnce(new Error('catalog unavailable'))

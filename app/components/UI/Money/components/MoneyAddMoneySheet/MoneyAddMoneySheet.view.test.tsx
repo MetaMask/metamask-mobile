@@ -9,6 +9,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/vba';
 import { CreateVirtualBankAccountSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.testIds';
 import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
+import { VbaOnboardingStubSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
 const disclaimer = {
@@ -23,6 +24,15 @@ const mockHydrateVbaOnboarding = jest.mocked(
 const mockFetchVendorDisclaimers = jest.mocked(
   Engine.context.KycController.fetchVendorDisclaimers,
 );
+
+const emptyOnboardingSnapshot = {
+  sessionExists: false,
+  vendorDisclaimersComplete: false,
+  sessionDisclaimersComplete: false,
+  providerFlowStatus: 'not_started',
+  kycStatus: 'none',
+  autorampStatus: 'not_ready',
+} as const;
 
 describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   beforeEach(() => {
@@ -61,19 +71,40 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ).toBeOnTheScreen();
 
     await act(async () => {
-      resolveHydration?.({
-        sessionExists: false,
-        vendorDisclaimersComplete: false,
-        sessionDisclaimersComplete: false,
-        providerFlowStatus: 'not_started',
-        kycStatus: 'none',
-        autorampStatus: 'not_ready',
-      });
+      resolveHydration?.(emptyOnboardingSnapshot);
     });
 
     expect(
       await findByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the generic setup error when loading fails and retries into vendor terms', async () => {
+    mockHydrateVbaOnboarding
+      .mockRejectedValueOnce(new Error('hydrate failed'))
+      .mockResolvedValue(emptyOnboardingSnapshot);
+    const { findByTestId, queryByTestId } = renderVbaMoneyEntry();
+    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+    fireEvent.press(
+      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    );
+
+    expect(
+      await findByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
+    ).toBeOnTheScreen();
+    expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(
+      await findByTestId(VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
+    ).not.toBeOnTheScreen();
+    expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(2);
   });
 
   it('shows the bank account entry only inside enabled regions', async () => {
