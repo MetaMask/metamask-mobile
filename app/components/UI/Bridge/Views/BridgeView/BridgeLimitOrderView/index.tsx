@@ -99,7 +99,17 @@ const formatTokenAmountValue = (
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-const BridgeLimitOrderViewContent = () => {
+interface BridgeLimitOrderViewContentProps {
+  initialExpirationMinutes?: SwapsLimitOrderExpirationMinutes;
+  initialPriceTolerance?: string;
+  deeplinkInitializationKey?: string;
+}
+
+const BridgeLimitOrderViewContent = ({
+  initialExpirationMinutes,
+  initialPriceTolerance,
+  deeplinkInitializationKey,
+}: BridgeLimitOrderViewContentProps) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -305,8 +315,14 @@ const BridgeLimitOrderViewContent = () => {
       : strings('bridge.limit.create_order');
   const [expirationMinutes, setExpirationMinutes] =
     useState<SwapsLimitOrderExpirationMinutes>(
-      SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
     );
+
+  useEffect(() => {
+    setExpirationMinutes(
+      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+    );
+  }, [deeplinkInitializationKey, initialExpirationMinutes]);
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -520,11 +536,15 @@ const BridgeLimitOrderViewContent = () => {
     triggerPrice,
   ]);
 
-  // Reset cost tolerance when navigating to limit orders screen.
+  // Initialize cost tolerance when navigating to the Limit Order screen or
+  // when a new deeplink targets an already-mounted Bridge route.
   useEffect(() => {
-    dispatch(setLimitOrderCostTolerance(LIMIT_ORDER_DEFAULT_COST_TOLERANCE));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    dispatch(
+      setLimitOrderCostTolerance(
+        initialPriceTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+      ),
+    );
+  }, [deeplinkInitializationKey, dispatch, initialPriceTolerance]);
 
   // Keeps the market-comparison label in sync everywhere it's shown: this
   // screen keeps running (and this effect keeps firing) behind the
