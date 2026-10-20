@@ -534,11 +534,11 @@ describe('CustomAmountInfo', () => {
     });
 
     it('renders the live amount, keyboard and account selector on the first frame', () => {
-      const { getByTestId, getByText } = renderDeferred({
+      const { getByRole, getByTestId } = renderDeferred({
         supportAccountSelection: true,
       });
 
-      expect(getByText('123.45')).toBeOnTheScreen();
+      expect(getByRole('button', { name: '$123.45' })).toBeOnTheScreen();
       expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
       expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
       expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
