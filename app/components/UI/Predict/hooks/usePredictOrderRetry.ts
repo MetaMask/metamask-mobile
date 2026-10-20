@@ -12,7 +12,7 @@ import type {
   PredictBuyAttempt,
   PredictRetryOrderState,
 } from '../types';
-import { getPredictTicksWorse } from '../utils/prices';
+import { getPredictPriceConsent } from '../utils/prices';
 import { sanitizePredictFailureReason } from '../utils/analytics';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { RefetchPreviewResult } from './usePredictOrderPreview';
@@ -84,24 +84,24 @@ function classifyFreshQuote(
       return { outcome: 'unavailable' };
     case 'ok': {
       const freshPreview = fetchResult.preview;
-      const ticksWorse =
+      const consent =
         referencePrice === undefined
-          ? 0
-          : getPredictTicksWorse({
+          ? null
+          : getPredictPriceConsent({
               side: freshPreview.side,
-              referencePrice,
-              freshPrice: freshPreview.sharePrice,
+              approvedPrice: referencePrice,
+              refreshedPrice: freshPreview.sharePrice,
               tickSize: freshPreview.tickSize,
             });
+      const movedBeyondOneTick = consent ? !consent.withinOneTick : false;
       return {
         outcome: 'quoted',
         quote: freshPreview,
         previousPrice: referencePrice ?? null,
-        movedBeyondOneTick: ticksWorse > 1,
-        oneTickDecision:
-          ticksWorse > 1
-            ? PredictEventValues.ONE_TICK_DECISION.BEYOND_ONE_TICK
-            : PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK,
+        movedBeyondOneTick,
+        oneTickDecision: movedBeyondOneTick
+          ? PredictEventValues.ONE_TICK_DECISION.BEYOND_ONE_TICK
+          : PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK,
       };
     }
   }
