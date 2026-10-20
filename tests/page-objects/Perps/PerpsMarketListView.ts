@@ -7,6 +7,7 @@ import {
   PerpsWatchlistSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
+import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { type AppiumElement } from '../../framework';
@@ -144,7 +145,10 @@ class PerpsMarketListView {
       elemDescription: 'Perps home search button',
       timeout: 15000,
     });
-    await Utilities.isElementVisible(this.searchBar, 15000);
+    await Assertions.expectElementToBeVisible(this.searchBar, {
+      description: 'Perps market search bar is visible',
+      timeout: 15000,
+    });
   }
 
   async tapCloseTokenSelector() {

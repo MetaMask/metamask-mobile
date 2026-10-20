@@ -142,6 +142,10 @@
           "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardLinkApiBlocked": false,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -150,7 +154,11 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null
+          "signInLink": null,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],

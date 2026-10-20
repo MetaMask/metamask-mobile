@@ -13,8 +13,21 @@ import {
 } from './profileOnboardingDraft';
 
 describe('profileOnboardingDraft', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('normalizes a typed handle', () => {
     expect(normalizeUsername('  @Wen-Cat ')).toBe('wen-cat');
+  });
+
+  it('starts the draft with a generated username and matching display name', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.username).toBe('bonk-turbo-queen');
+    expect(draft.displayName).toBe('Bonk Turbo Queen');
   });
 
   it('builds a display name from a hyphenated handle', () => {
@@ -40,6 +53,8 @@ describe('profileOnboardingDraft', () => {
   it('writes onboarding choices onto a local profile', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
+      username: 'wen-cat',
+      displayName: 'Wen Cat',
       avatarPresetId: 'zombie',
       avatarBackgroundId: 'lime',
       linkedAccountId: 'acc-1',
@@ -89,13 +104,14 @@ describe('profileOnboardingDraft', () => {
       linkedAccountId: 'acc-1',
       linkedAccountAddress: '0xabc',
     };
+    jest.spyOn(Math, 'random').mockReturnValue(0);
 
     const manual = startManualOnboarding(draft);
 
     expect(manual.path).toBe('manual');
     expect(manual.useXAvatar).toBe(false);
     expect(manual.xUsername).toBeNull();
-    expect(manual.username).toBe('wen-cat');
+    expect(manual.username).toBe('bonk-turbo-queen');
     expect(manual.linkedAccountId).toBe('acc-1');
     expect(buildOnboardedSocialProfile(manual).connectedToX).toBe(false);
     expect(buildOnboardedSocialProfile(manual).xHandle).toBeNull();
@@ -114,6 +130,8 @@ describe('profileOnboardingDraft', () => {
   it('maps a draft onto createProfile parameters', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
+      username: 'wen-cat',
+      displayName: 'Wen Cat',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
     };

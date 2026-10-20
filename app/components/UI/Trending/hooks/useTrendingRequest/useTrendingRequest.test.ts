@@ -648,6 +648,30 @@ describe('useTrendingRequest', () => {
       spyGetTrendingTokens.mockRestore();
     });
 
+    it('uses Tempo overrides', async () => {
+      const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
+      spyGetTrendingTokens.mockResolvedValue([] as never);
+
+      const { result } = renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: [NetworkToCaipChainId.TEMPO],
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          minLiquidity: 0,
+          minVolume24hUsd: 500,
+        }),
+      );
+
+      spyGetTrendingTokens.mockRestore();
+    });
+
     it('uses multi-chain baseline when multiple chains provided', async () => {
       const spyGetTrendingTokens = jest.mocked(getTrendingTokens);
       spyGetTrendingTokens.mockResolvedValue([] as never);

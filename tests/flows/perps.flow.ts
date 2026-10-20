@@ -148,6 +148,42 @@ export const waitForOrderScreenVisible = async (
   throw new Error(`Order screen not visible after ${timeout}ms`);
 };
 
+/**
+ * Opens Perps from the wallet homepage and waits until the Perps home search
+ * control is visible. Each attempt stays short so a late-mounted section can
+ * be retried inside the outer budget.
+ */
+const openPerpsHomeFromWallet = async (): Promise<void> => {
+  await Utilities.executeWithRetry(
+    async () => {
+      if (
+        await Utilities.isElementVisible(
+          PerpsMarketListView.homeSearchToggle,
+          1_000,
+        )
+      ) {
+        return;
+      }
+
+      await WalletView.scrollAndTapPerpsSection();
+      await dismissPerpsOnboardingTutorialIfPresent();
+      await Assertions.expectElementToBeVisible(
+        PerpsMarketListView.homeSearchToggle,
+        {
+          description: 'Perps home search control is visible',
+          timeout: 5_000,
+        },
+      );
+    },
+    {
+      timeout: 60_000,
+      interval: 1_000,
+      description: 'open Perps home from wallet',
+      elemDescription: 'Perps home search control',
+    },
+  );
+};
+
 export type PerpsPositionDirection = 'long' | 'short';
 
 export type PerpsLimitPricePreset = 'Mid' | 'Bid' | 'Ask' | number;
@@ -159,7 +195,7 @@ export const navigateToPerpsOrderEntry = async (
   symbol: string,
   direction: PerpsPositionDirection,
 ): Promise<void> => {
-  await WalletView.scrollAndTapPerpsSection();
+  await openPerpsHomeFromWallet();
   await PerpsMarketListView.selectMarketAndTapOrderSide(symbol, direction);
 };
 
@@ -172,7 +208,7 @@ export const navigateToPerpsOrderEntry = async (
  * Requires the `confirmations_pay_post_quote` → `perpsWithdraw` flag enabled.
  */
 export const openPerpsWithdrawPayConfirmation = async (): Promise<void> => {
-  await WalletView.scrollAndTapPerpsSection();
+  await openPerpsHomeFromWallet();
   await dismissPerpsOnboardingTutorialIfPresent();
   await PerpsHomeView.tapExploreCryptoIfVisible();
   await PerpsHomeView.waitForWithdrawButton();
@@ -261,7 +297,7 @@ export const switchToPerpsProMode = async (): Promise<void> => {
 export const navigateToPerpsProEntry = async (
   symbol: string,
 ): Promise<void> => {
-  await WalletView.scrollAndTapPerpsSection();
+  await openPerpsHomeFromWallet();
   await dismissPerpsOnboardingTutorialIfPresent();
   await PerpsMarketListView.selectMarket(symbol);
   await switchToPerpsProMode();
