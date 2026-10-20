@@ -19,15 +19,15 @@ The public API is the same in both states. Only the Polymarket branch changes.
 
 ## External consumers today
 
-| Group                                  | Examples                                                                                                                                              | Direction                                                              |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Availability and analytics constants   | `selectPredictEnabledFlag`, `PredictEventValues` across Wallet, Trending, Activity, and Homepage                                                      | Venue-neutral availability and analytics exports                       |
-| Entry points and navigation            | Wallet and TradeWallet actions, Homepage buttons and pills, deep links, `usePredictNavigation`, navigation param types                                | Intent-based `openPredict`; callers never pass legacy routes or params |
-| Shared surfaces rendering Predict data | Homepage Predictions section, Trending feeds and search rows, UI slot widgets, built from `PredictMarket`/`PredictPosition`                           | Predict-owned components; existing code moves behind them              |
-| Narrow projections                     | BalanceBreakdown `usePredictSlice` (portfolio value), ActivityList and ActivityDetails (`usePredictActivity`)                                         | Hooks returning the consumer's own type                                |
-| Execution and composition wiring       | Confirmations pay-with and withdraw hooks, proxy-address helpers, Polygon constants, Engine messengers, transaction-pay callbacks, toast registration | Unchanged until PRED-1356                                              |
+| Group                                  | Examples                                                                                                                                                                                                 | Direction                                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Availability and analytics constants   | `selectPredictEnabledFlag`, `PredictEventValues` across Wallet, Trending, Activity, and Homepage                                                                                                         | Venue-neutral availability and analytics exports                       |
+| Entry points and navigation            | Wallet and TradeWallet actions, Homepage buttons and pills, deep links, Rewards campaign CTA, Activity empty state, `usePredictNavigation`, direct `Routes.PREDICT.*` navigation, navigation param types | Intent-based `openPredict`; callers never pass legacy routes or params |
+| Shared surfaces rendering Predict data | Homepage Predictions section, Trending feeds and search rows, Browser URL autocomplete, UI slot widgets, built from `PredictMarket`/`PredictPosition`                                                    | Predict-owned components; existing code moves behind them              |
+| Narrow projections                     | BalanceBreakdown `usePredictSlice` (portfolio value), ActivityList and ActivityDetails (`usePredictActivity`)                                                                                            | Hooks returning the consumer's own type                                |
+| Execution and composition wiring       | Confirmations pay-with and withdraw hooks, proxy-address helpers, Polygon constants, Engine messengers, transaction-pay callbacks, toast registration                                                    | Unchanged until PRED-1356                                              |
 
-Reverify this inventory when each surface migrates.
+Rewards campaign data comes from the Rewards backend (`PredictThePitchPositionsDto`), not from Predict, so only its navigation couples to Predict. Reverify this inventory when each surface migrates; import scans miss route-name coupling.
 
 ## Public surface
 
