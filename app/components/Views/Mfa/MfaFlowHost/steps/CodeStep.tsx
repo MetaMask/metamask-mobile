@@ -66,20 +66,26 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   const { codeSent } = step;
   const isCoolingDown = secondsLeft > 0;
 
-  // iOS can leave the input focused with no keyboard (for example when it
-  // was focused during the modal transition); a tap alone does not reopen it.
-  const focusInput = useCallback(() => {
-    const input = inputRef.current;
-    if (!input) {
-      return;
-    }
-    if (input.isFocused() && !Keyboard.isVisible()) {
-      input.blur();
-      requestAnimationFrame(() => input.focus());
-      return;
-    }
-    input.focus();
-  }, [inputRef]);
+  // React Native ignores focus() on an input it considers focused, so a
+  // keyboard hidden without a blur (Android's back button, switching apps to
+  // copy the code, a modal transition on iOS) only comes back after one. A tap
+  // always reopens it: `Keyboard.isVisible()` can be stale after an app
+  // switch.
+  const focusInput = useCallback(
+    (isTap = false) => {
+      const input = inputRef.current;
+      if (!input) {
+        return;
+      }
+      if (input.isFocused() && (isTap || !Keyboard.isVisible())) {
+        input.blur();
+        requestAnimationFrame(() => input.focus());
+        return;
+      }
+      input.focus();
+    },
+    [inputRef],
+  );
 
   useEffect(() => {
     if (error || codeResent) {
@@ -179,7 +185,7 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
           rootStyle={tw.style('gap-2')}
           keyboardType="number-pad"
           textContentType="oneTimeCode"
-          onPressIn={focusInput}
+          onPressIn={() => focusInput(true)}
           testID={MfaFlowSelectorsIDs.CODE_INPUT}
           renderCell={({ index, symbol, isFocused }) => (
             <View

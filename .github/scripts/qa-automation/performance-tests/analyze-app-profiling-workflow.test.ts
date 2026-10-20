@@ -259,11 +259,14 @@ describe('Analyze App Profiling triggers', () => {
     ).toBeUndefined();
   });
 
-  it('routes Slack by the branch that produced the profiles', () => {
+  it('routes weekly main reports to performance and other main digests to QA alerts', () => {
     const workflow = loadWorkflow();
 
     const target = workflow.env?.SLACK_TARGET ?? '';
 
+    expect(target).toContain("github.event_name == 'schedule'");
+    expect(target).toContain("github.event.inputs.weekly == 'true'");
+    expect(target).toContain('C07KB8HRZ4J');
     expect(target).toContain('C0C3WSWNKS5');
     expect(target).toContain('UEYQL2PEV');
     expect(workflow.env?.SLACK_PERFORMANCE_TARGET).toBe('C07KB8HRZ4J');

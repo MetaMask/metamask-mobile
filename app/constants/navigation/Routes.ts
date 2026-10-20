@@ -669,6 +669,8 @@ const Routes = {
   MFA: {
     FLOW: 'MfaFlow',
     SETTINGS: 'MfaSettings',
+    PASSKEYS: 'MfaPasskeys',
+    METHOD_DETAILS: 'MfaMethodDetails',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */
