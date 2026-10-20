@@ -53,6 +53,9 @@ import {
   aggregateTimingsFromPlaywrightJson,
   countSkips,
   countDefinedTests,
+  mergePlatformTimingSamples,
+  summarizeTimingSamples,
+  timingSamplesFromQaStats,
 } from './qa-stats-e2e.mjs';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -1017,9 +1020,75 @@ async function collectE2ETestTimes() {
     }
   }
 
-  const specCount = Object.keys(acc).length;
-  console.log(`[e2e_test_times] aggregated timings for ${specCount} spec file(s)`);
-  return acc;
+  const previous = await fetchPreviousTimingSamples();
+  const samples = mergePlatformTimingSamples(previous, acc);
+  const timings = summarizeTimingSamples(samples);
+  console.log(
+    `[e2e_test_times] aggregated ${Object.keys(acc).length} spec file(s); ` +
+      `publishing p75 across ${Object.keys(samples).length} retained spec history entries`,
+  );
+  return { timings, samples };
+}
+
+async function fetchPreviousTimingSamples() {
+  const override = process.env.PREVIOUS_QA_STATS_PATH?.trim();
+  if (override) {
+    const parsed = JSON.parse(await readFile(override, 'utf8'));
+    return timingSamplesFromQaStats(parsed);
+  }
+
+  if (!GITHUB_TOKEN) return {};
+
+  try {
+    const headers = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    const runsUrl = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/qa-stats.yml/runs?branch=main&status=success&per_page=1`;
+    const runsRes = await fetch(runsUrl, { headers });
+    if (!runsRes.ok) {
+      throw new Error(`qa-stats runs → ${runsRes.status} ${runsRes.statusText}`);
+    }
+    const run = (await runsRes.json())?.workflow_runs?.[0];
+    if (!run?.id) return {};
+
+    const artifactsRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run.id}/artifacts`,
+      { headers },
+    );
+    if (!artifactsRes.ok) {
+      throw new Error(`qa-stats artifacts → ${artifactsRes.status} ${artifactsRes.statusText}`);
+    }
+    const artifact = ((await artifactsRes.json())?.artifacts ?? []).find(
+      (entry) => entry?.name === 'qa-stats' && !entry?.expired,
+    );
+    if (!artifact?.archive_download_url) return {};
+
+    const redirectRes = await fetch(artifact.archive_download_url, {
+      headers,
+      redirect: 'manual',
+    });
+    const downloadUrl = redirectRes.headers.get('location');
+    if (!downloadUrl) return {};
+    const zipRes = await fetch(downloadUrl);
+    if (!zipRes.ok) {
+      throw new Error(`qa-stats download → ${zipRes.status} ${zipRes.statusText}`);
+    }
+
+    const destDir = './previous-qa-stats';
+    await mkdir(destDir, { recursive: true });
+    const zipPath = join(destDir, 'qa-stats.zip');
+    await writeFile(zipPath, Buffer.from(await zipRes.arrayBuffer()));
+    execSync(`unzip -qo "${zipPath}" -d "${destDir}"`);
+    const parsed = JSON.parse(await readFile(join(destDir, 'qa-stats.json'), 'utf8'));
+    console.log(`[e2e_test_times] retained timing history from qa-stats run #${run.id}`);
+    return timingSamplesFromQaStats(parsed);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[e2e_test_times] previous timing history unavailable: ${message}`);
+    return {};
+  }
 }
 
 /**
@@ -1123,6 +1192,16 @@ async function main() {
   for (const { namespace, collect } of collectors) {
     try {
       const nested = await collect();
+      if (namespace === 'e2e_test_times') {
+        const timings = nested?.timings ?? nested;
+        const samples = nested?.samples;
+        if (!timings || Object.keys(timings).length === 0) continue;
+        stats.e2e_test_times = timings;
+        if (samples && Object.keys(samples).length > 0) {
+          stats.e2e_test_time_samples = samples;
+        }
+        continue;
+      }
       if (Object.keys(nested).length === 0) continue;
       stats[namespace] = nested;
     } catch (err) {

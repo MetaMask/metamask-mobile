@@ -748,34 +748,28 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    // Wait explicitly between steps; Snap install sheets are slower on Android CI.
+    // The next sheet appearing is the signal that this step finished. A second
+    // 60s wait for the previous control to leave the accessibility tree is what
+    // stretched Snap connect toward the suite timeout.
     const stepTimeout = PlatformDetector.isAndroidAppium() ? 60_000 : 15_000;
-    const waitForSheetTransition = async (
-      elem: Promise<AppiumElement>,
-    ): Promise<void> => {
-      await Utilities.waitForElementToDisappear(elem, stepTimeout);
-    };
+    const finalSheetTimeout = 10_000;
 
     await Gestures.waitAndTap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getConnectSnapButton);
-
     await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getApproveSnapPermissionsRequestButton);
-
     await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getConnectSnapInstallOkButton);
+    await Utilities.waitForElementToDisappear(
+      this.getConnectSnapInstallOkButton,
+      finalSheetTimeout,
+    );
   }
 
   async fillMessage(
