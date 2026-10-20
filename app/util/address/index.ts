@@ -151,7 +151,8 @@ export function areAddressesEqual(address1: string, address2: string) {
 export function renderShortAddress(address: string, chars = 5) {
   if (!address) return address;
   const formattedAddress = toFormattedAddress(address);
-  return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
+  const startChars = isEthAddress(formattedAddress) ? chars + 2 : chars;
+  return `${formattedAddress.substr(0, startChars)}...${formattedAddress.substr(
     -chars,
   )}`;
 }
