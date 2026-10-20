@@ -709,7 +709,8 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               valueEndButtonIconProps={
                 isAddMode
                   ? {
-                      iconName: IconName.Add,
+                      iconName: IconName.AddCircle,
+                      iconProps: { color: IconColor.IconAlternative },
                       onPress: handleDepositPress,
                       isDisabled: isAdjusting,
                       testID:

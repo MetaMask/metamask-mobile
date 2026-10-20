@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   HeaderSubpage,
+  IconColor,
+  IconName,
   SegmentedControl,
 } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
@@ -253,6 +255,10 @@ describe('PerpsAdjustMarginBottomSheet', () => {
     render(
       <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
     );
+
+    const depositIcon = screen.UNSAFE_getByProps({ name: IconName.AddCircle });
+    expect(depositIcon.props.name).toBe(IconName.AddCircle);
+    expect(depositIcon.props.color).toBe(IconColor.IconAlternative);
 
     fireEvent.press(
       screen.getByTestId(
