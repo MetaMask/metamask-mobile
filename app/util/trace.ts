@@ -636,7 +636,7 @@ type GenericTraceName = TraceRequest['name'];
 type TraceRequestFor<TName extends GenericTraceName> = [TName] extends [
   SwapRelatedTraceName<TraceName>,
 ]
-  ? Omit<SwapTraceRequest<TName>, 'op'> & { op: TraceOperation }
+  ? Omit<SwapTraceRequest<TName>, 'op'> & { op?: TraceOperation }
   : Omit<TraceRequest, 'name'> & { name: TName };
 
 export function trace<ResultType, TName extends GenericTraceName>(
