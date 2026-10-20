@@ -15,7 +15,7 @@ import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../util/address';
 
-export interface SocialOnboardingAccount {
+export interface LinkableSocialAccount {
   id: string;
   name: string;
   address: string;
@@ -26,13 +26,13 @@ const accountLabel = (name: string | undefined, address: string): string =>
   name?.trim() ? name : renderShortAddress(address);
 
 /**
- * Accounts offered on the link step, named the same way as the homepage
+ * Accounts a social profile can link, named the same way as the homepage
  * account selector (the account-group name, not the raw address).
  *
  * Each row still resolves to its EVM account so the profile can link
  * `eip155:1:{address}`. Groups with no EVM account are left out.
  */
-export const useSocialOnboardingAccounts = (): SocialOnboardingAccount[] => {
+export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
   const evmAccounts = useSelector(selectInternalEvmAccounts);
   const accountsById = useSelector(selectInternalAccountsById);
   const accountSections = useSelector(selectVisibleAccountGroupsByWallet);

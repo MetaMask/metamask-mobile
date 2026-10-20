@@ -15,6 +15,7 @@ import { toDateFormat } from '../../../util/date';
 import { safeToChecksumAddress } from '../../../util/address';
 import { connect, useSelector } from 'react-redux';
 import StyledButton from '../StyledButton';
+import { showSpeedUp } from '../Transactions/pendingTxActions';
 import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
@@ -594,7 +595,7 @@ class TransactionElement extends PureComponent {
         </ListItem.Content>
         {renderNormalActions && (
           <ListItem.Actions>
-            {this.renderSpeedUpButton()}
+            {showSpeedUp(type) && this.renderSpeedUpButton()}
             {this.renderCancelButton()}
           </ListItem.Actions>
         )}

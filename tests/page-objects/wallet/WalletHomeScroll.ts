@@ -20,6 +20,7 @@ import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import TabBarComponent from './TabBarComponent';
 import { pixelsToClearTabBar } from './tabBarClearance';
 
+const WALLET_HOME_SWIPE_PERCENT = 0.5;
 const MAX_TAB_BAR_CLEARANCE_SCROLLS = 3;
 // The wallet tab button's top sits inside the floating bar, so measuring only
 // that edge leaves the header under the bar and the tap hits Money.
@@ -115,6 +116,7 @@ export class WalletHomeScroll {
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
+    options: { fullyVisible?: boolean } = {},
   ): Promise<void> {
     await Assertions.expectElementToBeVisible(this.walletScrollView, {
       timeout: resolveE2EWaitTimeoutMs(10_000),
@@ -126,19 +128,33 @@ export class WalletHomeScroll {
         this.walletScrollView,
       )) as AppiumElement;
       const freshTarget = await this.resolveFreshWalletHomeTarget(target);
-      const scrollDirection = direction === 'down' ? 'up' : 'down';
+      const scrollDirection: 'up' | 'down' =
+        direction === 'down' ? 'up' : 'down';
       if (isPerformanceSuiteActive()) {
         // WDIO scrollIntoView swipes from 75% of this ScrollView. The view
         // runs under the floating tab bar, so that gesture is swallowed and
         // the list never moves. It also skips the swipe entirely once Android
         // reports the header as displayed. Drag from mid-screen instead.
-        await this.scrollUntilVisible(target, description, direction, maxAttempts);
+        await this.scrollUntilVisible(
+          target,
+          description,
+          direction,
+          maxAttempts,
+        );
       } else {
-        await Gestures.scrollIntoView(freshTarget, {
+        const scrollOptions = {
           scrollableElement: scrollView,
           direction: scrollDirection,
+          percent: WALLET_HOME_SWIPE_PERCENT,
           maxScrolls: maxAttempts,
-        });
+        };
+        // scrollIntoView stops on the first visible pixel, which leaves rows
+        // clipped under the floating tab bar. Fully-visible is the shared nudge.
+        if (options.fullyVisible) {
+          await Gestures.scrollIntoViewFullyVisible(freshTarget, scrollOptions);
+        } else {
+          await Gestures.scrollIntoView(freshTarget, scrollOptions);
+        }
       }
       await Assertions.expectElementToBeVisible(
         await this.resolveFreshWalletHomeTarget(target),
@@ -243,10 +259,7 @@ export class WalletHomeScroll {
       logger.info(
         `Scrolling ${needed}px so "${description}" clears the floating tab bar (${scroll}/${MAX_TAB_BAR_CLEARANCE_SCROLLS})`,
       );
-      await this.scrollWalletHome(
-        'down',
-        Math.max(needed / viewHeight, 0.22),
-      );
+      await this.scrollWalletHome('down', Math.max(needed / viewHeight, 0.22));
       current = await this.resolveFreshWalletHomeTarget(target);
     }
 
@@ -353,6 +366,8 @@ export class WalletHomeScroll {
       tapTimeout?: number;
       /** Scroll clear of the floating tab bar before tapping. */
       clearTabBar?: boolean;
+      /** Use scrollIntoViewFullyVisible so the row clears the tab bar. */
+      fullyVisible?: boolean;
     } = {},
   ): Promise<void> {
     const {
@@ -361,6 +376,7 @@ export class WalletHomeScroll {
       maxAttempts: maxAttemptsOverride,
       tapTimeout = 30_000,
       clearTabBar = false,
+      fullyVisible = false,
     } = options;
     const maxAttempts =
       maxAttemptsOverride ?? Math.max(8, Math.ceil(timeout / 2_000));
@@ -375,8 +391,11 @@ export class WalletHomeScroll {
         description,
         scrollDirection,
         maxAttempts,
+        { fullyVisible },
       );
-      if (overshootSwipe) {
+      // Android fully-visible already nudges clear of the tab bar.
+      // iOS ignores fullyVisible, so it still needs the overshoot swipe.
+      if (overshootSwipe && !(fullyVisible && this.isAndroidAppium())) {
         await this.applySectionOvershoot(overshootSwipe, description);
       }
       return this.resolveFreshWalletHomeTarget(sectionTarget);

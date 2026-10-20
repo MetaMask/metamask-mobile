@@ -2,9 +2,9 @@ import {
   array,
   assign,
   boolean,
-  object,
   optional,
   string,
+  type,
   type Infer,
 } from '@metamask/superstruct';
 import {
@@ -19,10 +19,10 @@ import {
  */
 export const LimitOrderSchema = assign(
   CreatedLimitOrderSchema,
-  object({
+  type({
     timingData: assign(
       LimitOrderTimingDataSchema,
-      object({ expiresAt: string() }),
+      type({ expiresAt: string() }),
     ),
   }),
 );
@@ -30,7 +30,7 @@ export const LimitOrderSchema = assign(
 /**
  * Response body for `GET /v2/orders/limit`: one page of orders, newest first.
  */
-export const LimitOrderPageResponseSchema = object({
+export const LimitOrderPageResponseSchema = type({
   orders: array(LimitOrderSchema),
   /**
    * Keyset cursor for the end of this page, passed back as `after` to fetch
