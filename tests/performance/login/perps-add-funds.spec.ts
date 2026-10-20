@@ -36,13 +36,16 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await loginToAppPlaywright();
-      await WalletView.scrollAndTapPerpsSection();
-
+      // Fetched before the tap so the network call is not part of the
+      // tap-to-tutorial time.
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
         testEnvironment,
       );
+
+      await loginToAppPlaywright();
+      await WalletView.scrollAndTapPerpsSection();
+
       const perpsGtmOnboardingModalEnabled =
         await resolvePerpsGtmOnboardingModalEnabled(productionFeatureFlags);
 
