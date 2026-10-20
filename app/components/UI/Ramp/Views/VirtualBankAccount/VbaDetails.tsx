@@ -45,6 +45,8 @@ import {
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
+// Keep the Figma disclosure ready while Product finalizes the copy.
+const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
@@ -452,14 +454,16 @@ const VbaDetails = () => {
         )}
       </ScrollView>
       <Box twClassName="gap-4 px-4 pb-2 pt-4">
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-          testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
-        >
-          {strings('virtual_bank_account.vba_details.helper_text')}
-        </Text>
+        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+          >
+            {strings('virtual_bank_account.vba_details.helper_text')}
+          </Text>
+        ) : null}
         {showSetupRetry ? (
           <Button
             variant={ButtonVariant.Secondary}

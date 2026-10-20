@@ -150,7 +150,9 @@ describe('VbaDetails', () => {
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
@@ -159,10 +161,9 @@ describe('VbaDetails', () => {
       'no',
     );
     expect(getByText('Add money with Pix')).toBeOnTheScreen();
-    const helperText = getByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT);
-    expect(helperText).toHaveTextContent(
-      strings('virtual_bank_account.vba_details.helper_text'),
-    );
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
+    ).not.toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
     });
