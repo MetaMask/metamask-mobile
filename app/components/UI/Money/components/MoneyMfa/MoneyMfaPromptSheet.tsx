@@ -13,13 +13,13 @@ import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 const MoneyMfaPromptSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { turnOn } = useMoneyMfa();
+  const { addPasskeyAndTurnOn } = useMoneyMfa();
 
   const handleAddPasskey = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      void turnOn();
+      void addPasskeyAndTurnOn();
     });
-  }, [turnOn]);
+  }, [addPasskeyAndTurnOn]);
 
   return (
     <BottomSheet

@@ -120,7 +120,6 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
-    MoneyMfaIntro: undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;
     MoneyTransactionDetails: { transactionId: string };

@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box,
-  Button,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -27,12 +24,12 @@ interface MoneyMfaStatusBannerProps {
 }
 
 /**
- * Top-of-Money-home banner while the Money account is set up for 2-step
- * verification, and when that setup fails.
+ * Top-of-Money-home banner while 2-step verification is set up, and when that
+ * setup fails.
  *
  * @param props - The banner's props.
  * @param props.status - Money 2-step verification status.
- * @param props.onRetry - Retries the account setup.
+ * @param props.onRetry - Retries the setup.
  * @param props.onDismissFailure - Clears the failed state.
  */
 const MoneyMfaStatusBanner = ({
@@ -55,7 +52,9 @@ const MoneyMfaStatusBanner = ({
 
   return (
     <Box
-      twClassName="mx-4 mt-2 flex-row items-start gap-3 rounded-xl bg-muted p-4"
+      twClassName={`mx-4 mt-2 flex-row items-start gap-3 rounded-xl p-4 ${
+        isSettingUp ? 'bg-muted' : 'bg-error-muted'
+      }`}
       testID={
         isSettingUp
           ? MoneyMfaTestIds.SETTING_UP_BANNER
@@ -73,7 +72,7 @@ const MoneyMfaStatusBanner = ({
           />
         )}
       </Box>
-      <Box twClassName="flex-1 items-start gap-1">
+      <Box twClassName="flex-1 gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(
             isSettingUp
@@ -81,23 +80,22 @@ const MoneyMfaStatusBanner = ({
               : 'money.mfa.failed_title',
           )}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings(
-            isSettingUp
-              ? 'money.mfa.setting_up_description'
-              : 'money.mfa.failed_description',
-          )}
-        </Text>
-        {isSettingUp ? null : (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={onRetry}
-            twClassName="mt-2"
-            testID={MoneyMfaTestIds.FAILED_BANNER_RETRY}
-          >
-            {strings('money.mfa.failed_retry')}
-          </Button>
+        {isSettingUp ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('money.mfa.setting_up_description')}
+          </Text>
+        ) : (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {`${strings('money.mfa.failed_description')} `}
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.PrimaryDefault}
+              onPress={onRetry}
+              testID={MoneyMfaTestIds.FAILED_BANNER_RETRY}
+            >
+              {strings('money.mfa.failed_retry')}
+            </Text>
+          </Text>
         )}
       </Box>
       <ButtonIcon
@@ -107,7 +105,11 @@ const MoneyMfaStatusBanner = ({
         onPress={
           isSettingUp ? () => setIsSettingUpHidden(true) : onDismissFailure
         }
-        testID={MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE}
+        testID={
+          isSettingUp
+            ? MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE
+            : MoneyMfaTestIds.FAILED_BANNER_CLOSE
+        }
       />
     </Box>
   );

@@ -110,13 +110,11 @@ const MoneyMoreSheet = () => {
         navigation.navigate(Routes.MONEY.MODALS.ROOT, {
           screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
         });
-      } else if (mfaStatus === 'not_set_up') {
-        navigation.navigate(Routes.MONEY.MFA_INTRO);
       } else {
         void turnOnMfa();
       }
     });
-  }, [isMfaOn, mfaStatus, navigation, turnOnMfa]);
+  }, [isMfaOn, navigation, turnOnMfa]);
 
   const options: MenuOption[] = [
     {

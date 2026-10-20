@@ -27,29 +27,20 @@ const BENEFITS = [
 
 interface MoneyMfaPasskeyIntroProps {
   onAddPasskey: () => void;
-  /** Pushes the button to the bottom of a full screen; a sheet keeps it inline. */
-  isFullScreen?: boolean;
 }
 
 /**
  * "Protect your account with a passkey": shield, benefits and the button that
- * starts passkey setup. Shared by the Money intro screen and the home prompt.
+ * starts passkey setup, shown in the wallet home prompt.
  *
  * @param props - The intro's props.
  * @param props.onAddPasskey - Starts passkey setup.
- * @param props.isFullScreen - Whether the intro fills a screen.
  */
-const MoneyMfaPasskeyIntro = ({
-  onAddPasskey,
-  isFullScreen = false,
-}: MoneyMfaPasskeyIntroProps) => {
+const MoneyMfaPasskeyIntro = ({ onAddPasskey }: MoneyMfaPasskeyIntroProps) => {
   const tw = useTailwind();
 
   return (
-    <Box
-      twClassName={isFullScreen ? 'flex-1 px-4 pb-4' : 'px-4 pb-4'}
-      testID={MoneyMfaTestIds.INTRO}
-    >
+    <Box twClassName="px-4 pb-4" testID={MoneyMfaTestIds.INTRO}>
       <Box twClassName="items-center gap-4">
         <Image
           source={shieldImage}
@@ -83,7 +74,6 @@ const MoneyMfaPasskeyIntro = ({
           </Box>
         ))}
       </Box>
-      {isFullScreen ? <Box twClassName="flex-1" /> : null}
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}

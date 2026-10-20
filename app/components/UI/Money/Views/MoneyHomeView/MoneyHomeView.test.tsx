@@ -279,6 +279,7 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
   useMoneyMfa: jest.fn(),
 }));
 
+const mockMfaTurnOn = jest.fn();
 const mockMfaRetry = jest.fn();
 const mockMfaDismissFailure = jest.fn();
 const mockMfaRefreshCredentials = jest.fn();
@@ -286,7 +287,8 @@ const mockMfaRefreshCredentials = jest.fn();
 const mockMfaStatus = (status: MoneyMfaStatus) =>
   jest.mocked(useMoneyMfa).mockReturnValue({
     status,
-    turnOn: jest.fn(),
+    turnOn: mockMfaTurnOn,
+    addPasskeyAndTurnOn: jest.fn(),
     retry: mockMfaRetry,
     turnOff: jest.fn(),
     dismissFailure: mockMfaDismissFailure,
@@ -1996,13 +1998,13 @@ describe('MoneyHomeView', () => {
       expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
     });
 
-    it('opens the passkey intro when the setup card is pressed', () => {
+    it('turns on 2-step verification when the setup card is pressed', () => {
       mockMfaStatus('not_set_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MFA_INTRO);
+      expect(mockMfaTurnOn).toHaveBeenCalledTimes(1);
     });
 
     it('renders the setting up banner while the Money account is set up', () => {
@@ -2026,7 +2028,7 @@ describe('MoneyHomeView', () => {
       mockMfaStatus('failed');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
+      fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_CLOSE));
 
       expect(mockMfaDismissFailure).toHaveBeenCalledTimes(1);
     });

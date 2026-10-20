@@ -39,7 +39,7 @@ describe('MoneyMfaPasskeyIntro', () => {
 
   it('renders the Add passkey label on the button', () => {
     const { getByTestId } = render(
-      <MoneyMfaPasskeyIntro onAddPasskey={jest.fn()} isFullScreen />,
+      <MoneyMfaPasskeyIntro onAddPasskey={jest.fn()} />,
     );
 
     expect(getByTestId(MoneyMfaTestIds.INTRO_BUTTON)).toHaveTextContent(

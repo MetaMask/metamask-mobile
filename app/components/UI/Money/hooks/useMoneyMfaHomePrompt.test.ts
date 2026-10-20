@@ -67,6 +67,7 @@ const arrange = ({
   mockUseMoneyMfa.mockReturnValue({
     status,
     turnOn: jest.fn(),
+    addPasskeyAndTurnOn: jest.fn(),
     retry: jest.fn(),
     turnOff: jest.fn(),
     dismissFailure: jest.fn(),

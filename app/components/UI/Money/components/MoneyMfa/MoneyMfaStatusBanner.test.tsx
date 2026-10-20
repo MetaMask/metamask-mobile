@@ -95,7 +95,11 @@ describe('MoneyMfaStatusBanner', () => {
       expect(getByTestId(MoneyMfaTestIds.FAILED_BANNER)).toBeOnTheScreen();
       expect(getByText(strings('money.mfa.failed_title'))).toBeOnTheScreen();
       expect(
-        getByText(strings('money.mfa.failed_description')),
+        getByText(
+          `${strings('money.mfa.failed_description')} ${strings(
+            'money.mfa.failed_retry',
+          )}`,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -110,7 +114,7 @@ describe('MoneyMfaStatusBanner', () => {
     it('calls onDismissFailure when close is pressed', () => {
       const { getByTestId, onDismissFailure } = renderBanner('failed');
 
-      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
+      fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_CLOSE));
 
       expect(onDismissFailure).toHaveBeenCalledTimes(1);
     });

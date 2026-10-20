@@ -259,6 +259,7 @@ const MoneyHomeView = () => {
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     status: mfaStatus,
+    turnOn: turnOnMfa,
     retry: retryMfaSetup,
     dismissFailure: dismissMfaFailure,
     refreshCredentials: refreshMfaCredentials,
@@ -267,8 +268,8 @@ const MoneyHomeView = () => {
   useFocusEffect(refreshMfaCredentials);
 
   const handleMfaSetUpPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MFA_INTRO);
-  }, [navigation]);
+    void turnOnMfa();
+  }, [turnOnMfa]);
   const {
     getLinkFlowRedirectTarget,
     startLinkFlow,

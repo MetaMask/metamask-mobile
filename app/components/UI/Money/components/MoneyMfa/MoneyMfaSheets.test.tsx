@@ -43,6 +43,7 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
 }));
 
 const mockTurnOn = jest.fn();
+const mockAddPasskeyAndTurnOn = jest.fn();
 const mockTurnOff = jest.fn();
 
 describe('Money 2-step verification sheets', () => {
@@ -51,6 +52,7 @@ describe('Money 2-step verification sheets', () => {
     jest.mocked(useMoneyMfa).mockReturnValue({
       status: 'not_set_up',
       turnOn: mockTurnOn,
+      addPasskeyAndTurnOn: mockAddPasskeyAndTurnOn,
       retry: jest.fn(),
       turnOff: mockTurnOff,
       dismissFailure: jest.fn(),
@@ -144,7 +146,7 @@ describe('Money 2-step verification sheets', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-      expect(mockTurnOn).toHaveBeenCalledTimes(1);
+      expect(mockAddPasskeyAndTurnOn).toHaveBeenCalledTimes(1);
     });
 
     it('does not turn on 2-step verification before the sheet finishes closing', () => {
@@ -153,7 +155,7 @@ describe('Money 2-step verification sheets', () => {
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
 
-      expect(mockTurnOn).not.toHaveBeenCalled();
+      expect(mockAddPasskeyAndTurnOn).not.toHaveBeenCalled();
     });
   });
 });

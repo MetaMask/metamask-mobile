@@ -53,6 +53,7 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
   jest.mocked(useMoneyMfa).mockReturnValue({
     status,
     turnOn: mockTurnOnMfa,
+    addPasskeyAndTurnOn: jest.fn(),
     retry: jest.fn(),
     turnOff: jest.fn(),
     dismissFailure: jest.fn(),
@@ -348,15 +349,15 @@ describe('MoneyMoreSheet', () => {
       expect(mockTurnOnMfa).not.toHaveBeenCalled();
     });
 
-    it('closes the sheet then opens the passkey intro when toggled before setup', () => {
+    it('closes the sheet then turns on 2-step verification when toggled before setup', () => {
       mockMfaStatus('not_set_up');
       renderWithProvider(<MoneyMoreSheet />);
 
       fireEvent(getMfaSwitch(), 'valueChange', true);
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MFA_INTRO);
-      expect(mockTurnOnMfa).not.toHaveBeenCalled();
+      expect(mockTurnOnMfa).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('closes the sheet then turns 2-step verification back on when toggled while off', () => {
