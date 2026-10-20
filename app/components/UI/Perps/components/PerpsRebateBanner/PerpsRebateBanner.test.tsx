@@ -15,6 +15,11 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   default: () => ({ openTooltipModal: jest.fn() }),
 }));
 
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, unknown>) =>
+    params ? `${key}:${JSON.stringify(params)}` : key,
+}));
+
 const mockUsePerpsRebateQuote = jest.mocked(usePerpsRebateQuote);
 
 describe('PerpsRebateBanner', () => {
@@ -45,12 +50,17 @@ describe('PerpsRebateBanner', () => {
       screen.getByTestId(PERPS_REBATE_BANNER_CONTAINER_TEST_ID),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(PERPS_REBATE_BANNER_TEST_ID)).toBeOnTheScreen();
+    expect(
+      screen.getByText('rewards.rebate.banner:{"percent":5}'),
+    ).toBeOnTheScreen();
   });
 
   it.each([
+    undefined,
     { eligible: false, rebateBips: 500, reason: 'INELIGIBLE' },
     { eligible: true, rebateBips: 500, reason: 'REFERRAL_REQUIRED' },
     { eligible: true, rebateBips: 0, reason: null },
+    { eligible: true, rebateBips: -500, reason: null },
   ])('renders nothing for a non-displayable quote', (data) => {
     mockUsePerpsRebateQuote.mockReturnValue({
       data,

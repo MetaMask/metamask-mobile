@@ -52,6 +52,10 @@ jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
   useSessionProfileId: jest.fn(),
 }));
 
+jest.mock('../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: jest.fn(),
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseNetworkTier = jest.mocked(useNetworkTier);
 const mockUseSessionProfileId = jest.mocked(useSessionProfileId);
@@ -177,6 +181,68 @@ describe('usePerpsRebateQuote', () => {
     });
   });
 
+  it('does not refetch when trade metadata changes', async () => {
+    const Wrapper = createWrapper();
+    const { result, rerender } = renderHook(
+      ({ notionalUsd }) =>
+        usePerpsRebateQuote({
+          coin: 'ETH',
+          direction: 'long',
+          notionalUsd,
+        }),
+      {
+        initialProps: { notionalUsd: '100' },
+        wrapper: Wrapper,
+      },
+    );
+
+    await waitFor(() => expect(result.current.data).toEqual(REBATE_QUOTE));
+    rerender({ notionalUsd: '200' });
+    await waitFor(() => expect(result.current.fetchStatus).toBe('idle'));
+
+    expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches after the selected account changes', async () => {
+    const accountQuote = { ...REBATE_QUOTE, rebateBips: 700 };
+    mockGetPerpsRebateQuote
+      .mockResolvedValueOnce(REBATE_QUOTE)
+      .mockResolvedValueOnce(accountQuote);
+    const Wrapper = createWrapper();
+    const { result, rerender } = renderHook(
+      ({ address }) => {
+        selectorState.address = address;
+        return usePerpsRebateQuote();
+      },
+      {
+        initialProps: { address: '0xabc' },
+        wrapper: Wrapper,
+      },
+    );
+
+    await waitFor(() => expect(result.current.data).toEqual(REBATE_QUOTE));
+    rerender({ address: '0xdef' });
+    await waitFor(() => expect(result.current.data).toEqual(accountQuote));
+
+    expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries one transient quote failure through the query', async () => {
+    mockGetPerpsRebateQuote
+      .mockRejectedValueOnce(
+        new RewardsMoneyRebateQuoteError(503, 'UNAVAILABLE', 'Server busy', 0),
+      )
+      .mockResolvedValueOnce(REBATE_QUOTE);
+    const Wrapper = createWrapper();
+
+    const { result } = renderHook(() => usePerpsRebateQuote(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => expect(result.current.data).toEqual(REBATE_QUOTE));
+    expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(2);
+  });
+
   it('returns a cached quote while remount revalidation is pending', async () => {
     const queryClient = createQueryClient();
     const Wrapper = createWrapper(queryClient);
@@ -234,8 +300,54 @@ describe('usePerpsRebateQuote', () => {
     expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(1);
   });
 
-  it('does not request a quote when the Perps flag is disabled', () => {
-    selectorState.perpsRebatesEnabled = false;
+  it.each([
+    [
+      'the Perps flag is disabled',
+      () => {
+        selectorState.perpsRebatesEnabled = false;
+      },
+    ],
+    [
+      'the Rewards Money flag is disabled',
+      () => {
+        selectorState.rewardsMoneyControllerEnabled = false;
+      },
+    ],
+    [
+      'basic functionality is disabled',
+      () => {
+        selectorState.basicFunctionalityEnabled = false;
+      },
+    ],
+    [
+      'the user is signed out',
+      () => {
+        selectorState.isSignedIn = false;
+      },
+    ],
+    [
+      'the wallet is locked',
+      () => {
+        selectorState.isUnlocked = false;
+      },
+    ],
+    [
+      'the profile is unavailable',
+      () => {
+        mockUseSessionProfileId.mockReturnValue({
+          profileId: undefined,
+          isLoading: false,
+        });
+      },
+    ],
+    [
+      'the network is offline',
+      () => {
+        mockUseNetworkTier.mockReturnValue('NONE');
+      },
+    ],
+  ])('does not request a quote when %s', (_description, disableGate) => {
+    disableGate();
     const Wrapper = createWrapper();
 
     const { result } = renderHook(() => usePerpsRebateQuote(), {
@@ -246,25 +358,16 @@ describe('usePerpsRebateQuote', () => {
     expect(mockGetPerpsRebateQuote).not.toHaveBeenCalled();
   });
 
-  it('does not request a quote on a known offline network', () => {
-    mockUseNetworkTier.mockReturnValue('NONE');
+  it('requests a quote while the network tier is unknown', async () => {
+    mockUseNetworkTier.mockReturnValue(null);
     const Wrapper = createWrapper();
 
     const { result } = renderHook(() => usePerpsRebateQuote(), {
       wrapper: Wrapper,
     });
 
-    expect(result.current.fetchStatus).toBe('idle');
-    expect(mockGetPerpsRebateQuote).not.toHaveBeenCalled();
-  });
-
-  it('does not request a quote while signed out', () => {
-    selectorState.isSignedIn = false;
-    const Wrapper = createWrapper();
-
-    renderHook(() => usePerpsRebateQuote(), { wrapper: Wrapper });
-
-    expect(mockGetPerpsRebateQuote).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.data).toEqual(REBATE_QUOTE));
+    expect(mockGetPerpsRebateQuote).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -328,6 +431,16 @@ describe('retryPerpsRebateQuote', () => {
     expect(retry).toBe(false);
   });
 
+  it('retries rate-limited responses', () => {
+    const error = new RewardsMoneyRebateQuoteError(
+      429,
+      'RATE_LIMITED',
+      'Rate limited',
+    );
+
+    expect(retryPerpsRebateQuote(0, error)).toBe(true);
+  });
+
   it('does not retry terminal not-found responses', () => {
     const error = new RewardsMoneyRebateQuoteError(404, 'FAILED', 'Not found');
 
@@ -355,5 +468,15 @@ describe('getPerpsRebateRetryDelay', () => {
     const delay = getPerpsRebateRetryDelay(0, error);
 
     expect(delay).toBe(12_000);
+  });
+
+  it('uses the fallback delay without a Retry-After value', () => {
+    const error = new RewardsMoneyRebateQuoteError(
+      503,
+      'UNAVAILABLE',
+      'Server busy',
+    );
+
+    expect(getPerpsRebateRetryDelay(0, error)).toBe(1_000);
   });
 });
