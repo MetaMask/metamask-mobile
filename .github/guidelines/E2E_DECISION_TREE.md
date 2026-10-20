@@ -36,7 +36,7 @@ flowchart TD
 
 After the global gates, path filters classify non-ignorable changes as Android-only, iOS-only, or both. For pull requests, path filtering suppresses iOS. iOS still runs when `run-appium-ios-tests` is applied, when smoke-infrastructure changes on `main` request it, or when the PR adds a brand-new Appium smoke spec. Ignorable-only changes stop before this stage; labels cannot revive them.
 
-A pull request that adds a file matching `tests/smoke-appium/**/*.spec.ts` selects both Android and iOS. Editing an existing spec does not. Forks, `stable` synchronization PRs, `skip-e2e`, `pr-not-ready-for-e2e`, and ignorable-only changes still skip E2E.
+A pull request selects both Android and iOS when the pull request files API reports a `tests/smoke-appium/**/*.spec.ts` file with status `added` and no previous filename. Edits, renames, and copies do not trigger this added-spec rule. On a PR targeting `main`, a change under `tests/smoke-appium/**` can still select both platforms through the smoke-infrastructure override. Forks, `stable` synchronization PRs, `skip-e2e`, `pr-not-ready-for-e2e`, and ignorable-only changes still skip E2E.
 
 For every eligible pull request, iOS runs on explicit request:
 
@@ -53,10 +53,10 @@ For non-PR events:
 
 Forced platform runs:
 
-| Condition                                           | Effect                                                                                   |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| E2E infrastructure changes on a PR targeting `main` | Select both Android and iOS as required to run to catch breaking infrastructure changes. |
-| Brand-new Appium smoke spec added on an eligible PR | Select both Android and iOS. Editing an existing spec does not trigger this.             |
+| Condition                                                                     | Effect                                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E2E infrastructure changes on a PR targeting `main`                           | Select both Android and iOS as required to run to catch breaking infrastructure changes.                                                                                                                                           |
+| Brand-new Appium smoke spec (`added`, no previous filename) on an eligible PR | Select both Android and iOS. Edits, renames, and copies do not trigger this rule. On a PR targeting `main`, other changes under `tests/smoke-appium/**` can still select both platforms through the smoke-infrastructure override. |
 
 ## E2E tests skipped by default on new PRs during peak hours
 

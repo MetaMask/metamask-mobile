@@ -145,17 +145,20 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
+      # Pull request file status is the three-dot diff, so a spec deleted on the
+      # base after branch point is not "added". Platform selection accepts only
+      # status "added" with no previous filename.
       - name: List added Appium smoke specs
         id: added-smoke-specs
         if: steps.skip-merge-queue.outputs.up-to-date != 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork != true
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          git fetch --depth=1 origin "${BASE_SHA}"
           {
             echo "added_smoke_spec_files<<ADDED_SMOKE_SPECS_EOF"
-            git diff --diff-filter=A --name-only "${BASE_SHA}" "${HEAD_COMMIT_HASH}" -- tests/smoke-appium \
-              | grep -E '\.spec\.ts$' || true
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" \
+              --jq '.[] | select(.filename | test("^tests/smoke-appium/.+\\.spec\\.ts$")) | "\(.status)\t\(.filename)\t\(.previous_filename // "")"'
             echo "ADDED_SMOKE_SPECS_EOF"
           } >> "$GITHUB_OUTPUT"
 

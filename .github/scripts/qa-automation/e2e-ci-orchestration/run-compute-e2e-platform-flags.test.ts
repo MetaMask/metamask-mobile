@@ -184,7 +184,7 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
         GITHUB_EVENT_NAME: 'pull_request',
         PR_BASE_REF: 'main',
         ADDED_SMOKE_SPEC_FILES:
-          'tests/smoke-appium/seedless/google-login-change-password.spec.ts',
+          'added\ttests/smoke-appium/seedless/google-login-change-password.spec.ts',
         ...androidOnlyPR,
       });
 

@@ -779,7 +779,7 @@ describe('resolveE2EPlatformRequirements', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
-        addedSmokeSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
       },
       labelOverrideInput: eligibleLabelInput,
     });
@@ -804,7 +804,7 @@ describe('resolveE2EPlatformRequirements', () => {
         androidCount: 0,
         androidOrIgnorableCount: 0,
         changedSpecFiles: addedSmokeSpec,
-        addedSmokeSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
       },
       labelOverrideInput: {
         ...eligibleLabelInput,
@@ -828,7 +828,7 @@ describe('resolveE2EPlatformRequirements', () => {
         androidOrIgnorableCount: 0,
         iosCount: 1,
         iosOrIgnorableCount: 1,
-        addedSmokeSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
       },
       labelOverrideInput: eligibleLabelInput,
     });
@@ -846,7 +846,7 @@ describe('resolveE2EPlatformRequirements', () => {
       pathFilterInput: {
         ...androidOnlyPathFilters,
         prBaseRef: 'release/1.0.0',
-        addedSmokeSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
       },
       labelOverrideInput: {
         ...eligibleLabelInput,
@@ -865,7 +865,7 @@ describe('resolveE2EPlatformRequirements', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
-        addedSmokeSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
       },
       labelOverrideInput: eligibleLabelInput,
       skipSmartSelection: true,
@@ -883,7 +883,7 @@ describe('resolveE2EPlatformRequirements', () => {
       pathFilterInput: {
         ...androidOnlyPathFilters,
         changedSpecFiles: addedSmokeSpec,
-        addedSmokeSpecFiles: '',
+        addedSmokeSpecFiles: `modified\t${addedSmokeSpec}`,
       },
       labelOverrideInput: eligibleLabelInput,
     });
@@ -894,15 +894,36 @@ describe('resolveE2EPlatformRequirements', () => {
     });
   });
 
+  it('does not treat renamed, copied, or unclassified smoke specs as new files', () => {
+    const records = [
+      `renamed\t${addedSmokeSpec}\ttests/smoke-appium/wallet/old.spec.ts`,
+      `copied\t${addedSmokeSpec}\ttests/smoke-appium/wallet/old.spec.ts`,
+      `added\t${addedSmokeSpec}\ttests/smoke-appium/wallet/old.spec.ts`,
+      addedSmokeSpec,
+    ];
+
+    for (const addedSmokeSpecFiles of records) {
+      const result = resolveE2EPlatformRequirements({
+        pathFilterInput: {
+          ...androidOnlyPathFilters,
+          addedSmokeSpecFiles,
+        },
+        labelOverrideInput: eligibleLabelInput,
+      });
+
+      expect(result.ios).toBe(false);
+    }
+  });
+
   it('ignores added paths that are not Appium smoke specs', () => {
     const result = resolveE2EPlatformRequirements({
       pathFilterInput: {
         ...androidOnlyPathFilters,
         addedSmokeSpecFiles: [
-          'app/components/Foo.tsx',
-          'tests/smoke-appium/helpers/setup.ts',
-          'tests/performance/wallet.spec.ts',
-          'tests/smoke-appium/wallet/foo.spec.js',
+          'added\tapp/components/Foo.tsx',
+          'added\ttests/smoke-appium/helpers/setup.ts',
+          'added\ttests/performance/wallet.spec.ts',
+          'added\ttests/smoke-appium/wallet/foo.spec.js',
         ].join('\n'),
       },
       labelOverrideInput: eligibleLabelInput,
@@ -914,7 +935,7 @@ describe('resolveE2EPlatformRequirements', () => {
   it('does not force both platforms for a new spec on a fork, skip, stable, or ignorable PR', () => {
     const addedInput = {
       ...androidOnlyPathFilters,
-      addedSmokeSpecFiles: addedSmokeSpec,
+      addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
     };
 
     expect(
@@ -958,7 +979,7 @@ describe('resolveE2EPlatformRequirements', () => {
         ...androidOnlyPathFilters,
         githubEventName: 'push',
         githubRefName: 'main',
-        addedSmokeSpecFiles: addedSmokeSpec,
+        addedSmokeSpecFiles: `added\t${addedSmokeSpec}`,
       },
       labelOverrideInput: {
         ...eligibleLabelInput,

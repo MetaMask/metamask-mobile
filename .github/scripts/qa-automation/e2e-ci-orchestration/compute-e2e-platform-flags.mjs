@@ -185,7 +185,11 @@ function applyE2ELabelOverrides(flags, input) {
 }
 
 /**
- * Paths under tests/smoke-appium that were added, not merely edited.
+ * Smoke specs this pull request genuinely added.
+ *
+ * Each line is `status<TAB>filename<TAB>previousFilename` from the pull
+ * request files API. Only `added` rows with no previous filename count.
+ * Edits, renames, copies, and bare paths do not.
  *
  * @param {string} [addedSmokeSpecFiles]
  * @returns {string[]}
@@ -194,12 +198,23 @@ function listAddedSmokeSpecFiles(addedSmokeSpecFiles = '') {
   return String(addedSmokeSpecFiles)
     .split(/\r?\n/u)
     .map((line) => line.trim())
-    .filter((line) => ADDED_SMOKE_SPEC_PATTERN.test(line));
+    .flatMap((line) => {
+      const [status, filename = '', previousFilename = ''] = line.split('\t');
+      const specPath = filename.trim();
+      if (
+        status !== 'added' ||
+        previousFilename.trim() !== '' ||
+        !ADDED_SMOKE_SPEC_PATTERN.test(specPath)
+      ) {
+        return [];
+      }
+      return [specPath];
+    });
 }
 
 /**
  * Eligible PRs that add a brand-new Appium smoke spec run both platforms.
- * Hard skips still win. Editing an existing spec does not.
+ * Hard skips still win. Edits, renames, and copies do not.
  *
  * @param {object} flags
  * @param {object} input
