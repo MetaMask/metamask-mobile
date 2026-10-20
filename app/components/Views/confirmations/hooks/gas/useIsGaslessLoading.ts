@@ -6,8 +6,8 @@ import { Hex } from '@metamask/utils';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsGaslessSupported } from './useIsGaslessSupported';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { isMusdRescueSendTx } from '../../../../UI/Money/utils/moneyTransactionGuards';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 // Chains with no native may have selectedGasFeeToken inconsistent with gasFeeTokens
@@ -50,19 +50,17 @@ export function useIsGaslessLoading() {
   const isGasFeeTokensEmpty =
     gasFeeTokens !== undefined && gasFeeTokens.length === 0;
 
-  const isSponsoredMusdRescueSend = Boolean(
-    transactionMeta &&
-      isMusdRescueSendTx(transactionMeta) &&
-      transactionMeta.isGasFeeSponsored &&
-      isGaslessSupportedFinished &&
-      isGasFeeTokensEmpty,
-  );
+  // Sponsored txs don't need a gas fee token, so don't wait on `gasFeeTokens`.
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+    transactionMeta,
+    isGaslessSupported,
+  });
 
   const hasNoNativeTokenAvailable =
     excludeNativeTokenForFee || hasInsufficientBalance;
 
   const isGaslessLoading = Boolean(
-    !isSponsoredMusdRescueSend &&
+    !isGasFeeSponsored &&
       isSimulationEnabled &&
       hasNoNativeTokenAvailable &&
       (isGaslessSupportedPending || isGaslessSupportedFinished) &&
