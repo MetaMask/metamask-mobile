@@ -77,13 +77,7 @@ export function usePerpsWithdrawMaxAmountRefresh({
       return;
     }
 
-    console.log('[OGP-PerpsWithdrawable] perpsWithdraw amount updating', {
-      oldValue: committedAmountHuman,
-      newValue: nextAmountHuman,
-      t: Date.now(),
-    });
-
-    void updateTransactionPayAmount(nextAmountHuman);
+    updateTransactionPayAmount(nextAmountHuman);
   }, [
     balanceRaw,
     balanceUsd,
