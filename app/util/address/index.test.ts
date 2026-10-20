@@ -190,7 +190,7 @@ describe('renderAccountName', () => {
       const unknownSolanaAddress =
         '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
       const accounts = [internalAccount1]; // Only contains Ethereum account
-      // Non-EVM: first 5 chars + ... + last 5 chars (EVM includes 0x in the start segment)
+      // The shortened address (excluding 0x) is first 5 chars + ... + last 5 chars
       expect(renderAccountName(unknownSolanaAddress, accounts)).toBe(
         '7EcDh...CFLtV',
       );
