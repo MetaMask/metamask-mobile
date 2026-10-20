@@ -127,9 +127,11 @@ function renderHookWithWrapper<
 const createBtcQuote = ({
   networkFeeAmount = '0.00000001',
   sentAmount = '0.99997',
+  gasSponsored = false,
 }: {
   networkFeeAmount?: string;
   sentAmount?: string;
+  gasSponsored?: boolean;
 } = {}): QuoteResponse =>
   mergeQuoteMetadata(
     {
@@ -137,6 +139,7 @@ const createBtcQuote = ({
       chainId: formatChainIdToCaip(ChainId.BTC),
       quote: {
         ...mockQuoteWithMetadata.quote,
+        gasSponsored,
       },
     },
     {
@@ -155,10 +158,16 @@ const createStellarQuote = ({
   reserveAmount = '1.5',
   networkFeeAmount = '0.00001',
   sentAmount = '9',
+  gasIncluded = false,
+  gasIncluded7702 = false,
+  gasSponsored = false,
 }: {
   reserveAmount?: string;
   networkFeeAmount?: string | null;
   sentAmount?: string;
+  gasIncluded?: boolean;
+  gasIncluded7702?: boolean;
+  gasSponsored?: boolean;
 } = {}) => {
   const nativeAsset = toBridgeAssetV2(
     getNativeAssetForChainId(ChainId.STELLAR),
@@ -166,6 +175,9 @@ const createStellarQuote = ({
   return {
     chainId: formatChainIdToCaip(ChainId.STELLAR),
     quote: {
+      gasIncluded,
+      gasIncluded7702,
+      gasSponsored,
       src: {
         amount: BigNumberJS(sentAmount)
           .times(10 ** 7)
@@ -442,6 +454,27 @@ describe('useInsufficientNativeReserveError', () => {
     expect(result.current).toStrictEqual(undefined);
   });
 
+  it('enforces the static BTC reserve without deducting network fee when gasSponsored is true', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.99998',
+        token: btcTokenOnBitcoin,
+        latestAtomicBalance: BigNumber.from('100000000'), // 1 BTC
+        walletAddress: 'bc1q7m7cq86p5fnz29s3e0nl8g5ep3p5d4rz2f3duz',
+        activeQuote: createBtcQuote({
+          networkFeeAmount: '0.00001',
+          sentAmount: '0.99998',
+          gasSponsored: true,
+        }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '0.99997',
+      minimumNativeBalanceToBeKeptInAccount: '0.00003',
+    });
+  });
+
   it('uses the quote reserve for a Stellar native source', () => {
     const { result } = renderHookWithWrapper(() =>
       useInsufficientNativeReserveError({
@@ -495,6 +528,55 @@ describe('useInsufficientNativeReserveError', () => {
       minimumNativeBalanceToBeKeptInAccount: '1.5',
     });
   });
+
+  it('returns a quote reserve error when sentAmount plus network fee equals the full Stellar balance', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '9.99999',
+        token: xlmTokenOnStellar,
+        latestAtomicBalance: BigNumber.from('100000000'), // 10 XLM
+        walletAddress:
+          'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+        activeQuote: createStellarQuote({
+          sentAmount: '9.99999',
+          networkFeeAmount: '0.00001',
+        }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '8.49999',
+      minimumNativeBalanceToBeKeptInAccount: '1.5',
+    });
+  });
+
+  it.each([
+    { flag: 'gasIncluded', overrides: { gasIncluded: true } },
+    { flag: 'gasIncluded7702', overrides: { gasIncluded7702: true } },
+    { flag: 'gasSponsored', overrides: { gasSponsored: true } },
+  ])(
+    'does not deduct network fee from max swappable balance when $flag is true',
+    ({ overrides }) => {
+      const { result } = renderHookWithWrapper(() =>
+        useInsufficientNativeReserveError({
+          amount: '9',
+          token: xlmTokenOnStellar,
+          latestAtomicBalance: BigNumber.from('100000000'), // 10 XLM
+          walletAddress:
+            'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+          activeQuote: createStellarQuote({
+            networkFeeAmount: '0.1',
+            ...overrides,
+          }),
+        }),
+      );
+
+      expect(result.current).toStrictEqual({
+        maxSwappableNativeBalance: '8.5',
+        minimumNativeBalanceToBeKeptInAccount: '1.5',
+      });
+    },
+  );
 
   it('returns insufficientNativeReserveError=undefined when token is not the native one', () => {
     const { result } = renderHookWithWrapper(() =>

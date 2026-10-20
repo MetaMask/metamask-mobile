@@ -155,11 +155,17 @@ export const useInsufficientNativeReserveError = ({
   let quoteNetworkFeeBaseUnits = BigNumberJS(0);
   let quoteSourceOverheadBaseUnits = BigNumberJS(0);
   if ((isBitcoinReserveChain || quoteNativeReserve) && activeQuote) {
-    const networkFeeAmount =
-      sumAmounts(
-        activeQuote.quote.feeData.network,
-        activeQuote.quote.feeData.relayer,
-      )?.normalizedAmount ?? (quoteNativeReserve ? '0' : undefined);
+    const isQuoteGasSeparatelyFunded = Boolean(
+      activeQuote.quote.gasIncluded ||
+        activeQuote.quote.gasIncluded7702 ||
+        activeQuote.quote.gasSponsored,
+    );
+    const networkFeeAmount = isQuoteGasSeparatelyFunded
+      ? '0'
+      : (sumAmounts(
+          activeQuote.quote.feeData.network,
+          activeQuote.quote.feeData.relayer,
+        )?.normalizedAmount ?? (quoteNativeReserve ? '0' : undefined));
     const sentAmount = activeQuote.quote.src?.normalizedAmount;
     const networkFeeBaseUnits = networkFeeAmount
       ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
@@ -173,7 +179,9 @@ export const useInsufficientNativeReserveError = ({
       !networkFeeBaseUnits ||
       !sentAmountBaseUnits ||
       !inputAmountBaseUnits ||
-      (!quoteNativeReserve && networkFeeBaseUnits.lte(0))
+      (!quoteNativeReserve &&
+        !isQuoteGasSeparatelyFunded &&
+        networkFeeBaseUnits.lte(0))
     ) {
       return undefined;
     }
@@ -181,7 +189,7 @@ export const useInsufficientNativeReserveError = ({
     if (
       networkFeeBaseUnits
         .plus(sentAmountBaseUnits)
-        .gte(BigNumberJS(latestAtomicBalance.toString()))
+        .gt(BigNumberJS(latestAtomicBalance.toString()))
     ) {
       return undefined;
     }
