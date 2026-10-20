@@ -157,6 +157,24 @@ describe('InputSection', () => {
     expect(onInputPress).toHaveBeenCalledTimes(1);
   });
 
+  it('lets presses reach the limit price input by default', () => {
+    const { getByTestId } = renderInputSection();
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW).props
+        .pointerEvents,
+    ).toBe('auto');
+  });
+
+  it('passes presses through the limit price input when input press is disabled', () => {
+    const { getByTestId } = renderInputSection({ isInputPressDisabled: true });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW).props
+        .pointerEvents,
+    ).toBe('none');
+  });
+
   it('appends the unit symbol as a non-editable suffix after the amount', () => {
     const { getByTestId } = renderInputSection({
       isLimitFiatMode: false,

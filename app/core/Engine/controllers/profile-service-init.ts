@@ -11,13 +11,6 @@ import {
 import AppConstants from '../../AppConstants';
 import type { MessengerClientInitFunction } from '../types';
 
-/**
- * The profile API is not live for social onboarding yet.
- * Set this to false to construct `ProfileService` against `PROFILE_API_URL`.
- * Call sites keep using `ProfileController` either way.
- */
-export const USE_MOCK_PROFILE_SERVICE = true;
-
 const nowIso = (): string => new Date().toISOString();
 
 const profileFromCreateParams = (
@@ -52,7 +45,7 @@ const registerEchoingMockProfileService = (
       if (profile?.profile_id === profileId) {
         return profile;
       }
-      return { ...MOCK_PROFILE_API_RESPONSE, profile_id: profileId };
+      throw new Error('GET_PROFILE_FAILED: 404');
     },
     createProfile: async (params) => {
       profile = profileFromCreateParams(params);
@@ -93,12 +86,28 @@ const registerEchoingMockProfileService = (
     deleteProfile: async () => {
       profile = undefined;
     },
+    disconnectX: (profileId) => {
+      if (profile?.profile_id === profileId) {
+        profile = {
+          ...profile,
+          connected_to_x: false,
+          updated_at: nowIso(),
+        };
+      }
+      return Promise.resolve();
+    },
   });
 };
 
+/**
+ * The profile API is not live for social onboarding yet, so builds use an
+ * in-memory mock unless `MM_PROFILE_API_ENABLED=true`. Then `ProfileService`
+ * calls `PROFILE_API_URL`, which dev builds point at the social API's
+ * Redis-backed stand-in. Call sites keep using `ProfileController` either way.
+ */
 export const createProfileServiceClient = (
   messenger: ProfileServiceMessenger,
-  useMock: boolean = USE_MOCK_PROFILE_SERVICE,
+  useMock: boolean = !AppConstants.PROFILE_API_ENABLED,
 ): ProfileService => {
   if (useMock) {
     registerEchoingMockProfileService(messenger);

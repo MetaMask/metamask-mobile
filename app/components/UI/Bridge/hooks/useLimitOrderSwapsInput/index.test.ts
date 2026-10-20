@@ -38,10 +38,16 @@ jest.mock('../useBridgeSession', () => ({
   useBridgeSession: jest.fn(),
 }));
 
+jest.mock('../useLiveTokenFiatRate', () => ({
+  useLiveTokenFiatRate: jest.fn(),
+}));
+
 const mockSyncFiatAmountToTokenAmount = jest.fn();
 const mockResetToTokenMode = jest.fn();
+const mockUseSourceAmountInput = jest.fn();
 jest.mock('../useSourceAmountInput', () => ({
-  useSourceAmountInput: () => ({
+  useSourceAmountInput: (params: unknown) => ({
+    ...mockUseSourceAmountInput(params),
     amount: '',
     selection: undefined,
     handleFocus: jest.fn(),
@@ -69,6 +75,7 @@ jest.mock('../useSwitchTokens', () => ({
 
 import { useSelector } from 'react-redux';
 import { useBridgeSession } from '../useBridgeSession';
+import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 
 const mockUseSelector = useSelector as jest.Mock;
@@ -155,6 +162,21 @@ describe('useLimitOrderSwapInputs', () => {
     expect(result.current.sourceAmount).toBe('1');
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setDestToken(expect.anything()),
+    );
+  });
+
+  it('converts fiat input at the live rate of the source token', () => {
+    const sourceToken = createMockToken({ chainId: '0x1' });
+    jest.mocked(useLiveTokenFiatRate).mockReturnValue(2460.27);
+
+    renderLimitOrderSwapInputsHook(
+      { sourceToken, destToken: undefined, sourceAmount: '0.02' },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(useLiveTokenFiatRate).toHaveBeenCalledWith(sourceToken);
+    expect(mockUseSourceAmountInput).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken, tokenFiatRate: 2460.27 }),
     );
   });
 

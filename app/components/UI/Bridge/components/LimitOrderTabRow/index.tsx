@@ -87,7 +87,11 @@ function getLimitOrderRowSlots(
     case LimitOrderState.Cancelled:
       return {
         subtitle: strings('bridge.limit.canceled_at', {
-          date: formatLimitOrderDate(order.timingData.closedAt),
+          // The API leaves `closedAt` unset on orders it cancels itself, e.g.
+          // for insufficient funds at execution.
+          date: formatLimitOrderDate(
+            order.timingData.closedAt ?? order.timingData.expiresAt,
+          ),
         }),
         primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,

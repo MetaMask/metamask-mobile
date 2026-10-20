@@ -82,11 +82,13 @@ export const useSourceAmountInput = ({
   isFiatToggleEnabled,
   sourceAmount,
   sourceToken,
+  tokenFiatRate,
   onSourceAmountChange,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
+  tokenFiatRate?: number;
   onSourceAmountChange: (value: string | undefined) => void;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
@@ -94,7 +96,8 @@ export const useSourceAmountInput = ({
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const destToken = useSelector(selectDestToken);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const fiatRate = useTokenFiatRate(sourceToken);
+  const polledFiatRate = useTokenFiatRate(sourceToken);
+  const fiatRate = tokenFiatRate ?? polledFiatRate;
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;

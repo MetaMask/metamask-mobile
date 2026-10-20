@@ -16,9 +16,21 @@ export const MfaFlowSelectorsIDs = {
 export const MfaSettingsSelectorsIDs = {
   CONTAINER: 'mfa-settings',
   EMAIL_ROW: 'mfa-settings-email-row',
-  EMAIL_BUTTON: 'mfa-settings-email-button',
   PASSKEY_ROW: 'mfa-settings-passkey-row',
-  PASSKEY_BUTTON: 'mfa-settings-passkey-button',
   QA_PRESETS: 'mfa-settings-qa-presets',
   QA_RESULT: 'mfa-settings-qa-result',
+} as const;
+
+export const MfaPasskeysSelectorsIDs = {
+  CONTAINER: 'mfa-passkeys',
+  ROW: 'mfa-passkeys-row',
+  ADD_BUTTON: 'mfa-passkeys-add-button',
+} as const;
+
+export const MfaMethodDetailsSelectorsIDs = {
+  CONTAINER: 'mfa-method-details',
+  REMOVE_BUTTON: 'mfa-method-details-remove-button',
+  CONFIRM_SHEET: 'mfa-method-details-confirm-sheet',
+  CONFIRM_BUTTON: 'mfa-method-details-confirm-button',
+  LAST_METHOD_SHEET: 'mfa-method-details-last-method-sheet',
 } as const;
