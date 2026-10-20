@@ -56,6 +56,7 @@ import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import {
   MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
 // Mock the PolymarketProvider and its dependencies
@@ -7946,6 +7947,25 @@ describe('PredictController', () => {
       };
     };
 
+    const transferInterface = new Interface([
+      'event Transfer(address indexed from, address indexed to, uint256 value)',
+    ]);
+
+    const createV2PayoutTransferLog = (valueRaw: bigint) => {
+      const transferEvent = transferInterface.getEvent('Transfer');
+      const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+        MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
+        accountAddress,
+        valueRaw,
+      ]);
+
+      return {
+        address: MATIC_CONTRACTS_V2.collateral,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
     it('does not publish transaction status when no sender address can be resolved', () => {
       withController(
         ({ messenger }) => {
@@ -8230,6 +8250,167 @@ describe('PredictController', () => {
           }),
           txReceipt: {
             logs: [createPayoutRedemptionLog(0n)],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('sums v2 router payouts with CTF payouts in the confirmed claim receipt', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 42,
+            cashPnl: 20,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createPayoutRedemptionLog(BigInt(30_000_000)),
+              createV2PayoutTransferLog(BigInt(12_000_000)),
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 42,
+          }),
+        );
+      });
+    });
+
+    it('uses v2 router transfer logs for confirmed claims without CTF redemptions', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 12,
+            cashPnl: 4,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createV2PayoutTransferLog(BigInt(12_000_000))],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 12,
+          }),
+        );
+      });
+    });
+
+    it('ignores collateral transfers not sourced by the v2 router or position manager', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transferEvent = transferInterface.getEvent('Transfer');
+        const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+          // Gas top-up and unrelated transfers come from the Safe or other
+          // addresses, not the v2 payout sources.
+          accountAddress,
+          MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
+          BigInt(12_000_000),
+        ]);
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                topics: encodedLog.topics,
+                data: encodedLog.data,
+              },
+            ],
           },
         };
 

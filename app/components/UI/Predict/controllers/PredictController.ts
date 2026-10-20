@@ -70,6 +70,7 @@ import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchW
 import {
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
   USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
@@ -355,6 +356,22 @@ interface ClaimAmountFromSimulationOptions {
 const PAYOUT_REDEMPTION_INTERFACE = new Interface([
   'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
 ]);
+
+const TRANSFER_EVENT_INTERFACE = new Interface([
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+]);
+
+/**
+ * Contracts that pay out claim collateral for Positions-protocol (v2)
+ * markets. Their redeem flow emits no CTF `PayoutRedemption`, so the payout
+ * is read from ERC20 `Transfer` logs sourced by these contracts.
+ */
+const V2_CLAIM_PAYOUT_SOURCES = new Set(
+  [
+    MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
+    MATIC_POSITIONS_PROTOCOL_CONTRACTS.positionManager,
+  ].map((address) => address.toLowerCase()),
+);
 
 const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
   MATIC_CONTRACTS_V2.collateral.toLowerCase(),
@@ -4225,33 +4242,61 @@ export class PredictController extends BaseController<
     let hasPayoutRedemption = false;
 
     for (const log of logs) {
-      if (
-        log.address?.toLowerCase() !==
-        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
-      ) {
-        continue;
-      }
-
+      const logAddress = log.address?.toLowerCase();
       const topics = this.normalizeLogTopics(log.topics);
       if (!topics || !log.data) {
         continue;
       }
 
-      try {
-        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
-          topics,
-          data: log.data,
-        });
-        const payout = parsedLog.args.payout?.toString();
+      if (logAddress === MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()) {
+        // CTF-protocol claims emit PayoutRedemption from the ConditionalTokens
+        // contract.
+        try {
+          const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const payout = parsedLog.args.payout?.toString();
 
-        if (payout === undefined) {
+          if (payout === undefined) {
+            continue;
+          }
+
+          payoutRaw += BigInt(payout);
+          hasPayoutRedemption = true;
+        } catch (_error) {
           continue;
         }
+      } else if (
+        logAddress &&
+        PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(logAddress)
+      ) {
+        // Positions-protocol (v2) claims pay out through the Router or
+        // PositionManager with no CTF event, so the payout is read from the
+        // collateral ERC20 `Transfer` logs those contracts source. The token
+        // filter keeps ERC721-shaped `Transfer` events (identical signature)
+        // from other contracts out of the sum.
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const from = parsedLog.args.from?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
 
-        payoutRaw += BigInt(payout);
-        hasPayoutRedemption = true;
-      } catch (_error) {
-        continue;
+          if (
+            !from ||
+            value === undefined ||
+            !V2_CLAIM_PAYOUT_SOURCES.has(from)
+          ) {
+            continue;
+          }
+
+          payoutRaw += BigInt(value);
+          hasPayoutRedemption = true;
+        } catch (_error) {
+          continue;
+        }
       }
     }
 
