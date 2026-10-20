@@ -352,5 +352,4 @@ describe('MoneyBalanceSummary', () => {
       queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
     ).not.toBeOnTheScreen();
   });
-
 });
