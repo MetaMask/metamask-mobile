@@ -29,7 +29,8 @@ import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
 import { useSocialFeed } from '../../SocialFeed';
-import { SocialLeaderboard } from '../../SocialLeaderboard';
+import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
+import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -50,9 +51,46 @@ jest.mock('react-redux', () => ({
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
 
-jest.mock('../../SocialLeaderboard', () => ({
-  SocialLeaderboard: jest.fn(() => null),
+// Keeps the Holders tab off React Query, like the other data hooks here. The
+// list itself is covered in `HoldersTab.test.tsx` / its integration test.
+const holdersState = (overrides: Record<string, unknown> = {}) => ({
+  rows: [],
+  isLoading: false,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  loadMore: jest.fn(),
+  error: null,
+  refresh: jest.fn(),
+  ...overrides,
+});
+
+jest.mock('../components/tabs/holders/useTokenHolders', () => ({
+  useTokenHolders: jest.fn(() => ({
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(),
+  })),
 }));
+
+const mockUseTokenHolders = jest.requireMock(
+  '../components/tabs/holders/useTokenHolders',
+).useTokenHolders as jest.Mock;
+
+/**
+ * One holder is enough: the tab's visibility turns on the row count. Built
+ * from the fixture so the row the tab renders is a real mapped position.
+ */
+const withHolders = (overrides: Record<string, unknown> = {}) => {
+  const core = TOKEN_HOLDERS_FIXTURE.items[0];
+  const item = mapFeedItem(core);
+  return mockUseTokenHolders.mockReturnValue(
+    holdersState({ rows: [{ item, core }], ...overrides }),
+  );
+};
 
 jest.mock('../../SocialFeed', () => {
   const useSocialFeedMock = jest.fn((_source: unknown) => ({
@@ -407,6 +445,8 @@ describe('TokenDetailsV1', () => {
       useSelector: jest.Mock;
     };
     useSelector.mockImplementation(() => undefined);
+    // Default: a token nobody holds. Tests that need the tab call `withHolders`.
+    mockUseTokenHolders.mockReturnValue(holdersState());
     mockCurrentPrice = 1;
     mockUseIsPriceAlertsChainSupported.mockReturnValue(true);
     mockUseTokenBalance.mockReturnValue({ balance: undefined });
@@ -611,6 +651,29 @@ describe('TokenDetailsV1', () => {
       getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
         .stickyHeaderIndices,
     ).toStrictEqual([TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]);
+  });
+
+  it('keeps room at the end of the page for the sticky footer', () => {
+    // The footer is an absolutely positioned BottomSheetDialog, so it covers
+    // the end of the scroll. Without this padding a short tab -- a token with
+    // two holders -- has no scroll range to lift its rows clear of it.
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    const { contentContainerStyle } = getByTestId(
+      TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
+    ).props;
+
+    expect(contentContainerStyle).toEqual(
+      expect.objectContaining({
+        paddingBottom: expect.any(Number) as unknown as number,
+      }),
+    );
+    expect(contentContainerStyle.paddingBottom).toBeGreaterThan(0);
   });
 
   it('renders a stacked tab content container where only the active page is laid out', () => {
@@ -927,7 +990,7 @@ describe('TokenDetailsV1', () => {
     ).toBeTruthy();
   });
 
-  it('keeps the Feed and Holders tabs when they have no rows', () => {
+  it('keeps the Feed tab when the feed has no posts', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
@@ -943,6 +1006,84 @@ describe('TokenDetailsV1', () => {
     );
 
     expect(getByTestId('token-details-v1-tab-feed')).toBeTruthy();
+  });
+
+  it('hides the Holders tab for a token nobody holds', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+
+    const { queryByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
+  });
+
+  it('shows the Holders tab second, right after Feed, once the token has holders', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    withHolders();
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(getByTestId('token-details-v1-tab-holders')).toBeTruthy();
+    // Second in the order, so a right swipe from it lands on Feed.
+    expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('feed');
+  });
+
+  it('keeps the Holders tab through the first fetch, so the tab bar does not shift', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    mockUseTokenHolders.mockReturnValue(holdersState({ isLoading: true }));
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    expect(getByTestId('token-details-v1-tab-holders')).toBeTruthy();
+  });
+
+  it('keeps the Holders tab when the fetch failed, so a blip does not remove it', () => {
+    const { useSelector } = jest.requireMock('react-redux') as {
+      useSelector: jest.Mock;
+    };
+    useSelector.mockImplementation((selector: unknown) =>
+      selector === selectSocialLeaderboardEnabled ? true : undefined,
+    );
+    mockUseTokenHolders.mockReturnValue(
+      holdersState({ error: 'holders route exploded' }),
+    );
+
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
     expect(getByTestId('token-details-v1-tab-holders')).toBeTruthy();
   });
 
@@ -1085,13 +1226,14 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('shows the Social leaderboard on the Holders tab', () => {
+  it('shows the holders list on the Holders tab', () => {
     const { useSelector } = jest.requireMock('react-redux') as {
       useSelector: jest.Mock;
     };
     useSelector.mockImplementation((selector: unknown) =>
       selector === selectSocialLeaderboardEnabled ? true : undefined,
     );
+    withHolders();
 
     const { getByTestId } = render(
       <TokenDetailsV1
@@ -1102,11 +1244,7 @@ describe('TokenDetailsV1', () => {
 
     fireEvent.press(getByTestId('token-details-v1-tab-holders'));
 
-    expect(jest.mocked(SocialLeaderboard).mock.calls[0][0]).toEqual({
-      source: { kind: 'all' },
-      location: 'token_details',
-      showViewerRow: true,
-    });
+    expect(getByTestId('token-details-v1-holders-list')).toBeTruthy();
   });
 
   it('anchors the scroll position to the docked tab bar when switching tabs from a scrolled-down state', () => {
@@ -1178,15 +1316,15 @@ describe('TokenDetailsV1', () => {
 
   describe('resolveSwipeTargetTab', () => {
     it('targets the next tab on a left swipe', () => {
-      expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('overview');
+      expect(resolveSwipeTargetTab('feed', -120, 0)).toBe('holders');
+      expect(resolveSwipeTargetTab('holders', -120, 0)).toBe('overview');
       expect(resolveSwipeTargetTab('overview', -120, 0)).toBe('security');
-      expect(resolveSwipeTargetTab('security', -120, 0)).toBe('holders');
     });
 
     it('targets the previous tab on a right swipe', () => {
-      expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('security');
       expect(resolveSwipeTargetTab('security', 120, 0)).toBe('overview');
-      expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('feed');
+      expect(resolveSwipeTargetTab('overview', 120, 0)).toBe('holders');
+      expect(resolveSwipeTargetTab('holders', 120, 0)).toBe('feed');
     });
 
     it('lets a fast fling switch tabs even with a short travel', () => {
@@ -1199,7 +1337,7 @@ describe('TokenDetailsV1', () => {
       expect(resolveSwipeTargetTab('overview', 40, 100)).toBeNull();
       // No neighbouring tab in the swipe direction.
       expect(resolveSwipeTargetTab('feed', 120, 0)).toBeNull();
-      expect(resolveSwipeTargetTab('holders', -120, 0)).toBeNull();
+      expect(resolveSwipeTargetTab('security', -120, 0)).toBeNull();
     });
   });
 

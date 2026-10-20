@@ -1,17 +1,31 @@
-import { screen } from '@testing-library/react-native';
+import { screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
-import TokenDetailsHoldersTab from './HoldersTab';
+import TokenDetailsHoldersTab, {
+  TokenDetailsHoldersTabSelectorsIDs,
+} from './HoldersTab';
+import { TOKEN_HOLDERS_FIXTURE } from './holders/tokenHolders.fixture';
+import { TokenHolderRowSelectorsIDs } from './holders/TokenHolderRow';
 
 /**
- * Renders the real `SocialLeaderboard`, unlike `HoldersTab.test.tsx` which
- * mocks it to assert the props contract. The route cannot rank one asset, so
- * this tab asks for the unscoped ranking.
+ * Renders the real `useTokenHolders` and its transport over a stubbed
+ * network, unlike `HoldersTab.test.tsx`, which mocks the hook to drive each
+ * state. Covers what an actual holders response produces on screen, and what
+ * a cluster without the route produces.
  */
+
+const mockFetch = jest.fn();
+global.fetch = mockFetch as unknown as typeof fetch;
+
+const respondWith = (body: unknown, status = 200) =>
+  mockFetch.mockResolvedValue({
+    ok: status < 400,
+    status,
+    json: () => Promise.resolve(body),
+  });
 
 let mockIsEnabled = true;
 
@@ -22,18 +36,31 @@ jest.mock(
       '../../../../../selectors/featureFlagController/socialLeaderboard',
     ),
     selectSocialLeaderboardEnabled: () => mockIsEnabled,
-    selectSocialLeaderboardPerpsEnabled: () => true,
   }),
 );
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ navigate: jest.fn() }),
-  useRoute: () => ({ params: {} }),
-}));
-
 const assetId =
   'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933' as CaipAssetType;
+
+const openFixtureRows = TOKEN_HOLDERS_FIXTURE.items.filter(
+  (item) => item.isOpen,
+);
+const closedFixtureRow = TOKEN_HOLDERS_FIXTURE.items.find(
+  (item) => !item.isOpen,
+);
+
+// The hook is gated on an unlocked wallet; the shared fixture state is locked.
+const unlockedState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
+      },
+    },
+  },
+};
 
 const renderHoldersTab = () => {
   const queryClient = new QueryClient({
@@ -43,46 +70,101 @@ const renderHoldersTab = () => {
     <QueryClientProvider client={queryClient}>
       <TokenDetailsHoldersTab assetId={assetId} />
     </QueryClientProvider>,
-    { state: { engine: { backgroundState } } },
+    { state: unlockedState },
   );
 };
-
-const leaderboardBody = () =>
-  screen.queryByTestId(SocialLeaderboardSelectorsIDs.SKELETON) ??
-  screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS) ??
-  screen.queryByTestId(SocialLeaderboardSelectorsIDs.EMPTY) ??
-  screen.queryByTestId(SocialLeaderboardSelectorsIDs.ERROR);
 
 describe('TokenDetailsHoldersTab integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsEnabled = true;
+    respondWith({
+      items: TOKEN_HOLDERS_FIXTURE.items,
+      pagination: { hasMore: false },
+    });
   });
 
-  it('shows the unscoped Social leaderboard page', () => {
+  it('renders the holders the route returned, highest holding first', async () => {
     renderHoldersTab();
 
+    await waitFor(() =>
+      expect(
+        screen.getAllByTestId(TokenHolderRowSelectorsIDs.CONTAINER).length,
+      ).toBe(openFixtureRows.length),
+    );
     expect(
-      screen.getByTestId('token-details-v1-holders-leaderboard'),
+      screen.getByTestId(TokenDetailsHoldersTabSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
-    ).toBeNull();
-    expect(leaderboardBody()).toBeOnTheScreen();
+
+    const names = screen
+      .getAllByTestId(TokenHolderRowSelectorsIDs.NAME)
+      .map((node) => node.props.children);
+    expect(names).toEqual(openFixtureRows.map((item) => item.actor.name));
   });
 
-  it('leaves the leaderboard body empty when the social flag is off', () => {
+  it('leaves exited positions out of the list', async () => {
+    expect(closedFixtureRow).toBeDefined();
+
+    renderHoldersTab();
+
+    await waitFor(() =>
+      expect(
+        screen.getAllByTestId(TokenHolderRowSelectorsIDs.CONTAINER).length,
+      ).toBeGreaterThan(0),
+    );
+    expect(screen.queryByText(closedFixtureRow?.actor.name ?? '')).toBeNull();
+  });
+
+  it('shows the empty state when the cluster has no holders route yet', async () => {
+    // Live on dev, still 404 on prod: no rows rather than a retry prompt.
+    respondWith(null, 404);
+
+    renderHoldersTab();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(TokenDetailsHoldersTabSelectorsIDs.EMPTY),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
+    ).toBeNull();
+  });
+
+  it('offers a retry when the route fails', async () => {
+    respondWith(null, 500);
+
+    renderHoldersTab();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(TokenDetailsHoldersTabSelectorsIDs.ERROR),
+      ).toBeOnTheScreen(),
+    );
+    expect(
+      screen.queryByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
+    ).toBeNull();
+  });
+
+  it('asks the route for the asset on screen', async () => {
+    renderHoldersTab();
+
+    await waitFor(() => expect(mockFetch).toHaveBeenCalled());
+    expect(mockFetch.mock.calls[0][0]).toContain(encodeURIComponent(assetId));
+  });
+
+  it('renders no holders while the social flag is off', async () => {
     mockIsEnabled = false;
 
     renderHoldersTab();
 
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(TokenDetailsHoldersTabSelectorsIDs.EMPTY),
+      ).toBeOnTheScreen(),
+    );
     expect(
-      screen.getByTestId('token-details-v1-holders-leaderboard'),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
-    expect(
-      screen.queryByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
+      screen.queryByTestId(TokenHolderRowSelectorsIDs.CONTAINER),
     ).toBeNull();
-    expect(leaderboardBody()).toBeNull();
   });
 });

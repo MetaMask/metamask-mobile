@@ -6180,6 +6180,13 @@
       "feed": "Feed",
       "holders": "Holders"
     },
+    "holders_tab": {
+      "empty": "No holders to show yet",
+      "error": {
+        "title": "We couldn't load holders",
+        "retry": "Try again"
+      }
+    },
     "performance": {
       "title": "Performance"
     },
