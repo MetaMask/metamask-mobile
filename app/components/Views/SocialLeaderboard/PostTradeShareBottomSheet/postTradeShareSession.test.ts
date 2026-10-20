@@ -73,7 +73,11 @@ describe('postTradeShareSession', () => {
 
     const reopened = consumePostTradeShareReopen();
 
-    expect(reopened).toEqual({ target, copyTradeOrigin: undefined });
+    expect(reopened).toEqual({
+      target,
+      copyTradeOrigin: undefined,
+      tradeMode: 'buy',
+    });
     expect(getPostTradeShareSession()).toBeNull();
   });
 
@@ -97,6 +101,7 @@ describe('postTradeShareSession', () => {
     expect(consumePostTradeShareReopen()).toEqual({
       target,
       copyTradeOrigin,
+      tradeMode: 'buy',
     });
     expect(getPostTradeShareSession()).toBeNull();
   });

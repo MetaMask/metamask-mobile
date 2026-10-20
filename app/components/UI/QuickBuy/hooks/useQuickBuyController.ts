@@ -284,6 +284,7 @@ export function useQuickBuyController(
   initialTradeMode: QuickBuyTradeMode = 'buy',
   postTradeShare = false,
   copyTradeOrigin?: CopyTradeOrigin,
+  postTradeShareOwner?: string,
 ): UseQuickBuyControllerResult {
   const hiddenInputRef = useRef<TextInput>(null);
   const dispatch = useDispatch();
@@ -1681,6 +1682,7 @@ export function useQuickBuyController(
               : undefined,
           tradeInFlightChain,
           copyTradeOrigin,
+          owner: postTradeShareOwner,
           preview: {
             tokenSymbol: target.tokenSymbol,
             tokenAddress: target.tokenAddress,
@@ -1858,6 +1860,7 @@ export function useQuickBuyController(
     submitStartedAtRef,
     postTradeShare,
     copyTradeOrigin,
+    postTradeShareOwner,
     sourceTokenAmount,
     estimatedReceiveAmount,
     target,

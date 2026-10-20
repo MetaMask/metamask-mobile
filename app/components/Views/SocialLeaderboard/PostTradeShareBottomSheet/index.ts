@@ -5,4 +5,6 @@ export {
   clearPostTradeShareSession,
   getPostTradeShareSession,
   patchPostTradeShareSession,
+  PostTradeShareOwner,
 } from './postTradeShareSession';
+export type { PostTradeShareOwnerId } from './postTradeShareSession';

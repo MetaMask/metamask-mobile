@@ -77,6 +77,11 @@ export interface QuickBuyRootProps {
    * of Quick Buy's pending/complete/failed toasts.
    */
   postTradeShare?: boolean;
+  /**
+   * Screen that opened this Quick Buy. A failed post-trade share reopens only
+   * that screen.
+   */
+  postTradeShareOwner?: string;
   /** Social post being copied; a submitted swap records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
   children?: ReactNode;

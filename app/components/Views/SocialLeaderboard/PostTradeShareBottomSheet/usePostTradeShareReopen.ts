@@ -1,31 +1,42 @@
 import { useEffect } from 'react';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import type { QuickBuyTradeMode } from '../../../UI/QuickBuy/types';
 import {
   consumePostTradeShareReopen,
+  getPostTradeShareSession,
   subscribePostTradeShareSession,
+  type PostTradeShareOwnerId,
 } from './postTradeShareSession';
 
 /**
- * Reopens Quick Buy when the post-trade failure CTA fires.
+ * Reopens Quick Buy when the post-trade failure CTA fires for `owner`.
  *
- * Only the focused screen should subscribe. The session delivers the retry to
- * the first listener, and Social V1 stays mounted under a position screen.
+ * Other mounted Social screens ignore the retry. The session is consumed only
+ * by the screen that started the swap.
  */
 export const usePostTradeShareReopen = (
-  onReopen: (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => void,
-  isActive = true,
+  onReopen: (
+    target: QuickBuyTarget,
+    copyTradeOrigin?: CopyTradeOrigin,
+    tradeMode?: QuickBuyTradeMode,
+  ) => void,
+  owner?: PostTradeShareOwnerId,
 ): void => {
   useEffect(() => {
-    if (!isActive) {
+    if (!owner) {
       return undefined;
     }
     const unsubscribe = subscribePostTradeShareSession(() => {
+      const session = getPostTradeShareSession();
+      if (!session?.reopenRequested || session.owner !== owner) {
+        return;
+      }
       const reopened = consumePostTradeShareReopen();
       if (reopened) {
-        onReopen(reopened.target, reopened.copyTradeOrigin);
+        onReopen(reopened.target, reopened.copyTradeOrigin, reopened.tradeMode);
       }
     });
     return unsubscribe;
-  }, [isActive, onReopen]);
+  }, [onReopen, owner]);
 };

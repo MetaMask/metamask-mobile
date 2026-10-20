@@ -3,6 +3,7 @@ import type { QuickBuyTarget } from '../../../UI/QuickBuy';
 import {
   beginPostTradeShareSession,
   clearPostTradeShareSession,
+  PostTradeShareOwner,
   requestPostTradeShareReopen,
 } from './postTradeShareSession';
 import { usePostTradeShareReopen } from './usePostTradeShareReopen';
@@ -30,24 +31,29 @@ describe('usePostTradeShareReopen', () => {
 
   it('calls onReopen with the target when a reopen is requested', () => {
     const onReopen = jest.fn();
-    renderHook(() => usePostTradeShareReopen(onReopen));
+    renderHook(() =>
+      usePostTradeShareReopen(onReopen, PostTradeShareOwner.socialV1Feed),
+    );
 
     act(() => {
       beginPostTradeShareSession({
         target,
         tradeMode: 'buy',
         preview,
+        owner: PostTradeShareOwner.socialV1Feed,
       });
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(target, undefined);
+    expect(onReopen).toHaveBeenCalledWith(target, undefined, 'buy');
   });
 
   it('calls onReopen with the copy-trade origin when the session has one', () => {
     const onReopen = jest.fn();
     const copyTradeOrigin = { commentId: 'comment-1' };
-    renderHook(() => usePostTradeShareReopen(onReopen));
+    renderHook(() =>
+      usePostTradeShareReopen(onReopen, PostTradeShareOwner.socialV1Feed),
+    );
 
     act(() => {
       beginPostTradeShareSession({
@@ -55,35 +61,46 @@ describe('usePostTradeShareReopen', () => {
         tradeMode: 'buy',
         preview,
         copyTradeOrigin,
+        owner: PostTradeShareOwner.socialV1Feed,
       });
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(target, copyTradeOrigin);
+    expect(onReopen).toHaveBeenCalledWith(target, copyTradeOrigin, 'buy');
   });
 
-  it('leaves the retry for a later listener when this screen is not focused', () => {
-    const hiddenReopen = jest.fn();
-    const visibleReopen = jest.fn();
-    renderHook(() => usePostTradeShareReopen(hiddenReopen, false));
-    renderHook(() => usePostTradeShareReopen(visibleReopen, true));
+  it('leaves a position retry for the position screen while the feed is mounted', () => {
+    const feedReopen = jest.fn();
+    const positionReopen = jest.fn();
+    renderHook(() =>
+      usePostTradeShareReopen(feedReopen, PostTradeShareOwner.socialV1Feed),
+    );
+    renderHook(() =>
+      usePostTradeShareReopen(
+        positionReopen,
+        PostTradeShareOwner.positionDetails,
+      ),
+    );
 
     act(() => {
       beginPostTradeShareSession({
         target,
-        tradeMode: 'buy',
+        tradeMode: 'sell',
         preview,
+        owner: PostTradeShareOwner.positionDetails,
       });
       requestPostTradeShareReopen();
     });
 
-    expect(hiddenReopen).not.toHaveBeenCalled();
-    expect(visibleReopen).toHaveBeenCalledWith(target, undefined);
+    expect(feedReopen).not.toHaveBeenCalled();
+    expect(positionReopen).toHaveBeenCalledWith(target, undefined, 'sell');
   });
 
   it('does not call onReopen when the session is cleared', () => {
     const onReopen = jest.fn();
-    renderHook(() => usePostTradeShareReopen(onReopen));
+    renderHook(() =>
+      usePostTradeShareReopen(onReopen, PostTradeShareOwner.socialV1Feed),
+    );
 
     act(() => {
       clearPostTradeShareSession();

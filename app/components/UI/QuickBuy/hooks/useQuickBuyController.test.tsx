@@ -313,6 +313,7 @@ runQuickBuyControllerCases({
     initialTradeMode?: 'buy' | 'sell',
     postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     const utils = renderHook(
       () =>
@@ -323,6 +324,7 @@ runQuickBuyControllerCases({
           initialTradeMode,
           postTradeShare,
           copyTradeOrigin,
+          postTradeShareOwner,
         ),
       { initialProps },
     );
@@ -394,6 +396,7 @@ runQuickBuyControllerCases({
     initialTradeMode?: 'buy' | 'sell',
     postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     const utils = renderHook(
       () =>
@@ -404,6 +407,7 @@ runQuickBuyControllerCases({
           initialTradeMode,
           postTradeShare,
           copyTradeOrigin,
+          postTradeShareOwner,
         ),
       {
         initialProps,

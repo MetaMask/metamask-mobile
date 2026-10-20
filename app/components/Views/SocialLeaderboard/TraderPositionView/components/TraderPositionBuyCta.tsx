@@ -24,7 +24,10 @@ import TraderPositionQuickBuy, {
   type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
-import { usePostTradeShareReopen } from '../../PostTradeShareBottomSheet';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../../PostTradeShareBottomSheet';
 import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
@@ -181,7 +184,10 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
     },
     [target],
   );
-  usePostTradeShareReopen(handlePostSwapReopen);
+  usePostTradeShareReopen(
+    handlePostSwapReopen,
+    postTradeShare ? PostTradeShareOwner.traderPosition : undefined,
+  );
 
   return (
     <>
@@ -208,6 +214,9 @@ const TraderPositionBuyCta: React.FC<TraderPositionBuyCtaProps> = ({
         originalEntryPoint={originalEntryPoint}
         isTraderPositionClosed={isTraderPositionClosed}
         postTradeShare={postTradeShare}
+        postTradeShareOwner={
+          postTradeShare ? PostTradeShareOwner.traderPosition : undefined
+        }
       />
     </>
   );

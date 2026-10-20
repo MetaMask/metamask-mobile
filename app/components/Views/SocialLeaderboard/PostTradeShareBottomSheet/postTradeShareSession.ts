@@ -4,6 +4,19 @@ import type { SocialPostTradePreview } from '../SocialPostComposerView/SocialPos
 
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
 
+/**
+ * Screen that opened Quick Buy. Try again reopens only that screen, because
+ * several Social screens can stay mounted at once.
+ */
+export const PostTradeShareOwner = {
+  socialV1Feed: 'social-v1-feed',
+  traderPosition: 'trader-position',
+  positionDetails: 'position-details',
+} as const;
+
+export type PostTradeShareOwnerId =
+  (typeof PostTradeShareOwner)[keyof typeof PostTradeShareOwner];
+
 export interface PostTradeShareSession {
   sessionId: string;
   status: PostTradeShareStatus;
@@ -15,12 +28,15 @@ export interface PostTradeShareSession {
   tradeMode: QuickBuyTradeMode;
   /** Post being copied, so a failed swap can reopen Quick Buy with the same intent. */
   copyTradeOrigin?: CopyTradeOrigin;
+  /** Screen that should reopen Quick Buy after a failure. */
+  owner?: string;
   reopenRequested: boolean;
 }
 
 export interface PostTradeShareReopen {
   target: QuickBuyTarget;
   copyTradeOrigin?: CopyTradeOrigin;
+  tradeMode: QuickBuyTradeMode;
 }
 
 type Listener = () => void;
@@ -106,8 +122,8 @@ export const consumePostTradeShareReopen = (): PostTradeShareReopen | null => {
   if (!state.session?.reopenRequested) {
     return null;
   }
-  const { target, copyTradeOrigin } = state.session;
+  const { target, copyTradeOrigin, tradeMode } = state.session;
   state.session = null;
   notify();
-  return { target, copyTradeOrigin };
+  return { target, copyTradeOrigin, tradeMode };
 };

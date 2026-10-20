@@ -13,7 +13,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useFocusEffect,
-  useIsFocused,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -90,7 +89,10 @@ import {
   type QuickBuyTarget,
 } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import { usePostTradeShareReopen } from '../PostTradeShareBottomSheet';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../PostTradeShareBottomSheet';
 
 const LANDING_INDEX = 0;
 
@@ -414,8 +416,10 @@ const SocialV1View: React.FC = () => {
     },
     [],
   );
-  const isFocused = useIsFocused();
-  usePostTradeShareReopen(handlePostTradeReopen, isFocused);
+  usePostTradeShareReopen(
+    handlePostTradeReopen,
+    PostTradeShareOwner.socialV1Feed,
+  );
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -720,6 +724,7 @@ const SocialV1View: React.FC = () => {
           initialTradeMode="buy"
           analyticsContext={{ source: 'trader_feed' }}
           postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
           copyTradeOrigin={quickBuy?.copyTradeOrigin}
         />
       </SafeAreaView>

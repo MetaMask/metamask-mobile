@@ -316,6 +316,7 @@ export const runQuickBuyControllerCases = ({
     initialTradeMode?: 'buy' | 'sell',
     postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     result: {
       current: UseQuickBuyControllerResult;
@@ -4250,6 +4251,7 @@ export const runQuickBuyControllerCases = ({
             'buy',
             true,
             copyTradeOrigin,
+            'social-v1-feed',
           );
 
           await act(async () => {
@@ -4259,6 +4261,7 @@ export const runQuickBuyControllerCases = ({
           expect(getPostTradeShareSession()?.copyTradeOrigin).toEqual(
             copyTradeOrigin,
           );
+          expect(getPostTradeShareSession()?.owner).toBe('social-v1-feed');
         });
 
         it('uses normal Quick Buy feedback for unsupported trade-in-flight chains', async () => {

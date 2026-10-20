@@ -25,6 +25,7 @@ export interface TraderPositionQuickBuyProps {
   /** `true` when the trader has closed the position (sell); `false` when still open (buy). */
   isTraderPositionClosed?: boolean;
   postTradeShare?: boolean;
+  postTradeShareOwner?: string;
   initialTradeMode?: QuickBuyTradeMode;
 }
 
@@ -43,6 +44,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   originalEntryPoint,
   isTraderPositionClosed,
   postTradeShare,
+  postTradeShareOwner,
   initialTradeMode,
 }) => {
   // Stabilise the derived `target` reference so it doesn't destabilise the
@@ -99,6 +101,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
       features={TOP_TRADERS_QUICK_BUY_FEATURES}
       analyticsContext={analyticsContext}
       postTradeShare={postTradeShare}
+      postTradeShareOwner={postTradeShareOwner}
       initialTradeMode={initialTradeMode}
     />
   );
