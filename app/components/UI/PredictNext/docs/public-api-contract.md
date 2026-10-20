@@ -46,7 +46,9 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 
 ## Rules for the Venue switch
 
-- Each public API resolves the user's Venue internally. Callers do not pass, read, or branch on a Venue.
+- Each public API resolves the Active Venue internally. Callers do not pass, read, or branch on a Venue. Under PRED-1340, a known US location defaults to Kalshi, a known non-US location defaults to Polymarket, and a valid explicit Venue Selection Preference takes precedence. PRED-1377 owns that resolution. The Active Venue can therefore change during a session.
+- On an Active Venue change, the public API remounts the newly active branch. Kalshi cancels its own unsubmitted previews. Legacy Polymarket keeps its existing behavior, including toast registration and observation of submitted operations, which stay mounted regardless of Active Venue.
+- A surface whose action has no implementation for the Active Venue hides that action. For example, while Kalshi is active, Money and pay-with must not offer the Polymarket deposit or add-funds flow. That is an availability gate, not a wrapper around legacy execution.
 - Prefer switching at component level: render the legacy component or the Kalshi component, and mount only the active one.
 - Hooks follow the Rules of Hooks. If both implementations' hooks must be called, the inactive branch must be disabled and side-effect free. Some legacy hooks have mount side effects; `usePredictActivity`, for example, ensures the Polygon network. Prefer a small internal provider or component boundary that mounts only the active implementation.
 - With Kalshi disabled, every public API is behaviorally identical to today's production path. Test that explicitly for each migrated surface.
@@ -90,4 +92,4 @@ PRED-1374 found these legacy client-mapping issues. They belong to the backend a
 
 - Which external surfaces must show Kalshi at launch? Those surfaces migrate first. The rest can wait for PRED-1356.
 - Will the Homepage owners accept a Predict-owned Predictions section component?
-- Is each user on exactly one Venue, for example by region? If yes, Venue resolution is an availability answer, and no in-app Venue switching rules are needed.
+- Can PRED-1376 Venue descriptors stay Kalshi-only until PRED-1356, with Polymarket availability resolved on the client from today's legacy flags and eligibility?

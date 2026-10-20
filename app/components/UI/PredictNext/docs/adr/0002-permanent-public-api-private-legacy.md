@@ -19,7 +19,7 @@ Making those consumers read canonical data for both Venues would require a full 
 3. **Pass-through legacy path.** A public API's Polymarket branch calls existing legacy hooks, mappers, and components without behavior changes. With Kalshi disabled, every public API returns or renders exactly what production does today.
 4. **One internal Venue decision.** Each public API resolves the user's Venue internally. External callers never select, branch on, or receive a Venue-specific object. The switch is temporary and is deleted with the legacy branch.
 5. **Strict canonical types.** Canonical PredictNext types are not weakened to represent legacy mapper losses. Optionality reflects genuine source absence.
-6. **Legacy execution is untouched.** The legacy controller, providers, confirmations and pay-with integration, transaction-pay callbacks, and Engine wiring are not wrapped or changed before PRED-1356. They are named composition wiring that PRED-1356 removes. Kalshi funding and trading use their own PredictNext flows.
+6. **Legacy execution is untouched.** The legacy controller, providers, confirmations and pay-with integration, transaction-pay callbacks, and Engine wiring are not wrapped or changed before PRED-1356. They are named composition wiring that PRED-1356 removes. The only change allowed in them is an availability gate, so that a user on Kalshi is never offered a Polymarket funding or trading entry point. Kalshi funding and trading use their own PredictNext flows.
 7. **No compatibility versioning.** PredictNext is unreleased. Coordinated breaking client/API changes are allowed. Do not add API versions, negotiation, or dual parsers for older unreleased builds.
 
 ## Consequences
