@@ -1208,8 +1208,8 @@
       "button": "Try again"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Try again"
     },
     "vba_details": {
