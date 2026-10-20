@@ -21,6 +21,7 @@ import type {
   TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
+import type { ComponentType } from 'react';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   describeForPlatforms,
@@ -33,6 +34,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -50,6 +52,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseHandleSelector,
   getPerpsProChaseRepriceSelector,
@@ -70,6 +73,7 @@ import {
 } from '../../utils/formatUtils';
 import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
 import { readPerpsUiObservations } from '../../utils/perpsUiObservations';
+import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const TIMEOUT_MS = 5000;
@@ -4566,5 +4570,74 @@ describe('Pro market order liquidity', () => {
     expect(
       screen.queryByText(strings('perps.slippage.cannot_fill')),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe('Pro market Lighter limit order take profit and stop loss', () => {
+  it('blocks a limit order with both TP and SL on a providerless market while Lighter is active', async () => {
+    const market = createEthMarketForViews();
+    renderPerpsProMarketView({
+      initialParams: { market },
+      streamOverrides: {
+        marketData: [market],
+        account: createFundedAccountForViews('1000'),
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: { activeProvider: 'lighter' },
+          },
+        },
+      },
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
+    });
+
+    fireEvent.changeText(await findSizeInput(), '10');
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    fireEvent.changeText(await findPriceInput(ids.LIMIT_PRICE_INPUT), '2600');
+    const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    await waitFor(() => expect(submit).toBeEnabled());
+
+    fireEvent.press(screen.getByTestId(ids.TPSL));
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      ),
+      '2800',
+    );
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      '2400',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).not.toBeOnTheScreen(),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.order.validation.lighter_limit_tpsl_unsupported'),
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(submit).toBeDisabled());
   });
 });
