@@ -3,7 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import { buildMoneyAccountDepositBatch } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import { buildMoneyAccountDepositBatch } from '@metamask/money-account-utils';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -56,6 +56,10 @@ export async function getAmountData(
   }
 
   const rawAmount = BigInt(amount);
+
+  if (rawAmount === 0n) {
+    return { updates: [] };
+  }
 
   try {
     let buildResult;

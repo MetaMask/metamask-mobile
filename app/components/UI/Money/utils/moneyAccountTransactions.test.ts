@@ -1,23 +1,14 @@
-import { ethers } from 'ethers';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import {
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../Earn/constants/musd';
-import {
-  applySlippage,
-  getSharesForWithdrawal,
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
+} from '@metamask/money-account-utils';
+import {
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
   getMoneyAccountDepositTransactionsData,
   getMoneyAccountWithdrawTransactionsData,
-  getMoneyAccountDepositAssetId,
 } from './moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -28,22 +19,17 @@ import {
   selectMoneyAccountVaultConfig,
 } from '../../../../selectors/featureFlagController/moneyAccount';
 
-jest.mock('../../Earn/constants/musd', () => ({
-  MUSD_TOKEN_ADDRESS_BY_CHAIN: {} as Record<string, Hex>,
-  MUSD_DECIMALS: 6,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN: {
-    // Monad (0x8f) mUSD CAIP-19 asset id.
-    '0x8f': 'eip155:143/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-    // Mainnet (0x1) mUSD CAIP-19 asset id.
-    '0x1': 'eip155:1/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
-  } as Record<string, string>,
+// The pure builders now live in `@metamask/money-account-utils` and are tested
+// there; these tests cover only the Redux-coupled wrappers, so the package
+// boundary is mocked.
+jest.mock('@metamask/money-account-utils', () => ({
+  ...jest.requireActual('@metamask/money-account-utils'),
+  buildMoneyAccountDepositBatch: jest.fn(),
+  buildMoneyAccountWithdrawBatch: jest.fn(),
 }));
 
-jest.mock('../../../../core/AppConstants', () => ({
-  __esModule: true,
-  default: {
-    ZERO_ADDRESS: '0x0000000000000000000000000000000000000000',
-  },
+jest.mock('../../Earn/constants/musd', () => ({
+  MUSD_DECIMALS: 6,
 }));
 
 jest.mock('../../../../core/redux/ReduxService', () => ({
@@ -67,38 +53,13 @@ jest.mock('../../../../selectors/accountsController', () => ({
 jest.mock('../../../../util/notifications/methods/common', () => ({
   getProviderByChainId: jest.fn(),
 }));
-jest.mock('../../../../util/notifications/methods/common');
-jest.mock('../../../../core/redux');
-jest.mock('../../../../selectors/featureFlagController/moneyAccount');
 
-const mockPreviewDeposit = jest.fn();
-const mockGetRate = jest.fn();
-
-jest.mock('ethers', () => {
-  const actualEthers = jest.requireActual('ethers');
-  return {
-    ...actualEthers,
-    ethers: {
-      ...actualEthers.ethers,
-      Contract: jest.fn().mockImplementation((_address, abi) => {
-        const abiStr = JSON.stringify(abi);
-        if (abiStr.includes('previewDeposit')) {
-          return { previewDeposit: mockPreviewDeposit };
-        }
-        if (abiStr.includes('getRate')) {
-          return { getRate: mockGetRate };
-        }
-        return {};
-      }),
-      utils: actualEthers.ethers.utils,
-    },
-  };
-});
-
+const mockBuildDepositBatch = jest.mocked(buildMoneyAccountDepositBatch);
+const mockBuildWithdrawBatch = jest.mocked(buildMoneyAccountWithdrawBatch);
 const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
-const mockSelectMoneyAccountVaultConfig = jest.mocked(
-  selectMoneyAccountVaultConfig,
-);
+const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
+const mockSelectPrimaryMoneyAccount = jest.mocked(selectPrimaryMoneyAccount);
+const mockSelectEvmAddress = jest.mocked(selectEvmAddress);
 
 const MOCK_CHAIN_ID = '0x8f' as Hex;
 const MOCK_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
@@ -106,7 +67,11 @@ const MOCK_BORING_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2' as Hex;
 const MOCK_TELLER = '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9' as Hex;
 const MOCK_ACCOUNTANT = '0x800ebc3B74F67EaC27C9CCE4E4FF28b17CdCA173' as Hex;
 const MOCK_LENS = '0x846a7832022350434B5cC006d07cc9c782469660' as Hex;
-const MOCK_PROVIDER = {} as ethers.providers.Provider;
+const MOCK_MONEY_ACCOUNT = '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
+const MOCK_EVM_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
+const MOCK_RECIPIENT_OVERRIDE =
+  '0x1111111111111111111111111111111111111111' as Hex;
+const MOCK_PROVIDER = {} as never;
 
 const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
   chainId: MOCK_CHAIN_ID,
@@ -116,869 +81,382 @@ const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
   lensAddress: MOCK_LENS,
 };
 
+const MOCK_TRANSACTION_META = {
+  chainId: MOCK_CHAIN_ID,
+} as TransactionMeta;
+
+const DEPOSIT_BATCH = {
+  approveTx: {
+    params: {
+      to: MOCK_MUSD_ADDRESS,
+      data: '0xapprove' as Hex,
+      value: '0x0' as Hex,
+    },
+    type: 'tokenMethodApprove' as never,
+  },
+  depositTx: {
+    params: {
+      to: MOCK_TELLER,
+      data: '0xdeposit' as Hex,
+      value: '0x0' as Hex,
+    },
+    type: 'moneyAccountDeposit' as never,
+  },
+};
+
+const WITHDRAW_BATCH = {
+  withdrawTx: {
+    params: {
+      to: MOCK_TELLER,
+      data: '0xwithdraw' as Hex,
+      value: '0x0' as Hex,
+    },
+    type: 'moneyAccountWithdraw' as never,
+  },
+  transferTx: {
+    params: {
+      to: MOCK_MUSD_ADDRESS,
+      data: '0xtransfer' as Hex,
+      value: '0x0' as Hex,
+    },
+    type: 'tokenMethodTransfer' as never,
+  },
+};
+
 describe('moneyAccountTransactions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (MUSD_TOKEN_ADDRESS_BY_CHAIN as Record<string, Hex>)[MOCK_CHAIN_ID] =
-      MOCK_MUSD_ADDRESS;
-  });
-
-  describe('applySlippage', () => {
-    it('applies 0.2% slippage to a round value', () => {
-      const result = applySlippage(BigInt(1000));
-      expect(result).toBe(BigInt(998));
-    });
-
-    it('applies 0.2% slippage with integer truncation', () => {
-      const result = applySlippage(BigInt(1));
-      expect(result).toBe(BigInt(0));
-    });
-
-    it('applies 0.2% slippage to a large value', () => {
-      const amount = BigInt('1000000000000000000');
-      const expected = (amount * BigInt(998)) / BigInt(1000);
-      expect(applySlippage(amount)).toBe(expected);
-    });
-
-    it('returns 0 for 0 input', () => {
-      expect(applySlippage(BigInt(0))).toBe(BigInt(0));
-    });
-  });
-
-  describe('getSharesForWithdrawal', () => {
-    const SHARE_SCALAR = BigInt(1_000_000);
-
-    it('converts amount to shares at 1:1 rate (exact division)', () => {
-      const amount = BigInt(1_000_000);
-      const rate = BigInt(1_000_000);
-      // 1_000_000 * 1_000_000 / 1_000_000 = exact, ceiling = floor
-      expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(1_000_000));
-    });
-
-    it('scales down when rate is higher than 1:1 (exact division)', () => {
-      const amount = BigInt(1_000_000);
-      const rate = BigInt(2_000_000);
-      // 1_000_000 * 1_000_000 / 2_000_000 = exact 500_000
-      expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(500_000));
-    });
-
-    it('scales up when rate is lower than 1:1 (exact division)', () => {
-      const amount = BigInt(2_000_000);
-      const rate = BigInt(1_000_000);
-      expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(2_000_000));
-    });
-
-    it('uses ceiling division — rounds up when remainder exists', () => {
-      // 1_000_000 * 1_000_000 = 1_000_000_000_000
-      // floor(1_000_000_000_000 / 3_000_000) = 333_333
-      // ceil should be 333_334
-      const amount = BigInt(1_000_000);
-      const rate = BigInt(3_000_000);
-      const floorResult = (amount * SHARE_SCALAR) / rate;
-      expect(floorResult).toBe(BigInt(333_333));
-      expect(getSharesForWithdrawal(amount, rate)).toBe(BigInt(333_334));
-    });
-
-    it('reproduces the exact reported scenario — $1.96 at rate ~1,000,094', () => {
-      // This was the failing case: floor division gave 1,959,815 shares,
-      // contract mulDivDown produced 1,959,999 assetsOut < 1,960,000 minimumAssets
-      const amount = BigInt(1_960_000); // $1.96 in 6 decimals
-      const rate = BigInt(1_000_094);
-
-      const floorShares = (amount * SHARE_SCALAR) / rate;
-      expect(floorShares).toBe(BigInt(1_959_815)); // old buggy value
-
-      const ceilShares = getSharesForWithdrawal(amount, rate);
-      expect(ceilShares).toBe(BigInt(1_959_816)); // fixed: one more share
-
-      // Verify: contract mulDivDown(ceilShares * rate / SCALAR) >= amount
-      const assetsOut = (ceilShares * rate) / SHARE_SCALAR;
-      expect(assetsOut).toBeGreaterThanOrEqual(amount);
-    });
-
-    it('reproduces the reported $1.00 scenario — was passing by luck', () => {
-      const amount = BigInt(1_000_000);
-      const rate = BigInt(1_000_094);
-
-      const floorShares = (amount * SHARE_SCALAR) / rate;
-      const ceilShares = getSharesForWithdrawal(amount, rate);
-
-      // With ceiling, we get at least as many shares as floor
-      expect(ceilShares).toBeGreaterThanOrEqual(floorShares);
-
-      // Contract-side check still passes
-      const assetsOut = (ceilShares * rate) / SHARE_SCALAR;
-      expect(assetsOut).toBeGreaterThanOrEqual(amount);
-    });
-
-    it('handles large amounts with ceiling division', () => {
-      const amount = BigInt('1000000000000'); // $1M in 6 decimals
-      const rate = BigInt('1500000');
-      const result = getSharesForWithdrawal(amount, rate);
-      const floorResult = (amount * SHARE_SCALAR) / rate;
-      // Ceiling >= floor always
-      expect(result).toBeGreaterThanOrEqual(floorResult);
-      // And at most 1 more than floor
-      expect(result - floorResult).toBeLessThanOrEqual(1n);
-    });
-
-    it('ceiling division equals floor when division is exact', () => {
-      // 2_000_000 * 1_000_000 / 500_000 = 4_000_000_000 (exact)
-      const amount = BigInt(2_000_000);
-      const rate = BigInt(500_000);
-      const floorResult = (amount * SHARE_SCALAR) / rate;
-      expect(getSharesForWithdrawal(amount, rate)).toBe(floorResult);
-    });
-
-    it('returns 0 for zero amount', () => {
-      expect(getSharesForWithdrawal(0n, BigInt(1_000_000))).toBe(0n);
-    });
-
-    it('guarantees assetsOut >= amount for many rate values', () => {
-      // Fuzz-like: sweep a range of rates near 1:1
-      const amount = BigInt(1_960_000);
-      for (let r = 999_900; r <= 1_000_200; r++) {
-        const rate = BigInt(r);
-        const shares = getSharesForWithdrawal(amount, rate);
-        // Simulate contract mulDivDown
-        const assetsOut = (shares * rate) / SHARE_SCALAR;
-        expect(assetsOut).toBeGreaterThanOrEqual(amount);
-      }
-    });
-  });
-
-  describe('getMoneyAccountDepositAssetId', () => {
-    it('returns the mapped asset id for a known chain', () => {
-      expect(getMoneyAccountDepositAssetId('0x8f' as Hex)).toBe(
-        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
-      );
-      expect(getMoneyAccountDepositAssetId('0x1' as Hex)).toBe(
-        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x1'],
-      );
-    });
-
-    it('falls back to the Monad asset id for an unknown chain', () => {
-      expect(getMoneyAccountDepositAssetId('0xdead' as Hex)).toBe(
-        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
-      );
-    });
-
-    it('falls back to the Monad asset id when chainId is undefined', () => {
-      expect(getMoneyAccountDepositAssetId(undefined)).toBe(
-        MUSD_TOKEN_ASSET_ID_BY_CHAIN['0x8f'],
-      );
-    });
-  });
-
-  describe('buildMoneyAccountDepositBatch', () => {
-    it('returns approve and deposit transactions with correct types', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountDepositBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        boringVault: MOCK_BORING_VAULT,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        lensAddress: MOCK_LENS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(result.approveTx.type).toBe(TransactionType.tokenMethodApprove);
-      expect(result.approveTx.params.value).toBe('0x0');
-
-      expect(result.depositTx.type).toBe(TransactionType.moneyAccountDeposit);
-      expect(result.depositTx.params.to).toBe(MOCK_TELLER);
-      expect(result.depositTx.params.value).toBe('0x0');
-    });
-
-    it('encodes approve data targeting the boring vault', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountDepositBatch({
-        amount: BigInt(500_000),
-        chainId: MOCK_CHAIN_ID,
-        boringVault: MOCK_BORING_VAULT,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        lensAddress: MOCK_LENS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(result.approveTx.params.data).toBeDefined();
-      expect(typeof result.approveTx.params.data).toBe('string');
-      expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
-    });
-
-    it('calls previewDeposit with correct arguments', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('500000'));
-
-      await buildMoneyAccountDepositBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        boringVault: MOCK_BORING_VAULT,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        lensAddress: MOCK_LENS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(mockPreviewDeposit).toHaveBeenCalledWith(
-        expect.any(String),
-        '1000000',
-        MOCK_BORING_VAULT,
-        MOCK_ACCOUNTANT,
-      );
-    });
-
-    it('returns undefined data fields when initialiseWithoutData is true', async () => {
-      const result = await buildMoneyAccountDepositBatch({
-        amount: BigInt(0),
-        chainId: MOCK_CHAIN_ID,
-        boringVault: MOCK_BORING_VAULT,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        lensAddress: MOCK_LENS,
-        provider: MOCK_PROVIDER,
-        initialiseWithoutData: true,
-      });
-
-      expect(result.approveTx.params.data).toBeUndefined();
-      expect(result.depositTx.params.data).toBeUndefined();
-      expect(result.approveTx.type).toBe(TransactionType.tokenMethodApprove);
-      expect(result.depositTx.type).toBe(TransactionType.moneyAccountDeposit);
-      expect(result.approveTx.params.to).toBe(MOCK_MUSD_ADDRESS);
-      expect(result.depositTx.params.to).toBe(MOCK_TELLER);
-    });
-
-    it('skips calldata encoding but still resolves minimumMint for non-zero amounts when initialiseWithoutData is true', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountDepositBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        boringVault: MOCK_BORING_VAULT,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        lensAddress: MOCK_LENS,
-        provider: MOCK_PROVIDER,
-        initialiseWithoutData: true,
-      });
-
-      expect(result.approveTx.params.data).toBeUndefined();
-      expect(result.depositTx.params.data).toBeUndefined();
-    });
-
-    it('builds calldata normally when initialiseWithoutData is false', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountDepositBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        boringVault: MOCK_BORING_VAULT,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        lensAddress: MOCK_LENS,
-        provider: MOCK_PROVIDER,
-        initialiseWithoutData: false,
-      });
-
-      expect(result.approveTx.params.data).toBeDefined();
-      expect(result.approveTx.params.data?.startsWith('0x')).toBe(true);
-      expect(result.depositTx.params.data).toBeDefined();
-      expect(result.depositTx.params.data?.startsWith('0x')).toBe(true);
-    });
+    mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+    mockSelectPrimaryMoneyAccount.mockReturnValue({
+      address: MOCK_MONEY_ACCOUNT,
+    } as never);
+    mockSelectEvmAddress.mockReturnValue(MOCK_EVM_ADDRESS);
+    mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER);
+    mockBuildDepositBatch.mockResolvedValue(DEPOSIT_BATCH);
+    mockBuildWithdrawBatch.mockResolvedValue(WITHDRAW_BATCH);
+    (ReduxService.store.getState as jest.Mock).mockReturnValue({});
   });
 
   describe('updateMoneyAccountDepositTokenAmount', () => {
-    const mockTransactionMeta = {
-      id: 'tx-1',
-      chainId: MOCK_VAULT_CONFIG.chainId as Hex,
-    } as unknown as TransactionMeta;
-
-    beforeEach(() => {
-      // Default: vault config present, provider present
-      mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER as never);
-      mockSelectMoneyAccountVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
-      (
-        jest.mocked(ReduxService) as unknown as {
-          store: { getState: jest.Mock };
-        }
-      ).store = { getState: jest.fn().mockReturnValue({}) };
-    });
-
-    it('returns indexed approve and deposit calls for a valid amount', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
+    it('returns indexed approve and deposit calls', async () => {
       const result = await updateMoneyAccountDepositTokenAmount(
-        mockTransactionMeta,
-        '1.0',
+        MOCK_TRANSACTION_META,
+        '10.5',
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[0].nestedTransactionIndex).toBe(0);
-      expect(result[0].transactionData).toMatch(/^0x/);
-      expect(result[1].nestedTransactionIndex).toBe(1);
-      expect(result[1].transactionData).toMatch(/^0x/);
+      expect(result).toStrictEqual([
+        { nestedTransactionIndex: 0, transactionData: '0xapprove' },
+        { nestedTransactionIndex: 1, transactionData: '0xdeposit' },
+      ]);
     });
 
-    it('calls previewDeposit with the converted amount', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+    it('forwards the vault config and the converted amount to the builder', async () => {
+      await updateMoneyAccountDepositTokenAmount(MOCK_TRANSACTION_META, '10.5');
 
-      await updateMoneyAccountDepositTokenAmount(mockTransactionMeta, '1.0');
+      expect(mockBuildDepositBatch).toHaveBeenCalledWith({
+        amount: BigInt(10_500_000),
+        chainId: MOCK_CHAIN_ID,
+        boringVault: MOCK_BORING_VAULT,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        lensAddress: MOCK_LENS,
+        provider: MOCK_PROVIDER,
+      });
+    });
 
-      // 1.0 USDC with 6 decimals = 1_000_000
-      expect(mockPreviewDeposit).toHaveBeenCalledWith(
-        expect.any(String),
-        '1000000',
-        MOCK_VAULT_CONFIG.boringVault,
-        MOCK_VAULT_CONFIG.accountantAddress,
+    it('rounds the amount down to the previous base unit', async () => {
+      await updateMoneyAccountDepositTokenAmount(
+        MOCK_TRANSACTION_META,
+        '1.0000005',
+      );
+
+      expect(mockBuildDepositBatch).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: BigInt(1_000_000) }),
       );
     });
 
     it('returns [] when vault config is missing', async () => {
-      mockSelectMoneyAccountVaultConfig.mockReturnValue(undefined);
+      mockSelectVaultConfig.mockReturnValue(undefined);
 
-      const result = await updateMoneyAccountDepositTokenAmount(
-        mockTransactionMeta,
-        '1.0',
-      );
-
-      expect(result).toEqual([]);
-      expect(mockGetProviderByChainId).not.toHaveBeenCalled();
-      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+      expect(
+        await updateMoneyAccountDepositTokenAmount(
+          MOCK_TRANSACTION_META,
+          '10.5',
+        ),
+      ).toStrictEqual([]);
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     });
 
-    it('returns [] when provider is missing', async () => {
+    it('returns [] when no provider is available for the chain', async () => {
       mockGetProviderByChainId.mockReturnValue(undefined as never);
 
-      const result = await updateMoneyAccountDepositTokenAmount(
-        mockTransactionMeta,
-        '1.0',
-      );
-
-      expect(result).toEqual([]);
-      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+      expect(
+        await updateMoneyAccountDepositTokenAmount(
+          MOCK_TRANSACTION_META,
+          '10.5',
+        ),
+      ).toStrictEqual([]);
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     });
 
-    it('rejects when previewDeposit fails so the dispatcher can log the error', async () => {
-      const rpcError = new Error('RPC connection refused');
-      mockPreviewDeposit.mockRejectedValue(rpcError);
+    it('propagates builder errors so the dispatcher can log them', async () => {
+      mockBuildDepositBatch.mockRejectedValue(new Error('RPC down'));
 
       await expect(
-        updateMoneyAccountDepositTokenAmount(mockTransactionMeta, '1.0'),
-      ).rejects.toThrow('RPC connection refused');
+        updateMoneyAccountDepositTokenAmount(MOCK_TRANSACTION_META, '10.5'),
+      ).rejects.toThrow('RPC down');
+    });
+
+    it.each(['0', '0.00'])(
+      'no-ops without calling the builder for the zero amount %p',
+      async (amountHuman) => {
+        // Pay pushes every amount change, including a cleared field. The builder
+        // rejects zero rather than encode a deposit that mints nothing, so there
+        // must be nothing left to re-encode by the time we call it.
+        expect(
+          await updateMoneyAccountDepositTokenAmount(
+            MOCK_TRANSACTION_META,
+            amountHuman,
+          ),
+        ).toStrictEqual([]);
+        expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+      },
+    );
+
+    it('no-ops for a sub-base-unit amount, which rounds down to 0', async () => {
+      expect(
+        await updateMoneyAccountDepositTokenAmount(
+          MOCK_TRANSACTION_META,
+          '0.0000001',
+        ),
+      ).toStrictEqual([]);
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     });
   });
 
   describe('updateMoneyAccountWithdrawTokenAmount', () => {
-    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
-    const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
-    const mockSelectPrimaryMoneyAccount = jest.mocked(
-      selectPrimaryMoneyAccount,
-    );
-    const mockSelectEvmAddress = jest.mocked(selectEvmAddress);
-    const mockGetProviderByChainId = jest.mocked(getProviderByChainId);
-
-    const MOCK_VAULT_CONFIG = {
-      chainId: MOCK_CHAIN_ID,
-      boringVault: MOCK_BORING_VAULT,
-      tellerAddress: MOCK_TELLER,
-      accountantAddress: MOCK_ACCOUNTANT,
-      lensAddress: MOCK_LENS,
-    };
-    const MOCK_MONEY_ACCOUNT_ADDRESS =
-      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
-    const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
-
-    const MOCK_TX_META = {
-      id: 'tx-1',
-      chainId: MOCK_CHAIN_ID,
-    } as unknown as TransactionMeta;
-
-    beforeEach(() => {
-      mockGetState.mockReturnValue({});
-      mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
-      mockSelectPrimaryMoneyAccount.mockReturnValue({
-        address: MOCK_MONEY_ACCOUNT_ADDRESS,
-      } as ReturnType<typeof selectPrimaryMoneyAccount>);
-      mockSelectEvmAddress.mockReturnValue(MOCK_RECIPIENT);
-      mockGetProviderByChainId.mockReturnValue(
-        MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
-      );
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-    });
-
-    it('returns two UpdateTransactionPayAmountCall entries with nestedTransactionIndex 0 and 1', async () => {
+    it('returns indexed withdraw and transfer calls', async () => {
       const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
+        MOCK_TRANSACTION_META,
+        '10.5',
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[0].nestedTransactionIndex).toBe(0);
-      expect(result[1].nestedTransactionIndex).toBe(1);
+      expect(result).toStrictEqual([
+        { nestedTransactionIndex: 0, transactionData: '0xwithdraw' },
+        { nestedTransactionIndex: 1, transactionData: '0xtransfer' },
+      ]);
     });
 
-    it('returns calldata hex strings for both nested transactions', async () => {
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
+    it('forwards the vault config, money account and recipient to the builder', async () => {
+      await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TRANSACTION_META,
+        '10.5',
       );
 
-      expect(result[0].transactionData).toBeDefined();
-      expect(result[0].transactionData.startsWith('0x')).toBe(true);
-
-      expect(result[1].transactionData).toBeDefined();
-      expect(result[1].transactionData.startsWith('0x')).toBe(true);
+      expect(mockBuildWithdrawBatch).toHaveBeenCalledWith({
+        amount: BigInt(10_500_000),
+        chainId: MOCK_CHAIN_ID,
+        tellerAddress: MOCK_TELLER,
+        accountantAddress: MOCK_ACCOUNTANT,
+        moneyAccountAddress: MOCK_MONEY_ACCOUNT,
+        recipient: MOCK_EVM_ADDRESS,
+        provider: MOCK_PROVIDER,
+      });
     });
 
-    it('returns empty array when vaultConfig is missing', async () => {
+    it('uses recipientOverride when provided', async () => {
+      await updateMoneyAccountWithdrawTokenAmount(
+        MOCK_TRANSACTION_META,
+        '10.5',
+        MOCK_RECIPIENT_OVERRIDE,
+      );
+
+      expect(mockBuildWithdrawBatch).toHaveBeenCalledWith(
+        expect.objectContaining({ recipient: MOCK_RECIPIENT_OVERRIDE }),
+      );
+    });
+
+    it('returns [] when vault config is missing', async () => {
       mockSelectVaultConfig.mockReturnValue(undefined);
 
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
-      );
-
-      expect(result).toEqual([]);
+      expect(
+        await updateMoneyAccountWithdrawTokenAmount(
+          MOCK_TRANSACTION_META,
+          '10.5',
+        ),
+      ).toStrictEqual([]);
     });
 
-    it('returns empty array when primaryMoneyAccount is missing', async () => {
-      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+    it('returns [] when the primary money account is missing', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined as never);
 
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
-      );
-
-      expect(result).toEqual([]);
+      expect(
+        await updateMoneyAccountWithdrawTokenAmount(
+          MOCK_TRANSACTION_META,
+          '10.5',
+        ),
+      ).toStrictEqual([]);
     });
 
-    it('returns empty array when recipient (selectEvmAddress) is missing', async () => {
-      mockSelectEvmAddress.mockReturnValue(undefined);
+    it('returns [] when there is no recipient', async () => {
+      mockSelectEvmAddress.mockReturnValue(undefined as never);
 
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
-      );
-
-      expect(result).toEqual([]);
+      expect(
+        await updateMoneyAccountWithdrawTokenAmount(
+          MOCK_TRANSACTION_META,
+          '10.5',
+        ),
+      ).toStrictEqual([]);
     });
 
-    it('returns empty array when provider is not available for the chain', async () => {
-      mockGetProviderByChainId.mockReturnValue(
-        undefined as unknown as ReturnType<typeof getProviderByChainId>,
-      );
+    it('returns [] when no provider is available for the chain', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined as never);
 
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
-      );
-
-      expect(result).toEqual([]);
+      expect(
+        await updateMoneyAccountWithdrawTokenAmount(
+          MOCK_TRANSACTION_META,
+          '10.5',
+        ),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     });
 
-    it('uses recipientOverride as recipient when provided', async () => {
-      const overrideAddress =
-        '0x1111111111111111111111111111111111111111' as Hex;
-
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
-        overrideAddress,
-      );
-
-      expect(result).toHaveLength(2);
-      const encodedOverride = overrideAddress
-        .toLowerCase()
-        .replace('0x', '')
-        .padStart(64, '0');
-      expect(result[1].transactionData.toLowerCase()).toContain(
-        encodedOverride,
-      );
-    });
-
-    it('falls back to selectEvmAddress when recipientOverride is undefined', async () => {
-      const result = await updateMoneyAccountWithdrawTokenAmount(
-        MOCK_TX_META,
-        '1',
-      );
-
-      expect(result).toHaveLength(2);
-      const encodedRecipient = MOCK_RECIPIENT.toLowerCase()
-        .replace('0x', '')
-        .padStart(64, '0');
-      expect(result[1].transactionData.toLowerCase()).toContain(
-        encodedRecipient,
-      );
-    });
-  });
-
-  describe('buildMoneyAccountWithdrawBatch', () => {
-    const MOCK_MONEY_ACCOUNT_ADDRESS =
-      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
-    const MOCK_RECIPIENT_ADDRESS =
-      '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
-
-    it('returns withdrawTx and transferTx with correct transaction types', async () => {
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(result.withdrawTx.type).toBe(TransactionType.moneyAccountWithdraw);
-      expect(result.withdrawTx.params.to).toBe(MOCK_TELLER);
-      expect(result.withdrawTx.params.value).toBe('0x0');
-
-      expect(result.transferTx.type).toBe(TransactionType.tokenMethodTransfer);
-      expect(result.transferTx.params.value).toBe('0x0');
-    });
-
-    it('transferTx targets the USDC contract address', async () => {
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      // transferTx.to is the ERC-20 token contract (USDC), not the recipient
-      expect(result.transferTx.params.to).not.toBe(MOCK_RECIPIENT_ADDRESS);
-      expect(result.transferTx.params.to.startsWith('0x')).toBe(true);
-    });
-
-    it('encodes both withdraw and transfer data as hex strings', async () => {
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(result.withdrawTx.params.data).toBeDefined();
-      expect(result.withdrawTx.params.data?.startsWith('0x')).toBe(true);
-
-      expect(result.transferTx.params.data).toBeDefined();
-      expect(result.transferTx.params.data?.startsWith('0x')).toBe(true);
-    });
-
-    it('calls getRate on the accountant contract', async () => {
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('2000000'));
-
-      await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(mockGetRate).toHaveBeenCalledTimes(1);
-    });
-
-    it('skips getRate when amount is 0 (placeholder batch)', async () => {
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(0),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      expect(mockGetRate).not.toHaveBeenCalled();
-      expect(result.withdrawTx.params.data?.startsWith('0x')).toBe(true);
-      expect(result.transferTx.params.data?.startsWith('0x')).toBe(true);
-    });
-
-    it('encodes the recipient address in the transfer calldata', async () => {
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(1_000_000),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      // The recipient address (lowercased, without 0x prefix) should appear in the calldata
-      expect(result.transferTx.params.data?.toLowerCase()).toContain(
-        MOCK_RECIPIENT_ADDRESS.toLowerCase().slice(2),
-      );
-    });
-
-    it('encodes minimumAssets as amount - 1 for defense-in-depth', async () => {
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      const amount = BigInt(1_960_000);
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount,
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      // Decode withdraw calldata to verify minimumAssets = amount - 1
-      const iface = new ethers.utils.Interface([
-        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
-      ]);
-      const withdrawData = result.withdrawTx.params.data;
-      if (!withdrawData) throw new Error('Expected withdraw data');
-      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
-      const encodedMinimumAssets = BigInt(decoded.minimumAssets.toString());
-      expect(encodedMinimumAssets).toBe(amount - 1n);
-    });
-
-    it('encodes minimumAssets as 0 when amount is 0 (placeholder batch)', async () => {
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(0),
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      const iface = new ethers.utils.Interface([
-        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
-      ]);
-      const withdrawData = result.withdrawTx.params.data;
-      if (!withdrawData) throw new Error('Expected withdraw data');
-      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
-      expect(BigInt(decoded.minimumAssets.toString())).toBe(0n);
-    });
-
-    it('uses ceiling division for shareAmount in withdraw calldata', async () => {
-      // Use a rate that produces a remainder to verify ceiling division
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000094'));
-
-      const amount = BigInt(1_960_000);
-      const result = await buildMoneyAccountWithdrawBatch({
-        amount,
-        chainId: MOCK_CHAIN_ID,
-        tellerAddress: MOCK_TELLER,
-        accountantAddress: MOCK_ACCOUNTANT,
-        moneyAccountAddress: MOCK_MONEY_ACCOUNT_ADDRESS,
-        recipient: MOCK_RECIPIENT_ADDRESS,
-        provider: MOCK_PROVIDER,
-      });
-
-      const iface = new ethers.utils.Interface([
-        'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
-      ]);
-      const withdrawData = result.withdrawTx.params.data;
-      if (!withdrawData) throw new Error('Expected withdraw data');
-      const decoded = iface.decodeFunctionData('withdraw', withdrawData);
-      const shareAmount = BigInt(decoded.shareAmount.toString());
-
-      // With ceiling division: (1_960_000 * 1_000_000 + 1_000_094 - 1) / 1_000_094 = 1_959_816
-      // Old floor division would give 1_959_815
-      expect(shareAmount).toBe(BigInt(1_959_816));
+    it('no-ops without calling the builder for a zero amount', async () => {
+      // The builder rejects zero rather than encode a zero-share redemption.
+      expect(
+        await updateMoneyAccountWithdrawTokenAmount(MOCK_TRANSACTION_META, '0'),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     });
   });
 
   describe('getMoneyAccountDepositTransactionsData', () => {
-    beforeEach(() => {
-      mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER as never);
-      mockSelectMoneyAccountVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
-      (
-        jest.mocked(ReduxService) as unknown as {
-          store: { getState: jest.Mock };
-        }
-      ).store = { getState: jest.fn().mockReturnValue({}) };
-    });
-
-    it('returns two transaction param objects for a valid amount', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
+    it('returns the approve and deposit params', async () => {
       const result = await getMoneyAccountDepositTransactionsData(
         MOCK_CHAIN_ID,
-        '1.0',
+        '10.5',
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).toMatchObject({
-        to: expect.any(String),
-        data: expect.stringMatching(/^0x/),
-        value: '0x0',
-      });
-      expect(result[1]).toMatchObject({
-        to: expect.any(String),
-        data: expect.stringMatching(/^0x/),
-        value: '0x0',
-      });
+      expect(result).toStrictEqual([
+        DEPOSIT_BATCH.approveTx.params,
+        DEPOSIT_BATCH.depositTx.params,
+      ]);
     });
 
-    it('returns [] when vault config is missing', async () => {
-      mockSelectMoneyAccountVaultConfig.mockReturnValue(undefined);
+    it('forwards the converted amount to the builder', async () => {
+      await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '10.5');
 
-      const result = await getMoneyAccountDepositTransactionsData(
-        MOCK_CHAIN_ID,
-        '1.0',
-      );
-
-      expect(result).toEqual([]);
-      expect(mockPreviewDeposit).not.toHaveBeenCalled();
-    });
-
-    it('returns [] when provider is missing', async () => {
-      mockGetProviderByChainId.mockReturnValue(undefined as never);
-
-      const result = await getMoneyAccountDepositTransactionsData(
-        MOCK_CHAIN_ID,
-        '1.0',
-      );
-
-      expect(result).toEqual([]);
-      expect(mockPreviewDeposit).not.toHaveBeenCalled();
-    });
-
-    it('calls previewDeposit with the converted token amount', async () => {
-      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
-
-      await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0');
-
-      // 1.0 with 6 decimals = 1_000_000
-      expect(mockPreviewDeposit).toHaveBeenCalledWith(
-        expect.any(String),
-        '1000000',
-        MOCK_VAULT_CONFIG.boringVault,
-        MOCK_VAULT_CONFIG.accountantAddress,
-      );
-    });
-
-    it('propagates RPC errors', async () => {
-      mockPreviewDeposit.mockRejectedValue(new Error('RPC timeout'));
-
-      await expect(
-        getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0'),
-      ).rejects.toThrow('RPC timeout');
-    });
-  });
-
-  describe('getMoneyAccountWithdrawTransactionsData', () => {
-    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
-    const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
-    const mockSelectPrimaryMoneyAccount = jest.mocked(
-      selectPrimaryMoneyAccount,
-    );
-    const mockGetProvider = jest.mocked(getProviderByChainId);
-
-    const MOCK_MONEY_ACCOUNT_ADDRESS =
-      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
-    const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
-
-    beforeEach(() => {
-      mockGetState.mockReturnValue({});
-      mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
-      mockSelectPrimaryMoneyAccount.mockReturnValue({
-        address: MOCK_MONEY_ACCOUNT_ADDRESS,
-      } as ReturnType<typeof selectPrimaryMoneyAccount>);
-      mockGetProvider.mockReturnValue(
-        MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
-      );
-      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
-    });
-
-    it('returns two transaction param objects for a valid amount', async () => {
-      const result = await getMoneyAccountWithdrawTransactionsData(
-        MOCK_CHAIN_ID,
-        '1.0',
-        MOCK_RECIPIENT,
-      );
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toMatchObject({
-        to: expect.any(String),
-        data: expect.stringMatching(/^0x/),
-        value: '0x0',
-      });
-      expect(result[1]).toMatchObject({
-        to: expect.any(String),
-        data: expect.stringMatching(/^0x/),
-        value: '0x0',
-      });
-    });
-
-    it('encodes the recipient address in the transfer calldata', async () => {
-      const result = await getMoneyAccountWithdrawTransactionsData(
-        MOCK_CHAIN_ID,
-        '1.0',
-        MOCK_RECIPIENT,
-      );
-
-      expect(result[1].data?.toLowerCase()).toContain(
-        MOCK_RECIPIENT.toLowerCase().slice(2),
+      expect(mockBuildDepositBatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          amount: BigInt(10_500_000),
+          chainId: MOCK_CHAIN_ID,
+        }),
       );
     });
 
     it('returns [] when vault config is missing', async () => {
       mockSelectVaultConfig.mockReturnValue(undefined);
 
-      const result = await getMoneyAccountWithdrawTransactionsData(
-        MOCK_CHAIN_ID,
-        '1.0',
-        MOCK_RECIPIENT,
-      );
-
-      expect(result).toEqual([]);
-      expect(mockGetRate).not.toHaveBeenCalled();
+      expect(
+        await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
     });
 
-    it('returns [] when primary money account is missing', async () => {
-      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+    it('returns [] when no provider is available for the chain', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined as never);
 
-      const result = await getMoneyAccountWithdrawTransactionsData(
-        MOCK_CHAIN_ID,
-        '1.0',
-        MOCK_RECIPIENT,
-      );
-
-      expect(result).toEqual([]);
-      expect(mockGetRate).not.toHaveBeenCalled();
+      expect(
+        await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
     });
 
-    it('returns [] when provider is missing', async () => {
-      mockGetProvider.mockReturnValue(
-        undefined as unknown as ReturnType<typeof getProviderByChainId>,
-      );
+    it('propagates builder errors', async () => {
+      mockBuildDepositBatch.mockRejectedValue(new Error('RPC down'));
 
+      await expect(
+        getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).rejects.toThrow('RPC down');
+    });
+
+    it('returns [] without calling the builder for a zero amount', async () => {
+      expect(
+        await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '0'),
+      ).toStrictEqual([]);
+      expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getMoneyAccountWithdrawTransactionsData', () => {
+    it('returns the withdraw and transfer params', async () => {
       const result = await getMoneyAccountWithdrawTransactionsData(
         MOCK_CHAIN_ID,
-        '1.0',
-        MOCK_RECIPIENT,
+        '10.5',
       );
 
-      expect(result).toEqual([]);
-      expect(mockGetRate).not.toHaveBeenCalled();
+      expect(result).toStrictEqual([
+        WITHDRAW_BATCH.withdrawTx.params,
+        WITHDRAW_BATCH.transferTx.params,
+      ]);
+    });
+
+    it('uses recipientOverride when provided', async () => {
+      await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '10.5',
+        MOCK_RECIPIENT_OVERRIDE,
+      );
+
+      expect(mockBuildWithdrawBatch).toHaveBeenCalledWith(
+        expect.objectContaining({ recipient: MOCK_RECIPIENT_OVERRIDE }),
+      );
+    });
+
+    it('falls back to the selected EVM address when no override is given', async () => {
+      await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5');
+
+      expect(mockBuildWithdrawBatch).toHaveBeenCalledWith(
+        expect.objectContaining({ recipient: MOCK_EVM_ADDRESS }),
+      );
+    });
+
+    it('returns [] when vault config is missing', async () => {
+      mockSelectVaultConfig.mockReturnValue(undefined);
+
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
+    });
+
+    it('returns [] when the primary money account is missing', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined as never);
+
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
+    });
+
+    it('returns [] when no provider is available for the chain', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined as never);
+
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
+    });
+
+    it('returns [] when there is no recipient', async () => {
+      mockSelectEvmAddress.mockReturnValue(undefined as never);
+
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '10.5'),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
+    });
+
+    it('returns [] without calling the builder for a zero amount', async () => {
+      expect(
+        await getMoneyAccountWithdrawTransactionsData(MOCK_CHAIN_ID, '0'),
+      ).toStrictEqual([]);
+      expect(mockBuildWithdrawBatch).not.toHaveBeenCalled();
     });
   });
 });
