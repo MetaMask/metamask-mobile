@@ -473,7 +473,7 @@ describe('PerpsTradeScreen errors', () => {
     );
     expect(mockPerpsTokenLogoProps).toEqual({
       symbol: 'kPEPE',
-      size: 32,
+      size: 40,
     });
   });
 
