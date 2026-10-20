@@ -72,6 +72,7 @@ describe('DeeplinkProtocolService', () => {
 
     (Linking.openURL as jest.Mock).mockResolvedValue(null);
     service = new DeeplinkProtocolService();
+    service.loadPersistedConnections();
   });
 
   afterEach(async () => {
@@ -91,6 +92,7 @@ describe('DeeplinkProtocolService', () => {
         .mocked(SDKConnect.getInstance().loadDappConnections)
         .mockRejectedValue(new Error('Failed to load connections'));
       const failingService = new DeeplinkProtocolService();
+      failingService.loadPersistedConnections();
 
       await failingService.ready;
 
