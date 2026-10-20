@@ -49,6 +49,7 @@ export interface BoxGlassProps extends ViewProps {
   hasSheen?: boolean;
   /** Fills the glass with a colour, e.g. a primary button's background. */
   tintColor?: ColorValue;
+  /** The screen's flag; the surface turns opaque where the OS can't draw glass. */
   isGlass?: boolean;
 }
 
@@ -155,9 +156,16 @@ const LiquidGlassSurface = ({
 
 /**
  * An iOS 26 Liquid Glass surface with a hairline border, or the opaque muted
- * surface when `isGlass` is false. `style` lays out the content on it.
+ * surface when `isGlass` is false or the OS can't draw glass. `style` lays out
+ * the content on it.
  */
-const BoxGlass = ({ isGlass = true, ...props }: BoxGlassProps) =>
-  isGlass ? <LiquidGlassSurface {...props} /> : <OpaqueSurface {...props} />;
+const BoxGlass = ({ isGlass = true, ...props }: BoxGlassProps) => {
+  const { isGlassEnabled } = useLiquidGlass();
+  return isGlass && isGlassEnabled ? (
+    <LiquidGlassSurface {...props} />
+  ) : (
+    <OpaqueSurface {...props} />
+  );
+};
 
 export default BoxGlass;
