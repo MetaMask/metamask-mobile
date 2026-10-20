@@ -161,7 +161,10 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: { call: jest.fn() },
     context: {
       BridgeController: { resetState: jest.fn() },
-      BridgeStatusController: { submitTx: jest.fn() },
+      BridgeStatusController: {
+        submitTx: jest.fn(),
+        submitIntent: jest.fn(),
+      },
       NetworkController: {
         findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
       },

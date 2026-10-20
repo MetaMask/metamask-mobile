@@ -312,6 +312,9 @@ export const setupDefaultMocks = () => {
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
+  (
+    Engine.context.BridgeStatusController.submitIntent as jest.Mock
+  ).mockResolvedValue(undefined);
   (Engine.controllerMessenger.call as jest.Mock).mockResolvedValue({});
   (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
     (kind: string) => ({ kind }),
@@ -3157,6 +3160,53 @@ export const runQuickBuyControllerCases = ({
 
         expect(mockRecordSocialTrade).toHaveBeenCalledWith();
         expect(callOrder).toStrictEqual(['submit', 'record']);
+      });
+
+      it('submits intent quotes through submitIntent', async () => {
+        const callOrder: string[] = [];
+        const submitIntent = Engine.context.BridgeStatusController
+          .submitIntent as jest.Mock;
+        submitIntent.mockImplementation(async () => {
+          callOrder.push('submitIntent');
+          return undefined;
+        });
+        mockRecordSocialTrade.mockImplementation(() => {
+          callOrder.push('record');
+        });
+        setupQuoteSourceMock(
+          createQuoteState({
+            activeQuote: createActiveQuote({
+              quote: {
+                intent: { protocol: 'cowswap' },
+              },
+            }),
+            destTokenAmount: '1',
+          }),
+        );
+
+        const { result } = renderHook(createTarget(), jest.fn(), {
+          source: 'profile_position',
+        });
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(submitIntent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            accountAddress: '0xWALLET',
+            inputPrimaryDenomination: 'token_amount',
+            quoteResponse: expect.objectContaining({
+              quote: expect.objectContaining({
+                intent: { protocol: 'cowswap' },
+              }),
+            }),
+          }),
+        );
+        expect(
+          Engine.context.BridgeStatusController.submitTx,
+        ).not.toHaveBeenCalled();
+        expect(callOrder).toStrictEqual(['submitIntent', 'record']);
       });
 
       it('does not record activity for a non-social Quick Buy', async () => {

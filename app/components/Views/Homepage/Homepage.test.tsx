@@ -883,6 +883,25 @@ describe('Homepage', () => {
       expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
     });
 
+    it('skips profile hydration on mid-tier devices while network capability is unresolved', () => {
+      mockHardwareTier = 'MID';
+      mockNetworkTier = null;
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
     it('keeps Top Traders below Tokens for ineligible Social V1 treatment users', () => {
       mockUseABTest.mockImplementation((key: string) => {
         if (key === SOCIAL_V1_AB_KEY) {

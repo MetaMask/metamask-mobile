@@ -181,6 +181,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       isTopTradersEnabled && socialV1Variant.useSocialV1;
     const shouldHydrateSocialProfile =
       isSocialV1PriorityEnabled &&
+      networkTierResolved &&
       networkTier !== 'NONE' &&
       hardwareTier !== 'LOW';
     const isSocialTopTradersEligible = useIsSocialTopTradersEligible(
@@ -379,13 +380,13 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               {shouldMountOptionalSections &&
                 isTopTradersEnabled &&
                 !showTopTradersAboveAllocation && (
-                <TopTradersSection
-                  key="top-traders"
-                  ref={topTradersSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
+                  <TopTradersSection
+                    key="top-traders"
+                    ref={topTradersSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
               {shouldMountOptionalSections && isDeFiEnabled && (
                 <DeFiSection
                   ref={defiSectionRef}
