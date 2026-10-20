@@ -35,6 +35,22 @@ export const shouldPlaceTopTradersAboveAllocation = ({
   isSocialV1PriorityEnabled &&
   isSocialTopTradersEligible;
 
+export const shouldShowTopTradersAboveAllocation = ({
+  topTradersAboveAllocationPlacement,
+  shouldMountOptionalSections,
+  isTopTradersEnabled,
+  isSocialV1PriorityEnabled,
+}: {
+  topTradersAboveAllocationPlacement: boolean;
+  shouldMountOptionalSections: boolean;
+  isTopTradersEnabled: boolean;
+  isSocialV1PriorityEnabled: boolean;
+}): boolean =>
+  topTradersAboveAllocationPlacement &&
+  shouldMountOptionalSections &&
+  isTopTradersEnabled &&
+  isSocialV1PriorityEnabled;
+
 /**
  * Selects when non-primary Homepage sections may mount.
  *

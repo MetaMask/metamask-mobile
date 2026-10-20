@@ -2,6 +2,7 @@ import {
   getHomepageSectionMountMode,
   shouldPlacePerpsAboveTokens,
   shouldPlaceTopTradersAboveAllocation,
+  shouldShowTopTradersAboveAllocation,
 } from './homepageSectionMountPolicy';
 
 describe('getHomepageSectionMountMode', () => {
@@ -113,5 +114,38 @@ describe('shouldPlaceTopTradersAboveAllocation', () => {
         isSocialTopTradersEligible: eligible,
       }),
     ).toBe(false);
+  });
+});
+
+describe('shouldShowTopTradersAboveAllocation', () => {
+  it('keeps the frozen placement disabled when either live feature flag is off', () => {
+    expect(
+      shouldShowTopTradersAboveAllocation({
+        topTradersAboveAllocationPlacement: true,
+        shouldMountOptionalSections: true,
+        isTopTradersEnabled: false,
+        isSocialV1PriorityEnabled: true,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldShowTopTradersAboveAllocation({
+        topTradersAboveAllocationPlacement: true,
+        shouldMountOptionalSections: true,
+        isTopTradersEnabled: true,
+        isSocialV1PriorityEnabled: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('shows Top Traders when the frozen placement and live gates are enabled', () => {
+    expect(
+      shouldShowTopTradersAboveAllocation({
+        topTradersAboveAllocationPlacement: true,
+        shouldMountOptionalSections: true,
+        isTopTradersEnabled: true,
+        isSocialV1PriorityEnabled: true,
+      }),
+    ).toBe(true);
   });
 });
