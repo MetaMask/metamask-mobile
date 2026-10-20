@@ -18,6 +18,7 @@ import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import TraderAvatar from './TraderAvatar';
+import { MOCK_MARKER } from '../mockMarker';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
@@ -123,17 +124,41 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
             />
           ) : null}
         </Box>
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextMuted}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
           twClassName="shrink-0"
-          testID={
-            testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
-          }
         >
-          {formatFeedPostAge(timestampMs, now)}
-        </Text>
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextMuted}
+            testID={
+              testIDs?.timestamp ??
+              SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
+            }
+          >
+            {formatFeedPostAge(timestampMs, now)}
+          </Text>
+          {/* TODO(social): remove this temporary mock marker.
+              Nothing reports verification yet, so the badge above is invented.
+              The asterisk sits after the timestamp to flag that as mock data.
+              Delete this block once a real verification signal exists. */}
+          {showMockedFields ? (
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextMuted}
+              testID={
+                testIDs?.mockMarker ??
+                SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER
+              }
+            >
+              {MOCK_MARKER}
+            </Text>
+          ) : null}
+        </Box>
       </Box>
       <RotatingTraderStat
         labels={statLabels}

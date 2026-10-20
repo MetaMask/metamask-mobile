@@ -67,7 +67,9 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('*')).toBeNull();
+    expect(
+      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toHaveTextContent('*');
     expect(screen.queryByText('🐬')).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
@@ -89,7 +91,9 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
     ).toBeNull();
-    expect(screen.queryByText('*')).toBeNull();
+    expect(
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
     ).toHaveTextContent('cented');

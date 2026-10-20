@@ -239,13 +239,17 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('$50K P&L (30d)');
   });
 
-  it('shows the verified badge without a mock marker or cohort emoji', () => {
+  it('shows the verified badge and a temporary mock marker after the timestamp', () => {
     renderShell(basePost());
 
     expect(
       screen.getByTestId(SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('*')).toBeNull();
+    expect(
+      screen.getByTestId(
+        `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-post-1`,
+      ),
+    ).toHaveTextContent('*');
     expect(screen.queryByText('🐬')).toBeNull();
   });
 
