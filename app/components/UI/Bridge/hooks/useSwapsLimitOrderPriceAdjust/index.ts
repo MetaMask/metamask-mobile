@@ -6,8 +6,10 @@ import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import {
+  LIMIT_ORDER_PRICE_DECIMALS,
   formatLimitOrderFiatInputPriceFromTokenAmount,
   formatLimitOrderFiatPriceFromTokenAmount,
+  getLimitOrderFiatPriceDecimals,
   roundLimitOrderMarketFiatToInput,
 } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import {
@@ -68,6 +70,14 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const counterToken = isSell ? destToken : sourceToken;
   const quotedFiatRate = isSell ? sourceFiatRate : destFiatRate;
   const counterFiatRate = isSell ? destFiatRate : sourceFiatRate;
+  // Precision of the limit price, shared by Market, the percent presets, the
+  // keypad and the market comparison. A fiat price follows the market price so
+  // that a cheap quoted token is not rounded to cents; a counter-token price
+  // is a rate, so it is not bound by the counter token's decimals.
+  const fiatPriceDecimals = getLimitOrderFiatPriceDecimals(quotedFiatRate);
+  const limitPriceDecimals = isLimitFiatMode
+    ? fiatPriceDecimals
+    : LIMIT_ORDER_PRICE_DECIMALS;
 
   const handleLimitPriceChange = useCallback((value: string | undefined) => {
     dispatch({ type: 'setLimitPrice', limitPrice: value });
@@ -84,13 +94,13 @@ export const useSwapsLimitOrderPriceAdjust = ({
       formatLimitOrderQuickPrice(
         getSwapsLimitOrderPriceFromMarketPercent({
           counterFiatRate,
-          counterTokenDecimals: counterToken?.decimals,
+          decimals: limitPriceDecimals,
           isLimitFiatMode,
           marketFiat: quotedFiatRate,
           signedPercent,
         }),
       ),
-    [counterFiatRate, counterToken?.decimals, isLimitFiatMode, quotedFiatRate],
+    [counterFiatRate, isLimitFiatMode, limitPriceDecimals, quotedFiatRate],
   );
 
   const handleMarketPress = useCallback(() => {
@@ -212,26 +222,27 @@ export const useSwapsLimitOrderPriceAdjust = ({
             ? formatTokenInputAmountFromFiat({
                 fiatAmount: currentLimitPrice,
                 tokenFiatRate: counterFiatRate,
-                tokenDecimals: counterToken?.decimals,
+                tokenDecimals: LIMIT_ORDER_PRICE_DECIMALS,
               })
             : formatLimitOrderFiatInputPriceFromTokenAmount(
                 currentLimitPrice,
                 counterFiatRate,
+                fiatPriceDecimals,
               ),
         ),
     });
   }, [
     canToggleLimitPrice,
     counterFiatRate,
-    counterToken?.decimals,
+    fiatPriceDecimals,
     isLimitFiatMode,
   ]);
 
   const secondaryValue = getSwapsLimitOrderSecondaryValue({
     counterFiatRate,
-    counterTokenDecimals: counterToken?.decimals,
     counterTokenSymbol: counterToken?.symbol,
     currentCurrency,
+    fiatDecimals: fiatPriceDecimals,
     isLimitFiatMode,
     limitPrice,
   });
@@ -240,7 +251,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     ? limitPrice
     : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
   const comparisonMarketFiat = isLimitFiatMode
-    ? roundLimitOrderMarketFiatToInput(quotedFiatRate)
+    ? roundLimitOrderMarketFiatToInput(quotedFiatRate, fiatPriceDecimals)
     : quotedFiatRate;
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
@@ -274,6 +285,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     isTriggerPriceNearMarket,
     executionType,
     limitPrice,
+    limitPriceDecimals,
     marketComparison,
     priceComparisonDirection,
     onAmountTypeTogglePress: canToggleLimitPrice

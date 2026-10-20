@@ -10,8 +10,11 @@ import type {
   FetchTraderFeedOptions,
   TokenFeedChain,
 } from '@metamask/social-controllers';
-import { FEED_CAIP2_CHAINS } from './feed-constants';
-import type { FeedAudience } from '../types';
+import {
+  FEED_CAIP2_CHAINS,
+  FEED_CAIP2_CHAINS_BY_ASSET_CLASS,
+} from './feed-constants';
+import type { FeedAudience, SocialAssetClass } from '../types';
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
@@ -26,8 +29,11 @@ export const toFeedScope = (audience: FeedAudience): FeedScope =>
  * query key input and a navigation param.
  */
 export type SocialFeedSource =
-  /** Every tracked trader (`leaderboard` scope) or the viewer's follows. */
-  | { kind: 'all'; audience: FeedAudience }
+  /**
+   * Every tracked trader (`leaderboard` scope) or the viewer's follows,
+   * optionally narrowed to spot tokens or perps. Omitted means both.
+   */
+  | { kind: 'all'; audience: FeedAudience; assetClass?: SocialAssetClass }
   /** Positions in one spot token, identified by its CAIP-19 asset id. */
   | { kind: 'token'; assetId: CaipAssetType }
   /** Positions in one Hyperliquid perp market (`BTC`, `xyz:NVDA`). */
@@ -144,7 +150,7 @@ export const toSocialFeedRequest = (
         action: 'SocialService:fetchFeed',
         options: {
           scope: toFeedScope(source.audience),
-          chains: FEED_CAIP2_CHAINS,
+          chains: FEED_CAIP2_CHAINS_BY_ASSET_CLASS[source.assetClass ?? 'all'],
         },
       };
     case 'token':

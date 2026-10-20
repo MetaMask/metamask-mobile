@@ -7,11 +7,15 @@ import {
 } from 'react-native';
 import {
   Box,
+  FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type {
   MfaFlowAction,
   MfaFlowErrorCode,
@@ -48,21 +52,56 @@ export const MfaShield = () => {
   return (
     <Image
       source={shieldImage}
-      style={tw.style('w-16 h-16 self-center')}
+      style={tw.style('w-[88px] h-[88px] self-center')}
       resizeMode="contain"
     />
   );
 };
 
 export const StepError = ({ code }: { code: MfaFlowErrorCode }) => (
-  <Text
-    variant={TextVariant.BodyMd}
-    color={TextColor.ErrorDefault}
+  <HelpText
+    severity={HelpTextSeverity.Danger}
+    fontWeight={FontWeight.Medium}
     testID={MfaFlowSelectorsIDs.ERROR}
   >
     {getErrorMessage(code)}
-  </Text>
+  </HelpText>
 );
+
+/**
+ * The step's title and description, centred under an image (the intro and
+ * picker shield, the failure icon).
+ *
+ * @param props - The header's props.
+ * @param props.title - The title.
+ * @param props.description - The line under it, if any.
+ * @param props.isCentered - Whether an image sits above it.
+ */
+export const StepHeader = ({
+  title,
+  description,
+  isCentered,
+}: Pick<StepLayoutProps, 'title' | 'description'> & {
+  isCentered: boolean;
+}) => {
+  const textAlign = isCentered ? 'text-center' : undefined;
+  return (
+    <Box twClassName="gap-2">
+      <Text variant={TextVariant.HeadingLg} twClassName={textAlign}>
+        {title}
+      </Text>
+      {description ? (
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName={textAlign}
+        >
+          {description}
+        </Text>
+      ) : null}
+    </Box>
+  );
+};
 
 const StepLayout = ({
   title,
@@ -73,26 +112,36 @@ const StepLayout = ({
   footer,
 }: StepLayoutProps) => {
   const tw = useTailwind();
+  const { bottom } = useSafeAreaInsets();
   return (
     <KeyboardAvoidingView
       style={tw.style('flex-1')}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      // Over the keyboard, the footer keeps the designs' 24px gap rather than
+      // the home indicator's.
+      keyboardVerticalOffset={16 - bottom}
     >
       <ScrollView
         contentContainerStyle={tw.style('px-4 pt-4 pb-6 gap-4')}
         keyboardShouldPersistTaps="handled"
       >
         {top}
-        <Text variant={TextVariant.HeadingLg}>{title}</Text>
-        {description ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {description}
-          </Text>
-        ) : null}
+        <StepHeader
+          title={title}
+          description={description}
+          isCentered={top !== undefined}
+        />
         {children}
         {error ? <StepError code={error} /> : null}
       </ScrollView>
-      {footer ? <Box twClassName="px-4 pb-4 gap-2">{footer}</Box> : null}
+      {footer ? (
+        <Box
+          twClassName="px-4 pt-4 gap-2"
+          style={{ paddingBottom: 8 + bottom }}
+        >
+          {footer}
+        </Box>
+      ) : null}
     </KeyboardAvoidingView>
   );
 };

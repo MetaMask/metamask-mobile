@@ -1,11 +1,49 @@
-import type {
-  GetPriceResponse,
-  PredictOutcomeToken,
-  PriceUpdate,
+import {
+  Side,
+  type GetPriceResponse,
+  type PredictOutcomeToken,
+  type PriceUpdate,
 } from '../types';
 
 export const isValidPrice = (price: number | undefined): price is number =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
+
+/**
+ * How many whole ticks the fresh price is worse than the price the user last
+ * confirmed, by side: a lower price is worse for a SELL (less received), a
+ * higher price is worse for a BUY (more paid). Better or equal prices are 0.
+ * The tick size comes from the fresh preview so finer books measure honestly.
+ */
+export const getPredictTicksWorse = ({
+  side,
+  referencePrice,
+  freshPrice,
+  tickSize,
+}: {
+  side: Side;
+  referencePrice: number;
+  freshPrice: number;
+  tickSize: number;
+}): number => {
+  if (!isValidPrice(referencePrice) || !isValidPrice(freshPrice)) {
+    return 0;
+  }
+  if (!Number.isFinite(tickSize) || tickSize <= 0) {
+    return 0;
+  }
+
+  const worseDelta =
+    side === Side.SELL
+      ? referencePrice - freshPrice
+      : freshPrice - referencePrice;
+  if (worseDelta <= 0) {
+    return 0;
+  }
+
+  // Epsilon guards against float drift on same-tick comparisons
+  // (e.g. 0.65 - 0.64 landing just under 0.01).
+  return Math.floor((worseDelta + Number.EPSILON) / tickSize);
+};
 
 /**
  * Price to display on a BUY CTA from an already-priced token: the best ask

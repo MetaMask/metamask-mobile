@@ -37,6 +37,14 @@ describe('toSocialFeedPosts', () => {
     expect(post.item.comment).toBe('this is alpha');
   });
 
+  it('keeps the core position for the details sheet', () => {
+    const row = buildRow();
+
+    const [post] = toSocialFeedPosts([row]);
+
+    expect(post.position).toBe(row.core);
+  });
+
   it('lifts a static.klipy.com gif url from the Call text onto gifUri', () => {
     const row = buildRow({
       authorComment: {
@@ -54,6 +62,24 @@ describe('toSocialFeedPosts', () => {
 
     expect(post.gifUri).toBe(KLIPY_STATIC_GIF_EXAMPLE);
     expect(post.item.comment).toBe('this is alpha');
+  });
+
+  it('carries the detected copy count onto the post', () => {
+    const [post] = toSocialFeedPosts([buildRow({ copyCount: 4 })]);
+
+    expect(post.copyCount).toBe(4);
+  });
+
+  it('keeps a reported zero copy count', () => {
+    const [post] = toSocialFeedPosts([buildRow({ copyCount: 0 })]);
+
+    expect(post.copyCount).toBe(0);
+  });
+
+  it('omits the copy count when the API did not send one', () => {
+    const [post] = toSocialFeedPosts([buildRow()]);
+
+    expect(post).not.toHaveProperty('copyCount');
   });
 
   it('omits commentId when the row has no Call', () => {

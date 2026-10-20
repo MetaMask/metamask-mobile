@@ -49,7 +49,7 @@ import {
 } from '../../utils/format';
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import {
-  buildPredictFeeBreakdownAmounts,
+  buildPredictFeeBreakdowns,
   estimatePredictSellNetValue,
   getPredictPositionDisplay,
   getPredictSellNetProceeds,
@@ -118,6 +118,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     isLoading,
     result,
     error: placeOrderError,
+    lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
@@ -126,6 +128,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     preview,
     error: previewError,
     isLoading: isPreviewLoading,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: position.marketId,
     outcomeId: position.outcomeId,
@@ -139,14 +142,20 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (position data + preview)
@@ -226,7 +235,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
   const total = currentValue;
-  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
     side: Side.SELL,
     order: preview?.minAmountReceived ?? 0,
     metamaskFee,
@@ -410,7 +420,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Text
                     fontWeight={FontWeight.Medium}
-                    variant={TextVariant.AmountDisplayLg}
+                    variant={TextVariant.DisplayLg}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
@@ -451,6 +461,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               disabled={!preview}
               loading={isPreviewLoading}
               total={total}
+              originalTotal={originalFeeBreakdown?.total}
+              feePolicyDiscountType={preview?.feePolicy?.discountType}
               handleFeesInfoPress={handleFeesInfoPress}
             />
             <View style={styles.cashOutButtonContainer}>
@@ -469,6 +481,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         <PredictFeeBreakdownSheet
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
+          feePolicyDiscountType={preview?.feePolicy?.discountType}
+          originalTotal={originalFeeBreakdown?.total}
           sharePrice={currentPrice}
           contractCount={preview?.maxAmountSpent ?? 0}
           betAmount={feeBreakdown.order}
@@ -480,9 +494,11 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? position?.price ?? 0}
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.SELL}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
