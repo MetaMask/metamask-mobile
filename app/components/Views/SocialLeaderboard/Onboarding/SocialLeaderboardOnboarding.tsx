@@ -91,6 +91,7 @@ import {
   riveTraderBinding,
 } from './constants';
 import { getFollowTradingHomeRoute } from './socialLeaderboardOnboardingNavigation';
+import { useTopTradersNavigationScreenPerf } from '../perf/useTopTradersNavigationPerf';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
 const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v7.riv');
@@ -241,6 +242,9 @@ const markOnboardingSeen = () =>
  */
 const SocialLeaderboardOnboarding: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  useTopTradersNavigationScreenPerf('onboarding', {
+    contentOnFirstCommit: true,
+  });
   const styles = useMemo(() => createStyles(), []);
   const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();

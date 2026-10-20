@@ -77,6 +77,7 @@ import LiveTradesView from '../LiveTradesView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
+import { useTopTradersNavigationScreenPerf } from '../perf/useTopTradersNavigationPerf';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
@@ -165,6 +166,7 @@ const SocialV1View: React.FC = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
+  useTopTradersNavigationScreenPerf('V1');
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 

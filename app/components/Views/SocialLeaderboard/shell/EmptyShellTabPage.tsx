@@ -69,6 +69,10 @@ import type {
   SocialV1HotToken,
 } from '../SocialV1View/feed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  useReportTopTradersContent,
+  useTopTradersContentFromCache,
+} from '../perf/useTopTradersNavigationPerf';
 
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
@@ -451,6 +455,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     ),
     [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
   );
+
+  const contentFromCache = useTopTradersContentFromCache(
+    posts.length > 0,
+    isLoading,
+  );
+  useReportTopTradersContent({
+    surface: tab,
+    hasRows: posts.length > 0,
+    settled: !isLoading,
+    fromCache: contentFromCache,
+  });
 
   const showInitialFeedSkeletons = visibleAssetFeed
     ? visibleAssetFeed.isLoading && visibleAssetFeed.posts.length === 0

@@ -72,6 +72,7 @@ import {
   SOCIAL_V1_EXPOSURE_METADATA,
   SOCIAL_V1_VARIANTS,
 } from '../SocialV1View/abTestConfig';
+import { useTopTradersNavigationScreenPerf } from '../perf/useTopTradersNavigationPerf';
 
 type SocialTradersTab = 'leaderboard' | 'feed';
 
@@ -114,6 +115,7 @@ const SocialV0View: React.FC = () => {
       RouteProp<RootStackParamList, 'SocialV0View' | 'SocialLeaderboardTab'>
     >();
   const { track } = useSocialLeaderboardAnalytics();
+  useTopTradersNavigationScreenPerf('V0');
   // Wait until the visible leaderboard query settles before warming feed
   // pages, so those requests never contend with the landing list fetch.
   const [isLeaderboardSettled, setIsLeaderboardSettled] = useState(false);

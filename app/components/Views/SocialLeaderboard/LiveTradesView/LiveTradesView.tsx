@@ -39,6 +39,7 @@ import LiveTradeRow from './components/LiveTradeRow';
 import type { LiveTradeRowModel } from './types';
 import { filterLiveTrades } from './utils/filterLiveTrades';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
+import { useReportTopTradersContent } from '../perf/useTopTradersNavigationPerf';
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -87,6 +88,15 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         }),
     );
   }, [appliedFilters, followingProfileIds, isEntryHidden]);
+
+  // Fixtures are bundled, so the first paint is a cache hit when this is the
+  // landing tab.
+  useReportTopTradersContent({
+    surface: 'liveTrades',
+    hasRows: visibleItems.length > 0,
+    settled: true,
+    fromCache: true,
+  });
 
   useImperativeHandle(
     pageRef,

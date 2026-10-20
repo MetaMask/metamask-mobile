@@ -76,6 +76,10 @@ import type { FeedAudience, FeedItem } from '../../../UI/SocialFeed/types';
 import type { FeedSection, FeedTypeFilter } from './types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { FeedViewSelectorsIDs } from './FeedView.testIds';
+import {
+  useReportTopTradersContent,
+  useTopTradersContentFromCache,
+} from '../perf/useTopTradersNavigationPerf';
 
 /**
  * Mirror the filter row's own `px-4` and `gap={3}` in points. The row decides
@@ -266,6 +270,16 @@ const FeedView: React.FC<FeedViewProps> = ({
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
 
   const now = useFeedNow({ enabled: isActive, dataUpdatedAt });
+  const contentFromCache = useTopTradersContentFromCache(
+    items.length > 0,
+    isLoading,
+  );
+  useReportTopTradersContent({
+    surface: 'feed',
+    hasRows: items.length > 0,
+    settled: !isLoading,
+    fromCache: contentFromCache,
+  });
 
   // Report spot availability up to the parent so it can mount the Buy Action
   // orchestrator (and scope its A/B exposure) only when the loaded feed offers

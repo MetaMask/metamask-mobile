@@ -44,6 +44,8 @@ import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { markTopTradersNavigationTap } from '../../../SocialLeaderboard/perf/topTradersNavigationPerf';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
 import {
   LEADERBOARD_LANDING_FEED_AB_KEY,
@@ -237,6 +239,7 @@ const TopTradersSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
+    markTopTradersNavigationTap();
     if (bundleVariant.useSocialV1) {
       navigateToSocialLeaderboard(navigation.navigate, {
         source: 'home_carousel',

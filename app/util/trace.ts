@@ -303,6 +303,16 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  /**
+   * Homepage "Top traders" tap through the destination's content.
+   * Parent span. Children split navigate, first commit, transition end,
+   * and content ready. Off unless `MM_PERF_TOP_TRADERS=true`.
+   */
+  TopTradersNavigation = 'Top Traders Navigation',
+  TopTradersNavigationToNavigate = 'Top Traders Navigation To Navigate',
+  TopTradersNavigationToFirstCommit = 'Top Traders Navigation To First Commit',
+  TopTradersNavigationToTransitionEnd = 'Top Traders Navigation To Transition End',
+  TopTradersNavigationToContentReady = 'Top Traders Navigation To Content Ready',
   // Money Home Performance
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
@@ -391,6 +401,7 @@ export enum TraceOperation {
   WhatsHappeningLoad = 'whats_happening.load',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  TopTradersNavigation = 'top_traders.navigation',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',

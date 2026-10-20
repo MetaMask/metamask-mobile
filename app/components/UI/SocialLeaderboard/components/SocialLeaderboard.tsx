@@ -47,6 +47,10 @@ import {
 } from '../types';
 import SocialLeaderboardMessage from './SocialLeaderboardMessage';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
+import {
+  useReportTopTradersContent,
+  useTopTradersContentFromCache,
+} from '../../../Views/SocialLeaderboard/perf/useTopTradersNavigationPerf';
 
 /**
  * Slide a row runs when the ranking reshuffles, matched to the row's own
@@ -164,6 +168,21 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
         .slice(0, limit),
     [cohort, limit, rowsWithoutViewer],
   );
+
+  const contentFromCache = useTopTradersContentFromCache(
+    rows.length > 0 || isShowingSnapshot,
+    isLoading,
+  );
+  useReportTopTradersContent({
+    surface: 'leaderboard',
+    hasRows: rows.length > 0 || isShowingSnapshot,
+    settled:
+      !isLoading ||
+      rows.length > 0 ||
+      isShowingSnapshot ||
+      resolution.status === 'unavailable',
+    fromCache: contentFromCache,
+  });
 
   const skeletonKeys = useMemo(() => {
     const visible = Math.ceil(windowHeight / SOCIAL_V1_TRADER_ROW_HEIGHT);

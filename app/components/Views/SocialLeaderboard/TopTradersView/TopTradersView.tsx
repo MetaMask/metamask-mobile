@@ -76,6 +76,10 @@ import {
   type SocialShellFilters,
 } from '../shell/filters';
 import { getTraderMetricDisplay, rankTradersByMetric } from './traderMetric';
+import {
+  useReportTopTradersContent,
+  useTopTradersContentFromCache,
+} from '../perf/useTopTradersNavigationPerf';
 import { RANK_CHANGE_DURATION } from './components/useRankChangeAnimation';
 import { useLeaderboardReveal } from './components/useLeaderboardReveal';
 import {
@@ -840,6 +844,17 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
       viewerRow,
     ],
   );
+
+  const contentFromCache = useTopTradersContentFromCache(
+    traders.length > 0 || isShowingSnapshot,
+    isLoading,
+  );
+  useReportTopTradersContent({
+    surface: 'leaderboard',
+    hasRows: listTraders.length > 0 || isShowingSnapshot,
+    settled: !isLoading || traders.length > 0 || isShowingSnapshot,
+    fromCache: contentFromCache,
+  });
 
   const contentContainerStyle = tw.style(`pb-[${24 + floatingTabBarInset}px]`);
 

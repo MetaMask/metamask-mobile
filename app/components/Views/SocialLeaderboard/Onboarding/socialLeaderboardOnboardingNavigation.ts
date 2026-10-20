@@ -14,6 +14,7 @@ import {
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
 import type { SocialShellTab } from '../shell/types';
+import { markTopTradersNavigationTarget } from '../perf/topTradersNavigationPerf';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -102,10 +103,27 @@ export const navigateToSocialLeaderboard = (
   params?: SocialLeaderboardViewParams,
 ): void => {
   if (shouldShowSocialLeaderboardOnboarding()) {
+    markTopTradersNavigationTarget({
+      variant: 'onboarding',
+      surface: 'onboarding',
+    });
     navigate(Routes.SOCIAL.ONBOARDING);
     return;
   }
-  navigate(getFollowTradingHomeRoute(), toHomeRouteParams(params));
+  const homeRoute = getFollowTradingHomeRoute();
+  const homeParams = toHomeRouteParams(params);
+  if (homeRoute === Routes.SOCIAL.V1) {
+    markTopTradersNavigationTarget({
+      variant: 'V1',
+      surface: homeParams?.initialTab ?? 'trending',
+    });
+  } else {
+    markTopTradersNavigationTarget({
+      variant: 'V0',
+      surface: homeParams?.landingTab ?? 'leaderboard',
+    });
+  }
+  navigate(homeRoute, homeParams);
 };
 
 /**
