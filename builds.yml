@@ -296,7 +296,6 @@ builds:
   # It also arms Hermes CPU profiling from index.js and dumps a trace to app-scoped
   # storage whenever the app is backgrounded (see docs/readme/release-build-profiler.md).
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
-  # E2E_BYOA_AUTH_SECRET authenticates the UAT QA mock OAuth token request.
   main-e2e-bs-without-srp:
     github_environment: build-e2e
     signing: *signing_uat
@@ -366,7 +365,6 @@ builds:
 
   # Release candidate without pre-imported wallet — seedless onboarding (OAuthLoginHandlers mocked)
   # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
-  # E2E_BYOA_AUTH_SECRET authenticates the UAT QA mock OAuth token request.
   main-rc-without-srp:
     script_name: main-rc
     github_environment: build-rc
@@ -457,7 +455,6 @@ builds:
     code_fencing: *code_fencing_experimental
 
   # BrowserStack experimental builds — seedless onboarding (OAuthLoginHandlers mocked)
-  # E2E_BYOA_AUTH_SECRET authenticates the UAT QA mock OAuth token request.
   main-exp-without-srp:
     github_environment: build-exp
     signing: *signing_uat
