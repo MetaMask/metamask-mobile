@@ -1,5 +1,6 @@
 import type { Position } from '@metamask/social-controllers';
 import type { PositionTokenAvatarData } from '../../../UI/SocialFeed/components/PositionTokenAvatar';
+import type { SocialLivePriceSource } from '../../../UI/SocialFeed/live/types';
 import type {
   SocialV1FeedAuthor,
   SocialV1PerpDirection,
@@ -41,4 +42,6 @@ export interface LiveTradeRowModel {
   marketCapUsd: number | null;
   /** Handed to the position details sheet so it opens without a fetch. */
   position?: Position;
+  /** How an open row's figures follow a streamed price. */
+  live?: SocialLivePriceSource;
 }

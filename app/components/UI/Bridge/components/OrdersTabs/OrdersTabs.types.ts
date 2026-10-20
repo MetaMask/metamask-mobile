@@ -8,6 +8,12 @@ export enum OrdersTabKey {
 
 export interface OrdersTabConfig<T> {
   items: T[];
+  /**
+   * How many orders this tab has in total, including pages not loaded yet.
+   * Shown as the tab count as given, so it must already be scoped to the
+   * selected network. Omit to count the loaded items instead.
+   */
+  totalCount?: number;
   renderItem?: (item: T, index: number) => ReactElement;
   keyExtractor?: (item: T, index: number) => string;
   isLoading?: boolean;

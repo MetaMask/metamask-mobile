@@ -37,6 +37,7 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useAnalytics/useAnalytics.types';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 /**
  * Account access approval component
  */
@@ -289,7 +290,10 @@ class AccountApproval extends PureComponent {
   };
 
   checkUrlFlaggedAsPhishing = async (url) => {
-    const scanResult = await getPhishingTestResultAsync(url);
+    const scanResult = await getPhishingTestResultAsync(
+      url,
+      RequestSourceFlow.DappConnection,
+    );
     if (this._isMounted) {
       this.setState({
         isUrlFlaggedAsPhishing: scanResult.result,

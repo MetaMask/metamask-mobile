@@ -1,6 +1,7 @@
 import React from 'react';
 import { lightTheme } from '@metamask/design-tokens';
 import {
+  act,
   fireEvent,
   screen,
   waitFor,
@@ -9,7 +10,6 @@ import {
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPositionCard, {
   PositionCardBody,
 } from './SocialFeedPositionCard';
@@ -33,6 +33,9 @@ import {
 import { MINUTE } from '../../../../constants/time';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
+import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
+import { SocialLivePriceStore } from '../live/SocialLivePriceStore';
+import type { SocialLivePriceSource } from '../live/types';
 
 const mockNavigate = jest.fn();
 const mockGate = jest.fn((action: () => Promise<void> | void) =>
@@ -655,24 +658,66 @@ describe('SocialFeedPositionCard', () => {
     });
   });
 
-  it('hides an invented mark price', () => {
-    const item = mockOpenPerpsFeedItem({ mockedFields: ['markPrice'] });
+  it('shows the snapshot mark price on any surface', () => {
+    const item = mockOpenPerpsFeedItem();
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
-    expect(screen.queryByText('$104,213')).toBeNull();
+    expect(screen.getByText('$104,213')).toBeOnTheScreen();
   });
 
-  it('keeps invented values when the surface opts in', () => {
-    const item = mockOpenPerpsFeedItem({ mockedFields: ['markPrice'] });
+  describe('live prices', () => {
+    const liveSource: SocialLivePriceSource = {
+      key: 'perp:BTC',
+      kind: 'perp',
+      symbol: 'BTC',
+      positionAmount: 2,
+      direction: 1,
+      snapshotPrice: 100_000,
+      snapshotPnlUsd: 1_000,
+      entryPrice: 99_500,
+      pnlBaseUsd: 10_000,
+      marketCapPerPrice: null,
+    };
 
-    renderWithProvider(
-      <SocialFeedSurfaceProvider showMockedFields>
-        <SocialFeedPositionCard item={item} />
-      </SocialFeedSurfaceProvider>,
-    );
+    const renderLive = (store: SocialLivePriceStore) => {
+      const item = mockOpenPerpsFeedItem({
+        markPriceLabel: '$100,000',
+        live: liveSource,
+      });
+      renderWithProvider(
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+            reduceMotion: true,
+          }}
+        >
+          <SocialFeedPositionCard item={item} />
+        </SocialLivePricesContext.Provider>,
+      );
+    };
 
-    expect(screen.getByText('$104,213')).toBeOnTheScreen();
+    it('keeps the snapshot until the first tick', () => {
+      renderLive(new SocialLivePriceStore(0));
+
+      expect(screen.getByText('$100,000')).toBeOnTheScreen();
+    });
+
+    it('re-derives the mark price and P&L from a streamed price', () => {
+      const store = new SocialLivePriceStore(0);
+      renderLive(store);
+
+      act(() => {
+        store.publish('perp:BTC', 101_000);
+      });
+
+      // 1,000 + 2 * (101,000 - 100,000) on a 10,000 basis.
+      expect(screen.getByLabelText('$101,000')).toBeOnTheScreen();
+      expect(screen.getByLabelText('+$3K')).toBeOnTheScreen();
+      expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
+    });
   });
 
   it('renders the position body without the post author header', () => {

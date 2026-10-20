@@ -269,6 +269,15 @@ jest.mock('../../app/core/Engine', () => {
         },
         refreshGeolocation: jest.fn().mockResolvedValue('US'),
       },
+      KycService: {
+        getGeoCountry: jest.fn().mockResolvedValue('BR'),
+      },
+      KycController: {
+        readSessionStatus: jest.fn().mockReturnValue(null),
+        startSession: jest.fn().mockResolvedValue(undefined),
+        fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
+        recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+      },
       SeedlessOnboardingController: {
         state: {
           accessToken: undefined,
@@ -337,6 +346,14 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
+        hydrateVbaOnboarding: jest.fn().mockResolvedValue({
+          sessionExists: false,
+          vendorDisclaimersComplete: false,
+          sessionDisclaimersComplete: false,
+          providerFlowStatus: 'not_started',
+          kycStatus: 'none',
+          autorampStatus: 'not_ready',
+        }),
         transakSetApiKey: jest.fn(),
       },
       AssetsContractController: {
@@ -649,6 +666,9 @@ jest.mock('../../app/core/Engine', () => {
       call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
+        if (action === 'MoneyAccountBalanceService:getVaultApy') {
+          return Promise.resolve({ apy: '0.042' });
+        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'
