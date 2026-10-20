@@ -105,6 +105,8 @@ on:
         required: false
       MM_SENTRY_DSN:
         required: false
+      E2E_CLAUDE_API_KEY:
+        required: false
 
 permissions:
   contents: read
