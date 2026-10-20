@@ -261,6 +261,11 @@ const VbaDetails = () => {
   }, [refreshDeposit]);
 
   const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
@@ -445,41 +450,39 @@ const VbaDetails = () => {
             ))}
           </Box>
         )}
+      </ScrollView>
+      <Box twClassName="gap-4 px-4 pb-2 pt-4">
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
-          twClassName="mt-auto pt-6 text-center"
+          twClassName="text-center"
           testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
         >
           {strings('virtual_bank_account.vba_details.helper_text')}
         </Text>
-      </ScrollView>
-      {showSetupRetry || debugEnabled ? (
-        <Box twClassName="gap-4 px-4 pb-2 pt-4">
-          {showSetupRetry ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleRetrySetup}
-              testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
-            >
-              {strings('virtual_bank_account.vba_details.retry')}
-            </Button>
-          ) : null}
-          {debugEnabled ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={handleOpenDebug}
-              testID={VbaDetailsSelectorsIDs.DEBUG_BUTTON}
-            >
-              {'Debug'}
-            </Button>
-          ) : null}
-        </Box>
-      ) : null}
+        {showSetupRetry ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleRetrySetup}
+            testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
+          >
+            {strings('virtual_bank_account.vba_details.retry')}
+          </Button>
+        ) : null}
+        {debugEnabled ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleOpenDebug}
+            testID={VbaDetailsSelectorsIDs.DEBUG_BUTTON}
+          >
+            {'Debug'}
+          </Button>
+        ) : null}
+      </Box>
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet
           autorampId={autorampId}

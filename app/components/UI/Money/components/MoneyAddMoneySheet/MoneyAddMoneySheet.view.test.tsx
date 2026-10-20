@@ -195,6 +195,34 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('returns to Money home from completed Pix details', async () => {
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted',
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
+    const { findByTestId, queryByTestId } = renderVbaMoneyEntry();
+    fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+    fireEvent.press(
+      await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    );
+    expect(
+      await findByTestId(VbaDetailsSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(await findByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+    expect(
+      await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the account setup error when creating the account fails', async () => {
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     mockHydrateVbaOnboarding

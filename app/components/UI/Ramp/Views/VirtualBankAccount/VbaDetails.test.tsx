@@ -12,6 +12,7 @@ import { resetBrazilMusdAutorampSetupGuard } from './ensureBrazilMusdAutoramp';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
@@ -22,6 +23,7 @@ let mockWalletAddress: string | null = '0xabc';
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
+let mockCanGoBack = true;
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -30,6 +32,8 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
+    canGoBack: () => mockCanGoBack,
+    goBack: mockGoBack,
     navigate: mockNavigate,
   }),
 }));
@@ -130,6 +134,7 @@ describe('VbaDetails', () => {
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
+    mockCanGoBack = true;
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
@@ -154,7 +159,8 @@ describe('VbaDetails', () => {
       'no',
     );
     expect(getByText('Add money with Pix')).toBeOnTheScreen();
-    expect(getByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT)).toHaveTextContent(
+    const helperText = getByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT);
+    expect(helperText).toHaveTextContent(
       strings('virtual_bank_account.vba_details.helper_text'),
     );
     await waitFor(() => {
@@ -163,7 +169,7 @@ describe('VbaDetails', () => {
     expect(mockListTransactions).not.toHaveBeenCalled();
   });
 
-  it('returns to Money home from the header', async () => {
+  it('returns to the caller from the header', async () => {
     const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
@@ -171,11 +177,25 @@ describe('VbaDetails', () => {
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
+  });
+
+  it('returns to Money home when there is no navigation history', async () => {
+    mockCanGoBack = false;
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    });
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-    expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
   });
 
   it('shows both Pix rows without leading key icons', async () => {
