@@ -31,6 +31,16 @@ describe('parseSentinelFeeTokensResponse', () => {
     expect(result).toStrictEqual(response);
   });
 
+  it('accepts additional token metadata', () => {
+    const response = {
+      'eip155:1': [{ ...USDC_TOKEN, additionalMetadata: 'value' }],
+    };
+
+    const result = parseSentinelFeeTokensResponse(response);
+
+    expect(result).toStrictEqual(response);
+  });
+
   it('accepts an empty response', () => {
     const result = parseSentinelFeeTokensResponse({});
 

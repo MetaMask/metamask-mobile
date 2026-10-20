@@ -3,11 +3,11 @@ import {
   integer,
   intersection,
   min,
-  object,
   optional,
   record,
   refine,
   string,
+  type,
   unknown,
   type Infer,
 } from '@metamask/superstruct';
@@ -28,10 +28,10 @@ const NonEmptyStringSchema = refine(
 );
 
 /**
- * One Sentinel fee token. Unknown fields are rejected, matching the other
- * order response schemas.
+ * One Sentinel fee token. Unknown fields are allowed so additive API metadata
+ * does not invalidate the entire response.
  */
-export const SentinelFeeTokenSchema = object({
+export const SentinelFeeTokenSchema = type({
   assetId: CaipAssetTypeStruct,
   address: NonEmptyStringSchema,
   symbol: NonEmptyStringSchema,
