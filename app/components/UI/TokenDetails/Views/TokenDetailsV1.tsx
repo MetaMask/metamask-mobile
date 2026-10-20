@@ -97,7 +97,11 @@ import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
-import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+import {
+  DEV_TOKEN_API_BASE_URL,
+  useTokenAssetDetails,
+} from '../queries/tokenAssetQuery';
 import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
@@ -255,7 +259,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
-  const { asset: tokenAsset } = useTokenAssetDetails(caip19AssetId);
+  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  const { asset: tokenAsset } = useTokenAssetDetails(
+    caip19AssetId,
+    DEV_TOKEN_API_BASE_URL,
+  );
   const tokenAgeLabel = useMemo(
     () => formatTokenAge(tokenAsset?.launchpadData?.launchedAt),
     [tokenAsset?.launchpadData?.launchedAt],

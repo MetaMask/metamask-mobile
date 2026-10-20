@@ -1,5 +1,9 @@
 import type { CaipAssetType } from '@metamask/utils';
-import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+import {
+  DEV_TOKEN_API_BASE_URL,
+  useTokenAssetDetails,
+} from '../queries/tokenAssetQuery';
 
 export interface UseIsMemeTokenOptions {
   assetId: CaipAssetType | null;
@@ -23,7 +27,11 @@ export const useIsMemeToken = ({
   assetId,
   enabled = true,
 }: UseIsMemeTokenOptions): UseIsMemeTokenResult => {
-  const { asset, isLoading } = useTokenAssetDetails(enabled ? assetId : null);
+  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  const { asset, isLoading } = useTokenAssetDetails(
+    enabled ? assetId : null,
+    DEV_TOKEN_API_BASE_URL,
+  );
 
   return {
     isMeme: asset?.launchpadData != null,

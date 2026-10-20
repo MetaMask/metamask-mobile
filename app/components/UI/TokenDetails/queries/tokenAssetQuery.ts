@@ -1,7 +1,12 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
-// TODO: revert to prod once launchpad data is available there
-// import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
-const TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
+import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
+
+/**
+ * TODO: remove this constant and all `baseUrl` overrides once the prod API
+ * returns `launchpadData`. Only the TDP V1 surface passes this; every other
+ * consumer defaults to {@link TOKEN_API_BASE_URL} (prod).
+ */
+export const DEV_TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
 
 export const TOKEN_ASSETS_V2_PATH = '/v2/assets';
 
@@ -64,6 +69,7 @@ const isTokenAssetRecord = (value: unknown): value is TokenAssetRecord =>
 export const fetchTokenAsset = async (
   assetId: string,
   signal?: AbortSignal,
+  baseUrl: string = TOKEN_API_BASE_URL,
 ): Promise<TokenAssetRecord | null> => {
   const params = new URLSearchParams({
     assetIds: assetId,
@@ -73,7 +79,7 @@ export const fetchTokenAsset = async (
     includeMarketData: 'true',
   });
   const response = await fetch(
-    `${TOKEN_API_BASE_URL}${TOKEN_ASSETS_V2_PATH}?${params.toString()}`,
+    `${baseUrl}${TOKEN_ASSETS_V2_PATH}?${params.toString()}`,
     { signal },
   );
   if (!response.ok) {
@@ -91,10 +97,13 @@ export const fetchTokenAsset = async (
   return match ?? null;
 };
 
-export const tokenAssetQueryOptions = (assetId: string) =>
+export const tokenAssetQueryOptions = (
+  assetId: string,
+  baseUrl: string = TOKEN_API_BASE_URL,
+) =>
   queryOptions({
-    queryKey: ['token-details', 'v2-assets', assetId] as const,
-    queryFn: ({ signal }) => fetchTokenAsset(assetId, signal),
+    queryKey: ['token-details', 'v2-assets', assetId, baseUrl] as const,
+    queryFn: ({ signal }) => fetchTokenAsset(assetId, signal, baseUrl),
     retry: false,
     staleTime: QUERY_STALE_TIME_MS,
   });
@@ -107,9 +116,10 @@ export interface UseTokenAssetDetailsResult {
 
 export const useTokenAssetDetails = (
   assetId: string | null,
+  baseUrl?: string,
 ): UseTokenAssetDetailsResult => {
   const query = useQuery({
-    ...tokenAssetQueryOptions(assetId ?? ''),
+    ...tokenAssetQueryOptions(assetId ?? '', baseUrl),
     enabled: Boolean(assetId),
   });
 
