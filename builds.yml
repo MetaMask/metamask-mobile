@@ -476,7 +476,13 @@ builds:
   main-dev:
     github_environment: build-dev
     signing: *signing_dev
-    env: *main_dev_env
+    env:
+      <<: *main_dev_env
+      # The profile API is not live yet; the dev social API serves a
+      # Redis-backed stand-in under /api. Point back at the profile host once
+      # it ships.
+      PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
+      MM_PROFILE_API_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
