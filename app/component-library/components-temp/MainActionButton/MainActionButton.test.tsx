@@ -184,7 +184,7 @@ describe('MainActionButton', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('draws the content on an interactive glass surface', () => {
+    it('draws the content on the sheen surface', () => {
       const onPress = jest.fn();
       const { getByTestId, getByText } = render(
         <MainActionButton
@@ -196,9 +196,7 @@ describe('MainActionButton', () => {
         />,
       );
 
-      expect(
-        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
-      ).toBe(true);
+      expect(getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID)).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(MAINACTIONBUTTON_TEST_ID));
@@ -240,22 +238,6 @@ describe('MainActionButton', () => {
       expect(getByTestId(MAINACTIONBUTTON_CONTENT_TEST_ID)).toHaveStyle({
         opacity: 0.5,
       });
-    });
-
-    it('keeps the glass static while disabled', () => {
-      const { getByTestId } = render(
-        <MainActionButton
-          iconName={IconName.Add}
-          label="Buy"
-          onPress={jest.fn()}
-          isDisabled
-          isGlass
-        />,
-      );
-
-      expect(
-        getByTestId(MAINACTIONBUTTON_GLASS_TEST_ID).props.isInteractive,
-      ).toBe(false);
     });
   });
 });

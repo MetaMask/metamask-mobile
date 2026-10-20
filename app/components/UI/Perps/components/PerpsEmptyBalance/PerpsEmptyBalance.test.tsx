@@ -121,15 +121,13 @@ describe('PerpsEmptyBalance', () => {
       expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
     });
 
-    it('draws Add funds as tinted primary glass and keeps it pressable', () => {
+    it('keeps Add funds as the plain primary button and keeps it pressable', () => {
       const onAddFunds = jest.fn();
-      const { UNSAFE_getByType, getByTestId } = render(
+      const { UNSAFE_queryAllByType, getByTestId } = render(
         <PerpsEmptyBalance onAddFunds={onAddFunds} isGlass />,
       );
 
-      expect(UNSAFE_getByType(GlassView).props.tintColor).toBe(
-        mockTheme.colors.icon.default,
-      );
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
 
       fireEvent.press(
         getByTestId(PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON),

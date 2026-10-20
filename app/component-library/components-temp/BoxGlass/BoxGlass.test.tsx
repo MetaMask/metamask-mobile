@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, processColor } from 'react-native';
 import { render } from '@testing-library/react-native';
+import { GlassView } from 'expo-glass-effect';
 import BoxGlass, {
   GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID,
   GLASS_SURFACE_SHEEN_TEST_ID,
@@ -41,9 +42,9 @@ describe('BoxGlass', () => {
     expect(getByText('Content')).toBeOnTheScreen();
   });
 
-  it('rounds and clips the glass to the radius token', () => {
+  it('rounds and clips the sheen surface to the radius token', () => {
     const { getByTestId } = render(
-      <BoxGlass radiusClassName="rounded-2xl" testID="glass" />,
+      <BoxGlass radiusClassName="rounded-2xl" testID="glass" hasSheen />,
     );
 
     expect(getByTestId('glass')).toHaveStyle({
@@ -52,17 +53,13 @@ describe('BoxGlass', () => {
     });
   });
 
-  it('is static unless marked interactive', () => {
-    const { getByTestId, rerender } = render(
-      <BoxGlass radiusClassName="rounded-xl" testID="glass" />,
-    );
-    expect(getByTestId('glass').props.isInteractive).toBe(false);
-
-    rerender(
-      <BoxGlass radiusClassName="rounded-xl" testID="glass" isInteractive />,
+  it('draws the sheen without glass', () => {
+    const { getByTestId, UNSAFE_queryAllByType } = render(
+      <BoxGlass radiusClassName="rounded-xl" hasSheen />,
     );
 
-    expect(getByTestId('glass').props.isInteractive).toBe(true);
+    expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+    expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
   });
 
   describe('sheen', () => {

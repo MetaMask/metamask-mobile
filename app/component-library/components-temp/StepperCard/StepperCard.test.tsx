@@ -293,15 +293,13 @@ describe('StepperCard', () => {
       expect(step.secondaryCta?.onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('draws the primary button as tinted glass and keeps it pressable', () => {
+    it('keeps the primary button plain on the sheen card and keeps it pressable', () => {
       const step = makeStep();
-      const { UNSAFE_getAllByType, getByTestId } = render(
+      const { getByTestId, UNSAFE_queryAllByType } = render(
         <StepperCard steps={[step]} currentStep={0} testID="card" isGlass />,
       );
 
-      // The card's glass, then the primary button's.
-      const [, primaryGlass] = UNSAFE_getAllByType(GlassView);
-      expect(primaryGlass.props.tintColor).toBe(mockTheme.colors.icon.default);
+      expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
 
       fireEvent.press(getByTestId('card-cta-button'));
 
