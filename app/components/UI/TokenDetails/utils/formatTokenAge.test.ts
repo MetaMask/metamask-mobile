@@ -32,35 +32,38 @@ describe('formatTokenAge', () => {
   });
 
   it('formats seconds', () => {
-    expect(formatTokenAge(NOW_SECONDS - 45)).toBe('45s');
+    expect(formatTokenAge(NOW_SECONDS - 45, 'en')).toBe('45s');
   });
 
   it('formats minutes', () => {
-    expect(formatTokenAge(NOW_SECONDS - 5 * 60)).toBe('5m');
+    expect(formatTokenAge(NOW_SECONDS - 5 * 60, 'en')).toBe('5m');
   });
 
   it('formats hours', () => {
-    expect(formatTokenAge(NOW_SECONDS - 3 * 3600)).toBe('3h');
+    expect(formatTokenAge(NOW_SECONDS - 3 * 3600, 'en')).toBe('3h');
   });
 
   it('formats days', () => {
-    expect(formatTokenAge(NOW_SECONDS - 3 * 86400)).toBe('3d');
+    expect(formatTokenAge(NOW_SECONDS - 3 * 86400, 'en')).toBe('3d');
   });
 
   it('formats weeks', () => {
-    expect(formatTokenAge(NOW_SECONDS - 2 * 7 * 86400)).toBe('2w');
+    expect(formatTokenAge(NOW_SECONDS - 2 * 7 * 86400, 'en')).toBe('2w');
   });
 
   it('formats months', () => {
-    expect(formatTokenAge(NOW_SECONDS - 90 * 86400)).toBe('3mo');
+    // Intl narrow: month and minute both use "m" in English
+    expect(formatTokenAge(NOW_SECONDS - 90 * 86400, 'en')).toBe('3m');
   });
 
   it('formats years', () => {
-    expect(formatTokenAge(NOW_SECONDS - 400 * 86400)).toBe('1y');
+    expect(formatTokenAge(NOW_SECONDS - 400 * 86400, 'en')).toBe('1y');
   });
 
   it('truncates rather than rounds', () => {
     // 23 hours and 59 minutes → still "23h", not "1d"
-    expect(formatTokenAge(NOW_SECONDS - (23 * 3600 + 59 * 60))).toBe('23h');
+    expect(formatTokenAge(NOW_SECONDS - (23 * 3600 + 59 * 60), 'en')).toBe(
+      '23h',
+    );
   });
 });
