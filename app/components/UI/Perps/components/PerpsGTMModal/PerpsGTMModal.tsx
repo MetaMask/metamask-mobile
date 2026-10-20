@@ -4,6 +4,8 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import React from 'react';
 import { Image } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { BoxJustifyContent } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -14,7 +16,9 @@ import Character from '../../../../../images/character_3x.png';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
-import MarketingMoment from '../../../MarketingMoment';
+import MarketingMoment, {
+  marketingMomentActionsEnteredAt,
+} from '../../../MarketingMoment';
 
 import { PerpsGTMModalSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -74,6 +78,14 @@ const PerpsGTMModal = () => {
       artworkWrapperProps={{
         justifyContent: BoxJustifyContent.Start,
         className: 'overflow-visible',
+      }}
+      artworkWrapperAnimatedViewProps={{
+        entering: FadeInDown.duration(AnimationDuration.Slowly)
+          .delay(marketingMomentActionsEnteredAt)
+          .withInitialValues({
+            opacity: 0,
+            transform: [{ translateY: 48 }],
+          }),
       }}
       artwork={
         <Image

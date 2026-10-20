@@ -6,7 +6,6 @@ import { strings } from '../../../../../../locales/i18n';
 import VipSplashFox from '../../../../../images/rewards/vip_splash.png';
 import MarketingMoment from '../../../MarketingMoment';
 import {
-  VIP_GOLD_BORDER_DEFAULT,
   VIP_GOLD_TEXT_DEFAULT,
   VIP_GOLD_TEXT_MUTED,
   VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
@@ -19,11 +18,10 @@ import VipSplashGradientTitle from './VipSplashGradientTitle';
 const VIP_SPLASH_FOX_OFFSET = '12%';
 
 const primaryButtonStyle = {
-  backgroundColor: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
-  borderColor: VIP_GOLD_BORDER_DEFAULT,
-  borderWidth: 1,
+  backgroundColor: VIP_GOLD_TEXT_DEFAULT,
+  borderColor: VIP_GOLD_TEXT_DEFAULT,
 };
-const primaryButtonTextStyle = { color: VIP_GOLD_TEXT_DEFAULT };
+const primaryButtonTextStyle = { color: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND };
 const secondaryButtonTextStyle = { color: VIP_GOLD_TEXT_MUTED };
 
 export const VIP_SPLASH_SCREEN_TEST_IDS = {
