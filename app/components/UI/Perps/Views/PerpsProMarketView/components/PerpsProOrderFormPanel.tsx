@@ -230,6 +230,7 @@ const PerpsProOrderFormPanel = ({
     onTPSLPress,
     notices,
     summary,
+    rebateQuote,
     scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading,
@@ -431,6 +432,7 @@ const PerpsProOrderFormPanel = ({
         onTPSLPress={onTPSLPress}
         notices={notices}
         summary={summary}
+        rebateQuote={rebateQuote}
         placeOrderLabel={strings('perps.pro_order_form.place_order')}
         placeOrderIntent={direction}
         isPlaceOrderDisabled={isPlaceOrderDisabled}

@@ -24,6 +24,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { formatPositionSize } from '../../utils/formatUtils';
@@ -261,6 +262,13 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           keypad is open. */}
       {!isEditingLimitPrice && !isInputFocused && (
         <>
+          <PerpsRebateBanner
+            coin={position.symbol}
+            direction={isLong ? 'short' : 'long'}
+            notionalUsd={closeAmountUSDString}
+            containerTwClassName="px-4 mb-3"
+          />
+
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 
           {/* One BodySm line stays reserved so an error appearing while the

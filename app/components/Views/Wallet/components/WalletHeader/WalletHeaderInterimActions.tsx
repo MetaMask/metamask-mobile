@@ -45,6 +45,7 @@ export const WalletHeaderMenuButton = ({
         hasAccountsMenuAttention ? (
           <BadgeStatus
             status={BadgeStatusStatus.Attention}
+            twClassName="-translate-x-1 translate-y-1 border-transparent"
             testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
           />
         ) : null

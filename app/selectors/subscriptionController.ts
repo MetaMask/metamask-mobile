@@ -8,6 +8,7 @@ import {
   type CachedLastSelectedPaymentMethod,
   type ProductType,
   type SubscriptionStatus,
+  type PredictBenefitUsage,
   type Subscription,
   type SubscriptionBenefitsState,
   type SubscriptionControllerState,

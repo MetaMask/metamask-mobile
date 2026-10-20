@@ -21,7 +21,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../Bridge/components/RebateBanner', () => ({
+jest.mock('../../Bridge/components/SwapsRebateBanner', () => ({
   __esModule: true,
   default: () => null,
 }));

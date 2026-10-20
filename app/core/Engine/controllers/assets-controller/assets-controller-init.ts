@@ -62,6 +62,42 @@ function safeGetTokenDetectionEnabled(
 }
 
 /**
+ * Reads the Basic functionality setting from Redux.
+ *
+ * @returns True when external services are allowed.
+ */
+function isBasicFunctionality(): boolean {
+  return selectBasicFunctionalityEnabled(store.getState());
+}
+
+/**
+ * Subscribes to Redux changes of the Basic functionality setting.
+ * Mobile stores the setting in `settings.basicFunctionalityEnabled`, so the
+ * controller is notified through the store. The returned unsubscribe is called
+ * when the controller is destroyed.
+ *
+ * @param onChange - Called with the new value when the setting changes.
+ * @returns Unsubscribe function.
+ */
+function subscribeToBasicFunctionalityChange(
+  onChange: (isBasic: boolean) => void,
+): () => void {
+  let previousBasicFunctionalityEnabled = isBasicFunctionality();
+
+  return store.subscribe(() => {
+    const currentBasicFunctionalityEnabled = isBasicFunctionality();
+    if (
+      currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
+    ) {
+      return;
+    }
+
+    previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
+    onChange(currentBasicFunctionalityEnabled);
+  });
+}
+
+/**
  * Gets or creates the API platform client.
  *
  * @param initMessenger - The initialization messenger.
@@ -106,8 +142,8 @@ export const assetsControllerInit: MessengerClientInitFunction<
   const controller = new AssetsController({
     messenger: controllerMessenger,
     state: persistedState?.AssetsController,
-    isBasicFunctionality: () =>
-      selectBasicFunctionalityEnabled(store.getState()),
+    isBasicFunctionality,
+    subscribeToBasicFunctionalityChange,
     isEnabled,
     queryApiClient: getApiClient(initMessenger),
     rpcDataSourceConfig: {
