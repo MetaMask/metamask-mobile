@@ -72,12 +72,13 @@ const PerpsGTMModal = () => {
       title={strings('perps.gtm_content.title')}
       description={strings('perps.gtm_content.title_description')}
       artworkWrapperProps={{
-        justifyContent: BoxJustifyContent.End,
+        justifyContent: BoxJustifyContent.Start,
+        className: 'overflow-visible',
       }}
       artwork={
         <Image
           source={Character}
-          style={tw.style('w-full shrink', {
+          style={tw.style('mt-auto h-auto w-full', {
             aspectRatio: CHARACTER_ASPECT_RATIO,
           })}
           resizeMode="contain"
