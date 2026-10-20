@@ -1,26 +1,41 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-function getFontSize(length: number) {
+export function getFontSizeForInputLength(length: number): number {
   if (length <= 8) return 64;
-  if (length <= 13) return 40;
-  if (length <= 18) return 30;
-  return 20;
+
+  if (length <= 14) {
+    return Math.round(64 - (length - 8) * (40 / 6));
+  }
+
+  return Math.max(12, Math.round(24 - (length - 14) * 2));
 }
 
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) => {
-  const fontSize = getFontSize(params.vars.amountLength);
+  const fontSize = getFontSizeForInputLength(params.vars.amountLength);
 
   return StyleSheet.create({
+    amount: {
+      flexShrink: 1,
+    },
     container: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: 70,
+    },
+    displayContainer: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      maxWidth: '100%',
+      minHeight: 70,
+      paddingHorizontal: 24,
     },
     input: {
       textAlign: 'center',

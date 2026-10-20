@@ -1,10 +1,11 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import AmountInput from './AmountInput';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
+import { mockTheme } from '../../../../../util/theme';
 
 const defaultState = {
   engine: {
@@ -19,12 +20,23 @@ const mockProps = {
   currencySymbol: '$',
 };
 
+const getAmountTextStyles = () =>
+  screen
+    .getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)
+    .findAll(
+      ({ props }) => StyleSheet.flatten(props.style)?.fontSize !== undefined,
+    )
+    .map(({ props }) => StyleSheet.flatten(props.style));
+
 describe('AmountInput', () => {
   it('renders correctly', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
     });
-    expect(screen.getByText('$100.50')).toBeOnTheScreen();
+
+    expect(
+      screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+    ).toHaveTextContent('$100.50');
   });
 
   it('renders correctly with currency selector', () => {
@@ -43,7 +55,9 @@ describe('AmountInput', () => {
     renderWithProvider(<AmountInput {...mockProps} onPress={mockOnPress} />, {
       state: defaultState,
     });
-    fireEvent.press(screen.getByText('$100.50'));
+
+    fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
@@ -99,6 +113,89 @@ describe('AmountInput', () => {
     expect(
       screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
     ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the currency symbol before the animated amount', () => {
+    renderWithProvider(<AmountInput {...mockProps} />, {
+      state: defaultState,
+    });
+
+    expect(
+      screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+    ).toHaveTextContent('$100.50');
+  });
+
+  it('keeps the sell token symbol after the animated amount', () => {
+    renderWithProvider(
+      <AmountInput
+        {...mockProps}
+        amount="100.50 ETH"
+        currencySymbol={undefined}
+        highlighted
+        tokenSymbol="ETH"
+      />,
+      {
+        state: defaultState,
+      },
+    );
+
+    expect(
+      screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+    ).toHaveTextContent('100.50 ETH');
+  });
+
+  it('uses the base font size for short animated amounts', () => {
+    renderWithProvider(<AmountInput {...mockProps} />, {
+      state: defaultState,
+    });
+
+    const amountTextStyles = getAmountTextStyles();
+
+    expect(amountTextStyles).not.toHaveLength(0);
+    expect(amountTextStyles.every(({ fontSize }) => fontSize === 24)).toBe(
+      true,
+    );
+  });
+
+  it('scales long animated amounts without native fit-to-width', () => {
+    renderWithProvider(
+      <AmountInput {...mockProps} amount="12345678901234567.89" highlighted />,
+      {
+        state: defaultState,
+      },
+    );
+
+    const amountInput = screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+    const cursor = screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR);
+    const amountTextStyles = getAmountTextStyles();
+    const fitToWidthNodes = amountInput.findAll(
+      ({ props }) => props.adjustsFontSizeToFit !== undefined,
+    );
+
+    expect(amountTextStyles).not.toHaveLength(0);
+    expect(amountTextStyles.every(({ fontSize }) => fontSize === 12)).toBe(
+      true,
+    );
+    expect(fitToWidthNodes).toHaveLength(0);
+    expect(StyleSheet.flatten(cursor.props.style).height).toBe(12);
+  });
+
+  it('uses the error color for animated amount glyphs', () => {
+    renderWithProvider(
+      <AmountInput {...mockProps} amount="9" highlightedError />,
+      {
+        state: defaultState,
+      },
+    );
+
+    const amountTextStyles = getAmountTextStyles();
+
+    expect(amountTextStyles).not.toHaveLength(0);
+    expect(
+      amountTextStyles.every(
+        ({ color }) => color === mockTheme.colors.error.default,
+      ),
+    ).toBe(true);
   });
 
   it('does not call onPress when loading', () => {

@@ -19,24 +19,42 @@ describe('CustomAmount', () => {
   });
 
   it('renders amount', () => {
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).toHaveTextContent('123.45');
+  });
+
+  it('exposes the amount on the press target', () => {
+    const { getByRole } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" currency="usd" onPress={jest.fn()} />,
+    );
+
+    expect(getByRole('button', { name: '$123.45' })).toBeOnTheScreen();
   });
 
   it('renders the amount formatted with thousand separators', () => {
     mockFormatAmountWithLocaleSeparators.mockImplementation(() => '1,000,000');
 
-    const { getByText } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <CustomAmount amountFiat="1000000" />,
     );
 
     expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
       '1000000',
     );
-    expect(getByText('1,000,000')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).toHaveTextContent('1,000,000');
+  });
+
+  it('preserves a long amount through the per-glyph display', () => {
+    const amount = '9007199254740993.00';
+    const { getByRole, getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat={amount} currency="usd" />,
+    );
+
+    expect(getByTestId('custom-amount-input')).toHaveTextContent(`$${amount}`);
+    expect(getByRole('text', { name: `$${amount}` })).toBeOnTheScreen();
   });
 
   it('renders fiat symbol for specified currency', () => {
@@ -78,11 +96,11 @@ describe('CustomAmount', () => {
   });
 
   it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
-    const { getByText, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).toHaveTextContent('123.45');
     expect(queryByTestId('custom-amount-skeleton')).toBeNull();
   });
 
@@ -120,29 +138,29 @@ describe('CustomAmount', () => {
 
   describe('cents truncation', () => {
     it('truncates full-precision amounts to two decimals', () => {
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="500.123456" />,
       );
 
-      expect(getByText('500.12')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input')).toHaveTextContent('500.12');
     });
 
     it('truncates rather than rounding up', () => {
       // The rendered value is re-typable through the keypad, so rounding up
       // would let the user enter an amount above their balance.
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="10.379" />,
       );
 
-      expect(getByText('10.37')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input')).toHaveTextContent('10.37');
     });
 
     it('never carries into the whole part', () => {
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="1.999" />,
       );
 
-      expect(getByText('1.99')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input')).toHaveTextContent('1.99');
     });
 
     it('truncates before applying locale separators', () => {
@@ -156,29 +174,31 @@ describe('CustomAmount', () => {
     it('normalises a comma decimal separator to a period', () => {
       // formatAmountWithLocaleSeparators splits on `.` and applies the locale
       // separator itself, so handing it a comma would drop the decimals.
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="500,987654" />,
       );
 
-      expect(getByText('500.98')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input')).toHaveTextContent('500.98');
     });
 
     it('renders malformed input unchanged rather than NaN', () => {
-      const { getByText } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <CustomAmount amountFiat="1.2.3456" />,
       );
 
-      expect(getByText('1.2.3456')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-input')).toHaveTextContent('1.2.3456');
     });
 
     it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
       'leaves keypad input %s exactly as typed',
       (amountFiat) => {
-        const { getByText } = renderWithProvider(
+        const { getByTestId } = renderWithProvider(
           <CustomAmount amountFiat={amountFiat} />,
         );
 
-        expect(getByText(amountFiat)).toBeOnTheScreen();
+        expect(getByTestId('custom-amount-input')).toHaveTextContent(
+          amountFiat,
+        );
       },
     );
   });
