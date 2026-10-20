@@ -70,6 +70,13 @@ export interface MarketingMomentProps {
     className?: string;
   };
   /**
+   * Props spread onto the animated view that wraps `artwork`. `entering`
+   * replaces the default fade. `style` replaces the flexible layout style.
+   */
+  artworkWrapperAnimatedViewProps?: Partial<
+    ComponentProps<typeof Animated.View>
+  >;
+  /**
    * Recommended action.
    */
   primaryAction?: MarketingMomentAction;

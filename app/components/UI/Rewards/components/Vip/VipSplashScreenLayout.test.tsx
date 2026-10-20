@@ -5,7 +5,6 @@ import VipSplashScreenLayout, {
   VIP_SPLASH_SCREEN_TEST_IDS,
 } from './VipSplashScreenLayout';
 import {
-  VIP_GOLD_BORDER_DEFAULT,
   VIP_GOLD_TEXT_DEFAULT,
   VIP_GOLD_TEXT_MUTED,
   VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
@@ -110,6 +109,9 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('../../../../../images/rewards/vip_splash.png', () => 1);
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
+  I18nEvents: new (jest.requireActual('events').EventEmitter)(),
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.vip.splash_title': 'Welcome to Gold Fox Collective',
@@ -162,11 +164,11 @@ describe('VipSplashScreenLayout', () => {
     );
 
     expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.ACCEPT_BUTTON)).toHaveStyle({
-      backgroundColor: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
-      borderColor: VIP_GOLD_BORDER_DEFAULT,
+      backgroundColor: VIP_GOLD_TEXT_DEFAULT,
+      borderColor: VIP_GOLD_TEXT_DEFAULT,
     });
     expect(getByText('Accept invite')).toHaveStyle({
-      color: VIP_GOLD_TEXT_DEFAULT,
+      color: VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
     });
     expect(getByText('Not now')).toHaveStyle({ color: VIP_GOLD_TEXT_MUTED });
   });

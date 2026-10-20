@@ -25,6 +25,8 @@ import type {
   MarketingMomentProps,
 } from './MarketingMoment.types';
 
+const ACTION_ENTER_STEP = 3;
+
 const enterDown = (step: number) =>
   FadeInDown.duration(AnimationDuration.Slowly).delay(
     step * AnimationDuration.Quickly,
@@ -35,6 +37,10 @@ const enterFade = (step: number) =>
     step * AnimationDuration.Quickly,
   );
 
+/** Milliseconds until the footer actions have finished entering. */
+export const marketingMomentActionsEnteredAt =
+  ACTION_ENTER_STEP * AnimationDuration.Quickly + AnimationDuration.Slowly;
+
 const MarketingMomentContent = ({
   title,
   titleProps,
@@ -44,6 +50,7 @@ const MarketingMomentContent = ({
   childrenWrapperAnimatedViewProps,
   artwork,
   artworkWrapperProps,
+  artworkWrapperAnimatedViewProps,
   primaryAction,
   secondaryAction,
   background,
@@ -133,6 +140,7 @@ const MarketingMomentContent = ({
           <Animated.View
             entering={enterFade(2)}
             style={tw.style('min-h-0 w-full flex-1')}
+            {...artworkWrapperAnimatedViewProps}
           >
             <Box
               alignItems={BoxAlignItems.Center}
@@ -152,7 +160,10 @@ const MarketingMomentContent = ({
         )}
 
         {primaryAction || secondaryAction ? (
-          <Animated.View entering={enterDown(3)}>
+          <Animated.View
+            entering={enterDown(ACTION_ENTER_STEP)}
+            style={{ zIndex: 1 }}
+          >
             <Box
               flexDirection={BoxFlexDirection.Column}
               gap={2}

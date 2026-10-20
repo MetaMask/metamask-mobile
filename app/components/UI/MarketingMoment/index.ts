@@ -1,4 +1,4 @@
-export { default } from './MarketingMoment';
+export { default, marketingMomentActionsEnteredAt } from './MarketingMoment';
 export type {
   MarketingMomentAction,
   MarketingMomentProps,
