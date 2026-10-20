@@ -18,15 +18,16 @@ import DottedUnderline from '../../../../DottedUnderline';
 import type { TokenDetailsVariant } from '../../../constants/constants';
 import {
   STAT_EMPTY_VALUE,
+  type TokenStatKey,
+  type TokenStatValue,
+  type TokenStatValues,
+} from '../../../constants/tokenStats';
+import {
   STAT_KEYS_BY_VARIANT,
   STAT_LABEL_KEYS,
+  type BarStatKey,
 } from './StatBar.constants';
 import { StatBarSelectors } from './StatBar.testIds';
-import type {
-  TokenStatKey,
-  TokenStatValue,
-  TokenStatValues,
-} from './StatBar.types';
 
 /**
  * Keeps digits a fixed width so values that tick live — price-derived stats
@@ -46,7 +47,8 @@ const transparentBackground = (color: string) =>
   color.startsWith('#') && color.length === 7 ? `${color}00` : 'transparent';
 
 interface StatBarItemProps {
-  statKey: TokenStatKey;
+  /** Narrower than `TokenStatKey`: only a stat some variant lists has a label. */
+  statKey: BarStatKey;
   stat?: TokenStatValue;
   /** Drops the leading padding so the first value aligns with the page gutter. */
   isFirst: boolean;

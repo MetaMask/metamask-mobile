@@ -19,11 +19,13 @@ export const LimitOrderPriceAdjustCard = ({
   onDismissKeypad,
   orderSide,
   quoteTokenSymbol,
+  quoteToken,
   isLimitFiatMode,
   priceUnitSymbol,
   onQuoteUnitPress,
   limitPrice,
   onLimitPriceInputPress,
+  isLimitPriceInputPressDisabled,
   limitPriceSelection,
   onLimitPriceSelectionChange,
   secondaryLimitPrice,
@@ -46,7 +48,9 @@ export const LimitOrderPriceAdjustCard = ({
   <Box
     testID={LimitOrderPriceAdjustCardSelectorsIDs.CONTAINER}
     twClassName={
-      hasVisibleBanner ? 'px-4 flex-grow-0 pb-3' : 'px-4 flex-grow-0'
+      hasVisibleBanner
+        ? 'px-4 flex-grow-0 pb-3 -mt-1'
+        : 'px-4 flex-grow-0 -mt-1'
     }
     onStartShouldSetResponder={() => true}
     onResponderRelease={onDismissKeypad}
@@ -56,12 +60,14 @@ export const LimitOrderPriceAdjustCard = ({
         ref={limitPriceInputRef}
         executionType={orderSide}
         quotedSymbol={quoteTokenSymbol}
+        quotedToken={quoteToken}
         isLimitFiatMode={isLimitFiatMode}
         unitSymbol={priceUnitSymbol}
         value={limitPrice}
         selection={limitPriceSelection}
         onSelectionChange={onLimitPriceSelectionChange}
         onInputPress={onLimitPriceInputPress}
+        isInputPressDisabled={isLimitPriceInputPressDisabled}
         secondaryValue={secondaryLimitPrice}
         onAmountTypeTogglePress={onAmountTypeTogglePress}
         onQuoteUnitPress={onQuoteUnitPress}

@@ -1,8 +1,9 @@
 import { BigNumber } from 'bignumber.js';
 import type { CreateLimitOrderParams } from '../../api/limitOrders/create';
 import {
+  LIMIT_ORDER_DIRECTION,
   LimitOrderExecutionType,
-  LimitOrderPriceComparisonDirection,
+  type LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
 import { formatLimitOrderFiatPrice } from './formatLimitOrderFiatPrice';
 import { trimTrailingZeros } from '../trimTrailingZeros';
@@ -67,10 +68,7 @@ export function getLimitOrderTriggerParams({
     return undefined;
   }
 
-  const threshold =
-    priceComparisonDirection === LimitOrderPriceComparisonDirection.AT_OR_ABOVE
-      ? 'above'
-      : 'below';
+  const { threshold } = LIMIT_ORDER_DIRECTION[priceComparisonDirection];
 
   // A price typed in counter token units is a price between the two tokens
   // (e.g. 1 ETH is worth 0.04 BTC), which the API takes as the token value.

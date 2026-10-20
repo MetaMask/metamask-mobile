@@ -375,8 +375,8 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
-jest.mock('../../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
-  useTokenListSecurityBadgeQuery: jest.fn(() => ({ data: null })),
+jest.mock('../../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: jest.fn(() => ({ data: null })),
 }));
 
 const mockUseABTest = jest.mocked(useABTest);
@@ -2602,6 +2602,33 @@ describe('BridgeView', () => {
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
+
+    it('opens the Limit tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+        swapViewTraceId: 'trace-1',
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
         ).toBeOnTheScreen();
       });
       expect(mockSetParams).toHaveBeenCalledWith({

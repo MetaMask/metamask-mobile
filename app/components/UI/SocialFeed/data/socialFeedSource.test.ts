@@ -24,6 +24,45 @@ describe('toSocialFeedRequest', () => {
     },
   );
 
+  it('keeps the exact shared chain list when the asset class is all', () => {
+    const request = toSocialFeedRequest({
+      kind: 'all',
+      audience: 'all',
+      assetClass: 'all',
+    });
+
+    expect(request?.options).toHaveProperty('chains', FEED_CAIP2_CHAINS);
+  });
+
+  it('narrows the global feed to spot chains for tokens', () => {
+    expect(
+      toSocialFeedRequest({
+        kind: 'all',
+        audience: 'all',
+        assetClass: 'tokens',
+      }),
+    ).toStrictEqual({
+      action: 'SocialService:fetchFeed',
+      options: {
+        scope: 'leaderboard',
+        chains: FEED_CAIP2_CHAINS.filter((chain) => chain !== 'eip155:999'),
+      },
+    });
+  });
+
+  it('narrows the global feed to Hyperliquid for perps', () => {
+    expect(
+      toSocialFeedRequest({
+        kind: 'all',
+        audience: 'following',
+        assetClass: 'perps',
+      }),
+    ).toStrictEqual({
+      action: 'SocialService:fetchFeed',
+      options: { scope: 'following', chains: ['eip155:999'] },
+    });
+  });
+
   it('lowercases a checksummed EVM contract, which the token route requires', () => {
     const request = toSocialFeedRequest({
       kind: 'token',
