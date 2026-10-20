@@ -9479,6 +9479,7 @@
     },
     "transaction": {
       "deposited": "Deposited",
+      "bank_transfer": "Bank transfer",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",
