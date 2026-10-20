@@ -311,8 +311,6 @@ describe('LivePriceHeader', () => {
 
       expect(priceText?.props.variant).toBe(TextVariant.AmountDisplayLg);
       expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
-      expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
-      expect(priceText?.props.twClassName).toBe('text-[48px] leading-[52.8px]');
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
       expect(changeText?.props.variant).toBe(TextVariant.BodySm);
       expect(changeText?.props.fontWeight).toBe(FontWeight.Medium);
@@ -333,10 +331,8 @@ describe('LivePriceHeader', () => {
         (el) => el.props.children === '$3,000',
       );
 
-      expect(priceText?.props.variant).toBe(TextVariant.HeadingLg);
+      expect(priceText?.props.variant).toBe(TextVariant.AmountDisplayLg);
       expect(priceText?.props.fontFamily).toBe(FontFamily.Hero);
-      expect(priceText?.props.fontWeight).toBe(FontWeight.Regular);
-      expect(priceText?.props.twClassName).toBe('text-[48px] leading-[52.8px]');
       expect(priceText?.props.color).toBe(TextColor.TextDefault);
 
       const periodText = textElements.find((el) => el.props.children === '24h');

@@ -49,7 +49,7 @@ interface LivePriceHeaderProps {
    * - `default`: compact, muted price (used inside the market header).
    * - `large`: prominent price shown below the market header (Lite).
    * - `prominent`: prominent price used by the Pro market header.
-   * Same stacked layout as `large`.
+   * Same stacked layout and AmountDisplayLg Hero type as `large`.
    */
   size?: 'default' | 'large' | 'prominent';
 }
@@ -95,12 +95,9 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
   size = 'default',
 }) => {
   const isLarge = size === 'large' || size === 'prominent';
-  const priceVariant =
-    size === 'large'
-      ? TextVariant.AmountDisplayLg
-      : size === 'prominent'
-        ? TextVariant.HeadingLg
-        : TextVariant.BodySm;
+  const priceVariant = isLarge
+    ? TextVariant.AmountDisplayLg
+    : TextVariant.BodySm;
   const priceColor = isLarge
     ? TextColor.TextDefault
     : TextColor.TextAlternative;
@@ -224,8 +221,6 @@ const LivePriceHeader: React.FC<LivePriceHeaderProps> = ({
       <Text
         variant={priceVariant}
         fontFamily={isLarge ? FontFamily.Hero : undefined}
-        fontWeight={isLarge ? FontWeight.Regular : undefined}
-        twClassName={isLarge ? 'text-[48px] leading-[52.8px]' : undefined}
         color={priceColor}
         style={styles.price}
         numberOfLines={1}
