@@ -5,11 +5,14 @@ import { legacy_createStore as createStore, Store } from 'redux';
 
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'ethers';
+import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   ChainId,
   formatChainIdToCaip,
+  getNativeAssetForChainId,
   mergeQuoteMetadata,
+  toBridgeAssetV2,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import { initialState } from '../../_mocks_/initialState';
@@ -90,6 +93,13 @@ const btcTokenOnBitcoin: BridgeToken = {
   chainId: 'bip122:000000000019d6689c085ae165831e93',
 };
 
+const xlmTokenOnStellar: BridgeToken = {
+  address: 'stellar:pubnet/slip44:148',
+  symbol: 'XLM',
+  decimals: 7,
+  chainId: 'stellar:pubnet',
+};
+
 const nonEvmNativeTokens: BridgeToken[] = [
   {
     address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
@@ -140,6 +150,55 @@ const createBtcQuote = ({
       },
     },
   );
+
+const createStellarQuote = ({
+  reserveAmount = '1.5',
+  networkFeeAmount = '0.00001',
+  sentAmount = '9',
+}: {
+  reserveAmount?: string;
+  networkFeeAmount?: string | null;
+  sentAmount?: string;
+} = {}) => {
+  const nativeAsset = toBridgeAssetV2(
+    getNativeAssetForChainId(ChainId.STELLAR),
+  );
+  return {
+    chainId: formatChainIdToCaip(ChainId.STELLAR),
+    quote: {
+      src: {
+        amount: BigNumberJS(sentAmount)
+          .times(10 ** 7)
+          .toFixed(0),
+        normalizedAmount: sentAmount,
+        asset: nativeAsset,
+      },
+      feeData: {
+        network:
+          networkFeeAmount === null
+            ? []
+            : [
+                {
+                  amount: BigNumberJS(networkFeeAmount)
+                    .times(10 ** 7)
+                    .toFixed(0),
+                  normalizedAmount: networkFeeAmount,
+                  asset: nativeAsset,
+                },
+              ],
+        reserve: [
+          {
+            amount: BigNumberJS(reserveAmount)
+              .times(10 ** 7)
+              .toFixed(0),
+            normalizedAmount: reserveAmount,
+            asset: nativeAsset,
+          },
+        ],
+      },
+    },
+  } as QuoteResponse;
+};
 
 describe('useInsufficientNativeReserveError', () => {
   beforeEach(() => {
@@ -381,6 +440,60 @@ describe('useInsufficientNativeReserveError', () => {
     );
 
     expect(result.current).toStrictEqual(undefined);
+  });
+
+  it('uses the quote reserve for a Stellar native source', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '9',
+        token: xlmTokenOnStellar,
+        latestAtomicBalance: BigNumber.from('100000000'), // 10 XLM
+        walletAddress:
+          'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+        activeQuote: createStellarQuote(),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '8.49999',
+      minimumNativeBalanceToBeKeptInAccount: '1.5',
+    });
+  });
+
+  it('uses the quote reserve when the quote has no network fee', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '9',
+        token: xlmTokenOnStellar,
+        latestAtomicBalance: BigNumber.from('100000000'), // 10 XLM
+        walletAddress:
+          'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+        activeQuote: createStellarQuote({ networkFeeAmount: null }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '8.5',
+      minimumNativeBalanceToBeKeptInAccount: '1.5',
+    });
+  });
+
+  it('returns a quote reserve error when the Stellar balance cannot cover the reserve', () => {
+    const { result } = renderHookWithWrapper(() =>
+      useInsufficientNativeReserveError({
+        amount: '0.2',
+        token: xlmTokenOnStellar,
+        latestAtomicBalance: BigNumber.from('10000000'), // 1 XLM
+        walletAddress:
+          'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NYMPL5AFHTDXUDT7JOZZYNQLEI',
+        activeQuote: createStellarQuote({ sentAmount: '0.2' }),
+      }),
+    );
+
+    expect(result.current).toStrictEqual({
+      maxSwappableNativeBalance: '0',
+      minimumNativeBalanceToBeKeptInAccount: '1.5',
+    });
   });
 
   it('returns insufficientNativeReserveError=undefined when token is not the native one', () => {

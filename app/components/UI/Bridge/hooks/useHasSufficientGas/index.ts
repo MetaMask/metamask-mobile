@@ -2,6 +2,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
+  isNativeAddress,
   QuoteResponse,
   sumAmounts,
 } from '@metamask/bridge-controller';
@@ -58,6 +59,9 @@ export const useHasSufficientGas = ({
   const gasAmount = sumAmounts(
     quote?.quote?.feeData?.network,
     quote?.quote?.feeData?.relayer,
+    quote?.quote?.src?.asset && !isNativeAddress(quote.quote.src.asset.assetId)
+      ? quote.quote.feeData.reserve
+      : undefined,
   )?.normalizedAmount;
   const effectiveGasFee =
     isNumberValue(gasAmount) && gasAmount != null && gasAmount !== undefined
