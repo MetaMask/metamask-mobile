@@ -42,8 +42,10 @@ const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
     carouselBanners: false,
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
-  await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
+  // COMPLETE registers eligible geoblock at priority 999; blocked must come
+  // after at 1000 so cashout/add-funds still see a geo-restricted user.
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
+  await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
 };
 
 appiumTest.describe(SmokePredictions('Predictions - Geo Restriction'), () => {
@@ -127,8 +129,8 @@ const predictionGeoUnavailableFeature = async (mockServer: Mockttp) => {
     carouselBanners: false,
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
-  await POLYMARKET_GEO_UNAVAILABLE_MOCKS(mockServer);
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
+  await POLYMARKET_GEO_UNAVAILABLE_MOCKS(mockServer);
 };
 
 appiumTest.describe(
