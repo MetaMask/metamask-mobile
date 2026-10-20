@@ -1,0 +1,28 @@
+---
+description: Use scroll activity slots for heavy sections inside a screen ScrollView
+globs: app/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Scroll activity
+
+> Canonical guide: [`app/components/ScrollActivity/README.md`](../../app/components/ScrollActivity/README.md)
+
+## When this applies
+
+Any screen you touch (new or existing) that has a `ScrollView` and a chart, polling, animation, realtime update, or other heavy section. Do not migrate screens you did not touch. Do not replace a long homogeneous list; those stay on `FlashList`.
+
+## Required
+
+1. Use `ActivityScrollView` as the screen scroll container.
+2. Wrap each heavy section in an `ActivitySlot` with a stable `id`.
+3. Pass `estimatedHeight` for every below-fold slot.
+4. Gate polling, chart updates, animations, and other continuous work with `phase === 'active'`.
+5. Store UI state that must survive dormancy in `useActivityState`.
+6. Leave sticky headers outside slots.
+
+## Forbidden
+
+- Folding `useNetworkTier()` into the activity phase. Hardware margin and network tier stay separate.
+- Putting secrets, keys, credentials, or remote payloads in `useActivityState`.
+- Replacing `@shopify/flash-list` usage for a homogeneous list with activity slots.
