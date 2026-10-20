@@ -74,12 +74,6 @@ import {
 import { getRewardsControllerMessenger } from './rewards-controller-messenger';
 import { getRewardsMoneyControllerMessenger } from './rewards-money-controller-messenger';
 import { getGatorPermissionsControllerMessenger } from './gator-permissions-controller-messenger';
-import { getSelectedNetworkControllerMessenger } from './selected-network-controller-messenger';
-import {
-  getPermissionControllerInitMessenger,
-  getPermissionControllerMessenger,
-} from './permission-controller-messenger';
-import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
@@ -115,7 +109,6 @@ import { getGeolocationControllerMessenger } from './geolocation-controller-mess
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getRewardsMoneyDataServiceMessenger } from './rewards-money-data-service-messenger';
 import { getDelegationControllerMessenger } from './delegation/delegation-controller-messenger';
-import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
   getRampsControllerInitMessenger,
@@ -151,7 +144,6 @@ import { getProfileControllerMessenger } from './profile-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
-import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
@@ -198,10 +190,6 @@ export const MESSENGER_FACTORIES = {
   },
   GeolocationController: {
     getMessenger: getGeolocationControllerMessenger,
-    getInitMessenger: noop,
-  },
-  LoggingController: {
-    getMessenger: getLoggingControllerMessenger,
     getInitMessenger: noop,
   },
   TransactionPayController: {
@@ -277,10 +265,6 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getNotificationServicesPushControllerMessenger,
     getInitMessenger: noop,
   },
-  SubjectMetadataController: {
-    getMessenger: getSubjectMetadataControllerMessenger,
-    getInitMessenger: noop,
-  },
   UserStorageController: {
     getMessenger: getUserStorageControllerMessenger,
     getInitMessenger: getUserStorageControllerInitMessenger,
@@ -308,20 +292,12 @@ export const MESSENGER_FACTORIES = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
-  PermissionController: {
-    getMessenger: getPermissionControllerMessenger,
-    getInitMessenger: getPermissionControllerInitMessenger,
-  },
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SamplePetnamesController: {
     getMessenger: getSamplePetnamesControllerMessenger,
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
-  SelectedNetworkController: {
-    getMessenger: getSelectedNetworkControllerMessenger,
-    getInitMessenger: noop,
-  },
   SmartTransactionsController: {
     getMessenger: getSmartTransactionsControllerMessenger,
     getInitMessenger: getSmartTransactionsControllerInitMessenger,
@@ -500,10 +476,6 @@ export const MESSENGER_FACTORIES = {
   },
   QrSyncProvisioningService: {
     getMessenger: getQrSyncProvisioningServiceMessenger,
-    getInitMessenger: noop,
-  },
-  ClientController: {
-    getMessenger: getClientControllerMessenger,
     getInitMessenger: noop,
   },
   ComplianceService: {

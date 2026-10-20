@@ -9,13 +9,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function getPlaceholderSymbol(assetId: string): string {
-  return `DUM${assetId.slice(-1)}`;
-}
-
 /**
- * Validates the current Sentinel string-array response and normalizes it into
- * the stable token representation used by consumers.
+ * Validates the Sentinel token-object response and normalizes it into the
+ * token representation used by consumers.
  *
  * @param value - Raw response from `GET /getSentinelFeeTokens`.
  * @returns Sentinel fee tokens grouped by CAIP-2 chain ID.
@@ -31,23 +27,37 @@ export function parseSentinelFeeTokensResponse(
 
   const sentinelFeeTokens: SentinelFeeTokensByChain = {};
 
-  for (const [chainId, assetIds] of Object.entries(value)) {
+  for (const [chainId, tokens] of Object.entries(value)) {
     if (!isCaipChainId(chainId)) {
       throw new Error(
         `Invalid Sentinel fee tokens response: invalid chain ID ${chainId}`,
       );
     }
 
-    if (!Array.isArray(assetIds)) {
+    if (!Array.isArray(tokens)) {
       throw new Error(
         `Invalid Sentinel fee tokens response: expected token array for ${chainId}`,
       );
     }
 
-    sentinelFeeTokens[chainId] = assetIds.map((assetId) => {
+    sentinelFeeTokens[chainId] = tokens.map((token) => {
+      if (!isRecord(token)) {
+        throw new Error(
+          `Invalid Sentinel fee tokens response: expected token object for ${chainId}`,
+        );
+      }
+
+      const { assetId, symbol } = token;
+
       if (!isCaipAssetType(assetId)) {
         throw new Error(
           `Invalid Sentinel fee tokens response: invalid asset ID for ${chainId}`,
+        );
+      }
+
+      if (typeof symbol !== 'string' || symbol.length === 0) {
+        throw new Error(
+          `Invalid Sentinel fee tokens response: invalid symbol for ${assetId}`,
         );
       }
 
@@ -57,10 +67,7 @@ export function parseSentinelFeeTokensResponse(
         );
       }
 
-      return {
-        assetId,
-        symbol: getPlaceholderSymbol(assetId),
-      };
+      return { assetId, symbol };
     });
   }
 

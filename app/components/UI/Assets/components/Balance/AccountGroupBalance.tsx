@@ -113,10 +113,7 @@ const AccountGroupBalance = ({
   const balanceChange1d = useSelector(balanceChange1dSelector);
   const selectedChainId = useSelector(selectEvmChainId);
 
-  const hasBalanceFetched = useAccountGroupBalanceFetchState({
-    groupBalance,
-    accountGroupBalance,
-  });
+  const hasBalanceFetched = useAccountGroupBalanceFetchState();
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
