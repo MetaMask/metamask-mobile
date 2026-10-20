@@ -95,7 +95,7 @@ const RollingNumber: React.FC<RollingNumberProps> = ({
 }) => {
   const systemReducedMotion = useReducedMotion();
   const motionEnabled = !reduceMotion && !systemReducedMotion;
-  const hasRendered = useRef(false);
+  const [hasRendered, setHasRendered] = useState(false);
   const [shown, setShown] = useState<{
     value: string;
     trend?: RollingNumberTrend | null;
@@ -107,7 +107,7 @@ const RollingNumber: React.FC<RollingNumberProps> = ({
   const [tint, setTint] = useState<RollingNumberTrend | null>(null);
 
   useEffect(() => {
-    hasRendered.current = true;
+    setHasRendered(true);
   }, []);
 
   useEffect(() => {
@@ -132,7 +132,7 @@ const RollingNumber: React.FC<RollingNumberProps> = ({
 
   const glyphs = useMemo(() => getRollingGlyphs(shownValue), [shownValue]);
   const textClassName = tint ? TINT_CLASS[tint] : twClassName;
-  const animate = motionEnabled && hasRendered.current;
+  const animate = motionEnabled && hasRendered;
   const entering = rollTrend === 'down' ? ENTER_FROM_ABOVE : ENTER_FROM_BELOW;
   const exiting = rollTrend === 'down' ? EXIT_DOWNWARD : EXIT_UPWARD;
 

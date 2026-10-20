@@ -109,6 +109,9 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   const visibleKeysRef = useRef<SocialLivePriceKey[]>([]);
   /** Active spot channels -> the store key their bars publish to. */
   const spotChannelsRef = useRef(new Map<string, SocialLivePriceKey>());
+  /** Keeps each channel's subscribe/unsubscribe calls ordered. */
+  const spotOperationQueuesRef = useRef(new Map<string, Promise<unknown>>());
+  const spotOperationTokensRef = useRef(new Map<string, symbol>());
   const perpUnsubscribeRef = useRef<(() => void) | null>(null);
   const perpSymbolsKeyRef = useRef('');
   const visibilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,6 +132,37 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     return () => subscription.remove();
   }, []);
 
+  const enqueueSpotOperation = useCallback(
+    (channel: string, operation: () => Promise<unknown>): Promise<unknown> => {
+      const previousOperation =
+        spotOperationQueuesRef.current.get(channel) ?? Promise.resolve();
+      const operationToken = Symbol(channel);
+      spotOperationTokensRef.current.set(channel, operationToken);
+      const operationPromise = previousOperation
+        .catch(() => undefined)
+        .then(operation);
+      const cleanup = () => {
+        if (spotOperationTokensRef.current.get(channel) === operationToken) {
+          spotOperationQueuesRef.current.delete(channel);
+          spotOperationTokensRef.current.delete(channel);
+        }
+      };
+      const trackedOperation = operationPromise.then(
+        (result) => {
+          cleanup();
+          return result;
+        },
+        (error) => {
+          cleanup();
+          throw error;
+        },
+      );
+      spotOperationQueuesRef.current.set(channel, trackedOperation);
+      return trackedOperation;
+    },
+    [],
+  );
+
   const syncSubscriptions = useCallback(() => {
     const keys = isLiveRef.current ? visibleKeysRef.current : [];
     const { spotAssetIds, perpSymbols } = planLiveSubscriptions(keys);
@@ -142,13 +176,17 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     spotChannelsRef.current.forEach((key, channel) => {
       if (!nextChannels.has(channel)) {
         spotChannelsRef.current.delete(channel);
-        unsubscribeSpot(key.slice('spot:'.length)).catch(() => undefined);
+        enqueueSpotOperation(channel, () =>
+          unsubscribeSpot(key.slice('spot:'.length)),
+        ).catch(() => undefined);
       }
     });
     nextChannels.forEach(({ assetId, key }, channel) => {
       if (!spotChannelsRef.current.has(channel)) {
         spotChannelsRef.current.set(channel, key);
-        subscribeSpot(assetId).catch(() => undefined);
+        enqueueSpotOperation(channel, () => subscribeSpot(assetId)).catch(
+          () => undefined,
+        );
       }
     });
 
@@ -180,7 +218,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
       },
       throttleMs: DEFAULT_LIVE_PRICE_THROTTLE_MS,
     });
-  }, [perpsStream, store]);
+  }, [enqueueSpotOperation, perpsStream, store]);
 
   const scheduleSync = useCallback(() => {
     if (syncTimerRef.current) {
@@ -299,14 +337,16 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
         clearTimeout(syncTimerRef.current);
       }
       store.cancelPending();
-      spotChannels.forEach((key) =>
-        unsubscribeSpot(key.slice('spot:'.length)).catch(() => undefined),
+      spotChannels.forEach((key, channel) =>
+        enqueueSpotOperation(channel, () =>
+          unsubscribeSpot(key.slice('spot:'.length)),
+        ).catch(() => undefined),
       );
       spotChannels.clear();
       perpUnsubscribeRef.current?.();
       perpUnsubscribeRef.current = null;
     };
-  }, [store]);
+  }, [enqueueSpotOperation, store]);
 
   const value = useMemo<SocialLivePricesContextValue>(
     () => ({ store, register, requestVisibilityCheck, reduceMotion }),

@@ -60,6 +60,17 @@ describe('RollingNumber', () => {
     expect(screen.getByLabelText('$101.00')).toBeOnTheScreen();
   });
 
+  it('animates the first value change after mounting', () => {
+    const { rerender } = render(
+      <RollingNumber value="$200.00" testID={TEST_ID} />,
+    );
+
+    rerender(<RollingNumber value="$201.00" trend="up" testID={TEST_ID} />);
+
+    expect(screen.getByText('1')).toHaveProp('entering', expect.anything());
+    expect(screen.getByText('1')).toHaveProp('exiting', expect.anything());
+  });
+
   it('tints the change and then settles back to the resting color', () => {
     const { rerender } = render(
       <RollingNumber

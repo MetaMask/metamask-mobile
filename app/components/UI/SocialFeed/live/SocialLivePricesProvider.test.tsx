@@ -147,6 +147,43 @@ describe('SocialLivePricesProvider', () => {
     });
   });
 
+  it('orders an unsubscribe after an in-flight subscribe', async () => {
+    let resolveSubscribe: (() => void) | undefined;
+    const subscribePromise = new Promise<void>((resolve) => {
+      resolveSubscribe = resolve;
+    });
+    mockCall.mockImplementation((...args: unknown[]) =>
+      args[0] === 'OHLCVService:subscribe'
+        ? subscribePromise
+        : Promise.resolve(),
+    );
+
+    const { unmount } = renderProvider([
+      { id: 'a', key: `spot:${ETH_ASSET}`, y: 100 },
+    ]);
+    await settle();
+
+    unmount();
+
+    expect(
+      mockCall.mock.calls.filter(
+        ([action]) => action === 'OHLCVService:unsubscribe',
+      ),
+    ).toHaveLength(0);
+
+    await act(async () => {
+      resolveSubscribe?.();
+      await subscribePromise;
+      await Promise.resolve();
+    });
+
+    expect(mockCall).toHaveBeenLastCalledWith('OHLCVService:unsubscribe', {
+      assetId: ETH_ASSET,
+      interval: '1m',
+      currency: 'usd',
+    });
+  });
+
   it('publishes the candle close to the card key', async () => {
     renderProvider([{ id: 'a', key: `spot:${ETH_ASSET}`, y: 100 }]);
     await settle();
@@ -233,6 +270,10 @@ describe('SocialLivePricesProvider', () => {
         <Probe cards={cards} />
       </SocialLivePricesProvider>,
     );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
 
     expect(mockCall).toHaveBeenCalledWith(
       'OHLCVService:unsubscribe',
@@ -289,6 +330,10 @@ describe('SocialLivePricesProvider', () => {
     await settle();
 
     unmount();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
 
     expect(mockCall).toHaveBeenCalledWith(
       'OHLCVService:unsubscribe',
