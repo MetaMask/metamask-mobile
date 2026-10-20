@@ -2,7 +2,9 @@
 
 This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
 
-The earlier read-model direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). PRED-1374's [permanent public API contract](./public-api-contract.md) defines external ownership, private legacy adaptation, and next financial/Activity additions. Proposed changes are not executable until types, runtime parsers, transport, services, fixtures, and tests change together. PredictNext is unreleased; coordinated breaking changes are allowed without another API version or negotiation for old unreleased clients.
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). It is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
+
+This ledger covers PredictNext's internal canonical contract. The interface exposed to code outside Predict is described in [the public API contract](./public-api-contract.md). It does not expose these types yet.
 
 ## Canonical read models
 
@@ -77,38 +79,9 @@ The same route pair serves both Order Actions (ADR-0001). A sell Preview request
 - The sell Receipt reports `quotedContracts` and, once the Venue reports fills, `filledContracts`, `averageFillPrice`, `fee`, `actualProceeds`, and `netProceeds` — fill fields are projected as fixed-point decimal strings, identical across actions (`filledContracts: '7.00'`). `requestedMaxSpend`, `actualSpend`, and `payoutExposure` are absent on sell receipts.
 - Over-selling a Position fails closed with the canonical `insufficient_position` code; a failed position read reports `position_unavailable`. The backend ownership check validates the requested count against venue position evidence at preview and commit, but it is not a reservation — concurrent sells of the shared venue account can jointly exceed the position until fills settle. `reconciliation_required` observation and the idempotent re-POST of the same `previewId` are identical for both actions.
 
-## PRED-1374 proposed external and account contracts
-
-[ADR-0002](./adr/0002-permanent-public-api-private-legacy.md) governs the boundary. External callers use deliberate discovery, portfolio, Activity, navigation and operation APIs that resolve Active Venue. Existing internal query/service APIs remain Venue-qualified. Legacy Polymarket presentation and internal hooks stay unchanged. Private wrappers convert canonical inputs/results and can rehydrate legacy entities by reference; no raw-object sidecar or external legacy model.
-
-### Account query identity amendment, PRED-1381
-
-Current portfolio descriptors above are Venue-only and are insufficient for distinct Predict Users or wallet-scoped Venue Accounts. The required next account descriptor is:
-
-```ts
-queryKey: [serviceAction, venueId, personScopeId, accountScopeId, generation, params?];
-family: [serviceAction, venueId, personScopeId, accountScopeId, generation];
-scope: 'account';
-```
-
-`personScopeId` and `accountScopeId` are opaque, process-local identifiers, not raw profile subjects or wallet addresses. Kalshi follows the authenticated person's resolved Venue Account; wallet-scoped Polymarket additionally follows its Funding Wallet/account. Params include actual filters, limit and ordering; pagination stays owned by the query's chain. Public market-data keys stay Venue-qualified and person-independent.
-
-A separate selection generation rejects late old-Venue visible results and invalidates unsubmitted previews. Account generation guards reject results from replaced/invalidated scopes even when cancellation is ignored. True identity replacement cancels reads, removes account cache/presentation state, rotates scope identifiers/generations and disposes old-person observers. Stale-marking alone is insufficient. Same-person context changes do not redirect or suppress submitted operations, which retain their original account scope and never acquire another person's token. See the public contract for token-refresh/alias continuity and lifecycle detail.
-
-### Canonical additions, not implemented
-
-- Distinct optional displayed probability with source basis/observation; no last/mid/mark-to-Ask fallback.
-- Stable account-row/Outcome references, decimal holdings and public sell quantities, optional side for metadata-poor account entries. Event's exactly-two-Outcome invariant stays strict. Kalshi's integer sell wire remains unchanged.
-- Optional independently available Position valuation fields and complete-population summary, including current value, entry cost, unrealized amount/percent and observation time. No `marketExposure` substitution or page-limited total. Kalshi methodology still requires PRED-1378 approval.
-- Activity keeps `fill | settlement`; optional authoritative Fill execution direction, reported-side/price pair, source historical display/PnL, genuine transaction references, and explicit `claim | automatic` settlement mode. Settlement result is optional when unavailable, not fabricated. Catalog retirement does not remove a row. Supplied malformed money or enums still fail validation.
-- Kalshi's reported `outcomeSide` plus matching-leg price is preserved with neutral copy under exposure/transacted-side skew. It does not prove bought/sold or held-Position side. Polymarket authoritative transacted action/Outcome evidence can support bought/sold copy.
-- External operation presentation is mobile-only, scoped and protocol-free. Order completion observation remains process-local, with no new persistence/restart guarantee. Funding recovery remains with its owners.
-
-Exact proposed fields, route changes, source mapping requirements, consumer APIs, prerequisites and deletion criteria are specified once in [the public API contract](./public-api-contract.md). The API source at `594bba7` still has Kalshi-only DTOs, no valuation/summary, shared demo portfolio reads pending PRED-1162, and bounded Activity fetches that can report early exhaustion. These are not new-contract guarantees. PRED-1374 changes none of them at runtime.
-
 ## Runtime boundary
 
-Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Parsers discard unknown fields, reject malformed known fields, and return generic errors that do not retain received payload values. Venue DTOs, status mapping, price-field mapping, and identifier derivation stay in their implementation adapters, not these canonical parsers. Kalshi normalization belongs to the backend. PRED-1340 temporarily permits private mobile Polymarket adaptation before PRED-1356; its protocol types still cannot enter public product contracts. Contract-version header enforcement and cross-repository fixture tooling are deferred.
+Mobile parsers in `contracts/v1/marketData.ts` validate canonical Predict API responses using `@metamask/superstruct`. Parsers discard unknown fields, reject malformed known fields, and return generic errors that do not retain received payload values. Kalshi and Polymarket DTOs, status mapping, price-field mapping, and identifier derivation are backend adapter responsibilities and must not enter this module. Contract-version header enforcement and cross-repository fixture tooling are deferred.
 
 ## Testing boundary
 

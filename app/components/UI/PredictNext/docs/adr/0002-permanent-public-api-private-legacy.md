@@ -1,35 +1,43 @@
-# Permanent PredictNext APIs with private legacy Polymarket implementation
+# Permanent PredictNext public API with pass-through legacy Polymarket
 
-PredictNext owns the APIs used by code outside the Predict team's implementation. External consumers use canonical data and actions without selecting a Venue. PredictNext resolves the Active Venue and privately delegates to Kalshi or legacy Polymarket. This avoids a second caller migration when PRED-1356 replaces the legacy implementation.
+Code outside Predict depends only on a thin PredictNext public API. During the dual-codebase period, that API decides between the Kalshi implementation and the unchanged legacy Polymarket code internally. Legacy Polymarket data is passed through in its existing form, not converted into canonical Predict types on the client. Canonical Polymarket mapping is built once, as a Venue adapter in the Predict API service, under PRED-1356.
 
-Status: accepted for the PRED-1374 mobile design following the author's confirmation. Backend financial methodology, account isolation, and funding/security implementation still require their named owners' review. This ADR does not claim those reviews occurred.
+Status: accepted for PRED-1374, 2026-10-20. Supersedes the earlier PRED-1374 draft that required private client-side conversion of legacy Polymarket data into canonical types.
 
-## Preserve Polymarket
+## Context
 
-Polymarket keeps its existing legacy screens, styling, interactions, internal hooks, controller, and execution semantics at Kalshi launch. Legacy Predict does not have to consume canonical types internally. Compatibility changes belong at the external boundary, not throughout the legacy codebase.
+Legacy Polymarket is a client-only integration: `PredictController` and `PolymarketProvider` call Polymarket APIs directly from the app, with no Predict API service involvement. The target architecture moves Venue adapters to the Predict API service and keeps the client thin. Kalshi already follows that architecture and is unreleased. Polymarket moves to it shortly after Kalshi launches and is validated.
 
-PredictNext feature owners may privately wrap legacy presentation, hooks, and actions. Public component inputs, callback results, references, and data stay canonical. Conversion can read authoritative upstream data that the existing legacy mapper discarded. A wrapper must not fabricate a legacy object from incomplete canonical data merely to satisfy a component prop type. It can re-read the original entity within its private owner using canonical identity. There is no module-global raw-object sidecar.
+About sixty files outside `UI/Predict/` import legacy internals: feature flags and analytics constants, navigation params and hooks, legacy types such as `PredictMarket` and `PredictPosition`, data hooks, components, Polymarket constants and proxy-address helpers, and Engine/transaction-pay wiring. Homepage and Trending also render Predict data themselves from legacy types.
 
-Engine factories, messenger registration, route/provider composition, and transaction signing/publish callbacks are explicit implementation-wiring exceptions. Shared Home, Activity, Money, Rewards, Browser, Explore, and confirmation code are not exceptions. They cannot choose a Venue, compute proxy addresses, or import legacy product types.
+Making those consumers read canonical data for both Venues would require a full client-side Polymarket-to-canonical adapter: activity identity, full-portfolio valuation, custom-outcome sides, quote validation, and history metadata. PRED-1356 must build that adapter in the API service anyway. Building it on the client first would duplicate the work, add financial-correctness risk to a production product, and weaken permanent canonical types to fit legacy data loss.
 
-## Contract decisions
+## Decision
 
-- Keep displayed probability separate from true Ask and Bid Prices. The canonical conversion does not change existing legacy price presentation or buy-button behavior.
-- Preserve decimal share quantities, fractional Polymarket Cash Out, authoritative valuation/PnL, transaction references, and existing Activity ordering and filters. Kalshi's whole-contract sell restriction remains private to its implementation.
-- Allow incomplete historical metadata, including an absent Settlement result. Catalog retirement does not erase history. Invalid financial evidence still fails validation rather than becoming a fabricated value.
-- Preserve the reported Kalshi Fill side and matching-leg price without claiming buy/sell direction or silently treating a reported side as a held Position. Only authoritative transacted-side evidence permits bought/sold copy.
-- Separate person/account cache identity from public Venue reads. True identity replacement removes old account data and rejects late results. Submitted operations retain their original scope across same-person context changes.
-- Order completion observation remains process-local. No new Order reference persistence is authorized. Funding recovery stays with its funding owners.
-- PredictNext is unreleased. Coordinated breaking mobile/API changes are allowed. Do not add Activity v2, support negotiation, dual parsers, or compatibility infrastructure for older unreleased PredictNext clients.
+1. **Consumer-shaped public surface.** During the dual-codebase period, PredictNext exposes availability, entry actions, Predict-owned components or slot widgets, and narrow projections typed in the consumer's own terms, such as a portfolio value or the shared `ActivityListItem`. Canonical domain types and data hooks become public only when a real consumer needs them and every supported Venue can supply them truthfully. For Polymarket, that is after PRED-1356.
+2. **Move rendering into Predict, not data out of it.** Predict-specific rendering and logic that lives in shared surfaces, such as the Homepage Predictions section, moves behind a Predict-owned component. The Polymarket branch renders that existing code, moved as-is.
+3. **Pass-through legacy path.** A public API's Polymarket branch calls existing legacy hooks, mappers, and components without behavior changes. With Kalshi disabled, every public API returns or renders exactly what production does today.
+4. **One internal Venue decision.** Each public API resolves the user's Venue internally. External callers never select, branch on, or receive a Venue-specific object. The switch is temporary and is deleted with the legacy branch.
+5. **Strict canonical types.** Canonical PredictNext types are not weakened to represent legacy mapper losses. Optionality reflects genuine source absence.
+6. **Legacy execution is untouched.** The legacy controller, providers, confirmations and pay-with integration, transaction-pay callbacks, and Engine wiring are not wrapped or changed before PRED-1356. They are named composition wiring that PRED-1356 removes. Kalshi funding and trading use their own PredictNext flows.
+7. **No compatibility versioning.** PredictNext is unreleased. Coordinated breaking client/API changes are allowed. Do not add API versions, negotiation, or dual parsers for older unreleased builds.
 
-The detailed contract, verified consumers, mappings, wire changes, and review requirements are in [the public API contract](../public-api-contract.md). Its executable examples are design checks, not production parsers.
+## Consequences
+
+- External callers migrate once. PRED-1356 changes only PredictNext internals: the legacy branch disappears and the PredictNext implementation serves Polymarket through the API service.
+- Each caller migration is a small, reviewable change: a file move plus an import change for the legacy branch, and new Kalshi code behind the Kalshi flag.
+- Kalshi gains no client-side cache, identity, or valuation machinery to accommodate Polymarket.
+- The Polymarket data issues found during PRED-1374 become PRED-1356 backend adapter requirements, not client work.
+- While the legacy branch exists, Polymarket features keep their legacy semantics, including their known data-loss behavior. That is acceptable because it is today's production behavior.
 
 ## Deletion test
 
-Replace private legacy reads, actions, and presentation with the Polymarket backend implementation under PRED-1356. External caller imports, canonical types, supported interactions, and visible behavior must not change. Only private implementation and the listed composition wiring disappear. Switching legacy internals to canonical types first is not a prerequisite.
+PRED-1356 is complete when the legacy branch of every public API, the moved legacy code, and the named composition wiring can be deleted without changing external imports, public types, supported interactions, or visible behavior.
 
 ## Alternatives rejected
 
-A third PredictBridge layer would create another public API to maintain. Rebuilding Polymarket presentation or migrating its internal hooks would expand this work and risk production parity. Exposing legacy models would force external callers to migrate again later.
+- **Client-side canonical Polymarket adapter.** Rejected: it duplicates the PRED-1356 backend adapter, risks production Polymarket, and weakens canonical types.
+- **Leave external callers on legacy imports until PRED-1356.** Rejected for surfaces that must show Kalshi at launch: those callers would branch on Venue and then migrate again. Acceptable for surfaces that stay Polymarket-only at launch.
+- **A separate bridge module.** Rejected: it would create another public API to maintain alongside PredictNext.
 
-The Kalshi ADR files in [decisions PR #241](https://github.com/MetaMask/decisions/pull/241) contain `Status: Accepted`, but the PR was open and unmerged when checked at head `df8d493000017fc9a6b3b47d7612578203bab690`. Their publication status is not changed by this local ADR.
+See [the public API contract](../public-api-contract.md) for the surface map, migration rules, and PRED-1356 inputs.
