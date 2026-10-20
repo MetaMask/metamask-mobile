@@ -382,7 +382,8 @@ describe('XAuthService (app-relay flow)', () => {
 
       await expect(fetchAndUpdateXAccount()).rejects.toMatchObject({
         type: XAuthErrorType.BackendError,
-        message: 'Failed to fetch and update the X account: 503 Service Unavailable',
+        message:
+          'Failed to fetch and update the X account: 503 Service Unavailable',
       });
     });
 
@@ -421,7 +422,8 @@ describe('XAuthService (app-relay flow)', () => {
 
       await expect(disconnectXAccount()).rejects.toMatchObject({
         type: XAuthErrorType.BackendError,
-        message: 'Failed to disconnect the X account: 500 Internal Server Error',
+        message:
+          'Failed to disconnect the X account: 500 Internal Server Error',
       });
     });
 

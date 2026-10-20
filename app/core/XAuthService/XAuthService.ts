@@ -1,9 +1,6 @@
 import { openAuthSessionAsync } from 'expo-web-browser';
 import { Linking } from 'react-native';
-import type {
-  ConnectXSession,
-  XProfile,
-} from '@metamask/profile-controller';
+import type { ConnectXSession, XProfile } from '@metamask/profile-controller';
 import Engine from '../Engine';
 import { XAuthError, XAuthErrorType } from './XAuthError';
 import { X_REDIRECT_URI } from './XAuthConfig';
