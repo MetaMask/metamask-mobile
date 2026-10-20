@@ -1,8 +1,22 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { GlassView } from 'expo-glass-effect';
 
 import FooterGlass from './FooterGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
+import { mockTheme } from '../../../util/theme';
+
+let mockIsGlassEnabled = true;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
 
 const PRIMARY_TEST_ID = 'footer-glass-primary';
 const SECONDARY_TEST_ID = 'footer-glass-secondary';
@@ -11,6 +25,7 @@ const TERTIARY_TEST_ID = 'footer-glass-tertiary';
 describe('FooterGlass', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsGlassEnabled = true;
   });
 
   it('renders nothing when no buttons are passed', () => {
@@ -82,7 +97,7 @@ describe('FooterGlass', () => {
   });
 
   it('draws glass on the primary and secondary buttons only', () => {
-    const { getAllByTestId, getByText, UNSAFE_root } = render(
+    const { getAllByTestId, getByText, UNSAFE_getAllByType } = render(
       <FooterGlass
         primaryButtonProps={{ children: 'Continue', onPress: jest.fn() }}
         secondaryButtonProps={{ children: 'Cancel', onPress: jest.fn() }}
@@ -90,13 +105,9 @@ describe('FooterGlass', () => {
       />,
     );
 
-    const glassSurfaces = UNSAFE_root.findAll(
-      (node) =>
-        node.props?.glassEffectStyle === 'regular' &&
-        node.parent?.props?.glassEffectStyle !== 'regular',
-    );
+    const glassSurfaces = UNSAFE_getAllByType(GlassView);
     const tintedSurfaces = glassSurfaces.filter(
-      (node) => node.props.tintColor != null,
+      (node) => node.props.tintColor === mockTheme.colors.icon.default,
     );
 
     expect(glassSurfaces).toHaveLength(2);
