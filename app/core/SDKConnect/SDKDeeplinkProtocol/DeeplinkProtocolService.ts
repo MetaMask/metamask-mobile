@@ -62,18 +62,22 @@ export default class DeeplinkProtocolService {
 
   public isInitialized = false;
 
+  /**
+   * Settles when the constructor finishes loading persisted dapp connections.
+   * Resolves on failure as well; check `isInitialized`.
+   */
+  public ready: Promise<void>;
+
   public constructor() {
-    if (!this.isInitialized) {
-      this.init()
-        .then(() => {
-          this.isInitialized = true;
-          DevLogger.log('DeeplinkProtocolService:: initialized');
-        })
-        .catch((err) => {
-          this.isInitialized = false;
-          Logger.log(err, 'DeeplinkProtocolService:: error initializing');
-        });
-    }
+    this.ready = this.init()
+      .then(() => {
+        this.isInitialized = true;
+        DevLogger.log('DeeplinkProtocolService:: initialized');
+      })
+      .catch((err) => {
+        this.isInitialized = false;
+        Logger.log(err, 'DeeplinkProtocolService:: error initializing');
+      });
   }
 
   public async init() {

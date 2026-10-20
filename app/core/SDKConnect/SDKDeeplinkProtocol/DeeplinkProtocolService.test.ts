@@ -74,30 +74,42 @@ describe('DeeplinkProtocolService', () => {
     service = new DeeplinkProtocolService();
   });
 
+  afterEach(async () => {
+    await service.ready;
+  });
+
   describe('init', () => {
-    it('should initialize and load connections', async () => {
-      const spy = jest.spyOn(SDKConnect.getInstance(), 'loadDappConnections');
-      await service.init();
-      expect(spy).toHaveBeenCalled();
+    it('loads persisted connections and marks the service initialized', async () => {
+      await service.ready;
+
+      expect(SDKConnect.getInstance().loadDappConnections).toHaveBeenCalled();
       expect(service.isInitialized).toBe(true);
     });
 
-    it('should handle initialization error', async () => {
-      (
-        SDKConnect.getInstance().loadDappConnections as jest.Mock
-      ).mockRejectedValue(new Error('Failed to load connections'));
-      await service.init().catch(() => {
-        expect(service.isInitialized).toBe(false);
-        expect(Logger.log).toHaveBeenCalledWith(
-          expect.any(Error),
-          'DeeplinkProtocolService:: error initializing',
-        );
-      });
+    it('keeps the service uninitialized when loading connections fails', async () => {
+      jest
+        .mocked(SDKConnect.getInstance().loadDappConnections)
+        .mockRejectedValue(new Error('Failed to load connections'));
+      const failingService = new DeeplinkProtocolService();
+
+      await failingService.ready;
+
+      expect(failingService.isInitialized).toBe(false);
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.any(Error),
+        'DeeplinkProtocolService:: error initializing',
+      );
     });
 
-    it('should initialize with raw connections', async () => {
-      await service.init();
-      expect(service.connections.connection1).toBeDefined();
+    it('stores loaded connections', async () => {
+      await service.ready;
+
+      expect(service.connections.connection1).toEqual(
+        expect.objectContaining({
+          clientId: 'connection1',
+          scheme: 'scheme1',
+        }),
+      );
     });
   });
 
@@ -569,7 +581,16 @@ describe('DeeplinkProtocolService', () => {
   });
 
   describe('handleMessage', () => {
-    it('should handle an incoming message', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    });
+
+    it('logs an incoming deeplink message', () => {
       const params = {
         dappPublicKey: 'key',
         url: 'url',
@@ -580,7 +601,9 @@ describe('DeeplinkProtocolService', () => {
         scheme: 'scheme',
         account: `${toChecksumHexAddress(MOCK_ADDRESS)}@1`,
       };
+
       service.handleMessage(params);
+
       expect(DevLogger.log).toHaveBeenCalled();
     });
   });
