@@ -42,14 +42,20 @@ import {
   getSportsMarketTeamLogo,
   resolveNegRiskMoneylineShortTitles,
 } from './sportsUtils';
-import { fetchWithTimeout } from './fetchWithTimeout';
+import {
+  fetchWithTimeout,
+  PolymarketRequestTimeoutError,
+} from './fetchWithTimeout';
 import type {
   GetMarketsParams,
   OrderPreview,
+  PredictExecutionMetadata,
+  PredictExecutionPreviewResult,
   PredictFees,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarketListParams,
+  PreviewExecutionOrderParams,
   PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   SearchMarketsParams,
@@ -97,6 +103,10 @@ import {
   getPredictBuyAllInCost,
   roundToFiveDecimals,
 } from '../../utils/orders';
+import {
+  calculatePredictExecutionDepth,
+  getPredictExecutionBandFloorPrice,
+} from '../../utils/execution';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 import {
   buildOutcomeGroups,
@@ -2874,6 +2884,282 @@ export const previewOrder = async (
   return orderPreview;
 };
 
+/**
+ * Applies the CLOB market fee and per-dollar service fees to a BUY preview.
+ * Shared by the ordinary buy preview and the execution preview so both fee
+ * models stay identical.
+ */
+function withBuyPreviewFees({
+  preview,
+  marketInfo,
+  effectiveFeesPerDollar,
+  originalFeesPerDollar,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+  effectiveFeesPerDollar: PredictFees;
+  originalFeesPerDollar?: PredictFees;
+}): OrderPreview {
+  const makerAmount = preview.maxAmountSpent;
+  const marketFee = calculateConservativeBuyMarketFee({ preview, marketInfo });
+  const metamaskFee = makerAmount * effectiveFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * effectiveFeesPerDollar.providerFee;
+  const fees = {
+    ...effectiveFeesPerDollar,
+    metamaskFee,
+    providerFee,
+    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+    marketFee,
+  };
+  const originalFees = originalFeesPerDollar
+    ? {
+        ...fees,
+        metamaskFee: makerAmount * originalFeesPerDollar.metamaskFee,
+        totalFee:
+          Math.round(
+            (makerAmount * originalFeesPerDollar.metamaskFee + providerFee) *
+              1000000,
+          ) / 1000000,
+        totalFeePercentage: originalFeesPerDollar.totalFeePercentage,
+      }
+    : undefined;
+
+  return {
+    ...preview,
+    fees,
+    ...(originalFees ? { originalFees } : {}),
+  };
+}
+
+const isPolymarketRequestTimeout = (error: unknown): boolean =>
+  error instanceof PolymarketRequestTimeoutError ||
+  (error instanceof Error && error.name === PolymarketRequestTimeoutError.name);
+
+const isNoOrderBookError = (error: unknown): boolean =>
+  error instanceof Error &&
+  error.message === PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK;
+
+/**
+ * Pre-submit execution preview: validates one freshly fetched order book
+ * against the price and slippage band the user approved, and builds the
+ * signable preview from that same snapshot when the full requested size is
+ * executable inside the band.
+ *
+ * Expected market outcomes are typed, never thrown: insufficient in-band depth
+ * (including an empty book or a missing orderbook) is `no_match` and carries
+ * the partial `executableSize` for analytics; a request timeout is `timeout`;
+ * any other failure is `unavailable`. `fetchedAt` is set on both the preview
+ * and the metadata only after the preview is fully constructed, and marks the
+ * preview as execution-checked for the signing freshness guard.
+ */
+export const previewExecutionOrder = async (
+  params: PreviewExecutionOrderParams & {
+    feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
+  },
+): Promise<PredictExecutionPreviewResult> => {
+  const {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    approvedPrice,
+    slippage,
+    feeCollection,
+    feePolicy,
+    positionId,
+    isV2,
+    clobBaseUrl,
+  } = params;
+
+  try {
+    const [book, marketInfo] = await Promise.all([
+      getOrderBook({
+        tokenId: outcomeTokenId,
+        clobVersion: isV2 ? 'v2' : 'v1',
+        clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+      }),
+      getClobMarketInfoSafe({
+        conditionId: outcomeId,
+        clobVersion: isV2 ? 'v2' : 'v1',
+        clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+      }),
+    ]);
+    if (!book) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+    }
+
+    const { tickSize, roundConfig } = getTickSizeRoundConfig({
+      tickSize: book.tick_size,
+    });
+    const numericTickSize = parseFloat(tickSize);
+    const levels = (side === Side.SELL ? book.bids : (book.asks ?? [])).map(
+      (level) => ({
+        price: parseFloat(level.price),
+        size: parseFloat(level.size),
+      }),
+    );
+
+    const depth = calculatePredictExecutionDepth({
+      side,
+      approvedPrice,
+      slippage,
+      tickSize: numericTickSize,
+      requestedSize: size,
+      levels,
+    });
+
+    const executionBase: Omit<PredictExecutionMetadata, 'fetchedAt'> = {
+      sourceBookTimestamp: new Date(book.timestamp).getTime(),
+      requestedSize: size,
+      executableSize: depth.executableSize,
+      approvedPrice,
+      ...(depth.refreshedPrice !== null
+        ? { refreshedPrice: depth.refreshedPrice }
+        : {}),
+      bandFloorPrice: depth.bandFloorPrice,
+      ...(depth.worstExecutablePrice !== null
+        ? { worstExecutablePrice: depth.worstExecutablePrice }
+        : {}),
+      tickSize: numericTickSize,
+    };
+
+    if (!depth.isFullyExecutable) {
+      // Partial in-band depth is reported, never signed: there is no partial
+      // cash out, so a partial fill classifies as no_match.
+      return {
+        status: 'no_match',
+        execution: { ...executionBase, fetchedAt: Date.now() },
+      };
+    }
+
+    const makerAmount = roundDown(size, roundConfig.size);
+
+    if (side === Side.BUY) {
+      const calculatedFees = await calculateFees({
+        feeCollection,
+        feePolicy,
+        marketId,
+        userBetAmount: 1,
+      });
+      const preview: OrderPreview = {
+        marketId,
+        outcomeId,
+        outcomeTokenId,
+        timestamp: new Date(book.timestamp).getTime(),
+        side: Side.BUY,
+        sharePrice: depth.refreshedPrice ?? approvedPrice,
+        maxAmountSpent: makerAmount,
+        minAmountReceived: roundOrderAmount({
+          amount: depth.grossAmount,
+          decimals: roundConfig.amount,
+        }),
+        slippage,
+        tickSize: numericTickSize,
+        minOrderSize: parseFloat(book.min_order_size),
+        negRisk: book.neg_risk,
+        feeRateBps: '0',
+      };
+      const orderPreview = withBuyPreviewFees({
+        preview,
+        marketInfo,
+        effectiveFeesPerDollar: calculatedFees.fees,
+        originalFeesPerDollar: calculatedFees.originalFees,
+      });
+
+      const fetchedAt = Date.now();
+      return {
+        status: 'executable',
+        preview: { ...orderPreview, fetchedAt },
+        execution: { ...executionBase, fetchedAt },
+      };
+    }
+
+    const takerAmount = roundOrderAmount({
+      amount: depth.grossAmount,
+      decimals: roundConfig.amount,
+    });
+    const preview: OrderPreview = {
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      timestamp: new Date(book.timestamp).getTime(),
+      side: Side.SELL,
+      positionId,
+      sharePrice: depth.refreshedPrice ?? approvedPrice,
+      maxAmountSpent: makerAmount,
+      minAmountReceived: takerAmount,
+      slippage,
+      tickSize: numericTickSize,
+      minOrderSize: parseFloat(book.min_order_size),
+      negRisk: book.neg_risk,
+      feeRateBps: '0',
+    };
+    const marketFee = calculateConservativeSellMarketFee({
+      preview,
+      marketInfo,
+    });
+    const { fees: serviceFees, originalFees: originalServiceFees } =
+      await calculateFees({
+        feeCollection,
+        feePolicy,
+        marketId,
+        userBetAmount: takerAmount,
+      });
+
+    const orderPreview: OrderPreview = {
+      ...preview,
+      fees: {
+        ...serviceFees,
+        marketFee,
+      },
+    };
+    if (
+      feePolicy?.discountType === DiscountType.SUBSCRIPTION &&
+      originalServiceFees
+    ) {
+      orderPreview.originalFees = {
+        ...originalServiceFees,
+        marketFee,
+      };
+    }
+
+    const fetchedAt = Date.now();
+    return {
+      status: 'executable',
+      preview: { ...orderPreview, fetchedAt },
+      execution: { ...executionBase, fetchedAt },
+    };
+  } catch (error) {
+    if (isPolymarketRequestTimeout(error)) {
+      return { status: 'timeout' };
+    }
+    if (isNoOrderBookError(error)) {
+      // A missing orderbook is a definitive empty-book market state: no
+      // executable bids, classified as no_match rather than unavailable.
+      return {
+        status: 'no_match',
+        execution: {
+          fetchedAt: Date.now(),
+          requestedSize: size,
+          executableSize: 0,
+          approvedPrice,
+          bandFloorPrice: getPredictExecutionBandFloorPrice({
+            side,
+            approvedPrice,
+            slippage,
+            tickSize: 0,
+          }),
+          tickSize: 0,
+        },
+      };
+    }
+    return { status: 'unavailable' };
+  }
+};
+
 interface BuyPreviewContext {
   book: OrderBook;
   marketInfo?: ClobMarketInfo;
@@ -2973,34 +3259,13 @@ function buildBuyPreviewFromContext({
     negRisk: book.neg_risk,
     feeRateBps: '0',
   };
-  const marketFee = calculateConservativeBuyMarketFee({ preview, marketInfo });
-  const metamaskFee = makerAmount * effectiveFeesPerDollar.metamaskFee;
-  const providerFee = makerAmount * effectiveFeesPerDollar.providerFee;
-  const fees = {
-    ...effectiveFeesPerDollar,
-    metamaskFee,
-    providerFee,
-    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
-    marketFee,
-  };
-  const originalFees = originalFeesPerDollar
-    ? {
-        ...fees,
-        metamaskFee: makerAmount * originalFeesPerDollar.metamaskFee,
-        totalFee:
-          Math.round(
-            (makerAmount * originalFeesPerDollar.metamaskFee + providerFee) *
-              1000000,
-          ) / 1000000,
-        totalFeePercentage: originalFeesPerDollar.totalFeePercentage,
-      }
-    : undefined;
 
-  return {
-    ...preview,
-    fees,
-    ...(originalFees ? { originalFees } : {}),
-  };
+  return withBuyPreviewFees({
+    preview,
+    marketInfo,
+    effectiveFeesPerDollar,
+    originalFeesPerDollar,
+  });
 }
 
 const getBuyAllInCostInCents = (preview: OrderPreview): number =>

@@ -72,6 +72,7 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictExecutionPreviewResult,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarketListParams,
@@ -81,6 +82,7 @@ import {
   PrepareDepositResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
+  PreviewExecutionOrderParams,
   PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
@@ -139,6 +141,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  previewExecutionOrder,
   previewMaxBuyOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
@@ -2325,6 +2328,37 @@ export class PolymarketProvider implements PredictProvider {
       signer,
       feePolicy: params.feePolicy,
     });
+  }
+
+  public async previewExecutionOrder(
+    params: PreviewExecutionOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<PredictExecutionPreviewResult> {
+    const { signer, ...previewParams } = params;
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+
+    const result = await previewExecutionOrder({
+      ...previewParams,
+      feeCollection,
+    });
+
+    if (result.status !== 'executable') {
+      // Expected market outcomes never carry a signable preview, so there is
+      // nothing to decorate; only the signing path decorates.
+      return result;
+    }
+
+    return {
+      ...result,
+      preview: this.#decorateOrderPreview({
+        preview: result.preview,
+        feeCollection,
+        fakOrdersEnabled,
+        signer,
+        feePolicy: params.feePolicy,
+      }),
+    };
   }
 
   public async placeOrder(

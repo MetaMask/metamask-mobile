@@ -19,6 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
       payWithAnyTokenConfirmation: jest.fn(),
       initPayWithAnyToken: jest.fn(),
       previewOrder: jest.fn(),
+      previewExecutionOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       depositWithConfirmation: jest.fn(),
     },
@@ -321,6 +322,85 @@ describe('usePredictTrading', () => {
       await expect(result.current.previewOrder(params)).rejects.toThrow(
         'Failed to preview order',
       );
+    });
+  });
+
+  describe('previewExecutionOrder', () => {
+    it('calls PredictController.previewExecutionOrder and returns the typed result', async () => {
+      const mockExecutionResult = {
+        status: 'executable' as const,
+        preview: {
+          marketId: 'market-1',
+          outcomeId: 'outcome-789',
+          outcomeTokenId: 'outcome-token-101',
+          timestamp: Date.now(),
+          side: Side.SELL,
+          sharePrice: 0.49,
+          maxAmountSpent: 10,
+          minAmountReceived: 4.9,
+          slippage: 0.05,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+          fetchedAt: Date.now(),
+        },
+        execution: {
+          fetchedAt: Date.now(),
+          requestedSize: 10,
+          executableSize: 10,
+          approvedPrice: 0.5,
+          refreshedPrice: 0.49,
+          bandFloorPrice: 0.48,
+          worstExecutablePrice: 0.49,
+          tickSize: 0.01,
+        },
+      };
+
+      (
+        Engine.context.PredictController.previewExecutionOrder as jest.Mock
+      ).mockResolvedValue(mockExecutionResult);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        side: Side.SELL,
+        size: 10,
+        approvedPrice: 0.5,
+        slippage: 0.05,
+      };
+
+      const response = await result.current.previewExecutionOrder(params);
+
+      expect(
+        Engine.context.PredictController.previewExecutionOrder,
+      ).toHaveBeenCalledWith(params);
+      expect(response).toEqual(mockExecutionResult);
+    });
+
+    it('propagates unexpected controller failures', async () => {
+      const mockError = new Error('Failed to preview execution order');
+      (
+        Engine.context.PredictController.previewExecutionOrder as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const params = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-789',
+        outcomeTokenId: 'outcome-token-101',
+        side: Side.SELL,
+        size: 10,
+        approvedPrice: 0.5,
+        slippage: 0.05,
+      };
+
+      await expect(
+        result.current.previewExecutionOrder(params),
+      ).rejects.toThrow('Failed to preview execution order');
     });
   });
 

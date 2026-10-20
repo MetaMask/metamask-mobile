@@ -132,6 +132,7 @@ describe('usePredictPlaceOrder', () => {
       claim: mockClaim,
       getBalance: mockGetBalance,
       previewOrder: jest.fn(),
+      previewExecutionOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
       initPayWithAnyToken: jest.fn(),

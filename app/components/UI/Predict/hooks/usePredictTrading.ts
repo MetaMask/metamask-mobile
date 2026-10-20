@@ -8,6 +8,8 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PreviewExecutionOrderParams,
+  PredictExecutionPreviewResult,
 } from '../types';
 
 export function usePredictTrading() {
@@ -25,6 +27,16 @@ export function usePredictTrading() {
     async (params: PreviewOrderParams): Promise<OrderPreview> => {
       const controller = Engine.context.PredictController;
       return controller.previewOrder(params);
+    },
+    [],
+  );
+
+  const previewExecutionOrder = useCallback(
+    async (
+      params: PreviewExecutionOrderParams,
+    ): Promise<PredictExecutionPreviewResult> => {
+      const controller = Engine.context.PredictController;
+      return controller.previewExecutionOrder(params);
     },
     [],
   );
@@ -54,6 +66,7 @@ export function usePredictTrading() {
     claim,
     getBalance,
     previewOrder,
+    previewExecutionOrder,
     prepareWithdraw,
     deposit,
     initPayWithAnyToken,

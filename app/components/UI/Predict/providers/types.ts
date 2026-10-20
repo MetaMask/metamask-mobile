@@ -24,6 +24,8 @@ import {
   OrderResult,
   PlaceOrderParams,
   PredictActivityPage,
+  PredictExecutionPreviewResult,
+  PredictExecutionMetadata,
   PredictFees,
   PredictFilterOption,
   PredictFilterOptionsParams,
@@ -32,6 +34,7 @@ import {
   PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PreviewExecutionOrderParams,
   PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
@@ -67,6 +70,9 @@ export type {
   PredictFilterOptionsParams,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PredictExecutionPreviewResult,
+  PredictExecutionMetadata,
+  PreviewExecutionOrderParams,
   PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
@@ -215,6 +221,17 @@ export interface PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview | null>;
+  /**
+   * Pre-submit execution preview: validates a fresh order book against the
+   * user's approved price and slippage band and returns a typed outcome —
+   * never a thrown expected-market-state error. Only a fully executable
+   * result carries a signable preview.
+   */
+  previewExecutionOrder(
+    params: PreviewExecutionOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<PredictExecutionPreviewResult>;
   placeOrder(
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult>;

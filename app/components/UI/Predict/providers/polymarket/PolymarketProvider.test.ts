@@ -67,6 +67,7 @@ import {
   parsePolymarketPositions,
   previewMaxBuyOrder,
   previewOrder,
+  previewExecutionOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
 import { submitProtocolClobOrder } from './protocol/transport';
@@ -148,6 +149,7 @@ jest.mock('./utils', () => {
     parsePolymarketPositions: jest.fn(),
     previewMaxBuyOrder: jest.fn(),
     previewOrder: jest.fn(),
+    previewExecutionOrder: jest.fn(),
   };
 });
 
@@ -263,6 +265,7 @@ const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
 const mockPreviewMaxBuyOrder = jest.mocked(previewMaxBuyOrder);
+const mockPreviewExecutionOrder = jest.mocked(previewExecutionOrder);
 const mockResolveDepositWalletAddress = jest.mocked(
   resolveDepositWalletAddress,
 );
@@ -1719,6 +1722,96 @@ describe('PolymarketProvider', () => {
         feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
       }),
     );
+  });
+
+  it('decorates an executable execution preview and preserves its freshness marker', async () => {
+    const provider = createProvider();
+    const fetchedAt = Date.now();
+    const executionPreview: OrderPreview = {
+      ...basePreview,
+      side: Side.SELL,
+      sharePrice: 0.49,
+      slippage: 0.05,
+      fetchedAt,
+    };
+    mockPreviewExecutionOrder.mockResolvedValue({
+      status: 'executable',
+      preview: executionPreview,
+      execution: {
+        fetchedAt,
+        requestedSize: 10,
+        executableSize: 10,
+        approvedPrice: 0.5,
+        refreshedPrice: 0.49,
+        bandFloorPrice: 0.48,
+        worstExecutablePrice: 0.49,
+        tickSize: 0.01,
+      },
+    });
+
+    const result = await provider.previewExecutionOrder({
+      marketId: 'market-1',
+      outcomeId: basePreview.outcomeId,
+      outcomeTokenId: basePreview.outcomeTokenId,
+      side: Side.SELL,
+      size: 10,
+      approvedPrice: 0.5,
+      slippage: 0.05,
+      signer,
+    });
+
+    expect(result.status).toBe('executable');
+    if (result.status !== 'executable') {
+      throw new Error('expected an executable result');
+    }
+    expect(result.preview).toEqual(
+      expect.objectContaining({
+        feeRateBps: '0',
+        fetchedAt,
+      }),
+    );
+    expect(mockPreviewExecutionOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        size: 10,
+        approvedPrice: 0.5,
+        slippage: 0.05,
+        feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
+      }),
+    );
+  });
+
+  it('returns expected non-executable execution outcomes undecorated', async () => {
+    const provider = createProvider();
+    mockPreviewExecutionOrder.mockResolvedValue({
+      status: 'no_match',
+      execution: {
+        fetchedAt: Date.now(),
+        requestedSize: 10,
+        executableSize: 0,
+        approvedPrice: 0.5,
+        bandFloorPrice: 0.48,
+        tickSize: 0.01,
+      },
+    });
+
+    const result = await provider.previewExecutionOrder({
+      marketId: 'market-1',
+      outcomeId: basePreview.outcomeId,
+      outcomeTokenId: basePreview.outcomeTokenId,
+      side: Side.SELL,
+      size: 10,
+      approvedPrice: 0.5,
+      slippage: 0.05,
+      signer,
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: 'no_match',
+        execution: expect.objectContaining({ executableSize: 0 }),
+      }),
+    );
+    expect('preview' in result).toBe(false);
   });
 
   it('submits orders through the protocol CLOB v2 relayer path', async () => {

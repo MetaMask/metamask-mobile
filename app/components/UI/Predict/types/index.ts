@@ -817,6 +817,13 @@ export interface OrderPreview {
   // so we can perform optimistic updates
   positionId?: string;
   orderType?: PredictOrderType;
+  /**
+   * Client clock when this preview finished building. Populated only by the
+   * pre-submit execution-preview operation: its presence marks an
+   * execution-checked preview whose signing freshness is enforced before
+   * order encoding. Ordinary polled previews never set it.
+   */
+  fetchedAt?: number;
 }
 
 export type OrderResult = Result<{
@@ -883,6 +890,26 @@ export interface PreviewOrderParams {
   feePolicy?: PredictFeePolicy;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
+  positionId?: string;
+}
+
+/**
+ * Input to the pre-submit execution-preview operation: the normal preview
+ * identity plus the execution intent the user approved — the displayed price
+ * and slippage band the fresh book is validated against. `size` follows the
+ * side's convention: shares to sell for SELL, dollars to spend for BUY.
+ */
+export interface PreviewExecutionOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  side: Side;
+  size: number;
+  /** Displayed share price when the user approved the order; band and consent measure from it. */
+  approvedPrice: number;
+  /** Approved slippage band carried by the preview the user approved (0.05 sell / 0.03 buy). */
+  slippage: number;
+  feePolicy?: PredictFeePolicy;
   positionId?: string;
 }
 

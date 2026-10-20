@@ -35,6 +35,7 @@ import {
   type PlaceOrderParams,
   PredictBalance,
   PredictClaimStatus,
+  type PredictExecutionPreviewResult,
   type PredictMarket,
   PredictMarketStatus,
   PredictPosition,
@@ -367,6 +368,7 @@ describe('PredictController', () => {
       getUnrealizedPnL: jest.fn(),
       previewOrder: jest.fn(),
       previewMaxBuyOrder: jest.fn(),
+      previewExecutionOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       prepareWithdrawConfirmation: jest.fn(),
       createOptimisticPositionFromPreview: jest.fn(),
@@ -10021,6 +10023,79 @@ describe('PredictController', () => {
             previousFeeWaiverOverride;
         }
       }
+    });
+  });
+
+  describe('previewExecutionOrder', () => {
+    it('delegates the execution preview to the provider with the current signer', async () => {
+      const mockExecutionResult: PredictExecutionPreviewResult = {
+        status: 'no_match',
+        execution: {
+          fetchedAt: 1_000,
+          requestedSize: 10,
+          executableSize: 4,
+          approvedPrice: 0.5,
+          refreshedPrice: 0.49,
+          bandFloorPrice: 0.48,
+          worstExecutablePrice: 0.49,
+          tickSize: 0.01,
+        },
+      };
+      mockPolymarketProvider.previewExecutionOrder.mockResolvedValue(
+        mockExecutionResult,
+      );
+
+      await withController(async ({ controller }) => {
+        const result = await controller.previewExecutionOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.SELL,
+          size: 10,
+          approvedPrice: 0.5,
+          slippage: 0.05,
+          positionId: 'position-1',
+        });
+
+        expect(result).toEqual(mockExecutionResult);
+        expect(
+          mockPolymarketProvider.previewExecutionOrder,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.SELL,
+            size: 10,
+            approvedPrice: 0.5,
+            slippage: 0.05,
+            positionId: 'position-1',
+            signer: expect.objectContaining({
+              address: '0x1234567890123456789012345678901234567890',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('logs and rethrows unexpected provider errors', async () => {
+      mockPolymarketProvider.previewExecutionOrder.mockRejectedValue(
+        new Error('Execution preview crashed'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewExecutionOrder({
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.SELL,
+            size: 10,
+            approvedPrice: 0.5,
+            slippage: 0.05,
+          }),
+        ).rejects.toThrow('Execution preview crashed');
+      });
     });
   });
 

@@ -16,6 +16,7 @@ import {
 } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
+import { PolymarketRequestTimeoutError } from './fetchWithTimeout';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
@@ -51,6 +52,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketActivity,
   parsePolymarketPositions,
+  previewExecutionOrder,
   previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
@@ -3882,6 +3884,266 @@ describe('polymarket utils', () => {
         totalFee: expect.closeTo(0.245, 10),
       }),
     );
+  });
+
+  describe('previewExecutionOrder', () => {
+    const executionSellParams = {
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.SELL,
+      size: 80,
+      approvedPrice: 0.5,
+      slippage: 0.05,
+      positionId: 'position-1',
+    };
+
+    const createExecutionBook = (
+      overrides: Partial<typeof orderBook>,
+    ): typeof orderBook => ({
+      ...orderBook,
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      clearClobMarketInfoCache();
+    });
+
+    it('builds an executable sell preview from one fresh snapshot', async () => {
+      // 0.50 × 0.95 = 0.475 → band floor 0.48; both bids are in band.
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(
+            createExecutionBook({
+              bids: [
+                { price: '0.48', size: '60' },
+                { price: '0.49', size: '60' },
+              ],
+            }),
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            fd: {
+              r: 0.02,
+              e: 1,
+              to: true,
+            },
+          }),
+        });
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result.status).toBe('executable');
+      if (result.status !== 'executable') {
+        throw new Error('expected an executable result');
+      }
+
+      // The signable preview is built from the same in-band depth walk:
+      // 60 shares at 0.49, then the remaining 20 at 0.48.
+      expect(result.preview).toEqual(
+        expect.objectContaining({
+          side: Side.SELL,
+          positionId: 'position-1',
+          sharePrice: 0.49,
+          maxAmountSpent: 80,
+          minAmountReceived: 39,
+          slippage: 0.05,
+          tickSize: 0.01,
+          timestamp: new Date(orderBook.timestamp).getTime(),
+          fees: expect.objectContaining({
+            marketFee: 0.39975,
+          }),
+        }),
+      );
+      expect(result.preview.fetchedAt).toEqual(result.execution.fetchedAt);
+      expect(Number.isFinite(result.preview.fetchedAt)).toBe(true);
+      expect(result.execution).toEqual({
+        fetchedAt: result.preview.fetchedAt,
+        sourceBookTimestamp: new Date(orderBook.timestamp).getTime(),
+        requestedSize: 80,
+        executableSize: 80,
+        approvedPrice: 0.5,
+        refreshedPrice: 0.49,
+        bandFloorPrice: 0.48,
+        worstExecutablePrice: 0.48,
+        tickSize: 0.01,
+      });
+    });
+
+    it('classifies partial in-band depth as no_match with the executable size', async () => {
+      // Only 40 of the requested 80 shares fit inside the band.
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(
+            createExecutionBook({
+              bids: [{ price: '0.49', size: '40' }],
+            }),
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result.status).toBe('no_match');
+      if (result.status !== 'no_match') {
+        throw new Error('expected a no_match result');
+      }
+      expect('preview' in result).toBe(false);
+      expect(result.execution).toEqual(
+        expect.objectContaining({
+          requestedSize: 80,
+          executableSize: 40,
+          approvedPrice: 0.5,
+          refreshedPrice: 0.49,
+          bandFloorPrice: 0.48,
+          worstExecutablePrice: 0.49,
+          tickSize: 0.01,
+          fetchedAt: expect.any(Number),
+        }),
+      );
+    });
+
+    it('classifies an empty bid book as no_match', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(createExecutionBook({ bids: [] })),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result.status).toBe('no_match');
+      if (result.status !== 'no_match') {
+        throw new Error('expected a no_match result');
+      }
+      expect(result.execution).toEqual(
+        expect.objectContaining({
+          requestedSize: 80,
+          executableSize: 0,
+          approvedPrice: 0.5,
+          bandFloorPrice: 0.48,
+          tickSize: 0.01,
+          fetchedAt: expect.any(Number),
+        }),
+      );
+      expect('refreshedPrice' in result.execution).toBe(false);
+      expect('worstExecutablePrice' in result.execution).toBe(false);
+    });
+
+    it('classifies a missing orderbook as no_match without book facts', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        json: jest.fn().mockResolvedValue({
+          error: 'No orderbook exists for the requested token id',
+        }),
+      });
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result.status).toBe('no_match');
+      if (result.status !== 'no_match') {
+        throw new Error('expected a no_match result');
+      }
+      expect(result.execution).toEqual(
+        expect.objectContaining({
+          requestedSize: 80,
+          executableSize: 0,
+          approvedPrice: 0.5,
+          // No book was received, so the band stays the unrounded boundary.
+          bandFloorPrice: 0.475,
+          tickSize: 0,
+          fetchedAt: expect.any(Number),
+        }),
+      );
+    });
+
+    it('classifies a request timeout as timeout', async () => {
+      mockFetch.mockRejectedValueOnce(
+        new PolymarketRequestTimeoutError(new Error('too slow')),
+      );
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result).toEqual({ status: 'timeout' });
+    });
+
+    it('classifies other request failures as unavailable', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('network down'));
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result).toEqual({ status: 'unavailable' });
+    });
+
+    it('classifies a buy against the 3% band and reports shares received', async () => {
+      // 0.50 × 1.03 = 0.515 → band ceiling 0.51; both asks are in band.
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(
+            createExecutionBook({
+              asks: [
+                { price: '0.51', size: '100' },
+                { price: '0.50', size: '100' },
+              ],
+            }),
+          ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const result = await previewExecutionOrder({
+        ...executionSellParams,
+        side: Side.BUY,
+        size: 50, // dollars to spend
+        slippage: 0.03,
+      });
+
+      expect(result.status).toBe('executable');
+      if (result.status !== 'executable') {
+        throw new Error('expected an executable result');
+      }
+
+      // $50 at the best 0.50 ask: 100 shares received.
+      expect(result.preview).toEqual(
+        expect.objectContaining({
+          side: Side.BUY,
+          sharePrice: 0.5,
+          maxAmountSpent: 50,
+          minAmountReceived: 100,
+          slippage: 0.03,
+          tickSize: 0.01,
+          fees: expect.objectContaining({
+            totalFee: 0,
+          }),
+        }),
+      );
+      expect(result.execution).toEqual(
+        expect.objectContaining({
+          requestedSize: 50,
+          executableSize: 50,
+          approvedPrice: 0.5,
+          refreshedPrice: 0.5,
+          bandFloorPrice: 0.51,
+          worstExecutablePrice: 0.5,
+          tickSize: 0.01,
+        }),
+      );
+    });
   });
 
   it('returns the v2 contract config for Polygon', () => {

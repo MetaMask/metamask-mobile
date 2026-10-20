@@ -209,6 +209,19 @@ export type PredictControllerPreviewOrderAction = {
   handler: PredictController['previewOrder'];
 };
 
+/**
+ * Pre-submit execution preview: validates a fresh order book against the
+ * user's approved displayed price and slippage band immediately before
+ * submission. Expected market outcomes (insufficient in-band depth, empty
+ * book) come back typed as `no_match` — never thrown — so the caller can
+ * show recovery UI without parsing error strings. Only an `executable`
+ * result carries a signable, execution-marked preview.
+ */
+export type PredictControllerPreviewExecutionOrderAction = {
+  type: `PredictController:previewExecutionOrder`;
+  handler: PredictController['previewExecutionOrder'];
+};
+
 export type PredictControllerPlaceOrderAction = {
   type: `PredictController:placeOrder`;
   handler: PredictController['placeOrder'];
@@ -440,6 +453,7 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackFeedFilterChangedAction
   | PredictControllerTrackBetslipDismissedAction
   | PredictControllerPreviewOrderAction
+  | PredictControllerPreviewExecutionOrderAction
   | PredictControllerPlaceOrderAction
   | PredictControllerClaimWithConfirmationAction
   | PredictControllerConfirmClaimAction

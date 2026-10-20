@@ -162,6 +162,7 @@ describe('usePredictClaim', () => {
       placeOrder: jest.fn(),
       getBalance: jest.fn(),
       previewOrder: jest.fn(),
+      previewExecutionOrder: jest.fn(),
       deposit: jest.fn(),
       prepareWithdraw: jest.fn(),
       initPayWithAnyToken: jest.fn(),

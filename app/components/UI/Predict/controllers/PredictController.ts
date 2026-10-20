@@ -108,6 +108,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictEligibility,
+  PredictExecutionPreviewResult,
   PredictFeePolicy,
   PredictFilterOption,
   PredictFilterOptionsParams,
@@ -123,6 +124,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PreviewExecutionOrderParams,
   PreviewMaxBuyOrderParams,
   PriceUpdateCallback,
   OrderbookCallback,
@@ -453,6 +455,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'prepareWithdraw',
   'publish',
   'previewOrder',
+  'previewExecutionOrder',
   'refreshEligibility',
   'searchMarkets',
   'selectPaymentToken',
@@ -1956,6 +1959,41 @@ export class PredictController extends BaseController<
         this.getErrorContext('previewMaxBuyOrder', {
           providerId: POLYMARKET_PROVIDER_ID,
           side: Side.BUY,
+          marketId: params.marketId,
+          outcomeId: params.outcomeId,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  /**
+   * Pre-submit execution preview: validates a fresh order book against the
+   * user's approved displayed price and slippage band immediately before
+   * submission. Expected market outcomes (insufficient in-band depth, empty
+   * book) come back typed as `no_match` — never thrown — so the caller can
+   * show recovery UI without parsing error strings. Only an `executable`
+   * result carries a signable, execution-marked preview.
+   */
+  async previewExecutionOrder(
+    params: PreviewExecutionOrderParams,
+  ): Promise<PredictExecutionPreviewResult> {
+    try {
+      const provider = this.provider;
+      const signer = this.getSigner();
+      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
+
+      return provider.previewExecutionOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('previewExecutionOrder', {
+          providerId: POLYMARKET_PROVIDER_ID,
+          side: params.side,
           marketId: params.marketId,
           outcomeId: params.outcomeId,
         }),
