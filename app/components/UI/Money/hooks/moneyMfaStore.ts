@@ -1,22 +1,18 @@
 import StorageWrapper from '../../../../store/storage-wrapper';
 import Logger from '../../../../util/Logger';
 
-export type MoneyMfaPhase = 'idle' | 'setting_up' | 'failed';
-
 export interface MoneyMfaStoreState {
-  phase: MoneyMfaPhase;
   /** Money 2-step verification is on. Stands in for the MPC account state. */
-  isEnabled: boolean;
-  /** Setup finished at least once, so turning on again skips setup. */
-  hasBeenEnabled: boolean;
+  isMoneyAccountMfaEnabled: boolean;
+  /** The user closed the setting-up banner of the current migration. */
+  isMigrationBannerDismissed: boolean;
 }
 
 export const MONEY_MFA_STORAGE_KEY = '@MetaMask:moneyMfa';
 
 const initialState: MoneyMfaStoreState = {
-  phase: 'idle',
-  isEnabled: false,
-  hasBeenEnabled: false,
+  isMoneyAccountMfaEnabled: false,
+  isMigrationBannerDismissed: false,
 };
 
 const readPersisted = (): Partial<MoneyMfaStoreState> => {
@@ -25,10 +21,11 @@ const readPersisted = (): Partial<MoneyMfaStoreState> => {
     if (!raw) {
       return {};
     }
-    const { isEnabled, hasBeenEnabled } = JSON.parse(raw);
+    const { isMoneyAccountMfaEnabled, isMigrationBannerDismissed } =
+      JSON.parse(raw);
     return {
-      isEnabled: Boolean(isEnabled),
-      hasBeenEnabled: Boolean(hasBeenEnabled),
+      isMoneyAccountMfaEnabled: Boolean(isMoneyAccountMfaEnabled),
+      isMigrationBannerDismissed: Boolean(isMigrationBannerDismissed),
     };
   } catch {
     return {};
@@ -38,24 +35,13 @@ const readPersisted = (): Partial<MoneyMfaStoreState> => {
 let state: MoneyMfaStoreState = { ...initialState, ...readPersisted() };
 const listeners = new Set<() => void>();
 
-const persist = ({ isEnabled, hasBeenEnabled }: MoneyMfaStoreState) => {
-  StorageWrapper.setItem(
-    MONEY_MFA_STORAGE_KEY,
-    JSON.stringify({ isEnabled, hasBeenEnabled }),
-  ).catch((error: Error) => Logger.error(error, 'Money MFA state not saved'));
-};
-
 export const moneyMfaStore = {
   getState: (): MoneyMfaStoreState => state,
   setState: (patch: Partial<MoneyMfaStoreState>) => {
-    const previous = state;
     state = { ...state, ...patch };
-    if (
-      previous.isEnabled !== state.isEnabled ||
-      previous.hasBeenEnabled !== state.hasBeenEnabled
-    ) {
-      persist(state);
-    }
+    StorageWrapper.setItem(MONEY_MFA_STORAGE_KEY, JSON.stringify(state)).catch(
+      (error: Error) => Logger.error(error, 'Money MFA state not saved'),
+    );
     listeners.forEach((listener) => listener());
   },
   subscribe: (listener: () => void) => {

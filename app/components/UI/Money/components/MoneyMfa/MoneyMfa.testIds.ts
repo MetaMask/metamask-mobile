@@ -7,7 +7,6 @@ export const MoneyMfaTestIds = {
   SETTING_UP_BANNER_CLOSE: 'money-mfa-setting-up-banner-close',
   FAILED_BANNER: 'money-mfa-failed-banner',
   FAILED_BANNER_RETRY: 'money-mfa-failed-banner-retry',
-  FAILED_BANNER_CLOSE: 'money-mfa-failed-banner-close',
   PROMPT_SHEET: 'money-mfa-prompt-sheet',
   ENABLED_SHEET: 'money-mfa-enabled-sheet',
   ENABLED_SHEET_BUTTON: 'money-mfa-enabled-sheet-button',

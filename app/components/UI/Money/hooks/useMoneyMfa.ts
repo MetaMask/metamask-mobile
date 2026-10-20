@@ -1,4 +1,10 @@
-import { useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useSyncExternalStore,
+} from 'react';
 import { useSelector } from 'react-redux';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
@@ -15,7 +21,7 @@ import { IconName as ToastIconName } from '../../../../component-library/compone
 import { useTheme } from '../../../../util/theme';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
 import { moneyMfaStore } from './moneyMfaStore';
-import { createMfaMoneyAccount } from './createMfaMoneyAccount';
+import { moneyAccountMigration } from './moneyAccountMigration';
 
 /** Methods Money requires before 2-step verification turns on. */
 export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'email_otp'];
@@ -38,6 +44,30 @@ const getTurnOffReason = () => ({
   verifyDescription: strings('money.mfa.turn_off_verify_description'),
 });
 
+let activeMigration: Promise<void> | undefined;
+
+/**
+ * Runs the Money account migration once at a time, then turns 2-step
+ * verification on. The flow can outlive the screen that started it, so the
+ * result goes through the app-wide navigator.
+ */
+const migrate = (): Promise<void> => {
+  activeMigration ??= (async () => {
+    try {
+      await moneyAccountMigration.start();
+    } catch {
+      return;
+    }
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
+    NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+    });
+  })().finally(() => {
+    activeMigration = undefined;
+  });
+  return activeMigration;
+};
+
 /**
  * Money 2-step verification: whether it is on, and the actions that turn it
  * on (the MFA kit sets up passkey and email, then the MPC Money account is
@@ -50,9 +80,11 @@ export const useMoneyMfa = () => {
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
-  const { phase, isEnabled, hasBeenEnabled } = useSyncExternalStore(
-    moneyMfaStore.subscribe,
-    moneyMfaStore.getState,
+  const { isMoneyAccountMfaEnabled, isMigrationBannerDismissed } =
+    useSyncExternalStore(moneyMfaStore.subscribe, moneyMfaStore.getState);
+  const migrationStatus = useSyncExternalStore(
+    moneyAccountMigration.subscribe,
+    moneyAccountMigration.getStatus,
   );
 
   const activeMethods = useMemo(
@@ -69,13 +101,22 @@ export const useMoneyMfa = () => {
   let status: MoneyMfaStatus;
   if (!isFlagEnabled || !isMfaKitEnabled()) {
     status = 'unavailable';
-  } else if (phase === 'setting_up' || phase === 'failed') {
-    status = phase;
-  } else if (isEnabled) {
+  } else if (migrationStatus === 'migrating') {
+    status = 'setting_up';
+  } else if (migrationStatus === 'failed') {
+    status = 'failed';
+  } else if (isMoneyAccountMfaEnabled) {
     status = 'enabled';
   } else {
-    status = hasBeenEnabled ? 'off' : 'not_set_up';
+    status = migrationStatus === 'done' ? 'off' : 'not_set_up';
   }
+
+  // Resumes a migration that the app was closed during.
+  useEffect(() => {
+    if (status === 'setting_up' && !activeMigration) {
+      void migrate();
+    }
+  }, [status]);
 
   const showToast = useCallback(
     (labelKey: string) => {
@@ -90,32 +131,8 @@ export const useMoneyMfa = () => {
     [toastRef, theme],
   );
 
-  // The flow can outlive the screen that started it (the home prompt closes
-  // first), so the result goes through the app-wide navigator.
-  const showEnabledSheet = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
-    });
-  }, []);
-
-  const createAccount = useCallback(async () => {
-    moneyMfaStore.setState({ phase: 'setting_up' });
-    try {
-      await createMfaMoneyAccount();
-    } catch {
-      moneyMfaStore.setState({ phase: 'failed' });
-      return;
-    }
-    moneyMfaStore.setState({
-      phase: 'idle',
-      isEnabled: true,
-      hasBeenEnabled: true,
-    });
-    showEnabledSheet();
-  }, [showEnabledSheet]);
-
   const turnOn = useCallback(async () => {
-    if (moneyMfaStore.getState().phase === 'setting_up') {
+    if (moneyAccountMigration.getStatus() === 'migrating') {
       return;
     }
     try {
@@ -129,13 +146,14 @@ export const useMoneyMfa = () => {
       // The kit has already shown any error; backing out leaves 2FA as it was.
       return;
     }
-    if (moneyMfaStore.getState().hasBeenEnabled) {
-      moneyMfaStore.setState({ isEnabled: true });
+    if (moneyAccountMigration.getStatus() === 'done') {
+      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
       showToast('money.mfa.toast_on');
       return;
     }
-    await createAccount();
-  }, [verifyOrEnroll, createAccount, showToast]);
+    moneyMfaStore.setState({ isMigrationBannerDismissed: false });
+    await migrate();
+  }, [verifyOrEnroll, showToast]);
 
   const addPasskeyAndTurnOn = useCallback(async () => {
     if (!activeMethods.includes('passkey')) {
@@ -159,12 +177,12 @@ export const useMoneyMfa = () => {
     } catch {
       return;
     }
-    moneyMfaStore.setState({ isEnabled: false });
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: false });
     showToast('money.mfa.toast_off');
   }, [activeMethods, verifyOrEnroll, showToast]);
 
-  const dismissFailure = useCallback(() => {
-    moneyMfaStore.setState({ phase: 'idle' });
+  const dismissSettingUpBanner = useCallback(() => {
+    moneyMfaStore.setState({ isMigrationBannerDismissed: true });
   }, []);
 
   const refreshCredentials = useCallback(() => {
@@ -180,9 +198,10 @@ export const useMoneyMfa = () => {
     status,
     turnOn,
     addPasskeyAndTurnOn,
-    retry: createAccount,
+    retry: migrate,
     turnOff,
-    dismissFailure,
+    isSettingUpBannerDismissed: isMigrationBannerDismissed,
+    dismissSettingUpBanner,
     refreshCredentials,
   };
 };

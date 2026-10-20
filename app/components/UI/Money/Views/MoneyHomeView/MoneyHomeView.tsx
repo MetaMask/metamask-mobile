@@ -261,7 +261,8 @@ const MoneyHomeView = () => {
     status: mfaStatus,
     turnOn: turnOnMfa,
     retry: retryMfaSetup,
-    dismissFailure: dismissMfaFailure,
+    isSettingUpBannerDismissed: isMfaBannerDismissed,
+    dismissSettingUpBanner: dismissMfaBanner,
     refreshCredentials: refreshMfaCredentials,
   } = useMoneyMfa();
 
@@ -1101,8 +1102,9 @@ const MoneyHomeView = () => {
         >
           <MoneyMfaStatusBanner
             status={mfaStatus}
+            isSettingUpDismissed={isMfaBannerDismissed}
+            onDismissSettingUp={dismissMfaBanner}
             onRetry={retryMfaSetup}
-            onDismissFailure={dismissMfaFailure}
           />
           {showBalanceUnavailableBanner && (
             <Box twClassName="px-4 pt-2">

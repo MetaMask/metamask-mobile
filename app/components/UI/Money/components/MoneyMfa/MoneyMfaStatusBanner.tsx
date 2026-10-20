@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Box,
   ButtonIcon,
@@ -19,34 +19,30 @@ import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 
 interface MoneyMfaStatusBannerProps {
   status: MoneyMfaStatus;
+  isSettingUpDismissed: boolean;
+  onDismissSettingUp: () => void;
   onRetry: () => void;
-  onDismissFailure: () => void;
 }
 
 /**
  * Top-of-Money-home banner while 2-step verification is set up, and when that
- * setup fails.
+ * setup fails. Only the setting-up banner can be closed; the failed one stays
+ * until a retry succeeds.
  *
  * @param props - The banner's props.
  * @param props.status - Money 2-step verification status.
+ * @param props.isSettingUpDismissed - The user closed the setting-up banner.
+ * @param props.onDismissSettingUp - Closes the setting-up banner.
  * @param props.onRetry - Retries the setup.
- * @param props.onDismissFailure - Clears the failed state.
  */
 const MoneyMfaStatusBanner = ({
   status,
+  isSettingUpDismissed,
+  onDismissSettingUp,
   onRetry,
-  onDismissFailure,
 }: MoneyMfaStatusBannerProps) => {
-  const [isSettingUpHidden, setIsSettingUpHidden] = useState(false);
-
-  useEffect(() => {
-    if (status !== 'setting_up') {
-      setIsSettingUpHidden(false);
-    }
-  }, [status]);
-
   const isSettingUp = status === 'setting_up';
-  if (!(isSettingUp && !isSettingUpHidden) && status !== 'failed') {
+  if (!(isSettingUp && !isSettingUpDismissed) && status !== 'failed') {
     return null;
   }
 
@@ -98,19 +94,15 @@ const MoneyMfaStatusBanner = ({
           </Text>
         )}
       </Box>
-      <ButtonIcon
-        iconName={IconName.Close}
-        size={ButtonIconSize.Sm}
-        accessibilityLabel={strings('money.mfa.cancel')}
-        onPress={
-          isSettingUp ? () => setIsSettingUpHidden(true) : onDismissFailure
-        }
-        testID={
-          isSettingUp
-            ? MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE
-            : MoneyMfaTestIds.FAILED_BANNER_CLOSE
-        }
-      />
+      {isSettingUp && (
+        <ButtonIcon
+          iconName={IconName.Close}
+          size={ButtonIconSize.Sm}
+          accessibilityLabel={strings('money.mfa.cancel')}
+          onPress={onDismissSettingUp}
+          testID={MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE}
+        />
+      )}
     </Box>
   );
 };
