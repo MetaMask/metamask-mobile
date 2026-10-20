@@ -1,12 +1,7 @@
 import type { MpcMoneyKeyringSetupMode } from '@metamask/eth-money-mpc-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Keyring } from '@metamask/keyring-utils';
-import {
-  isHexAddress,
-  isValidHexAddress,
-  type Hex,
-  type Json,
-} from '@metamask/utils';
+import { isValidHexAddress, type Hex, type Json } from '@metamask/utils';
 
 const MPC_MONEY_KEYRING_TYPE = KeyringTypes.mpcMoney;
 
@@ -110,13 +105,17 @@ export class MpcMoneyKeyring implements Keyring {
     if (!address) {
       return [];
     }
-    // The env value is an unvalidated `string`; `isValidHexAddress` performs
-    // the actual all-lowercase / EIP-55 checksummed validation at runtime.
-    if (!isHexAddress(address) || !isValidHexAddress(address)) {
+    // The env value is an unvalidated `string`: `isValidHexAddress` performs
+    // the actual all-lowercase / EIP-55 checksummed validation at runtime
+    // (its parameter is typed `Hex`, hence the cast, but it also verify
+    // it's a proper hex address, so we can safely cast it here).
+    if (!isValidHexAddress(address as Hex)) {
       throw new Error(
         `MM_MONEY_MPC_ADDRESS must be a valid hex address: \`${address}\``,
       );
     }
+    // `toLowerCase()` widens the type back to `string`, losing the `Hex`
+    // typing of the validated address, so the result must be re-cast.
     return [address.toLowerCase() as Hex];
   }
 
