@@ -3,7 +3,6 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import FooterGlass from './FooterGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
-import { mockTheme } from '../../../util/theme';
 
 const PRIMARY_TEST_ID = 'footer-glass-primary';
 const SECONDARY_TEST_ID = 'footer-glass-secondary';
@@ -91,11 +90,17 @@ describe('FooterGlass', () => {
       />,
     );
 
-    const tintedSurfaces = UNSAFE_root.findAll(
-      (node) => node.props?.tintColor === mockTheme.colors.icon.default,
+    const glassSurfaces = UNSAFE_root.findAll(
+      (node) =>
+        node.props?.glassEffectStyle === 'regular' &&
+        node.parent?.props?.glassEffectStyle !== 'regular',
+    );
+    const tintedSurfaces = glassSurfaces.filter(
+      (node) => node.props.tintColor != null,
     );
 
-    expect(tintedSurfaces.length).toBeGreaterThan(0);
+    expect(glassSurfaces).toHaveLength(2);
+    expect(tintedSurfaces).toHaveLength(1);
     expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
     expect(getByText('Skip')).toBeOnTheScreen();
   });
