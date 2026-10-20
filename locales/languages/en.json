@@ -5500,6 +5500,19 @@
         "onboarding_seen": "Onboarding seen: {{seen}}",
         "reset_onboarding": "Reset onboarding"
       },
+      "new_wallet": {
+        "title": "New wallet",
+        "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
+        "button": "Wipe and create new SRP",
+        "confirm_title": "Wipe wallet and create a new SRP?",
+        "confirm_message": "The current SRP, accounts and app data are deleted. Back up the SRP first if you need it.",
+        "confirm": "Wipe and create",
+        "cancel": "Cancel",
+        "no_password_title": "No saved password",
+        "no_password_message": "Set DEV_AUTO_UNLOCK_PASSWORD in .js.env, or enable remember me or biometrics so the keychain holds the password.",
+        "success": "New wallet ready",
+        "failure": "New wallet failed"
+      },
       "haptics": {
         "title": "Haptics",
         "description": "Preview haptic feedback on a physical device. This bypasses in-app reduced-haptics and the remote kill switch so you can evaluate each pattern. Simulators often do not play haptics.",
