@@ -73,6 +73,8 @@ import {
   SOCIAL_V1_VARIANTS,
 } from '../SocialV1View/abTestConfig';
 import { useTopTradersNavigationScreenPerf } from '../perf/useTopTradersNavigationPerf';
+import SocialScreenTransitionPlaceholder from '../shared/SocialScreenTransitionPlaceholder';
+import { useDeferHeavyContentUntilTransition } from '../shared/useDeferHeavyContentUntilTransition';
 
 type SocialTradersTab = 'leaderboard' | 'feed';
 
@@ -428,6 +430,7 @@ const SocialV0View: React.FC = () => {
   }, [navigation]);
 
   const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+  const isContentReady = useDeferHeavyContentUntilTransition(isPushedScreen);
   const title = strings('homepage.sections.top_traders');
 
   const notificationButtonProps = useMemo(
@@ -466,47 +469,55 @@ const SocialV0View: React.FC = () => {
       </Box>
 
       {/* Pages are rendered in `tabOrder` so the pager positions stay
-          aligned with the tabs bar. */}
-      <PagerView
-        ref={pagerRef}
-        style={tw.style('flex-1')}
-        initialPage={LANDING_INDEX}
-        onPageSelected={handlePageSelected}
-        testID={SocialV0ViewSelectorsIDs.PAGER}
-      >
-        {tabOrder.map((tab) =>
-          tab === 'leaderboard' ? (
-            <View
-              key="leaderboard"
-              style={tw.style('flex-1')}
-              collapsable={false}
-              testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
-            >
-              <TopTradersView
-                onScroll={leaderboardScrollHandler}
-                pageRef={leaderboardPageRef}
-                onVisibleLeaderboardSettled={handleVisibleLeaderboardSettled}
-              />
-            </View>
-          ) : (
-            <View
-              key="feed"
-              style={tw.style('flex-1')}
-              collapsable={false}
-              testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
-            >
-              <FeedView
-                isActive={activeIndex === feedIndex}
-                initialAudience={route.params?.landingFeedAudience}
-                onQuickBuy={handleQuickBuy}
-                onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
-                onScroll={feedScrollHandler}
-                pageRef={feedPageRef}
-              />
-            </View>
-          ),
-        )}
-      </PagerView>
+          aligned with the tabs bar. The pager stays unmounted until the
+          native push finishes so its first commit cannot delay the animation. */}
+      {isContentReady ? (
+        <PagerView
+          ref={pagerRef}
+          style={tw.style('flex-1')}
+          initialPage={LANDING_INDEX}
+          onPageSelected={handlePageSelected}
+          testID={SocialV0ViewSelectorsIDs.PAGER}
+        >
+          {tabOrder.map((tab) =>
+            tab === 'leaderboard' ? (
+              <View
+                key="leaderboard"
+                style={tw.style('flex-1')}
+                collapsable={false}
+                testID={SocialV0ViewSelectorsIDs.LEADERBOARD_PAGE}
+              >
+                <TopTradersView
+                  onScroll={leaderboardScrollHandler}
+                  pageRef={leaderboardPageRef}
+                  onVisibleLeaderboardSettled={handleVisibleLeaderboardSettled}
+                />
+              </View>
+            ) : (
+              <View
+                key="feed"
+                style={tw.style('flex-1')}
+                collapsable={false}
+                testID={SocialV0ViewSelectorsIDs.FEED_PAGE}
+              >
+                <FeedView
+                  isActive={activeIndex === feedIndex}
+                  initialAudience={route.params?.landingFeedAudience}
+                  onQuickBuy={handleQuickBuy}
+                  onSpotAvailabilityChange={handleFeedSpotAvailabilityChange}
+                  onScroll={feedScrollHandler}
+                  pageRef={feedPageRef}
+                />
+              </View>
+            ),
+          )}
+        </PagerView>
+      ) : (
+        <SocialScreenTransitionPlaceholder
+          title={title}
+          testID={SocialV0ViewSelectorsIDs.CONTENT_PLACEHOLDER}
+        />
+      )}
     </>
   );
 

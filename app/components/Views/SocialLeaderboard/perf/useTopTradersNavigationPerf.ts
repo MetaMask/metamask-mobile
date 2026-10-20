@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useLayoutEffect, useRef } from 'react';
+import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
 import {
   isTopTradersNavPerfEnabled,
   markTopTradersFirstCommit,
@@ -17,7 +18,7 @@ export function useTopTradersNavigationScreenPerf(
   variant: TopTradersPerfVariant,
   options?: { contentOnFirstCommit?: boolean },
 ): void {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const contentOnFirstCommit = options?.contentOnFirstCommit === true;
 
   useLayoutEffect(() => {
@@ -42,7 +43,7 @@ export function useTopTradersNavigationScreenPerf(
       return undefined;
     }
     return addListener('transitionEnd', (event) => {
-      if (event.data?.closing) {
+      if (event.data.closing) {
         return;
       }
       markTopTradersTransitionEnd();

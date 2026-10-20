@@ -5,6 +5,7 @@ export const SocialV0ViewSelectorsIDs = {
   TITLE: 'social-v0-view-title',
   TABS: 'social-v0-view-tabs',
   PAGER: 'social-v0-view-pager',
+  CONTENT_PLACEHOLDER: 'social-v0-view-content-placeholder',
   LEADERBOARD_PAGE: 'social-v0-view-leaderboard-page',
   FEED_PAGE: 'social-v0-view-feed-page',
   NOTIFICATION_BUTTON: 'social-v0-view-notification-button',

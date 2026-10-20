@@ -78,6 +78,8 @@ import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/So
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTopTradersNavigationScreenPerf } from '../perf/useTopTradersNavigationPerf';
+import SocialScreenTransitionPlaceholder from '../shared/SocialScreenTransitionPlaceholder';
+import { useDeferHeavyContentUntilTransition } from '../shared/useDeferHeavyContentUntilTransition';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
@@ -167,6 +169,8 @@ const SocialV1View: React.FC = () => {
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
   useTopTradersNavigationScreenPerf('V1');
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+  const isContentReady = useDeferHeavyContentUntilTransition(isPushedScreen);
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
@@ -619,77 +623,85 @@ const SocialV1View: React.FC = () => {
             </Box>
 
             {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
-            <PagerView
-              ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
-              initialPage={landingIndex}
-              onPageSelected={handlePageSelected}
-              testID={SocialV1ViewSelectorsIDs.PAGER}
-            >
-              {tabOrder.map((tab) => {
-                const testIds = PAGE_TEST_IDS[tab];
-                const pageRef =
-                  tab === 'trending'
-                    ? trendingPageRef
-                    : tab === 'following'
-                      ? followingPageRef
-                      : tab === 'liveTrades'
-                        ? liveTradesPageRef
-                        : leaderboardPageRef;
-                return (
-                  <View
-                    key={tab}
-                    style={tw.style('flex-1')}
-                    collapsable={false}
-                    testID={testIds.page}
-                  >
-                    {tab === 'leaderboard' ? (
-                      <LeaderboardShellTabPage
-                        isActive={activeIndex === leaderboardIndex}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        appliedFilters={applied.leaderboard}
-                        onOpenFilters={handleOpenLeaderboardFilters}
-                        isFilterActive={hasActiveFilters('leaderboard')}
-                      />
-                    ) : tab === 'liveTrades' ? (
-                      <LiveTradesView
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        onOpenFilters={handleOpenLiveTradesFilters}
-                        isFilterActive={hasActiveFilters('liveTrades')}
-                        appliedFilters={applied.liveTrades}
-                      />
-                    ) : (
-                      <EmptyShellTabPage
-                        tab={tab}
-                        isActive={
-                          tab === 'trending'
-                            ? activeIndex === trendingIndex
-                            : activeIndex === followingIndex
-                        }
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        scrollTestID={testIds.scroll}
-                        onOpenFilters={
-                          tab === 'following'
-                            ? handleOpenFollowingFilters
-                            : undefined
-                        }
-                        isFilterActive={hasActiveFilters('following')}
-                        appliedFilters={
-                          tab === 'following' ? applied.following : undefined
-                        }
-                        onQuickBuy={openQuickBuy}
-                      />
-                    )}
-                  </View>
-                );
-              })}
-            </PagerView>
+              aligned with the tabs bar. The pager stays unmounted until the
+              native push finishes so its first commit cannot delay the animation. */}
+            {isContentReady ? (
+              <PagerView
+                ref={pagerRef}
+                style={tw.style('flex-1 mt-6')}
+                initialPage={landingIndex}
+                onPageSelected={handlePageSelected}
+                testID={SocialV1ViewSelectorsIDs.PAGER}
+              >
+                {tabOrder.map((tab) => {
+                  const testIds = PAGE_TEST_IDS[tab];
+                  const pageRef =
+                    tab === 'trending'
+                      ? trendingPageRef
+                      : tab === 'following'
+                        ? followingPageRef
+                        : tab === 'liveTrades'
+                          ? liveTradesPageRef
+                          : leaderboardPageRef;
+                  return (
+                    <View
+                      key={tab}
+                      style={tw.style('flex-1')}
+                      collapsable={false}
+                      testID={testIds.page}
+                    >
+                      {tab === 'leaderboard' ? (
+                        <LeaderboardShellTabPage
+                          isActive={activeIndex === leaderboardIndex}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          appliedFilters={applied.leaderboard}
+                          onOpenFilters={handleOpenLeaderboardFilters}
+                          isFilterActive={hasActiveFilters('leaderboard')}
+                        />
+                      ) : tab === 'liveTrades' ? (
+                        <LiveTradesView
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onOpenFilters={handleOpenLiveTradesFilters}
+                          isFilterActive={hasActiveFilters('liveTrades')}
+                          appliedFilters={applied.liveTrades}
+                        />
+                      ) : (
+                        <EmptyShellTabPage
+                          tab={tab}
+                          isActive={
+                            tab === 'trending'
+                              ? activeIndex === trendingIndex
+                              : activeIndex === followingIndex
+                          }
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                          onOpenFilters={
+                            tab === 'following'
+                              ? handleOpenFollowingFilters
+                              : undefined
+                          }
+                          isFilterActive={hasActiveFilters('following')}
+                          appliedFilters={
+                            tab === 'following' ? applied.following : undefined
+                          }
+                          onQuickBuy={openQuickBuy}
+                        />
+                      )}
+                    </View>
+                  );
+                })}
+              </PagerView>
+            ) : (
+              <SocialScreenTransitionPlaceholder
+                title={title}
+                testID={SocialV1ViewSelectorsIDs.CONTENT_PLACEHOLDER}
+              />
+            )}
           </Animated.View>
         </Box>
 
