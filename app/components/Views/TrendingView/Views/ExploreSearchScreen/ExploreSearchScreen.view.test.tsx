@@ -46,6 +46,12 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
+const waitForExploreSearchTransitionSettled = async (
+  findByTestId: (testId: string) => Promise<ReactTestInstance>,
+) => {
+  await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+};
+
 describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   beforeEach(() => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
@@ -281,6 +287,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
   it('pill row is visible after typing a search query', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
+
+    await waitForExploreSearchTransitionSettled(findByTestId);
 
     // The search input is auto-focused on mount; find it by placeholder
     const searchInput = getByTestId(
@@ -554,6 +562,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       const { findByTestId, getByTestId } =
         renderExploreSearchScreenWithRoutes();
 
+      await waitForExploreSearchTransitionSettled(findByTestId);
+
       await userEvent.type(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
         'eth',
@@ -645,10 +655,13 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
         { initialParams: { entryPoint: 'deeplink' } },
       );
 
+      await waitForExploreSearchTransitionSettled(findByTestId);
+
       await userEvent.type(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
         'eth',
       );
+      await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
       trackEventSpy.mockClear();
 
       await actButtonPress(
@@ -668,14 +681,14 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {
-    const { getByTestId } = renderExploreSearchScreenWithRoutes();
+    const { findByTestId } = renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately — it does not require
-    // a search query. The "All" pill must be selected (active) by default.
-    await waitFor(() => {
-      const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
-      expect(allPill).toBeOnTheScreen();
-      expect(allPill.props.accessibilityState?.selected).toBe(true);
-    });
+    // Pill row mounts after the screen transition settles (see transition test).
+    await waitForExploreSearchTransitionSettled(findByTestId);
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+    expect(allPill.props.accessibilityState?.selected).toBe(true);
   });
 });

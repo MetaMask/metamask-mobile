@@ -72,10 +72,15 @@ export const useSwapsLimitOrderKeypad = ({
 
   const { handleKeypadChange: handleAmountKeypadChange } = sourceAmountInput;
 
+  const [isOpen, setIsOpen] = useState(false);
+
   const focusField = useCallback((field: LimitOrderKeypadField) => {
     setFocusedField(field);
+    setIsOpen(true);
     keypadRef.current?.open();
   }, []);
+
+  const handleKeypadClose = useCallback(() => setIsOpen(false), []);
 
   const focusAmount = useCallback(
     () => focusField(LimitOrderKeypadField.Amount),
@@ -119,6 +124,8 @@ export const useSwapsLimitOrderKeypad = ({
   const isAmountFocused = focusedField === LimitOrderKeypadField.Amount;
   const isCustomPercentFocused =
     focusedField === LimitOrderKeypadField.CustomPercent;
+  // The focused field outlives the keypad, so open state is tracked separately.
+  const isCustomPercentKeypadOpen = isOpen && isCustomPercentFocused;
 
   const keypadProps = useMemo(() => {
     if (isAmountFocused) {
@@ -166,9 +173,11 @@ export const useSwapsLimitOrderKeypad = ({
     focusLimitPrice,
     handleChange,
     handleCustomPercentSelectionChange,
+    handleKeypadClose,
     handleLimitPriceSelectionChange,
     isAmountFocused,
     isCustomPercentFocused,
+    isCustomPercentKeypadOpen,
     keypadProps,
     keypadRef,
     limitPriceSelection,

@@ -16,6 +16,9 @@ import type { NavigationAnalyticsRouteParams } from '../../util/analytics/naviga
 import type { LedgerMessageSignModalParams } from '../../components/UI/LedgerModals/LedgerMessageSignModal';
 import type { LedgerTransactionModalParams } from '../../components/UI/LedgerModals/LedgerTransactionModal';
 
+// MFA params
+import type { MfaMethodDetailsParams } from '../../components/Views/Mfa/MfaMethodDetails/MfaMethodDetails';
+
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
 import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
@@ -1091,6 +1094,8 @@ export type RootStackParamList = {
   SmartAccountOptIn: undefined;
   MfaFlow: undefined;
   MfaSettings: undefined;
+  MfaPasskeys: undefined;
+  MfaMethodDetails: MfaMethodDetailsParams;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;

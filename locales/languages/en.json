@@ -1186,6 +1186,11 @@
       "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
       "button": "Come back later"
     },
+    "identity_verified": {
+      "title": "Identity verified",
+      "description": "Your identity check is complete.",
+      "button": "Continue"
+    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
@@ -1217,7 +1222,9 @@
       "button": "Done",
       "waiting_for_pix": "PIX instructions appear here once the account is approved.",
       "loading": "Loading PIX details",
-      "load_error": "Couldn't refresh the deposit. We'll try again."
+      "load_error": "Couldn't refresh the deposit. We'll try again.",
+      "setup_error": "Couldn't create your account.",
+      "retry": "Try again"
     }
   },
   "social_leaderboard": {
@@ -1315,6 +1322,20 @@
       "empty_all": {
         "title": "No activity yet",
         "description": "Trader activity will show up here as trades come in."
+      },
+      "v1_empty": {
+        "trending": {
+          "title": "No posts yet",
+          "description": "Trader posts will show up here."
+        },
+        "following": {
+          "title": "No posts yet",
+          "description": "Follow traders to see their posts here."
+        },
+        "liveTrades": {
+          "title": "No trades yet",
+          "description": "Live trades will show up here."
+        }
       },
       "empty_type": {
         "tokens": {
@@ -1567,6 +1588,9 @@
       "win_rate": "Win rate",
       "pnl": "P&L",
       "hold_time": "Hold time",
+      "avg_hold_time": "Avg. hold time",
+      "volume": "Volume",
+      "performance_30d": "Performance (30d)",
       "times_copied": "Times copied",
       "empty_following": "You aren't following anyone yet.",
       "empty_trader_following": "Not following anyone yet.",
@@ -1593,6 +1617,8 @@
       "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
       "debug_reset_profile": "debug: reset profile",
+      "joined": "Joined {{time}}",
+      "load_profile_error": "Couldn't load your profile.",
       "no_profile_title": "Create your profile",
       "no_profile_description": "Claim a username to show up on the feed.",
       "create_profile": "Create profile",
@@ -1607,23 +1633,39 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Display name",
-      "username_available": "Username available · metamask.io/{{handle}}",
+      "username_available": "Username available",
       "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_check_error": "Couldn't check that username. Check your connection and try again.",
+      "connect_x_error": "Couldn't connect X. Check your connection and try again.",
+      "save_error": "Couldn't create your profile. Check your connection and try again.",
       "shuffle_username": "Suggest a username",
-      "customize_avatar": "Customize your avatar",
+      "customize_avatar": "Choose an avatar",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
       "avatar_background_lime": "Lime background",
-      "link_account": "Link an account",
+      "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
+      "select_account": "Select an account",
+      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
+      "link_account_benefit_private": "Your account address stays private.",
+      "link_account_benefit_follow": "Other traders can follow your profile.",
+      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
+      "link_account_change_footnote": "You can change your linked account every 30 days.",
       "share_trading_activity": "Share trading activity",
       "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
-      "feed_awaits": "The feed awaits",
+      "feed_awaits": "Your profile is ready!",
       "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
       "hi": "Hi!",
       "lets_go": "Let's go",
@@ -1639,6 +1681,7 @@
       "socials": "Socials",
       "trading_activity": "Trading activity",
       "trading_activity_on": "On",
+      "trading_activity_off": "Off",
       "linked_social_account": "Linked social account",
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
@@ -4139,8 +4182,22 @@
       "to_win": "To win",
       "order_failed_generic": "Transaction failed. Try again.",
       "market_busy_title": "Market busy",
-      "market_busy_body_buy": "The market is moving fast, so we couldn't buy at {{price}}. Try again at the best available price?",
-      "market_busy_body_sell": "The market is moving fast, so we couldn't sell at {{price}}. Try again at the best available price?",
+      "getting_price_body": "The market is moving fast, so we couldn't fill your order. Getting the latest price…",
+      "price_updated_body": "Here's the latest price. Confirm to try again:",
+      "price_moved_title": "Price moved",
+      "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
+      "no_match_title": "No match",
+      "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "try_later": "Try later",
+      "retry_price_label": "Price",
+      "retry_proceeds_label": "You receive",
+      "retry_payout_label": "To win",
+      "retry_worst_case_label": "Worst case ({{band}} band)",
+      "retry_fees_label": "Fees",
+      "yes_buy_at": "Yes, buy at {{price}}",
+      "yes_sell_at": "Yes, sell at {{price}}",
+      "price_unavailable_title": "Price unavailable",
+      "price_unavailable_body": "We couldn't get the latest price. Check your connection and try again.",
       "order_failed_title": "Order failed",
       "order_failed_body": "Your order couldn't be filled. Try again?",
       "payment_failed_title": "Payment didn't go through",
@@ -4151,8 +4208,6 @@
       "retry": "Retry",
       "try_again": "Try again",
       "view": "View",
-      "yes_buy": "Yes, buy",
-      "yes_sell": "Yes, sell",
       "confirm": "Confirm",
       "cashout_failed": "Failed to cash out",
       "predict_balance_first": "Your Predict balance will be used first"
@@ -4913,6 +4968,8 @@
     "networks": "Networks",
     "log_out": "Log out",
     "notifications": "Notifications",
+    "metamask_orange": "MetaMask Orange",
+    "join_metamask_orange": "Join MetaMask Orange",
     "buy": "Buy",
     "scan": "Scan"
   },
@@ -5805,7 +5862,8 @@
       "sufficient_to_cover_trx_transfers": "Covers ~{{amount}} TRX transfers",
       "sufficient_to_cover_trx_transfer": "Covers 1 TRX transfer",
       "sufficient_to_cover_usdt_transfers": "Covers ~{{amount}} USDT transfers",
-      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer"
+      "sufficient_to_cover_usdt_transfer": "Covers 1 USDT transfer",
+      "resource_unavailable": "Unavailable"
     },
     "disabled_button": {
       "buy": "Buying not supported for this account",
@@ -6106,7 +6164,8 @@
     "tabs": {
       "overview": "Overview",
       "security": "Security",
-      "feed": "Feed"
+      "feed": "Feed",
+      "holders": "Holders"
     },
     "performance": {
       "title": "Performance"
@@ -8400,12 +8459,32 @@
       "title": "2-step verification",
       "description": "Used to confirm it's you before sensitive actions.",
       "manage": "Manage",
-      "email_linked": "Linked to your sign-in",
-      "email_pending": "Setup not finished",
-      "set_up": "Set up",
-      "finish_setup": "Finish setup",
-      "passkey_count": "{{count}} added",
-      "add_another": "Add another"
+      "notice": "The methods here can only protect your Money transactions, but cannot recover your entire wallet.",
+      "add": "Add",
+      "passkeys": "Passkeys",
+      "passkey_count": {
+        "one": "{{count}} passkey",
+        "other": "{{count}} passkeys"
+      },
+      "add_passkey": "Add passkey",
+      "passkey_name": "Passkey #{{number}}",
+      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
+      "added_on": "Added {{date}}",
+      "used_for": "Used for",
+      "used_for_money": "Verifying Money transactions",
+      "remove_passkey": "Remove passkey",
+      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
+      "remove_email": "Remove email",
+      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
+      "remove": "Remove",
+      "last_passkey_title": "Passkey can’t be deleted",
+      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
+      "last_email_title": "Email can’t be removed",
+      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
+      "got_it": "Got it",
+      "passkey_removed": "Passkey removed",
+      "email_removed": "Email verification removed",
+      "remove_failed": "Couldn’t remove this method. Try again later."
     }
   },
   "media_player": {
@@ -9112,6 +9191,34 @@
         }
       }
     },
+    "vba_home_card": {
+      "get_started": {
+        "title": "Add money from your bank",
+        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "cta": "Get started"
+      },
+      "account_is_ready": {
+        "title": "You’re all set",
+        "description": "Your virtual account details are ready.",
+        "cta": "View Pix details"
+      },
+      "kyc_pending": {
+        "title": "Verifying your identity",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
+        "cta": "Verifying"
+      },
+      "finish_verification": {
+        "title": "We need more info",
+        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "cta": "Continue"
+      },
+      "kyc_decision": {
+        "title": "We can’t verify your identity",
+        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "cta": "Learn more",
+        "dismiss": "Dismiss"
+      }
+    },
     "first_time_deposit": {
       "title": "First deposit, done",
       "content": "It’s in your Money account —\n and already earning.",
@@ -9136,7 +9243,8 @@
     "action": {
       "add": "Add",
       "transfer": "Send",
-      "card": "Card"
+      "card": "Card",
+      "details": "Details"
     },
     "token_list_cta": {
       "get_apy": "Get {{apy}}% APY"
@@ -9386,8 +9494,7 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date",
-      "amount_unavailable": "Amount unavailable"
+      "date": "Date"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -10023,12 +10130,16 @@
       "includes_metamask_fee": "Includes MetaMask fee",
       "account_upgrade_fee_info_title": "Account upgrade fee",
       "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
+      "metamask_fee_info_title": "MetaMask fee",
+      "metamask_fee_info_body": "MetaMask's standard fee is {{feePercentage}}%. You may be eligible for fee discounts or rebates, so we calculate your final fee at order execution.",
+      "metamask_fee_info_learn_more": "Learn more",
       "create_order": "Create Order",
       "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Paying",
       "receiving": "Receiving",
       "trigger_condition": "Trigger condition",
-      "trigger_condition_at": "@",
+      "trigger_condition_at_or_above": "≥",
+      "trigger_condition_at_or_below": "≤",
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
@@ -10241,6 +10352,9 @@
     "unable_to_load": "Unable to load",
     "points_error": "We can't load points right now",
     "points_error_content": "You'll still earn any points for this transaction. We'll notify you once they've been added to your account. You can also check your rewards tab in about an hour.",
+    "rebate_banner": "You’re getting {{percent}}% back on fees",
+    "rebate_tooltip_title": "Trading Rewards",
+    "rebate_tooltip_content": "Claim {{percent}}% of the eligible MetaMask fee on this trade in mUSD to your Money account. Network fees are not included. Check the Rewards tab to see your trading rewards and learn more.",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
     "recipient": "Recipient",
@@ -12763,6 +12877,13 @@
     },
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
+    "membership_status": {
+      "active": "Active",
+      "overdue": "Overdue",
+      "deactivated": "Deactivated",
+      "cancelled": "Cancelled",
+      "unavailable": "Unavailable"
+    },
     "lifetime_earnings": "Lifetime earnings",
     "money_balance": "{{apy}} APY on Money balance",
     "musd_back": "{{rate}} mUSD back",
@@ -12794,6 +12915,33 @@
       "trial_title": "Unlock {{rate}} mUSD back",
       "trial_description": "Unlock card when you complete your free trial"
     },
+    "membership_alert": {
+      "low_balance": {
+        "title": "Add funds by {{date}}",
+        "description": "Your Money account is low. Add funds to keep your membership.",
+        "action": "Try again"
+      },
+      "renewal_failed": {
+        "title": "Renewal failed",
+        "description": "Your balance is too low. Add to your Money account to restore membership.",
+        "action": "Add funds"
+      },
+      "payment_failed": {
+        "title": "Payment failed",
+        "description": "Add funds to your Money account to restore your membership.",
+        "action": "Add funds"
+      },
+      "inactive": {
+        "title": "Your membership is inactive",
+        "description": "Add funds to your Money account to regain access to your benefits.",
+        "action": "Add funds"
+      },
+      "cancelled": {
+        "title": "Your membership is cancelled",
+        "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
+        "action": "Renew membership"
+      }
+    },
     "earned": {
       "total_label": "Earned since joining Pro",
       "interest_title": "Interest",
@@ -12820,7 +12968,10 @@
       "manage": "Manage plan",
       "invoices": "Invoices",
       "contact_support": "Contact support",
-      "cancel_membership": "Cancel membership"
+      "cancel_membership": "Cancel membership",
+      "resume_membership": "Resume membership",
+      "resume_in_progress": "Resuming membership",
+      "resume_failed": "We couldn't resume your membership. Please try again."
     },
     "cancel_membership": {
       "title": "Why are you canceling your plan?",

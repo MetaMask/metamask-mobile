@@ -57,6 +57,8 @@ import {
   HISTORY_LIMIT_ORDER_STATES,
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+  LIMIT_ORDERS_REFETCH_INTERVAL,
   LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD,
   OPEN_LIMIT_ORDER_STATES,
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
@@ -70,6 +72,8 @@ import {
   type MeasureInWindow,
 } from '../../../hooks/useScrollIntoViewAboveKeypad';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import {
   formatMinimumReceived,
   getCurrencySymbol,
@@ -144,17 +148,27 @@ const BridgeLimitOrderViewContent = () => {
     sourceAssetId,
     destinationAssetId,
   });
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  let ordersRefetchInterval: number | undefined = LIMIT_ORDERS_REFETCH_INTERVAL;
+  if (networkTier === 'NONE') {
+    ordersRefetchInterval = undefined;
+  } else if (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR') {
+    ordersRefetchInterval = LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL;
+  }
   const openOrdersQuery = useLimitOrders({
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+    refetchInterval: ordersRefetchInterval,
   });
   const historyQuery = useLimitOrders({
     walletAddress,
     states: HISTORY_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: activeOrdersTab === OrdersTabKey.History,
+    refetchInterval: ordersRefetchInterval,
   });
   const {
     commitCustomPercent,
@@ -191,9 +205,11 @@ const BridgeLimitOrderViewContent = () => {
     focusLimitPrice,
     handleChange: handleKeypadChange,
     handleCustomPercentSelectionChange,
+    handleKeypadClose,
     handleLimitPriceSelectionChange,
     isAmountFocused,
     isCustomPercentFocused,
+    isCustomPercentKeypadOpen,
     keypadProps,
     keypadRef,
     limitPriceSelection,
@@ -225,6 +241,12 @@ const BridgeLimitOrderViewContent = () => {
     scrollViewRef,
     measureTarget: measureCustomPercentInput,
   });
+
+  const { onClose: onKeypadLayoutClose } = keypadLayoutProps;
+  const onKeypadClose = useCallback(() => {
+    onKeypadLayoutClose();
+    handleKeypadClose();
+  }, [handleKeypadClose, onKeypadLayoutClose]);
 
   // Limit orders are not quoted, so the destination amount is derived from the
   // amount being paid and the price the order would trigger at.
@@ -266,7 +288,11 @@ const BridgeLimitOrderViewContent = () => {
     sourceToken,
     sourceAmount,
   });
+  const hasNonZeroSourceAmount =
+    Boolean(sourceAmount) && Number(sourceAmount) > 0;
+  const hasValidLimitPrice = Boolean(limitPrice) && Number(limitPrice) > 0;
   const isCreateOrderDisabled =
+    !hasValidLimitPrice ||
     isMissingPrice ||
     isHardwareWallet ||
     isBelowMinAmount ||
@@ -431,9 +457,16 @@ const BridgeLimitOrderViewContent = () => {
   const costToleranceLabel = `${
     costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
   }%`;
-  const triggerPrice = `${
-    isLimitFiatMode ? getCurrencySymbol(currentCurrency || 'usd') : ''
-  }${formatAmountWithLocaleSeparators(value)}`;
+  const formattedLimitPrice = formatAmountWithLocaleSeparators(value);
+  let triggerPrice = formattedLimitPrice;
+  if (isLimitFiatMode) {
+    triggerPrice = `${getCurrencySymbol(currentCurrency || 'usd')}${formattedLimitPrice}`;
+  } else if (counterToken?.symbol) {
+    triggerPrice = strings('bridge.limit.quote_unit', {
+      amount: formattedLimitPrice,
+      symbol: counterToken.symbol,
+    });
+  }
 
   const handleCreateOrderPress = useCallback(() => {
     if (!feeTokenValidation.isValid) {
@@ -565,6 +598,7 @@ const BridgeLimitOrderViewContent = () => {
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}
+              isLimitPriceInputPressDisabled={isCustomPercentKeypadOpen}
               limitPriceSelection={limitPriceSelection}
               onLimitPriceSelectionChange={handleLimitPriceSelectionChange}
               secondaryLimitPrice={secondaryValue}
@@ -642,8 +676,9 @@ const BridgeLimitOrderViewContent = () => {
           onChange={handleKeypadChange}
           {...keypadLayoutProps}
           {...keypadProps}
+          onClose={onKeypadClose}
         >
-          {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
+          {hasNonZeroSourceAmount ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
               label={createOrderLabel}
