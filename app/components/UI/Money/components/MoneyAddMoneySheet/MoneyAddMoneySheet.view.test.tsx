@@ -1,5 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
@@ -8,15 +10,13 @@ import {
   VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { CreateVirtualBankAccountSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.testIds';
+import { resetBrazilMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureBrazilMusdAutoramp';
+import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingStubSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
-import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
-import { resetBrazilMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureBrazilMusdAutoramp';
-import {
-  __resetMockNetInfo,
-  __setMockNetInfo,
-} from '@react-native-community/netinfo';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const disclaimer = {
   id: 'vendor-terms',
@@ -49,7 +49,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   afterEach(() => {
     restoreVbaReduxServiceStore();
     resetBrazilMusdAutorampSetupGuard();
-    __resetMockNetInfo();
+    netInfoMock.__resetMockNetInfo();
   });
 
   it('opens loading before routing an eligible user to vendor terms', async () => {
@@ -198,7 +198,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   });
 
   it('shows the account setup error when creating the account fails', async () => {
-    __setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     mockHydrateVbaOnboarding
       .mockResolvedValueOnce({
         sessionExists: true,
