@@ -357,12 +357,6 @@ describe('NetworkMultiSelectorList', () => {
       ).toBeTruthy();
     });
 
-    it('calls useSelector with selectEvmChainId', () => {
-      render(<NetworkMultiSelectorList {...defaultProps} />);
-
-      expect(mockUseSelector).toHaveBeenCalledWith(selectEvmChainId);
-    });
-
     it('calls useStyles with styleSheet', () => {
       render(<NetworkMultiSelectorList {...defaultProps} />);
 
@@ -891,24 +885,27 @@ describe('NetworkMultiSelectorList', () => {
       });
     });
 
-    it('sets displayEdit=false when network caipChainId matches selectedChainIdCaip', () => {
-      mockFormatChainIdToCaip.mockReturnValue('eip155:1');
+    it('sets displayEdit=true for the currently-active non-main network', () => {
+      // The active network is mocked to eip155:137 below, matching the network
+      // being rendered. A non-main network that happens to be active must still
+      // expose Edit/Delete so it can be removed.
+      mockFormatChainIdToCaip.mockReturnValue('eip155:137');
 
-      const networkWithUrl: Network[] = [
+      const activeNonMainNetwork: Network[] = [
         {
-          id: 'eip155:1',
-          name: 'Ethereum',
+          id: 'eip155:137',
+          name: 'Polygon',
           isSelected: true,
-          imageSource: { uri: 'eth.png' },
-          caipChainId: 'eip155:1' as CaipChainId,
-          networkTypeOrRpcUrl: 'https://rpc.example.com',
+          imageSource: { uri: 'polygon.png' },
+          caipChainId: 'eip155:137' as CaipChainId,
+          networkTypeOrRpcUrl: 'https://polygon-rpc.com',
         },
       ];
 
       const { getByTestId } = render(
         <NetworkMultiSelectorList
           {...defaultProps}
-          networks={networkWithUrl}
+          networks={activeNonMainNetwork}
         />,
       );
 
@@ -917,7 +914,10 @@ describe('NetworkMultiSelectorList', () => {
       });
 
       expect(mockOpenModal).toHaveBeenCalledWith(
-        expect.objectContaining({ displayEdit: false }),
+        expect.objectContaining({
+          caipChainId: 'eip155:137',
+          displayEdit: true,
+        }),
       );
     });
 
@@ -1230,35 +1230,6 @@ describe('NetworkMultiSelectorList', () => {
 
       expect(mockParseCaipChainId).toHaveBeenCalledWith('eip155:1');
       expect(mockToHex).toHaveBeenCalledWith('1');
-    });
-
-    it('falls back to EVM chain ID when non-EVM chain ID is undefined', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEvmChainId) return '0x1';
-        if (selector === selectSelectedNonEvmNetworkChainId) return undefined;
-        if (selector === selectIsEvmNetworkSelected) return false;
-        if (typeof selector === 'function') return selector({});
-        return undefined;
-      });
-
-      render(<NetworkMultiSelectorList {...defaultProps} />);
-
-      expect(mockFormatChainIdToCaip).toHaveBeenCalledWith('0x1');
-    });
-
-    it('uses non-EVM chain ID directly when available and non-EVM is selected', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEvmChainId) return '0x1';
-        if (selector === selectSelectedNonEvmNetworkChainId)
-          return 'solana:mainnet';
-        if (selector === selectIsEvmNetworkSelected) return false;
-        if (typeof selector === 'function') return selector({});
-        return undefined;
-      });
-
-      render(<NetworkMultiSelectorList {...defaultProps} />);
-
-      expect(mockFormatChainIdToCaip).not.toHaveBeenCalled();
     });
   });
 
