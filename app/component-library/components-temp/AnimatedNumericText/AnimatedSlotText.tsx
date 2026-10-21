@@ -45,9 +45,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
   },
-  text: {
-    fontVariant: ['tabular-nums'],
-  },
 });
 
 /**
@@ -69,14 +66,11 @@ const AnimatedSlotText = ({
   const reduceMotion = useReducedMotion();
   const resolvedWeight =
     fontFamily === FontFamily.Hero ? FontWeight.Bold : fontWeight;
-  const textStyle = StyleSheet.flatten([
-    tw.style(
-      `text-${variant}`,
-      `font-${fontFamily}-${resolvedWeight}`,
-      color,
-    ) as TextStyle,
-    styles.text,
-  ]) as TextStyle;
+  const textStyle = tw.style(
+    `text-${variant}`,
+    `font-${fontFamily}-${resolvedWeight}`,
+    color,
+  ) as TextStyle;
   const motionEnabled = animated !== false && !reduceMotion;
   const { prefix, numeric, suffix } = useMemo(
     () => splitNumericString(value),
