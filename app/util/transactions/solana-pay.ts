@@ -35,10 +35,13 @@ export function getSolanaPayOutcome(
   if (execution.followUpStatus === 'failed') {
     return 'follow-up-failed';
   }
+  // Core runs the follow-up inside a single reconcile call, so an observed
+  // `attempting` follow-up was interrupted and its outcome cannot be resolved.
   if (
     execution.sourceStatus === 'unknown' ||
     execution.relayStatus === 'unknown' ||
-    execution.followUpStatus === 'unknown'
+    execution.followUpStatus === 'unknown' ||
+    execution.followUpStatus === 'attempting'
   ) {
     return 'unknown';
   }
@@ -46,7 +49,9 @@ export function getSolanaPayOutcome(
     execution.sourceStatus === 'confirmed' &&
     execution.relayStatus === 'success' &&
     (execution.followUpStatus === 'not-required' ||
-      execution.followUpStatus === 'confirmed')
+      execution.followUpStatus === 'confirmed') &&
+    (!execution.atomicProductActionRequired ||
+      execution.atomicProductActionIncluded)
   ) {
     return 'succeeded';
   }

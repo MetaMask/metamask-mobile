@@ -27,8 +27,9 @@ function showRecoveredStatusNotifications(
 }
 
 /**
- * Reconciles persisted Solana Pay intents without ever starting a new source
- * submission. Concurrent app-open events share the same Core recovery loop.
+ * Runs one Core observation pass over persisted Solana Pay executions on app
+ * open and foreground. Core never signs or broadcasts the Solana source again
+ * here; concurrent app-open events share the same pass.
  */
 export function recoverSolanaPayTransactions(): Promise<unknown> {
   if (activeRecovery) {
