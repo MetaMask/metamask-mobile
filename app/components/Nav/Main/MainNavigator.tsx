@@ -1098,11 +1098,18 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.DRAWER}
-          component={ProfileDrawer}
-          options={slideFromLeftNativeOptions}
-        />
+        {/*
+         * Drawer is Social V1-only: registered only when the composed
+         * `isSocialV1Enabled` gate (leaderboard flag + TSA-1122 treatment)
+         * is on, the same gate as the SOCIAL.V1 group below.
+         */}
+        {isSocialV1Enabled && (
+          <NativeStack.Screen
+            name={Routes.SOCIAL_PROFILE.DRAWER}
+            component={ProfileDrawer}
+            options={slideFromLeftNativeOptions}
+          />
+        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
