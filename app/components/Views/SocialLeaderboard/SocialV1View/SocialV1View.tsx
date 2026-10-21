@@ -27,7 +27,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
@@ -96,6 +96,33 @@ import {
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 
 const LANDING_INDEX = 0;
+const IDLE_PREFETCH_TIMEOUT_MS = 1000;
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout?: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
+
+/**
+ * Defers adjacent-tab prefetch until the JS thread is idle. Falls back to a
+ * macrotask where `requestIdleCallback` is unavailable.
+ */
+const scheduleIdlePrefetch = (task: () => void): (() => void) => {
+  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+
+  if (idleGlobals.requestIdleCallback) {
+    const idleCallbackId = idleGlobals.requestIdleCallback(task, {
+      timeout: IDLE_PREFETCH_TIMEOUT_MS,
+    });
+    return () => idleGlobals.cancelIdleCallback?.(idleCallbackId);
+  }
+
+  const timeoutId = setTimeout(task, 0);
+  return () => clearTimeout(timeoutId);
+};
 
 const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
   const index = initialTab ? SOCIAL_V1_TAB_ORDER.indexOf(initialTab) : -1;
@@ -560,12 +587,9 @@ const SocialV1ViewContent: React.FC = () => {
 
   useEffect(() => {
     setIdlePrefetch(false);
-    const task = InteractionManager.runAfterInteractions(() => {
+    return scheduleIdlePrefetch(() => {
       setIdlePrefetch(true);
     });
-    return () => {
-      task?.cancel?.();
-    };
   }, [contentIndex]);
 
   const title = strings('homepage.sections.top_traders');
