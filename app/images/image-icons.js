@@ -68,7 +68,7 @@ import ROBINHOOD from './robinhood.png';
 import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
 import ZERO_G_NATIVE from './0g-native-logo.png';
 import SOMNIA_NATIVE from './somnia.png';
-import MNC from './mobilenode-testnet.png';
+import MNC from './mobilenode.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
