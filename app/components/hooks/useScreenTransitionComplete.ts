@@ -1,6 +1,16 @@
 import { NavigationContext } from '@react-navigation/native';
-import { useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { AppStackNavigationProp } from '../../core/NavigationService/types';
+
+/**
+ * Stand-in used when `NavigationContext` was not provided. A Jest mock of
+ * `@react-navigation/native` that only stubs `useNavigation` leaves the
+ * export `undefined`, and `useContext(undefined)` throws. The stand-in keeps
+ * the `useContext` call unconditional so hook order stays the same.
+ */
+const MissingNavigationContext = createContext<
+  AppStackNavigationProp | undefined
+>(undefined);
 
 /**
  * Delay, in ms, after which the screen is treated as settled when the navigator
@@ -19,9 +29,10 @@ export const SCREEN_TRANSITION_FALLBACK_MS = 450;
  * before settling.
  *
  * Reads {@link NavigationContext} instead of `useNavigation`, because
- * `useNavigation` throws when the component is outside a navigator. With no
- * navigation object, the hook waits {@link SCREEN_TRANSITION_FALLBACK_MS} and
- * then reports complete. Inside a navigator it keeps the previous behavior:
+ * `useNavigation` throws when the component is outside a navigator. When the
+ * context export is missing, or its value is absent, the hook waits
+ * {@link SCREEN_TRANSITION_FALLBACK_MS} and then reports complete. Inside a
+ * navigator it keeps the previous behavior:
  * `transitionEnd` wins, `closing: true` is ignored, and a focused screen that
  * never emits the event still opens after the same fallback.
  *
@@ -32,10 +43,12 @@ export const SCREEN_TRANSITION_FALLBACK_MS = 450;
  */
 export function useScreenTransitionComplete(): boolean {
   // `transitionEnd` is a native-stack event. The context is typed as the base
-  // navigation prop, which does not list that event.
-  const navigation = useContext(NavigationContext) as
-    | AppStackNavigationProp
-    | undefined;
+  // navigation prop, which does not list that event. `??` is required at
+  // runtime: a partial mock can make the import `undefined` even though the
+  // type says it is always a context.
+  const navigation = useContext(
+    NavigationContext ?? MissingNavigationContext,
+  ) as AppStackNavigationProp | undefined;
   const [isTransitionComplete, setIsTransitionComplete] = useState(false);
 
   useEffect(() => {

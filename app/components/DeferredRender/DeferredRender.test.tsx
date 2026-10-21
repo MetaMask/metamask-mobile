@@ -776,7 +776,7 @@ describe('DeferredRender', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith(
-      'DeferredRender ignores screenId, enabled, and onDeferredComplete inside DeferredRenderHost. Pass them to the host.',
+      'DeferredRender ignores screenId, enabled, frameTimeoutMs, and onDeferredComplete inside DeferredRenderHost. Pass them to the host.',
     );
   });
 

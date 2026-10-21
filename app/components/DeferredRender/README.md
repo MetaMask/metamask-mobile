@@ -40,9 +40,8 @@ Those screens keep their current render timing.
    - If the focused screen never emits `transitionEnd` (initial route, tab
      switch, animation disabled, non-stack navigator), the hook flips true
      after `SCREEN_TRANSITION_FALLBACK_MS` (450).
-   - If there is no navigator, `useNavigation` would throw. The hook reads
-     `NavigationContext` and, when it is missing, uses that same 450ms timer
-     without a focus check.
+   - If there is no navigator, or `NavigationContext` is missing, the hook
+     uses that same 450ms timer without a focus check.
    - If the screen is no longer focused when that timer fires, it stays
      closed and re-arms on the next `focus`. That focus check applies only
      when a navigator is present.
