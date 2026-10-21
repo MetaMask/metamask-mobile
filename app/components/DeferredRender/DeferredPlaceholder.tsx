@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 
 import { DEFERRED_RENDER_PLACEHOLDER_TEST_ID } from './constants';
@@ -17,6 +17,19 @@ export function DeferredPlaceholder({
   height,
   testID = DEFERRED_RENDER_PLACEHOLDER_TEST_ID,
 }: DeferredPlaceholderProps) {
+  const warnedInvalidHeightRef = useRef(false);
+
+  if (
+    __DEV__ &&
+    !warnedInvalidHeightRef.current &&
+    (!Number.isFinite(height) || height <= 0)
+  ) {
+    warnedInvalidHeightRef.current = true;
+    console.warn(
+      `DeferredPlaceholder expected a positive height and received ${height}.`,
+    );
+  }
+
   return (
     <View
       testID={testID}

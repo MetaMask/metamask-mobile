@@ -22,7 +22,17 @@ export interface UseDeferredRenderOptions {
    * Content that has already been released is never returned to the placeholder.
    */
   enabled?: boolean;
-  /** Called once per visit, when the last stage is released. */
+  /**
+   * Backup timeout for each scheduled stage, in milliseconds.
+   * Omit it to use 250ms for the first frame-then-idle stage and 100ms for
+   * each later frame. The timer starts when that stage is scheduled, before
+   * `requestAnimationFrame`.
+   */
+  frameTimeoutMs?: number;
+  /**
+   * Called once per visit, after the last deferred stage's children have
+   * committed. Not called when the visit unmounts before that commit.
+   */
   onDeferredComplete?: () => void;
 }
 
@@ -60,6 +70,11 @@ export interface DeferredRenderProps {
    */
   screenId?: string;
   enabled?: boolean;
+  /**
+   * Forwarded only when this component creates its own host.
+   * See {@link UseDeferredRenderOptions.frameTimeoutMs}.
+   */
+  frameTimeoutMs?: number;
   /**
    * Used only when this component creates its own host. Inside a host, pass
    * the callback to the host so it fires once for the whole visit.
