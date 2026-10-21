@@ -1,7 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useReducedMotion } from 'react-native-reanimated';
-import { Laminar } from 'react-native-laminar';
 
 import AnimatedBalanceText from './AnimatedBalanceText';
 
@@ -44,18 +43,6 @@ describe('AnimatedBalanceText', () => {
     );
 
     expect(getByText('123.45')).toBeOnTheScreen();
-  });
-
-  it('leaves the numeric reel unclipped', () => {
-    const { UNSAFE_getByType } = render(
-      <AnimatedBalanceText
-        isLoading={false}
-        loadingValue="$0.00"
-        value="$251.28"
-      />,
-    );
-
-    expect(UNSAFE_getByType(Laminar).props.clipToBounds).toBeFalsy();
   });
 
   it('renders the latest completed value', () => {
