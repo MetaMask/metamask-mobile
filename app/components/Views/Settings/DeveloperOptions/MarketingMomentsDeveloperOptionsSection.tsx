@@ -11,7 +11,14 @@ import {
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 
-const MARKETING_MOMENTS = [
+export const PROFILE_ONBOARDING_MARKETING_MOMENT_TEST_ID =
+  'marketing-moment-profile-onboarding';
+
+const MARKETING_MOMENTS: {
+  label: string;
+  testID?: string;
+  open: () => void;
+}[] = [
   {
     label: 'Card welcome',
     open: () =>
@@ -69,6 +76,12 @@ const MARKETING_MOMENTS = [
         params: { preview: true },
       }),
   },
+  {
+    label: 'Profile onboarding',
+    testID: PROFILE_ONBOARDING_MARKETING_MOMENT_TEST_ID,
+    open: () =>
+      NavigationService.navigation?.navigate(Routes.SOCIAL.PROFILE_ONBOARDING),
+  },
 ];
 
 /**
@@ -79,13 +92,14 @@ const MarketingMomentsDeveloperOptionsSection = () => (
     <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
       {'Marketing moments'}
     </Text>
-    {MARKETING_MOMENTS.map(({ label, open }) => (
+    {MARKETING_MOMENTS.map(({ label, open, testID }) => (
       <Button
         key={label}
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         isFullWidth
         onPress={open}
+        testID={testID}
       >
         {label}
       </Button>
