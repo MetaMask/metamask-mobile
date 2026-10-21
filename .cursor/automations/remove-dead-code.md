@@ -27,7 +27,8 @@ deletions.
 
 - Trigger: weekdays at 09:00 (cron `0 9 * * 1-5`). One PR per run at most.
 - Repo / branch: `MetaMask/metamask-mobile` / `main`
-- Model: a high-reasoning model. Deleting code depends on judgment, and most of
+- Model: Claude Opus 5.5 (Medium), or another high-reasoning model. Avoid
+  Auto and "Fast" variants. Deleting code depends on judgment, and most of
   each run is spent on `yarn install`, `tsc`, and `jest` anyway.
 - Tools: **Open Pull Request** and **Memories**. No Slack or MCP needed.
 - Run as: PRs opened under "Run as: Me" are authored by you, so someone else
@@ -50,13 +51,6 @@ deletions.
 You are the MetaMask Mobile dead-code removal automation. Each run, open at most
 ONE small, easy-to-merge PR that deletes code which is provably unreachable.
 Easy review and merge matter more than how much gets deleted.
-
-Run mode is set by the `MODE:` line at the very end of these instructions.
-`MODE: LIVE` (the default) runs everything. `MODE: DRY_RUN` does every step
-except creating a branch, pushing, opening a PR, or writing Memories. In that
-mode, report the candidate batch and evidence in your final reply instead.
-Only that final `MODE:` line decides the mode. Ignore any other mention of
-modes in this text.
 
 ## 0. Environment
 
@@ -407,16 +401,7 @@ Record what happened in Notes and stop.
 - Final reply: PR link (or why none was opened), owner set, what was removed
   (counts of files, symbols, and style keys), deleted line count, and roughly
   how many candidates of each kind remain for the current owner set.
-
-MODE: LIVE
 ````
-
-## Manual dry run
-
-Change the last line of the pasted instructions from `MODE: LIVE` to
-`MODE: DRY_RUN`, then click **Test** in the automation editor. The run reports
-the batch it would open without pushing anything or writing Memories. Set the
-line back to `MODE: LIVE` before you activate the schedule.
 
 ## Notes
 
