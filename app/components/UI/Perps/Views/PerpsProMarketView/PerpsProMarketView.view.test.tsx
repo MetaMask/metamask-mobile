@@ -23,6 +23,7 @@ import type {
 import { Platform } from 'react-native';
 import type { ComponentType } from 'react';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   describeForPlatforms,
   itForPlatforms,
@@ -76,6 +77,7 @@ import { readPerpsUiObservations } from '../../utils/perpsUiObservations';
 import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const orderBookValueHeaderId = `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-column-header-value`;
 const TIMEOUT_MS = 5000;
 const activeChase: ChaseOrder = {
   handle: 'chase-view-1',
@@ -3173,6 +3175,119 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           'Size (USD)',
         );
       });
+    },
+  );
+
+  itForPlatforms(
+    'opens the size field and order book in the saved coin denomination',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                orderBookPreferences: { currency: 'base', metric: 'total' },
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      await findSizeInput();
+      await screen.findByTestId(
+        orderBookValueHeaderId,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+      expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+        'Total (ETH)',
+      );
+    },
+  );
+
+  itForPlatforms(
+    'keeps the size field and order book on the same denomination',
+    async () => {
+      const mounted = renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      const unwire = wirePerpsControllerForStore(mounted.store);
+
+      try {
+        const sizeInput = await findSizeInput();
+        await screen.findByTestId(
+          orderBookValueHeaderId,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (USD)',
+        );
+        expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+          'Total ($)',
+        );
+
+        fireEvent.changeText(sizeInput, '100');
+        await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
+        fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+        await waitFor(() => {
+          expect(sizeInput).toHaveProp('value', '0.04');
+          expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+            'Size (ETH)',
+          );
+          expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+            'Total (ETH)',
+          );
+        });
+
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-grouping-trigger`,
+          ),
+        );
+        fireEvent.press(
+          await screen.findByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-config-sheet-currency-usd`,
+          ),
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-config-sheet-apply`,
+          ),
+        );
+
+        await waitFor(() => {
+          expect(sizeInput).toHaveProp('value', '100');
+          expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+            'Size (USD)',
+          );
+          expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+            'Total ($)',
+          );
+        });
+      } finally {
+        unwire();
+      }
     },
   );
 
