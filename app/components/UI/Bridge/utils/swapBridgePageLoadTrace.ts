@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  SwapFeatureTag,
+} from '@metamask/bridge-controller';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import type { BridgeToken, BridgeViewMode } from '../types';
 
@@ -36,6 +39,7 @@ export const startSwapBridgePageLoadTrace = <
       ...(destChainId && { dest_chain_id: destChainId }),
     },
     startTime: Date.now(),
+    tags: { feature: SwapFeatureTag.SWAP },
   });
 
   return { ...route, swapViewTraceId: id };

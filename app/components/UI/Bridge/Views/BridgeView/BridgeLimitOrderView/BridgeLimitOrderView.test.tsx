@@ -60,11 +60,11 @@ jest.mock(
 let mockInitialLimitOrdersTab = 'openOrders';
 
 jest.mock('../../../hooks/useBridgeSession', () => {
-  const { useState } = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react');
 
   return {
     useBridgeSession: () => {
-      const [limitOrdersTab, setLimitOrdersTab] = useState(
+      const [limitOrdersTab, setLimitOrdersTab] = ReactActual.useState(
         mockInitialLimitOrdersTab,
       );
 
