@@ -44,6 +44,7 @@
 import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
 import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
+import { inflateRawSync } from 'zlib';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -53,6 +54,9 @@ import {
   aggregateTimingsFromPlaywrightJson,
   countSkips,
   countDefinedTests,
+  mergePlatformTimingSamples,
+  summarizeTimingSamples,
+  timingSamplesFromQaStats,
 } from './qa-stats-e2e.mjs';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
@@ -997,11 +1001,20 @@ async function collectE2ETestTimes() {
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
   if (e2eArtifacts.length === 0) {
+    const previous = await fetchPreviousTimingSamples();
+    const timings = summarizeTimingSamples(previous);
+    if (Object.keys(timings).length === 0) {
+      console.warn(
+        '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
+          'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
+      );
+      return {};
+    }
     console.warn(
-      '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
-        'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
+      `[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ` +
+        `republishing retained timing history for ${Object.keys(previous).length} spec file(s)`,
     );
-    return {};
+    return { timings, samples: previous };
   }
 
   const acc = {};
@@ -1017,9 +1030,166 @@ async function collectE2ETestTimes() {
     }
   }
 
-  const specCount = Object.keys(acc).length;
-  console.log(`[e2e_test_times] aggregated timings for ${specCount} spec file(s)`);
-  return acc;
+  const previous = await fetchPreviousTimingSamples();
+  const samples = mergePlatformTimingSamples(previous, acc);
+  const timings = summarizeTimingSamples(samples);
+  console.log(
+    `[e2e_test_times] aggregated ${Object.keys(acc).length} spec file(s); ` +
+      `publishing p75 across ${Object.keys(samples).length} retained spec history entries`,
+  );
+  return { timings, samples };
+}
+
+const MAX_PREVIOUS_QA_STATS_ZIP_BYTES = 50 * 1024 * 1024;
+const MAX_PREVIOUS_QA_STATS_JSON_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Reads qa-stats.json from a GitHub artifact zip without writing the archive
+ * to disk. Only the named entry is inflated, and only up to the size cap.
+ *
+ * @param {Buffer} buffer
+ * @returns {string}
+ */
+function readQaStatsJsonFromZip(buffer) {
+  if (buffer.length === 0 || buffer.length > MAX_PREVIOUS_QA_STATS_ZIP_BYTES) {
+    throw new Error('qa-stats artifact is empty or larger than 50MB');
+  }
+
+  const endOfCentralDirectory = findEndOfCentralDirectory(buffer);
+  const entryCount = buffer.readUInt16LE(endOfCentralDirectory + 10);
+  let cursor = buffer.readUInt32LE(endOfCentralDirectory + 16);
+  let jsonEntry;
+
+  for (let index = 0; index < entryCount; index += 1) {
+    if (cursor + 46 > buffer.length || buffer.readUInt32LE(cursor) !== 0x02014b50) {
+      throw new Error('qa-stats artifact central directory is invalid');
+    }
+    const method = buffer.readUInt16LE(cursor + 10);
+    const compressedSize = buffer.readUInt32LE(cursor + 20);
+    const uncompressedSize = buffer.readUInt32LE(cursor + 24);
+    const nameLength = buffer.readUInt16LE(cursor + 28);
+    const extraLength = buffer.readUInt16LE(cursor + 30);
+    const commentLength = buffer.readUInt16LE(cursor + 32);
+    const localOffset = buffer.readUInt32LE(cursor + 42);
+    const name = buffer.toString('utf8', cursor + 46, cursor + 46 + nameLength);
+    if (name === 'qa-stats.json') {
+      jsonEntry = { method, compressedSize, uncompressedSize, localOffset };
+    }
+    cursor += 46 + nameLength + extraLength + commentLength;
+  }
+
+  if (!jsonEntry) {
+    throw new Error('qa-stats.json missing from previous qa-stats artifact');
+  }
+  if (
+    jsonEntry.compressedSize === 0xffffffff ||
+    jsonEntry.uncompressedSize === 0xffffffff ||
+    jsonEntry.uncompressedSize > MAX_PREVIOUS_QA_STATS_JSON_BYTES
+  ) {
+    throw new Error('qa-stats.json exceeds 10MB');
+  }
+
+  const local = jsonEntry.localOffset;
+  if (local + 30 > buffer.length || buffer.readUInt32LE(local) !== 0x04034b50) {
+    throw new Error('qa-stats artifact local header is invalid');
+  }
+  const nameLength = buffer.readUInt16LE(local + 26);
+  const extraLength = buffer.readUInt16LE(local + 28);
+  const dataStart = local + 30 + nameLength + extraLength;
+  const compressed = buffer.subarray(
+    dataStart,
+    dataStart + jsonEntry.compressedSize,
+  );
+  if (compressed.length !== jsonEntry.compressedSize) {
+    throw new Error('qa-stats artifact entry is truncated');
+  }
+
+  if (jsonEntry.method === 0) return compressed.toString('utf8');
+  if (jsonEntry.method === 8) {
+    const inflated = inflateRawSync(compressed);
+    if (inflated.length > MAX_PREVIOUS_QA_STATS_JSON_BYTES) {
+      throw new Error('qa-stats.json exceeds 10MB');
+    }
+    return inflated.toString('utf8');
+  }
+  throw new Error(`unsupported qa-stats zip method ${jsonEntry.method}`);
+}
+
+/**
+ * @param {Buffer} buffer
+ * @returns {number}
+ */
+function findEndOfCentralDirectory(buffer) {
+  const earliest = Math.max(0, buffer.length - 22 - 65535);
+  for (let offset = buffer.length - 22; offset >= earliest; offset -= 1) {
+    if (buffer.readUInt32LE(offset) === 0x06054b50) return offset;
+  }
+  throw new Error('qa-stats artifact is not a zip file');
+}
+
+async function fetchPreviousTimingSamples() {
+  const override = process.env.PREVIOUS_QA_STATS_PATH?.trim();
+  if (override) {
+    const parsed = JSON.parse(await readFile(override, 'utf8'));
+    return timingSamplesFromQaStats(parsed);
+  }
+
+  if (!GITHUB_TOKEN) return {};
+
+  try {
+    const headers = {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    const runsUrl = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/qa-stats.yml/runs?branch=main&status=success&per_page=1`;
+    const runsRes = await fetch(runsUrl, { headers });
+    if (!runsRes.ok) {
+      throw new Error(`qa-stats runs → ${runsRes.status} ${runsRes.statusText}`);
+    }
+    const run = (await runsRes.json())?.workflow_runs?.[0];
+    if (!run?.id) return {};
+
+    const artifactsRes = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run.id}/artifacts`,
+      { headers },
+    );
+    if (!artifactsRes.ok) {
+      throw new Error(`qa-stats artifacts → ${artifactsRes.status} ${artifactsRes.statusText}`);
+    }
+    const artifact = ((await artifactsRes.json())?.artifacts ?? []).find(
+      (entry) => entry?.name === 'qa-stats' && !entry?.expired,
+    );
+    if (!artifact?.archive_download_url) return {};
+
+    const redirectRes = await fetch(artifact.archive_download_url, {
+      headers,
+      redirect: 'manual',
+    });
+    const downloadUrl = redirectRes.headers.get('location');
+    if (!downloadUrl) return {};
+    const zipRes = await fetch(downloadUrl);
+    if (!zipRes.ok) {
+      throw new Error(`qa-stats download → ${zipRes.status} ${zipRes.statusText}`);
+    }
+
+    const declaredLength = Number(zipRes.headers.get('content-length'));
+    if (
+      Number.isFinite(declaredLength) &&
+      declaredLength > MAX_PREVIOUS_QA_STATS_ZIP_BYTES
+    ) {
+      throw new Error('qa-stats artifact exceeds 50MB');
+    }
+    const parsed = JSON.parse(
+      readQaStatsJsonFromZip(Buffer.from(await zipRes.arrayBuffer())),
+    );
+    console.log(`[e2e_test_times] retained timing history from qa-stats run #${run.id}`);
+    return timingSamplesFromQaStats(parsed);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`[e2e_test_times] previous timing history unavailable: ${message}`);
+    return {};
+  }
 }
 
 /**
@@ -1123,6 +1293,16 @@ async function main() {
   for (const { namespace, collect } of collectors) {
     try {
       const nested = await collect();
+      if (namespace === 'e2e_test_times') {
+        const timings = nested?.timings ?? nested;
+        const samples = nested?.samples;
+        if (!timings || Object.keys(timings).length === 0) continue;
+        stats.e2e_test_times = timings;
+        if (samples && Object.keys(samples).length > 0) {
+          stats.e2e_test_time_samples = samples;
+        }
+        continue;
+      }
       if (Object.keys(nested).length === 0) continue;
       stats[namespace] = nested;
     } catch (err) {

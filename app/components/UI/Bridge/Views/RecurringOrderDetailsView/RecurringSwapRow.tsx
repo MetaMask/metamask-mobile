@@ -4,8 +4,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Tag,
-  TagSeverity,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,30 +23,16 @@ interface RecurringSwapRowProps {
   onPress: () => void;
 }
 
-function getSwapAccessory(swap: RecurringSwap) {
+function getSwapTitleColor(swap: RecurringSwap) {
   if (swap.status === RecurringSwapStatus.Skipped) {
-    return (
-      <Icon
-        name={IconName.Warning}
-        color={IconColor.WarningDefault}
-        size={IconSize.Sm}
-      />
-    );
+    return TextColor.TextAlternative;
   }
 
   if (swap.status === RecurringSwapStatus.Failed) {
-    return (
-      <Tag severity={TagSeverity.Danger}>
-        {strings('bridge.recurring.failed')}
-      </Tag>
-    );
+    return TextColor.ErrorDefault;
   }
 
-  return (
-    <Tag severity={TagSeverity.Success}>
-      {strings('bridge.recurring.filled')}
-    </Tag>
-  );
+  return TextColor.TextDefault;
 }
 
 function getSkippedSwapLabel(swap: RecurringSwap) {
@@ -86,14 +70,22 @@ export function RecurringSwapRow({
       subtitle={isSkipped ? getSkippedSwapLabel(swap) : ''}
       primaryValue={`+${destinationAmount} ${destinationToken.symbol}`}
       secondaryValue={`-${sourceAmount} ${sourceToken.symbol}`}
-      titleColor={isSkipped ? TextColor.WarningDefault : TextColor.TextDefault}
+      titleColor={getSwapTitleColor(swap)}
+      titleEndAccessory={
+        isSkipped ? (
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.WarningDefault}
+            size={IconSize.Sm}
+          />
+        ) : undefined
+      }
       subtitleColor={
         isSkipped ? TextColor.WarningDefault : TextColor.TextAlternative
       }
       primaryColor={
         hasZeroAmounts ? TextColor.TextAlternative : TextColor.SuccessDefault
       }
-      titleEndAccessory={getSwapAccessory(swap)}
       onPress={onPress}
       testID={RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId)}
     />
