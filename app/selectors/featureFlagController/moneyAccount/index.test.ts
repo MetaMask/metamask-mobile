@@ -13,6 +13,7 @@ import {
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
+import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 
 jest.mock('react-native-device-info', () => ({
@@ -185,7 +186,7 @@ describe('Money Account feature flag selectors', () => {
     });
 
     it('ignores a blank, missing, or non-string regionOverride', () => {
-      const readOverride = (regionOverride: unknown) =>
+      const readOverride = (regionOverride: Json) =>
         selectMoneyMovementNeobank.resultFunc({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
             ...enabledFlag,
