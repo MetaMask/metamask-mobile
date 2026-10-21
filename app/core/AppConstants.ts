@@ -356,12 +356,16 @@ export default {
   BASIC_FUNCTIONALITY_BLOCK_LIST: [
     'token-api',
     'token.api',
+    // `token.api` does not match `tokens.api.cx.metamask.io`.
+    'tokens.api',
     'gas-api',
     'gas.api',
     'price-api',
     'price.api',
     'phishing-detection',
     'dapp-scanning',
+    'accounts.api.cx.metamask.io',
+    'client-config.api.cx.metamask.io',
     'infura.io',
     'static.metafi',
     'static.cx',

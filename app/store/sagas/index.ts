@@ -28,6 +28,8 @@ import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
+import { installBasicFunctionalityNetworkGate } from '../../util/basicFunctionality/basicFunctionalityNetworkGate';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
@@ -561,6 +563,19 @@ export function* startAppServices() {
 
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
+  // Jest loads this saga while importing the store. Skip the live fetch/XHR
+  // gate there so unit tests keep their own fetch mock.
+  if (process.env.JEST_WORKER_ID === undefined) {
+    // Install before Engine starts so the first polls already honor the setting.
+    installBasicFunctionalityNetworkGate();
+    const basicFunctionalityEnabled: boolean = yield select(
+      selectBasicFunctionalityEnabled,
+    );
+    if (!basicFunctionalityEnabled) {
+      overrideXMLHttpRequest();
+    }
+  }
+
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
