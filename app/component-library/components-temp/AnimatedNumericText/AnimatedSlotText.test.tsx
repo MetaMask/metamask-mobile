@@ -10,9 +10,14 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: jest.fn(() => false),
 }));
 
+const mockTwStyle = jest.fn();
+
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
-    style: (...classes: string[]) => ({ fontClass: classes.join(' ') }),
+    style: (...classes: string[]) => {
+      mockTwStyle(...classes);
+      return {};
+    },
   }),
 }));
 
@@ -81,8 +86,10 @@ describe('AnimatedSlotText', () => {
       />,
     );
 
-    expect(getByText('10')).toHaveStyle({
-      fontClass: 'text-body-xs font-default-medium text-default',
-    });
+    expect(mockTwStyle).toHaveBeenCalledWith(
+      'text-body-xs',
+      'font-default-medium',
+      'text-default',
+    );
   });
 });
