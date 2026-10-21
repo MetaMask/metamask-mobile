@@ -50,6 +50,7 @@ export const useWhatsHappeningLoadTrace = ({
   hasContent,
   error,
 }: UseWhatsHappeningLoadTraceParams): string | undefined => {
+  'use no memo';
   const traceId = getWhatsHappeningTraceId(source, stage);
 
   useMemo(() => {

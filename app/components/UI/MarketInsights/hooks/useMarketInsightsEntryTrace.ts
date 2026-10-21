@@ -41,6 +41,7 @@ export const useMarketInsightsEntryTrace = ({
   report,
   source,
 }: UseMarketInsightsEntryTraceParams): string | undefined => {
+  'use no memo';
   const traceId = assetIdentifier
     ? getMarketInsightsTraceId(assetIdentifier, source, 'entry_card')
     : undefined;
