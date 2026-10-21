@@ -239,26 +239,21 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('$50K P&L (30d)');
   });
 
-  // Nothing reports verification yet, so the badge has to read as invented.
-  it('marks the mocked verified badge', () => {
+  it('shows the verified badge and a temporary mock marker after the timestamp', () => {
     renderShell(basePost());
 
     expect(
       screen.getByTestId(SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE),
     ).toBeOnTheScreen();
-    expect(screen.getByText('*')).toBeOnTheScreen();
-  });
-
-  it('badges the trader cohort from their 30-day P&L', () => {
-    renderShell(basePost());
-
-    // $50K sits in the dolphin band.
     expect(
-      screen.getByTestId(SocialFeedPostShellSelectorsIDs.COHORT),
-    ).toHaveTextContent('🐬');
+      screen.getByTestId(
+        `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-post-1`,
+      ),
+    ).toHaveTextContent('*');
+    expect(screen.queryByText('🐬')).toBeNull();
   });
 
-  it('places the post age next to the cohort on the author row', () => {
+  it('places the post age on the author row', () => {
     renderShell(basePost({ timestampMs: Date.now() - 7 * 60 * 1000 }));
 
     expect(
@@ -266,14 +261,11 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('7 min ago');
   });
 
-  it('omits the stat line and cohort for a trader with no stats', () => {
+  it('omits the stat line for a trader with no stats', () => {
     renderShell(basePost({ item: itemWithoutStats('item-3', 'No stats') }));
 
     expect(
       screen.queryByTestId(SocialFeedPostShellSelectorsIDs.TRADER_STAT),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialFeedPostShellSelectorsIDs.COHORT),
     ).toBeNull();
   });
 
