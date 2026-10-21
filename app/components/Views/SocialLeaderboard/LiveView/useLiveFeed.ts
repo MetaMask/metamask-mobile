@@ -16,7 +16,7 @@ import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSou
 
 export const LIVE_FEED_BUFFER_SIZE = 60;
 const LIVE_FEED_PAGE_SIZE = 30;
-const LIVE_FEED_REVEAL_BATCH_SIZE = 6;
+const LIVE_FEED_REVEAL_BATCH_SIZE = 2;
 const LIVE_FEED_REVEAL_INTERVAL_MS = 16;
 const noopAnimationComplete = (_eventId: string): void => undefined;
 
@@ -37,6 +37,13 @@ export interface LiveFeedRow extends TraderFeedRow {
 interface PendingEvent {
   event: SocialFeedEvent;
   animate: boolean;
+}
+
+interface CachedFeedPost {
+  core: CoreFeedItem;
+  item: TraderFeedRow['item'];
+  now: number;
+  post: SocialV1FeedPost;
 }
 
 /**
@@ -131,6 +138,7 @@ export const useLiveFeed = ({
   const realtimeService = Engine.context.SocialRealtimeService;
   const [realtimeRows, setRealtimeRows] = useState<LiveFeedRow[]>([]);
   const pendingEvents = useRef(new Map<string, PendingEvent>());
+  const postCache = useRef(new Map<string, CachedFeedPost>());
 
   const feed = useSocialFeed(LIVE_FEED_SOURCE, {
     enabled: enabled && isFocused,
@@ -293,10 +301,38 @@ export const useLiveFeed = ({
       .slice(0, LIVE_FEED_BUFFER_SIZE);
   }, [feed.rows, pendingNewCount, realtimeRows]);
 
-  const posts = useMemo(
-    () => toSocialFeedPosts(rows, feed.dataUpdatedAt ?? Date.now()),
-    [feed.dataUpdatedAt, rows],
-  );
+  const posts = useMemo(() => {
+    const now = feed.dataUpdatedAt ?? Date.now();
+    const activeIds = new Set(rows.map((row) => row.stableId));
+    const nextPosts = rows.map((row) => {
+      const cached = postCache.current.get(row.stableId);
+      if (
+        cached &&
+        cached.core === row.core &&
+        cached.item === row.item &&
+        cached.now === now
+      ) {
+        return cached.post;
+      }
+
+      const [post] = toSocialFeedPosts([row], now);
+      postCache.current.set(row.stableId, {
+        core: row.core,
+        item: row.item,
+        now,
+        post,
+      });
+      return post;
+    });
+
+    postCache.current.forEach((_cached, id) => {
+      if (!activeIds.has(id)) {
+        postCache.current.delete(id);
+      }
+    });
+
+    return nextPosts;
+  }, [feed.dataUpdatedAt, rows]);
   const visiblePendingNewCount = getVisiblePendingNewCount(
     pendingNewCount,
     paused,
