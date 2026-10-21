@@ -50,7 +50,10 @@ candidate batch and evidence in your final reply.
 
 - `source ~/.nvm/nvm.sh && nvm install && nvm use && corepack enable`
   (`.nvmrc` pins Node; the repo needs Yarn 4 via corepack).
-- `yarn install --immutable`. Only use yarn, never npm/npx.
+- `export COREPACK_ENABLE_DOWNLOAD_PROMPT=0`. Without it, the first `yarn`
+  call can hang forever on an invisible "download Yarn?" prompt.
+- `yarn install --immutable`. Only use yarn, never npm/npx. If `node_modules`
+  already exists from the environment snapshot, still run it; it is fast.
 - `git fetch origin main`, then branch from `origin/main`.
 - `gh` may be unable to read MetaMask repos (org SAML). Do not depend on it.
   Use git, Memories, and the Open Pull Request tool.
@@ -202,10 +205,16 @@ add it to "Notes" or "Do not touch".
 
 ## 7. Verify (all must pass, or drop the offending file and retry)
 
-- `yarn lint:tsc`
-- `yarn eslint <every touched or parent directory>`
-- `yarn jest <parent directories of deleted files>` and the tests of any file
-  you edited
+- `yarn lint:tsc` (about 4-5 minutes). It needs the gitignored file that
+  `yarn setup` generates. If `app/util/termsOfUse/termsOfUseContent.ts` is
+  missing, first run `echo "export default '';" >
+  app/util/termsOfUse/termsOfUseContent.ts`. It is gitignored, so it never
+  gets committed.
+- `NODE_OPTIONS=--max-old-space-size=12288 yarn eslint <every touched or
+  parent directory>`. With the default heap, ESLint runs out of memory.
+  Warnings are fine; errors are not.
+- `yarn jest --coverage=false <parent directories of deleted files>` and the
+  tests of any file you edited
 - Re-run the `rg` evidence check for every deleted basename
 - `git status` / `git diff --stat`. Only intended files changed, and every
   touched file resolves to the chosen owner set.
@@ -259,6 +268,10 @@ anything. Remove `DRY RUN` before you activate the schedule.
   unowned files with zero inbound imports and about 40 referenced only by
   their own tests. At one PR per weekday that is a few weeks of work before
   the queue moves to the first team.
+- A trial of the verification steps on a cloud agent (deleting the unused
+  `app/components/Base/ModalDragger.tsx` and `RangeInput.js`) took about 1
+  minute for `yarn install`, 4.5 minutes for `tsc`, 25 seconds for ESLint, and
+  80 seconds for jest on `app/components/Base`. Everything passed.
 - Known detector false positives in this repo: config-string references
   (`app/shims/*` from `metro.config.js`), Reassure `*.perf-test.tsx` globs,
   platform-extension files, and code-fenced flask/beta code.
