@@ -11600,9 +11600,9 @@
       "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
-      "title": "Sign in to your card",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "Finish updating your card",
-      "description": "Sign in to manage your MetaMask Card.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "Checking how your card was set up.",
       "description_resume": "Continue where you left off. This account stays linked to your card.",
       "auth_prompt_info": "Log in to your card account to access this feature.",
