@@ -7,7 +7,10 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
+import {
+  selectAllTokenBalances,
+  selectContractBalancesPerChainId,
+} from '../../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
@@ -17,8 +20,10 @@ import {
   renderFromWei,
   weiToFiat,
 } from '../../../../../util/number/bigint';
-import { CaipChainId, Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { getEvmHexChainId } from '../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
@@ -36,6 +41,34 @@ interface Asset {
   decimals: number;
   chainId?: string;
   assetId?: string;
+}
+
+/**
+ * Ramp chain ids arrive as CAIP (`eip155:1`), decimal (`1`), or hex (`0x1`).
+ * Account-group scope lookup only matches CAIP chain ids.
+ *
+ * @param chainId - Chain id from the selected ramp asset.
+ * @returns CAIP chain id, or undefined when the value cannot be parsed.
+ */
+function toAssetCaipChainId(chainId?: string): CaipChainId | undefined {
+  if (!chainId) {
+    return undefined;
+  }
+
+  if (isCaipChainId(chainId)) {
+    return chainId;
+  }
+
+  const hexChainId = getEvmHexChainId(chainId);
+  if (!hexChainId) {
+    return undefined;
+  }
+
+  try {
+    return toEvmCaipChainId(hexChainId);
+  } catch {
+    return undefined;
+  }
 }
 
 export default function useBalance(asset?: Asset) {
@@ -67,42 +100,62 @@ export default function useBalance(asset?: Asset) {
       : undefined,
   );
   const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
+  const allTokenBalances = useSelector(selectAllTokenBalances);
 
   if (!asset || (!asset.address && !asset.assetId) || !selectedAddress) {
     return defaultReturn;
   }
 
+  // The globally selected account can be a Solana/BTC sibling in the same
+  // account group. Sell must read the account that holds this asset.
+  const assetCaipChainId = toAssetCaipChainId(asset.chainId);
+  const accountForAsset =
+    assetCaipChainId && typeof selectInternalAccountByScope === 'function'
+      ? selectInternalAccountByScope(assetCaipChainId)
+      : undefined;
+  const evmAccountForAsset =
+    accountForAsset && isEvmAccountType(accountForAsset.type)
+      ? accountForAsset
+      : undefined;
+  const evmLookupAddress = evmAccountForAsset
+    ? toChecksumHexAddress(evmAccountForAsset.address)
+    : selectedAddress;
+  const tokenBalancesByChain = evmAccountForAsset
+    ? (allTokenBalances?.[evmAccountForAsset.address as Hex] ?? {})
+    : balancesPerChainId;
+
   let balance, balanceFiat, balanceBN;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset.assetId) {
-    const selectedAccount = selectInternalAccountByScope(
-      asset.chainId as CaipChainId,
-    );
+    const isEvmAsset = Boolean(assetEvmChainId);
 
-    if (!selectedAccount) {
+    if (!accountForAsset && !isEvmAsset) {
       return defaultReturn;
     }
 
-    // CAIP19 asset identifier
-    const assetCaip19Identifier = `${asset.chainId}/${asset.assetId}`;
-    const assetBalance =
-      multiChainTokenBalance?.[selectedAccount.id]?.[assetCaip19Identifier];
-    balance = `${assetBalance?.amount ?? ''} ${
-      assetBalance?.unit ?? ''
-    }`.trim();
+    // EVM balances are not in the multichain balance map. Leave `balance`
+    // unset so the EVM branches below read the scoped account.
+    if (accountForAsset && !isEvmAsset) {
+      const assetCaip19Identifier = `${asset.chainId}/${asset.assetId}`;
+      const assetBalance =
+        multiChainTokenBalance?.[accountForAsset.id]?.[assetCaip19Identifier];
+      balance = `${assetBalance?.amount ?? ''} ${
+        assetBalance?.unit ?? ''
+      }`.trim();
+    }
   }
 
   ///: END:ONLY_INCLUDE_IF
-  if (!balance && asset.address === NATIVE_ADDRESS && asset.chainId) {
-    const hexChainId = toHex(asset.chainId);
+  if (!balance && asset.address === NATIVE_ADDRESS && assetEvmChainId) {
+    const hexChainId = assetEvmChainId;
     // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
     if (!accountsByChainId[hexChainId]) {
       return defaultReturn;
     }
 
     const accountBalance =
-      accountsByChainId[hexChainId][selectedAddress]?.balance;
+      accountsByChainId[hexChainId][evmLookupAddress]?.balance;
 
     balance = renderFromWei(accountBalance);
 
@@ -114,8 +167,8 @@ export default function useBalance(asset?: Asset) {
     const assetAddress = safeToChecksumAddress(asset.address);
     const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
     // Use the asset's chainId to get balances for the correct chain
-    const hexChainId = asset.chainId ? toHex(asset.chainId) : undefined;
-    const chainBalances = hexChainId ? balancesPerChainId[hexChainId] : {};
+    const hexChainId = assetEvmChainId;
+    const chainBalances = hexChainId ? tokenBalancesByChain[hexChainId] : {};
     balance =
       assetAddress && chainBalances && assetAddress in chainBalances
         ? renderFromTokenMinimalUnit(
