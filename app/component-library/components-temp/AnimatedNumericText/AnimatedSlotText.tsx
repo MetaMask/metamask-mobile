@@ -36,6 +36,12 @@ export interface AnimatedSlotTextProps {
    * swaps with no roll.
    */
   animated?: boolean;
+  /**
+   * Clip the reel to the measured text width. Leave this off for proportional
+   * body text: each digit slot is as wide as `0`, so the measured width is
+   * short and the last character gets cut.
+   */
+  clipToBounds?: boolean;
   accessible?: boolean;
   testID?: string;
 }
@@ -59,6 +65,7 @@ const AnimatedSlotText = ({
   fontFamily = FontFamily.Default,
   fontWeight = FontWeight.Medium,
   animated,
+  clipToBounds = false,
   accessible = true,
   testID,
 }: AnimatedSlotTextProps) => {
@@ -101,7 +108,7 @@ const AnimatedSlotText = ({
             animationDuration={400}
             animationPreset="smooth"
             autoSize
-            clipToBounds
+            clipToBounds={clipToBounds}
             style={textStyle}
             text={numeric}
             variant="slots"

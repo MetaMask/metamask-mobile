@@ -52,6 +52,7 @@ const AnimatedBalanceText = ({
     <AnimatedSlotText
       accessible={accessible}
       animated={animated}
+      clipToBounds
       color={balanceColor}
       fontFamily={fontFamily}
       fontWeight={FontWeight.Bold}
