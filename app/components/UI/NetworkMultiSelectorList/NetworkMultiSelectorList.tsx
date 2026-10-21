@@ -45,6 +45,12 @@ import {
   ADDITIONAL_NETWORK_SECTION_ID,
   SELECT_ALL_NETWORKS_SECTION_ID,
 } from './NetworkMultiSelectorList.constants';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -76,6 +82,17 @@ const NetworkMultiSelectList = ({
   areAllNetworksSelected,
   openRpcModal,
 }: NetworkMultiSelectorListProps) => {
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const evmChainId = useSelector(selectEvmChainId);
+  const nonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  // Use the appropriate chain ID based on whether EVM is selected
+  // For EVM: convert hex chain ID to CAIP format (e.g., "0x1" -> "eip155:1")
+  // For non-EVM: use the already CAIP-formatted chain ID (e.g., "solana:mainnet")
+  // Fallback to EVM chain ID if non-EVM chain ID is undefined (prevents edit/delete
+  // options from incorrectly appearing on all networks)
+  const selectedChainIdCaip = isEvmSelected
+    ? formatChainIdToCaip(evmChainId)
+    : (nonEvmChainId ?? formatChainIdToCaip(evmChainId));
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
@@ -206,13 +223,14 @@ const NetworkMultiSelectList = ({
         openModal({
           isVisible: true,
           caipChainId: network.caipChainId,
-          displayEdit: !network.isMainChain,
+          displayEdit:
+            selectedChainIdCaip !== network.caipChainId && !network.isMainChain,
           networkTypeOrRpcUrl: network.networkTypeOrRpcUrl || '',
           isReadOnly: false,
         });
       },
     }),
-    [openModal],
+    [openModal, selectedChainIdCaip],
   );
 
   const renderNetworkItem = useCallback(

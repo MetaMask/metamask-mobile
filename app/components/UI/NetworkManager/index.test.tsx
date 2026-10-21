@@ -8,11 +8,6 @@ import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace/useNe
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { selectEvmChainId } from '../../../selectors/networkController';
-
-const mockSelectEvmChainId = selectEvmChainId as jest.MockedFunction<
-  typeof selectEvmChainId
->;
 
 // Create mock functions that we can spy on
 const mockNavigate = jest.fn();
@@ -219,21 +214,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectNetworkConfigurationsByCaipChainId: jest.fn(
     () => mockNetworkConfigurations,
   ),
-  selectEvmChainId: jest.fn(() => '0x1'),
-}));
-
-jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToCaip: jest.fn((chainId: string) => {
-    // Convert hex chain id (e.g. '0x1') to caip (e.g. 'eip155:1')
-    const decimal = parseInt(chainId, 16);
-    return `eip155:${decimal}`;
-  }),
-}));
-
-jest.mock('../../../store', () => ({
-  store: {
-    getState: jest.fn(() => ({})),
-  },
 }));
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -260,10 +240,6 @@ jest.mock('../../../core/Engine', () => ({
     context: {
       NetworkController: {
         removeNetwork: jest.fn(),
-        findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
-      },
-      MultichainNetworkController: {
-        setActiveNetwork: jest.fn(() => Promise.resolve()),
       },
     },
   },
@@ -344,9 +320,9 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
         testID="open-modal-button"
         onPress={() =>
           openModal({
-            caipChainId: 'eip155:137',
+            caipChainId: 'eip155:1',
             displayEdit: true,
-            networkTypeOrRpcUrl: 'https://polygon-rpc.com',
+            networkTypeOrRpcUrl: 'https://mainnet.infura.io',
             isReadOnly: false,
           })
         }
@@ -744,15 +720,6 @@ describe('NetworkManager Component', () => {
     (
       Engine.context.NetworkController.removeNetwork as jest.Mock
     ).mockImplementation(mockRemoveNetwork);
-
-    // Default: active EVM network is Ethereum mainnet
-    mockSelectEvmChainId.mockReturnValue('0x1');
-    (
-      Engine.context.NetworkController.findNetworkClientIdByChainId as jest.Mock
-    ).mockReturnValue('mainnet');
-    (
-      Engine.context.MultichainNetworkController.setActiveNetwork as jest.Mock
-    ).mockResolvedValue(undefined);
   });
 
   const renderComponent = () =>
@@ -888,7 +855,7 @@ describe('NetworkManager Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('AddNetwork', {
         shouldNetworkSwitchPopToWallet: false,
         shouldShowPopularNetworks: false,
-        network: 'https://polygon-rpc.com',
+        network: 'https://mainnet.infura.io',
       });
     });
   });
@@ -930,7 +897,7 @@ describe('NetworkManager Component', () => {
         const headers = getAllByTestId('header');
         expect(headers.length).toBeGreaterThan(0);
         // The network name appears as part of a larger text string, use partial match
-        expect(getByText(/Polygon Mainnet/)).toBeOnTheScreen();
+        expect(getByText(/Ethereum Mainnet/)).toBeOnTheScreen();
         expect(getByText(/app_settings\.network_delete/)).toBeOnTheScreen();
       });
     });
@@ -976,78 +943,9 @@ describe('NetworkManager Component', () => {
       const confirmButton = getByTestId('footer-button-app_settings.delete');
       fireEvent.press(confirmButton);
 
-      await waitFor(() => {
-        expect(mockRemoveNetwork).toHaveBeenCalledWith('0x137');
-      });
+      expect(mockRemoveNetwork).toHaveBeenCalledWith('0x1');
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-        removedChainId: '0x137',
-      });
-    });
-
-    describe('active network fallback', () => {
-      // The popular-tab mock opens the delete modal for eip155:137
-      // (Polygon, chain id 0x89) with displayEdit: true. We control the active
-      // EVM chain via mockSelectEvmChainId.
-      const openDeleteAndConfirm = async (
-        getByTestId: ReturnType<typeof renderComponent>['getByTestId'],
-      ) => {
-        const openModalButton = getByTestId('open-modal-button');
-        fireEvent.press(openModalButton);
-
-        await waitFor(() => {
-          const deleteButton = getByTestId(
-            'account-action-app_settings.delete',
-          );
-          fireEvent.press(deleteButton);
-        });
-
-        const confirmButton = getByTestId('footer-button-app_settings.delete');
-        fireEvent.press(confirmButton);
-      };
-
-      it('switches active network to Ethereum before removing when deleting the active network', async () => {
-        // Arrange - active network IS the one being deleted (eip155:137 / 0x89)
-        mockSelectEvmChainId.mockReturnValue('0x89');
-        const { getByTestId } = renderComponent();
-
-        // Act
-        await openDeleteAndConfirm(getByTestId);
-
-        // Assert - fallback to Ethereum happened BEFORE removal
-        await waitFor(() => {
-          expect(
-            Engine.context.NetworkController.findNetworkClientIdByChainId,
-          ).toHaveBeenCalledWith('0x1');
-          expect(
-            Engine.context.MultichainNetworkController.setActiveNetwork,
-          ).toHaveBeenCalledWith('mainnet');
-          expect(mockRemoveNetwork).toHaveBeenCalledWith('0x137');
-        });
-
-        const setActiveOrder = (
-          Engine.context.MultichainNetworkController
-            .setActiveNetwork as jest.Mock
-        ).mock.invocationCallOrder[0];
-        const removeOrder = (mockRemoveNetwork as jest.Mock).mock
-          .invocationCallOrder[0];
-        expect(setActiveOrder).toBeLessThan(removeOrder);
-      });
-
-      it('does NOT switch active network when deleting a non-active network', async () => {
-        // Arrange - active network is Ethereum (0x1), deleting Polygon (0x89)
-        mockSelectEvmChainId.mockReturnValue('0x1');
-        const { getByTestId } = renderComponent();
-
-        // Act
-        await openDeleteAndConfirm(getByTestId);
-
-        // Assert - no fallback, direct removal
-        await waitFor(() => {
-          expect(mockRemoveNetwork).toHaveBeenCalledWith('0x137');
-        });
-        expect(
-          Engine.context.MultichainNetworkController.setActiveNetwork,
-        ).not.toHaveBeenCalled();
+        removedChainId: '0x1',
       });
     });
   });
@@ -1071,7 +969,7 @@ describe('NetworkManager Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('AddNetwork', {
         shouldNetworkSwitchPopToWallet: false,
         shouldShowPopularNetworks: false,
-        network: 'https://polygon-rpc.com',
+        network: 'https://mainnet.infura.io',
       });
     });
 
@@ -1356,12 +1254,9 @@ describe('NetworkManager Component', () => {
       const confirmButton = getByTestId('footer-button-app_settings.delete');
       fireEvent.press(confirmButton);
 
-      // Only disables the deleted network, does not enable another one.
-      // The deleted network (eip155:137) is not the active one (active is
-      // Ethereum 0x1), so no active-network switch is required.
-      await waitFor(() => {
-        expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:137');
-      });
+      // Only disables the deleted network, does not enable another one
+      // (we only allow deleting non-active networks, so no need to switch)
+      expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
       expect(mockEnableNetwork).not.toHaveBeenCalled();
     });
   });

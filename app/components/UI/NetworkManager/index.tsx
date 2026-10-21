@@ -38,13 +38,7 @@ import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelecto
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
-import {
-  selectNetworkConfigurationsByCaipChainId,
-  selectEvmChainId,
-} from '../../../selectors/networkController';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { store } from '../../../store';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 
@@ -290,29 +284,17 @@ const NetworkManager = () => {
     [networkConfigurations, closeModal],
   );
 
-  const confirmRemoveRpc = useCallback(async () => {
+  const confirmRemoveRpc = useCallback(() => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId } = showConfirmDeleteModal;
-      const { NetworkController, MultichainNetworkController } = Engine.context;
+      const { NetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
-      // If deleting the currently-active EVM network, switch to Ethereum FIRST and
-      // await it: NetworkController.removeNetwork throws when removing the
-      // currently-selected network.
-      const activeEvmCaip = formatChainIdToCaip(
-        selectEvmChainId(store.getState()),
-      );
-      if (caipChainId === activeEvmCaip) {
-        const mainnetClientId = NetworkController.findNetworkClientIdByChainId(
-          CHAIN_IDS.MAINNET,
-        );
-        await MultichainNetworkController.setActiveNetwork(mainnetClientId);
-      }
-
       // Remove the network from controller and disable it in the filter
+      // Note: We only allow deleting non-active networks, so no need to switch
       NetworkController.removeNetwork(chainId);
-      disableNetwork(caipChainId);
+      disableNetwork(showConfirmDeleteModal.caipChainId);
 
       identify(removeItemFromChainIdList(chainId));
 
