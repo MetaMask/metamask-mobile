@@ -344,7 +344,7 @@ describe('Money Account feature flag selectors', () => {
     });
 
     it('drops a present regionOverride when the gate is closed', () => {
-      const readClosed = (flag: Record<string, unknown>) =>
+      const readClosed = (flag: Record<string, Json>) =>
         selectMoneyMovementNeobank.resultFunc({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
             ...enabledFlag,
