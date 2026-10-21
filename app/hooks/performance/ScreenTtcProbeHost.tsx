@@ -36,6 +36,15 @@ const ScreenTtcProbeHost = () => {
   );
 
   useEffect(() => {
+    // Babel inlines this. Release and smoke bundles skip the import, so
+    // Engine and the flag override are not loaded on those builds.
+    if (process.env.IS_PERFORMANCE_TEST === 'true') {
+      import('./pinDeferredRenderPerformanceFlags')
+        .then((mod) => {
+          mod.pinPerpsAdvancedChartProductionDefault();
+        })
+        .catch(() => undefined);
+    }
     if (!isScreenTtcProbeEnabled()) {
       return;
     }

@@ -1,6 +1,9 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
-import { usePredictNavigation } from './usePredictNavigation';
+import {
+  isPredictUpDownDetailsNavigation,
+  usePredictNavigation,
+} from './usePredictNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   PredictBuyPreviewParams,
@@ -35,6 +38,41 @@ const createMockMarketDetailsParams = (
   marketId: 'market-1',
   entryPoint: 'predict_feed',
   ...overrides,
+});
+
+describe('isPredictUpDownDetailsNavigation', () => {
+  it('is true when the series slug is an up or down market', () => {
+    expect(
+      isPredictUpDownDetailsNavigation(
+        createMockMarketDetailsParams({
+          series: {
+            id: 'btc-series',
+            slug: 'btc-up-or-down-5m',
+            title: 'BTC Up or Down',
+            recurrence: '5m',
+          },
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('is false when the navigation has no up or down series', () => {
+    expect(
+      isPredictUpDownDetailsNavigation(createMockMarketDetailsParams()),
+    ).toBe(false);
+    expect(
+      isPredictUpDownDetailsNavigation(
+        createMockMarketDetailsParams({
+          series: {
+            id: 'nfl',
+            slug: 'nfl-champion',
+            title: 'NFL Champion',
+            recurrence: '',
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('usePredictNavigation', () => {

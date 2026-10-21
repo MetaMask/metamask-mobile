@@ -142,6 +142,23 @@ describe('LivelineChart', () => {
   });
 
   describe('callbacks', () => {
+    it('calls onDataRendered when DATA_RENDERED message arrives', () => {
+      const onDataRendered = jest.fn();
+      const { getByTestId } = render(
+        <LivelineChart
+          data={MOCK_DATA}
+          value={43.1}
+          onDataRendered={onDataRendered}
+        />,
+      );
+
+      fireMessage(getByTestId('liveline-chart-webview'), {
+        type: 'DATA_RENDERED',
+      });
+
+      expect(onDataRendered).toHaveBeenCalledTimes(1);
+    });
+
     it('calls onChartReady when CHART_READY message arrives', () => {
       const onChartReady = jest.fn();
       const { getByTestId } = render(
@@ -550,6 +567,12 @@ describe('parseWebViewMessage', () => {
     const result = parseWebViewMessage({ type: 'CHART_READY' });
 
     expect(result).toEqual({ type: 'CHART_READY' });
+  });
+
+  it('parses DATA_RENDERED message', () => {
+    expect(parseWebViewMessage({ type: 'DATA_RENDERED' })).toEqual({
+      type: 'DATA_RENDERED',
+    });
   });
 
   it('parses ERROR message with provided message string', () => {

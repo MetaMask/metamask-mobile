@@ -6,7 +6,11 @@ import {
   type DeferredRenderPointId,
   type DeferredRenderScreenId,
 } from './deferredRenderPerformanceIds';
-import { isScreenTtcProbeEnabled, recordScreenTtc } from './screenTtcRegistry';
+import {
+  isScreenTtcProbeEnabled,
+  recordScreenTtc,
+  type ScreenTtcContentState,
+} from './screenTtcRegistry';
 
 const origins = new Map<DeferredRenderScreenId, number>();
 const recordedPoints = new Set<string>();
@@ -50,6 +54,7 @@ export function markDeferredRenderNavStart(
 export function markDeferredRenderPoint(
   screenId: DeferredRenderScreenId,
   point: DeferredRenderPointId,
+  contentState: ScreenTtcContentState = 'filled',
 ): void {
   if (!isScreenTtcProbeEnabled()) {
     return;
@@ -70,7 +75,7 @@ export function markDeferredRenderPoint(
   recordScreenTtc(
     deferredRenderProbeId(screenId, point),
     now - origin,
-    'filled',
+    contentState,
   );
 }
 

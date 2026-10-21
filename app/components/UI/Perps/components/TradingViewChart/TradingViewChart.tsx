@@ -24,6 +24,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { isScreenTtcProbeEnabled } from '../../../../../hooks/performance/screenTtcRegistry';
 export interface ChartLimitOrderLine {
   id: string;
   price: string;
@@ -68,6 +69,8 @@ interface TradingViewChartProps {
   height?: number;
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
+  /** Fires after the WebView applies the first candlestick dataset. */
+  onDataRendered?: () => void;
   onNeedMoreHistory?: () => void; // Callback when user scrolls to left edge and needs more historical data
   visibleCandleCount?: number; // Number of candles to display (for zoom level)
   onVisibleCandleCountChange?: (count: number) => void;
@@ -92,6 +95,7 @@ const TradingViewChart = React.forwardRef<
       height = 350,
       tpslLines,
       onChartReady,
+      onDataRendered,
       onNeedMoreHistory,
       visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
       onVisibleCandleCountChange,
@@ -296,6 +300,9 @@ const TradingViewChart = React.forwardRef<
               setChartReadyNonce((n) => n + 1);
               onChartReady?.();
               break;
+            case 'DATA_RENDERED':
+              onDataRendered?.();
+              break;
             case 'PRICE_LINES_UPDATE':
               break;
             case 'INTERVAL_UPDATED':
@@ -347,7 +354,7 @@ const TradingViewChart = React.forwardRef<
           );
         }
       },
-      [onChartReady, onNeedMoreHistory, ohlcData],
+      [onChartReady, onDataRendered, onNeedMoreHistory, ohlcData],
     );
 
     // Convert CandleData to format expected by TradingView Lightweight Charts
@@ -527,6 +534,9 @@ const TradingViewChart = React.forwardRef<
             source: CANDLE_DATA_SOURCE,
             visibleCandleCount: visibleCandleCountRef.current,
             interval: dataToUse.interval, // Pass interval for zoom reset on change
+            ...(isScreenTtcProbeEnabled()
+              ? { probeDataRendered: true }
+              : undefined),
           };
           webViewRef.current.postMessage(JSON.stringify(message));
         }

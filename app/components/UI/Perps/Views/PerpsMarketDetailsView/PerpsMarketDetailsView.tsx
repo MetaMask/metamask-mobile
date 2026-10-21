@@ -1122,12 +1122,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     if (!isScreenTtcProbeEnabled()) {
       return;
     }
-    if (chartSectionState === 'content' || chartSectionState === 'empty') {
-      markDeferredRenderPoint(
-        DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
-        DeferredRenderPoint.CHART_DATA_READY,
-      );
+    let contentState: 'filled' | 'empty' | 'error' | undefined;
+    if (chartSectionState === 'content') {
+      contentState = 'filled';
+    } else if (chartSectionState === 'empty') {
+      contentState = 'empty';
+    } else if (chartSectionState === 'error') {
+      contentState = 'error';
     }
+    if (!contentState) {
+      return;
+    }
+    markDeferredRenderPoint(
+      DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
+      DeferredRenderPoint.CHART_DATA_READY,
+      contentState,
+    );
   }, [chartSectionState]);
   const hasCurrentLiveMarketStats =
     !marketStats.hasError &&
@@ -1992,7 +2002,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
-        onChartReady={handleDeferredRenderChartReady}
+        onDataRendered={handleDeferredRenderChartReady}
         onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
       />

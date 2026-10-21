@@ -19,6 +19,11 @@ interface NavigateToMarketDetailsOptions {
   replace?: boolean;
 }
 
+/** Up/down details are the only Predict screen this probe measures. */
+export const isPredictUpDownDetailsNavigation = (
+  params: PredictMarketDetailsParams,
+): boolean => Boolean(params.series?.slug.includes('up-or-down'));
+
 export const usePredictNavigation = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -48,9 +53,11 @@ export const usePredictNavigation = () => {
       params: PredictMarketDetailsParams,
       options?: NavigateToMarketDetailsOptions,
     ) => {
-      markDeferredRenderNavStart(
-        DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
-      );
+      if (isPredictUpDownDetailsNavigation(params)) {
+        markDeferredRenderNavStart(
+          DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
+        );
+      }
       if (options?.replace) {
         navigation.dispatch(
           StackActions.replace(Routes.PREDICT.MARKET_DETAILS, params),

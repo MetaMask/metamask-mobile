@@ -6,6 +6,7 @@ import {
   parseScreenTtcAccessibilityLabel,
   screenTtcTestId,
   type ScreenTtcId,
+  type ScreenTtcRecord,
 } from '../../../app/hooks/performance/screenTtcRegistry';
 import TimerHelper, {
   type PlatformThreshold,
@@ -114,10 +115,10 @@ async function readProbeLabel(screenId: ScreenTtcId): Promise<string> {
  * 2s) is actually respected — otherwise each missing-element strategy would
  * block for DEFAULT_IMPLICIT_WAIT_MS (~3.5s) before the deadline is checked.
  */
-export async function waitForAppScreenTtc(
+export async function waitForAppScreenTtcRecord(
   screenId: ScreenTtcId,
   options?: { timeoutMs?: number; minGeneration?: number },
-): Promise<number> {
+): Promise<ScreenTtcRecord> {
   const timeoutMs = options?.timeoutMs ?? DEFAULT_REQUIRED_TIMEOUT_MS;
   const minGeneration = options?.minGeneration ?? 1;
   const deadline = Date.now() + timeoutMs;
@@ -134,7 +135,7 @@ export async function waitForAppScreenTtc(
           parsed.screenId === screenId &&
           parsed.generation >= minGeneration
         ) {
-          return parsed.durationMs;
+          return parsed;
         }
       } catch (error) {
         lastError = error instanceof Error ? error.message : String(error);
@@ -146,6 +147,15 @@ export async function waitForAppScreenTtc(
       `Timed out waiting for in-app TTC probe for [${screenId}] within ${timeoutMs}ms (last label: "${lastLabel}"; last error: ${lastError})`,
     );
   });
+}
+
+/** Duration from {@link waitForAppScreenTtcRecord}. */
+export async function waitForAppScreenTtc(
+  screenId: ScreenTtcId,
+  options?: { timeoutMs?: number; minGeneration?: number },
+): Promise<number> {
+  const record = await waitForAppScreenTtcRecord(screenId, options);
+  return record.durationMs;
 }
 
 /**

@@ -13,9 +13,13 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import {
   Performance,
   PerformanceDeferredRender,
+  PerformanceLogin,
 } from '../../tags.performance.js';
 import { waitForAppScreenTtc } from '../utils/readScreenTtc';
-import { recordDeferredRenderProbes } from './helpers/deferredRenderTtc';
+import {
+  assertDeferredRenderChartDataFilled,
+  recordDeferredRenderProbes,
+} from './helpers/deferredRenderTtc';
 
 const SCREEN_THRESHOLD = { ios: 20_000, android: 20_000 };
 const CHART_THRESHOLD = { ios: 45_000, android: 45_000 };
@@ -66,74 +70,80 @@ async function openBtcUpDownDetails(): Promise<void> {
 }
 
 /* Predict crypto up/down details for BTC 5m: render versus chart network. */
-perfTest.describe(`${Performance} ${PerformanceDeferredRender}`, () => {
-  perfTest(
-    'Predict crypto up/down details deferred render, BTC',
-    { tag: '@team-predict' },
-    async ({ currentDeviceDetails, performanceTracker }) => {
-      await loginToAppPlaywright();
+perfTest.describe(
+  `${Performance} ${PerformanceLogin} ${PerformanceDeferredRender}`,
+  () => {
+    perfTest(
+      'Predict crypto up/down details deferred render, BTC',
+      { tag: '@team-predict' },
+      async ({ currentDeviceDetails, performanceTracker }) => {
+        await loginToAppPlaywright();
 
-      const detailsTimer = new TimerHelper(
-        'Time since the user opens BTC Up or Down until predict-crypto-up-down-details-screen is visible',
-        SCREEN_THRESHOLD,
-        currentDeviceDetails.platform,
-      );
-      const chartTimer = new TimerHelper(
-        'Time since predict up/down details are visible until the liveline chart is ready',
-        CHART_THRESHOLD,
-        currentDeviceDetails.platform,
-      );
+        const detailsTimer = new TimerHelper(
+          'Time since the user opens BTC Up or Down until predict-crypto-up-down-details-screen is visible',
+          SCREEN_THRESHOLD,
+          currentDeviceDetails.platform,
+        );
+        const chartTimer = new TimerHelper(
+          'Time since predict up/down details are visible until the liveline chart is ready',
+          CHART_THRESHOLD,
+          currentDeviceDetails.platform,
+        );
 
-      await openBtcUpDownDetails();
+        await openBtcUpDownDetails();
 
-      await detailsTimer.measure(async () => {
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID('predict-crypto-up-down-details-screen'),
-          {
-            timeout: SCREEN_THRESHOLD.android,
-            description: 'predict-crypto-up-down-details-screen',
-          },
-        );
-      });
+        await detailsTimer.measure(async () => {
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByID('predict-crypto-up-down-details-screen'),
+            {
+              timeout: SCREEN_THRESHOLD.android,
+              description: 'predict-crypto-up-down-details-screen',
+            },
+          );
+        });
 
-      await chartTimer.measure(async () => {
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID('predict-crypto-up-down-chart-container'),
-          {
-            timeout: CHART_THRESHOLD.android,
-            description: 'predict-crypto-up-down-chart-container',
-          },
-        );
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID('liveline-chart-webview'),
-          {
-            timeout: CHART_THRESHOLD.android,
-            description: 'liveline-chart-webview',
-          },
-        );
-        await Assertions.expectElementToNotBeVisible(
-          Matchers.getElementByID('liveline-chart-loading'),
-          {
-            timeout: CHART_THRESHOLD.android,
-            description: 'liveline-chart-loading hidden',
-          },
-        );
-        await waitForAppScreenTtc(
-          deferredRenderProbeId(
+        await chartTimer.measure(async () => {
+          await assertDeferredRenderChartDataFilled(
             DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
-            DeferredRenderPoint.CHART_READY,
-          ),
-          { timeoutMs: CHART_THRESHOLD.android },
-        );
-      });
+          );
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByID('predict-crypto-up-down-chart-container'),
+            {
+              timeout: CHART_THRESHOLD.android,
+              description: 'predict-crypto-up-down-chart-container',
+            },
+          );
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByID('liveline-chart-webview'),
+            {
+              timeout: CHART_THRESHOLD.android,
+              description: 'liveline-chart-webview',
+            },
+          );
+          await Assertions.expectElementToNotBeVisible(
+            Matchers.getElementByID('liveline-chart-loading'),
+            {
+              timeout: CHART_THRESHOLD.android,
+              description: 'liveline-chart-loading hidden',
+            },
+          );
+          await waitForAppScreenTtc(
+            deferredRenderProbeId(
+              DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
+              DeferredRenderPoint.CHART_READY,
+            ),
+            { timeoutMs: CHART_THRESHOLD.android },
+          );
+        });
 
-      performanceTracker.addTimer(detailsTimer);
-      performanceTracker.addTimer(chartTimer);
-      await recordDeferredRenderProbes({
-        performanceTracker,
-        platform: currentDeviceDetails.platform,
-        screenId: DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
-      });
-    },
-  );
-});
+        performanceTracker.addTimer(detailsTimer);
+        performanceTracker.addTimer(chartTimer);
+        await recordDeferredRenderProbes({
+          performanceTracker,
+          platform: currentDeviceDetails.platform,
+          screenId: DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
+        });
+      },
+    );
+  },
+);

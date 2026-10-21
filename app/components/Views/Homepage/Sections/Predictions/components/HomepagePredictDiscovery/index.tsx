@@ -94,6 +94,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
             entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
             title: btcWindowMarket?.title ?? series.title,
             image: btcWindowMarket?.image,
+            series,
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
             }),

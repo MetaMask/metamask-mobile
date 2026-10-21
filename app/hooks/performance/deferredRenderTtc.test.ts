@@ -126,4 +126,30 @@ describe('deferredRenderTtc', () => {
     expect(getScreenTtc(firstRenderId)?.durationMs).toBe(50);
     expect(getScreenTtc(firstRenderId)?.generation).not.toBe(firstGeneration);
   });
+
+  it('records an error chart data outcome instead of filled', () => {
+    const screenId = DeferredRenderScreenIds.TOKEN_DETAILS;
+    const chartDataId = deferredRenderProbeId(
+      screenId,
+      DeferredRenderPoint.CHART_DATA_READY,
+    );
+    mockNow.mockReturnValueOnce(1_000).mockReturnValueOnce(1_250);
+
+    markDeferredRenderNavStart(screenId);
+    markDeferredRenderPoint(
+      screenId,
+      DeferredRenderPoint.CHART_DATA_READY,
+      'error',
+    );
+
+    const record = getScreenTtc(chartDataId);
+    expect(record?.contentState).toBe('error');
+    expect(record?.durationMs).toBe(250);
+    if (!record) {
+      throw new Error('expected chart data record');
+    }
+    expect(formatScreenTtcAccessibilityLabel(record)).toBe(
+      `ttc:token_details_chart_data_ready:250:${record.generation}:error`,
+    );
+  });
 });
