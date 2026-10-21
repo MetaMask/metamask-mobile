@@ -5,7 +5,7 @@ import {
 } from '../../../app/hooks/performance/deferredRenderPerformanceIds';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { dismissPerpsOnboardingTutorialIfPresent } from '../../flows/perps.flow';
-import { Assertions, Matchers } from '../../framework';
+import { Assertions, Matchers, Utilities } from '../../framework';
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
@@ -19,6 +19,7 @@ import {
 import { waitForAppScreenTtc } from '../utils/readScreenTtc';
 import {
   assertDeferredRenderChartDataFilled,
+  assertPerpsAdvancedChartPath,
   recordDeferredRenderProbes,
 } from './helpers/deferredRenderTtc';
 
@@ -62,9 +63,14 @@ perfTest.describe(
         });
 
         await chartTimer.measure(async () => {
+          const skeletonAppeared = await Utilities.isElementVisible(
+            Matchers.getElementByID('advanced-chart-skeleton'),
+            5_000,
+          );
           await assertDeferredRenderChartDataFilled(
             DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
           );
+          await assertPerpsAdvancedChartPath({ skeletonAppeared });
           await Assertions.expectElementToNotBeVisible(
             Matchers.getElementByID('perps-market-details-view-chart-skeleton'),
             {

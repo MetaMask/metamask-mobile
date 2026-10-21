@@ -75,6 +75,16 @@ describe('screenTtcRegistry', () => {
       parseScreenTtcAccessibilityLabel('ttc:onboarding_sheet:12:2:error')
         ?.contentState,
     ).toBe('error');
+    expect(
+      parseScreenTtcAccessibilityLabel(
+        'ttc:perps_market_details_chart_path:4:3:advanced',
+      )?.chartPath,
+    ).toBe('advanced');
+    expect(
+      parseScreenTtcAccessibilityLabel(
+        'ttc:perps_market_details_chart_path:4:3:tradingview',
+      )?.chartPath,
+    ).toBe('tradingview');
   });
 
   it('returns null for malformed accessibility labels', () => {

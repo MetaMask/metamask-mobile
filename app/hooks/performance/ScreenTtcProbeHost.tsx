@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { markPerpsChartPinFailed } from './deferredRenderTtc';
 import {
   formatScreenTtcAccessibilityLabel,
   getAllScreenTtc,
@@ -43,7 +44,9 @@ const ScreenTtcProbeHost = () => {
         .then((mod) => {
           mod.pinPerpsAdvancedChartProductionDefault();
         })
-        .catch(() => undefined);
+        .catch(() => {
+          markPerpsChartPinFailed();
+        });
     }
     if (!isScreenTtcProbeEnabled()) {
       return;

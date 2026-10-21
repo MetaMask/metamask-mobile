@@ -35,7 +35,10 @@ import {
   DeferredRenderPoint,
   DeferredRenderScreenIds,
 } from '../../../../hooks/performance/deferredRenderPerformanceIds';
-import { markDeferredRenderPoint } from '../../../../hooks/performance/deferredRenderTtc';
+import {
+  markDeferredRenderChartReady,
+  markDeferredRenderPoint,
+} from '../../../../hooks/performance/deferredRenderTtc';
 import { isScreenTtcProbeEnabled } from '../../../../hooks/performance/screenTtcRegistry';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
@@ -446,10 +449,7 @@ export const usePriceChartState = ({
   }, []);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
-    markDeferredRenderPoint(
-      DeferredRenderScreenIds.TOKEN_DETAILS,
-      DeferredRenderPoint.CHART_READY,
-    );
+    markDeferredRenderChartReady(DeferredRenderScreenIds.TOKEN_DETAILS);
     const isInitialReveal = !hasChartBeenRevealed;
     setHasChartBeenRevealed(true);
     setChartInitFailed(false);

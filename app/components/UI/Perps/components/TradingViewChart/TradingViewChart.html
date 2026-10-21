@@ -1029,9 +1029,15 @@ PERFORMANCE OPTIMIZATIONS:
                                 // Perf probe only: first setData has drawn candles.
                                 // Absent unless the RN message sets probeDataRendered.
                                 if (shouldAutoscale && message.probeDataRendered && window.ReactNativeWebView) {
-                                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                                        type: 'DATA_RENDERED'
-                                    }));
+                                    requestAnimationFrame(function() {
+                                        requestAnimationFrame(function() {
+                                            if (window.ReactNativeWebView) {
+                                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                                    type: 'DATA_RENDERED'
+                                                }));
+                                            }
+                                        });
+                                    });
                                 }
                                 
                                 // Update current price line with the latest candle's close price

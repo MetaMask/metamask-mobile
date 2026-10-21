@@ -23,6 +23,21 @@ export const DeferredRenderPoint = {
   CHART_READY: 'chart_ready',
 } as const;
 
+/** Which perps chart implementation actually mounted. */
+export type PerpsChartRenderPath = 'advanced' | 'tradingview';
+
+/** Probe id for the mounted perps chart implementation. */
+export const PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID =
+  'perps_market_details_chart_path' as const;
+
+/** Probe id recorded when the performance-build flag pin throws. */
+export const PERPS_MARKET_DETAILS_CHART_PIN_PROBE_ID =
+  'perps_market_details_chart_pin' as const;
+
+export type DeferredRenderExtraProbeId =
+  | typeof PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID
+  | typeof PERPS_MARKET_DETAILS_CHART_PIN_PROBE_ID;
+
 export type DeferredRenderPointId =
   (typeof DeferredRenderPoint)[keyof typeof DeferredRenderPoint];
 

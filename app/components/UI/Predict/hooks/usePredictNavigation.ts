@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { DeferredRenderScreenIds } from '../../../../hooks/performance/deferredRenderPerformanceIds';
 import { markDeferredRenderNavStart } from '../../../../hooks/performance/deferredRenderTtc';
+import { isScreenTtcProbeEnabled } from '../../../../hooks/performance/screenTtcRegistry';
 import {
   PredictBuyPreviewParams,
   PredictMarketDetailsParams,
@@ -53,7 +54,10 @@ export const usePredictNavigation = () => {
       params: PredictMarketDetailsParams,
       options?: NavigateToMarketDetailsOptions,
     ) => {
-      if (isPredictUpDownDetailsNavigation(params)) {
+      if (
+        isScreenTtcProbeEnabled() &&
+        isPredictUpDownDetailsNavigation(params)
+      ) {
         markDeferredRenderNavStart(
           DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
         );

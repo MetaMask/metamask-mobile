@@ -2,9 +2,13 @@ import { useLayoutEffect } from 'react';
 import { getPerformanceTimestamp } from '../../util/trace';
 import {
   DeferredRenderPoint,
+  DeferredRenderScreenIds,
   deferredRenderProbeId,
+  PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
+  PERPS_MARKET_DETAILS_CHART_PIN_PROBE_ID,
   type DeferredRenderPointId,
   type DeferredRenderScreenId,
+  type PerpsChartRenderPath,
 } from './deferredRenderPerformanceIds';
 import {
   isScreenTtcProbeEnabled,
@@ -77,6 +81,53 @@ export function markDeferredRenderPoint(
     now - origin,
     contentState,
   );
+}
+
+/**
+ * chart_ready after two animation frames, so the sample is the drawn frame.
+ * No-ops when the probe is disabled, and does not delay the caller's other work.
+ */
+export function markDeferredRenderChartReady(
+  screenId: DeferredRenderScreenId,
+): void {
+  if (!isScreenTtcProbeEnabled()) {
+    return;
+  }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      markDeferredRenderPoint(screenId, DeferredRenderPoint.CHART_READY);
+    });
+  });
+}
+
+/**
+ * Last write wins. Records the perps chart implementation that mounted.
+ * No-ops when the probe is disabled.
+ */
+export function markPerpsChartRenderPath(path: PerpsChartRenderPath): void {
+  if (!isScreenTtcProbeEnabled()) {
+    return;
+  }
+  const now = getPerformanceTimestamp();
+  let origin = origins.get(DeferredRenderScreenIds.PERPS_MARKET_DETAILS);
+  if (origin === undefined) {
+    origin = now;
+    origins.set(DeferredRenderScreenIds.PERPS_MARKET_DETAILS, origin);
+  }
+  recordScreenTtc(
+    PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
+    now - origin,
+    'filled',
+    path,
+  );
+}
+
+/** Visible pin failure. No-ops when the probe is disabled. */
+export function markPerpsChartPinFailed(): void {
+  if (!isScreenTtcProbeEnabled()) {
+    return;
+  }
+  recordScreenTtc(PERPS_MARKET_DETAILS_CHART_PIN_PROBE_ID, 0, 'error');
 }
 
 /** First commit of the screen, before paint. Safe to call in production. */

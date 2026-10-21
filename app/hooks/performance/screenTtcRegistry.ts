@@ -1,8 +1,15 @@
-import type { DeferredRenderProbeId } from './deferredRenderPerformanceIds';
+import type {
+  DeferredRenderExtraProbeId,
+  DeferredRenderProbeId,
+  PerpsChartRenderPath,
+} from './deferredRenderPerformanceIds';
 import type { OnboardingScreenId } from './onboardingPerformanceIds';
 import { isE2EOrPerformanceTest } from '../../util/test/utils';
 
-export type ScreenTtcId = OnboardingScreenId | DeferredRenderProbeId;
+export type ScreenTtcId =
+  | OnboardingScreenId
+  | DeferredRenderProbeId
+  | DeferredRenderExtraProbeId;
 
 export type ScreenTtcContentState = 'empty' | 'filled' | 'error';
 
@@ -12,6 +19,8 @@ export interface ScreenTtcRecord {
   contentState: ScreenTtcContentState;
   /** Bumps on every successful record so Appium can wait for a fresh value. */
   generation: number;
+  /** Set only for the perps chart-path probe. */
+  chartPath?: PerpsChartRenderPath;
 }
 
 const records = new Map<ScreenTtcId, ScreenTtcRecord>();
@@ -36,31 +45,38 @@ export function screenTtcTestId(screenId: ScreenTtcId): string {
  * Accessibility label format Appium parses:
  * `ttc:<screen_id>:<durationMs>:<generation>`
  * A non-filled outcome appends `:<empty|error>` so a rep can be excluded.
+ * The perps chart-path probe appends `:<advanced|tradingview>`.
  */
 export function formatScreenTtcAccessibilityLabel(
   record: ScreenTtcRecord,
 ): string {
-  const base = `ttc:${record.screenId}:${Math.round(record.durationMs)}:${record.generation}`;
-  return record.contentState === 'filled'
-    ? base
-    : `${base}:${record.contentState}`;
+  let label = `ttc:${record.screenId}:${Math.round(record.durationMs)}:${record.generation}`;
+  if (record.contentState !== 'filled') {
+    label = `${label}:${record.contentState}`;
+  }
+  if (record.chartPath) {
+    label = `${label}:${record.chartPath}`;
+  }
+  return label;
 }
 
 export function parseScreenTtcAccessibilityLabel(
   label: string,
 ): ScreenTtcRecord | null {
   const match =
-    /^ttc:([a-z0-9_]+):(\d+(?:\.\d+)?):(\d+)(?::(empty|error|filled))?$/.exec(
+    /^ttc:([a-z0-9_]+):(\d+(?:\.\d+)?):(\d+)(?::(empty|error|filled))?(?::(advanced|tradingview))?$/.exec(
       label.trim(),
     );
   if (!match) {
     return null;
   }
+  const chartPath = match[5] as PerpsChartRenderPath | undefined;
   return {
     screenId: match[1] as ScreenTtcId,
     durationMs: Number(match[2]),
     contentState: (match[4] as ScreenTtcContentState | undefined) ?? 'filled',
     generation: Number(match[3]),
+    ...(chartPath ? { chartPath } : {}),
   };
 }
 
@@ -68,6 +84,7 @@ export function recordScreenTtc(
   screenId: ScreenTtcId,
   durationMs: number,
   contentState: ScreenTtcContentState,
+  chartPath?: PerpsChartRenderPath,
 ): void {
   if (!isScreenTtcProbeEnabled()) {
     return;
@@ -79,6 +96,7 @@ export function recordScreenTtc(
     durationMs: Math.max(0, durationMs),
     contentState,
     generation: generationCounter,
+    ...(chartPath ? { chartPath } : {}),
   });
   listeners.forEach((listener) => listener());
 }

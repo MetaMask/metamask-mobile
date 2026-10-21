@@ -3,11 +3,16 @@ import {
   DeferredRenderPoint,
   DeferredRenderScreenIds,
   deferredRenderProbeId,
+  PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
+  PERPS_MARKET_DETAILS_CHART_PIN_PROBE_ID,
 } from './deferredRenderPerformanceIds';
 import {
   _resetDeferredRenderTtcForTesting,
+  markDeferredRenderChartReady,
   markDeferredRenderNavStart,
   markDeferredRenderPoint,
+  markPerpsChartPinFailed,
+  markPerpsChartRenderPath,
 } from './deferredRenderTtc';
 import {
   formatScreenTtcAccessibilityLabel,
@@ -150,6 +155,63 @@ describe('deferredRenderTtc', () => {
     }
     expect(formatScreenTtcAccessibilityLabel(record)).toBe(
       `ttc:token_details_chart_data_ready:250:${record.generation}:error`,
+    );
+  });
+
+  it('records chart_ready on the second animation frame', () => {
+    const screenId = DeferredRenderScreenIds.TOKEN_DETAILS;
+    const chartReadyId = deferredRenderProbeId(
+      screenId,
+      DeferredRenderPoint.CHART_READY,
+    );
+    const frames: FrameRequestCallback[] = [];
+    const frameSpy = jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((callback: FrameRequestCallback) => {
+        frames.push(callback);
+        return frames.length;
+      });
+    mockNow.mockReturnValueOnce(10).mockReturnValueOnce(40);
+
+    try {
+      markDeferredRenderNavStart(screenId);
+      markDeferredRenderChartReady(screenId);
+
+      expect(getScreenTtc(chartReadyId)).toBeUndefined();
+      frames[0]?.(0);
+      expect(getScreenTtc(chartReadyId)).toBeUndefined();
+      frames[1]?.(0);
+
+      expect(getScreenTtc(chartReadyId)?.durationMs).toBe(30);
+    } finally {
+      frameSpy.mockRestore();
+    }
+  });
+
+  it('records the perps chart path and a pin failure', () => {
+    mockNow.mockReturnValue(80);
+
+    markPerpsChartRenderPath('tradingview');
+    markPerpsChartRenderPath('advanced');
+    markPerpsChartPinFailed();
+
+    const pathRecord = getScreenTtc(PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID);
+    const pinRecord = getScreenTtc(PERPS_MARKET_DETAILS_CHART_PIN_PROBE_ID);
+    expect(pathRecord?.chartPath).toBe('advanced');
+    expect(pinRecord?.contentState).toBe('error');
+    if (!pathRecord || !pinRecord) {
+      throw new Error('expected chart path and pin records');
+    }
+    expect(formatScreenTtcAccessibilityLabel(pathRecord)).toBe(
+      `ttc:perps_market_details_chart_path:0:${pathRecord.generation}:advanced`,
+    );
+    expect(
+      parseScreenTtcAccessibilityLabel(
+        formatScreenTtcAccessibilityLabel(pathRecord),
+      )?.chartPath,
+    ).toBe('advanced');
+    expect(formatScreenTtcAccessibilityLabel(pinRecord)).toBe(
+      `ttc:perps_market_details_chart_pin:0:${pinRecord.generation}:error`,
     );
   });
 });
