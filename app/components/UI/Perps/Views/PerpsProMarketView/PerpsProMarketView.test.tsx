@@ -14,6 +14,7 @@ import {
 } from '@metamask/perps-controller/constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsProMarketView from './';
+import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
@@ -74,6 +75,9 @@ interface MockChartPanelProps {
   selectedCandlePeriod: CandlePeriod;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
+  onSummaryLayout?: (event: {
+    nativeEvent: { layout: { height: number } };
+  }) => void;
   currentPrice?: number;
   onLatestPriceChange?: (price: number | undefined) => void;
 }
@@ -150,9 +154,13 @@ const mockPerpsProChartPanel = jest.fn(
     selectedCandlePeriod,
     onCandlePeriodChange,
     onMorePress,
+    onSummaryLayout,
   }: MockChartPanelProps) => (
     <>
-      <Box testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY} />
+      <Box
+        testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
+        onLayout={onSummaryLayout}
+      />
       <Box
         testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
         accessibilityLabel={symbol}
@@ -1165,6 +1173,27 @@ describe('PerpsProMarketView', () => {
     expect(
       queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('sets the header crossfade threshold from the measured summary height', () => {
+    const { getByTestId, UNSAFE_getByType } = renderView();
+    const summary = getByTestId(
+      PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY,
+    );
+    const priceSectionHeight =
+      UNSAFE_getByType(PerpsMarketHeader).props.priceSectionHeight;
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 0, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(priceSectionHeight.value).toBe(0);
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(priceSectionHeight.value).toBe(96);
   });
 
   it('uses the Figma shell heights', () => {
