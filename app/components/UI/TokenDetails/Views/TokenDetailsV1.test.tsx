@@ -1093,6 +1093,34 @@ describe('TokenDetailsV1', () => {
       expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
       expect(getByText('overview:true')).toBeTruthy();
     });
+
+    // The verdict is worth reading whether or not the tab exists, but a pill
+    // that navigates nowhere is not.
+    it('renders the verdict pill as static text when Security is left out', () => {
+      mockSelectors({
+        socialEnabled: true,
+        tabConfigOrder: ['overview'],
+      });
+
+      const { getByTestId, queryByTestId } = renderTabs();
+
+      expect(getByTestId(SecurityPillSelectors.VERDICT)).toBeOnTheScreen();
+      expect(queryByTestId(SecurityPillSelectors.PILL)).toBeNull();
+    });
+
+    // A config of nothing but gated tabs would otherwise leave an empty tab
+    // strip with no panel under it.
+    it('falls back to Overview when every configured tab is gated away', () => {
+      mockSelectors({
+        socialEnabled: false,
+        tabConfigOrder: ['feed', 'holders'],
+      });
+
+      const { getByTestId, getByText } = renderTabs();
+
+      expect(getByTestId('token-details-v1-tab-overview')).toBeTruthy();
+      expect(getByText('overview:true')).toBeTruthy();
+    });
   });
 
   it('switches tab panels and back to the Overview tab', () => {

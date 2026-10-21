@@ -187,6 +187,9 @@ const TokenDetailsV1TabPlaceholder = ({
  */
 const STICKY_FOOTER_RESERVED_HEIGHT = 190;
 
+/** Shown when the remote tab config and the runtime gates between them leave nothing. */
+const FALLBACK_TAB: TokenDetailsV1TabKey = 'overview';
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -508,23 +511,26 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   // tab it lists still has to clear the two gates above.
   const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
 
-  const visibleTabs = useMemo(
-    () =>
-      tabConfigOrder.filter((tab) => {
-        if (tab === 'feed') {
-          return showSocialTabs;
-        }
-        if (tab === 'holders') {
-          return showHoldersTab;
-        }
-        return true;
-      }),
-    [tabConfigOrder, showHoldersTab, showSocialTabs],
-  );
+  const visibleTabs = useMemo<TokenDetailsV1TabKey[]>(() => {
+    const tabs = tabConfigOrder.filter((tab) => {
+      if (tab === 'feed') {
+        return showSocialTabs;
+      }
+      if (tab === 'holders') {
+        return showHoldersTab;
+      }
+      return true;
+    });
+
+    // A config naming only gated tabs can leave nothing at all, which would
+    // strand the reader on an empty tab strip with no panel under it. Overview
+    // is the backstop because it is the one tab no gate can take away.
+    return tabs.length > 0 ? tabs : [FALLBACK_TAB];
+  }, [tabConfigOrder, showHoldersTab, showSocialTabs]);
   // Whichever tab survives first is where the page lands, so reordering the
   // config moves the landing tab with it. An empty feed still keeps its tab;
   // an empty holders list does not.
-  const landingTab = visibleTabs[0] ?? 'overview';
+  const landingTab = visibleTabs[0];
   const userPickedTabRef = useRef(false);
   const applyingLandingTabRef = useRef(false);
   const handleTabChange = useCallback(() => {
@@ -543,7 +549,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
       applyingLandingTabRef.current = true;
-      activateTab(visibleTabs[0] ?? 'overview');
+      activateTab(visibleTabs[0]);
       applyingLandingTabRef.current = false;
       return;
     }
@@ -589,6 +595,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
    * Selecting the tab alone would leave the reader looking at the price hero
    * while the thing they asked for sat a chart's height below the fold, so the
    * verdict pill scrolls the page as well as switching tabs.
+   *
+   * Withheld when the config leaves the Security tab out, which renders the
+   * pill as static text. The verdict still reads, it just stops offering a
+   * destination the page no longer has.
    */
   const handleSecurityPress = useCallback(() => {
     trackEvent(
@@ -787,7 +797,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={handleSecurityPress}
+                    onSecurityPress={
+                      visibleTabs.includes('security')
+                        ? handleSecurityPress
+                        : undefined
+                    }
                   />
                 </Box>
                 {/* The interval bar above the chart adds 8px of its own top padding. */}
