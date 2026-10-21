@@ -11824,16 +11824,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@file:./vendor/react-native-webview-14.8.0.tgz::locator=metamask%40workspace%3A.":
+"@metamask/react-native-webview@npm:14.8.0":
   version: 14.8.0
-  resolution: "@metamask/react-native-webview@file:./vendor/react-native-webview-14.8.0.tgz#./vendor/react-native-webview-14.8.0.tgz::hash=ac1fdf&locator=metamask%40workspace%3A."
+  resolution: "@metamask/react-native-webview@npm:14.8.0"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/f671192919f1a421f4e7dadbd34f0e7c98f77df909daa7410fe251b58f99f54e7c470c59737137529b7f65b76683e1bc9c95fe8417ff58b27a4b6a8cd15facc4
+  checksum: 10/469fa2ac5b0722b6e7b9acd426ac03f0ffd2577bc30fddcbe1372747bdd0135f36f82e6f2dd820a05c492581db9afb7a6681e9c3bf96165fb7d30106ebff9b1c
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch":
+  version: 14.8.0
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch::version=14.8.0&hash=ed9191"
+  dependencies:
+    escape-string-regexp: "npm:^4.0.0"
+    invariant: "npm:2.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/0d4ac959d7390d2de0bbde15201799b94680de343c47f8f7c35495ccc793031f380d8021c0ccc68f67cef64f754ab1f06d07e1568fd1bcffc06ce8e1713c6763
   languageName: node
   linkType: hard
 
@@ -39340,7 +39353,7 @@ __metadata:
     "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch"
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "file:./vendor/react-native-webview-14.8.0.tgz"
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
