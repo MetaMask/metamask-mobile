@@ -106,6 +106,7 @@ import {
 import {
   calculatePredictExecutionDepth,
   getPredictExecutionBandFloorPrice,
+  type PredictExecutionDepth,
 } from '../../utils/execution';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 import {
@@ -2939,6 +2940,136 @@ const isNoOrderBookError = (error: unknown): boolean =>
   error instanceof Error &&
   error.message === PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK;
 
+interface BuildExecutionPreviewParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  approvedPrice: number;
+  size: number;
+  slippage: number;
+  positionId?: string;
+  feeCollection?: PredictFeeCollection;
+  feePolicy?: PredictFeePolicy;
+  book: OrderBook;
+  marketInfo?: ClobMarketInfo;
+  roundConfig: RoundConfig;
+  tickSize: number;
+  depth: PredictExecutionDepth;
+}
+
+async function buildExecutableBuyPreview({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  approvedPrice,
+  size,
+  slippage,
+  feeCollection,
+  feePolicy,
+  book,
+  marketInfo,
+  roundConfig,
+  tickSize,
+  depth,
+}: BuildExecutionPreviewParams): Promise<OrderPreview> {
+  const makerAmount = roundDown(size, roundConfig.size);
+  const calculatedFees = await calculateFees({
+    feeCollection,
+    feePolicy,
+    marketId,
+    userBetAmount: 1,
+  });
+  const preview: OrderPreview = {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.BUY,
+    sharePrice: depth.refreshedPrice ?? approvedPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: roundOrderAmount({
+      amount: depth.grossAmount,
+      decimals: roundConfig.amount,
+    }),
+    slippage,
+    tickSize,
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    feeRateBps: '0',
+  };
+
+  return withBuyPreviewFees({
+    preview,
+    marketInfo,
+    effectiveFeesPerDollar: calculatedFees.fees,
+    originalFeesPerDollar: calculatedFees.originalFees,
+  });
+}
+
+async function buildExecutableSellPreview({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  approvedPrice,
+  size,
+  slippage,
+  positionId,
+  feeCollection,
+  feePolicy,
+  book,
+  marketInfo,
+  roundConfig,
+  tickSize,
+  depth,
+}: BuildExecutionPreviewParams): Promise<OrderPreview> {
+  const makerAmount = roundDown(size, roundConfig.size);
+  const expectedProceeds = roundOrderAmount({
+    amount: depth.grossAmount,
+    decimals: roundConfig.amount,
+  });
+  const preview: OrderPreview = {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.SELL,
+    positionId,
+    sharePrice: depth.refreshedPrice ?? approvedPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: expectedProceeds,
+    minAmountReceivedAfterSlippage: roundOrderAmount({
+      amount: makerAmount * depth.bandFloorPrice,
+      decimals: roundConfig.amount,
+    }),
+    slippage,
+    tickSize,
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    feeRateBps: '0',
+  };
+  const marketFee = calculateConservativeSellMarketFee({
+    preview,
+    marketInfo,
+  });
+  const { fees: serviceFees, originalFees: originalServiceFees } =
+    await calculateFees({
+      feeCollection,
+      feePolicy,
+      marketId,
+      userBetAmount: expectedProceeds,
+    });
+  const originalFees =
+    feePolicy?.discountType === DiscountType.SUBSCRIPTION && originalServiceFees
+      ? { ...originalServiceFees, marketFee }
+      : undefined;
+
+  return {
+    ...preview,
+    fees: { ...serviceFees, marketFee },
+    ...(originalFees ? { originalFees } : {}),
+  };
+}
+
 /**
  * Pre-submit execution preview: validates one freshly fetched order book
  * against the price and slippage band the user approved, and builds the
@@ -3035,101 +3166,26 @@ export const previewExecutionOrder = async (
       };
     }
 
-    const makerAmount = roundDown(size, roundConfig.size);
-
-    if (side === Side.BUY) {
-      const calculatedFees = await calculateFees({
-        feeCollection,
-        feePolicy,
-        marketId,
-        userBetAmount: 1,
-      });
-      const preview: OrderPreview = {
-        marketId,
-        outcomeId,
-        outcomeTokenId,
-        timestamp: new Date(book.timestamp).getTime(),
-        side: Side.BUY,
-        sharePrice: depth.refreshedPrice ?? approvedPrice,
-        maxAmountSpent: makerAmount,
-        minAmountReceived: roundOrderAmount({
-          amount: depth.grossAmount,
-          decimals: roundConfig.amount,
-        }),
-        slippage,
-        tickSize: numericTickSize,
-        minOrderSize: parseFloat(book.min_order_size),
-        negRisk: book.neg_risk,
-        feeRateBps: '0',
-      };
-      const orderPreview = withBuyPreviewFees({
-        preview,
-        marketInfo,
-        effectiveFeesPerDollar: calculatedFees.fees,
-        originalFeesPerDollar: calculatedFees.originalFees,
-      });
-
-      const fetchedAt = Date.now();
-      return {
-        status: 'executable',
-        preview: { ...orderPreview, fetchedAt },
-        execution: { ...executionBase, fetchedAt },
-      };
-    }
-
-    const takerAmount = roundOrderAmount({
-      amount: depth.grossAmount,
-      decimals: roundConfig.amount,
-    });
-    const minAmountReceivedAfterSlippage = roundOrderAmount({
-      amount: makerAmount * depth.bandFloorPrice,
-      decimals: roundConfig.amount,
-    });
-    const preview: OrderPreview = {
+    const previewParams: BuildExecutionPreviewParams = {
       marketId,
       outcomeId,
       outcomeTokenId,
-      timestamp: new Date(book.timestamp).getTime(),
-      side: Side.SELL,
-      positionId,
-      sharePrice: depth.refreshedPrice ?? approvedPrice,
-      maxAmountSpent: makerAmount,
-      minAmountReceived: takerAmount,
-      minAmountReceivedAfterSlippage,
+      approvedPrice,
+      size,
       slippage,
-      tickSize: numericTickSize,
-      minOrderSize: parseFloat(book.min_order_size),
-      negRisk: book.neg_risk,
-      feeRateBps: '0',
-    };
-    const marketFee = calculateConservativeSellMarketFee({
-      preview,
+      positionId,
+      feeCollection,
+      feePolicy,
+      book,
       marketInfo,
-    });
-    const { fees: serviceFees, originalFees: originalServiceFees } =
-      await calculateFees({
-        feeCollection,
-        feePolicy,
-        marketId,
-        userBetAmount: takerAmount,
-      });
-
-    const orderPreview: OrderPreview = {
-      ...preview,
-      fees: {
-        ...serviceFees,
-        marketFee,
-      },
+      roundConfig,
+      tickSize: numericTickSize,
+      depth,
     };
-    if (
-      feePolicy?.discountType === DiscountType.SUBSCRIPTION &&
-      originalServiceFees
-    ) {
-      orderPreview.originalFees = {
-        ...originalServiceFees,
-        marketFee,
-      };
-    }
+    const orderPreview =
+      side === Side.BUY
+        ? await buildExecutableBuyPreview(previewParams)
+        : await buildExecutableSellPreview(previewParams);
 
     const fetchedAt = Date.now();
     return {

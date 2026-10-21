@@ -19,6 +19,10 @@ import {
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
+import {
+  createExecutablePredictExecutionResult,
+  createPredictExecutionMetadata,
+} from '../../testUtils/execution';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   ACCOUNT_STATE_CACHE_TTL_MS,
@@ -1735,20 +1739,14 @@ describe('PolymarketProvider', () => {
       slippage: 0.05,
       fetchedAt,
     };
-    mockPreviewExecutionOrder.mockResolvedValue({
-      status: 'executable',
-      preview: executionPreview,
-      execution: {
-        fetchedAt,
-        requestedSize: 10,
-        executableSize: 10,
-        approvedPrice: 0.5,
-        refreshedPrice: 0.49,
-        bandFloorPrice: 0.48,
-        worstExecutablePrice: 0.49,
-        tickSize: 0.01,
-      },
-    });
+    mockPreviewExecutionOrder.mockResolvedValue(
+      createExecutablePredictExecutionResult({
+        preview: executionPreview,
+        execution: createPredictExecutionMetadata({
+          fetchedAt,
+        }),
+      }),
+    );
 
     const result = await provider.previewExecutionOrder({
       marketId: 'market-1',

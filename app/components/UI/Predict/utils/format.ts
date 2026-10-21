@@ -68,6 +68,11 @@ export const formatPercentage = (
   return `${formatted}%`;
 };
 
+/** Formats a decimal slippage value as a percentage with up to two decimals. */
+export function formatSlippageBand(slippage: number): string {
+  return formatPercentage(slippage * 100);
+}
+
 /**
  * Builds `amount` / `percent` for `strings('predict.unrealized_pnl_value', …)`.
  * Same rules as PredictPositionsHeader: signed cash, signed % via `formatPercentage`.

@@ -14,13 +14,17 @@ import {
   PredictOutcome,
   PredictPosition,
   PredictPositionStatus,
-  PredictExecutionMetadata,
   PredictExecutionPreviewResult,
   PredictFees,
   Recurrence,
   Side,
   type OrderPreview,
 } from '../../types';
+import {
+  createExecutablePredictExecutionResult,
+  createPredictExecutionMetadata,
+  createPredictExecutionPreview,
+} from '../../testUtils/execution';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
@@ -380,51 +384,35 @@ const executionFees: PredictFees = {
 /** Fresh execution preview returned by the pre-submit validation flow. */
 const createExecutionPreview = (
   overrides?: Partial<OrderPreview>,
-): OrderPreview => ({
-  marketId: 'market-1',
-  outcomeId: 'outcome-456',
-  outcomeTokenId: 'outcome-token-789',
-  timestamp: Date.now(),
-  side: Side.SELL,
-  sharePrice: 0.49,
-  maxAmountSpent: 100,
-  minAmountReceived: 49,
-  slippage: 0.05,
-  tickSize: 0.01,
-  minOrderSize: 1,
-  negRisk: false,
-  fees: executionFees,
-  ...overrides,
-});
+): OrderPreview =>
+  createPredictExecutionPreview({
+    outcomeId: 'outcome-456',
+    outcomeTokenId: 'outcome-token-789',
+    timestamp: Date.now(),
+    maxAmountSpent: 100,
+    minAmountReceived: 49,
+    fees: executionFees,
+    ...overrides,
+  });
 
 const createExecutionMetadata = (
-  overrides?: Partial<PredictExecutionMetadata>,
-): PredictExecutionMetadata => ({
-  fetchedAt: Date.now(),
-  requestedSize: 100,
-  executableSize: 100,
-  approvedPrice: 0.5,
-  refreshedPrice: 0.49,
-  bandFloorPrice: 0.475,
-  worstExecutablePrice: 0.49,
-  tickSize: 0.01,
-  ...overrides,
-});
-
-/** The `executable` member of `PredictExecutionPreviewResult`. */
-type ExecutablePreviewResult = Extract<
-  PredictExecutionPreviewResult,
-  { status: 'executable' }
->;
+  overrides: Parameters<typeof createPredictExecutionMetadata>[0] = {},
+) =>
+  createPredictExecutionMetadata({
+    requestedSize: 100,
+    executableSize: 100,
+    bandFloorPrice: 0.475,
+    ...overrides,
+  });
 
 const createExecutableResult = (overrides?: {
   preview?: OrderPreview;
-  execution?: PredictExecutionMetadata;
-}): ExecutablePreviewResult => ({
-  status: 'executable',
-  preview: overrides?.preview ?? createExecutionPreview(),
-  execution: overrides?.execution ?? createExecutionMetadata(),
-});
+  execution?: ReturnType<typeof createExecutionMetadata>;
+}) =>
+  createExecutablePredictExecutionResult({
+    preview: overrides?.preview ?? createExecutionPreview(),
+    execution: overrides?.execution ?? createExecutionMetadata(),
+  });
 
 function createDeferred<T>() {
   let resolveDeferred!: (value: T) => void;

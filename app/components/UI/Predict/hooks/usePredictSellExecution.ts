@@ -20,6 +20,7 @@ import {
   type PredictExecutionPreviewResult,
   type PreviewExecutionOrderParams,
 } from '../types';
+import { formatSlippageBand } from '../utils/format';
 
 /**
  * Pre-submit sell execution flow phase. `validating` and `submitting` are the
@@ -156,10 +157,6 @@ type ExecutionFlowOrigin =
   | 'try_again'
   | 'stale_recovery';
 
-/** Applied band as a percentage string, e.g. '5%'. */
-const getSlippageBand = (slippage: number): string =>
-  `${Math.round(slippage * 100)}%`;
-
 /**
  * Re-confirm outcome for a classified pass, given the flow origin: how the
  * confirmation episode the pass belongs to resolved. Non-confirm origins
@@ -227,7 +224,7 @@ const trackPreSubmitDecision = ({
     worstExecutablePrice: execution?.worstExecutablePrice,
     bandFloorPrice: execution?.bandFloorPrice,
     tickSize: execution?.tickSize,
-    slippageBand: getSlippageBand(slippage),
+    slippageBand: formatSlippageBand(slippage),
     preSubmitDecision: DECISION_FOR_OUTCOME[classification.outcome],
     reconfirmOutcome: getReconfirmOutcome(classification, origin),
     ...(classification.outcome === 'no_match' && {
@@ -269,12 +266,6 @@ export function usePredictSellExecution({
     EXECUTION_SHEET_VARIANTS[state.status] ?? sheetVariantRef.current;
 
   const executionSheetRef = useRef<PredictOrderRetrySheetRef>(null);
-  // Single-flight lock covering validation and placement. Managed
-  // exclusively here — never synced from render state — so a duplicate tap
-  // in the same frame cannot slip through between the flip and the next
-  // render. Released in the acquiring flow's finally on every terminal
-  // branch.
-  const isInFlightRef = useRef(false);
   const isMountedRef = useRef(true);
   // Generation identity: bumped on every user action and on dismissal so
   // late responses from an obsolete intent are discarded.
@@ -283,16 +274,14 @@ export function usePredictSellExecution({
     positionId ?? `${marketId}:${outcomeId}:${outcomeTokenId}`;
 
   const acquireSubmitLock = useCallback((): boolean => {
-    if (isInFlightRef.current || inFlightSellPositions.has(sellPositionKey)) {
+    if (inFlightSellPositions.has(sellPositionKey)) {
       return false;
     }
-    isInFlightRef.current = true;
     inFlightSellPositions.add(sellPositionKey);
     return true;
   }, [sellPositionKey]);
 
   const releaseSubmitLock = useCallback(() => {
-    isInFlightRef.current = false;
     inFlightSellPositions.delete(sellPositionKey);
   }, [sellPositionKey]);
 
@@ -513,27 +502,45 @@ export function usePredictSellExecution({
     ],
   );
 
+  const runLockedFlow = useCallback(
+    async ({
+      baselinePrice,
+      slippage,
+      origin,
+    }: {
+      baselinePrice: number;
+      slippage: number;
+      origin: Exclude<ExecutionFlowOrigin, 'stale_recovery'>;
+    }): Promise<void> => {
+      if (!acquireSubmitLock()) {
+        return;
+      }
+
+      const intentId = ++intentIdRef.current;
+      try {
+        await runFlow({ intentId, baselinePrice, slippage, origin });
+      } finally {
+        releaseSubmitLock();
+      }
+    },
+    [acquireSubmitLock, releaseSubmitLock, runFlow],
+  );
+
   /**
    * Cash Out entry point. The displayed preview's price is the approved
    * baseline; a fresh execution preview must confirm it before anything is
    * signed.
    */
   const handleCashOut = useCallback(async () => {
-    if (!preview || !acquireSubmitLock()) {
+    if (!preview) {
       return;
     }
-    const intentId = ++intentIdRef.current;
-    try {
-      await runFlow({
-        intentId,
-        baselinePrice: preview.sharePrice,
-        slippage: preview.slippage,
-        origin: 'cash_out',
-      });
-    } finally {
-      releaseSubmitLock();
-    }
-  }, [preview, acquireSubmitLock, runFlow, releaseSubmitLock]);
+    await runLockedFlow({
+      baselinePrice: preview.sharePrice,
+      slippage: preview.slippage,
+      origin: 'cash_out',
+    });
+  }, [preview, runLockedFlow]);
 
   /**
    * Confirm entry point (price-moved sheet). Pressing Confirm adopts the
@@ -542,21 +549,15 @@ export function usePredictSellExecution({
    */
   const handleConfirm = useCallback(async () => {
     const { quote } = stateRef.current;
-    if (!quote || !acquireSubmitLock()) {
+    if (!quote) {
       return;
     }
-    const intentId = ++intentIdRef.current;
-    try {
-      await runFlow({
-        intentId,
-        baselinePrice: quote.sharePrice,
-        slippage: quote.slippage,
-        origin: 'confirm',
-      });
-    } finally {
-      releaseSubmitLock();
-    }
-  }, [acquireSubmitLock, runFlow, releaseSubmitLock]);
+    await runLockedFlow({
+      baselinePrice: quote.sharePrice,
+      slippage: quote.slippage,
+      origin: 'confirm',
+    });
+  }, [runLockedFlow]);
 
   /**
    * Try Again entry point (no-match / timeout / unavailable sheets).
@@ -564,25 +565,15 @@ export function usePredictSellExecution({
    */
   const handleTryAgain = useCallback(async () => {
     const { baselinePrice, baselineSlippage } = stateRef.current;
-    if (
-      baselinePrice === null ||
-      baselineSlippage === null ||
-      !acquireSubmitLock()
-    ) {
+    if (baselinePrice === null || baselineSlippage === null) {
       return;
     }
-    const intentId = ++intentIdRef.current;
-    try {
-      await runFlow({
-        intentId,
-        baselinePrice,
-        slippage: baselineSlippage,
-        origin: 'try_again',
-      });
-    } finally {
-      releaseSubmitLock();
-    }
-  }, [acquireSubmitLock, runFlow, releaseSubmitLock]);
+    await runLockedFlow({
+      baselinePrice,
+      slippage: baselineSlippage,
+      origin: 'try_again',
+    });
+  }, [runLockedFlow]);
 
   /**
    * Dismissal entry point. Invalidates any in-flight intent, settles idle,
@@ -611,7 +602,7 @@ export function usePredictSellExecution({
         slippageBand:
           baselineSlippage === null
             ? undefined
-            : getSlippageBand(baselineSlippage),
+            : formatSlippageBand(baselineSlippage),
         preSubmitDecision,
         reconfirmOutcome: PredictEventValues.RECONFIRM_OUTCOME.DISMISSED,
       });

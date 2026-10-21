@@ -6,10 +6,14 @@ import {
   Side,
   type OrderPreview,
   type PlaceOrderParams,
-  type PredictExecutionMetadata,
   type PredictExecutionPreviewResult,
 } from '../types';
 import { PredictTradeStatus } from '../constants/eventNames';
+import {
+  createExecutablePredictExecutionResult,
+  createPredictExecutionMetadata,
+  createPredictExecutionPreview,
+} from '../testUtils/execution';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -43,44 +47,21 @@ const displayedPreview: OrderPreview = {
 function createExecutionPreview(
   overrides?: Partial<OrderPreview>,
 ): OrderPreview {
-  return {
+  return createPredictExecutionPreview({
     ...displayedPreview,
-    fetchedAt: Date.now(),
     ...overrides,
-  };
+  });
 }
 
-function createExecution(
-  overrides?: Partial<PredictExecutionMetadata>,
-): PredictExecutionMetadata {
-  return {
-    fetchedAt: Date.now(),
-    requestedSize: 10,
-    executableSize: 10,
-    approvedPrice: 0.5,
-    refreshedPrice: 0.49,
-    bandFloorPrice: 0.48,
-    worstExecutablePrice: 0.49,
-    tickSize: 0.01,
-    ...overrides,
-  };
-}
+const createExecution = createPredictExecutionMetadata;
 
-/** The `executable` member of `PredictExecutionPreviewResult`. */
-type ExecutablePreviewResult = Extract<
-  PredictExecutionPreviewResult,
-  { status: 'executable' }
->;
-
-function createExecutableResult(overrides?: {
-  preview?: OrderPreview;
-  execution?: PredictExecutionMetadata;
-}): ExecutablePreviewResult {
-  return {
-    status: 'executable',
+function createExecutableResult(
+  overrides?: Parameters<typeof createExecutablePredictExecutionResult>[0],
+) {
+  return createExecutablePredictExecutionResult({
     preview: overrides?.preview ?? createExecutionPreview(),
     execution: overrides?.execution ?? createExecution(),
-  };
+  });
 }
 
 function createDeferred<T>() {
@@ -332,34 +313,22 @@ describe('usePredictSellExecution', () => {
     expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
   });
 
-  it('settles timeout and submits nothing', async () => {
-    mockPreviewExecutionOrder.mockResolvedValueOnce({ status: 'timeout' });
+  it.each(['timeout', 'unavailable'] as const)(
+    'settles %s and submits nothing',
+    async (status) => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({ status });
 
-    const { result } = setupHook();
-    await act(async () => {
-      await result.current.handleCashOut();
-    });
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
 
-    expect(result.current.status).toBe('timeout');
-    expect(result.current.execution).toBeNull();
-    expect(mockPlaceOrder).not.toHaveBeenCalled();
-    expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
-  });
-
-  it('settles unavailable and submits nothing', async () => {
-    mockPreviewExecutionOrder.mockResolvedValueOnce({
-      status: 'unavailable',
-    });
-
-    const { result } = setupHook();
-    await act(async () => {
-      await result.current.handleCashOut();
-    });
-
-    expect(result.current.status).toBe('unavailable');
-    expect(mockPlaceOrder).not.toHaveBeenCalled();
-    expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
-  });
+      expect(result.current.status).toBe(status);
+      expect(result.current.execution).toBeNull();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('recovers once after a stale rejection against the same approved baseline', async () => {
     const initial = createExecutableResult();
@@ -619,28 +588,21 @@ describe('usePredictSellExecution', () => {
       expect(noMatchArgs.failureReason).toBeUndefined();
     });
 
-    it('tracks timeout and unavailable as distinct decisions', async () => {
-      mockPreviewExecutionOrder
-        .mockResolvedValueOnce({ status: 'timeout' })
-        .mockResolvedValueOnce({ status: 'unavailable' });
+    it.each(['timeout', 'unavailable'] as const)(
+      'tracks %s as a distinct decision',
+      async (status) => {
+        mockPreviewExecutionOrder.mockResolvedValueOnce({ status });
 
-      const first = setupHook();
-      await act(async () => {
-        await first.result.current.handleCashOut();
-      });
+        const { result } = setupHook();
+        await act(async () => {
+          await result.current.handleCashOut();
+        });
 
-      const second = setupHook();
-      await act(async () => {
-        await second.result.current.handleCashOut();
-      });
-
-      const decisions = mockTrackEvent.mock.calls
-        .map(([args]) => args.preSubmitDecision)
-        .filter(
-          (decision) => decision === 'timeout' || decision === 'unavailable',
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({ preSubmitDecision: status }),
         );
-      expect(decisions).toEqual(['timeout', 'unavailable']);
-    });
+      },
+    );
 
     it('tracks confirmed and refreshed-again reconfirm outcomes', async () => {
       // First pass: moved quote asks for confirmation.

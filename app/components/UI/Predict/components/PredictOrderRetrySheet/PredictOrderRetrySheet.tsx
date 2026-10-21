@@ -22,6 +22,7 @@ import {
   formatCents,
   formatPositionSize,
   formatPrice,
+  formatSlippageBand,
 } from '../../utils/format';
 import {
   getPredictExchangeFee,
@@ -81,6 +82,72 @@ interface PredictOrderRetrySheetProps {
 }
 
 const PRICE_FORMAT = { minimumDecimals: 2, maximumDecimals: 2 };
+
+interface QuoteRow {
+  label: string;
+  value: string;
+}
+
+function buildQuoteRows({
+  preview,
+  expectedSize,
+}: {
+  preview: OrderPreview;
+  expectedSize: number | null;
+}): QuoteRow[] {
+  const feesTotal =
+    (preview.fees?.metamaskFee ?? 0) + getPredictExchangeFee(preview.fees);
+  const priceRow = {
+    label: strings('predict.order.retry_price_label'),
+    value: formatCents(preview.sharePrice),
+  };
+  const worstCaseRow = {
+    label: strings('predict.order.retry_worst_case_label', {
+      band: formatSlippageBand(preview.slippage),
+    }),
+    value:
+      preview.side === Side.SELL
+        ? formatPrice(getPredictSellWorstCaseProceeds(preview), PRICE_FORMAT)
+        : formatPrice(getMinAmountReceivedWithSlippage(preview), PRICE_FORMAT),
+  };
+  const feesRow = {
+    label: strings('predict.order.retry_fees_label'),
+    value: formatPrice(feesTotal, PRICE_FORMAT),
+  };
+
+  if (preview.side === Side.SELL) {
+    return [
+      priceRow,
+      // Read-only expected full fill; partial execution is never offered.
+      ...(expectedSize !== null
+        ? [
+            {
+              label: strings('predict.order.retry_expected_fill_label'),
+              value: strings('predict.order.retry_expected_fill_value', {
+                shares: formatPositionSize(expectedSize, PRICE_FORMAT),
+              }),
+            },
+          ]
+        : []),
+      {
+        label: strings('predict.order.retry_proceeds_label'),
+        value: formatPrice(getPredictSellNetProceeds(preview), PRICE_FORMAT),
+      },
+      worstCaseRow,
+      feesRow,
+    ];
+  }
+
+  return [
+    priceRow,
+    {
+      label: strings('predict.order.retry_payout_label'),
+      value: formatPrice(preview.minAmountReceived, PRICE_FORMAT),
+    },
+    worstCaseRow,
+    feesRow,
+  ];
+}
 
 function getTitleForVariant(variant: PredictOrderRetrySheetVariant): string {
   switch (variant) {
@@ -172,76 +239,10 @@ const PredictOrderRetrySheet = forwardRef<
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
-    const quoteRows = useMemo(() => {
-      if (!preview) {
-        return [];
-      }
-      const feesTotal =
-        (preview.fees?.metamaskFee ?? 0) + getPredictExchangeFee(preview.fees);
-      // `preview.slippage * 100` picks up float noise for some values
-      // (e.g. 0.07 * 100 → 7.000000000000001): format through a fixed
-      // precision and strip trailing zeros so the label reads '7%'
-      // while a genuine 0.5% band is preserved.
-      const bandPercent = `${parseFloat((preview.slippage * 100).toFixed(2))}%`;
-      const priceRow = {
-        label: strings('predict.order.retry_price_label'),
-        value: formatCents(preview.sharePrice),
-      };
-      const worstCaseRow = {
-        label: strings('predict.order.retry_worst_case_label', {
-          band: bandPercent,
-        }),
-        value:
-          preview.side === Side.SELL
-            ? formatPrice(getPredictSellWorstCaseProceeds(preview), {
-                ...PRICE_FORMAT,
-              })
-            : formatPrice(getMinAmountReceivedWithSlippage(preview), {
-                ...PRICE_FORMAT,
-              }),
-      };
-      const feesRow = {
-        label: strings('predict.order.retry_fees_label'),
-        value: formatPrice(feesTotal, { ...PRICE_FORMAT }),
-      };
-
-      if (preview.side === Side.SELL) {
-        return [
-          priceRow,
-          // Read-only expected full fill; partial execution is never offered.
-          ...(expectedSize !== null
-            ? [
-                {
-                  label: strings('predict.order.retry_expected_fill_label'),
-                  value: strings('predict.order.retry_expected_fill_value', {
-                    shares: formatPositionSize(expectedSize, {
-                      minimumDecimals: 2,
-                      maximumDecimals: 2,
-                    }),
-                  }),
-                },
-              ]
-            : []),
-          {
-            label: strings('predict.order.retry_proceeds_label'),
-            value: formatPrice(getPredictSellNetProceeds(preview), {
-              ...PRICE_FORMAT,
-            }),
-          },
-          worstCaseRow,
-          feesRow,
-        ];
-      }
-      return [
-        priceRow,
-        {
-          label: strings('predict.order.retry_payout_label'),
-          value: formatPrice(preview.minAmountReceived, { ...PRICE_FORMAT }),
-        },
-        worstCaseRow,
-        feesRow,
-      ];
-    }, [preview, expectedSize]);
+    const quoteRows = useMemo(
+      () => (preview ? buildQuoteRows({ preview, expectedSize }) : []),
+      [preview, expectedSize],
+    );
 
     if (!isVisible) {
       return null;

@@ -14,6 +14,7 @@ import type {
 } from '../types';
 import { getPredictPriceConsent } from '../utils/prices';
 import { sanitizePredictFailureReason } from '../utils/analytics';
+import { formatSlippageBand } from '../utils/format';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { RefetchPreviewResult } from './usePredictOrderPreview';
 import type {
@@ -51,11 +52,6 @@ interface UsePredictOrderRetryParams {
    */
   isSheetMode?: boolean;
   attempt?: PredictBuyAttempt;
-}
-
-/** Applied band as a percentage string, e.g. 0.05 → '5%' (sell) / 0.03 → '3%'. */
-function getSlippageBand(slippage: number): string {
-  return `${Math.round(slippage * 100)}%`;
 }
 
 /**
@@ -214,7 +210,7 @@ export function usePredictOrderRetry({
     const retryCount = retryCountRef.current + 1;
     retryCountRef.current = retryCount;
     const oneTickDecision = oneTickDecisionRef.current;
-    const slippageBand = getSlippageBand(retryQuote.slippage);
+    const slippageBand = formatSlippageBand(retryQuote.slippage);
     const retryReason = PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED;
 
     const isPredictBuy =

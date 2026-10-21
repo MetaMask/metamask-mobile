@@ -2,6 +2,11 @@ import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePredictTrading } from './usePredictTrading';
 import { Side } from '../types';
+import {
+  createExecutablePredictExecutionResult,
+  createPredictExecutionMetadata,
+  createPredictExecutionPreview,
+} from '../testUtils/execution';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -327,34 +332,14 @@ describe('usePredictTrading', () => {
 
   describe('previewExecutionOrder', () => {
     it('calls PredictController.previewExecutionOrder and returns the typed result', async () => {
-      const mockExecutionResult = {
-        status: 'executable' as const,
-        preview: {
-          marketId: 'market-1',
+      const mockExecutionResult = createExecutablePredictExecutionResult({
+        preview: createPredictExecutionPreview({
           outcomeId: 'outcome-789',
           outcomeTokenId: 'outcome-token-101',
           timestamp: Date.now(),
-          side: Side.SELL,
-          sharePrice: 0.49,
-          maxAmountSpent: 10,
-          minAmountReceived: 4.9,
-          slippage: 0.05,
-          tickSize: 0.01,
-          minOrderSize: 1,
-          negRisk: false,
-          fetchedAt: Date.now(),
-        },
-        execution: {
-          fetchedAt: Date.now(),
-          requestedSize: 10,
-          executableSize: 10,
-          approvedPrice: 0.5,
-          refreshedPrice: 0.49,
-          bandFloorPrice: 0.48,
-          worstExecutablePrice: 0.49,
-          tickSize: 0.01,
-        },
-      };
+        }),
+        execution: createPredictExecutionMetadata(),
+      });
 
       (
         Engine.context.PredictController.previewExecutionOrder as jest.Mock

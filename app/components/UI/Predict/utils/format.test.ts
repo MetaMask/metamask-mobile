@@ -14,6 +14,7 @@ import {
   formatMarketEndDate,
   formatPredictUnrealizedPnLStringParts,
   getCashoutInfoText,
+  formatSlippageBand,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
 
@@ -44,6 +45,19 @@ describe('format utils', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('formatSlippageBand', () => {
+    it.each([
+      [0.05, '5%'],
+      [0.03, '3%'],
+      [0.005, '0.5%'],
+      [0.07, '7%'],
+    ])('formats %s as %s', (slippage, expected) => {
+      const result = formatSlippageBand(slippage);
+
+      expect(result).toBe(expected);
+    });
   });
 
   describe('formatPercentage', () => {

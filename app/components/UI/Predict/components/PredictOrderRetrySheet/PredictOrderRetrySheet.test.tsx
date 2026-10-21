@@ -129,6 +129,8 @@ jest.mock('../../utils/format', () => ({
   formatCents: (value: number) => `${Math.round(value * 100)}¢`,
   formatPrice: (value: number) => `$${value.toFixed(2)}`,
   formatPositionSize: (value: number) => value.toFixed(2),
+  formatSlippageBand: (value: number) =>
+    `${parseFloat((value * 100).toFixed(2))}%`,
 }));
 
 function createMockPreview(overrides?: Partial<OrderPreview>): OrderPreview {
