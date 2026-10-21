@@ -95,6 +95,7 @@ import {
 } from '../PostTradeShareBottomSheet';
 
 const LANDING_INDEX = 0;
+const TEMP_DISABLE_SOCIAL_LIVE_PRICES = true;
 
 const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
   const index = initialTab ? SOCIAL_V1_TAB_ORDER.indexOf(initialTab) : -1;
@@ -650,7 +651,7 @@ const SocialV1ViewContent: React.FC = () => {
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
             >
-              {tabOrder.map((tab) => {
+              {tabOrder.map((tab, tabIndex) => {
                 const testIds = PAGE_TEST_IDS[tab];
                 const pageRef =
                   tab === 'trending'
@@ -667,48 +668,46 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    {tab === 'leaderboard' ? (
-                      <LeaderboardShellTabPage
-                        isActive={activeIndex === leaderboardIndex}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        appliedFilters={applied.leaderboard}
-                        onOpenFilters={handleOpenLeaderboardFilters}
-                        isFilterActive={hasActiveFilters('leaderboard')}
-                      />
-                    ) : tab === 'live' ? (
-                      <LiveView
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        onOpenFilters={handleOpenLiveFeedsFilters}
-                        isFilterActive={hasActiveFilters('live')}
-                        appliedFilters={applied.live}
-                      />
-                    ) : (
-                      <EmptyShellTabPage
-                        tab={tab}
-                        isActive={
-                          tab === 'trending'
-                            ? activeIndex === trendingIndex
-                            : activeIndex === followingIndex
-                        }
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        scrollTestID={testIds.scroll}
-                        onOpenFilters={
-                          tab === 'following'
-                            ? handleOpenFollowingFilters
-                            : undefined
-                        }
-                        isFilterActive={hasActiveFilters('following')}
-                        appliedFilters={
-                          tab === 'following' ? applied.following : undefined
-                        }
-                        onQuickBuy={openQuickBuy}
-                      />
-                    )}
+                    {activeIndex === tabIndex ? (
+                      tab === 'leaderboard' ? (
+                        <LeaderboardShellTabPage
+                          isActive
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          appliedFilters={applied.leaderboard}
+                          onOpenFilters={handleOpenLeaderboardFilters}
+                          isFilterActive={hasActiveFilters('leaderboard')}
+                        />
+                      ) : tab === 'live' ? (
+                        <LiveView
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onOpenFilters={handleOpenLiveFeedsFilters}
+                          isFilterActive={hasActiveFilters('live')}
+                          appliedFilters={applied.live}
+                        />
+                      ) : (
+                        <EmptyShellTabPage
+                          tab={tab}
+                          isActive
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                          onOpenFilters={
+                            tab === 'following'
+                              ? handleOpenFollowingFilters
+                              : undefined
+                          }
+                          isFilterActive={hasActiveFilters('following')}
+                          appliedFilters={
+                            tab === 'following' ? applied.following : undefined
+                          }
+                          onQuickBuy={openQuickBuy}
+                        />
+                      )
+                    ) : null}
                   </View>
                 );
               })}
@@ -743,10 +742,13 @@ const SocialV1ViewContent: React.FC = () => {
   );
 };
 
-const SocialV1View: React.FC = () => (
-  <SocialLivePricesProvider>
+const SocialV1View: React.FC = () =>
+  TEMP_DISABLE_SOCIAL_LIVE_PRICES ? (
     <SocialV1ViewContent />
-  </SocialLivePricesProvider>
-);
+  ) : (
+    <SocialLivePricesProvider>
+      <SocialV1ViewContent />
+    </SocialLivePricesProvider>
+  );
 
 export default SocialV1View;

@@ -239,6 +239,17 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 describe('SocialV1View', () => {
+  const openLiveTab = () => {
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+    act(() => {
+      screen
+        .getByTestId(SocialV1ViewSelectorsIDs.PAGER)
+        .props.onPageSelected({ nativeEvent: { position: 3 } });
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
@@ -288,7 +299,7 @@ describe('SocialV1View', () => {
     expect(screen.queryByTestId('top-traders-view')).toBeNull();
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
     );
 
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
@@ -436,6 +447,7 @@ describe('SocialV1View', () => {
 
   it('renders the Live filter icon on the Live page', () => {
     renderWithProvider(<SocialV1View />);
+    openLiveTab();
 
     expect(
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
@@ -447,6 +459,7 @@ describe('SocialV1View', () => {
 
   it('opens the filters bottom sheet from the Live filter button', () => {
     renderWithProvider(<SocialV1View />);
+    openLiveTab();
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
 
@@ -455,6 +468,7 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
+    openLiveTab();
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
@@ -464,6 +478,7 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when the backdrop is pressed', () => {
     renderWithProvider(<SocialV1View />);
+    openLiveTab();
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
@@ -618,7 +633,7 @@ describe('SocialV1View', () => {
 
   it('marks Live filters active after applying a draft change', () => {
     renderWithProvider(<SocialV1View />);
-
+    openLiveTab();
     const filterButton = () =>
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON);
     const inactiveStyle = StyleSheet.flatten(filterButton().props.style);
@@ -667,7 +682,7 @@ describe('SocialV1View', () => {
       screen.getAllByTestId(
         getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
   });
 
   it('uses the profile image URL for the header avatar when available', () => {
