@@ -17,7 +17,7 @@ import {
   requestFollowingFocus,
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
-import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
+import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
@@ -200,6 +200,9 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    useComposedEventHandler: jest.fn((handlers: unknown[]) =>
+      handlers.find(Boolean),
+    ),
   };
 });
 
@@ -270,7 +273,7 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.leaderboard');
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
-    ).toHaveTextContent('social_leaderboard.feed.tabs.live_trades');
+    ).toHaveTextContent('social_leaderboard.feed.tabs.live');
   });
 
   it('omits tab sub-navigation pills', () => {
@@ -431,23 +434,21 @@ describe('SocialV1View', () => {
     });
   });
 
-  it('renders the Live trades filter icon on the Live trades page', () => {
+  it('renders the Live filter icon on the Live page', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
+      screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
+      screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
   });
 
-  it('opens the filters bottom sheet from the Live trades filter button', () => {
+  it('opens the filters bottom sheet from the Live filter button', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
-    );
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
 
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
@@ -455,9 +456,7 @@ describe('SocialV1View', () => {
   it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
-    );
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
@@ -466,9 +465,7 @@ describe('SocialV1View', () => {
   it('closes the filters bottom sheet when the backdrop is pressed', () => {
     renderWithProvider(<SocialV1View />);
 
-    fireEvent.press(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
-    );
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
@@ -493,7 +490,7 @@ describe('SocialV1View', () => {
     expect(screen.queryByTestId('social-v1-view-back-button')).toBeNull();
   });
 
-  it('tracks Live trades tab selection', () => {
+  it('tracks Live tab selection', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
@@ -504,7 +501,7 @@ describe('SocialV1View', () => {
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
       expect.objectContaining({
         interaction_type: 'tab_changed',
-        tab: 'tab_live_trades',
+        tab: 'tab_live',
       }),
     );
   });
@@ -619,11 +616,11 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('homepage.sections.top_traders');
   });
 
-  it('marks Live trades filters active after applying a draft change', () => {
+  it('marks Live filters active after applying a draft change', () => {
     renderWithProvider(<SocialV1View />);
 
     const filterButton = () =>
-      screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON);
+      screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON);
     const inactiveStyle = StyleSheet.flatten(filterButton().props.style);
 
     fireEvent.press(filterButton());

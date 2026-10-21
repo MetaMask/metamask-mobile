@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
-import { LiveTradesViewSelectorsIDs } from '../LiveTradesView.testIds';
+import { LiveViewSelectorsIDs } from '../LiveView.testIds';
 
 const LIVE_PULSE_HALF_MS = 900;
 const LIVE_PULSE_MIN_OPACITY = 0.45;
@@ -65,7 +65,7 @@ const LiveStreamStatusDot: React.FC<LiveStreamStatusDotProps> = ({
       : colors.text.default;
 
   return (
-    <Box testID={LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT}>
+    <Box testID={LiveViewSelectorsIDs.STREAM_STATUS_DOT}>
       <Animated.View
         style={[
           tw.style('h-2 w-2 rounded-full'),

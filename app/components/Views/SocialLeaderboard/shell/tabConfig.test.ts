@@ -6,7 +6,7 @@ describe('SOCIAL_SHELL_TAB_CONFIG', () => {
       'trending',
       'following',
       'leaderboard',
-      'liveTrades',
+      'live',
     ]);
   });
 

@@ -33,7 +33,12 @@ export type SocialFeedSource =
    * Every tracked trader (`leaderboard` scope) or the viewer's follows,
    * optionally narrowed to spot tokens or perps. Omitted means both.
    */
-  | { kind: 'all'; audience: FeedAudience; assetClass?: SocialAssetClass }
+  | {
+      kind: 'all';
+      audience: FeedAudience;
+      assetClass?: SocialAssetClass;
+      scope?: FeedScope;
+    }
   /** Positions in one spot token, identified by its CAIP-19 asset id. */
   | { kind: 'token'; assetId: CaipAssetType }
   /** Positions in one Hyperliquid perp market (`BTC`, `xyz:NVDA`). */
@@ -149,7 +154,7 @@ export const toSocialFeedRequest = (
       return {
         action: 'SocialService:fetchFeed',
         options: {
-          scope: toFeedScope(source.audience),
+          scope: source.scope ?? toFeedScope(source.audience),
           chains: FEED_CAIP2_CHAINS_BY_ASSET_CLASS[source.assetClass ?? 'all'],
         },
       };

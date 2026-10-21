@@ -31,6 +31,8 @@ export interface UseSocialFeedOptions {
   enabled?: boolean;
   /** Items per page. Part of the cache key. */
   pageSize?: number;
+  /** Maximum number of cursor pages retained in memory. */
+  maxPages?: number;
 }
 
 export interface SocialFeedState {
@@ -101,7 +103,7 @@ export const useSocialFeed = (
   source: SocialFeedSource | null,
   options: UseSocialFeedOptions = {},
 ): SocialFeedState => {
-  const { enabled = true, pageSize = FEED_PAGE_LIMIT } = options;
+  const { enabled = true, pageSize = FEED_PAGE_LIMIT, maxPages } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
   const queryClient = useQueryClient();
 
@@ -130,6 +132,7 @@ export const useSocialFeed = (
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
+    ...(maxPages === undefined ? {} : { maxPages }),
   });
 
   const pages = query.data?.pages;
