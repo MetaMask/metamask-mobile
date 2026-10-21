@@ -7,7 +7,7 @@ import {
   setDestToken,
   selectSelectedSourceChainIds,
 } from '../../../../core/redux/slices/bridge';
-import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { CardFundingToken } from '../types';
 import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
@@ -281,10 +281,11 @@ describe('useOpenSwaps', () => {
 
   it('uses custom location and sourcePage when provided', () => {
     const customOptions = {
-      location: SwapBridgeNavigationLocation.MainView,
+      location: MetaMetricsSwapsEventSource.MainView,
       sourcePage: '/custom-page',
     };
 
+    // @ts-expect-error - custom-page is not a valid sourcePage
     const { result } = renderHook(() => useOpenSwaps(customOptions));
 
     expect(typeof result.current.openSwaps).toBe('function');

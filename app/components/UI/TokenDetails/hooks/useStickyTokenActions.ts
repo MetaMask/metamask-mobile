@@ -6,6 +6,7 @@ import {
   useHandleOnBuy,
   useHandleOnSwap,
 } from './useTokenAtomicActions';
+import type { SwapBridgePageLoadTraceRoute } from '../../Bridge/utils/swapBridgePageLoadTrace';
 
 /**
  * Composed hook for the Token Details sticky footer.
@@ -19,7 +20,7 @@ export const useStickyTokenActions = ({
   /** Optional up-to-date token balance from Token Details balance hook */
   currentTokenBalance?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
-  sourcePage?: string;
+  sourcePage?: SwapBridgePageLoadTraceRoute['sourcePage'];
 }) => {
   const hasEligibleSwapTokens = useSelector(selectHasEligibleSwapSource);
 

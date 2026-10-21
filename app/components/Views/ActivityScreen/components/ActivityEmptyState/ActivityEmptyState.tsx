@@ -22,10 +22,8 @@ import {
   ActivityEmptyStateAction,
   getActivityEmptyState,
 } from './empty-states';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
@@ -60,7 +58,7 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
 
   const { goToSwaps } = useSwapBridgeNavigation({
     sourcePage: 'ActivityEmptyState',
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
   });
   const handleAction = useCallback(() => {
     switch (emptyState.action) {

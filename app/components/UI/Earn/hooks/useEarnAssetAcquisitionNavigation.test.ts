@@ -6,10 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../core/redux/slices/bridge';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { areAddressesEqual } from '../../../../util/address';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../Bridge/types';
 import { computeBuySourceToken } from '../../Bridge/utils/computeBuySourceToken';
 import { RAMPS_BUY_CUF_SURFACE } from '../../Ramp/constants/rampsBuyCufTags';
@@ -23,6 +20,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EARN_MODULE_REDIRECT_TARGETS } from '../constants/earnModuleEvents';
 import { earnAssetToBridgeToken } from '../utils/earnAssets';
 import useEarnAssetAcquisitionNavigation from './useEarnAssetAcquisitionNavigation';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const mockGetState = jest.fn<RootState, []>();
 const mockUseStore = jest.mocked(useStore);
@@ -341,12 +339,11 @@ describe('useEarnAssetAcquisitionNavigation', () => {
       });
     });
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      sourceToken,
-      destinationToken,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({
+      sourceTokenOverride: sourceToken,
+      destTokenOverride: destinationToken,
+      scrollToTopOnNav: true,
+    });
   });
 
   it('navigates buy routes through the Earn surface', async () => {
@@ -370,7 +367,7 @@ describe('useEarnAssetAcquisitionNavigation', () => {
     renderHook(() => useEarnAssetAcquisitionNavigation());
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: SwapBridgeNavigationLocation.TokenView,
+      location: MetaMetricsSwapsEventSource.TokenView,
       sourcePage: Routes.EARN.MODALS.STRATEGY_SELECTION,
       skipActionButtonClickTracking: true,
     });

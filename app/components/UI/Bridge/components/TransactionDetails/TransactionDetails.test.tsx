@@ -11,8 +11,11 @@ import { initialState, evmAccountAddress } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { Transaction } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
-import { FeatureId, StatusTypes } from '@metamask/bridge-controller';
-import { SwapBridgeNavigationLocation } from '../../hooks/useSwapBridgeNavigation';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+  StatusTypes,
+} from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -219,7 +222,7 @@ describe('BridgeTransactionDetails', () => {
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
       sourcePage: 'BridgeTransactionDetails',
-      location: SwapBridgeNavigationLocation.TransactionDetails,
+      location: MetaMetricsSwapsEventSource.TransactionDetails,
       destToken: expect.objectContaining({
         symbol: 'TOKEN2',
         image: '',
@@ -236,12 +239,7 @@ describe('BridgeTransactionDetails', () => {
 
     fireEvent.press(getByTestId('activity-details-do-it-again-button'));
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      undefined,
-      undefined,
-      undefined,
-      true,
-    );
+    expect(mockGoToSwaps).toHaveBeenCalledWith({ scrollToTopOnNav: true });
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 

@@ -2,10 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from 'viem';
 
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../Bridge/types';
 import { CardFundingToken } from '../types';
@@ -20,19 +17,20 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { withCardProvider } from '../util/metrics';
 import { selectCardActiveProviderId } from '../../../../selectors/cardController';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 export interface OpenSwapsParams {
   beforeNavigate?: (navigate: () => void) => void;
 }
 
 export interface UseOpenSwapsOptions {
-  location?: SwapBridgeNavigationLocation;
-  sourcePage?: string;
+  location?: MetaMetricsSwapsEventSource;
+  sourcePage?: typeof Routes.CARD.HOME;
   priorityToken?: CardFundingToken | null;
 }
 
 export const useOpenSwaps = ({
-  location = SwapBridgeNavigationLocation.TokenView,
+  location = MetaMetricsSwapsEventSource.TokenView,
   sourcePage = Routes.CARD.HOME,
   priorityToken,
 }: UseOpenSwapsOptions = {}) => {
@@ -80,7 +78,10 @@ export const useOpenSwaps = ({
       dispatch(setDestToken(destToken));
 
       const navigate = () => {
-        goToSwaps(sourceToken, destToken);
+        goToSwaps({
+          sourceTokenOverride: sourceToken,
+          destTokenOverride: destToken,
+        });
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties(

@@ -42,6 +42,7 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
   StatusTypes,
+  MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 /* eslint-disable import-x/no-restricted-paths -- reuse the redesigned Activity-details row components instead of duplicating them; route-isolation backlog */
 import {
@@ -73,10 +74,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 import { useNativeCurrencySymbol } from '../../../../Views/confirmations/hooks/useNativeCurrencySymbol';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../hooks/useSwapBridgeNavigation';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -375,10 +373,12 @@ export const BridgeTransactionDetails = (
     sourcePage: 'BridgeTransactionDetails',
     sourceToken,
     destToken: destinationToken,
-    location: SwapBridgeNavigationLocation.TransactionDetails,
+    location: MetaMetricsSwapsEventSource.TransactionDetails,
   });
   const handleBridgeAgain = () => {
-    goToSwaps(undefined, undefined, undefined, true);
+    goToSwaps({
+      scrollToTopOnNav: true,
+    });
   };
 
   return (

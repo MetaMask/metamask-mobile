@@ -33,10 +33,7 @@ import {
 } from '../../UI/Earn/constants/musd';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
-import {
-  useSwapBridgeNavigation,
-  SwapBridgeNavigationLocation,
-} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import MoneyMusdEmptyBalanceRow from '../../UI/Money/components/MoneyMusdEmptyBalanceRow';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashTokensFullView.constants';
 import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
@@ -47,6 +44,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyHubEvents';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 
@@ -91,7 +89,7 @@ const CashTokensFullView = () => {
 
   const { goToBuy } = useRampNavigation();
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'CashTokensFullView',
   });
 

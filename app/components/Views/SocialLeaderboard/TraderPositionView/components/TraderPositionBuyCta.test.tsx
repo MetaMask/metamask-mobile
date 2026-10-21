@@ -180,12 +180,10 @@ describe('TraderPositionBuyCta', () => {
 
       expect(mockPlayImpact).toHaveBeenCalledWith('PrimaryCTA');
       expect(onBuyCtaClicked).toHaveBeenCalledTimes(1);
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        undefined,
-        mockDestToken,
-        undefined,
-        true,
-      );
+      expect(mockGoToSwaps).toHaveBeenCalledWith({
+        destTokenOverride: mockDestToken,
+        scrollToTopOnNav: true,
+      });
       expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
         expect.objectContaining({ isVisible: false }),
       );
@@ -228,12 +226,10 @@ describe('TraderPositionBuyCta', () => {
         />,
       );
 
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        undefined,
-        mockDestToken,
-        undefined,
-        true,
-      );
+      expect(mockGoToSwaps).toHaveBeenCalledWith({
+        destTokenOverride: mockDestToken,
+        scrollToTopOnNav: true,
+      });
       expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
         expect.objectContaining({ isVisible: false }),
       );

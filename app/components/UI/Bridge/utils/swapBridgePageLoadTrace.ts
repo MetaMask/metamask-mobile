@@ -5,9 +5,26 @@ import {
 } from '@metamask/bridge-controller';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 import type { BridgeToken, BridgeViewMode } from '../types';
+import type Routes from '../../../../constants/navigation/Routes';
 
 export interface SwapBridgePageLoadTraceRoute {
-  sourcePage: string;
+  sourcePage:
+    | 'MainView'
+    | 'BatchSell'
+    | 'RecurringSwapDetails'
+    | 'OndoCampaignRwaSelector'
+    | 'TokenDetails'
+    | 'ActivityDetails'
+    | 'ActivityEmptyState'
+    | 'CashTokensFullView'
+    | 'follow_trader'
+    | 'deeplink'
+    | 'BridgeTransactionDetails'
+    | 'TokenDetailsView'
+    | 'SecurityTrustView'
+    | 'MarketInsightsView'
+    | typeof Routes.CARD.HOME
+    | typeof Routes.EARN.MODALS.STRATEGY_SELECTION;
   bridgeViewMode: BridgeViewMode;
   sourceToken?: BridgeToken;
   destToken?: BridgeToken;

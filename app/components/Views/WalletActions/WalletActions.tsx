@@ -35,10 +35,7 @@ import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlag
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
 import { earnSelectors } from '../../../selectors/earnController/earn';
-import {
-  useSwapBridgeNavigation,
-  SwapBridgeNavigationLocation,
-} from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
@@ -47,6 +44,7 @@ import {
   useGetPerpsHomeNavigationTarget,
 } from '../../UI/Perps/utils/perpsModeSwitch';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,7 +66,7 @@ const WalletActions = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.MainView,
+    location: MetaMetricsSwapsEventSource.MainView,
     sourcePage: 'MainView',
   });
   const { isEligible: isEarnEligible } = useStakingEligibility();
