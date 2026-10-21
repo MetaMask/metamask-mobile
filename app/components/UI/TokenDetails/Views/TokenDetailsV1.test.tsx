@@ -12,10 +12,16 @@ import {
   resolveSwipeTargetTab,
 } from './TokenDetailsV1';
 import {
+  TOKEN_DETAILS_V1_TABS,
   TokenDetailsSource,
   TokenDetailsVariant,
   type TokenDetailsRouteParams,
+  type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import {
+  selectMemecoinTdpV1TabConfig,
+  selectMemecoinTdpV1TokenApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import {
   LIVE_PRICE_HEADER_TEST_ID,
   LIVE_PRICE_SCROLL_THRESHOLD_PX,
@@ -50,6 +56,41 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSocialFeed = jest.mocked(useSocialFeed);
+
+const PROD_TOKEN_API_BASE_URL = 'https://token.api.cx.metamask.io';
+
+/**
+ * Answers the selectors this page reads, so a test only has to name the ones
+ * it cares about. The tab config and the token API host come from remote
+ * config and have no usable `undefined` case, so they always resolve to the
+ * same defaults the selectors themselves fall back to.
+ */
+const mockSelectors = ({
+  socialEnabled = false,
+  tabConfig = TOKEN_DETAILS_V1_TABS,
+  tokenApiBaseUrl = PROD_TOKEN_API_BASE_URL,
+}: {
+  socialEnabled?: boolean;
+  tabConfig?: TokenDetailsV1TabKey[];
+  tokenApiBaseUrl?: string;
+} = {}) => {
+  const { useSelector } = jest.requireMock('react-redux') as {
+    useSelector: jest.Mock;
+  };
+
+  useSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectSocialLeaderboardEnabled) {
+      return socialEnabled;
+    }
+    if (selector === selectMemecoinTdpV1TabConfig) {
+      return tabConfig;
+    }
+    if (selector === selectMemecoinTdpV1TokenApiBaseUrl) {
+      return tokenApiBaseUrl;
+    }
+    return undefined;
+  });
+};
 
 // Keeps the Holders tab off React Query, like the other data hooks here. The
 // list itself is covered in `HoldersTab.test.tsx` / its integration test.
@@ -455,10 +496,7 @@ describe('TokenDetailsV1', () => {
         createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       }),
     );
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation(() => undefined);
+    mockSelectors();
     // Default: a token nobody holds. Tests that need the tab call `withHolders`.
     mockUseTokenHolders.mockReturnValue(holdersState());
     mockCurrentPrice = 1;
@@ -980,13 +1018,85 @@ describe('TokenDetailsV1', () => {
     ).toBeNull();
   });
 
+  describe('remote tab config', () => {
+    const TAB_BUTTON_TEST_IDS =
+      /^token-details-v1-tab-(feed|holders|overview|security)$/;
+
+    const renderTabs = () =>
+      render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+    it('renders the tabs in the order the config gives', () => {
+      mockSelectors({
+        socialEnabled: true,
+        tabConfig: ['security', 'overview', 'feed', 'holders'],
+      });
+      withHolders();
+
+      const { getAllByTestId } = renderTabs();
+
+      expect(
+        getAllByTestId(TAB_BUTTON_TEST_IDS).map((tab) => tab.props.testID),
+      ).toStrictEqual([
+        'token-details-v1-tab-security',
+        'token-details-v1-tab-overview',
+        'token-details-v1-tab-feed',
+        'token-details-v1-tab-holders',
+      ]);
+    });
+
+    it('lands on the first tab in the config rather than Feed', () => {
+      mockSelectors({
+        socialEnabled: true,
+        tabConfig: ['security', 'overview', 'feed'],
+      });
+
+      const { getByText } = renderTabs();
+
+      expect(getByText('security:true')).toBeTruthy();
+      expect(getByText('feed:false')).toBeTruthy();
+    });
+
+    it('never renders a tab the config leaves out', () => {
+      mockSelectors({
+        socialEnabled: true,
+        tabConfig: ['overview', 'security'],
+      });
+      withHolders();
+
+      const { queryByTestId } = renderTabs();
+
+      expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+      expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
+      expect(
+        queryByTestId(`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-feed`),
+      ).toBeNull();
+    });
+
+    // The config takes tabs away; it does not grant them. Listing Feed on a
+    // wallet without the social leaderboard would otherwise ship a tab whose
+    // data nobody is allowed to load.
+    it('does not grant a listed tab that the social gate denies', () => {
+      mockSelectors({
+        socialEnabled: false,
+        tabConfig: ['feed', 'holders', 'overview', 'security'],
+      });
+      withHolders();
+
+      const { queryByTestId, getByText } = renderTabs();
+
+      expect(queryByTestId('token-details-v1-tab-feed')).toBeNull();
+      expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
+      expect(getByText('overview:true')).toBeTruthy();
+    });
+  });
+
   it('switches tab panels and back to the Overview tab', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     mockUseSocialFeed.mockReturnValue({
       posts: [{ id: 'post-1' } as SocialV1FeedPost],
       rows: [],
@@ -1026,12 +1136,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('keeps the Feed tab when the feed has no posts', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
 
     const { getByTestId } = render(
       <TokenDetailsV1
@@ -1044,12 +1149,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('hides the Holders tab for a token nobody holds', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
 
     const { queryByTestId } = render(
       <TokenDetailsV1
@@ -1062,12 +1162,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('shows the Holders tab second, right after Feed, once the token has holders', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     withHolders();
 
     const { getByTestId } = render(
@@ -1083,12 +1178,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('keeps the Holders tab through the first fetch, so the tab bar does not shift', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     mockUseTokenHolders.mockReturnValue(holdersState({ isLoading: true }));
 
     const { getByTestId } = render(
@@ -1102,12 +1192,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('keeps the Holders tab when the fetch failed, so a blip does not remove it', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     mockUseTokenHolders.mockReturnValue(
       holdersState({ error: 'holders route exploded' }),
     );
@@ -1123,12 +1208,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('lands on the Feed tab even when the feed has no posts', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
 
     const { getByText } = render(
       <TokenDetailsV1
@@ -1144,12 +1224,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('drops both social tabs when the token has no CAIP-19 asset id', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     // No chain id, so `useTokenCaipAssetId` resolves null and neither social
     // surface has a source to load.
     const tokenWithoutAssetId = {
@@ -1171,12 +1246,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('loads the social feed on the Feed tab', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     mockUseSocialFeed.mockReturnValue({
       posts: [{ id: 'post-1' } as SocialV1FeedPost],
       rows: [],
@@ -1205,12 +1275,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('opens Quick Buy for the token when a feed post is copy traded', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -1238,12 +1303,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('closes the copy-trade Quick Buy sheet', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -1262,12 +1322,7 @@ describe('TokenDetailsV1', () => {
   });
 
   it('shows the holders list on the Holders tab', () => {
-    const { useSelector } = jest.requireMock('react-redux') as {
-      useSelector: jest.Mock;
-    };
-    useSelector.mockImplementation((selector: unknown) =>
-      selector === selectSocialLeaderboardEnabled ? true : undefined,
-    );
+    mockSelectors({ socialEnabled: true });
     withHolders();
 
     const { getByTestId } = render(

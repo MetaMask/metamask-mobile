@@ -2,7 +2,27 @@ import {
   DEFAULT_FEATURE_FLAG_VALUES,
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
-import { selectAssetsMemecoinTdpV1Enabled } from '.';
+import { TOKEN_API_BASE_URL } from '../../../components/UI/Assets/watchlist/utils/getTokens';
+import { TOKEN_DETAILS_V1_TABS } from '../../../components/UI/TokenDetails/constants/constants';
+import type { StateWithPartialEngine } from '../types';
+import {
+  selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1TabConfig,
+  selectMemecoinTdpV1TokenApiBaseUrl,
+} from '.';
+
+const stateWithFlag = (value: unknown): StateWithPartialEngine =>
+  ({
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            [FeatureFlagNames.assetsMemecoinTdpV1]: value,
+          },
+        },
+      },
+    },
+  }) as unknown as StateWithPartialEngine;
 
 describe('selectAssetsMemecoinTdpV1Enabled', () => {
   it('returns true when enabled is true', () => {
@@ -39,5 +59,125 @@ describe('selectAssetsMemecoinTdpV1Enabled', () => {
         [FeatureFlagNames.assetsMemecoinTdpV1]: { invalid: 'structure' },
       }),
     ).toBe(false);
+  });
+});
+
+describe('selectMemecoinTdpV1TabConfig', () => {
+  it('returns the configured order', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({
+        enabled: true,
+        tabConfig: ['overview', 'security', 'feed', 'holders'],
+      }),
+    );
+
+    expect(result).toStrictEqual(['overview', 'security', 'feed', 'holders']);
+  });
+
+  it('keeps a config that names only some of the tabs', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({ enabled: true, tabConfig: ['overview', 'security'] }),
+    );
+
+    expect(result).toStrictEqual(['overview', 'security']);
+  });
+
+  it('drops tab keys this release does not know', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({
+        enabled: true,
+        tabConfig: ['overview', 'liquidity', 42, 'security'],
+      }),
+    );
+
+    expect(result).toStrictEqual(['overview', 'security']);
+  });
+
+  it('de-duplicates repeated tab keys', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({
+        enabled: true,
+        tabConfig: ['overview', 'overview', 'security'],
+      }),
+    );
+
+    expect(result).toStrictEqual(['overview', 'security']);
+  });
+
+  it('ignores the config when the feature is off', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({ enabled: false, tabConfig: ['security'] }),
+    );
+
+    expect(result).toStrictEqual(TOKEN_DETAILS_V1_TABS);
+  });
+
+  it('falls back to the default order when the entry is absent', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({ enabled: true }),
+    );
+
+    expect(result).toStrictEqual(TOKEN_DETAILS_V1_TABS);
+  });
+
+  it('falls back to the default order when the entry is not an array', () => {
+    const result = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({ enabled: true, tabConfig: 'overview' }),
+    );
+
+    expect(result).toStrictEqual(TOKEN_DETAILS_V1_TABS);
+  });
+
+  it('falls back to the default order when nothing in the array is usable', () => {
+    const emptyResult = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({ enabled: true, tabConfig: [] }),
+    );
+    const unknownResult = selectMemecoinTdpV1TabConfig(
+      stateWithFlag({ enabled: true, tabConfig: ['liquidity'] }),
+    );
+
+    expect(emptyResult).toStrictEqual(TOKEN_DETAILS_V1_TABS);
+    expect(unknownResult).toStrictEqual(TOKEN_DETAILS_V1_TABS);
+  });
+});
+
+describe('selectMemecoinTdpV1TokenApiBaseUrl', () => {
+  const DEV_HOST = 'https://token.dev-api.cx.metamask.io';
+
+  it('returns the configured host', () => {
+    const result = selectMemecoinTdpV1TokenApiBaseUrl(
+      stateWithFlag({ enabled: true, tokenApiBaseUrl: DEV_HOST }),
+    );
+
+    expect(result).toBe(DEV_HOST);
+  });
+
+  it('ignores the host when the feature is off', () => {
+    const result = selectMemecoinTdpV1TokenApiBaseUrl(
+      stateWithFlag({ enabled: false, tokenApiBaseUrl: DEV_HOST }),
+    );
+
+    expect(result).toBe(TOKEN_API_BASE_URL);
+  });
+
+  it('falls back to prod when the entry is absent', () => {
+    const result = selectMemecoinTdpV1TokenApiBaseUrl(
+      stateWithFlag({ enabled: true }),
+    );
+
+    expect(result).toBe(TOKEN_API_BASE_URL);
+  });
+
+  it.each([
+    ['plain http', 'http://token.dev-api.cx.metamask.io'],
+    ['a relative path', '/v2/assets'],
+    ['a bare scheme', 'https://'],
+    ['a non-string', 42],
+  ])('falls back to prod for %s', (_label, tokenApiBaseUrl) => {
+    const result = selectMemecoinTdpV1TokenApiBaseUrl(
+      stateWithFlag({ enabled: true, tokenApiBaseUrl }),
+    );
+
+    expect(result).toBe(TOKEN_API_BASE_URL);
   });
 });
