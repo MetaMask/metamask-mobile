@@ -400,19 +400,20 @@ jobs:
             echo "No changes detected"
           fi
 
-
   # Same files, rules, and exit semantics as `yarn lint`, split by file size.
   # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
   # file set and bin-packs by size. Per-file cache stays off the persisted
   # paths: #33370 reverted it because cross-file and type-aware rules go stale.
   lint-shards:
-    name: Run lint (${{ matrix.shard }}/${{ matrix.shards }})
+    name: Run lint (${{ matrix.shard }})
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
         'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
       }}
     env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
@@ -424,7 +425,6 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
-        shards: [4]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -456,13 +456,16 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      # The "4" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard.
       # messenger-action-types:check runs only on shard 1. That leg is required,
       # so a failure still fails the aggregate Run `lint` job and Check all jobs pass.
       - name: Lint shard
-        run: yarn lint:shard --shard ${{ matrix.shard }} --shards ${{ matrix.shards }}
+        run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
         env:
-          # 16x32 (MCWP-812). Local `yarn lint` stays at the 12288 fallback.
-          LINT_HEAP_MB: 24576
+          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
+          # the other test jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -474,10 +477,14 @@ jobs:
           fi
 
   # Same check name the scripts matrix rendered for `lint`: backticks included.
-  # Shard jobs are `Run lint (N/M)` and do not use that name.
+  # Shard jobs are `Run lint (N)` and do not use that name.
   lint:
     name: Run `lint`
-    runs-on: ubuntu-latest
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
     needs:
       - get_requirements
       - lint-shards
@@ -490,9 +497,11 @@ jobs:
       }}
     steps:
       - name: Require every lint shard to pass
+        env:
+          LINT_SHARDS_RESULT: ${{ needs.lint-shards.result }}
         run: |
-          if [ "${{ needs.lint-shards.result }}" != "success" ]; then
-            echo "lint shards result: ${{ needs.lint-shards.result }}"
+          if [ "$LINT_SHARDS_RESULT" != "success" ]; then
+            echo "lint shards result: $LINT_SHARDS_RESULT"
             exit 1
           fi
           echo "lint shards passed"
