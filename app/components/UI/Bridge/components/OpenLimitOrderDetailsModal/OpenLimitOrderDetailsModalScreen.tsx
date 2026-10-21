@@ -15,7 +15,7 @@ export const OpenLimitOrderDetailsModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<OpenLimitOrderDetailsModalParams>();
   const { sourceToken, destinationToken } = getLimitOrderTokens(order);
-  const { triggerPrice, triggerToken } = getTriggerPrice(
+  const { triggerPrice, triggerToken, triggerDirection } = getTriggerPrice(
     order,
     sourceToken,
     destinationToken,
@@ -44,6 +44,7 @@ export const OpenLimitOrderDetailsModalScreen = () => {
       })}
       triggerPrice={triggerPrice}
       triggerToken={triggerToken}
+      triggerDirection={triggerDirection}
       expiry={
         formatTimestampToDateTime(Date.parse(order.timingData.expiresAt)) ??
         '--'

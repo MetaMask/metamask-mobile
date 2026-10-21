@@ -2,15 +2,17 @@ import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { getAssetsPrice } from '../../../../selectors/assets/assets-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Logger from '../../../../util/Logger';
-import { tokenMarketDataOptions } from '../queries/tokenMarketData';
+import {
+  tokenMarketDataOptions,
+  type TokenMarketData,
+} from '../queries/tokenMarketData';
 
 export interface UseTokenMarketDataResult {
   /** Null until resolved, and when the token has no market data at all. */
-  marketData: FungibleAssetPrice | null;
+  marketData: TokenMarketData | null;
   /** True only while the network fallback is in flight. */
   isLoading: boolean;
 }

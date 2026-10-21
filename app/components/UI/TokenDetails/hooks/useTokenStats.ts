@@ -7,6 +7,8 @@ import type {
 } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import i18n, { strings } from '../../../../../locales/i18n';
+import type { TokenAssetLaunchpadData } from '../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../queries/tokenMarketData';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { TokenStatKey, type TokenStatValues } from '../constants/tokenStats';
 import {
@@ -55,10 +57,11 @@ const LISTED_ON_EXCHANGE_FEATURE_ID = 'LISTED_ON_CENTRALIZED_EXCHANGE';
 
 export interface UseTokenStatsParams {
   /** Resolved by `useTokenMarketData`, in the user's selected currency. */
-  marketData: FungibleAssetPrice | null;
+  marketData: TokenMarketData | null;
   /** True while the market-data fetch is in flight. */
   isMarketDataLoading: boolean;
   securityData?: TokenSecurityData | null;
+  launchpadData?: TokenAssetLaunchpadData | null;
   currentCurrency: string;
 }
 
@@ -202,6 +205,7 @@ export const useTokenStats = ({
   marketData,
   isMarketDataLoading,
   securityData,
+  launchpadData,
   currentCurrency,
 }: UseTokenStatsParams): TokenStatValues =>
   useMemo(() => {
@@ -221,6 +225,8 @@ export const useTokenStats = ({
       liquidityUsd == null || usdToSelected == null
         ? null
         : liquidityUsd * usdToSelected;
+    const liquidity =
+      liquidityInSelectedCurrency ?? marketData?.liquidity ?? null;
 
     const { circulatingSupply, usdPrice } = marketData ?? {};
     const marketCapUsd =
@@ -235,25 +241,34 @@ export const useTokenStats = ({
 
     return {
       [TokenStatKey.MarketCap]: {
-        value: formatCompactFiat(marketData?.marketCap, currentCurrency),
+        value: formatCompactFiat(
+          marketData?.marketCap ?? marketData?.dilutedMarketCap,
+          currentCurrency,
+        ),
         isLoading: isMarketDataLoading,
       },
       // Security-sourced, but its conversion rate is not, so it waits on the
       // market data the same way the cells above it do.
       [TokenStatKey.Liquidity]: {
-        value: formatCompactFiat(liquidityInSelectedCurrency, currentCurrency),
+        value: formatCompactFiat(liquidity, currentCurrency),
         isLoading: isMarketDataLoading,
       },
       [TokenStatKey.Volume24h]: {
-        value: formatCompactFiat(marketData?.totalVolume, currentCurrency),
+        value: formatCompactFiat(
+          marketData?.totalVolume ?? financialStats?.tradeVolume24h,
+          currentCurrency,
+        ),
         isLoading: isMarketDataLoading,
       },
       [TokenStatKey.Holders]: {
-        value: formatCompactNumber(financialStats?.holdersCount),
+        value: formatCompactNumber(
+          launchpadData?.holdersCount ?? financialStats?.holdersCount,
+        ),
       },
       [TokenStatKey.Top10]: {
         value: formatPercent(
-          sumTopTenPercentage(financialStats),
+          Number(launchpadData?.top10HeldPercent) ||
+            sumTopTenPercentage(financialStats),
           PERCENT_DECIMALS,
         ),
       },
@@ -306,6 +321,12 @@ export const useTokenStats = ({
       },
       [TokenStatKey.Created]: { value: formatCreated(securityData?.created) },
     };
-  }, [marketData, isMarketDataLoading, securityData, currentCurrency]);
+  }, [
+    marketData,
+    isMarketDataLoading,
+    securityData,
+    launchpadData,
+    currentCurrency,
+  ]);
 
 export default useTokenStats;
