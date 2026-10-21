@@ -347,6 +347,7 @@ const BridgeLimitOrderViewContent = ({
 
   const openOrders = createLimitOrdersTab({
     orders: openOrdersQuery.orders,
+    totalCount: openOrdersQuery.total,
     isLoading: openOrdersQuery.isLoading,
     isError: openOrdersQuery.isError,
     isFetchingNextPage: openOrdersQuery.isFetchingNextPage,

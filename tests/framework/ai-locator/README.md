@@ -51,7 +51,7 @@ stable Page Object selectors instead of being silently accepted forever.
 
 ### Where it is enabled
 
-The TestMu performance lane (`performance-test-runner-testmu.yml`) sets
+The TestMu performance lane (`performance-test-runner.yml`) sets
 `AI_LOCATOR_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` (from the
 `E2E_CLAUDE_API_KEY` secret). `run-testmu-hyperexecute.sh` forwards both to the
 HyperExecute VM, where the tests run: the key goes through the job secret file

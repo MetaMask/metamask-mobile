@@ -7,6 +7,12 @@ import {
 import { useIsMemeToken } from './useIsMemeToken';
 import { useTokenCaipAssetId } from './useTokenCaipAssetId';
 
+export interface UseTokenDetailsVariantResult {
+  variant: TokenDetailsVariant | null;
+  /** `true` while the meme-token signal is still loading from the API. */
+  isLoading: boolean;
+}
+
 /**
  * Resolves which Token Details V1 variant applies to a token, or `null` when
  * none does and the legacy Token Details page should render instead.
@@ -16,18 +22,21 @@ import { useTokenCaipAssetId } from './useTokenCaipAssetId';
  */
 export const useTokenDetailsVariant = (
   token: TokenDetailsRouteParams,
-): TokenDetailsVariant | null => {
+): UseTokenDetailsVariantResult => {
   const caipAssetId = useTokenCaipAssetId(token);
 
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
-  const { isMeme } = useIsMemeToken({
+  const { isMeme, isLoading } = useIsMemeToken({
     assetId: caipAssetId,
     enabled: isMemecoinTdpEnabled,
   });
 
   if (isMemecoinTdpEnabled && isMeme) {
-    return TokenDetailsVariant.Memecoin;
+    return { variant: TokenDetailsVariant.Memecoin, isLoading: false };
   }
 
-  return null;
+  return {
+    variant: null,
+    isLoading: isMemecoinTdpEnabled && isLoading,
+  };
 };
