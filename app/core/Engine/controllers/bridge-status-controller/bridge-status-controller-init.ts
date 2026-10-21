@@ -1,11 +1,11 @@
-import { BridgeClientId } from '@metamask/bridge-controller';
+import { BridgeClientId, SwapFeatureTag } from '@metamask/bridge-controller';
 import {
   BridgeStatusController,
   BridgeStatusControllerMessenger,
   QuoteStatusGetError,
   QuoteStatusUpdateError,
 } from '@metamask/bridge-status-controller';
-import { handleFetch, TraceCallback } from '@metamask/controller-utils';
+import { handleFetch } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 
 import {
@@ -46,7 +46,7 @@ export const bridgeStatusControllerInit: MessengerClientInitFunction<
       addTransactionBatchFn: (
         ...args: Parameters<typeof transactionController.addTransactionBatch>
       ) => transactionController.addTransactionBatch(...args),
-      traceFn: trace as TraceCallback,
+      traceFn: trace,
       config: {
         customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
       },
@@ -54,7 +54,11 @@ export const bridgeStatusControllerInit: MessengerClientInitFunction<
         error: QuoteStatusUpdateError | QuoteStatusGetError,
       ) => {
         if (error instanceof QuoteStatusUpdateError) {
-          captureException(error);
+          captureException(error, {
+            tags: {
+              feature: SwapFeatureTag.SWAP,
+            },
+          });
         }
       },
       isQuoteStatusManagerEnabled: () => {

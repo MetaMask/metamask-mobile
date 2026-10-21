@@ -1,15 +1,12 @@
-import React, { memo, useLayoutEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, type TextStyle, View } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import React, { memo, useLayoutEffect, useState } from 'react';
 import {
   FontFamily,
+  FontWeight,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Laminar } from 'react-native-laminar';
 
-import { splitNumericString } from './splitNumericString';
+import AnimatedSlotText from './AnimatedSlotText';
 
 export interface AnimatedBalanceTextProps {
   accessible?: boolean;
@@ -29,16 +26,6 @@ export interface AnimatedBalanceTextProps {
   variant?: TextVariant;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  text: {
-    fontVariant: ['tabular-nums'],
-  },
-});
-
 /**
  * Primes a numeric renderer with a muted placeholder, then rolls to the first
  * complete balance and every subsequent formatted-value update.
@@ -55,56 +42,24 @@ const AnimatedBalanceText = ({
   variant = TextVariant.AmountDisplayLg,
 }: AnimatedBalanceTextProps) => {
   const [animatedValue, setAnimatedValue] = useState(loadingValue);
-  const tw = useTailwind();
-  const reduceMotion = useReducedMotion();
   const balanceColor = isLoading ? TextColor.TextMuted : color;
-  const fontClass =
-    fontFamily === FontFamily.Hero ? 'font-hero-bold' : 'font-default-bold';
-  const textStyle = StyleSheet.flatten([
-    tw.style(`text-${variant}`, fontClass, balanceColor) as TextStyle,
-    styles.text,
-  ]) as TextStyle;
-  const motionEnabled = animated !== false && !reduceMotion;
-  const { prefix, numeric, suffix } = useMemo(
-    () => splitNumericString(animatedValue),
-    [animatedValue],
-  );
 
   useLayoutEffect(() => {
     setAnimatedValue(isLoading ? loadingValue : value);
   }, [isLoading, loadingValue, value]);
 
-  const renderStaticText = (content: string) => (
-    <Text style={textStyle}>{content}</Text>
-  );
-
   return (
-    <View
+    <AnimatedSlotText
       accessible={accessible}
-      accessibilityRole={accessible ? 'text' : undefined}
-      accessibilityLabel={accessible ? animatedValue : undefined}
-      style={styles.container}
+      animated={animated}
+      clipToBounds
+      color={balanceColor}
+      fontFamily={fontFamily}
+      fontWeight={FontWeight.Bold}
       testID={testID}
-    >
-      {!motionEnabled || !numeric ? (
-        renderStaticText(animatedValue)
-      ) : (
-        <>
-          {prefix ? renderStaticText(prefix) : null}
-          <Laminar
-            align="left"
-            animationDuration={400}
-            animationPreset="smooth"
-            autoSize
-            clipToBounds
-            style={textStyle}
-            text={numeric}
-            variant="slots"
-          />
-          {suffix ? renderStaticText(suffix) : null}
-        </>
-      )}
-    </View>
+      value={animatedValue}
+      variant={variant}
+    />
   );
 };
 

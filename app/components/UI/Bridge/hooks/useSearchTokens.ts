@@ -6,6 +6,7 @@ import {
   BridgeClientId,
   FeatureId,
   getClientHeaders,
+  SwapFeatureTag,
 } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
@@ -180,6 +181,7 @@ export const useSearchTokens = ({
                 chainIdsRef.current.length > 1 ? 'multi_chain' : 'single_chain',
               query_length_bucket: getQueryLengthBucket(query.trim().length),
             },
+            tags: { feature: SwapFeatureTag.SWAP },
             startTime: Date.now(),
           });
         }

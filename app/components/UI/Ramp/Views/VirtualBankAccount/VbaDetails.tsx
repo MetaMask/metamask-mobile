@@ -30,6 +30,9 @@ import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
 import {
@@ -38,10 +41,8 @@ import {
 } from './pickLatestTransaction';
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
-import {
-  ensureBrazilMusdAutoramp,
-  findUsableAutoramp,
-} from './ensureBrazilMusdAutoramp';
+import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import VbaCreatingAccount from './VbaCreatingAccount';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -90,32 +91,55 @@ interface DepositRamps {
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
 }
 
+const isTerminalStatus = (status: string): boolean =>
+  status === 'Rejected' || status === 'Cancelled';
+
+const readAutoramps = (): AutorampCursor[] =>
+  (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
+
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the BRL autoramp. Until a PIX rail exists, the existing
- * loading state stays on screen. Pushed on the root stack
+ * wallet and creates the autoramp, in the fiat mapped from the effective
+ * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
+ * IP country).
+ * Until the autoramp is Approved it shows the creating state. Polling stops
+ * once deposit details load or the autoramp is Rejected or Cancelled; only
+ * Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
- * onboarding. PIX values come from
- * `NeoBankService.getPixDepositInstructions`.
+ * onboarding. PIX values come from `NeoBankService.getPixDepositInstructions`.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const location = useSelector(selectGeolocationLocation);
+  const { regionCurrencies, regionOverride } = useSelector(
+    selectMoneyMovementNeobank,
+  );
+  const sourceCurrency = getVbaSourceCurrencyForCountry(
+    regionOverride ?? location,
+    regionCurrencies,
+  );
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
   const [instructions, setInstructions] =
     useState<PixDepositInstructions | null>(null);
   const [autorampId, setAutorampId] = useState<string | null>(null);
-  const [autorampStatus, setAutorampStatus] = useState<string | null>(null);
+  const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
+    walletAddress
+      ? (findUsableAutoramp(readAutoramps(), walletAddress)?.status ?? null)
+      : null,
+  );
   const [transactionStatus, setTransactionStatus] = useState<string | null>(
     null,
   );
   const [loadError, setLoadError] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
+  const [isTerminal, setIsTerminal] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
+  const pollingDoneRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -124,78 +148,97 @@ const VbaDetails = () => {
     };
   }, []);
 
-  const refreshDeposit = useCallback(async () => {
-    if (!walletAddress) {
-      return;
-    }
-    const ramps = Engine.context.RampsController as DepositRamps;
-    let autoramp = findUsableAutoramp(
-      ramps.state?.autoramps ?? [],
-      walletAddress,
-    );
-    if (!autoramp) {
-      const outcome = await ensureBrazilMusdAutoramp(walletAddress);
-      if (!isMountedRef.current) {
+  const refreshDeposit = useCallback(
+    async (replaceTerminal = false) => {
+      if (!walletAddress) {
         return;
       }
-      autoramp = findUsableAutoramp(
-        ramps.state?.autoramps ?? [],
-        walletAddress,
-      );
+      const ramps = Engine.context.RampsController as DepositRamps;
+      let autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
       if (!autoramp) {
-        setSetupFailed(outcome === 'failed');
-        setAutorampId(null);
-        setAutorampStatus(null);
+        if (!sourceCurrency) {
+          setSetupFailed(true);
+          return;
+        }
+        const outcome = await ensureMusdAutoramp(
+          walletAddress,
+          sourceCurrency,
+          { replaceTerminal },
+        );
+        if (!isMountedRef.current) {
+          return;
+        }
+        autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+        if (!autoramp) {
+          setSetupFailed(outcome === 'failed');
+          setIsTerminal(outcome === 'terminal');
+          pollingDoneRef.current = outcome === 'terminal';
+          setAutorampId(null);
+          setAutorampStatus(null);
+          setInstructions(null);
+          return;
+        }
+      }
+      setSetupFailed(false);
+
+      let status = autoramp.status;
+      if (status !== 'Approved' && ramps.refreshAutoramp) {
+        const refreshed = await ramps.refreshAutoramp(autoramp.id);
+        status = refreshed.status;
+      }
+      setAutorampId(autoramp.id);
+      setAutorampStatus(status);
+      const terminal = isTerminalStatus(status);
+      setIsTerminal(terminal);
+      if (terminal) {
+        pollingDoneRef.current = true;
         setInstructions(null);
         return;
       }
-    }
-    setSetupFailed(false);
+      if (status !== 'Approved') {
+        return;
+      }
 
-    let status = autoramp.status;
-    if (status !== 'Approved' && ramps.refreshAutoramp) {
-      const refreshed = await ramps.refreshAutoramp(autoramp.id);
-      status = refreshed.status;
-    }
-    setAutorampId(autoramp.id);
-    setAutorampStatus(status);
+      const neoBank = (
+        Engine.context as unknown as { NeoBankService?: DepositNeoBank }
+      ).NeoBankService;
+      if (!neoBank) {
+        return;
+      }
 
-    const neoBank = (
-      Engine.context as unknown as { NeoBankService?: DepositNeoBank }
-    ).NeoBankService;
-    if (!neoBank) {
-      return;
-    }
-
-    // Fetch PIX on its own so a flaky transaction poll cannot hide the code.
-    if (neoBank.getPixDepositInstructions) {
-      try {
-        const pix = await neoBank.getPixDepositInstructions(autoramp.id);
-        if (pix?.brCode) {
-          setInstructions(pix);
+      // Fetch PIX on its own so a flaky transaction poll cannot hide the code.
+      if (neoBank.getPixDepositInstructions) {
+        try {
+          const pix = await neoBank.getPixDepositInstructions(autoramp.id);
+          if (pix?.brCode) {
+            setInstructions(pix);
+            // Debug builds keep polling so the latest deposit stays visible.
+            pollingDoneRef.current = !debugEnabled;
+          }
+        } catch (error) {
+          Logger.error(error as Error, {
+            message: 'VbaDetails: failed to load PIX deposit instructions',
+          });
         }
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'VbaDetails: failed to load PIX deposit instructions',
-        });
       }
-    }
 
-    if (debugEnabled && neoBank.listAutorampTransactions) {
-      try {
-        const transactions = await neoBank.listAutorampTransactions(
-          autoramp.id,
-        );
-        setTransactionStatus(
-          pickLatestTransaction(transactions)?.status ?? null,
-        );
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'VbaDetails: failed to list autoramp transactions',
-        });
+      if (debugEnabled && neoBank.listAutorampTransactions) {
+        try {
+          const transactions = await neoBank.listAutorampTransactions(
+            autoramp.id,
+          );
+          setTransactionStatus(
+            pickLatestTransaction(transactions)?.status ?? null,
+          );
+        } catch (error) {
+          Logger.error(error as Error, {
+            message: 'VbaDetails: failed to list autoramp transactions',
+          });
+        }
       }
-    }
-  }, [debugEnabled, walletAddress]);
+    },
+    [debugEnabled, sourceCurrency, walletAddress],
+  );
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -205,7 +248,7 @@ const VbaDetails = () => {
     let cancelled = false;
     let inFlight = false;
     const tick = async () => {
-      if (cancelled || inFlight) {
+      if (cancelled || inFlight || pollingDoneRef.current) {
         return;
       }
       inFlight = true;
@@ -240,27 +283,45 @@ const VbaDetails = () => {
     };
   }, [hardwareTier, networkTier, refreshDeposit]);
 
+  const isApproved = autorampStatus === 'Approved';
+  const hasSetupError = (setupFailed || isTerminal) && !isApproved;
+
   useEffect(() => {
-    if (!loadError || instructions?.brCode) {
+    if (!loadError || !isApproved || instructions?.brCode) {
       return;
     }
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.load_error'),
     );
-  }, [instructions?.brCode, loadError]);
+  }, [instructions?.brCode, isApproved, loadError]);
 
   useEffect(() => {
-    if (!setupFailed || instructions?.brCode) {
+    if (!hasSetupError) {
       return;
     }
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.setup_error'),
     );
-  }, [instructions?.brCode, setupFailed]);
+  }, [hasSetupError]);
 
   const handleRetrySetup = useCallback(() => {
-    refreshDeposit().catch(() => undefined);
+    pollingDoneRef.current = false;
+    setSetupFailed(false);
+    setIsTerminal(false);
+    refreshDeposit(true).catch((error: unknown) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: retry setup failed',
+      });
+      setSetupFailed(true);
+    });
   }, [refreshDeposit]);
+
+  const handleDone = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -268,11 +329,8 @@ const VbaDetails = () => {
       return;
     }
 
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    handleDone();
+  }, [handleDone, navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
@@ -314,12 +372,15 @@ const VbaDetails = () => {
   ].filter((row): row is NonNullable<typeof row> => row !== null);
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
-  const showSetupRetry = setupFailed && !instructions?.brCode;
   const errorMessage = setupFailed
     ? strings('virtual_bank_account.vba_details.setup_error')
     : loadError
       ? strings('virtual_bank_account.vba_details.load_error')
       : null;
+
+  if (!isApproved && !hasSetupError) {
+    return <VbaCreatingAccount onBack={handleDone} />;
+  }
 
   return (
     <SafeAreaView
@@ -390,20 +451,22 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : errorMessage ? (
+        ) : hasSetupError || errorMessage ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
             twClassName="mt-6 text-center"
             testID={
-              setupFailed
+              hasSetupError
                 ? VbaDetailsSelectorsIDs.SETUP_ERROR
                 : VbaDetailsSelectorsIDs.LOAD_ERROR
             }
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
           >
-            {errorMessage}
+            {hasSetupError
+              ? strings('virtual_bank_account.vba_details.setup_error')
+              : errorMessage}
           </Text>
         ) : (
           <Box
@@ -464,7 +527,7 @@ const VbaDetails = () => {
             {strings('virtual_bank_account.vba_details.helper_text')}
           </Text>
         ) : null}
-        {showSetupRetry ? (
+        {hasSetupError ? (
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}

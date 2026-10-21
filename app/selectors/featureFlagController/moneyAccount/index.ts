@@ -39,12 +39,15 @@ export const MONEY_MOVEMENT_NEOBANK_FLAG_KEY = 'moneyMovementNeobank' as const;
 
 interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   regions?: unknown;
+  regionCurrencies?: unknown;
+  regionOverride?: unknown;
 }
 
 /**
  * `validatedVersionGatedFeatureFlag` unwraps `{ name, value }` and then
- * returns only a boolean, which drops `regions`. Recover the same payload
- * here so the country list can be read after the enabled + minimumVersion gate.
+ * returns only a boolean, which drops `regions`, `regionCurrencies`, and
+ * `regionOverride`. Recover the same payload here so those fields can be
+ * read after the enabled + minimumVersion gate.
  *
  * @param remoteFlag - Raw `moneyMovementNeobank` value from RemoteFeatureFlagController.
  * @returns The version-gated object, including any extra fields, or undefined.
@@ -98,6 +101,49 @@ function normalizeVbaRegionCodes(regions: unknown): string[] {
   return codes;
 }
 
+const VBA_SOURCE_CURRENCIES = new Set(['BRL', 'USD', 'EUR']);
+
+function normalizeVbaRegionCurrencies(
+  regionCurrencies: unknown,
+): Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>> {
+  if (
+    typeof regionCurrencies !== 'object' ||
+    regionCurrencies === null ||
+    Array.isArray(regionCurrencies)
+  ) {
+    return {};
+  }
+
+  const normalized: Record<string, 'BRL' | 'USD' | 'EUR'> = {};
+  for (const [region, currency] of Object.entries(regionCurrencies)) {
+    const code = region.trim().toUpperCase();
+    const fiat =
+      typeof currency === 'string' ? currency.trim().toUpperCase() : '';
+    if (code && VBA_SOURCE_CURRENCIES.has(fiat)) {
+      normalized[code] = fiat as 'BRL' | 'USD' | 'EUR';
+    }
+  }
+  return normalized;
+}
+
+/**
+ * Trim and uppercase a country code from `regionOverride`. A missing,
+ * non-string, or blank value is no override. Any non-blank string is kept.
+ * This is a country code, not a currency.
+ *
+ * @param regionOverride - Raw `regionOverride` field from the flag payload.
+ * @returns An uppercase country code, or undefined when there is no override.
+ */
+function normalizeVbaRegionOverride(
+  regionOverride: unknown,
+): string | undefined {
+  if (typeof regionOverride !== 'string') {
+    return undefined;
+  }
+  const code = regionOverride.trim().toUpperCase();
+  return code || undefined;
+}
+
 export interface MoneyMovementNeobankRollout {
   /**
    * Whether this binary may offer Virtual Bank Accounts. False when the flag
@@ -107,19 +153,30 @@ export interface MoneyMovementNeobankRollout {
   isEnabled: boolean;
   /** Uppercase ISO 3166-1 alpha-2 codes. Empty whenever `isEnabled` is false. */
   regions: readonly string[];
+  /** Currency served for each country. Missing countries fail closed. */
+  regionCurrencies: Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>>;
+  /**
+   * Country code used ahead of the IP location. Undefined when the field is
+   * missing, not a string, blank, or the gate is closed. The country must
+   * still be listed in `regions`.
+   */
+  regionOverride: string | undefined;
 }
 
 const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
   isEnabled: false,
   regions: [],
+  regionCurrencies: {},
+  regionOverride: undefined,
 };
 
 /**
  * Virtual Bank Account rollout from `moneyMovementNeobank`.
  *
- * The object is the only switch: `{ enabled, minimumVersion, regions }`.
- * `validatedVersionGatedFeatureFlag` checks enabled and minimumVersion; regions
- * are read from that same payload. A closed gate allows no country.
+ * The object is the only switch: `{ enabled, minimumVersion, regions,
+ * regionCurrencies, regionOverride }`. A closed gate allows no country and
+ * returns no region override. `regionOverride` is optional and absent in
+ * production; an RC or internal variation can set a country code.
  *
  * @returns The enabled country list, or a disabled rollout.
  */
@@ -135,7 +192,12 @@ export const selectMoneyMovementNeobank = createSelector(
     if (regions.length === 0) {
       return NEOBANK_ROLLOUT_DISABLED;
     }
-    return { isEnabled: true, regions };
+    return {
+      isEnabled: true,
+      regions,
+      regionCurrencies: normalizeVbaRegionCurrencies(payload.regionCurrencies),
+      regionOverride: normalizeVbaRegionOverride(payload.regionOverride),
+    };
   },
 );
 

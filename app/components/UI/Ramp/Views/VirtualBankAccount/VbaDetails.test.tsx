@@ -8,7 +8,8 @@ import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
-import { resetBrazilMusdAutorampSetupGuard } from './ensureBrazilMusdAutoramp';
+import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
+import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -20,6 +21,8 @@ const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
+let mockLocation: string | undefined = 'BR';
+let mockRegionOverride: string | undefined;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
@@ -40,6 +43,25 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyAccount',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/featureFlagController/moneyAccount',
+    ),
+    selectMoneyMovementNeobank: () => ({
+      isEnabled: true,
+      regions: ['BR'],
+      regionCurrencies: { BR: 'BRL' },
+      regionOverride: mockRegionOverride,
+    }),
+  }),
+);
+
+jest.mock('../../../../../selectors/geolocationController', () => ({
+  selectGeolocationLocation: () => mockLocation,
 }));
 
 jest.mock('../../../../../util/deviceCapability', () => ({
@@ -129,8 +151,10 @@ const restoreNeoBankService = () => {
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetBrazilMusdAutorampSetupGuard();
+    resetMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
+    mockLocation = 'BR';
+    mockRegionOverride = undefined;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -382,29 +406,56 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('shows a load error when refreshing the autoramp fails', async () => {
+  it('stays on the creating state when refreshing the autoramp fails', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockRejectedValue(new Error('refresh failed'));
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+      expect(Logger.error).toHaveBeenCalled();
     });
-    expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR).props).toEqual(
-      expect.objectContaining({
-        accessibilityRole: 'alert',
-        accessibilityLiveRegion: 'polite',
-      }),
-    );
-    expect(announceSpy).toHaveBeenCalledWith(
-      strings('virtual_bank_account.vba_details.load_error'),
-    );
-    expect(Logger.error).toHaveBeenCalled();
+    expect(
+      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows Creating your bank account until the autoramp is Approved', async () => {
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
+    mockRefreshAutoramp.mockResolvedValue({
+      id: 'ar-1',
+      walletAddress: '0xabc',
+      status: 'Authorized',
+    });
+
+    const { getByText, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
+    });
+    expect(
+      getByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
+  });
+
+  it('goes to Money home from the creating state back button', async () => {
+    setAutoramps([]);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockHydrate).toHaveBeenCalled();
+    });
+    fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
@@ -416,7 +467,9 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalled();
     });
-    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetPix).not.toHaveBeenCalled();
     expect(
@@ -429,11 +482,119 @@ describe('VbaDetails', () => {
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
+    expect(
+      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
     await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+      expect(mockGetPix).not.toHaveBeenCalled();
+    });
+    expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('creates the autoramp for the flag region override ahead of the IP country', async () => {
+    setAutoramps([]);
+    mockLocation = 'DE';
+    mockRegionOverride = 'BR';
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'needs_wallet_registration',
+    });
+    mockCreateAutoramp.mockImplementation(async () => {
+      setAutoramps([
+        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+      ]);
+      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+        }),
+      );
+    });
+  });
+
+  it('does not use the IP currency when the region override has no currency', async () => {
+    setAutoramps([]);
+    mockLocation = 'BR';
+    mockRegionOverride = 'DE';
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('shows the setup error without creating when the country has no currency', async () => {
+    setAutoramps([]);
+    mockLocation = 'DE';
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('shows retry instead of replacing a rejected autoramp, and replaces it on retry', async () => {
+    setAutoramps([
+      { id: 'ar-old', walletAddress: '0xabc', status: 'Rejected' },
+    ]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+    mockCreateAutoramp.mockImplementation(async () => {
+      setAutoramps([
+        { id: 'ar-old', walletAddress: '0xabc', status: 'Rejected' },
+        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+      ]);
+      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+    });
+    mockGetPix.mockResolvedValue(pixInstructions);
+    const announceSpy = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    expect(announceSpy).toHaveBeenCalledWith(
+      strings('virtual_bank_account.vba_details.setup_error'),
+    );
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows retry when the autoramp is rejected after creation', async () => {
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
+    mockRefreshAutoramp.mockResolvedValue({
+      id: 'ar-1',
+      walletAddress: '0xabc',
+      status: 'Rejected',
+    });
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON),
+      ).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
-    expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('skips PIX fetch when NeoBankService is unavailable', async () => {
@@ -447,7 +608,7 @@ describe('VbaDetails', () => {
     expect(mockGetPix).not.toHaveBeenCalled();
   });
 
-  it('registers and creates the BRL autoramp once across StrictMode mounts', async () => {
+  it('registers and creates the autoramp in the country fiat once across StrictMode mounts', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
