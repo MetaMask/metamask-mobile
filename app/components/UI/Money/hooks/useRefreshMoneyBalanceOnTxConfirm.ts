@@ -16,6 +16,7 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
   isMoneyAccountTx,
+  isMusdRescueSendTx,
   isPerpsPredictMoneyActivity,
 } from '../utils/moneyTransactionGuards';
 import { refreshMoneyAccountBalanceFresh } from '../utils/invalidateMoneyAccountBalanceCaches';
@@ -278,10 +279,12 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
 
       // Direct Money txs (deposit/withdraw) plus Perps/Predict transfers to or
       // from the Money account (paid with mUSD via MetaMask Pay), which also
-      // move mUSD and so must refresh the balance.
+      // move mUSD and so must refresh the balance. The rescue send (a plain
+      // mUSD transfer out of the Money account) is included explicitly.
       const affectsMoneyBalance =
         isMoneyAccountTx(transactionMeta) ||
-        isPerpsPredictMoneyActivity(transactionMeta);
+        isPerpsPredictMoneyActivity(transactionMeta) ||
+        isMusdRescueSendTx(transactionMeta);
       if (!affectsMoneyBalance) return;
 
       // Marks the live balance as ahead of anything the backend derives from

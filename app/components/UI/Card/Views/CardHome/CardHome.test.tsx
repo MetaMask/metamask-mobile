@@ -29,6 +29,7 @@ jest.mock('../../sdk', () => ({
 // Mock push provisioning hook
 const mockInitiateProvisioning = jest.fn();
 const mockResetProvisioningStatus = jest.fn();
+const mockOpenInWallet = jest.fn(() => Promise.resolve());
 const mockUsePushProvisioning = jest.fn(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (_options: unknown) => ({
@@ -42,6 +43,9 @@ const mockUsePushProvisioning = jest.fn(
     isLoading: false,
     canAddToWallet: false,
     isCardInWallet: false,
+    pendingVerificationDevices: [] as ('phone' | 'watch')[],
+    canOpenInWallet: false,
+    openInWallet: mockOpenInWallet,
   }),
 );
 
@@ -63,7 +67,13 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -414,6 +424,7 @@ const createDefaultMoneyAccountCardLinkageMock =
     moneyAccountCardToken: null,
     canLink: false,
     isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -2177,6 +2188,9 @@ describe('CardHome Component', () => {
         isLoading: true,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2200,6 +2214,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: true,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2223,6 +2240,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: true,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2231,6 +2251,107 @@ describe('CardHome Component', () => {
         screen.queryByTestId(
           CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
         ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a pending verification notice that names the devices', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone', 'watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_description', {
+            devices: strings('card.push_provisioning.device_list_and', {
+              first: strings('card.push_provisioning.device_iphone'),
+              second: strings('card.push_provisioning.device_apple_watch'),
+            }),
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the iPhone pass from the pending notice', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone'],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      fireEvent.press(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).getByTestId('confirm-button'),
+      );
+
+      expect(mockOpenInWallet).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the wallet link when only the Watch pass is pending', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).queryByTestId('confirm-button'),
       ).not.toBeOnTheScreen();
     });
 
@@ -2246,6 +2367,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2253,6 +2377,21 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the Immersve card is frozen', () => {
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -7233,6 +7372,9 @@ describe('CardHome Component', () => {
         isLoading: false,
         canAddToWallet: false,
         isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();
@@ -7301,6 +7443,7 @@ describe('CardHome Component', () => {
         },
         canLink: true,
         isMoneyAccountLinkingSupported: true,
+        isMoneyCardSectionAvailable: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,

@@ -6,6 +6,10 @@ import type {
 } from '../../../Views/Asset/Asset.types';
 import type { TokenDetailsRouteParams } from '../../../UI/TokenDetails/constants/constants';
 import type {
+  TdpVersion,
+  TdpTokenCategory,
+} from '../../../UI/TokenDetails/analytics/getTdpAnalyticsBase';
+import type {
   CreatePriceAlertRouteParams,
   PriceAlertRouteParams,
 } from '../../../UI/Assets/PriceAlerts/constants';
@@ -43,6 +47,11 @@ export type AssetStackParamList = {
   SecurityTrust: TokenDetailsRouteParams & {
     isPricePositive?: boolean;
     useAmbientColor?: boolean;
+  };
+  ContractSecurity: {
+    token: TokenDetailsRouteParams;
+    tdpVersion?: TdpVersion;
+    tokenCategory?: TdpTokenCategory;
   };
   CreatePriceAlert: CreatePriceAlertRouteParams;
   ManagePriceAlerts: PriceAlertRouteParams;
@@ -87,6 +96,7 @@ export type SettingsStackParamList = {
   NetworkDetails: NetworkDetailsViewParams | undefined;
   SDKSessionsManager: undefined;
   SecuritySettings: undefined;
+  MfaSettings: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
   RampHeadlessPlayground: undefined;

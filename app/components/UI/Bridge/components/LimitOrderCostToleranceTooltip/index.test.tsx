@@ -19,7 +19,7 @@ describe('LimitOrderCostToleranceTooltip', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the tooltip button', () => {
+  it('renders the cost tolerance label as the tooltip trigger', () => {
     const { getByTestId } = renderScreen(
       () => <LimitOrderCostToleranceTooltip />,
       { name: Routes.BRIDGE.ROOT },
@@ -27,7 +27,7 @@ describe('LimitOrderCostToleranceTooltip', () => {
 
     expect(
       getByTestId(LimitOrderCostToleranceTooltipSelectorsIDs.BUTTON),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(strings('bridge.cost_tolerance'));
   });
 
   it('navigates to the cost tolerance info sheet within the Bridge modal stack when pressed', () => {

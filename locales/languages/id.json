@@ -693,7 +693,6 @@
     "re_enter_password": "Masukkan kembali kata sandi",
     "use_at_least_8_characters": "Gunakan minimal 8 karakter",
     "unlock_with_face_id": "Buka dengan ID Wajah?",
-    "learn_more": "Jika saya lupa kata sandi ini, MetaMask tidak dapat memulihkannya untuk saya.",
     "learn_more_social_login": "Jika lupa kata sandi ini, saya akan kehilangan akses ke dompet secara permanen. MetaMask tidak dapat mereset kata sandi ini untuk saya.",
     "seed_phrase_length_error": "Frasa Pemulihan Rahasia harus terdiri dari 12, 15, 18, 21, atau 24 kata",
     "continue": "Lanjutkan",
@@ -1189,8 +1188,8 @@
       "button": "Coba lagi"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Coba lagi"
     },
     "vba_details": {
@@ -1565,6 +1564,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Nama tampilan",
@@ -9398,9 +9403,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Kedaluwarsa: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Harga limit {{symbol}}",
       "not_enough_gas": "Gas tidak cukup",
       "filled": "Terpenuhi",

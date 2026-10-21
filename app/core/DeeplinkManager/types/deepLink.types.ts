@@ -23,6 +23,7 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
+  referral?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -38,8 +39,12 @@ export interface DeeplinkUrlParams {
   amount?: string;
   asset?: string;
 
-  // Swap-specific parameters
+  // Market Swap-specific parameters
   slippage?: string;
+
+  // Limit Order-specific parameters
+  expiresInMinutes?: string;
+  priceTolerance?: string;
 
   // Perps-specific parameters
   symbol?: string;

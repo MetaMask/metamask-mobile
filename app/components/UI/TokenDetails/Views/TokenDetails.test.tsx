@@ -1,9 +1,13 @@
 import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
-import { TokenDetails } from './TokenDetails';
-import { TOKEN_DETAILS_PAGE_PENDING_TEST_ID } from './TokenDetailsPagePending';
+import {
+  TokenDetails as TokenDetailsRoute,
+  TokenDetailsLegacyRouteWrapper as TokenDetails,
+} from './TokenDetails';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import {
   selectNetworkConfigurationByChainId,
   selectNetworkConfigurations,
@@ -147,7 +151,7 @@ const mockOnSend = jest.fn();
 const mockOnReceive = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
-  useTokenActions: () => mockUseTokenActions(),
+  useTokenActions: (args: unknown) => mockUseTokenActions(args),
 }));
 
 const mockUseStickyTokenActions = jest.fn();
@@ -183,13 +187,8 @@ jest.mock('../hooks/useTokenTransactions', () => ({
     mockUseTokenTransactions(...args),
 }));
 
-const mockUseTokenAssetDetails = jest.fn((_assetId: unknown) => ({
-  asset: null as { launchpadData: object | null } | null,
-  isLoading: false,
-  isError: false,
-}));
-jest.mock('../queries/tokenAssetQuery', () => ({
-  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
+jest.mock('../queries/prefetchTokenDetailsQueries', () => ({
+  usePrefetchTokenDetails: () => undefined,
 }));
 
 const mockUseIsMemeToken = jest.fn((_opts: Record<string, unknown>) => ({
@@ -398,12 +397,7 @@ const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 const mockCreateEventBuilder = jest.fn();
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 const mockShowToast = jest.fn();
 jest.mock('../../../../core/ToastService/ToastService', () => ({
@@ -510,6 +504,12 @@ describe('TokenDetails', () => {
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
     });
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockIsTokenTradable.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
     mockUseTokenBuyability.mockReturnValue({
@@ -563,6 +563,16 @@ describe('TokenDetails', () => {
       assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
       enabled: true,
     });
+  });
+
+  it('passes tdpVersion="v2" to useTokenActions so legacy below-chart events are tagged', () => {
+    // The hook only adds `tdp_version` when the argument is set; without this
+    // the legacy Buy/Send/Receive events would drop it.
+    render(<TokenDetails />);
+
+    expect(mockUseTokenActions).toHaveBeenCalledWith(
+      expect.objectContaining({ tdpVersion: 'v2' }),
+    );
   });
 
   it('does not render a full-page loader when txLoading is true', () => {
@@ -733,11 +743,14 @@ describe('TokenDetails', () => {
     });
 
     it('shows sticky buttons when token is loaded', () => {
-      const { getByTestId, getByText } = render(<TokenDetails />);
+      const { getByTestId, getByText, queryByTestId } = render(
+        <TokenDetails />,
+      );
 
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
     });
 
     it('does not show sticky buttons when RWA token is not tradable', () => {
@@ -1454,6 +1467,21 @@ describe('TokenDetails', () => {
   });
 
   describe('TOKEN_DETAILS_OPENED tracking details', () => {
+    it('tags the legacy page with tdp_version v2 and token_category standard', async () => {
+      mockRouteParams.mockReturnValue(defaultRouteParams);
+
+      render(<TokenDetails />);
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tdp_version: 'v2',
+            token_category: 'standard',
+          }),
+        );
+      });
+    });
+
     it('tracks has_balance: false when balance is "0"', async () => {
       mockRouteParams.mockReturnValue({ ...defaultRouteParams, balance: '0' });
 
@@ -1696,16 +1724,11 @@ describe('TokenDetails', () => {
         isError: false,
         query: {},
       });
-      mockUseTokenAssetDetails.mockReturnValue({
-        asset: null,
-        isLoading: false,
-        isError: false,
-      });
       mockTokenDetailsV1.mockClear();
     });
 
     it('does not render TokenDetailsV1 when the flag is off and the token is not a meme', () => {
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
       expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
@@ -1714,77 +1737,8 @@ describe('TokenDetails', () => {
     it('does not render TokenDetailsV1 when the flag is on but the token is not a meme', () => {
       applyBaselineSelectorsWithMemeFlag(true);
 
-      const { queryByTestId } = render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
-      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
-      expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
-    });
-
-    it('shows the interim shell and sticky swap while the token API is pending', () => {
-      applyBaselineSelectorsWithMemeFlag(true);
-      mockUseTokenAssetDetails.mockReturnValue({
-        asset: null,
-        isLoading: true,
-        isError: false,
-      });
-
-      const { getByTestId } = render(<TokenDetails />);
-
-      expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
-      expect(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
-      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
-      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
-      expect(mockUseTokenPrice).toHaveBeenCalled();
-    });
-
-    it('renders TokenDetailsV1 when the token API returns launchpad data', () => {
-      applyBaselineSelectorsWithMemeFlag(true);
-      mockUseTokenAssetDetails.mockReturnValue({
-        asset: { launchpadData: { description: 'A launch' } },
-        isLoading: false,
-        isError: false,
-      });
-
-      render(<TokenDetails />);
-
-      expect(mockTokenDetailsV1).toHaveBeenCalledWith(
-        expect.objectContaining({ token: expect.any(Object) }),
-      );
-      expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
-    });
-
-    it('renders the legacy page when the token API has no launchpad data', () => {
-      applyBaselineSelectorsWithMemeFlag(true);
-      mockUseTokenAssetDetails.mockReturnValue({
-        asset: { launchpadData: null },
-        isLoading: false,
-        isError: false,
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
-      expect(queryByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeNull();
-      expect(mockTokenDetailsInlineHeader).toHaveBeenCalled();
-    });
-
-    it('shows the interim shell for PEPE while the token API is pending', () => {
-      applyBaselineSelectorsWithMemeFlag(true);
-      mockUseIsMemeToken.mockReturnValue({
-        isMeme: true,
-        isLoading: false,
-        isError: false,
-        query: {},
-      });
-      mockUseTokenAssetDetails.mockReturnValue({
-        asset: null,
-        isLoading: true,
-        isError: false,
-      });
-
-      const { getByTestId } = render(<TokenDetails />);
-
-      expect(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID)).toBeTruthy();
       expect(mockTokenDetailsV1).not.toHaveBeenCalled();
     });
 
@@ -1797,7 +1751,7 @@ describe('TokenDetails', () => {
         query: {},
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalledWith(
         expect.objectContaining({ token: expect.any(Object) }),
@@ -1814,7 +1768,7 @@ describe('TokenDetails', () => {
         query: {},
       });
 
-      render(<TokenDetails />);
+      render(<TokenDetailsRoute />);
 
       expect(mockTokenDetailsV1).toHaveBeenCalled();
       // A/B exposure events would otherwise be attributed to users who never

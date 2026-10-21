@@ -693,7 +693,6 @@
     "re_enter_password": "Ilagay muli ang iyong password",
     "use_at_least_8_characters": "Gumamit ng hindi bababa sa 8 character",
     "unlock_with_face_id": "I-unlock gamit ang Face ID?",
-    "learn_more": "Kapag nakalimutan ko ang password na ito, hindi ito mababawi ng MetaMask para sa akin.",
     "learn_more_social_login": "Kung makakalimutan ko ang password na ito, permanente akong mawawalan ng access sa aking wallet. Hindi ito maire-reset ng MetaMask para sa akin.",
     "seed_phrase_length_error": "Ang Secret Recovery Phrase ay dapat na 12, 15, 18, 21, o 24 na salita",
     "continue": "Magpatuloy",
@@ -1189,8 +1188,8 @@
       "button": "Subukang muli"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Subukang muli"
     },
     "vba_details": {
@@ -1565,6 +1564,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Ipinapakitang pangalan",
@@ -9398,9 +9403,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Pag-expire: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Hindi sapat ang gas",
       "filled": "Na-fill",

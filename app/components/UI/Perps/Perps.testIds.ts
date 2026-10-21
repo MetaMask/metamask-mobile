@@ -290,9 +290,18 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITION_CARD: 'perps-home-position-card',
   /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
   ORDER_CARD: 'perps-home-order-card',
+  ORDERS_ERROR: 'perps-orders-error',
+  ORDERS_RETRY: 'perps-orders-retry',
+  ACTIVITY_ERROR: 'perps-activity-error',
+  ACTIVITY_RETRY: 'perps-activity-retry',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
+  /**
+   * Treatment Explore section. Header, tabs, list, and See more derive
+   * `perps-home-explore-section-header`, `-tab-{id}`, `-list`, and `-see-more`.
+   */
+  EXPLORE_SECTION: 'perps-home-explore-section',
   /**
    * Explore crypto section container; PerpsMarketTypeSection derives `-header` and
    * `-list` from it, and PerpsMarketList derives `-list-empty` from the list ID, e.g.
@@ -301,11 +310,19 @@ export const PerpsHomeViewSelectorsIDs = {
    * `perps-home-explore-crypto-section-list-empty`
    */
   EXPLORE_CRYPTO_SECTION: 'perps-home-explore-crypto-section',
+  EXPLORE_COMMODITIES_SECTION: 'perps-home-explore-commodities-section',
+  EXPLORE_STOCKS_SECTION: 'perps-home-explore-stocks-section',
+  EXPLORE_FOREX_SECTION: 'perps-home-explore-forex-section',
   TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
   TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
   TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
   TOP_MOVERS_LIST: 'perps-home-top-movers-list',
+  SOCIAL_FEED_SECTION: 'perps-home-social-feed-section',
+  SOCIAL_FEED_HEADER: 'perps-home-social-feed-header',
+  SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
+  SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
+  SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -376,6 +393,7 @@ export const PerpsTPSLViewSelectorsIDs = {
   CANCEL_BUTTON: 'perps-tpsl-cancel-button',
   DONE_BUTTON: 'perps-tpsl-done-button',
   SET_BUTTON: 'perps-tpsl-set-button',
+  RECOVERY_REVIEW_EXPIRED: 'perps-tpsl-recovery-review-expired',
   TAKE_PROFIT_CLEAR_BUTTON: 'perps-tpsl-tp-clear-button',
   STOP_LOSS_CLEAR_BUTTON: 'perps-tpsl-sl-clear-button',
   TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
@@ -683,6 +701,12 @@ export const getPerpsProChaseTerminateSelector = (
 ) =>
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
+/** Exact row identity, including the primary row's compatible market-only controls. */
+export const getPerpsProChaseHandleSelector = (
+  symbol: string,
+  handle: string,
+) => `perps-chase-handle-${symbol}-${handle}`;
+
 const getPerpsProTwapIdentitySelectorSuffix = (
   providerId: string,
   orderId: string,
@@ -737,6 +761,11 @@ export const getPerpsProTwapFillRowSelector = (
     orderId,
     fillId,
   );
+
+// Retired panel identifiers retained to guard the established layout.
+export const PerpsScaleOrderGroupsSelectorsIDs = {
+  PANEL: 'perps-scale-groups',
+} as const;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
@@ -818,6 +847,13 @@ export const PerpsProOrderFormSelectorsIDs = {
 
 export const getPerpsProOrderFormNoticeTestId = (noticeId: string): string =>
   `${PerpsProOrderFormSelectorsIDs.NOTICE}-${noticeId}`;
+
+export const getPerpsProCompactInputLabelContainerTestId = (
+  testID: string,
+): string => `${testID}-label-container`;
+
+export const getPerpsProCompactInputRowTestId = (testID: string): string =>
+  `${testID}-input-row`;
 
 // ========================================
 // PERPS MARKET HEADER SELECTORS
@@ -1015,6 +1051,7 @@ export const PerpsOrderViewSelectorsIDs = {
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
+  FOOTER: 'perps-order-view-footer',
   SCROLL_VIEW: 'perps-order-view-scroll-view',
   AMOUNT_SLIDER: 'perps-order-view-amount-slider',
   KEYPAD: 'perps-order-view-keypad',
@@ -1152,9 +1189,6 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   HEADER_PRICE: 'close-position-bottom-sheet-header-price',
   HEADER_CHANGE: 'close-position-bottom-sheet-header-change',
   ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
-  MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
-  MARGIN_MODE_TAG: 'close-position-bottom-sheet-margin-mode-tag',
-  MARGIN_TOOLTIP_BUTTON: 'close-position-bottom-sheet-margin-tooltip-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
   TOTAL_TOOLTIP_BUTTON: 'close-position-bottom-sheet-total-tooltip-button',
@@ -1235,6 +1269,9 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   ERROR: 'perps-adjust-margin-bottom-sheet-error',
   MARGIN_VALUE: 'perps-adjust-margin-bottom-sheet-margin-value',
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
+  ADD_FUNDS_BUTTON: 'perps-adjust-margin-bottom-sheet-add-funds-button',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-adjust-margin-bottom-sheet-geo-block-tooltip',
   LIQUIDATION_PRICE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-price-value',
   LIQUIDATION_PRICE_INFO:
@@ -1457,4 +1494,7 @@ export const PerpsMarketTradesListSelectorsIDs = {
 export const PerpsRecentActivityListSelectorsIDs = {
   LIST: 'perps-recent-activity-list',
   ROW: (index: number) => `perps-recent-activity-row-${index}`,
+} as const;
+export const PerpsRecoveryPanelTestIds = {
+  PANEL: 'perps-recovery-panel',
 } as const;

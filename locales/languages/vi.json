@@ -693,7 +693,6 @@
     "re_enter_password": "Nhập lại mật khẩu của bạn",
     "use_at_least_8_characters": "Sử dụng ít nhất 8 ký tự",
     "unlock_with_face_id": "Mở khóa bằng Face ID?",
-    "learn_more": "Nếu tôi quên mật khẩu này, MetaMask không thể khôi phục mật khẩu cho tôi.",
     "learn_more_social_login": "Nếu tôi quên mật khẩu này, tôi sẽ vĩnh viễn mất quyền truy cập vào ví. MetaMask không thể đặt lại mật khẩu cho tôi.",
     "seed_phrase_length_error": "Cụm từ khôi phục bí mật phải gồm 12, 15, 18, 21 hoặc 24 từ",
     "continue": "Tiếp tục",
@@ -1189,8 +1188,8 @@
       "button": "Thử lại"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Thử lại"
     },
     "vba_details": {
@@ -1565,6 +1564,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Tên hiển thị",
@@ -9398,9 +9403,6 @@
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Hết hạn sau: {{timeLeft}}",
-      "days_left": "{{count}}d left",
-      "hours_left": "{{count}}h left",
-      "minutes_left": "{{count}}m left",
       "limit_price": "Giá giới hạn của {{symbol}}",
       "not_enough_gas": "Không đủ gas",
       "filled": "Đã khớp",

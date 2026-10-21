@@ -5,6 +5,8 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialShellTab } from '../../components/Views/SocialLeaderboard/shell/types';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
@@ -14,6 +16,9 @@ import type { NavigationAnalyticsRouteParams } from '../../util/analytics/naviga
 // Ledger modal params
 import type { LedgerMessageSignModalParams } from '../../components/UI/LedgerModals/LedgerMessageSignModal';
 import type { LedgerTransactionModalParams } from '../../components/UI/LedgerModals/LedgerTransactionModal';
+
+// MFA params
+import type { MfaMethodDetailsParams } from '../../components/Views/Mfa/MfaMethodDetails/MfaMethodDetails';
 
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
@@ -74,6 +79,10 @@ import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/O
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
+import type {
+  ManageProfileFieldParams,
+  ManageProfileParams,
+} from '../../components/Views/SocialProfile/ManageProfile/ManageProfileField.types';
 
 // Perps navigation params
 import type {
@@ -104,6 +113,7 @@ import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCli
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 import type { TradingSignalsSetupParams } from '../../components/Views/SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet';
+import type { PositionDetailsSheetParams } from '../../components/Views/SocialLeaderboard/PositionDetailsSheet/PositionDetailsSheet.types';
 import type { ExploreSearchRouteParams } from '../../components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.types';
 import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 
@@ -354,6 +364,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -376,6 +388,8 @@ type TraderPositionViewParams =
        * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
        * destination screen's analytics event for click attribution. */
       notificationSubtype?: string;
+      /** Whether this position was opened from the Social V1 surface. */
+      isSocialV1?: boolean;
     };
 
 /**
@@ -571,6 +585,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
+  RampVbaDetails: undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;
@@ -774,7 +789,10 @@ export type RootStackParamList = {
   BackupAndSyncSettings: undefined;
   SettingsRegionSelector: RegionSelectorParams | undefined;
   ProfileDrawer: undefined;
-  ManageProfile: undefined;
+  ManageProfile: ManageProfileParams | undefined;
+  ManageProfileField: ManageProfileFieldParams;
+  ManageProfileXAccount: undefined;
+  LinkedSocialAccount: undefined;
 
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
@@ -880,6 +898,8 @@ export type RootStackParamList = {
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
+  MoneyMusdRescueSend: MoneyNavigationParamList['MoneyMusdRescueSend'];
+  MoneyMusdRescueRecipient: MoneyNavigationParamList['MoneyMusdRescueRecipient'];
   MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
   MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
   MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
@@ -1015,20 +1035,30 @@ export type RootStackParamList = {
   /**
    * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
    * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
-   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   * shape plus `initialTab`; V1 reads `source` / `showNotificationsBanner` /
+   * `initialTab`.
    */
-  SocialLeaderboardTab: RootStackParamList['SocialV0View'];
+  SocialLeaderboardTab:
+    | (NonNullable<RootStackParamList['SocialV0View']> & {
+        initialTab?: SocialShellTab;
+      })
+    | undefined;
   SocialV1View:
     | {
         source?: string;
         showNotificationsBanner?: boolean;
+        initialTab?: SocialShellTab;
       }
     | undefined;
-  SocialPostComposerView: undefined;
+  SocialPostComposerView: SocialPostComposerViewParams | undefined;
   SocialProfileOnboardingView: undefined;
   MyProfileView: SocialV1ProfileViewParams | undefined;
   SocialV1ProfileView: SocialV1ProfileViewParams | undefined;
-  FollowConnectionsView: { initialTab: 'followers' | 'following' };
+  FollowConnectionsView: {
+    initialTab: 'followers' | 'following' | 'mutuals';
+    /** When set, load that trader's lists instead of `/users/me`. */
+    addressOrId?: string;
+  };
   ProfilesToFollowView: undefined;
   ManageProfileView: undefined;
   ManageProfileTextEditorView: {
@@ -1048,11 +1078,11 @@ export type RootStackParamList = {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  SocialPositionDetailsSheet: PositionDetailsSheetParams;
   SocialLeaderboardOnboarding: undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
-  LockScreen: undefined;
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
   SecurityBadgeBottomSheet: SecurityBadgeBottomSheetParams;
   AgenticCliApprovalConfirm: AgenticCliApprovalParams;
@@ -1071,6 +1101,8 @@ export type RootStackParamList = {
   SmartAccountOptIn: undefined;
   MfaFlow: undefined;
   MfaSettings: undefined;
+  MfaPasskeys: undefined;
+  MfaMethodDetails: MfaMethodDetailsParams;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;
@@ -1211,6 +1243,7 @@ export type RootStackParamList = {
 
   // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)
   SecurityTrust: AssetStackParamList['SecurityTrust'];
+  ContractSecurity: AssetStackParamList['ContractSecurity'];
   CreatePriceAlert: AssetStackParamList['CreatePriceAlert'];
   ManagePriceAlerts: AssetStackParamList['ManagePriceAlerts'];
 

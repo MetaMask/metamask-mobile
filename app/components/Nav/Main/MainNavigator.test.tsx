@@ -902,6 +902,8 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.MUSD_RESCUE_SEND,
+        Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
       ]);
@@ -929,6 +931,24 @@ describe('MainNavigator', () => {
             headerShown: false,
           }),
         }),
+      );
+
+      const vbaDetailsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.RAMP.VBA_DETAILS,
+      );
+
+      expect(vbaDetailsScreen).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_DETAILS,
+          options: expect.objectContaining({
+            animation: 'ios_from_right',
+            headerShown: false,
+          }),
+        }),
+      );
+      expect(vbaDetailsScreen?.options).not.toHaveProperty(
+        'gestureEnabled',
+        false,
       );
     });
 
@@ -2494,6 +2514,9 @@ describe('MainNavigator', () => {
         expect(getScreenComponent(assetStackRoot, 'Asset')).toBeTruthy();
         expect(
           getScreenComponent(assetStackRoot, Routes.SECURITY_TRUST),
+        ).toBeTruthy();
+        expect(
+          getScreenComponent(assetStackRoot, Routes.CONTRACT_SECURITY),
         ).toBeTruthy();
       });
 

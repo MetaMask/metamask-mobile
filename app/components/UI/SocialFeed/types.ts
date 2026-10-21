@@ -1,7 +1,10 @@
 import type { CaipChainId } from '@metamask/utils';
-import type { FeedItem as CoreFeedItem } from '@metamask/social-controllers';
+import type {
+  FeedItem as CoreFeedItem,
+  Position,
+} from '@metamask/social-controllers';
 import type { PositionTokenAvatarData } from './components/PositionTokenAvatar';
-import type { SocialV1MockedField } from './mockMarker';
+import type { SocialLivePriceSource } from './live/types';
 import type { TradeAction } from './utils/tradeAction';
 
 export type SocialV1PerpDirection = 'long' | 'short';
@@ -60,15 +63,6 @@ interface SocialV1FeedItemBase {
   /** USD the trader put in, i.e. what the P&L is measured against. */
   costLabel?: string;
   isPnlPositive: boolean;
-  /**
-   * Which of this item's values the client invented. The marked labels already
-   * carry a visible `*`; this is the structural record of the same fact, so
-   * tests and later cleanup do not have to match on rendered copy.
-   *
-   * Optional: absent means nothing is mocked, which keeps composer-built items
-   * from having to declare provenance they do not have.
-   */
-  mockedFields?: SocialV1MockedField[];
 }
 
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
@@ -83,8 +77,11 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   leverage?: number;
   markPriceLabel?: string;
   leverageLabel?: string;
-  autoCloseLabel?: string;
   entryPriceLabel?: string;
+  /** Time held so far, first fill to now. */
+  holdTimeLabel?: string;
+  /** How the card's figures follow the streamed mark price. */
+  live?: SocialLivePriceSource;
 }
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
@@ -94,23 +91,34 @@ export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   exitPriceLabel?: string;
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the closing fill. */
+  closedAtMs?: number;
 }
 
 export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
   variant: 'spotOpen';
   side: SocialV1SpotSide;
   markPriceLabel?: string;
+  /** Current market cap, scaled from the fills' market cap per unit price. */
+  marketCapLabel?: string;
   entryPriceLabel?: string;
+  entryMarketCapLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** How the card's figures follow the streamed spot price. */
+  live?: SocialLivePriceSource;
 }
 
 export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
   variant: 'spotClosed';
   side: SocialV1SpotSide;
   entryPriceLabel?: string;
+  entryMarketCapLabel?: string;
   exitPriceLabel?: string;
+  exitMarketCapLabel?: string;
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the closing fill. */
+  closedAtMs?: number;
 }
 
 /**
@@ -154,6 +162,8 @@ export interface SocialV1FeedPost {
   reactions: { emotion: string; count: number }[];
   /** Session/API viewer emotion when known. */
   userReaction?: string | null;
+  /** Detected copies of this position. Absent on older social-api builds. */
+  copyCount?: number;
   /**
    * Triggering spot fill market cap in USD. Null for perps and for fills that
    * omitted it. Following / Live market-cap filters pass those through.
@@ -162,6 +172,11 @@ export interface SocialV1FeedPost {
   gifUri?: string;
   isPending?: boolean;
   item: SocialV1FeedItem;
+  /**
+   * The canonical position behind a live row, handed to the position details
+   * sheet so it opens without a fetch. Absent on pending and mocked posts.
+   */
+  position?: Position;
 }
 
 /**
@@ -169,6 +184,12 @@ export interface SocialV1FeedPost {
  * only the activity of traders the user follows.
  */
 export type FeedAudience = 'all' | 'following';
+
+/**
+ * Asset class a social surface is narrowed to. Same values as the
+ * leaderboard's `SocialTypeFilter`, so filter state passes straight through.
+ */
+export type SocialAssetClass = 'all' | 'tokens' | 'perps';
 
 /**
  * Position-lifecycle stage of the trade a row announces, shown after the

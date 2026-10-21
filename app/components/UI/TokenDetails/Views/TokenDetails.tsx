@@ -60,20 +60,23 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsV1 } from './TokenDetailsV1';
-import TokenDetailsPagePending from './TokenDetailsPagePending';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
@@ -93,6 +96,8 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
 
+import TokenDetailsPagePending from './TokenDetailsPagePending';
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -110,6 +115,10 @@ const styleSheet = (params: { theme: Theme }) => {
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  // Legacy page is always `v2` / `standard`; computed from the shared helper so
+  // both pages derive these the same way.
+  const { tdp_version, token_category } = getTdpAnalyticsBase(params, null);
 
   return useCallback(
     ({
@@ -146,6 +155,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       const eventProperties = {
         source,
         chain_id: params.chainId,
+        tdp_version,
+        token_category,
         token_symbol: params.symbol,
         token_address: params.address,
         token_name: params.name,
@@ -171,6 +182,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.name,
       params.source,
       params.symbol,
+      tdp_version,
+      token_category,
       trackEvent,
     ],
   );
@@ -224,6 +237,7 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
+
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { variant: quickBuyEntrypointVariant } = useABTest(
     SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -415,6 +429,17 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const refreshTronAssets = useFreshTronAssets(token.chainId);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTronNativeToken(token)) {
+        refreshTronAssets().catch(() => undefined);
+      }
+    }, [refreshTronAssets, token]),
+  );
+  ///: END:ONLY_INCLUDE_IF
+
   const {
     balance,
     fiatBalance,
@@ -448,6 +473,7 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    tdpVersion: 'v2',
   });
 
   const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
@@ -640,6 +666,7 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
+        tdpVersion="v2"
         onBackPress={handleBackPress}
         onSharePress={handleShare}
         starButton={starButton}
@@ -919,20 +946,28 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
   );
 };
 
+export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+
+  return <TokenDetailsLegacy token={token} />;
+};
+
 /**
  * TokenDetailsRouteWrapper screen
  *
  * Reads the token from React Navigation route.params and picks the page to
  * render. Swapping component types rather than returning early keeps the two
  * pages' hooks fully independent: neither page's hooks run for the other, and
- * a variant resolving asynchronously remounts instead of changing hook order.
+ * Swapping component types keeps the two pages' hooks fully independent.
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const { variant, isPending } = useTokenDetailsVariant(token);
+  const { variant, isLoading } = useTokenDetailsVariant(token);
+  usePrefetchTokenDetails(token);
 
-  if (isPending) {
+  if (isLoading) {
     return <TokenDetailsPagePending token={token} />;
   }
 
@@ -943,4 +978,4 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   );
 };
 
-export { TokenDetailsRouteWrapper as TokenDetails };
+export { TokenDetailsLegacy, TokenDetailsRouteWrapper as TokenDetails };

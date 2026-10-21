@@ -10,9 +10,11 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { merge } from 'lodash';
 import { createBridgeTestState } from '../../testUtils';
 import { setLimitOrderMarketComparison } from '../../../../../core/redux/slices/bridge';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
 import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
 import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
+import { evmAccountAddress } from '../../_mocks_/initialState';
 import {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
@@ -23,8 +25,10 @@ import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrde
 import { ToastSeverity } from '@metamask/design-system-react-native';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
@@ -42,6 +46,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useEIP7702UpgradeFee', () => ({
   useEIP7702UpgradeFee: jest.fn(),
+}));
+
+jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
+  useAutoUpgradeEIP7702Account: jest.fn(),
 }));
 
 jest.mock('../../hooks/useFiatToUsdRate', () => ({
@@ -94,6 +102,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
+const mockUseAutoUpgradeEIP7702Account = jest.mocked(
+  useAutoUpgradeEIP7702Account,
+);
+const mockAutoUpgradeEIP7702Account = jest.fn();
 const mockUseEIP7702UpgradeFee = jest.mocked(useEIP7702UpgradeFee);
 const mockUseFiatToUsdRate = jest.mocked(useFiatToUsdRate);
 const mockUseSentinelFeeTokenValidation = jest.mocked(
@@ -153,6 +165,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
   payingAmount: '0.1 ETH',
+  estReceivingAmount: '341.22 USDC',
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',
@@ -222,6 +235,13 @@ describe('LimitOrderConfirmationModalScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(mockParams);
+    mockAutoUpgradeEIP7702Account.mockResolvedValue(undefined);
+    mockUseAutoUpgradeEIP7702Account.mockReturnValue({
+      autoUpgradeEIP7702Account: mockAutoUpgradeEIP7702Account,
+      getUpgradeStatus: jest
+        .fn()
+        .mockResolvedValue({ isUpgradeRequired: false }),
+    });
     // The display currency is USD unless a test says otherwise.
     mockUseFiatToUsdRate.mockReturnValue(1);
     mockUseSentinelFeeTokenValidation.mockReturnValue({
@@ -357,6 +377,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it.each([
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      'bridge.limit.trigger_condition_at_or_above',
+    ],
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      'bridge.limit.trigger_condition_at_or_below',
+    ],
+  ])(
+    'signs the trigger price of an order placed %s the limit price',
+    (priceComparisonDirection, expectedPrefixKey) => {
+      mockUseParams.mockReturnValue({
+        ...mockParams,
+        triggerInput: { ...mockTriggerInput, priceComparisonDirection },
+      });
+
+      const { getByTestId } = renderScreen();
+
+      expect(
+        getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+      ).toHaveTextContent(strings(expectedPrefixKey));
+    },
+  );
+
   it('displays the cost tolerance from bridge state', () => {
     const { getByText } = renderScreen(
       createBridgeTestState({
@@ -483,6 +528,83 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('configures account auto-upgrade for the source wallet and chain', () => {
+    renderScreen(createBridgeTestState({}));
+
+    expect(mockUseAutoUpgradeEIP7702Account).toHaveBeenCalledWith({
+      address: evmAccountAddress,
+      chainId: mockSourceToken.chainId,
+    });
+  });
+
+  it('waits for account auto-upgrade before fetching delegations', async () => {
+    let resolveUpgrade: () => void = () => undefined;
+    mockAutoUpgradeEIP7702Account.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveUpgrade = resolve;
+        }),
+    );
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledTimes(1);
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+
+    resolveUpgrade();
+
+    await waitFor(() => {
+      expect(mockFetchLimitOrdersDelegations).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('displays an error and stops order creation when account auto-upgrade fails', async () => {
+    mockAutoUpgradeEIP7702Account.mockRejectedValue(
+      new Error('Upgrade failed'),
+    );
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(
+          "Could not create an order: the account couldn't be upgraded.",
+        ),
+      ).toBeOnTheScreen();
+    });
+    expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
+    expect(mockSignLimitOrderDelegations).not.toHaveBeenCalled();
+    expect(mockCreateLimitOrder).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
+  });
+
+  it('retries account auto-upgrade before creating the order', async () => {
+    mockAutoUpgradeEIP7702Account.mockRejectedValueOnce(
+      new Error('Upgrade failed'),
+    );
+    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+    const primaryButton = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
+    );
+
+    fireEvent.press(primaryButton);
+    await waitFor(() => expect(getByText('Try again')).toBeOnTheScreen());
+
+    fireEvent.press(primaryButton);
+
+    await waitFor(() => {
+      expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+    });
+    expect(mockAutoUpgradeEIP7702Account).toHaveBeenCalledTimes(2);
+  });
+
   it('creates the order from the delegations response, the trigger and the live cost tolerance', async () => {
     const { getByTestId } = renderScreen(
       createBridgeTestState({
@@ -603,6 +725,32 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('clears the token amounts and preserves the remaining form state once the order is created', async () => {
+    const { getByTestId, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '0.1',
+          destAmount: '341.22',
+          limitOrderCostTolerance: '0.5',
+        },
+      }),
+    );
+    const initialSourceToken = store.getState().bridge.sourceToken;
+    const initialDestToken = store.getState().bridge.destToken;
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBeUndefined();
+      expect(store.getState().bridge.destAmount).toBeUndefined();
+    });
+    expect(store.getState().bridge.sourceToken).toEqual(initialSourceToken);
+    expect(store.getState().bridge.destToken).toEqual(initialDestToken);
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
+  });
+
   it('shows the order created success toast once the order is created', async () => {
     const { getByTestId } = renderScreen(createBridgeTestState({}));
 
@@ -623,7 +771,14 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
   it('displays an error banner when the order cannot be created', async () => {
     mockCreateLimitOrder.mockRejectedValue(new Error('boom'));
-    const { getByTestId, getByText } = renderScreen(createBridgeTestState({}));
+    const { getByTestId, getByText, store } = renderScreen(
+      createBridgeTestState({
+        bridgeReducerOverrides: {
+          sourceAmount: '0.1',
+          destAmount: '341.22',
+        },
+      }),
+    );
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -637,6 +792,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();
+    expect(store.getState().bridge.sourceAmount).toBe('0.1');
+    expect(store.getState().bridge.destAmount).toBe('341.22');
   });
 
   it('retries the order creation when pressed after a failure', async () => {

@@ -100,6 +100,21 @@ describe('useWalletHeaderNativeHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it('orders Search, Activity and Menu to match the legacy header', () => {
+    const buttonIds = [
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+    ];
+    const { getAllByTestId } = renderRightItem();
+
+    const renderedIds = getAllByTestId(
+      new RegExp(`^(${buttonIds.join('|')})$`),
+    ).map((button) => button.props.testID);
+
+    expect(renderedIds).toEqual(buttonIds);
+  });
+
   it('drops Activity when Money is geo-fenced', () => {
     const { queryByTestId } = renderRightItem({ isMoneyAccountVisible: false });
 

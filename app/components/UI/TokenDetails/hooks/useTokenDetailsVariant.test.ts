@@ -16,11 +16,6 @@ jest.mock('./useIsMemeToken', () => ({
   useIsMemeToken: (opts: unknown) => mockUseIsMemeToken(opts),
 }));
 
-const mockUseTokenAssetDetails = jest.fn();
-jest.mock('../queries/tokenAssetQuery', () => ({
-  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
-}));
-
 const ASSET_ID = 'eip155:1/erc20:0xAbC' as CaipAssetType;
 
 const token = {
@@ -29,108 +24,77 @@ const token = {
   chainId: '0x1',
 } as TokenDetailsRouteParams;
 
-const settledWithoutLaunchpad = {
-  asset: { launchpadData: null },
-  isLoading: false,
-  isError: false,
-};
-
 describe('useTokenDetailsVariant', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTokenAssetDetails.mockReturnValue(settledWithoutLaunchpad);
   });
 
   const arrange = ({
     isFlagEnabled,
     isMeme,
-    asset = settledWithoutLaunchpad.asset,
     isLoading = false,
   }: {
     isFlagEnabled: boolean;
     isMeme: boolean;
-    asset?: { launchpadData: object | null } | null;
     isLoading?: boolean;
   }) => {
     mockUseSelector.mockReturnValue(isFlagEnabled);
-    mockUseIsMemeToken.mockReturnValue({ isMeme });
-    mockUseTokenAssetDetails.mockReturnValue({
-      asset,
-      isLoading,
-      isError: false,
-    });
+    mockUseIsMemeToken.mockReturnValue({ isMeme, isLoading });
 
     return renderHook(() => useTokenDetailsVariant(token));
   };
 
-  it('waits for the token API when the flag is on and the token is PEPE', () => {
-    const { result } = arrange({
-      isFlagEnabled: true,
-      isMeme: true,
-      isLoading: true,
-      asset: null,
-    });
-
-    expect(result.current).toEqual({ variant: null, isPending: true });
-    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(ASSET_ID);
-  });
-
-  it('resolves the memecoin variant when PEPE finishes loading', () => {
+  it('resolves the memecoin variant when the flag is on and the token is a meme', () => {
     const { result } = arrange({ isFlagEnabled: true, isMeme: true });
 
-    expect(result.current).toEqual({
+    expect(result.current).toStrictEqual({
       variant: TokenDetailsVariant.Memecoin,
-      isPending: false,
+      isLoading: false,
     });
-    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(ASSET_ID);
   });
 
-  it('resolves the legacy page when the flag is off', () => {
+  it('resolves no variant when the flag is off', () => {
     const { result } = arrange({ isFlagEnabled: false, isMeme: true });
 
-    expect(result.current).toEqual({ variant: null, isPending: false });
-    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(null);
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: false,
+    });
   });
 
-  it('waits for the token API when the flag is on and the token is not PEPE', () => {
+  it('resolves no variant when the token is not a meme', () => {
+    const { result } = arrange({ isFlagEnabled: true, isMeme: false });
+
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: false,
+    });
+  });
+
+  it('reports loading when the flag is on and the meme check is pending', () => {
     const { result } = arrange({
       isFlagEnabled: true,
       isMeme: false,
       isLoading: true,
-      asset: null,
     });
 
-    expect(result.current).toEqual({ variant: null, isPending: true });
-    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(ASSET_ID);
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: true,
+    });
   });
 
-  it('resolves the memecoin variant when launchpad data is present', () => {
+  it('does not report loading when the flag is off', () => {
     const { result } = arrange({
-      isFlagEnabled: true,
+      isFlagEnabled: false,
       isMeme: false,
-      asset: { launchpadData: { description: 'A launch' } },
+      isLoading: true,
     });
 
-    expect(result.current).toEqual({
-      variant: TokenDetailsVariant.Memecoin,
-      isPending: false,
+    expect(result.current).toStrictEqual({
+      variant: null,
+      isLoading: false,
     });
-  });
-
-  it('resolves the legacy page when launchpad data is missing', () => {
-    const { result } = arrange({ isFlagEnabled: true, isMeme: false });
-
-    expect(result.current).toEqual({ variant: null, isPending: false });
-  });
-
-  it('resolves the legacy page when the token API fails', () => {
-    const { result } = arrange({
-      isFlagEnabled: true,
-      isMeme: false,
-      asset: null,
-    });
-
-    expect(result.current).toEqual({ variant: null, isPending: false });
   });
 
   it('passes the resolved asset id and flag state to the meme check', () => {
