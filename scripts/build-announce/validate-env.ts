@@ -14,7 +14,6 @@ interface BuildEnvJson {
   buildName: string;
   buildTime: string;
   env: Record<string, string>;
-  codeFencing?: string[];
 }
 
 /**

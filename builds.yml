@@ -10,7 +10,6 @@
 #   - secrets: maps env var names to GitHub Secret names
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
 #   - script_name: (optional) yarn script base name override (defaults to the build key name)
-#   - code_fencing: features to include via code fencing
 #
 # GitHub Environment determines actual secret values - builds.yml just maps the names.
 # Signing: AWS Secrets Manager (Account 363762752069) - see Mobile Signer Roles & Secrets doc.
@@ -209,45 +208,6 @@ _signing_flask_uat: &signing_flask_uat
   aws_secret: 'metamask-mobile-flask-uat-signer'
   android_keystore_path: 'flask-uat.keystore'
 
-# Main code fencing features
-_code_fencing_main: &code_fencing_main
-  - snaps
-  - keyring-snaps
-  - multi-srp
-  - solana
-  - bitcoin
-  - tron
-
-# Beta code fencing features (main + beta feature)
-_code_fencing_beta: &code_fencing_beta
-  - beta
-  - snaps
-  - keyring-snaps
-  - multi-srp
-  - solana
-  - bitcoin
-  - tron
-
-# Experimental code fencing features (main + experimental)
-_code_fencing_experimental: &code_fencing_experimental
-  - snaps
-  - keyring-snaps
-  - multi-srp
-  - solana
-  - bitcoin
-  - tron
-  - experimental
-
-# Flask code fencing features (includes experimental)
-_code_fencing_flask: &code_fencing_flask
-  - flask
-  - snaps
-  - keyring-snaps
-  - multi-srp
-  - solana
-  - bitcoin
-  - tron
-
 # =============================================================================
 # Build Configurations
 # =============================================================================
@@ -268,7 +228,6 @@ builds:
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # Beta (production APIs, RC signing; TestFlight / Play Store beta track)
   main-beta:
@@ -279,7 +238,6 @@ builds:
       METAMASK_ENVIRONMENT: 'beta'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
-    code_fencing: *code_fencing_beta
 
   # Release candidate
   main-rc:
@@ -290,7 +248,6 @@ builds:
       METAMASK_ENVIRONMENT: 'rc'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
@@ -320,7 +277,6 @@ builds:
     secrets:
       <<: *secrets
       E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
-    code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — with pre-imported wallet (ADDITIONAL_SRP_1 baked in)
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
@@ -346,7 +302,6 @@ builds:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
-    code_fencing: *code_fencing_main
   # Release candidate with pre-imported wallet (system tests / performance tests)
   # Same as main-rc but bakes in ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD so the app
   # starts with an imported wallet, skipping onboarding. Used by run-system-tests.yml.
@@ -364,7 +319,6 @@ builds:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
-    code_fencing: *code_fencing_main
 
   # Release candidate without pre-imported wallet — seedless onboarding (OAuthLoginHandlers mocked)
   # RC counterpart to main-rc-with-srp; used by performance tests that exercise the onboarding flow.
@@ -387,7 +341,6 @@ builds:
     secrets:
       <<: *secrets
       E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
-    code_fencing: *code_fencing_main
 
   # Test builds
   main-test:
@@ -403,7 +356,6 @@ builds:
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # E2E test builds (no Sentry)
   main-e2e:
@@ -419,7 +371,6 @@ builds:
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # Experimental builds
   main-exp:
@@ -437,7 +388,6 @@ builds:
       # perps-lighter-provider-enabled controls who sees the provider selector.
       MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_experimental
 
   # BrowserStack experimental builds — with pre-imported wallet
   main-exp-with-srp:
@@ -455,7 +405,6 @@ builds:
       <<: *secrets
       ADDITIONAL_SRP_1: 'IN_BUILD_SRP'
       PREDEFINED_PASSWORD: 'E2E_PASSWORD'
-    code_fencing: *code_fencing_experimental
 
   # BrowserStack experimental builds — seedless onboarding (OAuthLoginHandlers mocked)
   main-exp-without-srp:
@@ -475,7 +424,6 @@ builds:
     secrets:
       <<: *secrets
       E2E_BYOA_AUTH_SECRET: 'E2E_BYOA_AUTH_SECRET'
-    code_fencing: *code_fencing_experimental
 
   # Local development / Expo development build (Runway .app for simulator)
   # Dev release build (Ex. For sideloading via Build Mobile App workflow)
@@ -490,7 +438,6 @@ builds:
       PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
       MM_PROFILE_API_ENABLED: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # Same app config as main-dev, but signed with the RC certificate so the IPA is
   # accepted by TestFlight.
@@ -503,7 +450,6 @@ builds:
       <<: *main_dev_env
       PROFILE: 'release'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # Expo dev build (Debug, simulator + device — triggered on push to main)
   main-dev-expo:
@@ -525,7 +471,6 @@ builds:
       PROFILE: 'development'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # ---------------------------------------------------------------------------
   # FLASK BUILDS
@@ -540,7 +485,6 @@ builds:
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'flask'
     secrets: *secrets
-    code_fencing: *code_fencing_flask
 
   # Flask test builds
   flask-test:
@@ -556,7 +500,6 @@ builds:
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_flask
 
   # Flask E2E test builds (no Sentry)
   flask-e2e:
@@ -572,7 +515,6 @@ builds:
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_flask
 
   # Flask local development / Expo development build (Runway .app for simulator)
   flask-dev:
@@ -589,4 +531,3 @@ builds:
       CONFIGURATION: 'Debug'
       DEV_OAUTH_CONFIG: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_flask
