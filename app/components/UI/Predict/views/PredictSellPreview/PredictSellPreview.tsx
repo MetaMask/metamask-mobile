@@ -9,6 +9,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { typography } from '@metamask/design-tokens';
 import {
   RouteProp,
   StackActions,
@@ -404,7 +405,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Skeleton
                     width={160}
-                    height={56}
+                    height={typography.sAmountDisplayLg.lineHeight}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
