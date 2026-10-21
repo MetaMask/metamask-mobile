@@ -765,12 +765,15 @@ describe('usePerpsCloseAllCalculations', () => {
     describe('discount reported by calculateFees', () => {
       // The rate-based derivation the hook used before perps-controller 20
       // reported the discount (TAT-4055), kept to prove the two agree.
-      const deriveDiscountFromRates = (quotes: FeeCalculationResult[]) => {
+      const deriveDiscountFromRates = (
+        quotes: FeeCalculationResult[],
+        notionalsUsd = quotes.map(() => 25_500),
+      ) => {
         let weightedRate = 0;
         let weightedOriginalRate = 0;
         let totalWeight = 0;
-        quotes.forEach((fees) => {
-          const weight = fees.feeAmount ?? 0;
+        quotes.forEach((fees, index) => {
+          const weight = notionalsUsd[index] ?? 0;
           if (weight > 0 && fees.metamaskFeeRate !== undefined) {
             weightedRate += fees.metamaskFeeRate * weight;
             weightedOriginalRate +=
@@ -918,8 +921,8 @@ describe('usePerpsCloseAllCalculations', () => {
         );
         await waitFor(() => expect(result.current.totalFees).toBeDefined());
 
-        // Fee-weighted: (2000 x 31.875 + 10000 x 11.475) / 43.35 = 4117.6 bips
-        expect(result.current.avgFeeDiscountPercentage).toBe(41.18);
+        // Notional-weighted: (2000 x 25500 + 10000 x 25500) / 51000 = 6000 bips
+        expect(result.current.avgFeeDiscountPercentage).toBe(60);
         expect(result.current.avgFeeDiscountPercentage).toBe(
           derived.avgFeeDiscountPercentage,
         );
@@ -1241,14 +1244,19 @@ describe('usePerpsCloseAllCalculations', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      // Total fees: (270+30) + (180+20) = 500
-      // Weighted average MetaMask fee rate uses total fees as weights:
-      // (300*0.01 + 200*0.008) / 500 = 0.0092
-      expect(result.current.avgMetamaskFeeRate).toBeCloseTo(0.0092, 4);
+      // Weighted average MetaMask fee rate uses position notional:
+      // (25500*0.01 + 1500*0.008) / 27000 = 0.009888...
+      expect(result.current.avgMetamaskFeeRate).toBeCloseTo(
+        (25_500 * 0.01 + 1_500 * 0.008) / 27_000,
+        10,
+      );
 
-      // Weighted average protocol fee rate uses total fees as weights:
-      // (300*0.001 + 200*0.0012) / 500 = 0.00108
-      expect(result.current.avgProtocolFeeRate).toBeCloseTo(0.00108, 5);
+      // Weighted average protocol fee rate uses position notional:
+      // (25500*0.001 + 1500*0.0012) / 27000 = 0.001011...
+      expect(result.current.avgProtocolFeeRate).toBeCloseTo(
+        (25_500 * 0.001 + 1_500 * 0.0012) / 27_000,
+        10,
+      );
     });
 
     it('returns undefined average rates for empty positions', () => {
