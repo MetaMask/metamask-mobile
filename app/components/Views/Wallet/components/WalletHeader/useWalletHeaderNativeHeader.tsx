@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { ButtonBase } from '@metamask/design-system-react-native';
 import {
   useNavigation,
   type NavigationProp,
@@ -15,6 +16,7 @@ import { createProfileDrawerNavDetails } from '../../../SocialProfile/ProfileDra
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import WalletHeaderInterimActions from './WalletHeaderInterimActions';
+import WalletHeaderProfileAvatar from './WalletHeaderProfileAvatar';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 
 const INTERIM_ACCOUNT_NAME_MAX_CHARS = 12;
@@ -78,11 +80,35 @@ export const useWalletHeaderNativeHeader = ({
     navigation.navigate(...createAccountSelectorNavDetails({}));
   }, [navigation, isSocialV1Enabled]);
 
+  // Social V1 collapses the native bar's picker to just the profile avatar; the
+  // named picker moves to the row pinned under the bar by `Wallet`.
+  const socialV1AccountButton = useMemo(
+    () =>
+      isSocialV1Enabled ? (
+        <ButtonBase
+          onPress={handleAccountPickerPress}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          accessibilityRole="button"
+          accessibilityLabel={displayName}
+          hitSlop={touchAreaSlop}
+          twClassName="h-10 w-10 rounded-full bg-transparent p-0"
+        >
+          <WalletHeaderProfileAvatar />
+        </ButtonBase>
+      ) : null,
+    [
+      displayName,
+      handleAccountPickerPress,
+      isSocialV1Enabled,
+      touchAreaSlop,
+    ],
+  );
+
   const leftItems = useCallback(
     (): NativeStackHeaderItem[] => [
       {
         type: 'custom',
-        element: (
+        element: socialV1AccountButton ?? (
           <PickerAccount
             accountName={formatInterimAccountName(displayName)}
             onPress={handleAccountPickerPress}
@@ -93,7 +119,13 @@ export const useWalletHeaderNativeHeader = ({
         ),
       },
     ],
-    [accountPickerStyle, displayName, handleAccountPickerPress, touchAreaSlop],
+    [
+      accountPickerStyle,
+      displayName,
+      handleAccountPickerPress,
+      socialV1AccountButton,
+      touchAreaSlop,
+    ],
   );
 
   // One custom item, so our spacing applies; UIKit still draws the glass

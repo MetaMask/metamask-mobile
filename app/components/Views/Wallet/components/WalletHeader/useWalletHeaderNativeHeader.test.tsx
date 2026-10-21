@@ -1,3 +1,4 @@
+import React from 'react';
 import { fireEvent, renderHook } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -23,6 +24,17 @@ jest.mock('../../../../hooks/useNativeHeader', () => ({
 jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
+
+jest.mock('./WalletHeaderProfileAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  const { WalletViewSelectorsIDs: TestIds } = jest.requireActual(
+    '../../WalletView.testIds',
+  );
+  return {
+    __esModule: true,
+    default: () => <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />,
+  };
+});
 
 let mockSocialV1Enabled = false;
 jest.mock('react-redux', () => ({
@@ -189,5 +201,42 @@ describe('useWalletHeaderNativeHeader', () => {
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
       {},
     );
+  });
+
+  it('renders only the avatar in the bar when Social V1 is enabled', () => {
+    mockSocialV1Enabled = true;
+    const [accountItem] = renderNativeHeader().leftItems;
+    if (accountItem?.type !== 'custom') {
+      throw new Error('Expected a custom account picker item');
+    }
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      accountItem.element,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the named picker in the bar when Social V1 is disabled', () => {
+    const [accountItem] = renderNativeHeader().leftItems;
+    if (accountItem?.type !== 'custom') {
+      throw new Error('Expected a custom account picker item');
+    }
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      accountItem.element,
+    );
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+    ).not.toBeOnTheScreen();
   });
 });
