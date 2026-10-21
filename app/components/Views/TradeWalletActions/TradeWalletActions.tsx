@@ -308,7 +308,7 @@ function TradeWalletActions() {
   const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: MetaMetricsSwapsEventSource.MainView,
+    location: MetaMetricsSwapsEventSource.BottomNavBar,
     sourcePage: 'MainView',
   });
 
@@ -372,7 +372,7 @@ function TradeWalletActions() {
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
-      goToSwapsBase({ swapButtonClickLocationOverride: ActionLocation.NAVBAR });
+      goToSwapsBase();
     };
     handleNavigateBack();
   }, [goToSwapsBase, handleNavigateBack]);

@@ -1,9 +1,7 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingChecklistTradePress } from './useWalletHomeOnboardingChecklistTradePress';
 import type { BridgeToken } from '../Bridge/types';
 import type { WalletHomeOnboardingTradeSwapPair } from './walletHomeOnboardingTradeSwapBalances';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const mockGoToSwaps = jest.fn();
 const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
@@ -59,13 +57,12 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: MetaMetricsSwapsEventSource.MainView,
+      location: 'Onboarding Checklist',
       sourcePage: 'MainView',
     });
     expect(mockGoToSwaps).toHaveBeenCalledWith({
       sourceTokenOverride: sourceToken,
       destTokenOverride: destToken,
-      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
     });
   });
 
@@ -79,12 +76,10 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: MetaMetricsSwapsEventSource.MainView,
+      location: 'Onboarding Checklist',
       sourcePage: 'MainView',
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith({
-      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
-    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith();
   });
 
   it('uses swap pair resolved after mount', () => {
@@ -99,12 +94,10 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: MetaMetricsSwapsEventSource.MainView,
+      location: 'Onboarding Checklist',
       sourcePage: 'MainView',
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith({
-      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
-    });
+    expect(mockGoToSwaps).toHaveBeenCalledWith();
 
     mockUseWalletHomeOnboardingTradeSwapPair.mockReturnValue(swapPair);
     rerender({});
@@ -114,15 +107,12 @@ describe('useWalletHomeOnboardingChecklistTradePress', () => {
     });
 
     expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
-      location: MetaMetricsSwapsEventSource.MainView,
+      location: 'Onboarding Checklist',
       sourcePage: 'MainView',
     });
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
-      sourceToken,
-      destToken,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
+    expect(mockGoToSwaps).toHaveBeenLastCalledWith({
+      sourceTokenOverride: sourceToken,
+      destTokenOverride: destToken,
+    });
   });
 });

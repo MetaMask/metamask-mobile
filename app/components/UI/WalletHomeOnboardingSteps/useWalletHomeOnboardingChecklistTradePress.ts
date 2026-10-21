@@ -13,7 +13,8 @@ export function useWalletHomeOnboardingChecklistTradePress(): () => void {
   const swapPairRef = useRef(swapPair);
 
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: MetaMetricsSwapsEventSource.MainView,
+    // @ts-expect-error - MetaMetricsSwapsEventSource needs to be updated
+    location: 'Onboarding Checklist',
     sourcePage: 'MainView',
   });
 
@@ -28,13 +29,10 @@ export function useWalletHomeOnboardingChecklistTradePress(): () => void {
       goToSwaps({
         sourceTokenOverride: pair.sourceToken,
         destTokenOverride: pair.destToken,
-        swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
       });
       return;
     }
 
-    goToSwaps({
-      swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
-    });
+    goToSwaps();
   }, [goToSwaps]);
 }

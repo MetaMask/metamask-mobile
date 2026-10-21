@@ -1379,23 +1379,21 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ category: 'test' });
     });
 
-    it('tracks swap button click with per-call onboarding_checklist location override', () => {
+    it('tracks swap button click location from the hook location', () => {
       const { result } = renderHookWithProvider(
         () =>
           useSwapBridgeNavigation({
-            location: MetaMetricsSwapsEventSource.MainView,
+            location: MetaMetricsSwapsEventSource.TokenView,
             sourcePage: mockSourcePage,
           }),
         { state: initialState },
       );
 
-      result.current.goToSwaps({
-        swapButtonClickLocationOverride: ActionLocation.ONBOARDING_CHECKLIST,
-      });
+      result.current.goToSwaps();
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          location: ActionLocation.ONBOARDING_CHECKLIST,
+          location: MetaMetricsSwapsEventSource.TokenView,
           chain_id_source: expect.any(String),
           token_symbol_source: expect.anything(),
           token_address_source: expect.anything(),

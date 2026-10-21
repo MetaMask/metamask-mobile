@@ -45,10 +45,6 @@ import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settin
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
 import {
-  ARC_HEX_CHAIN_ID,
-  ARC_USDC_BRIDGE_TOKEN,
-} from '../../../../../enablement/assets/arc';
-import {
   startSwapBridgePageLoadTrace,
   type SwapBridgePageLoadTraceRoute,
 } from '../../utils/swapBridgePageLoadTrace';
@@ -178,10 +174,6 @@ export const useSwapBridgeNavigation = ({
        */
       buttonLabel?: string;
       scrollToTopOnNav?: boolean;
-      /** Per-call override for {@link MetaMetricsEvents.SWAP_BUTTON_CLICKED} `location`. */
-      swapButtonClickLocationOverride?:
-        | ActionLocation
-        | MetaMetricsSwapsEventSource;
       initialTab?: BridgeTabKey;
     }) => {
       const {
@@ -189,7 +181,6 @@ export const useSwapBridgeNavigation = ({
         destTokenOverride,
         buttonLabel,
         scrollToTopOnNav,
-        swapButtonClickLocationOverride,
         initialTab,
       } = overrides ?? {};
       // Use tokenOverride if provided, otherwise fall back to tokenBase
@@ -377,7 +368,7 @@ export const useSwapBridgeNavigation = ({
       }
 
       const swapEventProperties = {
-        location: swapButtonClickLocationOverride ?? location,
+        location,
         chain_id_source: getDecimalChainId(sourceToken.chainId),
         token_symbol_source: sourceToken?.symbol,
         token_address_source: sourceToken?.address,
