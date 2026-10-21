@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Pointed the Perps outage banner contact support link at the MetaMask help center
-
 ## [8.16.0]
 
 ### Added
