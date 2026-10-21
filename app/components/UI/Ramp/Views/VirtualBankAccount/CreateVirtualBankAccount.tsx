@@ -16,6 +16,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -257,15 +258,13 @@ const CreateVirtualBankAccount = ({
                       'virtual_bank_account.create_virtual_bank_account.agreement_separator',
                     )
                   : ''}
-                <Text
+                <TextButton
                   variant={TextVariant.BodyXs}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
                   onPress={() => Linking.openURL(disclaimer.url)}
                   testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
                 >
                   {disclaimer.display_name}
-                </Text>
+                </TextButton>
               </React.Fragment>
             ))}
             {disclaimers?.length

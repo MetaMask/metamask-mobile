@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -219,6 +219,23 @@ describe('VbaVerifyIdentity', () => {
     expect(getByText('idOS Privacy Policy')).toBeOnTheScreen();
     expect(getByText('Sumsub Terms and Conditions')).toBeOnTheScreen();
     expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('renders data and privacy document links without an underline', () => {
+    const { getByTestId, getByText } = renderScreen();
+
+    openTermsSheet(getByTestId);
+
+    [
+      'MetaMask Privacy Policy',
+      'MetaMask Terms and Conditions',
+      'idOS Privacy Policy',
+      'Sumsub Terms and Conditions',
+    ].forEach((label) => {
+      expect(
+        StyleSheet.flatten(getByText(label).props.style)?.textDecorationLine,
+      ).not.toBe('underline');
+    });
   });
 
   it('opens MetaMask and catalog document URLs from the sheet', () => {
