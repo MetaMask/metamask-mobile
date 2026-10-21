@@ -4,7 +4,7 @@ import path from 'path';
 
 const WORKFLOW_PATH = path.join(
   __dirname,
-  '../../../workflows/build-android-upload-to-browserstack.yml',
+  '../../../workflows/build-android-upload-to-testmu.yml',
 );
 
 type WorkflowStep = {
@@ -67,7 +67,7 @@ const resolveArtifactNames = (step: WorkflowStep, mainBranchOnly: boolean) => {
   ) as string[];
 };
 
-describe('build-android-upload-to-browserstack sourcemap retention', () => {
+describe('build-android-upload-to-testmu sourcemap retention', () => {
   describe('as-is APK reuse', () => {
     it('requires both donor sourcemaps before reusing donor APKs', () => {
       const lookups = stepsOf('resolve-fingerprint-reuse').filter((step) =>
