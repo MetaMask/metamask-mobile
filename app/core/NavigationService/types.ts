@@ -34,6 +34,7 @@ import type {
   HomeTabsParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
+  SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
   WalletTabHomeParamList,
@@ -1038,11 +1039,7 @@ export type RootStackParamList = {
    * shape plus `initialTab`; V1 reads `source` / `showNotificationsBanner` /
    * `initialTab`.
    */
-  SocialLeaderboardTab:
-    | (NonNullable<RootStackParamList['SocialV0View']> & {
-        initialTab?: SocialShellTab;
-      })
-    | undefined;
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   SocialV1View:
     | {
         source?: string;
@@ -1079,7 +1076,7 @@ export type RootStackParamList = {
   };
   TraderPositionView: TraderPositionViewParams;
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
-  SocialLeaderboardOnboarding: undefined;
+  SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes

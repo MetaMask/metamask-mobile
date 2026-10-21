@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import { FeatureId } from '@metamask/bridge-controller';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { createBridgeTestState } from '../../../testUtils';
@@ -27,7 +27,6 @@ import type {
   NetworkTier,
 } from '../../../../../../util/deviceCapability/types';
 import {
-  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
   LIMIT_ORDERS_REFETCH_INTERVAL,
   LimitOrderExecutionType,
@@ -58,18 +57,32 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeSession', () => ({
-  useBridgeSession: jest.fn().mockReturnValue({
-    selectedTab: 'limit',
-    renderedTab: 'limit',
-    setSelectedTab: jest.fn(),
-    setRenderedTab: jest.fn(),
-    latestSourceBalance: {
-      displayBalance: '1.0',
-      atomicBalance: undefined,
+let mockInitialLimitOrdersTab = 'openOrders';
+
+jest.mock('../../../hooks/useBridgeSession', () => {
+  const ReactActual = jest.requireActual('react');
+
+  return {
+    useBridgeSession: () => {
+      const [limitOrdersTab, setLimitOrdersTab] = ReactActual.useState(
+        mockInitialLimitOrdersTab,
+      );
+
+      return {
+        selectedTab: 'limit',
+        renderedTab: 'limit',
+        setSelectedTab: jest.fn(),
+        setRenderedTab: jest.fn(),
+        limitOrdersTab,
+        setLimitOrdersTab,
+        latestSourceBalance: {
+          displayBalance: '1.0',
+          atomicBalance: undefined,
+        },
+      };
     },
-  }),
-}));
+  };
+});
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
@@ -236,11 +249,19 @@ jest.mock('../../../components/SwapsInputs', () => {
 });
 
 let mockOnOrdersTabChange: ((tab: string) => void) | undefined;
+let mockOrdersActiveTab: string | undefined;
 
 jest.mock('../../../components/OrdersTabs', () => ({
   __esModule: true,
   ...jest.requireActual('../../../components/OrdersTabs'),
-  default: ({ onTabChange }: { onTabChange?: (tab: string) => void }) => {
+  default: ({
+    activeTab,
+    onTabChange,
+  }: {
+    activeTab?: string;
+    onTabChange?: (tab: string) => void;
+  }) => {
+    mockOrdersActiveTab = activeTab;
     mockOnOrdersTabChange = onTabChange;
     return null;
   },
@@ -452,12 +473,10 @@ function buildKeypadMock() {
   };
 }
 
-function getLimitOrderView(
-  props: React.ComponentProps<typeof BridgeLimitOrderView> = {},
-) {
+function getLimitOrderView() {
   return (
     <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
-      <BridgeLimitOrderView {...props} />
+      <BridgeLimitOrderView />
     </SwapsFeatureIdProvider>
   );
 }
@@ -466,9 +485,8 @@ function renderLimitOrderView(
   bridgeReducerOverrides: NonNullable<
     Parameters<typeof createBridgeTestState>[0]
   >['bridgeReducerOverrides'] = {},
-  props: React.ComponentProps<typeof BridgeLimitOrderView> = {},
 ) {
-  return renderWithProvider(getLimitOrderView(props), {
+  return renderWithProvider(getLimitOrderView(), {
     state: createBridgeTestState({
       bridgeReducerOverrides: {
         sourceToken: mockSourceToken,
@@ -486,6 +504,8 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '';
     mockHardwareTier = 'HIGH';
     mockNetworkTier = 'WIFI';
+    mockInitialLimitOrdersTab = OrdersTabKey.OpenOrders;
+    mockOrdersActiveTab = undefined;
 
     jest
       .mocked(useLimitOrderSwapInputs)
@@ -694,6 +714,7 @@ describe('BridgeLimitOrderView', () => {
     jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
 
@@ -980,64 +1001,24 @@ describe('BridgeLimitOrderView', () => {
     expect(getByText('2%')).toBeOnTheScreen();
   });
 
-  it('resets cost tolerance to the default when navigating to the limit orders screen', () => {
+  it('keeps the session cost tolerance when the limit orders screen mounts', () => {
     const { getByText, store } = renderLimitOrderView({
       limitOrderCostTolerance: '3',
     });
 
-    expect(
-      getByText(`${LIMIT_ORDER_DEFAULT_COST_TOLERANCE}%`),
-    ).toBeOnTheScreen();
-    expect(store.getState().bridge.limitOrderCostTolerance).toBe(
-      LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
-    );
+    expect(getByText('3%')).toBeOnTheScreen();
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
   });
 
-  it('initializes expiration and price tolerance from deeplink values', () => {
-    const { getByText, store } = renderLimitOrderView(
-      {},
-      {
-        initialExpirationMinutes: 10080,
-        initialPriceTolerance: '0.5',
-        deeplinkInitializationKey: 'trace-1',
-      },
-    );
+  it('renders the expiration preset selected earlier in the session', () => {
+    const { getByText, store } = renderLimitOrderView({
+      limitOrderExpirationMinutes: 10080,
+    });
 
     expect(
       getByText(getSwapsLimitOrderExpirationLabel(10080)),
     ).toBeOnTheScreen();
-    expect(getByText('0.5%')).toBeOnTheScreen();
-    expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
-  });
-
-  it('reinitializes expiration and price tolerance for a warm deeplink', async () => {
-    const { getByText, queryByText, rerender, store } = renderLimitOrderView(
-      {},
-      {
-        initialExpirationMinutes: 60,
-        initialPriceTolerance: '2',
-        deeplinkInitializationKey: 'trace-1',
-      },
-    );
-
-    rerender(
-      getLimitOrderView({
-        initialExpirationMinutes: 43200,
-        initialPriceTolerance: '3',
-        deeplinkInitializationKey: 'trace-2',
-      }),
-    );
-
-    await waitFor(() => {
-      expect(
-        getByText(getSwapsLimitOrderExpirationLabel(43200)),
-      ).toBeOnTheScreen();
-      expect(getByText('3%')).toBeOnTheScreen();
-    });
-    expect(
-      queryByText(getSwapsLimitOrderExpirationLabel(60)),
-    ).not.toBeOnTheScreen();
-    expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+    expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
   });
 
   it('navigates to the limit order default cost tolerance modal when the cost tolerance row is pressed', () => {
@@ -1074,17 +1055,13 @@ describe('BridgeLimitOrderView', () => {
     });
   });
 
-  it('submits the deeplink expiration to the confirmation modal', () => {
+  it('submits the session expiration to the confirmation modal', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
-    const { getByTestId } = renderLimitOrderView(
-      {},
-      {
-        initialExpirationMinutes: 10080,
-        initialPriceTolerance: '0.5',
-        deeplinkInitializationKey: 'trace-1',
-      },
-    );
+    const { getByTestId } = renderLimitOrderView({
+      limitOrderExpirationMinutes: 10080,
+      limitOrderCostTolerance: '0.5',
+    });
 
     fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
 
@@ -1246,7 +1223,8 @@ describe('BridgeLimitOrderView', () => {
   });
 
   it('saves the selected expiration in minutes when the modal selects an option', () => {
-    const { getByTestId, getByText, queryByText } = renderLimitOrderView();
+    const { getByTestId, getByText, queryByText, store } =
+      renderLimitOrderView();
 
     fireEvent(getByTestId('limit-order-details-expiration-row'), 'touchEnd');
 
@@ -1261,6 +1239,7 @@ describe('BridgeLimitOrderView', () => {
       getByText(getSwapsLimitOrderExpirationLabel(10080)),
     ).toBeOnTheScreen();
     expect(queryByText(getSwapsLimitOrderExpirationLabel(60))).toBeNull();
+    expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
   });
 
   it('loads the open orders and the order history in their own states', () => {
@@ -1311,6 +1290,21 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         states: expect.arrayContaining([LimitOrderState.Open]),
         enabled: false,
+      }),
+    );
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+  });
+
+  it('shows the orders tab held in the bridge session', () => {
+    mockInitialLimitOrdersTab = OrdersTabKey.History;
+
+    renderLimitOrderView();
+
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
       }),
     );
   });

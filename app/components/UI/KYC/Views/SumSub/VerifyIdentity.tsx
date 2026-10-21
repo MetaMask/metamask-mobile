@@ -3,6 +3,8 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -10,7 +12,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  ContentVariant,
   FontWeight,
   HeaderStandard,
   Icon,
@@ -18,9 +19,12 @@ import {
   IconName,
   IconSize,
   ListItem,
+  ListItemVariant,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -28,9 +32,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import VbaIllustration, {
-  VbaIllustrationSource,
-} from '../../components/Illustration';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 
@@ -102,46 +103,28 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
           contentContainerStyle={tw.style('flex-grow')}
           testID={VbaVerifyIdentitySelectorsIDs.CONTAINER}
         >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.End}
-            twClassName="h-[88px] w-full"
-          >
-            <VbaIllustration source={VbaIllustrationSource.scanner} />
-          </Box>
-          <Box twClassName="gap-2 p-4">
-            <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-              {strings('virtual_bank_account.verify_identity.title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.TextAlternative}
-              twClassName="text-center"
-            >
-              {strings('virtual_bank_account.verify_identity.description')}
-            </Text>
-          </Box>
-          <Box twClassName="px-4 py-2.5">
-            <Box twClassName="overflow-hidden rounded-3xl bg-muted">
-              {VERIFICATION_STEPS.map((step) => (
-                <ListItem
-                  key={step.id}
-                  variant={ContentVariant.OneLine}
-                  twClassName="min-h-14"
-                  startAccessory={
-                    <Icon
-                      name={step.icon}
-                      size={IconSize.Md}
-                      color={IconColor.IconDefault}
-                    />
-                  }
-                  accessoryGap={3}
-                  title={strings(step.title)}
-                  testID={`${VbaVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
-                />
-              ))}
-            </Box>
+          <TitleStandard
+            title={strings('virtual_bank_account.verify_identity.title')}
+            bottomLabel={strings(
+              'virtual_bank_account.verify_identity.description',
+            )}
+            twClassName="px-4 pb-4"
+          />
+          <Box>
+            {VERIFICATION_STEPS.map((step) => (
+              <ListItem
+                key={step.id}
+                variant={ListItemVariant.OneLine}
+                avatar={
+                  <AvatarIcon
+                    iconName={step.icon}
+                    severity={AvatarIconSeverity.Neutral}
+                  />
+                }
+                title={strings(step.title)}
+                testID={`${VbaVerifyIdentitySelectorsIDs.STEP}-${step.id}`}
+              />
+            ))}
           </Box>
         </ScrollView>
 
@@ -165,17 +148,15 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
                 {strings(
                   'virtual_bank_account.verify_identity.disclaimers_error',
                 )}{' '}
-                <Text
+                <TextButton
                   variant={TextVariant.BodySm}
-                  color={TextColor.PrimaryDefault}
-                  twClassName="underline"
                   onPress={retry}
                   testID={VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY}
                 >
                   {strings(
                     'virtual_bank_account.verify_identity.disclaimers_retry',
                   )}
-                </Text>
+                </TextButton>
               </Text>
             </Box>
           ) : null}

@@ -1,26 +1,27 @@
 import React from 'react';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
   ListItem,
-  Text,
-  TextVariant,
+  ListItemVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MfaMethod } from '../../../../../util/identity/mfa/engine/types';
 import { getMethodLabel, maskEmail } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
-import StepLayout, { MfaShield, type StepProps } from './StepLayout';
+import StepLayout, { type StepProps } from './StepLayout';
 
 const METHOD_ICONS: Record<MfaMethod, IconName> = {
   email_otp: IconName.Mail,
   passkey: IconName.Key,
+  totp: IconName.QrCode,
 };
 
 /**
@@ -41,6 +42,11 @@ const getDescription = (
       isDone ? 'mfa.intro.passkey_done' : 'mfa.intro.passkey_description',
     );
   }
+  if (method === 'totp') {
+    return strings(
+      isDone ? 'mfa.intro.totp_done' : 'mfa.intro.totp_description',
+    );
+  }
   if (isDone) {
     return email ? maskEmail(email) : undefined;
   }
@@ -49,7 +55,6 @@ const getDescription = (
 
 const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
   <StepLayout
-    top={<MfaShield />}
     title={strings('mfa.intro.title')}
     description={reason.enrollDescription ?? strings('mfa.intro.description')}
     error={state.error}
@@ -66,37 +71,32 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
       </Button>
     }
   >
-    <Box twClassName="gap-3 pt-3">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {strings('mfa.intro.list_title')}
-      </Text>
-      <Box twClassName="bg-muted rounded-3xl">
-        {step.methods.map((method) => {
-          const isDone = !step.missing.includes(method);
-          return (
-            <ListItem
-              key={method}
-              twClassName="min-h-14"
-              accessoryGap={3}
-              startAccessory={<Icon name={METHOD_ICONS[method]} />}
-              endAccessory={
-                isDone ? (
-                  <Icon
-                    name={IconName.Check}
-                    color={IconColor.SuccessDefault}
-                  />
-                ) : undefined
-              }
-              title={getMethodLabel(method)}
-              description={getDescription(method, isDone, step.email)}
-              descriptionProps={{ fontWeight: FontWeight.Regular }}
-              testID={`${MfaFlowSelectorsIDs.INTRO_METHOD}-${method}${
-                isDone ? '-done' : ''
-              }`}
-            />
-          );
-        })}
-      </Box>
+    <Box twClassName="-mx-4">
+      {step.methods.map((method) => {
+        const isDone = !step.missing.includes(method);
+        return (
+          <ListItem
+            key={method}
+            variant={ListItemVariant.TwoLines}
+            avatar={
+              <AvatarIcon
+                iconName={METHOD_ICONS[method]}
+                severity={AvatarIconSeverity.Neutral}
+              />
+            }
+            endAccessory={
+              isDone ? (
+                <Icon name={IconName.Check} color={IconColor.SuccessDefault} />
+              ) : undefined
+            }
+            title={getMethodLabel(method)}
+            description={getDescription(method, isDone, step.email)}
+            testID={`${MfaFlowSelectorsIDs.INTRO_METHOD}-${method}${
+              isDone ? '-done' : ''
+            }`}
+          />
+        );
+      })}
     </Box>
   </StepLayout>
 );

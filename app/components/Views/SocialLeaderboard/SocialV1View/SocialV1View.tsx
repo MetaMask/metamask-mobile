@@ -85,6 +85,7 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { markSocialTabVisited } from '../utils/socialTabVisit';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -175,6 +176,7 @@ const SocialV1ViewContent: React.FC = () => {
   const programmaticTabChangeRef = useRef(false);
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  useEffect(markSocialTabVisited, []);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');

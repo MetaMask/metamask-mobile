@@ -14,7 +14,10 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   KeyboardAwareScrollView,
@@ -56,6 +59,9 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -63,11 +69,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BottomSheetFooter,
   ButtonIcon,
   ButtonSize,
   FontWeight,
-  HeaderStandard,
   HelpText,
   HelpTextSeverity,
   IconName,
@@ -77,8 +81,8 @@ import {
   TextColor,
   TextField,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
-import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
 import type { AuthData } from '../../../core/Authentication/Authentication';
@@ -245,6 +249,11 @@ const ImportFromSecretRecoveryPhrase = () => {
   );
   const { themeAppearance } = useTheme();
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
@@ -457,7 +466,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
   };
 
-  // The header is rendered in-screen via HeaderStandard, so hide the native one.
+  // The header is rendered in-screen via HeaderStandardGlass, so hide the native one.
   const updateNavBar = useCallback(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -756,7 +765,9 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
         backButtonProps={{
           accessibilityLabel: strings('navigation.back'),
@@ -776,6 +787,7 @@ const ImportFromSecretRecoveryPhrase = () => {
         }
       />
       <KeyboardAwareScrollView
+        style={{ marginTop: headerInset }}
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
@@ -790,8 +802,8 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box>
-              <TitleStandardMarketing
+            <Box twClassName="gap-y-2">
+              <TitleStandard
                 title={strings('import_from_seed.title')}
                 titleProps={{
                   testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
@@ -842,8 +854,8 @@ const ImportFromSecretRecoveryPhrase = () => {
           )}
 
           {currentStep === 1 && (
-            <Box twClassName="flex-grow">
-              <TitleStandardMarketing
+            <Box twClassName="gap-y-4 flex-grow">
+              <TitleStandard
                 title={strings('import_from_seed.metamask_password')}
                 titleProps={{
                   testID: ChoosePasswordSelectorsIDs.TITLE_ID,
@@ -859,98 +871,96 @@ const ImportFromSecretRecoveryPhrase = () => {
                 }
               />
 
-              <Box twClassName="gap-y-4">
-                <Box twClassName="relative gap-2">
-                  <Label
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                    style={tw.style('-mb-1')}
-                  >
-                    {strings('import_from_seed.create_new_password')}
-                  </Label>
-                  <TextField
-                    value={password}
-                    onChangeText={onPasswordChange}
-                    onFocus={() => setIsPasswordFieldFocused(true)}
-                    onBlur={() => setIsPasswordFieldFocused(false)}
-                    isError={isPasswordTooShort}
-                    endAccessory={
-                      <PasswordVisibilityToggle
-                        isVisible={showPasswordIndex.includes(0)}
-                        onToggle={() => toggleShowPassword(0)}
-                        testID={
-                          ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
-                        }
-                      />
-                    }
-                    inputProps={{
-                      secureTextEntry: showPasswordIndex.includes(0),
-                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                      accessibilityLabel:
-                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                      onSubmitEditing: jumpToConfirmPassword,
-                      autoComplete: 'password-new',
-                      returnKeyType: 'next',
-                      autoCapitalize: 'none',
-                      keyboardAppearance: themeAppearance,
-                    }}
-                  />
-                  <HelpText
-                    severity={
-                      isPasswordTooShort ? HelpTextSeverity.Danger : undefined
-                    }
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('choose_password.must_be_at_least', {
-                      number: MIN_PASSWORD_LENGTH,
-                    })}
-                  </HelpText>
-                </Box>
+              <Box twClassName="relative gap-2">
+                <Label
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  style={tw.style('-mb-1')}
+                >
+                  {strings('import_from_seed.create_new_password')}
+                </Label>
+                <TextField
+                  value={password}
+                  onChangeText={onPasswordChange}
+                  onFocus={() => setIsPasswordFieldFocused(true)}
+                  onBlur={() => setIsPasswordFieldFocused(false)}
+                  isError={isPasswordTooShort}
+                  endAccessory={
+                    <PasswordVisibilityToggle
+                      isVisible={showPasswordIndex.includes(0)}
+                      onToggle={() => toggleShowPassword(0)}
+                      testID={
+                        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
+                      }
+                    />
+                  }
+                  inputProps={{
+                    secureTextEntry: showPasswordIndex.includes(0),
+                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                    accessibilityLabel:
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                    onSubmitEditing: jumpToConfirmPassword,
+                    autoComplete: 'password-new',
+                    returnKeyType: 'next',
+                    autoCapitalize: 'none',
+                    keyboardAppearance: themeAppearance,
+                  }}
+                />
+                <HelpText
+                  severity={
+                    isPasswordTooShort ? HelpTextSeverity.Danger : undefined
+                  }
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('choose_password.must_be_at_least', {
+                    number: MIN_PASSWORD_LENGTH,
+                  })}
+                </HelpText>
+              </Box>
 
-                <Box twClassName="relative gap-2">
-                  <Label
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                    style={tw.style('-mb-1')}
-                  >
-                    {strings('import_from_seed.confirm_password')}
-                  </Label>
-                  <TextField
-                    inputRef={confirmPasswordInputRef}
-                    onChangeText={onPasswordConfirmChange}
-                    value={confirmPassword}
-                    isError={isError}
-                    endAccessory={
-                      <PasswordVisibilityToggle
-                        isVisible={showPasswordIndex.includes(1)}
-                        onToggle={() => toggleShowPassword(1)}
-                        testID={
-                          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
-                        }
-                      />
-                    }
-                    isDisabled={password === ''}
-                    inputProps={{
-                      secureTextEntry: showPasswordIndex.includes(1),
-                      testID:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                      accessibilityLabel:
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                      onSubmitEditing: Keyboard.dismiss,
-                      autoComplete: 'password-new',
-                      returnKeyType: 'done',
-                      autoCapitalize: 'none',
-                      keyboardAppearance: themeAppearance,
-                    }}
-                  />
-                  {isError && (
-                    <HelpText severity={HelpTextSeverity.Danger}>
-                      {strings('import_from_seed.password_error')}
-                    </HelpText>
-                  )}
-                </Box>
+              <Box twClassName="relative gap-2">
+                <Label
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  style={tw.style('-mb-1')}
+                >
+                  {strings('import_from_seed.confirm_password')}
+                </Label>
+                <TextField
+                  inputRef={confirmPasswordInputRef}
+                  onChangeText={onPasswordConfirmChange}
+                  value={confirmPassword}
+                  isError={isError}
+                  endAccessory={
+                    <PasswordVisibilityToggle
+                      isVisible={showPasswordIndex.includes(1)}
+                      onToggle={() => toggleShowPassword(1)}
+                      testID={
+                        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
+                      }
+                    />
+                  }
+                  isDisabled={password === ''}
+                  inputProps={{
+                    secureTextEntry: showPasswordIndex.includes(1),
+                    testID:
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                    accessibilityLabel:
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                    onSubmitEditing: Keyboard.dismiss,
+                    autoComplete: 'password-new',
+                    returnKeyType: 'done',
+                    autoCapitalize: 'none',
+                    keyboardAppearance: themeAppearance,
+                  }}
+                />
+                {isError && (
+                  <HelpText severity={HelpTextSeverity.Danger}>
+                    {strings('import_from_seed.password_error')}
+                  </HelpText>
+                )}
               </Box>
             </Box>
           )}
@@ -964,7 +974,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             Platform.OS === 'android' ? 'mb-6' : 'mb-4',
           )}
         >
-          <BottomSheetFooter
+          <FooterGlass
             primaryButtonProps={{
               children: strings('import_from_seed.import_create_password_cta'),
               onPress: onPressCreatePassword,
@@ -978,7 +988,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       )}
       {currentStep === 0 && (
         <SafeAreaView edges={['bottom']} style={tw.style('py-4 bg-default')}>
-          <BottomSheetFooter
+          <FooterGlass
             primaryButtonProps={{
               children: strings('import_from_seed.continue'),
               onPress: handleContinueImportFlow,

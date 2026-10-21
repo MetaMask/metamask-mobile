@@ -24,6 +24,7 @@ const HeaderRootGlass = ({
   isGlass = true,
   backdrop,
   fadeInDistance,
+  isFloating,
   scrollY,
   onLayout,
   ...props
@@ -38,6 +39,7 @@ const HeaderRootGlass = ({
       backdrop={backdrop}
       scrollDistance={scrollY}
       fadeInDistance={fadeInDistance}
+      isFloating={isFloating}
     >
       <HeaderRoot {...props} endAccessory={resolveEndAccessoryGlass(props)} />
     </HeaderGlass>
