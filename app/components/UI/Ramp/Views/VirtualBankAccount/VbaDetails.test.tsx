@@ -333,6 +333,37 @@ describe('VbaDetails', () => {
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
     });
 
+    it('shows the bank transfer title while USD instructions are loading', async () => {
+      mockRouteParams = { sourceCurrency: 'USD' };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD' },
+        },
+      ]);
+      let resolveInstructions: (value: typeof usBankInstructions) => void =
+        () => undefined;
+      mockGetDepositInstructions.mockReturnValue(
+        new Promise((resolve) => {
+          resolveInstructions = resolve;
+        }),
+      );
+
+      const { findByTestId, findByText, queryByText } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      expect(await findByText('Add money by bank transfer')).toBeOnTheScreen();
+      expect(queryByText('Add money with Pix')).toBeNull();
+
+      resolveInstructions(usBankInstructions);
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+      ).toBeOnTheScreen();
+    });
+
     it('shows the Pix title when the loaded rail is Pix, even if USD was requested', async () => {
       mockRouteParams = { sourceCurrency: 'USD' };
       setAutoramps([

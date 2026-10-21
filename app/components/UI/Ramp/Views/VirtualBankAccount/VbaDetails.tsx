@@ -547,7 +547,9 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
-  const isBankTransfer = instructions?.type === 'UsBank';
+  const isBankTransfer =
+    instructions?.type === 'UsBank' ||
+    (!instructions && sourceCurrency === 'USD');
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = setupFailed
