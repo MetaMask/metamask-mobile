@@ -362,6 +362,7 @@ class TransactionPayConfirmation {
         });
         await Assertions.expectElementToHaveLabel(this.amountValue, '0', {
           description: 'Amount should be 0 after keypad long-press clear',
+          exact: true,
           timeout: 2000,
         });
       },
