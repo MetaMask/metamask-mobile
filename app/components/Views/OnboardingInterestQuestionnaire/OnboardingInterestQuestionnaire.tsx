@@ -11,8 +11,12 @@ import {
   ButtonsAlignment,
   ButtonVariant,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   TitleStandard,
-  ListItemMultiSelect,
+  ListItemSelect,
   ListItemVariant,
   Text,
   TextVariant,
@@ -221,7 +225,7 @@ const OnboardingInterestQuestionnaire = () => {
     >
       <HeaderStandard includesTopInset />
 
-      <Box twClassName="px-4 pb-4">
+      <Box twClassName="px-4 pb-6">
         <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
@@ -237,10 +241,18 @@ const OnboardingInterestQuestionnaire = () => {
           const isSelected = selectedIds.has(option.id);
           const isOtherOption = option.id === 'other';
           return (
-            <ListItemMultiSelect
+            <ListItemSelect
               key={option.id}
               variant={ListItemVariant.OneLine}
               isSelected={isSelected}
+              showSelectedIcon
+              endAccessory={
+                <Icon
+                  name={IconName.Add}
+                  size={IconSize.Lg}
+                  color={IconColor.IconDefault}
+                />
+              }
               onPress={() => handleOptionPress(option.id)}
               twClassName={`rounded-full border px-6 py-4 ${
                 isSelected ? 'border-icon-default' : 'border-muted'
