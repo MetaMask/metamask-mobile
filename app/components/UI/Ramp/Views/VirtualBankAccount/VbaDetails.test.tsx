@@ -180,9 +180,7 @@ describe('VbaDetails', () => {
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
@@ -190,7 +188,9 @@ describe('VbaDetails', () => {
       'importantForAccessibility',
       'no',
     );
-    expect(getByText('Add money with Pix')).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.title'),
+    );
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
     ).not.toBeOnTheScreen();
@@ -295,17 +295,16 @@ describe('VbaDetails', () => {
     it('shows the US bank transfer rows', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
-      const { getByTestId, getByText, queryByText } = renderWithProvider(
-        <VbaDetails />,
-      );
+      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
       await waitFor(() => {
         expect(
           getByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
         ).toBeOnTheScreen();
       });
-      expect(getByText('Add money by bank transfer')).toBeOnTheScreen();
-      expect(queryByText('Add money with Pix')).toBeNull();
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
       expect(getByText('Jane Doe')).toBeOnTheScreen();
       expect(getByText('021000021')).toBeOnTheScreen();
       expect(getByText('123456789')).toBeOnTheScreen();
@@ -352,12 +351,13 @@ describe('VbaDetails', () => {
         }),
       );
 
-      const { findByTestId, findByText, queryByText } = renderWithProvider(
-        <VbaDetails />,
-      );
+      const { findByTestId } = renderWithProvider(<VbaDetails />);
 
-      expect(await findByText('Add money by bank transfer')).toBeOnTheScreen();
-      expect(queryByText('Add money with Pix')).toBeNull();
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.TITLE),
+      ).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
 
       resolveInstructions(usBankInstructions);
       expect(
@@ -380,10 +380,11 @@ describe('VbaDetails', () => {
         ...pixInstructions,
       });
 
-      const { findByText, queryByText } = renderWithProvider(<VbaDetails />);
+      const { findByTestId } = renderWithProvider(<VbaDetails />);
 
-      expect(await findByText('Add money with Pix')).toBeOnTheScreen();
-      expect(queryByText('Add money by bank transfer')).toBeNull();
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.TITLE),
+      ).toHaveTextContent(strings('virtual_bank_account.vba_details.title'));
     });
 
     it('shows the Pix rows when the autoramp has a Pix rail', async () => {
@@ -392,12 +393,14 @@ describe('VbaDetails', () => {
         ...pixInstructions,
       });
 
-      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
 
       await waitFor(() => {
         expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
       });
-      expect(getByText('Add money with Pix')).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.title'),
+      );
     });
 
     it('keeps the loading skeleton until a supported rail arrives', async () => {
@@ -870,7 +873,9 @@ describe('VbaDetails', () => {
       );
     });
     expect(view.queryByText('00020126')).toBeNull();
-    expect(view.queryByText('Add money with Pix')).toBeNull();
+    expect(
+      view.queryByText(strings('virtual_bank_account.vba_details.title')),
+    ).toBeNull();
   });
 
   it('creates the autoramp in the currency picked on Choose Currency', async () => {
