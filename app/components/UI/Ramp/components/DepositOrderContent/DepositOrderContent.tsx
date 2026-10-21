@@ -223,7 +223,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
         {Boolean(orderFee) && (
           <View style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('deposit.order_processing.fees')}
             </Text>
             <Text variant={TextVariant.BodyMd}>{orderFee}</Text>
