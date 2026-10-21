@@ -491,7 +491,7 @@ describe('useMoneyAnalytics', () => {
 
       result.current.trackCampaignTriggered({
         campaign_name:
-          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_DEPOSIT_SPLASH,
+          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
         campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
       });
 
@@ -501,7 +501,7 @@ describe('useMoneyAnalytics', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           campaign_name:
-            MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_DEPOSIT_SPLASH,
+            MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
           campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
         }),
       );
