@@ -257,6 +257,8 @@ const VbaDetails = () => {
   );
   const [loadError, setLoadError] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
+  const [awaitingProviderApproval, setAwaitingProviderApproval] =
+    useState(false);
   const [isTerminal, setIsTerminal] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
@@ -310,6 +312,7 @@ const VbaDetails = () => {
           if (!stillCurrent()) {
             return;
           }
+          setAwaitingProviderApproval(false);
           setSetupFailed(true);
           return;
         }
@@ -327,6 +330,7 @@ const VbaDetails = () => {
           sourceCurrency,
         );
         if (!autoramp) {
+          setAwaitingProviderApproval(outcome === 'awaiting_provider');
           setSetupFailed(outcome === 'failed');
           setIsTerminal(outcome === 'terminal');
           pollingDoneRef.current = outcome === 'terminal';
@@ -339,6 +343,7 @@ const VbaDetails = () => {
       if (!stillCurrent()) {
         return;
       }
+      setAwaitingProviderApproval(false);
       setSetupFailed(false);
 
       let status = autoramp.status;
@@ -416,6 +421,7 @@ const VbaDetails = () => {
     setInstructions(null);
     setLoadError(false);
     setSetupFailed(false);
+    setAwaitingProviderApproval(false);
     setIsTerminal(false);
     setAutorampId(null);
     setAutorampStatus(
@@ -494,6 +500,7 @@ const VbaDetails = () => {
   const handleRetrySetup = useCallback(() => {
     pollingDoneRef.current = false;
     setSetupFailed(false);
+    setAwaitingProviderApproval(false);
     setIsTerminal(false);
     refreshDeposit(true).catch((error: unknown) => {
       Logger.error(error as Error, {
@@ -550,7 +557,12 @@ const VbaDetails = () => {
       : null;
 
   if (!isApproved && !hasSetupError) {
-    return <VbaCreatingAccount onBack={handleDone} />;
+    return (
+      <VbaCreatingAccount
+        onBack={handleDone}
+        awaitingProviderApproval={awaitingProviderApproval}
+      />
+    );
   }
 
   return (

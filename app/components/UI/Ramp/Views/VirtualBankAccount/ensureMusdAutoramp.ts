@@ -3,10 +3,14 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 
-/** `terminal`: only Rejected or Cancelled autoramps, and no replacement asked. */
+/**
+ * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
+ * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
+ */
 export type MusdAutorampSetupOutcome =
   | 'ready'
   | 'waiting'
+  | 'awaiting_provider'
   | 'failed'
   | 'terminal';
 
@@ -104,7 +108,15 @@ const runSetup = async (
     return 'terminal';
   }
 
-  // Customer not Active yet, or another read is still settling.
+  // IDOS is approved and MoonPay has not activated the customer yet.
+  if (
+    snapshot.autorampStatus === 'not_ready' &&
+    snapshot.kycStatus === 'approved'
+  ) {
+    return 'awaiting_provider';
+  }
+
+  // KYC is still open, or another read is settling.
   if (
     snapshot.autorampStatus === 'not_ready' ||
     snapshot.autorampStatus === 'in_progress'

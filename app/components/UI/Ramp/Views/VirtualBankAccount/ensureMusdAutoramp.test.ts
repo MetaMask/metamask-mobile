@@ -52,14 +52,20 @@ describe('ensureMusdAutoramp', () => {
     mockCreate.mockResolvedValue({ id: 'ar-new', status: 'Created' });
   });
 
-  it('waits while inactive, then registers and creates once', async () => {
+  it('waits for MoonPay after KYC, then registers and creates once', async () => {
     mockHydrate
-      .mockResolvedValueOnce({ autorampStatus: 'not_ready' })
+      .mockResolvedValueOnce({
+        autorampStatus: 'not_ready',
+        kycStatus: 'approved',
+      })
       .mockResolvedValueOnce({
         autorampStatus: 'needs_wallet_registration',
+        kycStatus: 'approved',
       });
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('waiting');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
+      'awaiting_provider',
+    );
     expect(mockCreate).not.toHaveBeenCalled();
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');

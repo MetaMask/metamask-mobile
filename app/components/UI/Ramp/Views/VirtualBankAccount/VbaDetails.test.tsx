@@ -564,13 +564,23 @@ describe('VbaDetails', () => {
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
     setAutoramps([]);
-    mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
 
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalled();
     });
+    expect(
+      getByText(
+        strings('virtual_bank_account.creating_account.awaiting_provider'),
+      ),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
