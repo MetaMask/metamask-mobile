@@ -198,7 +198,31 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     );
   });
 
-  it('opens Choose Currency from Continue when chooseCurrency is on, then creates the picked currency', async () => {
+  it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
+      chooseCurrency: true,
+    });
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-BRL`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
+    ).toBeNull();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('creates the currency picked on Choose Currency', async () => {
     ramps.createAutoramp?.mockImplementation(
       async (request: { recipient_account: { address: string } }) => {
         const autoramp = {
@@ -211,26 +235,16 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       },
     );
     ramps.refreshAutoramp?.mockResolvedValue({ status: 'Created' });
-    const {
-      findByTestId,
-      findByText,
-      getByLabelText,
-      getByTestId,
-      queryByText,
-    } = render(VbaDetails, { chooseCurrency: true });
+    const { findByTestId, findByText, getByTestId } = render(VbaDetails, {
+      chooseCurrency: true,
+    });
 
     fireEvent.press(
       getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
-
-    expect(
-      await findByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(getByLabelText('Brazilian real, BRL')).toBeOnTheScreen();
-    expect(queryByText('Euro')).toBeNull();
-    expect(ramps.createAutoramp).not.toHaveBeenCalled();
-
-    fireEvent.press(getByLabelText('US dollar, USD'));
+    fireEvent.press(
+      await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+    );
 
     expect(
       await findByText(strings('virtual_bank_account.creating_account.title')),

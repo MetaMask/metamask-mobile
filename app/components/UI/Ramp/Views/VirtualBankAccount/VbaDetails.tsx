@@ -69,6 +69,7 @@ export const VbaDetailsSelectorsIDs = {
   HEADER: 'vba-details-header',
   BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
+  TITLE: 'vba-details-title',
   COPY_BUTTON: 'vba-details-copy-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
@@ -592,7 +593,11 @@ const VbaDetails = () => {
             testID={VbaDetailsSelectorsIDs.LOGO}
           />
         </Box>
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-6 text-center">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="mt-6 text-center"
+          testID={VbaDetailsSelectorsIDs.TITLE}
+        >
           {strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_title'
