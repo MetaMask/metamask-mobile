@@ -118,8 +118,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.order.try_later': 'Try later',
       'predict.order.order_failed_title': 'Order failed',
       'predict.order.order_failed_body':
-        "Your order couldn't be filled. Try again?",
-      'predict.order.try_again': 'Try again',
+        "Your order couldn't be filled. Retry?",
+      'predict.order.retry': 'Retry',
     };
     return map[key] ?? key;
   },
@@ -341,16 +341,16 @@ describe('PredictOrderRetrySheet', () => {
   });
 
   describe('failed variant', () => {
-    it('renders Order failed title and Try again button', () => {
+    it('renders Order failed title and Retry button', () => {
       const { getByText } = render(
         <PredictOrderRetrySheet {...defaultProps} variant="failed" />,
       );
 
       expect(getByText('Order failed')).toBeOnTheScreen();
-      expect(getByText('Try again')).toBeOnTheScreen();
+      expect(getByText('Retry')).toBeOnTheScreen();
     });
 
-    it('calls onRetry when Try again is pressed', () => {
+    it('calls onRetry when Retry is pressed', () => {
       const onRetry = jest.fn();
       const { getByTestId } = render(
         <PredictOrderRetrySheet
@@ -383,10 +383,10 @@ describe('PredictOrderRetrySheet', () => {
       expect(
         getByText(/Check your connection and try again/),
       ).toBeOnTheScreen();
-      expect(getByText('Try again')).toBeOnTheScreen();
+      expect(getByText('Retry')).toBeOnTheScreen();
     });
 
-    it('calls onRetry when Try again is pressed', () => {
+    it('calls onRetry when Retry is pressed', () => {
       const onRetry = jest.fn();
       const { getByTestId } = render(
         <PredictOrderRetrySheet
@@ -463,7 +463,7 @@ describe('PredictOrderRetrySheet', () => {
       expect(queryByText(/Yes, (buy|sell) at/)).toBeNull();
     });
 
-    it('offers Try again that re-fetches', () => {
+    it('offers Retry that re-fetches', () => {
       const onRetry = jest.fn();
       const { getByTestId } = render(
         <PredictOrderRetrySheet
@@ -515,7 +515,7 @@ describe('PredictOrderRetrySheet', () => {
       expect(queryByText('Price unavailable')).toBeNull();
     });
 
-    it('offers Try again that re-fetches', () => {
+    it('offers Retry that re-fetches', () => {
       const onRetry = jest.fn();
       const { getByTestId } = render(
         <PredictOrderRetrySheet

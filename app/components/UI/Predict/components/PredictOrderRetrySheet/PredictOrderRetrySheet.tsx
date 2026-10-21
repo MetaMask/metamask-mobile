@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -34,7 +35,6 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
-import { TouchableOpacity } from 'react-native';
 
 export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
@@ -267,7 +267,7 @@ const PredictOrderRetrySheet = forwardRef<
 
     const buttonLabel = isQuoteShown
       ? getConfirmLabelForSide(side, preview)
-      : strings('predict.order.try_again');
+      : strings('predict.order.retry');
 
     const showFooter = !isBusy;
 
@@ -278,19 +278,13 @@ const PredictOrderRetrySheet = forwardRef<
         isInteractable={!isDismissDisabled}
         onClose={handleSheetClosed}
       >
-        {!isDismissDisabled && (
-          <TouchableOpacity
-            testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
-            onPress={closeSheet}
-            style={tw.style('absolute top-8 right-4 z-10')}
-          >
-            <Icon
-              name={IconName.Close}
-              size={IconSize.Xl}
-              color={IconColor.IconDefault}
-            />
-          </TouchableOpacity>
-        )}
+        <BottomSheetHeader
+          onClose={isDismissDisabled ? undefined : closeSheet}
+          closeButtonProps={{
+            testID: PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON,
+          }}
+          style={tw.style('px-6 py-4')}
+        />
         <Box
           testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
           alignItems={BoxAlignItems.Center}
