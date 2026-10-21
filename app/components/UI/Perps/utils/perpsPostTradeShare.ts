@@ -9,6 +9,7 @@ import {
 } from '../../SocialFeed/utils/formatters';
 import {
   beginPostTradeShareSession,
+  clearPostTradeShareSession,
   getPostTradeShareSession,
   patchPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
@@ -134,8 +135,9 @@ export const failPerpsPostTradeShare = (
 
 /**
  * Moves a pending perps share to complete when the exchange returned an oid.
- * A missing oid, or a session the user already closed, returns false so the
- * caller can fall back to the perps toast.
+ * A missing oid clears the open session and returns false, so the sheet does
+ * not show Order failed and the caller can fall back to the perps toast. A
+ * session the user already closed also returns false.
  */
 export const completePerpsPostTradeShare = (
   sessionId: string | undefined,
@@ -151,7 +153,11 @@ export const completePerpsPostTradeShare = (
     return false;
   }
   if (!orderId) {
-    return failPerpsPostTradeShare(sessionId);
+    const session = getPostTradeShareSession();
+    if (session?.sessionId === sessionId && session.product === 'perps') {
+      clearPostTradeShareSession();
+    }
+    return false;
   }
   const session = getPostTradeShareSession();
   if (

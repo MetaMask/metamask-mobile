@@ -82,6 +82,23 @@ describe('perpsPostTradeShare', () => {
     expect(session.preview.entryPriceLabel).toBeDefined();
   });
 
+  it('clears a pending session when the accepted order has no order id', () => {
+    const sessionId = beginPerpsPostTradeShare({
+      copyTradeOrigin,
+      orderType: 'market',
+      activeProvider: 'hyperliquid',
+      asset: 'ETH',
+      direction: 'long',
+    });
+
+    const completed = completePerpsPostTradeShare(sessionId, {
+      orderId: undefined,
+    });
+
+    expect(completed).toBe(false);
+    expect(getPostTradeShareSession()).toBeNull();
+  });
+
   it('leaves a closed session alone so the caller can toast', () => {
     const sessionId = beginPerpsPostTradeShare({
       copyTradeOrigin,
