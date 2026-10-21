@@ -3,7 +3,6 @@ import { screen } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
-import { getProfileAvatarPreset } from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { KNOWN_DEFAULT_AVATAR_URLS } from '../utils/avatarFallback';
 import TraderAvatar from './TraderAvatar';
@@ -77,13 +76,8 @@ describe('TraderAvatar', () => {
 
     expect(screen.getByTestId('trader-avatar')).toHaveStyle({
       backgroundColor: brandColor.indigo200,
-      width: 40,
-      height: 40,
     });
-    expect(screen.getByTestId('trader-avatar-art')).toHaveProp(
-      'source',
-      getProfileAvatarPreset('astronaut')?.source,
-    );
+    expect(screen.UNSAFE_getByProps({ name: 'astro', width: 40 })).toBeTruthy();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
     expect(screen.UNSAFE_queryByType(AvatarAccount)).toBeNull();
   });

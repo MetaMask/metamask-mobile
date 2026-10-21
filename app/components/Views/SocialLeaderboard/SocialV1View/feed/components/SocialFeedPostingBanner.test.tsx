@@ -1,4 +1,5 @@
 import React from 'react';
+import { brandColor } from '@metamask/design-tokens';
 import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
@@ -75,14 +76,15 @@ describe('SocialFeedPostingBanner', () => {
       <SocialFeedPostingBanner
         authorHandle="wen-cat"
         avatarPresetId="zombie"
-        avatarBackgroundId="lime"
+        avatarBackgroundId="background7"
         startedAtMs={1_000_000}
       />,
     );
 
     expect(
-      screen.getByTestId(`${SocialFeedPostingBannerSelectorsIDs.AVATAR}-art`),
-    ).toBeOnTheScreen();
+      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.AVATAR),
+    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
+    expect(screen.UNSAFE_getByProps({ name: 'zombie' })).toBeTruthy();
   });
 
   it('starts the countdown when it mounts before the clock is set', () => {
