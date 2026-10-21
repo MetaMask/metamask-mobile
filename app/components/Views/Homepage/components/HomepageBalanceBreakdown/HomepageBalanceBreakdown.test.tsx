@@ -205,7 +205,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and iconless rows in screenshot order', () => {
-    const { getByTestId, getAllByTestId, queryByTestId } = render(
+    const { getByTestId, getAllByTestId } = render(
       <HomepageBalanceBreakdown />,
     );
 
@@ -250,8 +250,8 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
     ).toHaveTextContent('USD 10.00');
     expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).not.toBeOnTheScreen();
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
+    ).toHaveTextContent('Add');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
@@ -417,11 +417,11 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
-    ).not.toBeOnTheScreen();
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
+    ).toHaveTextContent('USD 0.00');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Buy');
+    ).toHaveTextContent('Add');
     expect(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY)).toHaveStyle({
       borderRadius: 9999,
       height: 28,
@@ -429,10 +429,10 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
-    ).toBe('Money, 0%');
+    ).toBe('Money, USD 0.00, 0%');
   });
 
-  it('initiates a Money deposit when the Buy button is pressed', () => {
+  it('initiates a Money deposit when the Add button is pressed', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -447,7 +447,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockInitiateMoneyDeposit).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the geo-block sheet when Buy is pressed by an ineligible user', () => {
+  it('opens the geo-block sheet when Add is pressed by an ineligible user', () => {
     mockIsMoneyAccountGeoEligible = false;
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
@@ -663,7 +663,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
   });
 
-  it('keeps Money Buy visible while hiding unresolved non-Money rows', () => {
+  it('keeps Money Add visible while hiding unresolved non-Money rows', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -678,7 +678,7 @@ describe('HomepageBalanceBreakdown', () => {
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Buy');
+    ).toHaveTextContent('Add');
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
     ).not.toBeOnTheScreen();
