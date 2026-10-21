@@ -148,6 +148,18 @@ describe('useRewardsToast', () => {
     });
   });
 
+  describe('closeToast function', () => {
+    it('dismisses the toast currently on screen', () => {
+      const { result } = renderHook(() => useRewardsToast());
+
+      act(() => {
+        result.current.closeToast();
+      });
+
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('RewardsToastOptions configurations', () => {
     it('returns success configuration with title only', () => {
       const { result } = renderHook(() => useRewardsToast());

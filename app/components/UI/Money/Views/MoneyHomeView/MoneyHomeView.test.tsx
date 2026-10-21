@@ -20,6 +20,11 @@ import { MoneyBalanceSummaryTestIds } from '../../components/MoneyBalanceSummary
 import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import { MoneyEarningsTestIds } from '../../components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
+import { MoneyClaimableRewardsCardTestIds } from '../../components/MoneyClaimableRewardsCard/MoneyClaimableRewardsCard.testIds';
+import {
+  formatUsd,
+  KOL_EARNINGS_FIXTURE,
+} from '../../../Rewards/components/KolDashboard/rewardsUiFixtures';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from '../../components/MoneyVbaHomeCard/MoneyVbaHomeCard.testIds';
 import { MoneyHowItWorksTestIds } from '../../components/MoneyHowItWorks/MoneyHowItWorks.testIds';
 import { MoneyPotentialEarningsTestIds } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings.testIds';
@@ -907,6 +912,17 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('renders claimable rewards under the onboarding card with the Rewards claims amount', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    expect(
+      getByTestId(MoneyClaimableRewardsCardTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyClaimableRewardsCardTestIds.AMOUNT),
+    ).toHaveTextContent(formatUsd(KOL_EARNINGS_FIXTURE.availableToClaim));
   });
 
   it('renders the earnings section when its feature flag is enabled', () => {

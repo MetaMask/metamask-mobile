@@ -9,6 +9,7 @@ import {
   IconName,
   IconSize,
   IconColor,
+  SectionDivider,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -153,29 +154,32 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
 
   if (isLoading) {
     return (
-      <Box
-        testID="referred-by-code-section-loading"
-        twClassName="gap-4 flex-col py-4 px-4"
-      >
-        <Box twClassName="gap-2">
-          <Skeleton height={20} width={100} />
-          <Skeleton height={16} width={250} />
+      <>
+        <Box
+          testID="referred-by-code-section-loading"
+          twClassName="flex-col px-4"
+        >
+          <Box twClassName="gap-2 pb-2">
+            <Skeleton height={20} width={100} />
+            <Skeleton height={16} width={250} />
+          </Box>
+          <Box twClassName="pt-3">
+            <Skeleton height={48} width="100%" />
+          </Box>
         </Box>
-        <Skeleton height={48} width="100%" />
-      </Box>
+        <SectionDivider marginVertical={8} />
+      </>
     );
   }
 
   if (referralDetailsError && !referredByCode) {
     return (
       <>
-        {/* Divider */}
-        <Box twClassName="mt-4 border-b border-border-muted" />
         <Box
           testID="referred-by-code-section-error"
-          twClassName="gap-4 flex-col px-4"
+          twClassName="flex-col px-4"
         >
-          <Box twClassName="gap-2 mt-2">
+          <Box twClassName="gap-2 pb-2">
             <Text variant={TextVariant.HeadingMd}>
               {strings('rewards.referred_by_code.title')}
             </Text>
@@ -183,30 +187,31 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
               {strings('rewards.referred_by_code.description_not_linked')}
             </Text>
           </Box>
-          <RewardsErrorBanner
-            testID="referred-by-code-error-banner"
-            title={strings(
-              'rewards.referral_details_error.error_fetching_title',
-            )}
-            description={strings(
-              'rewards.referral_details_error.error_fetching_description',
-            )}
-            onConfirm={fetchReferralDetails}
-            confirmButtonLabel={strings(
-              'rewards.referral_details_error.retry_button',
-            )}
-          />
+          <Box twClassName="pt-3">
+            <RewardsErrorBanner
+              testID="referred-by-code-error-banner"
+              title={strings(
+                'rewards.referral_details_error.error_fetching_title',
+              )}
+              description={strings(
+                'rewards.referral_details_error.error_fetching_description',
+              )}
+              onConfirm={fetchReferralDetails}
+              confirmButtonLabel={strings(
+                'rewards.referral_details_error.retry_button',
+              )}
+            />
+          </Box>
         </Box>
+        <SectionDivider marginVertical={8} />
       </>
     );
   }
 
   return (
     <>
-      {/* Divider */}
-      <Box twClassName="my-4 border-b border-border-muted" />
-      <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
-        <Box twClassName="gap-2 mt-2">
+      <Box testID="referred-by-code-section" twClassName="flex-col px-4">
+        <Box twClassName="gap-2 pb-2">
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.referred_by_code.title')}
           </Text>
@@ -217,7 +222,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
           </Text>
         </Box>
 
-        <Box>
+        <Box twClassName="pt-3">
           <TextField
             testID="referred-by-code-input"
             placeholder={strings('rewards.referred_by_code.input_placeholder')}
@@ -255,6 +260,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
             )}
         </Box>
       </Box>
+      <SectionDivider marginVertical={8} />
     </>
   );
 };

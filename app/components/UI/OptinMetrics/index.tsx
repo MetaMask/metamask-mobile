@@ -200,6 +200,16 @@ const OptinMetrics = () => {
   ]);
 
   /**
+   * Shows the invite as the last onboarding step, so the wallet opens only
+   * once the user has moved past it.
+   */
+  const continueToInviteStep = useCallback(() => {
+    navigation.navigate(Routes.ONBOARDING.INVITE, {
+      onComplete: continueNavigation,
+    });
+  }, [navigation, continueNavigation]);
+
+  /**
    * Callback on press confirm
    */
   const onConfirm = useCallback(async () => {
@@ -275,11 +285,11 @@ const OptinMetrics = () => {
 
     if (isBasicUsageChecked && shouldShowQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-        onComplete: continueNavigation,
+        onComplete: continueToInviteStep,
         ...(accountType && { accountType }),
       });
     } else {
-      await continueNavigation();
+      continueToInviteStep();
     }
   }, [
     metrics,
@@ -290,7 +300,7 @@ const OptinMetrics = () => {
     accountType,
     events,
     navigation,
-    continueNavigation,
+    continueToInviteStep,
   ]);
 
   /**

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardSettingsAccountGroupList from './RewardSettingsAccountGroupList';
 import {
@@ -669,30 +669,25 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('renders header and settings footer list items', () => {
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
+    it('renders the referral section above accounts', () => {
+      const { getByTestId, queryByTestId } = render(
+        <RewardSettingsAccountGroupList />,
+      );
 
-      expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('flash-list-item-referredByCode')).toBeOnTheScreen();
+      expect(
+        within(getByTestId('list-header')).getByTestId(
+          'referred-by-code-section',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId('list-header')).getByTestId(
+          'rewards-settings-header',
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('flash-list-item-referredByCode')).toBeNull();
       expect(
         getByTestId('flash-list-item-environmentToggle'),
       ).toBeOnTheScreen();
-    });
-
-    it('scrolls to referral section on input focus', () => {
-      jest.useFakeTimers();
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
-
-      fireEvent.press(getByTestId('referred-by-code-focus-trigger'));
-      jest.runAllTimers();
-
-      expect(mockFlashListScrollToIndex).toHaveBeenCalledWith(
-        expect.objectContaining({
-          viewPosition: 0.2,
-          animated: true,
-        }),
-      );
-      jest.useRealTimers();
     });
   });
 

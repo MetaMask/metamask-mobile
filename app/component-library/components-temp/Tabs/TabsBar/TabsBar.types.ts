@@ -24,7 +24,8 @@ export interface TabItem {
   isDisabled?: boolean;
   testID?: string;
   /**
-   * Optional content rendered after the label (indicator, tag, icon, etc.)
+   * Optional content overlaid on the label's top-right corner
+   * (indicator, tag, icon, etc.)
    */
   endAccessory?: React.ReactNode;
 }
@@ -53,4 +54,12 @@ export interface TabsBarProps extends BoxComponentProps {
    * Tailwind CSS classes to apply to the main container
    */
   twClassName?: string;
+  /**
+   * Whether the tabs stretch to share the bar's width equally instead of
+   * hugging their labels. Full-width tabs never overflow, so the bar does not
+   * scroll.
+   *
+   * @default false
+   */
+  isFullWidth?: boolean;
 }

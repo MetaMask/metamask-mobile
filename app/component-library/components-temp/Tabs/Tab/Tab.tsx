@@ -21,6 +21,7 @@ const Tab: React.FC<TabProps> = ({
   testID,
   onLayout,
   endAccessory,
+  isFullWidth = false,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -39,11 +40,12 @@ const Tab: React.FC<TabProps> = ({
     <View
       ref={viewRef}
       onLayout={handleOnLayout}
-      style={tw.style('flex-shrink-0')}
+      style={tw.style(isFullWidth ? 'flex-1' : 'flex-shrink-0')}
+      testID={testID ? `${testID}-container` : undefined}
     >
       <Pressable
         style={tw.style(
-          'px-0 py-1 flex-row items-center justify-center gap-1 relative',
+          'px-0 py-1 flex-row items-center justify-center relative',
           isDisabled && 'opacity-50',
         )}
         onPress={isDisabled ? undefined : onPress}
@@ -51,7 +53,7 @@ const Tab: React.FC<TabProps> = ({
         testID={testID}
         {...pressableProps}
       >
-        {/* The label sizes itself, so endAccessory can sit beside it */}
+        {/* The label sizes itself. endAccessory overlays its top-right corner. */}
         <View>
           {/* Hidden bold text that determines layout size */}
           <Text
@@ -84,9 +86,9 @@ const Tab: React.FC<TabProps> = ({
           >
             {label}
           </Text>
-        </View>
 
-        {endAccessory}
+          {endAccessory}
+        </View>
       </Pressable>
     </View>
   );

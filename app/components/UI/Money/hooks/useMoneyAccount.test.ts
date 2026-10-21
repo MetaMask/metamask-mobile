@@ -254,6 +254,7 @@ describe('useMoneyAccountDeposit', () => {
           success: jest.fn(),
           failed: jest.fn(),
         },
+        claimSuccess: jest.fn(),
         rescue: {
           inProgress: jest.fn(),
           success: jest.fn(),
@@ -924,6 +925,7 @@ describe('useMoneyAccountWithdrawal', () => {
           success: jest.fn(),
           failed: jest.fn(),
         },
+        claimSuccess: jest.fn(),
         rescue: {
           inProgress: jest.fn(),
           success: jest.fn(),
