@@ -82,7 +82,7 @@ const OrderCompleted: React.FC = () => {
       title={strings('card.order_completed.title')}
       titleProps={{
         testID: OrderCompletedSelectors.TITLE,
-        twClassName: 'px-4',
+        twClassName: 'px-10',
       }}
       description={
         <Box flexDirection={BoxFlexDirection.Column} gap={2}>
