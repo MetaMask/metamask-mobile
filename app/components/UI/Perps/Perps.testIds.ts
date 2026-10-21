@@ -1269,6 +1269,9 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   ERROR: 'perps-adjust-margin-bottom-sheet-error',
   MARGIN_VALUE: 'perps-adjust-margin-bottom-sheet-margin-value',
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
+  ADD_FUNDS_BUTTON: 'perps-adjust-margin-bottom-sheet-add-funds-button',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-adjust-margin-bottom-sheet-geo-block-tooltip',
   LIQUIDATION_PRICE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-price-value',
   LIQUIDATION_PRICE_INFO:
