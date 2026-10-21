@@ -24,10 +24,12 @@ const manualBankTransfer = {
   delay: [2880, 4320],
 };
 
+// Iron sends only the T&C and its `display_name` does not say "MoonPay";
+// the screen rewords the label client-side.
 const disclaimer = {
   id: 'd-1',
   url: 'https://moonpay.example/terms',
-  display_name: "MoonPay's Terms and Conditions",
+  display_name: 'Terms and Conditions',
 };
 
 /**

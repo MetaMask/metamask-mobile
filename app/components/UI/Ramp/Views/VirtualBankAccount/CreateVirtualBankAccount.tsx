@@ -27,6 +27,7 @@ import { isPositiveNumberOrZero } from '../../../Money/utils/number';
 import vbaIntroHero from '../../../../../images/vba-intro-hero.png';
 import MoonPayPoweredByLogo from '../../../../../images/moonpay-powered-by-logo.svg';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
+import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 
@@ -236,29 +237,53 @@ const CreateVirtualBankAccount = ({
             {strings(
               'virtual_bank_account.create_virtual_bank_account.agreement_prefix',
             )}
-            {disclaimers?.map((disclaimer, index) => (
-              <React.Fragment key={disclaimer.id}>
-                {index > 0
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
-                    )
-                  : ''}
+            {disclaimers?.length ? (
+              <>
+                {/* Iron's catalog only carries the T&C, so the MoonPay Privacy
+                    Policy is hardcoded (TRAM-4169) and shown first, per Figma.
+                    It waits for the Iron catalog so loading/error stay link-free. */}
                 <Text
                   variant={TextVariant.BodyXs}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.PrimaryDefault}
-                  onPress={() => Linking.openURL(disclaimer.url)}
-                  testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                  onPress={() => Linking.openURL(MOONPAY_PRIVACY_POLICY_URL)}
+                  testID={
+                    CreateVirtualBankAccountSelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK
+                  }
                 >
-                  {disclaimer.display_name}
+                  {strings(
+                    'virtual_bank_account.create_virtual_bank_account.moonpay_privacy_policy_link',
+                  )}
                 </Text>
-              </React.Fragment>
-            ))}
-            {disclaimers?.length
-              ? strings(
+                {disclaimers.map((disclaimer) => (
+                  <React.Fragment key={disclaimer.id}>
+                    {strings(
+                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
+                    )}
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.PrimaryDefault}
+                      onPress={() => Linking.openURL(disclaimer.url)}
+                      testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                    >
+                      {/* The lone Iron entry is the MoonPay Enterprise T&C and
+                          its display_name doesn't say "MoonPay" (TRAM-4169);
+                          reword it. With more entries, show vendor names so
+                          nothing gets mislabeled. */}
+                      {disclaimers.length === 1
+                        ? strings(
+                            'virtual_bank_account.create_virtual_bank_account.moonpay_terms_link',
+                          )
+                        : disclaimer.display_name}
+                    </Text>
+                  </React.Fragment>
+                ))}
+                {strings(
                   'virtual_bank_account.create_virtual_bank_account.agreement_suffix',
-                )
-              : null}
+                )}
+              </>
+            ) : null}
           </Text>
         )}
 
