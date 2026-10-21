@@ -1,5 +1,4 @@
 import type { BackendWebSocketServiceMessenger } from '@metamask/core-backend';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import {
   Messenger,
   MessengerActions,
@@ -28,32 +27,6 @@ export function getSocialRealtimeServiceMessenger(
       'BackendWebSocketService:subscribe',
     ],
     events: ['BackendWebSocketService:connectionStateChanged'],
-    messenger,
-  });
-
-  return messenger;
-}
-
-export type SocialRealtimeServiceInitMessenger = Messenger<
-  'SocialRealtimeServiceInit',
-  RemoteFeatureFlagControllerGetStateAction,
-  never
->;
-
-export function getSocialRealtimeServiceInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SocialRealtimeServiceInitMessenger>,
-    MessengerEvents<SocialRealtimeServiceInitMessenger>
-  >,
-): SocialRealtimeServiceInitMessenger {
-  const messenger: SocialRealtimeServiceInitMessenger = new Messenger({
-    namespace: 'SocialRealtimeServiceInit',
-    parent: rootMessenger,
-  });
-
-  rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    events: [],
     messenger,
   });
 
