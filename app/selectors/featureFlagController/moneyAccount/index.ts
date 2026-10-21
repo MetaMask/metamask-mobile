@@ -40,14 +40,17 @@ export const MONEY_MOVEMENT_NEOBANK_FLAG_KEY = 'moneyMovementNeobank' as const;
 interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   regions?: unknown;
   regionCurrencies?: unknown;
+  defaultCurrency?: unknown;
+  chooseCurrency?: unknown;
   regionOverride?: unknown;
 }
 
 /**
  * `validatedVersionGatedFeatureFlag` unwraps `{ name, value }` and then
- * returns only a boolean, which drops `regions`, `regionCurrencies`, and
- * `regionOverride`. Recover the same payload here so those fields can be
- * read after the enabled + minimumVersion gate.
+ * returns only a boolean, which drops `regions`, `regionCurrencies`,
+ * `defaultCurrency`, `chooseCurrency`, and `regionOverride`. Recover the same
+ * payload here so those fields can be read after the enabled + minimumVersion
+ * gate.
  *
  * @param remoteFlag - Raw `moneyMovementNeobank` value from RemoteFeatureFlagController.
  * @returns The version-gated object, including any extra fields, or undefined.
@@ -103,9 +106,30 @@ function normalizeVbaRegionCodes(regions: unknown): string[] {
 
 const VBA_SOURCE_CURRENCIES = new Set(['BRL', 'USD', 'EUR']);
 
+type VbaFlagCurrency = 'BRL' | 'USD' | 'EUR';
+
+/**
+ * Trim and uppercase a fiat code. Only BRL, USD, and EUR are kept.
+ *
+ * @param currency - Raw currency field from the flag payload.
+ * @returns A supported fiat code, or undefined when the value is blank or unknown.
+ */
+function normalizeVbaFlagCurrency(
+  currency: unknown,
+): VbaFlagCurrency | undefined {
+  if (typeof currency !== 'string') {
+    return undefined;
+  }
+  const normalized = currency.trim().toUpperCase();
+  if (!VBA_SOURCE_CURRENCIES.has(normalized)) {
+    return undefined;
+  }
+  return normalized as VbaFlagCurrency;
+}
+
 function normalizeVbaRegionCurrencies(
   regionCurrencies: unknown,
-): Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>> {
+): Readonly<Record<string, VbaFlagCurrency>> {
   if (
     typeof regionCurrencies !== 'object' ||
     regionCurrencies === null ||
@@ -114,13 +138,12 @@ function normalizeVbaRegionCurrencies(
     return {};
   }
 
-  const normalized: Record<string, 'BRL' | 'USD' | 'EUR'> = {};
+  const normalized: Record<string, VbaFlagCurrency> = {};
   for (const [region, currency] of Object.entries(regionCurrencies)) {
-    const code = region.trim().toUpperCase();
-    const fiat =
-      typeof currency === 'string' ? currency.trim().toUpperCase() : '';
-    if (code && VBA_SOURCE_CURRENCIES.has(fiat)) {
-      normalized[code] = fiat as 'BRL' | 'USD' | 'EUR';
+    const normalizedRegion = region.trim().toUpperCase();
+    const normalizedCurrency = normalizeVbaFlagCurrency(currency);
+    if (normalizedRegion && normalizedCurrency) {
+      normalized[normalizedRegion] = normalizedCurrency;
     }
   }
   return normalized;
@@ -153,8 +176,24 @@ export interface MoneyMovementNeobankRollout {
   isEnabled: boolean;
   /** Uppercase ISO 3166-1 alpha-2 codes. Empty whenever `isEnabled` is false. */
   regions: readonly string[];
-  /** Currency served for each country. Missing countries fail closed. */
-  regionCurrencies: Readonly<Record<string, 'BRL' | 'USD' | 'EUR'>>;
+  /**
+   * Explicit country-to-fiat map. A country in `regions` with no entry uses
+   * `defaultCurrency`.
+   */
+  regionCurrencies: Readonly<Record<string, VbaFlagCurrency>>;
+  /**
+   * Fiat for an enabled region that has no `regionCurrencies` entry. Only
+   * BRL, USD, or EUR. Undefined when missing, blank, unsupported, or when
+   * `isEnabled` is false.
+   */
+  defaultCurrency: VbaFlagCurrency | undefined;
+  /**
+   * True when the user picks the account currency on Choose Currency. False
+   * creates it in the currency mapped from the effective location
+   * (`regionOverride` when set, otherwise the IP country). Only a literal
+   * `true` enables it, and it is false whenever `isEnabled` is false.
+   */
+  chooseCurrency: boolean;
   /**
    * Country code used ahead of the IP location. Undefined when the field is
    * missing, not a string, blank, or the gate is closed. The country must
@@ -167,6 +206,8 @@ const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
   isEnabled: false,
   regions: [],
   regionCurrencies: {},
+  defaultCurrency: undefined,
+  chooseCurrency: false,
   regionOverride: undefined,
 };
 
@@ -174,9 +215,12 @@ const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
  * Virtual Bank Account rollout from `moneyMovementNeobank`.
  *
  * The object is the only switch: `{ enabled, minimumVersion, regions,
- * regionCurrencies, regionOverride }`. A closed gate allows no country and
- * returns no region override. `regionOverride` is optional and absent in
- * production; an RC or internal variation can set a country code.
+ * regionCurrencies, defaultCurrency, chooseCurrency, regionOverride }`.
+ * `validatedVersionGatedFeatureFlag` checks enabled and minimumVersion; the
+ * other fields are read from that same payload. A closed gate allows no
+ * country, exposes no default currency, and returns no region override.
+ * `regionOverride` is optional and absent in production; an RC or internal
+ * variation can set a country code.
  *
  * @returns The enabled country list, or a disabled rollout.
  */
@@ -196,6 +240,8 @@ export const selectMoneyMovementNeobank = createSelector(
       isEnabled: true,
       regions,
       regionCurrencies: normalizeVbaRegionCurrencies(payload.regionCurrencies),
+      defaultCurrency: normalizeVbaFlagCurrency(payload.defaultCurrency),
+      chooseCurrency: payload.chooseCurrency === true,
       regionOverride: normalizeVbaRegionOverride(payload.regionOverride),
     };
   },
