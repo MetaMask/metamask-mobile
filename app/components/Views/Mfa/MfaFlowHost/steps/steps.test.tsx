@@ -370,7 +370,7 @@ describe('CodeStep', () => {
       const blur = jest.spyOn(input, 'blur').mockClear();
       const focus = jest.spyOn(input, 'focus').mockClear();
 
-      fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA));
       expect(blur).toHaveBeenCalledTimes(1);
       jest.runOnlyPendingTimers();
       expect(focus).toHaveBeenCalled();
@@ -384,7 +384,7 @@ describe('CodeStep', () => {
     const blur = jest.spyOn(input, 'blur').mockClear();
     const focus = jest.spyOn(input, 'focus').mockClear();
 
-    fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA));
 
     expect(blur).not.toHaveBeenCalled();
     expect(focus).toHaveBeenCalledTimes(1);
