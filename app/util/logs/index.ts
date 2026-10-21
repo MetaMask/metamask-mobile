@@ -15,6 +15,31 @@ import {
 } from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { OTA_VERSION, RUNTIME_VERSION } from '../../constants/ota';
 
+const QR_SYNC_STATE_LOG_OMITTED_FIELDS = [
+  'otp',
+  'pendingSecretImports',
+  'provisioningMetadata',
+  'provisioningStatus',
+] as const;
+
+/**
+ * Drops QR sync fields whose controller metadata excludes them from state logs.
+ *
+ * @param backgroundState - Engine background state being prepared for export.
+ */
+function omitQrSyncStateLogFields(
+  backgroundState: Record<string, unknown> | undefined,
+): void {
+  const qrSyncState = backgroundState?.QrSyncController;
+  if (!qrSyncState || typeof qrSyncState !== 'object') {
+    return;
+  }
+
+  for (const field of QR_SYNC_STATE_LOG_OMITTED_FIELDS) {
+    delete (qrSyncState as Record<string, unknown>)[field];
+  }
+}
+
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
   const {
@@ -116,6 +141,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
 
   // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;
+  omitQrSyncStateLogFields(fullState.engine.backgroundState);
 
   const { KeyringController } = Engine.context;
   const newState = {

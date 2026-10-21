@@ -77,7 +77,14 @@ async function pollOnce(): Promise<void> {
     }
 
     consecutiveFailures = 0;
-    DevLogger.log('[E2E Command Server Polling] Received commands', data);
+    DevLogger.log(
+      '[E2E Command Server Polling] Received commands',
+      data.map((item) =>
+        item && typeof item === 'object' && typeof item.type === 'string'
+          ? item.type
+          : 'invalid',
+      ),
+    );
 
     for (const item of data) {
       if (!item || typeof item !== 'object') continue;
@@ -89,7 +96,7 @@ async function pollOnce(): Promise<void> {
           } catch (e) {
             DevLogger.log(
               '[E2E Command Server Polling] Error handling export-state',
-              e,
+              e instanceof Error ? e.message : 'export failed',
             );
           }
           break;

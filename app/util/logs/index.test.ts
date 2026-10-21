@@ -420,6 +420,36 @@ describe('logs :: generateStateLogs', () => {
     ).toBe(false);
   });
 
+  it('omits QR sync fields excluded from state logs', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          QrSyncController: {
+            phase: 'idle',
+            otp: 'pairing-code',
+            pendingSecretImports: { wallets: [] },
+            provisioningMetadata: { session: 'metadata' },
+            provisioningStatus: 'pending',
+          },
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const parsedLogs = JSON.parse(generateStateLogs(mockStateInput));
+    const qrSync = parsedLogs.engine.backgroundState.QrSyncController;
+
+    expect(qrSync.phase).toBe('idle');
+    expect(qrSync.otp).toBeUndefined();
+    expect(qrSync.pendingSecretImports).toBeUndefined();
+    expect(qrSync.provisioningMetadata).toBeUndefined();
+    expect(qrSync.provisioningStatus).toBeUndefined();
+    expect(JSON.stringify(parsedLogs)).not.toContain('pairing-code');
+  });
+
   it('includes loggedIn parameter in generated logs', () => {
     const mockStateInput = {
       engine: {
