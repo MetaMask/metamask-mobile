@@ -7406,6 +7406,9 @@ describe('PerpsOrderView', () => {
       const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
         -1,
       )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onError) {
+        throw new Error('usePerpsOrderExecution was not given onError');
+      }
       act(() => {
         options.onError?.('rejected');
       });

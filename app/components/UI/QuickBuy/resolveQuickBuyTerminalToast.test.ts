@@ -320,7 +320,11 @@ describe('resolveQuickBuyTerminalToast', () => {
 
     resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-    expect(getPostTradeShareSession()?.transactionHash).toBe('0xbridge-hash');
+    const session = getPostTradeShareSession();
+    if (session?.product !== 'spot') {
+      throw new Error('post-trade share session is not a spot session');
+    }
+    expect(session.transactionHash).toBe('0xbridge-hash');
   });
 
   it('falls back to the source-chain hash in bridge status', () => {
@@ -354,7 +358,11 @@ describe('resolveQuickBuyTerminalToast', () => {
 
     resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-    expect(getPostTradeShareSession()?.transactionHash).toBe('0xsource-hash');
+    const session = getPostTradeShareSession();
+    if (session?.product !== 'spot') {
+      throw new Error('post-trade share session is not a spot session');
+    }
+    expect(session.transactionHash).toBe('0xsource-hash');
   });
 
   it('shows the normal terminal toast when the share session was dismissed', () => {

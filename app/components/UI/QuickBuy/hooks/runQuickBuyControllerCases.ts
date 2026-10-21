@@ -3822,10 +3822,12 @@ export const runQuickBuyControllerCases = ({
             await result.current.handleConfirm();
           });
 
-          expect(getPostTradeShareSession()?.copyTradeOrigin).toEqual(
-            copyTradeOrigin,
-          );
-          expect(getPostTradeShareSession()?.owner).toBe('social-v1-feed');
+          const session = getPostTradeShareSession();
+          if (session?.product !== 'spot') {
+            throw new Error('post-trade share session is not a spot session');
+          }
+          expect(session.copyTradeOrigin).toEqual(copyTradeOrigin);
+          expect(session.owner).toBe('social-v1-feed');
         });
 
         it('uses normal Quick Buy feedback for unsupported trade-in-flight chains', async () => {
