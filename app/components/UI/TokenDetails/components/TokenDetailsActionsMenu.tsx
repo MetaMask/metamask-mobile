@@ -6,6 +6,7 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -15,6 +16,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
+  ActionListItem,
+  BottomSheet,
+  BottomSheetHeader,
+  Box,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -24,6 +29,7 @@ import {
   IconSize,
   Text,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { IconName as ActionIconName } from '../../../../component-library/components/Icons/Icon';
@@ -36,6 +42,15 @@ import {
 export const TOKEN_DETAILS_ACTIONS_MENU_BUTTON_TEST_ID =
   'token-details-actions-menu-button';
 
+export const TOKEN_DETAILS_ACTIONS_SHEET_TEST_ID =
+  'token-details-actions-bottom-sheet';
+
+/**
+ * The anchored dropdown is kept so it can be turned back on without rewriting
+ * it. The bottom sheet is the current presentation.
+ */
+const ACTIONS_MENU_PRESENTATION: 'bottom-sheet' | 'dropdown' = 'bottom-sheet';
+
 const MENU_GAP = 8;
 const TRIGGER_SIZE = 48;
 const MENU_CLOSED_SCALE = 0.85;
@@ -46,6 +61,9 @@ const styles = StyleSheet.create({
     width: TRIGGER_SIZE,
     paddingLeft: 0,
     paddingRight: 0,
+  },
+  sheetHost: {
+    flex: 1,
   },
   modal: {
     flex: 1,
@@ -137,6 +155,7 @@ export interface TokenDetailsActionItem {
   key: string;
   iconName: ActionIconName | IconName;
   label: string;
+  description?: string;
   onPress: () => void;
   isDisabled?: boolean;
   testID: string;
@@ -155,12 +174,32 @@ interface MenuAnchor {
   isMeasured: boolean;
 }
 
+const MenuTrigger = ({
+  isOpen,
+  isLoading,
+  onPress,
+}: {
+  isOpen: boolean;
+  isLoading: boolean;
+  onPress: () => void;
+}) => (
+  <Button
+    variant={ButtonVariant.Secondary}
+    size={ButtonSize.Lg}
+    startAccessory={<TriggerIcon isOpen={isOpen} />}
+    isDisabled={isLoading}
+    onPress={onPress}
+    accessibilityLabel={strings('asset_overview.more_button')}
+    testID={TOKEN_DETAILS_ACTIONS_MENU_BUTTON_TEST_ID}
+    style={styles.trigger}
+  />
+);
+
 /**
- * Icon button that opens the token actions (Cash Buy, Receive, View on block
- * explorer, and so on) in a menu above the footer, instead of a row under the
- * chart.
+ * Dropdown presentation, kept for a later iteration. Not mounted while
+ * `ACTIONS_MENU_PRESENTATION` is `'bottom-sheet'`.
  */
-const TokenDetailsActionsMenu = ({
+export const TokenDetailsActionsDropdown = ({
   actions,
   isLoading = false,
   onOpen,
@@ -225,16 +264,7 @@ const TokenDetailsActionsMenu = ({
   return (
     <>
       <View ref={triggerRef} collapsable={false}>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          startAccessory={<TriggerIcon isOpen={isOpen} />}
-          isDisabled={isLoading}
-          onPress={openMenu}
-          accessibilityLabel={strings('asset_overview.more_button')}
-          testID={TOKEN_DETAILS_ACTIONS_MENU_BUTTON_TEST_ID}
-          style={styles.trigger}
-        />
+        <MenuTrigger isOpen={isOpen} isLoading={isLoading} onPress={openMenu} />
       </View>
       <Modal
         visible={anchor !== null}
@@ -292,6 +322,92 @@ const TokenDetailsActionsMenu = ({
       </Modal>
     </>
   );
+};
+
+/**
+ * Icon button that opens the token actions (Cash Buy, Receive, View on block
+ * explorer, and so on) in a bottom sheet, instead of a row under the chart.
+ */
+const TokenDetailsActionsBottomSheet = ({
+  actions,
+  isLoading = false,
+  onOpen,
+}: TokenDetailsActionsMenuProps) => {
+  const sheetRef = useRef<BottomSheetRef>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      sheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isOpen]);
+
+  const openSheet = () => {
+    setIsOpen(true);
+    onOpen?.();
+  };
+
+  const handleSheetClosed = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  const closeSheet = (thenRun?: () => void) => {
+    if (!sheetRef.current) {
+      setIsOpen(false);
+      thenRun?.();
+      return;
+    }
+    sheetRef.current.onCloseBottomSheet(thenRun);
+  };
+
+  return (
+    <>
+      <MenuTrigger isOpen={isOpen} isLoading={isLoading} onPress={openSheet} />
+      {isOpen ? (
+        <Modal
+          visible
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          onRequestClose={() => closeSheet()}
+        >
+          <GestureHandlerRootView style={styles.sheetHost}>
+            <BottomSheet
+              ref={sheetRef}
+              testID={TOKEN_DETAILS_ACTIONS_SHEET_TEST_ID}
+              isInteractable
+              onClose={handleSheetClosed}
+            >
+              <BottomSheetHeader onClose={() => closeSheet()}>
+                {strings('asset_overview.more_button')}
+              </BottomSheetHeader>
+              <Box twClassName="pb-4">
+                {actions.map((action) => (
+                  <ActionListItem
+                    key={action.key}
+                    label={action.label}
+                    description={action.description}
+                    iconName={action.iconName as IconName}
+                    isDisabled={action.isDisabled}
+                    testID={action.testID}
+                    onPress={() => closeSheet(action.onPress)}
+                  />
+                ))}
+              </Box>
+            </BottomSheet>
+          </GestureHandlerRootView>
+        </Modal>
+      ) : null}
+    </>
+  );
+};
+
+const TokenDetailsActionsMenu = (props: TokenDetailsActionsMenuProps) => {
+  if (ACTIONS_MENU_PRESENTATION === 'dropdown') {
+    return <TokenDetailsActionsDropdown {...props} />;
+  }
+
+  return <TokenDetailsActionsBottomSheet {...props} />;
 };
 
 export default TokenDetailsActionsMenu;

@@ -328,7 +328,7 @@ describe('TokenDetailsActions', () => {
   });
 
   describe('menu presentation', () => {
-    it('opens the actions from the icon button instead of a row', async () => {
+    it('opens the actions from the icon button in a bottom sheet', async () => {
       const mockOnActionTapped = jest.fn();
       const { getByTestId, queryByTestId, findByTestId } = renderWithProvider(
         <TokenDetailsActions
