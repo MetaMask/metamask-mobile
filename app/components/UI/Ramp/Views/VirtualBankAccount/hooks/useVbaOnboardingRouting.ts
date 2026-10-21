@@ -30,9 +30,7 @@ import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSour
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
 
-type StackNavigationAction =
-  | ReturnType<typeof CommonActions.reset>
-  | ReturnType<typeof CommonActions.navigate>;
+type StackNavigationAction = ReturnType<typeof CommonActions.reset>;
 
 interface StackController {
   dispatch: (action: StackNavigationAction) => void;
@@ -121,9 +119,9 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Pushes the completed account on the same stack as onboarding, with the same
- * horizontal transition. The screen hides its back button, so this does not
- * replace the route underneath.
+ * Keeps the original caller under the completed account and removes onboarding
+ * from the root stack. Header and native-gesture back actions then return
+ * directly to the caller instead of revealing the onboarding loader.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
  * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
@@ -140,9 +138,20 @@ export const openCompletedVbaAccount = (
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
       current.dispatch(
-        sourceCurrency
-          ? CommonActions.navigate(Routes.RAMP.VBA_DETAILS, { sourceCurrency })
-          : CommonActions.navigate(Routes.RAMP.VBA_DETAILS),
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            getCallerRoute(
+              state,
+            ) as PartialState<NavigationState>['routes'][number],
+            sourceCurrency
+              ? {
+                  name: Routes.RAMP.VBA_DETAILS,
+                  params: { sourceCurrency },
+                }
+              : { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
       );
       return;
     }

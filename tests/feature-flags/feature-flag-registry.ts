@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-10-13
+ * Production defaults last synced: 2026-10-20
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -225,7 +225,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsTAT3597AbtestPerpsSectionPriority',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: {
+      versions: {
+        '8.15.0': [
+          {
+            name: 'control',
+            scope: {
+              type: 'percentage_rollout',
+              value: 1,
+            },
+          },
+          {
+            name: 'treatment',
+            scope: {
+              type: 'percentage_rollout',
+              value: 0,
+            },
+          },
+        ],
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -300,7 +319,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             name: 'feature is ON',
             scope: {
               type: 'threshold',
-              value: 0,
+              value: 1,
             },
             value: true,
           },
@@ -308,7 +327,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             name: 'feature is OFF',
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             value: false,
           },
@@ -1065,6 +1084,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       constants: {
         accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        applePayLearnMoreUrl: 'https://metamask.io/card',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
     },
@@ -3837,6 +3857,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           '0x2105': 5,
         },
       },
+      replaceUnderpricedDappGasFees: {
+        perChainConfig: {
+          '0x13b2': true,
+        },
+      },
       timeoutAttempts: {
         default: 30,
         perChainConfig: {
@@ -4565,7 +4590,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       androidMinimumAPIVersion: 21,
-      appMinimumBuild: 6489,
+      appMinimumBuild: 7249,
       appleMinimumOS: 6,
     },
     status: FeatureFlagStatus.Active,
@@ -4601,22 +4626,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Not in the production client-config response yet. inProd stays false so
-  // the weekly registry sync does not treat this as removed from production.
-  // A missing, disabled, or empty value allows no region. A blank
-  // defaultCurrency means an enabled region with no regionCurrencies entry
-  // creates nothing.
+  // Production client-config snapshot. chooseCurrency is absent until the
+  // chooser is turned on, and a missing value reads as false. A country in
+  // regions with no regionCurrencies entry uses defaultCurrency.
   moneyMovementNeobank: {
     name: 'moneyMovementNeobank',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
+      defaultCurrency: 'USD',
       enabled: false,
-      minimumVersion: '0.0.0',
-      regions: [],
-      regionCurrencies: {},
-      defaultCurrency: '',
-      chooseCurrency: false,
+      minimumVersion: '8.17.0',
+      regionCurrencies: {
+        BR: 'BRL',
+        US: 'USD',
+      },
+      regions: ['BR', 'US'],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4862,7 +4887,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '8.14.0': [
+        '8.15.0': [
           {
             scope: {
               type: 'threshold',
@@ -4890,10 +4915,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsTAT3793AbtestPerpsHomeExplore: {
     name: 'perpsTAT3793AbtestPerpsHomeExplore',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       versions: {
-        '8.17.0': [
+        '8.15.0': [
           {
             scope: {
               type: 'threshold',
@@ -4925,6 +4950,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.62.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsBrandRefresh: {
+    name: 'perpsBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4978,8 +5014,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.13.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4990,7 +5026,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.11.0',
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5011,8 +5047,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.13.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5022,8 +5058,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.13.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5520,6 +5556,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictSubscriptionFeeWaiverEnabled: {
+    name: 'predictSubscriptionFeeWaiverEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   productSafetyDappScanning: {
     name: 'productSafetyDappScanning',
     type: FeatureFlagType.Remote,
@@ -5640,10 +5687,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   swapsRebateBannerEnabled: {
     name: 'swapsRebateBannerEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5810,7 +5857,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         sentinelUrl: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
       },
       '0x1237': {
-        gaslessBridgeWith7702Enabled: false,
+        gaslessBridgeWith7702Enabled: true,
         mobileActive: true,
         mobileActiveAndroid: true,
         mobileActiveIOS: true,
@@ -6580,6 +6627,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             },
           },
         },
+        '8.14.0': {
+          default: {
+            enabled: false,
+          },
+        },
+        '8.16.0': {
+          default: {
+            enabled: false,
+          },
+          overrides: {
+            moneyAccountDeposit: {
+              enabled: true,
+            },
+          },
+        },
       },
     },
     status: FeatureFlagStatus.Active,
@@ -6639,6 +6701,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -7997,8 +8060,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -8006,10 +8069,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   perpsPriceAlertsPercentChangeEnabled: {
     name: 'perpsPriceAlertsPercentChangeEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '0.0.0',
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -8452,6 +8515,94 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
+      minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  cardImmersveMfa: {
+    name: 'cardImmersveMfa',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyDepositBrazeCampaignEnabled: {
+    name: 'earnMoneyDepositBrazeCampaignEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1209AbtestHomepageBalanceBreakdownV2: {
+    name: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyMovementBrazilNeobank: {
+    name: 'moneyMovementBrazilNeobank',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaActivityDepositFromAddresses: {
+    name: 'moneyVbaActivityDepositFromAddresses',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsRebatesEnabled: {
+    name: 'perpsRebatesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictBrandRefresh: {
+    name: 'predictBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },

@@ -129,7 +129,7 @@ const MoneyVbaHomeCard = ({
       isLoading={isOpening}
       startIconName={config.ctaStartIconName}
       twClassName={config.ctaClassName}
-      textProps={{ twClassName: config.ctaTextClassName }}
+      textClassName={() => config.ctaTextClassName}
       onPress={handleCtaPress}
       testID={testIds.CTA_BUTTON}
     >

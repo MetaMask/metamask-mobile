@@ -9,6 +9,7 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -86,6 +87,42 @@ import {
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import {
+  useVbaEligibility,
+  type VbaEligibility,
+} from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
+
+let mockIsMoneyGlass = false;
+jest.mock('../../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsMoneyGlass,
+}));
+// Glass surfaces also need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsMoneyGlass,
+    }),
+  };
+});
+
+let mockIsMoneyBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyBrandRefresh',
+  () => ({
+    selectMoneyBrandRefreshEnabled: () => mockIsMoneyBrandRefresh,
+  }),
+);
+
+let mockIsMoneyNativeHeader = false;
+jest.mock('../../components/MoneyHeader/useMoneyNativeHeader', () => ({
+  useMoneyNativeHeader: () => mockIsMoneyNativeHeader,
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -412,6 +449,32 @@ jest.mock(
   }),
 );
 
+const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility',
+  () => ({
+    useVbaEligibility: jest.fn(),
+  }),
+);
+
+const VBA_ELIGIBILITY_NOT_ELIGIBLE: VbaEligibility = {
+  isEligible: false,
+  isLoading: false,
+  isFlagEnabled: false,
+  isRegionEligible: false,
+  isDevBypassEnabled: false,
+  location: undefined,
+};
+
+const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
+  isEligible: true,
+  isLoading: false,
+  isFlagEnabled: true,
+  isRegionEligible: true,
+  isDevBypassEnabled: false,
+  location: 'BR',
+};
+
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
@@ -603,6 +666,83 @@ const expectTestIdBefore = (
 };
 
 describe('MoneyHomeView', () => {
+  describe('brand refresh', () => {
+    afterEach(() => {
+      mockIsMoneyBrandRefresh = false;
+      mockIsMoneyGlass = false;
+      mockIsMoneyNativeHeader = false;
+    });
+
+    it('keeps the JS header and opaque surfaces by default', () => {
+      const { getByTestId, queryAllByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('hands the header to the native bar and lets content scroll under it', () => {
+      mockIsMoneyNativeHeader = true;
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(queryByTestId(MoneyHeaderTestIds.CONTAINER)).not.toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW).props
+          .contentInsetAdjustmentBehavior,
+      ).toBe('automatic');
+    });
+
+    it('puts the header backdrop under the native bar', () => {
+      mockIsMoneyBrandRefresh = true;
+      mockIsMoneyNativeHeader = true;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).toBeOnTheScreen();
+    });
+
+    it('floats the JS header on its backdrop where the native bar is off', () => {
+      mockIsMoneyBrandRefresh = true;
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the header in place without a backdrop when brand refresh is off', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyHomeViewTestIds.NATIVE_HEADER_BACKDROP),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the action tiles on glass when brand refresh glass is on', () => {
+      mockIsMoneyGlass = true;
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        within(
+          getByTestId(MoneyActionButtonRowTestIds.CONTAINER),
+        ).getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID),
+      ).toHaveLength(3);
+    });
+  });
+
   let defaultMoneyAccountBalance: ReturnType<typeof useMoneyAccountBalance>;
   let defaultMoneyVaultApy: ReturnType<typeof useMoneyVaultApy>;
 
@@ -664,6 +804,7 @@ describe('MoneyHomeView', () => {
 
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
+    mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
     mockOpenVbaOnboarding.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
@@ -916,6 +1057,72 @@ describe('MoneyHomeView', () => {
       VBA_CARD_CONTAINERS.forEach((testId) => {
         expect(queryByTestId(testId)).not.toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('VBA bank details action button', () => {
+    it('renders the Details button for every eligible user, card or not', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders no Details button when the user is not VBA eligible', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'account_is_ready',
+      } as VbaHomeCard);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('tracks and opens the same destination as the VBA card on press', async () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      mockOpenVbaOnboarding.mockResolvedValue(undefined);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
+        );
+      });
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
+        label_key: 'money.action.details',
+        component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+        button_position: 4,
+        button_row_button_count: 4,
+      });
+      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('counts four buttons in the Add tracking payload when Details is shown', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
+
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_position: 1,
+          button_row_button_count: 4,
+        }),
+      );
     });
   });
 
@@ -1661,6 +1868,18 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
+    });
+
+    it('leaves the title to the native bar when it is on', () => {
+      mockRouteParams = { showBackButton: true };
+      mockIsMoneyNativeHeader = true;
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
+      ).not.toBeOnTheScreen();
+      mockIsMoneyNativeHeader = false;
     });
 
     it('keeps the title in the header as the Money tab', () => {
@@ -3086,109 +3305,6 @@ describe('MoneyHomeView', () => {
           message: expect.stringContaining('MoneyHomeView'),
         }),
       );
-    });
-  });
-
-  describe('Pro entry point', () => {
-    beforeEach(() => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: true,
-      });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: false,
-      });
-    });
-
-    it('hides the Pro entry point while Plus access is unresolved', () => {
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: true,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('hides the Pro entry point while the Pro flow is disabled', () => {
-      mockUseProSubscriptionEnabled.mockReturnValue({
-        isProSubscriptionEnabled: false,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
-
-    it('invites the user to join when they are not subscribed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.join_pro'),
-      );
-    });
-
-    it('shows the Pro label when the user is already subscribed', () => {
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('pro_subscription.pro'),
-      );
-    });
-
-    it('navigates to the subscription flow when the user is not subscribed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
-        component_name: COMPONENT_NAMES.MONEY_HEADER,
-        label_key: 'pro_subscription.join_pro',
-        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
-        source: 'money_header',
-      });
-    });
-
-    it('navigates to the Pro hub when the user is already subscribed', () => {
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
-
-      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-        component_name: COMPONENT_NAMES.MONEY_HEADER,
-        label_key: 'pro_subscription.pro',
-        redirect_target: SCREEN_NAMES.PRO_HUB,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
-        source: 'money_header',
-      });
     });
   });
 

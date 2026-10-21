@@ -42,7 +42,5 @@ export type VbaIdentityVerificationRoute =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaIdentityVerificationParamList = {
   VbaIdentityVerificationProviderTerms: undefined;
-  VbaIdentityVerificationProvider: {
-    initialNeedsMoreInfo: boolean;
-  };
+  VbaIdentityVerificationProvider: undefined;
 };

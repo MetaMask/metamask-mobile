@@ -13,6 +13,7 @@ import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockGetPix = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
@@ -26,6 +27,7 @@ let mockChooseCurrency = false;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
+let mockCanGoBack = true;
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
@@ -34,6 +36,8 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
+    canGoBack: () => mockCanGoBack,
+    goBack: mockGoBack,
     navigate: mockNavigate,
   }),
   useRoute: () => ({ params: mockRouteParams }),
@@ -160,6 +164,7 @@ describe('VbaDetails', () => {
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
+    mockCanGoBack = true;
     mockGetPix.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
@@ -175,7 +180,9 @@ describe('VbaDetails', () => {
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
@@ -184,32 +191,49 @@ describe('VbaDetails', () => {
       'no',
     );
     expect(getByText('Add money with Pix')).toBeOnTheScreen();
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
+    ).not.toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
     });
     expect(mockListTransactions).not.toHaveBeenCalled();
   });
 
-  it('navigates to Money home when done is pressed', async () => {
+  it('returns to the caller from the header', async () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+    });
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
+  });
+
+  it('returns to Money home when there is no navigation history', async () => {
+    mockCanGoBack = false;
     const { getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockGetPix).toHaveBeenCalledWith('ar-1');
     });
 
-    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
   });
 
-  it('shows both Pix rows with a key icon', async () => {
+  it('shows both Pix rows without leading key icons', async () => {
     mockGetPix.mockResolvedValue(pixInstructions);
 
-    const { getByLabelText, getByTestId, getByText } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const { getByLabelText, getByTestId, getByText, queryByTestId } =
+      renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
@@ -219,22 +243,10 @@ describe('VbaDetails', () => {
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     expect(getByText('PIX key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
-    const copiaColaIcon = getByTestId(
-      `${VbaDetailsSelectorsIDs.ROW_ICON}-copia-cola`,
-      { includeHiddenElements: true },
-    );
-    const pixKeyIcon = getByTestId(
-      `${VbaDetailsSelectorsIDs.ROW_ICON}-pix-key`,
-      { includeHiddenElements: true },
-    );
-    expect(copiaColaIcon).toHaveProp(
-      'importantForAccessibility',
-      'no-hide-descendants',
-    );
-    expect(pixKeyIcon).toHaveProp(
-      'importantForAccessibility',
-      'no-hide-descendants',
-    );
+    expect(
+      queryByTestId('vba-details-row-icon-copia-cola'),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('vba-details-row-icon-pix-key')).not.toBeOnTheScreen();
     expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
     expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
@@ -341,23 +353,21 @@ describe('VbaDetails', () => {
       expect(getByText('Add money with Pix')).toBeOnTheScreen();
     });
 
-    it('shows rail-neutral waiting copy until a supported rail arrives', async () => {
+    it('keeps the loading skeleton until a supported rail arrives', async () => {
       mockGetDepositInstructions.mockResolvedValue(null);
 
-      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+      const { getByTestId, queryByText } = renderWithProvider(<VbaDetails />);
 
       await waitFor(() => {
-        expect(
-          getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
-        ).toBeOnTheScreen();
+        expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
       });
       expect(
-        getByText('Your account details will appear here shortly.'),
-      ).toBeOnTheScreen();
+        queryByText('Your account details will appear here shortly.'),
+      ).toBeNull();
     });
   });
 
-  it('shows a loading skeleton instead of the waiting copy until Pix loads', async () => {
+  it('shows a loading skeleton until Pix loads', async () => {
     let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
     mockGetPix.mockReturnValue(
       new Promise((resolve) => {
@@ -371,9 +381,6 @@ describe('VbaDetails', () => {
       'accessibilityLabel',
       'Loading account details',
     );
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
-    ).not.toBeOnTheScreen();
 
     resolvePix(pixInstructions);
 
@@ -411,27 +418,22 @@ describe('VbaDetails', () => {
     expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
   });
 
-  it('shows the waiting copy once the backend returns no Pix code', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+  it('keeps the loading skeleton when the backend returns no Pix code', async () => {
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
-      ).toBeOnTheScreen();
+      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
     });
-    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
   });
 
   it('does not fetch Pix instructions while offline', () => {
     mockNetworkTier = 'NONE';
 
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     expect(mockGetPix).not.toHaveBeenCalled();
-    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).not.toBeOnTheScreen();
-    expect(
-      getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
   });
 
   it('hides the Pix key row when MoonPay omits it', async () => {
@@ -560,7 +562,7 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('waits when no usable autoramp exists and the customer is not active', async () => {
+  it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
 
@@ -672,9 +674,7 @@ describe('VbaDetails', () => {
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaDetailsSelectorsIDs.WAITING_FOR_DETAILS),
-      ).toBeOnTheScreen();
+      expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     });
     expect(mockGetPix).not.toHaveBeenCalled();
   });
@@ -877,7 +877,7 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON)).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
 

@@ -2,6 +2,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { LimitOrderAsset } from '../../api/limitOrders/create/schema';
 import { MOCK_LIMIT_OPEN_ORDER } from '../../api/limitOrders/getLimitOrders/mock';
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import { formatLimitOrderFiatValue } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { getLimitOrderTokens } from '../../utils/limitOrders/getLimitOrderTokens';
 import { getTriggerPrice, getUsdTriggerPrice } from './utils';
@@ -44,6 +45,7 @@ function createOrder({
   destAmount,
   kind,
   price,
+  threshold = 'above',
 }: {
   srcAsset: LimitOrderAsset;
   srcAmount: string;
@@ -51,12 +53,13 @@ function createOrder({
   destAmount: string;
   kind: string;
   price: string;
+  threshold?: string;
 }): LimitOrder {
   return {
     ...MOCK_LIMIT_OPEN_ORDER,
     src: { asset: srcAsset, amount: srcAmount },
     dest: { asset: destAsset, amount: destAmount, minAmount: destAmount },
-    trigger: { kind, threshold: 'above', price },
+    trigger: { kind, threshold, price },
   };
 }
 
@@ -82,6 +85,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: formatLimitOrderFiatValue('2200.5', 'usd'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -101,7 +105,46 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: formatLimitOrderFiatValue('11.382233', 'usd'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
+    });
+
+    it('condenses the leading zeros of a sub-cent price instead of showing <$0.01', () => {
+      const order = createOrder({
+        srcAsset: USDC,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '237000000000000000000000',
+        kind: 'dest_price',
+        price: '0.0000042123456',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerPrice).toBe('$0.0₅4212');
+    });
+
+    it('condenses the leading zeros of a sub-cent price in the display currency', () => {
+      const order = createOrder({
+        srcAsset: USDC,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '237000000000000000000000',
+        kind: 'dest_price',
+        price: '0.0000044',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(
+        order,
+        sourceToken,
+        destinationToken,
+        'EUR',
+        1.1,
+      );
+
+      expect(result.triggerPrice).toBe('€0.0₅4');
     });
 
     it('converts a fiat price into the display currency', () => {
@@ -126,6 +169,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: formatLimitOrderFiatValue(2000, 'EUR'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -198,6 +242,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: formatLimitOrderFiatValue('0', 'usd'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -234,6 +279,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('2200', 'USDC'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -253,7 +299,24 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('0.5', 'USDT'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
+    });
+
+    it('condenses the leading zeros of a tiny ratio price', () => {
+      const order = createOrder({
+        srcAsset: BNB,
+        srcAmount: '1000000000000000000',
+        destAsset: BSC_USDT,
+        destAmount: '1746970000',
+        kind: 'ratio',
+        price: '0.00000000174697',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerPrice).toBe(quote('0.0₈1746', 'USDT'));
     });
 
     it('quotes a buy at the reported price when it reads per destination token', () => {
@@ -272,6 +335,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('11.36567', 'USDT'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -291,6 +355,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('817.501762', 'USDT'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
@@ -310,6 +375,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('2500', 'USDT'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
@@ -329,6 +395,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('0.3', 'USDT'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
@@ -348,6 +415,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('0.5', 'ETH'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
@@ -367,6 +435,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('2', 'ETH'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
@@ -386,6 +455,27 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('1', 'USDC'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      });
+    });
+
+    it('quotes a parity buy as one of the counter token', () => {
+      const order = createOrder({
+        srcAsset: USDT,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '1000000000000000000',
+        kind: 'ratio',
+        price: '1',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result).toStrictEqual({
+        triggerPrice: quote('1', 'USDT'),
+        triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -405,6 +495,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('0.25', 'USDC'),
         triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
       });
     });
 
@@ -424,6 +515,7 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('0', 'USDT'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
     });
 
@@ -443,7 +535,90 @@ describe('getTriggerPrice', () => {
       expect(result).toStrictEqual({
         triggerPrice: quote('11', 'USDT'),
         triggerToken: destinationToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
+    });
+  });
+
+  describe('trigger direction', () => {
+    it('reads a below threshold as at or below', () => {
+      const order = createOrder({
+        srcAsset: USDT,
+        srcAmount: '2001300',
+        destAsset: LINK,
+        destAmount: '175980000000000000',
+        kind: 'dest_price',
+        price: '11.382233',
+        threshold: 'below',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerDirection).toBe(
+        LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      );
+    });
+
+    it('reads a below threshold as at or above when the ratio shown is the reciprocal of the reported one', () => {
+      // Selling BNB at or above 817.501762 USDT per BNB, which the API reports
+      // as at or below 1 / 817.501762 BNB per USDT.
+      const order = createOrder({
+        srcAsset: BNB,
+        srcAmount: '100000000000000000',
+        destAsset: BSC_USDT,
+        destAmount: '81750176200000000000',
+        kind: 'ratio',
+        price: '0.00122323895370393098',
+        threshold: 'below',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result).toStrictEqual({
+        triggerPrice: quote('817.501762', 'USDT'),
+        triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      });
+    });
+
+    it('keeps a below threshold as at or below on a parity sell', () => {
+      const order = createOrder({
+        srcAsset: ETH,
+        srcAmount: '1000000000000000000',
+        destAsset: USDC,
+        destAmount: '1000000',
+        kind: 'ratio',
+        price: '1',
+        threshold: 'below',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result).toStrictEqual({
+        triggerPrice: quote('1', 'USDC'),
+        triggerToken: sourceToken,
+        triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      });
+    });
+
+    it('has no direction for a threshold it does not know', () => {
+      const order = createOrder({
+        srcAsset: ETH,
+        srcAmount: '100000000000000000',
+        destAsset: USDC,
+        destAmount: '220000000',
+        kind: 'src_price',
+        price: '2200',
+        threshold: 'crosses',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerDirection).toBeUndefined();
     });
   });
 });
@@ -465,6 +640,7 @@ describe('getUsdTriggerPrice', () => {
     expect(result).toStrictEqual({
       triggerPrice: formatLimitOrderFiatValue('2160', 'usd'),
       triggerToken: sourceToken,
+      triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     });
   });
 
@@ -477,6 +653,7 @@ describe('getUsdTriggerPrice', () => {
     expect(result).toStrictEqual({
       triggerPrice: quote('2200', 'USDC'),
       triggerToken: sourceToken,
+      triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     });
   });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { Keyboard, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
@@ -329,6 +330,39 @@ describe('CodeStep', () => {
       ),
     };
   };
+
+  it.each([
+    ['visible', true],
+    ['reported hidden', false],
+  ])(
+    'reopens the keyboard on tap while focused, with the keyboard %s',
+    (_case, isKeyboardVisible) => {
+      jest.spyOn(Keyboard, 'isVisible').mockReturnValue(isKeyboardVisible);
+      const { UNSAFE_getByType, getByTestId } = renderCode(otp(true));
+      const input = UNSAFE_getByType(TextInput).instance as TextInput;
+      jest.spyOn(input, 'isFocused').mockReturnValue(true);
+      const blur = jest.spyOn(input, 'blur').mockClear();
+      const focus = jest.spyOn(input, 'focus').mockClear();
+
+      fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+      expect(blur).toHaveBeenCalledTimes(1);
+      jest.runOnlyPendingTimers();
+      expect(focus).toHaveBeenCalled();
+    },
+  );
+
+  it('focuses the input on tap when it is not focused', () => {
+    const { UNSAFE_getByType, getByTestId } = renderCode(otp(true));
+    const input = UNSAFE_getByType(TextInput).instance as TextInput;
+    jest.spyOn(input, 'isFocused').mockReturnValue(false);
+    const blur = jest.spyOn(input, 'blur').mockClear();
+    const focus = jest.spyOn(input, 'focus').mockClear();
+
+    fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+
+    expect(blur).not.toHaveBeenCalled();
+    expect(focus).toHaveBeenCalledTimes(1);
+  });
 
   it('keeps the boxes tappable but does not submit before the code is sent', () => {
     const { onAction, getByText, getByTestId } = renderCode(otp(false), {

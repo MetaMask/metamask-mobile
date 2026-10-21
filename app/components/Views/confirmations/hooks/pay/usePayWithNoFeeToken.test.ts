@@ -1,3 +1,5 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
 import {
   CHAIN_IDS,
   TransactionMeta,
@@ -584,5 +586,23 @@ describe('usePayWithNoFeeToken', () => {
 
       expect(result.current.isNoFeeToken(MUSD_ETH, CHAIN_IDS.MONAD)).toBe(true);
     });
+  });
+
+  it('renderNoFeeTag renders the "No fee" tag for a matching token', () => {
+    const token = createMockToken('0xAAA', 'USDC', '0x1', 100);
+
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [token],
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    const tag = result.current.renderNoFeeTag(token);
+    const { getByText } = render(tag as React.ReactElement);
+    expect(getByText('No fee')).toBeOnTheScreen();
   });
 });

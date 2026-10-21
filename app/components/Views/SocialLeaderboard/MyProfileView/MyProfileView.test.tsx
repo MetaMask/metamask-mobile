@@ -383,24 +383,15 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('2');
   });
 
-  it('renders mocked headline stats with a fake-data prefix', () => {
+  it('hides the performance section when no live stats are available', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_WIN_RATE),
-    ).toHaveTextContent('*60%');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_PNL),
-    ).toHaveTextContent('*+$7,100');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_TIMES_COPIED),
-    ).toHaveTextContent('*981');
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.STATS_HOLD_TIME),
+      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders live trader stats without a fake-data prefix', () => {
+  it('renders live trader stats in the performance section', () => {
     mockUseTraderProfile.mockReturnValue({
       profile: {
         profile: {
@@ -442,11 +433,17 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_WIN_RATE),
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_WIN_RATE),
     ).toHaveTextContent('42%');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_PNL),
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_HOLD_TIME),
+    ).toHaveTextContent('3h');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_VOLUME),
+    ).toHaveTextContent('$50,000');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
