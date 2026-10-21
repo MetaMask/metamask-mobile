@@ -20,6 +20,9 @@ export const SCREEN_TRANSITION_FALLBACK_MS = 450;
  * Falls back to {@link SCREEN_TRANSITION_FALLBACK_MS} so the value always
  * becomes `true`, even when no `transitionEnd` event is emitted.
  *
+ * `DeferredRender` composes this hook, then waits for one frame (and an idle
+ * callback when the runtime provides one) before mounting deferred children.
+ *
  * @returns `true` once the transition has ended or the fallback has elapsed.
  */
 export function useScreenTransitionComplete(): boolean {
