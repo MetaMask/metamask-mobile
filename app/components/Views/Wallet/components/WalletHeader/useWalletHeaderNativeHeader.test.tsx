@@ -24,10 +24,8 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
-// The hook reads the Social V1 gate via `useSelector`, but renderHook runs
-// outside any redux Provider. Stub the hook (default off so the picker keeps
-// its account-selector destination in these tests) while keeping the real
-// react-redux `Provider` for the element renders below.
+// renderHook runs outside any redux Provider: stub the Social V1 gate
+// (default off) while keeping the real Provider for element renders below.
 let mockSocialV1Enabled = false;
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

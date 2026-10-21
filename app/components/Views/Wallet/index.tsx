@@ -887,8 +887,7 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
-    // Social V1 treatment opens the profile drawer instead of the account
-    // hub; the drawer route is registered under the same gate.
+    // Social V1: open the profile drawer instead of the account hub.
     if (isSocialV1Enabled) {
       navigation.navigate(...createProfileDrawerNavDetails({}));
       return;

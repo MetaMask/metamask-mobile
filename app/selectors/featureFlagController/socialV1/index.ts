@@ -5,14 +5,8 @@ import { SOCIAL_V1_AB_KEY, SocialV1Variant } from '../../../constants/socialV1';
 import { resolveABTestAssignment } from '../../../util/abTest';
 
 /**
- * Social V1 is enabled when the social leaderboard flag is on AND the
- * TSA-1122 A/B test assigned the treatment variant. Follows the Perps
- * precedent (`selectIsPerpsSocialEnabled`): the variant resolves from the
- * flag value first, then the threshold group, and falls back to control —
- * so undefined/invalid flag shapes default to false.
- *
- * Assignment-only read: this selector never emits an exposure event.
- * Exposure stays in the Social V1 experiment surface.
+ * Social V1: leaderboard flag on AND TSA-1122 treatment.
+ * Assignment-only — never emits an exposure event.
  */
 export const selectIsSocialV1Enabled = createSelector(
   selectSocialLeaderboardEnabled,

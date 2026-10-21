@@ -148,8 +148,7 @@ const WalletHeader = ({
   };
 
   const handleAccountPickerPress = useCallback(() => {
-    // Social V1 treatment opens the profile drawer instead of the account
-    // selector; the drawer route is registered under the same gate.
+    // Social V1: open the profile drawer instead of the account selector.
     if (isSocialV1Enabled) {
       (navigation as NavigationProp<ParamListBase>).navigate(
         ...createProfileDrawerNavDetails({}),

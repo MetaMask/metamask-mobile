@@ -268,7 +268,7 @@ jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
   selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
 }));
 
-// Social V1 entry-point gate (default off so existing destination tests are unaffected)
+// Social V1 gate mock (default off)
 let mockSocialV1Enabled = false;
 jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
