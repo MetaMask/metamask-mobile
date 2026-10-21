@@ -502,10 +502,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     () => ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
-      paddingTop: 12,
+      paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
-    [colors.background.default],
+    [colors.background.default, traderPositionPnl?.isExpanded],
   );
   const legacyFooterStyle = useMemo(
     () => ({
