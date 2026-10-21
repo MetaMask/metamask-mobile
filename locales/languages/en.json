@@ -8419,12 +8419,15 @@
   "mfa": {
     "method_email": "Email",
     "method_passkey": "Passkey",
+    "method_totp": "Authenticator app",
     "intro": {
       "title": "Set up 2-step verification",
       "description": "We’ll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
       "passkey_description": "Confirm with your device or password manager",
       "passkey_done": "Saved to this device",
       "email_description": "Get a 6-digit code sent to your inbox",
+      "totp_description": "Get a 6-digit code from an app like Google Authenticator",
+      "totp_done": "Set up in your authenticator app",
       "list_title": "You’ll set up",
       "continue": "Get started"
     },
@@ -8432,6 +8435,7 @@
       "title": "Confirm with 2-step verification",
       "passkey": "Verify with Passkey",
       "email_otp": "Get a verification code",
+      "totp": "Use authenticator app",
       "or": "or"
     },
     "email_entry": {
@@ -8445,6 +8449,10 @@
       "title": "Enter your verification code",
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
       "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
+      "description_totp": "Open your authenticator app and enter the 6-digit code.",
+      "verify": "Verify",
+      "retry": "Try again",
+      "retry_in": "Try again in {{seconds}}s",
       "sending": "Sending code...",
       "send_in": "Sending a new code in {{seconds}}s",
       "resend": "Resend code",
@@ -8452,6 +8460,19 @@
       "resent": "We sent you a new code.",
       "paste": "Paste",
       "get_new_code": "Get new code"
+    },
+    "totp_setup": {
+      "title": "Set up authenticator app",
+      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
+      "open_app": "Open authenticator app",
+      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
+      "setup_key": "Setup key",
+      "copy": "Copy setup key",
+      "other_device": "Set up on another device",
+      "qr_title": "Scan QR code",
+      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
+      "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
+      "continue": "Continue"
     },
     "passkey": {
       "title_setup": "Create a passkey",
@@ -8475,7 +8496,11 @@
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",
       "generic": "Something went wrong. Try again.",
-      "code_expired": "Your verification code expired, get a new code."
+      "code_expired": "Your verification code expired, get a new code.",
+      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
+      "totp_expired": "That took too long. Enter the current code from your app.",
+      "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
+      "totp_taken": "An authenticator app is already set up for this account."
     },
     "settings": {
       "title": "2-step verification",
@@ -8498,14 +8523,19 @@
       "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
       "remove_email": "Remove email",
       "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
+      "remove_totp": "Remove authenticator app",
+      "remove_totp_description": "You’ll no longer be able to verify Money transactions with codes from your authenticator app.",
       "remove": "Remove",
       "last_passkey_title": "Passkey can’t be deleted",
       "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
       "last_email_title": "Email can’t be removed",
       "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
+      "last_totp_title": "Authenticator app can’t be removed",
+      "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
       "got_it": "Got it",
       "passkey_removed": "Passkey removed",
       "email_removed": "Email verification removed",
+      "totp_removed": "Authenticator app removed",
       "remove_failed": "Couldn’t remove this method. Try again later."
     }
   },
@@ -9858,7 +9888,8 @@
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_account": "Money account"
+      "money_account": "Money account",
+      "no_deposit_fee": "No deposit fee"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
