@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { OHLCVBar } from './OHLCVBar';
 import type { CrosshairData } from '../AdvancedChart.types';
 
@@ -8,7 +8,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-jest.mock('../../../Predict/utils/format', () => ({
+jest.mock('../../../../../util/number/subscriptNotation', () => ({
   formatPriceWithSubscriptNotation: jest.fn(
     (
       price: number,

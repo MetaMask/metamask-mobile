@@ -9,7 +9,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
