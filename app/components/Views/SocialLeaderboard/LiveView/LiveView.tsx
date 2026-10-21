@@ -51,6 +51,14 @@ import { useMyProfile } from '../MyProfileView/hooks';
 
 type AnimatedScrollHandler = ScrollHandlerProcessed;
 
+interface LiveScrollContext {
+  nearTop?: boolean;
+}
+
+const LIVE_FEED_INITIAL_RENDER_COUNT = 6;
+const LIVE_FEED_MAX_RENDER_PER_BATCH = 6;
+const LIVE_FEED_WINDOW_SIZE = 5;
+
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveViewProps {
@@ -85,7 +93,6 @@ const LiveView: React.FC<LiveViewProps> = ({
     posts,
     isLoading,
     isFetchingNextPage,
-    hasNextPage,
     loadMore,
     error,
     refresh,
@@ -157,28 +164,18 @@ const LiveView: React.FC<LiveViewProps> = ({
     setNearTop(value);
   }, []);
 
-  const loadMoreFromScroll = useCallback(() => {
-    loadMore();
-  }, [loadMore]);
-
-  const liveScrollHandler = useAnimatedScrollHandler(
+  const liveScrollHandler = useAnimatedScrollHandler<LiveScrollContext>(
     {
-      onScroll: (event) => {
-        const { contentOffset, contentSize, layoutMeasurement } = event;
-        scheduleOnRN(
-          setNearTopFromScroll,
-          contentOffset.y <= layoutMeasurement.height,
-        );
-        if (
-          hasNextPage &&
-          contentSize.height - (contentOffset.y + layoutMeasurement.height) <=
-            600
-        ) {
-          scheduleOnRN(loadMoreFromScroll);
+      onScroll: (event, context) => {
+        const nextNearTop =
+          event.contentOffset.y <= event.layoutMeasurement.height;
+        if (context.nearTop !== nextNearTop) {
+          context.nearTop = nextNearTop;
+          scheduleOnRN(setNearTopFromScroll, nextNearTop);
         }
       },
     },
-    [hasNextPage, loadMoreFromScroll, setNearTopFromScroll],
+    [setNearTopFromScroll],
   );
   const composedScrollHandler = useComposedEventHandler([
     onScroll ?? null,
@@ -268,6 +265,9 @@ const LiveView: React.FC<LiveViewProps> = ({
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('flex-grow pb-8')}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={LIVE_FEED_INITIAL_RENDER_COUNT}
+          maxToRenderPerBatch={LIVE_FEED_MAX_RENDER_PER_BATCH}
+          windowSize={LIVE_FEED_WINDOW_SIZE}
           onScroll={composedScrollHandler}
           scrollEventThrottle={16}
           onEndReached={loadMore}
