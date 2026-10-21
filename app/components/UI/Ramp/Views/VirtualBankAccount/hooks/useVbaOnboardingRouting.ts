@@ -25,7 +25,7 @@ import {
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
-import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
+import type { VbaCurrencyCode } from '../../../../../../util/region/getVbaSourceCurrency';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -129,7 +129,7 @@ export const openAsOnlyOnboardingRoute = (
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
+  sourceCurrency?: VbaCurrencyCode,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;

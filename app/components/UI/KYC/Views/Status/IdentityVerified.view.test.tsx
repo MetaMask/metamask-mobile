@@ -108,7 +108,15 @@ describeForPlatforms('VbaIdentityVerified view', () => {
 
   const render = (
     DetailsScreen: React.ComponentType,
-    { chooseCurrency = false } = {},
+    {
+      chooseCurrency = false,
+      regionCurrencies = { BR: 'BRL', US: 'USD' },
+      defaultCurrency = 'USD',
+    }: {
+      chooseCurrency?: boolean;
+      regionCurrencies?: Record<string, string>;
+      defaultCurrency?: string;
+    } = {},
   ) => {
     const Flow = createFlow(DetailsScreen);
     return renderWithProvider(<Flow />, {
@@ -122,9 +130,9 @@ describeForPlatforms('VbaIdentityVerified view', () => {
                   moneyMovementNeobank: {
                     enabled: true,
                     minimumVersion: '0.0.0',
-                    regions: ['BR', 'US'],
-                    regionCurrencies: { BR: 'BRL', US: 'USD' },
-                    defaultCurrency: 'USD',
+                    regions: ['BR', 'US', 'FR', 'GB'],
+                    regionCurrencies,
+                    defaultCurrency,
                     chooseCurrency,
                   },
                 },
@@ -220,6 +228,34 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
     ).toBeNull();
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('offers LaunchDarkly currencies the client can render and hides the rest', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
+      chooseCurrency: true,
+      regionCurrencies: { BR: 'BRL', FR: 'EUR', GB: 'GBP' },
+      defaultCurrency: 'USD',
+    });
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-BRL`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
+    ).toBeNull();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-GBP`),
+    ).toBeNull();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-JPY`),
+    ).toBeNull();
   });
 
   it('creates the currency picked on Choose Currency', async () => {

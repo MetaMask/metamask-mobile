@@ -1,7 +1,7 @@
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
+import type { VbaCurrencyCode } from '../../../../../util/region/getVbaSourceCurrency';
 
 /**
  * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
@@ -73,7 +73,7 @@ const readAutoramps = (): AutorampCursor[] =>
 
 const runSetup = async (
   walletAddress: string,
-  sourceCurrency: VbaSourceCurrency,
+  sourceCurrency: VbaCurrencyCode,
   replaceTerminal: boolean,
 ): Promise<MusdAutorampSetupOutcome> => {
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
@@ -157,7 +157,7 @@ const runSetup = async (
  */
 export const ensureMusdAutoramp = (
   walletAddress: string,
-  sourceCurrency: VbaSourceCurrency,
+  sourceCurrency: VbaCurrencyCode,
   { replaceTerminal = false }: { replaceTerminal?: boolean } = {},
 ): Promise<MusdAutorampSetupOutcome> => {
   const key = `${walletAddress.toLowerCase()}:${sourceCurrency}`;

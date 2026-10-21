@@ -165,20 +165,29 @@ describe('Money Account feature flag selectors', () => {
       });
     });
 
-    it('normalizes the region currency map and drops unsupported values', () => {
+    it('keeps generic three-letter region currencies and drops malformed values', () => {
       const result = selectMoneyMovementNeobank.resultFunc({
         [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
           ...enabledFlag,
           regionCurrencies: {
             br: 'brl',
             ' us ': ' usd ',
-            DE: 'GBP',
+            gb: ' gbp ',
+            JP: 'jpy',
+            DE: 'EURO',
             FR: 1,
+            CA: '',
+            AU: '  ',
           },
         },
       });
 
-      expect(result.regionCurrencies).toEqual({ BR: 'BRL', US: 'USD' });
+      expect(result.regionCurrencies).toEqual({
+        BR: 'BRL',
+        US: 'USD',
+        GB: 'GBP',
+        JP: 'JPY',
+      });
     });
 
     it('fails closed with an empty currency map when it is missing or malformed', () => {
@@ -235,7 +244,7 @@ describe('Money Account feature flag selectors', () => {
       ).toBe('EUR');
     });
 
-    it('rejects gbp, blank, missing, and non-string default currencies', () => {
+    it('keeps generic three-letter defaults and drops malformed ones', () => {
       const readDefault = (defaultCurrency: string | number | boolean | null) =>
         selectMoneyMovementNeobank.resultFunc({
           [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
@@ -244,8 +253,11 @@ describe('Money Account feature flag selectors', () => {
           },
         }).defaultCurrency;
 
-      expect(readDefault('gbp')).toBeUndefined();
-      expect(readDefault('GBP')).toBeUndefined();
+      expect(readDefault('gbp')).toBe('GBP');
+      expect(readDefault('JPY')).toBe('JPY');
+      expect(readDefault(' chf ')).toBe('CHF');
+      expect(readDefault('EURO')).toBeUndefined();
+      expect(readDefault('US')).toBeUndefined();
       expect(readDefault('')).toBeUndefined();
       expect(readDefault('   ')).toBeUndefined();
       expect(

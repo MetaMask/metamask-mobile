@@ -5,6 +5,10 @@ import {
   validatedVersionGatedFeatureFlag,
   type VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
+import {
+  normalizeVbaCurrencyCode,
+  type VbaCurrencyCode,
+} from '../../../util/region/getVbaSourceCurrency';
 import type { Hex } from '@metamask/utils';
 
 interface MoneyAccountFeatureFlag {
@@ -104,32 +108,9 @@ function normalizeVbaRegionCodes(regions: unknown): string[] {
   return codes;
 }
 
-const VBA_SOURCE_CURRENCIES = new Set(['BRL', 'USD', 'EUR']);
-
-type VbaFlagCurrency = 'BRL' | 'USD' | 'EUR';
-
-/**
- * Trim and uppercase a fiat code. Only BRL, USD, and EUR are kept.
- *
- * @param currency - Raw currency field from the flag payload.
- * @returns A supported fiat code, or undefined when the value is blank or unknown.
- */
-function normalizeVbaFlagCurrency(
-  currency: unknown,
-): VbaFlagCurrency | undefined {
-  if (typeof currency !== 'string') {
-    return undefined;
-  }
-  const normalized = currency.trim().toUpperCase();
-  if (!VBA_SOURCE_CURRENCIES.has(normalized)) {
-    return undefined;
-  }
-  return normalized as VbaFlagCurrency;
-}
-
 function normalizeVbaRegionCurrencies(
   regionCurrencies: unknown,
-): Readonly<Record<string, VbaFlagCurrency>> {
+): Readonly<Record<string, VbaCurrencyCode>> {
   if (
     typeof regionCurrencies !== 'object' ||
     regionCurrencies === null ||
@@ -138,10 +119,10 @@ function normalizeVbaRegionCurrencies(
     return {};
   }
 
-  const normalized: Record<string, VbaFlagCurrency> = {};
+  const normalized: Record<string, VbaCurrencyCode> = {};
   for (const [region, currency] of Object.entries(regionCurrencies)) {
     const normalizedRegion = region.trim().toUpperCase();
-    const normalizedCurrency = normalizeVbaFlagCurrency(currency);
+    const normalizedCurrency = normalizeVbaCurrencyCode(currency);
     if (normalizedRegion && normalizedCurrency) {
       normalized[normalizedRegion] = normalizedCurrency;
     }
@@ -177,16 +158,18 @@ export interface MoneyMovementNeobankRollout {
   /** Uppercase ISO 3166-1 alpha-2 codes. Empty whenever `isEnabled` is false. */
   regions: readonly string[];
   /**
-   * Explicit country-to-fiat map. A country in `regions` with no entry uses
-   * `defaultCurrency`.
+   * Explicit country-to-fiat map from LaunchDarkly. Values are trimmed,
+   * uppercased, three-letter codes. A country in `regions` with no entry uses
+   * `defaultCurrency`. This map is the configured source of truth and is not
+   * limited to currencies the client can render.
    */
-  regionCurrencies: Readonly<Record<string, VbaFlagCurrency>>;
+  regionCurrencies: Readonly<Record<string, VbaCurrencyCode>>;
   /**
-   * Fiat for an enabled region that has no `regionCurrencies` entry. Only
-   * BRL, USD, or EUR. Undefined when missing, blank, unsupported, or when
-   * `isEnabled` is false.
+   * Fiat for an enabled region that has no `regionCurrencies` entry. Any
+   * three-letter code. Undefined when missing, blank, malformed, or when
+   * `isEnabled` is false. Rendering that currency is a separate check.
    */
-  defaultCurrency: VbaFlagCurrency | undefined;
+  defaultCurrency: VbaCurrencyCode | undefined;
   /**
    * True when the user picks the account currency on Choose Currency. False
    * creates it in the currency mapped from the effective location
@@ -240,7 +223,7 @@ export const selectMoneyMovementNeobank = createSelector(
       isEnabled: true,
       regions,
       regionCurrencies: normalizeVbaRegionCurrencies(payload.regionCurrencies),
-      defaultCurrency: normalizeVbaFlagCurrency(payload.defaultCurrency),
+      defaultCurrency: normalizeVbaCurrencyCode(payload.defaultCurrency),
       chooseCurrency: payload.chooseCurrency === true,
       regionOverride: normalizeVbaRegionOverride(payload.regionOverride),
     };

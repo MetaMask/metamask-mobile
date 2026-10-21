@@ -1220,12 +1220,7 @@
       "title": "Choose your currency",
       "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
       "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
-      "row_label": "{{name}}, {{code}}",
-      "currencies": {
-        "brl": "Brazilian real",
-        "usd": "US dollar",
-        "eur": "Euro"
-      }
+      "row_label": "{{name}}, {{code}}"
     },
     "vba_details": {
       "title": "Add money with Pix",
