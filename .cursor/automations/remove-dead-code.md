@@ -27,8 +27,7 @@ deletions.
 
 - Trigger: weekdays at 09:00 (cron `0 9 * * 1-5`). One PR per run at most.
 - Repo / branch: `MetaMask/metamask-mobile` / `main`
-- Model: Claude Opus 5.5 (Medium), or another high-reasoning model. Avoid
-  Auto and "Fast" variants. Deleting code depends on judgment, and most of
+- Model: a high-reasoning model. Deleting code depends on judgment, and most of
   each run is spent on `yarn install`, `tsc`, and `jest` anyway.
 - Tools: **Open Pull Request** and **Memories**. No Slack or MCP needed.
 - Run as: PRs opened under "Run as: Me" are authored by you, so someone else
