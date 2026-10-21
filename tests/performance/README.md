@@ -81,13 +81,13 @@ Local emulator and simulator projects live in `tests/playwright.config.ts`. Clou
 
 ### Available Projects
 
-| Project Name                         | Platform | Environment     | Test Scope          |
-| ------------------------------------ | -------- | --------------- | ------------------- |
-| `android`                            | Android  | Local Emulator  | Demo fixture spec   |
-| `ios`                                | iOS      | Local Simulator | Demo fixture spec   |
-| `testmu-android`                     | Android  | TestMu          | Login tests only    |
-| `testmu-android-onboarding`          | Android  | TestMu          | Onboarding tests    |
-| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding |
+| Project Name                        | Platform | Environment     | Test Scope            |
+| ----------------------------------- | -------- | --------------- | --------------------- |
+| `android`                           | Android  | Local Emulator  | Demo fixture spec     |
+| `ios`                               | iOS      | Local Simulator | Demo fixture spec     |
+| `testmu-android`                    | Android  | TestMu          | Login tests only      |
+| `testmu-android-onboarding`         | Android  | TestMu          | Onboarding tests      |
+| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding   |
 
 ### Configuration Details
 
@@ -230,15 +230,15 @@ These tags categorize tests by feature area and can be used with `--grep` for ad
 
 ### Deferred render points
 
-`@PerformanceDeferredRender` specs also carry `@Performance` and `@PerformanceLogin`. Each screen records four in-app points from `nav_start`. `chart_data_ready` is `filled`, `empty`, or `error`; specs throw `Excluding rep` when it is not `filled`. `chart_ready` is the first drawn chart data.
+`@PerformanceDeferredRender` specs also carry `@Performance` and `@PerformanceLogin`. Each screen records four in-app points from `nav_start`. `chart_data_ready` is `filled`, `empty`, or `error`; specs throw `Excluding rep` when it is not `filled`. `chart_ready` is the first drawn chart data. Analysis uses those in-app probe durations. The spec wall-clock timers only guard navigation.
 
-Performance runs pin `perpsAdvancedChartEnabledV2` to the registry production default `{ enabled: true, minimumVersion: '8.3.0' }` with `RemoteFeatureFlagController.setFlagOverride` when `IS_PERFORMANCE_TEST` is already true. App version 8.18.0 meets 8.3.0, so `selectPerpsAdvancedChartEnabledFlag` stays enabled and both arms use AdvancedChart.
+Performance runs pin `perpsAdvancedChartEnabledV2` to the registry production default `{ enabled: true, minimumVersion: '8.3.0' }` with `RemoteFeatureFlagController.setFlagOverride` when `IS_PERFORMANCE_TEST` is already true. App version 8.18.0 meets 8.3.0, so `selectPerpsAdvancedChartEnabledFlag` stays enabled and both arms use AdvancedChart. The override is stored in `localOverrides` and survives a reinstall-over-without-clear. Use a clear-data install between arms. A pin failure is recorded on `perps_market_details_chart_pin`. The perps spec reads `perps_market_details_chart_path` (`advanced` or `tradingview`) and throws `Excluding rep` when that path is not `advanced`. It also requires that `advanced-chart-skeleton` appeared or the path probe is `advanced`.
 
-| Screen                  | `nav_start`                                                             | `first_render`                             | `chart_data_ready`                                                            | `chart_ready`                                                                                                         |
-| ----------------------- | ----------------------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Token details           | Tap of the token row (`asset-ETH`)                                      | First layout of legacy token details       | OHLCV settled: points `filled`, explicit empty `empty`, request error `error` | AdvancedChart `onSkeletonHidden`, including line mode where that chart stays mounted                                  |
-| Perps market details    | Tap of the BTC market row                                               | First layout of lite market details        | Chart section `content` → `filled`, `empty` → `empty`, `error` → `error`      | Advanced path: `onSkeletonHidden` after data. TradingView fallback: WebView `DATA_RENDERED` after the first `setData` |
-| Predict up/down details | `navigateToMarketDetails` only when `series.slug` contains `up-or-down` | First layout of the up/down details screen | Hook settled: points `filled`, no points `empty`, connection error `error`    | Liveline `DATA_RENDERED` after the first `render()` that has points                                                   |
+| Screen                  | `nav_start`                                                                                      | `first_render`                             | `chart_data_ready`                                                            | `chart_ready`                                                                                                                                                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Token details           | Tap of the token row (`asset-ETH`)                                                               | First layout of legacy token details       | OHLCV settled: points `filled`, explicit empty `empty`, request error `error` | Drawn sample: `onSkeletonHidden` schedules the probe after two animation frames. The callback's existing work stays on that turn. Includes line mode where the chart stays mounted                                         |
+| Perps market details    | Tap of the BTC market row                                                                        | First layout of lite market details        | Chart section `content` → `filled`, `empty` → `empty`, `error` → `error`      | Advanced path: same two-frame probe after `onSkeletonHidden` (callback work stays synchronous, about two frames before the probe). TradingView: `DATA_RENDERED` after the first `setData` and two animation frames (drawn) |
+| Predict up/down details | `navigateToMarketDetails` only when the probe is enabled and `series.slug` contains `up-or-down` | First layout of the up/down details screen | Hook settled: points `filled`, no points `empty`, connection error `error`    | Liveline `DATA_RENDERED` after the first `render()` that has points, posted after two animation frames (drawn)                                                                                                             |
 
 ### Tagging Convention
 
@@ -668,11 +668,11 @@ ci_build_variant:rc release_version:7.58.0
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                                      | Content                                       |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                     |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                     |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                              |
+| File Type | Location                                                                      | Content                                             |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
 | Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario TestMu app profiling + API calls |
 
 ### HTML Report Contents

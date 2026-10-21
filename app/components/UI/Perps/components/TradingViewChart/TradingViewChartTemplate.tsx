@@ -1553,9 +1553,15 @@ ${createLimitOrderOverlayScript({
                                 // Perf probe only: first setData has drawn candles.
                                 // Absent unless the RN message sets probeDataRendered.
                                 if (shouldAutoscale && message.probeDataRendered && window.ReactNativeWebView) {
-                                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                                        type: 'DATA_RENDERED'
-                                    }));
+                                    requestAnimationFrame(function() {
+                                        requestAnimationFrame(function() {
+                                            if (window.ReactNativeWebView) {
+                                                window.ReactNativeWebView.postMessage(JSON.stringify({
+                                                    type: 'DATA_RENDERED'
+                                                }));
+                                            }
+                                        });
+                                    });
                                 }
 
                                 // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native

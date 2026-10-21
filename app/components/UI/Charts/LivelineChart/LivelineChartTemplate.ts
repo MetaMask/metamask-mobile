@@ -191,7 +191,11 @@ export const createLivelineChartTemplate = (
         return;
       }
       dataRenderedProbeSent = true;
-      sendToRN('DATA_RENDERED');
+      requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+          sendToRN('DATA_RENDERED');
+        });
+      });
     }
 
     function handleMessage(event) {

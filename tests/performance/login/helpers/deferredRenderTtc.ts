@@ -1,8 +1,10 @@
 import {
   DeferredRenderPoint,
   deferredRenderProbeId,
+  PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
   type DeferredRenderPointId,
   type DeferredRenderScreenId,
+  type PerpsChartRenderPath,
 } from '../../../../app/hooks/performance/deferredRenderPerformanceIds';
 import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
 import type { PlatformThreshold } from '../../../framework/TimerHelper';
@@ -35,6 +37,32 @@ export async function assertDeferredRenderChartDataFilled(
       `Excluding rep: ${screenId} chart_data_ready outcome is ${record.contentState}`,
     );
   }
+}
+
+/**
+ * The sample has to be the advanced chart. A TradingView mount, or neither
+ * the advanced path probe nor `advanced-chart-skeleton`, is excluded.
+ */
+export async function assertPerpsAdvancedChartPath(options: {
+  skeletonAppeared: boolean;
+}): Promise<PerpsChartRenderPath | undefined> {
+  const record = await waitForAppScreenTtcRecord(
+    PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
+    { timeoutMs: PROBE_TIMEOUT_MS },
+  );
+  const chartPath = record.chartPath;
+  const pathIsAdvanced = chartPath === 'advanced';
+  if (!pathIsAdvanced && !options.skeletonAppeared) {
+    throw new Error(
+      `Excluding rep: perps_market_details chart path is ${chartPath ?? 'unset'} and advanced-chart-skeleton did not appear`,
+    );
+  }
+  if (!pathIsAdvanced) {
+    throw new Error(
+      `Excluding rep: perps_market_details chart path is ${chartPath ?? 'unset'}`,
+    );
+  }
+  return chartPath;
 }
 
 const DEFERRED_RENDER_POINTS: readonly DeferredRenderPointId[] = [

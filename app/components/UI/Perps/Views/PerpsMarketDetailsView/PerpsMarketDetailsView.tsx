@@ -64,9 +64,12 @@ import Logger from '../../../../../util/Logger';
 import {
   DeferredRenderPoint,
   DeferredRenderScreenIds,
+  type PerpsChartRenderPath,
 } from '../../../../../hooks/performance/deferredRenderPerformanceIds';
 import {
+  markDeferredRenderChartReady,
   markDeferredRenderPoint,
+  markPerpsChartRenderPath,
   useDeferredRenderFirstRender,
 } from '../../../../../hooks/performance/deferredRenderTtc';
 import { isScreenTtcProbeEnabled } from '../../../../../hooks/performance/screenTtcRegistry';
@@ -277,6 +280,24 @@ const resolveChartSectionState = ({
   if (!isFallbackReady) return 'loading';
   return hasFallbackData ? 'content' : 'empty';
 };
+
+function resolvePerpsChartRenderPath(options: {
+  isContextReady: boolean;
+  hasSymbol: boolean;
+  isAdvanced: boolean;
+  isFallbackReady: boolean;
+}): PerpsChartRenderPath | undefined {
+  if (!options.isContextReady || !options.hasSymbol) {
+    return undefined;
+  }
+  if (options.isAdvanced) {
+    return 'advanced';
+  }
+  if (options.isFallbackReady) {
+    return 'tradingview';
+  }
+  return undefined;
+}
 
 const resolveInsightsSectionState = ({
   enabled,
@@ -1079,10 +1100,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     [advancedChartReadinessKey, advancedChartSeriesKey],
   );
   const handleDeferredRenderChartReady = useCallback(() => {
-    markDeferredRenderPoint(
-      DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
-      DeferredRenderPoint.CHART_READY,
-    );
+    markDeferredRenderChartReady(DeferredRenderScreenIds.PERPS_MARKET_DETAILS);
   }, []);
 
   const marketHasResolvedMetadata = Boolean(
@@ -1139,6 +1157,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       contentState,
     );
   }, [chartSectionState]);
+  const perpsChartRenderPath = resolvePerpsChartRenderPath({
+    isContextReady: isMarketContextReady,
+    hasSymbol: Boolean(market?.symbol),
+    isAdvanced: isAdvancedChartEnabled,
+    isFallbackReady: Boolean(
+      market?.symbol &&
+        candleData?.symbol === market.symbol &&
+        candleData.interval === selectedCandlePeriod &&
+        !isLoadingHistory,
+    ),
+  });
+  useEffect(() => {
+    if (!perpsChartRenderPath) {
+      return;
+    }
+    markPerpsChartRenderPath(perpsChartRenderPath);
+  }, [perpsChartRenderPath]);
   const hasCurrentLiveMarketStats =
     !marketStats.hasError &&
     marketStats.dataSymbol === market?.symbol &&
