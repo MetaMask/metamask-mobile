@@ -157,6 +157,9 @@ Out of scope. Never delete:
   `///: BEGIN:EXCLUDE_IF`). It is live in another build type (flask/beta/qa).
 - Platform-specific files (`*.ios.*`, `*.android.*`, `*.native.*`). Metro
   resolves them from an extensionless import of the base name.
+- Separately bundled sub-projects with their own build entry, e.g.
+  `app/components/UI/Charts/AdvancedChart/webview/` (built by
+  `scripts/advanced-chart-webview/webpack.config.js`).
 - Code behind feature flags or A/B tests. That is "unreleased", not dead.
   Removing it is a product decision.
 - Function parameters, React props in a component's props type, class
@@ -224,8 +227,22 @@ Kinds A, B (and A/B cascades): knip. Write `/tmp/knip.json`:
 }
 ```
 All plugins stay disabled because the auto-enabled ones (jest/nyc coverage
-globs, among others) mark every file as used. Then run (about 30 seconds):
-`NODE_OPTIONS=--max-old-space-size=12288 yarn dlx -q -p knip@5 -p typescript@5.8.3 -p @types/node@22 knip --directory "$PWD" --config /tmp/knip.json --include files,exports,types --reporter json --no-progress > /tmp/knip.out.json`
+globs, among others) mark every file as used. Run knip twice (about 30
+seconds each) with
+`NODE_OPTIONS=--max-old-space-size=12288 yarn dlx -q -p knip@5 -p typescript@5.8.3 -p @types/node@22 knip --directory "$PWD" --reporter json --no-progress <flags>`:
+1. `--config /tmp/knip.json --include files,exports,types > /tmp/knip.out.json`
+   Tests, stories, and mocks count as roots here, so this run finds files and
+   exports that nothing references at all. Use it for kind B and for
+   zero-reference files.
+2. Copy the config to `/tmp/knip-prod.json`, append `!` to the production
+   roots (`"index.js!"`, `"app/declarations/**!"`, `"*.config.js!"`,
+   `"shim.js!"`) and to the project glob (`"app/**/*.{js,jsx,ts,tsx}!"`), and
+   leave test/story/mock entries unmarked. Then run
+   `--config /tmp/knip-prod.json --production --include files > /tmp/knip-prod.out.json`.
+   This lists every file production code cannot reach, including files only
+   their own tests/stories/mocks use. Subtract the run 1 files to get the
+   test-only set. Its output also includes test helpers, mocks, and
+   separately bundled code. The step 2 exclusions still apply.
 knip reports an export as unused when its only importers are themselves dead
 files. Treat those as cascades: delete them in the same batch as the dead
 importer, or skip them.
@@ -251,10 +268,18 @@ Kind D: style keys. Write a small script in `/tmp`:
 
 For EACH candidate, prove it before deleting:
 - Run a whole-word search across the whole repo:
-  `rg -n -w --hidden -g '!node_modules' -g '!.git' '<name>'`. Use the file
-  basename for kind A and the symbol/key name for B/C/D. Every hit must be
-  one of: the definition, code deleted in this same batch, a comment or
-  CHANGELOG mention, or a provably unrelated identifier with the same name.
+  `rg -n -w --hidden -g '!node_modules' -g '!.git' '<name>'`.
+  - Kind A: use the file name with every extension and platform suffix
+    removed (`ModalDragger.tsx` -> `ModalDragger`, `Foo.styles.ts` ->
+    `Foo.styles` and `Foo`), because imports omit extensions. For
+    `index.*` files, search the parent directory name instead (`Foo/index.ts`
+    -> `Foo`), because imports point at the directory. Also search the
+    repo-relative path without its extension (e.g. `components/Base/ModalDragger`)
+    to catch config or string references.
+  - Kinds B/C/D: use the symbol or key name.
+  - Every hit must be one of: the definition, code deleted in this same
+    batch, a comment or CHANGELOG mention, or a provably unrelated
+    identifier with the same name.
 - Check for string or dynamic references: `jest.spyOn(module, '<name>')`,
   `jest.mock` factories that return the name, `import * as X` followed by
   `X.<name>` or `X[...]`, `require(` with template strings, `React.lazy`,
@@ -400,6 +425,10 @@ line back to `MODE: LIVE` before you activate the schedule.
   - knip, with the config above, found 202 unused files, 506 unused exports,
     and 171 unused exported types across `app/`. About 240 of those exports
     and types are in unowned files.
+  - The production-mode knip run found about 490 non-test files that
+    production code can't reach. That includes the 202 above plus the files
+    only their own tests or stories use. It also includes webview-bundle
+    and test-helper false positives, which the step 2 exclusions filter out.
   - `tsc --noUnusedLocals` found 171 unused locals and imports in production
     code and 270 in tests. 93 of them are in unowned files.
   - A rough style-key scan found about 400 unused style entries in 136
