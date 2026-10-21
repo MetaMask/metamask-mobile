@@ -50,17 +50,19 @@ export function useIsGaslessLoading() {
   const isGasFeeTokensEmpty =
     gasFeeTokens !== undefined && gasFeeTokens.length === 0;
 
-  // Sponsored txs don't need a gas fee token, so don't wait on `gasFeeTokens`.
-  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
-    transactionMeta,
-    isGaslessSupported,
-  });
+  const isSponsoredWithoutGasFeeToken =
+    isGaslessSupportedFinished &&
+    isGasFeeTokensEmpty &&
+    shouldApplyGasFeeSponsorship({
+      transactionMeta,
+      isGaslessSupported: isGaslessSupportedFinished,
+    });
 
   const hasNoNativeTokenAvailable =
     excludeNativeTokenForFee || hasInsufficientBalance;
 
   const isGaslessLoading = Boolean(
-    !isGasFeeSponsored &&
+    !isSponsoredWithoutGasFeeToken &&
       isSimulationEnabled &&
       hasNoNativeTokenAvailable &&
       (isGaslessSupportedPending || isGaslessSupportedFinished) &&
