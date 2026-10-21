@@ -19,6 +19,7 @@ import type { TraderPositionPnlDetailsProps } from './TraderPositionPnlDetails';
 
 const DEFAULT_TEST_ID = 'token-details-trader-position-pnl';
 const positionRowsStyle = { flex: 1 };
+const POSITION_BLOCK_MARGIN = 12;
 
 export interface TraderPositionPnlProps {
   /** Formatted position value in the selected display currency. */
@@ -128,7 +129,8 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
       testID={testID}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="mb-1 gap-2"
+      twClassName="gap-2"
+      style={{ marginBottom: POSITION_BLOCK_MARGIN }}
     >
       {isExpandable ? (
         <Pressable
