@@ -336,6 +336,7 @@ describe('CodeStep', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   const renderCode = (
@@ -370,9 +371,12 @@ describe('CodeStep', () => {
       const blur = jest.spyOn(input, 'blur').mockClear();
       const focus = jest.spyOn(input, 'focus').mockClear();
 
-      fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+      expect(
+        getByTestId(MfaFlowSelectorsIDs.CODE_INPUT).props.pointerEvents,
+      ).toBe('none');
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT_PRESSABLE));
       expect(blur).toHaveBeenCalledTimes(1);
-      jest.runOnlyPendingTimers();
+      act(() => jest.runOnlyPendingTimers());
       expect(focus).toHaveBeenCalled();
     },
   );
@@ -384,7 +388,7 @@ describe('CodeStep', () => {
     const blur = jest.spyOn(input, 'blur').mockClear();
     const focus = jest.spyOn(input, 'focus').mockClear();
 
-    fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT_PRESSABLE));
 
     expect(blur).not.toHaveBeenCalled();
     expect(focus).toHaveBeenCalledTimes(1);
