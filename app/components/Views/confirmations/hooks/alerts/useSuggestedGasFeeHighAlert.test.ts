@@ -296,6 +296,18 @@ describe('useSuggestedGasFeeHighAlert', () => {
     ).toEqual([]);
   });
 
+  it('returns no alerts while the gasless support check is pending', () => {
+    mockUseIsGaslessSupported.mockReturnValue({
+      isSupported: false,
+      isSmartTransaction: false,
+      pending: true,
+    });
+
+    expect(
+      runHook(buildEip1559Transaction(GWEI_100, { isGasFeeSponsored: true })),
+    ).toEqual([]);
+  });
+
   it('returns no alerts when gas fee estimates are missing', () => {
     expect(
       runHook(

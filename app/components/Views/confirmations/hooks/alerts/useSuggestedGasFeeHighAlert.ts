@@ -22,10 +22,12 @@ const DAPP_FEE_HIGH_THRESHOLD_PERCENT = 20;
 export const useSuggestedGasFeeHighAlert = (): Alert[] => {
   const transactionMeta = useTransactionMetadataRequest();
   const { setIsGasFeeModalVisible } = useConfirmationContext();
-  const { isSupported: isGaslessSupported } = useIsGaslessSupported();
+  const { isSupported: isGaslessSupported, pending: isGaslessCheckPending } =
+    useIsGaslessSupported();
 
   return useMemo(() => {
-    if (!transactionMeta) {
+    // Sponsorship is unknown until the gasless check finishes.
+    if (!transactionMeta || isGaslessCheckPending) {
       return NO_ALERTS;
     }
 
@@ -102,5 +104,10 @@ export const useSuggestedGasFeeHighAlert = (): Alert[] => {
         title: strings('alert_system.suggested_gas_fee_high.title'),
       },
     ];
-  }, [transactionMeta, isGaslessSupported, setIsGasFeeModalVisible]);
+  }, [
+    transactionMeta,
+    isGaslessCheckPending,
+    isGaslessSupported,
+    setIsGasFeeModalVisible,
+  ]);
 };
