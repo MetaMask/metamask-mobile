@@ -54,8 +54,8 @@ import {
   HeaderStandard,
   TextColor,
   TextVariant,
-  TitleStandard,
 } from '@metamask/design-system-react-native';
+import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Images are exported at 3x and rendered at ~90% of their natural size.
@@ -265,7 +265,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('grow px-4')}
       >
-        <TitleStandard
+        <TitleStandardMarketing
           title={
             type === 'found'
               ? strings('account_status.account_already_exists')

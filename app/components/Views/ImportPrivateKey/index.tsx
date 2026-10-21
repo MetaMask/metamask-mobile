@@ -27,7 +27,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import TitleStandard from '../../../component-library/components-temp/TitleStandard';
+import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import {
@@ -172,7 +172,7 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <TitleStandard
+          <TitleStandardMarketing
             title={strings('import_private_key.title')}
             bottomAccessory={
               <View style={styles.descriptionContainer}>
@@ -215,7 +215,7 @@ const ImportPrivateKey = () => {
                 )}
               </View>
             }
-            twClassName="px-4 pt-1 pb-3"
+            twClassName="px-4 pt-1"
           />
           <View style={styles.bottom}>
             <TextInput
