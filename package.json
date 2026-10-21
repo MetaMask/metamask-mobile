@@ -32,6 +32,8 @@
     "messenger-action-types:generate": "messenger-action-types app --generate",
     "messenger-action-types:check": "messenger-action-types app --check",
     "lint": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" eslint '**/*.{js,ts,tsx}' --cache && yarn messenger-action-types:check",
+    "lint:shard": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" node scripts/lint-shard.mjs",
+    "lint:half": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" node scripts/lint-rule-halves.mjs",
     "lint:fix": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" eslint '**/*.{js,ts,tsx}' --fix --cache && yarn messenger-action-types:generate",
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json",

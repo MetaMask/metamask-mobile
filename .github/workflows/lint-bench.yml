@@ -1,0 +1,590 @@
+# Standalone lint benchmark. Triggers only on a push to the branch
+# `ci-bench/lint`. No pull_request trigger, so the main ci.yml (E2E, component
+# view, Sonar) does not run. No repository secrets are read.
+#
+# Runner profile and heap match the production lint shard job:
+# namespace-profile-metamask-ci-linux-large when the repo Namespace variables
+# say so, otherwise ubuntu-latest, with LINT_HEAP_MB=24576.
+name: lint-bench
+
+on:
+  push:
+    branches:
+      - ci-bench/lint
+
+concurrency:
+  group: lint-bench-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    name: Baseline lint (rep ${{ matrix.rep }})
+    runs-on: >-
+      ${{
+        (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        rep: [1, 2, 3]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Unsharded lint
+        env:
+          LINT_HEAP_MB: 24576
+        run: |
+          set -uo pipefail
+          rm -f .eslintcache
+          start=$(date +%s.%N)
+          set +e
+          yarn lint > lint-bench.out 2> lint-bench.err
+          rc=$?
+          set -e
+          end=$(date +%s.%N)
+          secs=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
+          {
+            echo "### baseline rep ${{ matrix.rep }}"
+            echo "LINT_BENCH kind=baseline rep=${{ matrix.rep }} exit=${rc} wall_s=${secs}"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  shards:
+    name: Shard N=${{ matrix.n }} ${{ matrix.shard }}/${{ matrix.n }} (rep ${{ matrix.rep }})
+    needs: baseline
+    runs-on: >-
+      ${{
+        (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        rep: [1, 2, 3]
+        n: [2, 3, 4]
+        shard: [1, 2, 3, 4]
+        exclude:
+          - n: 2
+            shard: 3
+          - n: 2
+            shard: 4
+          - n: 3
+            shard: 4
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Lint shard
+        env:
+          LINT_HEAP_MB: 24576
+        run: |
+          set -uo pipefail
+          rm -f .eslintcache
+          start=$(date +%s.%N)
+          set +e
+          yarn lint:shard --shard "${{ matrix.shard }}" --shards "${{ matrix.n }}" > lint-bench.out 2> lint-bench.err
+          rc=$?
+          set -e
+          end=$(date +%s.%N)
+          secs=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
+          {
+            echo "### shard n=${{ matrix.n }} shard=${{ matrix.shard }} rep=${{ matrix.rep }}"
+            echo "LINT_BENCH kind=shard n=${{ matrix.n }} shard=${{ matrix.shard }} rep=${{ matrix.rep }} exit=${rc} wall_s=${secs}"
+            grep -E 'LINT_SHARD_TIMING' lint-bench.err || true
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "$rc"
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  halves-cold:
+    name: Halves cold
+    permissions:
+      contents: read
+      actions: write
+    runs-on: >-
+      ${{
+        (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    outputs:
+      cache_key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Syntax-cache key
+        id: cache-key
+        shell: bash
+        run: |
+          set -euo pipefail
+          views=$(find app/components/Views -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort | sha256sum | awk '{print $1}')
+          config=$(sha256sum \
+            yarn.lock \
+            .nvmrc \
+            .eslintrc.js \
+            .eslintignore \
+            tests/framework/.eslintrc.js \
+            tests/tools/e2e-ai-analyzer/.eslintrc.js \
+            tsconfig.json \
+            scripts/eslint-route-isolation-zones.js \
+            scripts/lint-shard.mjs \
+            scripts/lint-rule-halves.mjs \
+            | sha256sum | awk '{print $1}')
+          # run_id keeps this bench run from restoring or clobbering another run.
+          # A production key would drop run_id and keep the config and views hashes.
+          echo "key=eslint-syntax-${{ github.run_id }}-${config}-${views}" >> "$GITHUB_OUTPUT"
+      - name: Cold halves
+        env:
+          LINT_HEAP_MB: 24576
+        run: |
+          set -euo pipefail
+          # scripts/lint-rule-halves.mjs caches only the syntax half. The cross
+          # half passes cache:false with a different cacheLocation: ESLint 8
+          # unlinks cacheLocation when cache is off, which would delete this cache.
+          rm -rf .cache/eslint-syntax .eslintcache
+          time_half() {
+            local half="$1"
+            local start end secs rc
+            start=$(date +%s.%N)
+            set +e
+            yarn lint:half --half "$half" > "half-${half}.out" 2> "half-${half}.err"
+            rc=$?
+            set -e
+            end=$(date +%s.%N)
+            secs=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
+            {
+              echo "### halves cold ${half}"
+              echo "LINT_BENCH kind=half case=cold half=${half} exit=${rc} wall_s=${secs}"
+              grep -E 'LINT_HALF_TIMING' "half-${half}.err" || true
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "$rc" -ne 0 ]; then
+              exit "$rc"
+            fi
+          }
+          time_half syntax
+          time_half cross
+      - name: Save syntax-half cache
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/eslint-syntax
+          key: ${{ steps.cache-key.outputs.key }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  halves-warm:
+    name: Halves warm, no edits
+    needs: halves-cold
+    permissions:
+      contents: read
+      actions: write
+    runs-on: >-
+      ${{
+        (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Restore syntax-half cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/eslint-syntax
+          key: ${{ needs.halves-cold.outputs.cache_key }}
+      - name: Warm halves
+        env:
+          LINT_HEAP_MB: 24576
+        run: |
+          set -euo pipefail
+          time_half() {
+            local half="$1"
+            local start end secs rc
+            start=$(date +%s.%N)
+            set +e
+            yarn lint:half --half "$half" > "half-${half}.out" 2> "half-${half}.err"
+            rc=$?
+            set -e
+            end=$(date +%s.%N)
+            secs=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
+            {
+              echo "### halves warm ${half}"
+              echo "LINT_BENCH kind=half case=warm half=${half} exit=${rc} wall_s=${secs}"
+              grep -E 'LINT_HALF_TIMING' "half-${half}.err" || true
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "$rc" -ne 0 ]; then
+              exit "$rc"
+            fi
+          }
+          time_half syntax
+          time_half cross
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  halves-edit-3:
+    name: Halves warm after 3 synthetic edits
+    needs: halves-cold
+    permissions:
+      contents: read
+      actions: write
+    runs-on: >-
+      ${{
+        (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Restore syntax-half cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/eslint-syntax
+          key: ${{ needs.halves-cold.outputs.cache_key }}
+      - name: Warm halves after 3 edits
+        env:
+          LINT_HEAP_MB: 24576
+          EDIT_COUNT: 3
+        run: |
+          set -euo pipefail
+          node scripts/lint-shard.mjs --list > /tmp/lint-bench-all.txt
+          sed -n "1,${EDIT_COUNT}p" /tmp/lint-bench-all.txt > /tmp/lint-bench-edited.txt
+          revert() {
+            while IFS= read -r file; do
+              git checkout -- "$file"
+            done < /tmp/lint-bench-edited.txt
+          }
+          trap revert EXIT
+          while IFS= read -r file; do
+            printf '\n/* lint-bench-touch */\n' >> "$file"
+          done < /tmp/lint-bench-edited.txt
+          time_half() {
+            local half="$1"
+            local start end secs rc
+            start=$(date +%s.%N)
+            set +e
+            yarn lint:half --half "$half" > "half-${half}.out" 2> "half-${half}.err"
+            rc=$?
+            set -e
+            end=$(date +%s.%N)
+            secs=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
+            {
+              echo "### halves edit ${EDIT_COUNT} ${half}"
+              echo "LINT_BENCH kind=half case=edit-${EDIT_COUNT} half=${half} exit=${rc} wall_s=${secs}"
+              grep -E 'LINT_HALF_TIMING' "half-${half}.err" || true
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "$rc" -ne 0 ]; then
+              exit "$rc"
+            fi
+          }
+          time_half syntax
+          time_half cross
+          revert
+          trap - EXIT
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  halves-edit-100:
+    name: Halves warm after 100 synthetic edits
+    needs: halves-cold
+    permissions:
+      contents: read
+      actions: write
+    runs-on: >-
+      ${{
+        (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Restore syntax-half cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/eslint-syntax
+          key: ${{ needs.halves-cold.outputs.cache_key }}
+      - name: Warm halves after 100 edits
+        env:
+          LINT_HEAP_MB: 24576
+          EDIT_COUNT: 100
+        run: |
+          set -euo pipefail
+          node scripts/lint-shard.mjs --list > /tmp/lint-bench-all.txt
+          sed -n "1,${EDIT_COUNT}p" /tmp/lint-bench-all.txt > /tmp/lint-bench-edited.txt
+          revert() {
+            while IFS= read -r file; do
+              git checkout -- "$file"
+            done < /tmp/lint-bench-edited.txt
+          }
+          trap revert EXIT
+          while IFS= read -r file; do
+            printf '\n/* lint-bench-touch */\n' >> "$file"
+          done < /tmp/lint-bench-edited.txt
+          time_half() {
+            local half="$1"
+            local start end secs rc
+            start=$(date +%s.%N)
+            set +e
+            yarn lint:half --half "$half" > "half-${half}.out" 2> "half-${half}.err"
+            rc=$?
+            set -e
+            end=$(date +%s.%N)
+            secs=$(awk -v s="$start" -v e="$end" 'BEGIN{printf "%.1f", e-s}')
+            {
+              echo "### halves edit ${EDIT_COUNT} ${half}"
+              echo "LINT_BENCH kind=half case=edit-${EDIT_COUNT} half=${half} exit=${rc} wall_s=${secs}"
+              grep -E 'LINT_HALF_TIMING' "half-${half}.err" || true
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+            if [ "$rc" -ne 0 ]; then
+              exit "$rc"
+            fi
+          }
+          time_half syntax
+          time_half cross
+          revert
+          trap - EXIT
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
