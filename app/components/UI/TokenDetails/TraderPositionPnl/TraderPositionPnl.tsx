@@ -128,7 +128,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
       testID={testID}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="mb-3 gap-2"
+      twClassName="mb-1 gap-2"
     >
       {isExpandable ? (
         <Pressable
