@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Image, Linking, ScrollView } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -25,7 +25,6 @@ import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { isPositiveNumberOrZero } from '../../../Money/utils/number';
-import vbaIntroHero from '../../../../../images/vba-intro-hero.png';
 import MoonPayPoweredByLogo from '../../../../../images/moonpay-powered-by-logo.svg';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
@@ -134,11 +133,6 @@ const CreateVirtualBankAccount = ({
         contentContainerStyle={tw.style('flex-grow pb-6')}
         testID={CreateVirtualBankAccountSelectorsIDs.CONTAINER}
       >
-        <Image
-          source={vbaIntroHero}
-          style={tw.style('h-22 w-full')}
-          resizeMode="contain"
-        />
         <Box twClassName="gap-2 p-4">
           <Text
             variant={TextVariant.HeadingLg}
