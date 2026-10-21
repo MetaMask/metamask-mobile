@@ -8,7 +8,6 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -23,8 +22,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -69,6 +66,9 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
+import TokenAgeChip, {
+  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
+} from '../components/V1/TokenAgeChip/TokenAgeChip';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
@@ -98,7 +98,7 @@ import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useElapsedMinutes } from '../hooks/useElapsedMinutes';
+import { useElapsedTime } from '../hooks/useElapsedTime';
 import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
@@ -111,7 +111,7 @@ import {
 import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
-export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
+export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip';
 export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
   'token-details-v1-scroll-view';
 export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
@@ -284,10 +284,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     caip19AssetId,
     DEV_TOKEN_API_BASE_URL,
   );
-  const tokenAgeLabel = useMemo(
-    () => formatTokenAge(tokenAsset?.launchpadData?.launchedAt),
-    [tokenAsset?.launchpadData?.launchedAt],
-  );
+  const launchedAt = tokenAsset?.launchpadData?.launchedAt;
 
   const shareUrl = useMemo(
     () =>
@@ -573,11 +570,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     error: securityDataError,
   });
 
-  // Gated on the tab because tabs stay mounted once visited, so an ungated
-  // clock would keep ticking behind Overview for a line nobody is looking at.
-  const securityFetchedMinutesAgo = useElapsedMinutes({
+  const securityFetchedMinutesAgo = useElapsedTime({
     since: securityDataUpdatedAt,
-    enabled: activeTab === 'security',
   });
 
   /**
@@ -740,23 +734,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            tokenAgeLabel ? (
-              <Pressable
+            formatTokenAge(launchedAt) != null ? (
+              <TokenAgeChip
+                launchedAtSeconds={launchedAt}
                 onPress={handleAgePress}
-                accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'token_details_v1.age.accessibility_label',
-                  { age: tokenAgeLabel },
-                )}
-                testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-              >
-                <Tag
-                  severity={TagSeverity.Neutral}
-                  twClassName="self-center shrink-0"
-                >
-                  {tokenAgeLabel}
-                </Tag>
-              </Pressable>
+              />
             ) : undefined
           }
         />
