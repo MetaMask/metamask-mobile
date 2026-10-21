@@ -3,6 +3,10 @@ import { handleFetch } from '@metamask/controller-utils';
 import type { CaipAssetType } from '@metamask/utils';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 
+export type TokenMarketData = FungibleAssetPrice & {
+  liquidity?: number;
+};
+
 const SPOT_PRICES_URL = 'https://price.api.cx.metamask.io/v3/spot-prices';
 
 /**
@@ -55,7 +59,7 @@ export const tokenMarketDataOptions = (
 ) =>
   queryOptions({
     queryKey: tokenMarketDataKeys.byAsset(assetId, currency),
-    queryFn: async (): Promise<FungibleAssetPrice | null> => {
+    queryFn: async (): Promise<TokenMarketData | null> => {
       if (!assetId || !currency) {
         return null;
       }
@@ -68,7 +72,7 @@ export const tokenMarketDataOptions = (
 
       const response = (await handleFetch(url)) as Record<
         string,
-        FungibleAssetPrice | undefined
+        TokenMarketData | undefined
       >;
 
       return response?.[assetId] ?? null;

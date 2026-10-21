@@ -397,7 +397,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have correct number of transforms', () => {
-      expect(persistConfig.transforms).toHaveLength(3);
+      expect(persistConfig.transforms).toHaveLength(4);
     });
 
     it('have user transform configured', () => {
@@ -459,6 +459,56 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(cardTransform.whitelist).toEqual(['card']);
+    });
+
+    it('has bridge transform configured', () => {
+      const bridgeTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(bridgeTransform.whitelist).toEqual(['bridge']);
+    });
+
+    it('does not persist the limit order session settings', () => {
+      const bridgeTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & {
+        in: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        bridgeTransform.in({
+          sourceAmount: '1',
+          limitOrderCostTolerance: '3',
+          limitOrderExpirationMinutes: 10080,
+          limitOrderMarketComparison: undefined,
+        }),
+      ).toEqual({
+        sourceAmount: '1',
+        limitOrderMarketComparison: undefined,
+      });
+    });
+
+    it('clears limit order settings persisted by older app versions on rehydrate', () => {
+      const bridgeTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        bridgeTransform.out({
+          sourceAmount: '1',
+          limitOrderCostTolerance: '3',
+          limitOrderExpirationMinutes: 10080,
+        }),
+      ).toEqual({
+        sourceAmount: '1',
+        limitOrderCostTolerance: undefined,
+        limitOrderExpirationMinutes: undefined,
+      });
     });
   });
 

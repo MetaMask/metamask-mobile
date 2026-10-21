@@ -41,6 +41,8 @@ export interface TokenAssetLaunchpadData {
   devHeldPercent: number | null;
   insiderHeldPercent: number | null;
   sniperHeldPercent: number | null;
+  holdersCount: number | null;
+  top10HeldPercent: string | null;
 }
 
 export interface TokenAssetRecord {

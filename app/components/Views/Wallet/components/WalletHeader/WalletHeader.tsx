@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -11,6 +12,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  ButtonBase,
   ButtonIcon,
   ButtonIconSize,
   HeaderRoot,
@@ -30,8 +32,13 @@ import {
 import WalletHeaderInterimActions, {
   WalletHeaderMenuButton,
 } from './WalletHeaderInterimActions';
+import WalletHeaderProfileAvatar from './WalletHeaderProfileAvatar';
+import WalletHeaderAccountPickerRow from './WalletHeaderAccountPickerRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../../../SocialProfile/ProfileDrawer';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -92,6 +99,7 @@ const WalletHeader = ({
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
   const measureSearchOrigin = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
@@ -143,24 +151,72 @@ const WalletHeader = ({
   };
 
   const handleAccountPickerPress = useCallback(() => {
+    if (isSocialV1Enabled) {
+      (navigation as NavigationProp<ParamListBase>).navigate(
+        ...createProfileDrawerNavDetails({}),
+      );
+      return;
+    }
+    (navigation as NavigationProp<ParamListBase>).navigate(
+      ...createAccountSelectorNavDetails({}),
+    );
+  }, [navigation, isSocialV1Enabled]);
+
+  const handleAccountSelectorPress = useCallback(() => {
     (navigation as NavigationProp<ParamListBase>).navigate(
       ...createAccountSelectorNavDetails({}),
     );
   }, [navigation]);
 
+  const accountPickerRow =
+    isSocialV1Enabled && !useSearchHeaderLayout ? (
+      <WalletHeaderAccountPickerRow
+        displayName={displayName}
+        onPress={handleAccountSelectorPress}
+        hitSlop={touchAreaSlop}
+      />
+    ) : null;
+
+  const withAccountPickerRow = (header: React.ReactElement) =>
+    accountPickerRow ? (
+      <View testID={WalletViewSelectorsIDs.WALLET_HEADER_WITH_ACCOUNT_PICKER}>
+        {header}
+        {accountPickerRow}
+      </View>
+    ) : (
+      header
+    );
+
   const pickerAccountName = isInterimLayout
     ? formatInterimAccountName(displayName)
     : displayName;
 
+  const socialV1AccountButton = (
+    <ButtonBase
+      onPress={handleAccountPickerPress}
+      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+      accessibilityRole="button"
+      accessibilityLabel={displayName}
+      hitSlop={touchAreaSlop}
+      twClassName="h-10 w-10 rounded-full bg-transparent p-0"
+    >
+      <WalletHeaderProfileAvatar />
+    </ButtonBase>
+  );
+
   const accountPicker = (
     <View style={accountPickerContainerStyle}>
-      <PickerAccount
-        accountName={pickerAccountName}
-        onPress={handleAccountPickerPress}
-        testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-        hitSlop={touchAreaSlop}
-        style={headerAccountPickerStyle}
-      />
+      {isSocialV1Enabled ? (
+        socialV1AccountButton
+      ) : (
+        <PickerAccount
+          accountName={pickerAccountName}
+          onPress={handleAccountPickerPress}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={touchAreaSlop}
+          style={headerAccountPickerStyle}
+        />
+      )}
     </View>
   );
 
@@ -175,7 +231,7 @@ const WalletHeader = ({
       />
     );
 
-    return (
+    return withAccountPickerRow(
       <HeaderRoot
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
         endAccessory={
@@ -195,21 +251,25 @@ const WalletHeader = ({
             nonGlassClassName="px-1"
             testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
           >
-            <PickerAccount
-              accountName={pickerAccountName}
-              onPress={handleAccountPickerPress}
-              testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-              hitSlop={touchAreaSlop}
-              style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
-            />
+            {isSocialV1Enabled ? (
+              socialV1AccountButton
+            ) : (
+              <PickerAccount
+                accountName={pickerAccountName}
+                onPress={handleAccountPickerPress}
+                testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                hitSlop={touchAreaSlop}
+                style={tw.style(INTERIM_ACCOUNT_PICKER_CLASS)}
+              />
+            )}
           </CapsuleGlass>
         </View>
-      </HeaderRoot>
+      </HeaderRoot>,
     );
   }
 
   if (!useSearchHeaderLayout) {
-    return (
+    return withAccountPickerRow(
       <HeaderRoot
         testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
         endAccessory={
@@ -269,11 +329,11 @@ const WalletHeader = ({
         twClassName="pl-1 pr-3"
       >
         {accountPicker}
-      </HeaderRoot>
+      </HeaderRoot>,
     );
   }
 
-  return (
+  return withAccountPickerRow(
     <HeaderRoot
       testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
       endAccessory={
@@ -333,8 +393,7 @@ const WalletHeader = ({
           />
         </View>
       </Box>
-    </HeaderRoot>
+    </HeaderRoot>,
   );
 };
-
 export default memo(WalletHeader);

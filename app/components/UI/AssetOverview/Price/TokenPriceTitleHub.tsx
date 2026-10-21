@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { addCurrencySymbol } from '../../../../util/number/bigint';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 
 export type TokenPriceChangeFormat = 'absoluteSubscript' | 'signedCurrency';
