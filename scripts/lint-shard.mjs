@@ -23,6 +23,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseArgs, splitBySize, unionDiff } from './lint-shard-plan.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -73,40 +74,6 @@ export function listLintFiles(cwd) {
 }
 
 /**
- * Longest-processing-time bin pack. File size is the weight.
- * Equal totals go to the lower shard index so the split is stable.
- * @param {{ path: string, bytes: number }[]} entries
- * @param {number} shards
- * @returns {{ files: string[], bytes: number }[]}
- */
-export function splitBySize(entries, shards) {
-  if (!Number.isInteger(shards) || shards < 1) {
-    throw new Error(`shards must be a positive integer, got ${shards}`);
-  }
-  const bins = Array.from({ length: shards }, () => ({
-    files: /** @type {string[]} */ ([]),
-    bytes: 0,
-  }));
-  const ordered = [...entries].sort(
-    (a, b) => b.bytes - a.bytes || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0),
-  );
-  for (const entry of ordered) {
-    let target = 0;
-    for (let index = 1; index < bins.length; index += 1) {
-      if (bins[index].bytes < bins[target].bytes) {
-        target = index;
-      }
-    }
-    bins[target].files.push(entry.path);
-    bins[target].bytes += entry.bytes;
-  }
-  for (const bin of bins) {
-    bin.files.sort();
-  }
-  return bins;
-}
-
-/**
  * @param {string[]} files
  * @param {number} shards
  */
@@ -116,28 +83,6 @@ export function shardFiles(files, shards) {
     bytes: fs.statSync(filePath).size,
   }));
   return splitBySize(entries, shards);
-}
-
-/**
- * @param {string[][]} groups
- * @param {string[]} expected
- */
-export function unionDiff(groups, expected) {
-  const union = new Set();
-  /** @type {string[]} */
-  const duplicates = [];
-  for (const group of groups) {
-    for (const filePath of group) {
-      if (union.has(filePath)) {
-        duplicates.push(filePath);
-      }
-      union.add(filePath);
-    }
-  }
-  const expectedSet = new Set(expected);
-  const missing = expected.filter((filePath) => !union.has(filePath));
-  const extra = [...union].filter((filePath) => !expectedSet.has(filePath)).sort();
-  return { missing, extra, duplicates };
 }
 
 function selfTest() {
@@ -166,30 +111,6 @@ function selfTest() {
     throw new Error(`unexpected balance ${totals.join(',')}`);
   }
   console.log('self-test ok');
-}
-
-function parseArgs(argv) {
-  /** @type {Record<string, string | boolean>} */
-  const args = { _: [] };
-  for (let index = 0; index < argv.length; index += 1) {
-    const token = argv[index];
-    if (token === '--help' || token === '-h') args.help = true;
-    else if (token === '--self-test') args.selfTest = true;
-    else if (token === '--plan') args.plan = true;
-    else if (token === '--check-union') args.checkUnion = true;
-    else if (token === '--list') args.list = true;
-    else if (token === '--skip-messenger') args.skipMessenger = true;
-    else if (token === '--shard') {
-      args.shard = argv[++index];
-    } else if (token === '--shards') {
-      args.shards = argv[++index];
-    } else if (token === '--files-from') {
-      args.filesFrom = argv[++index];
-    } else {
-      throw new Error(`Unknown argument ${token}`);
-    }
-  }
-  return args;
 }
 
 async function lintPaths(cwd, files) {
