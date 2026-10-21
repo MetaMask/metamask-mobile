@@ -511,6 +511,7 @@ const VbaDetails = () => {
       // Details are fetched only after the autoramp is Approved, and that
       // fetch rethrows. A failure there is a load error, not a failed create.
       const approved =
+        !!walletAddress &&
         findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
           ?.status === 'Approved';
       if (approved) {
