@@ -11,12 +11,14 @@ import { TransactionPayControllerInit } from './transaction-pay-controller-init'
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
-import { createSolanaPayCallbacks } from './solana-pay-callbacks';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
 jest.mock('../../../../util/environment');
-jest.mock('./solana-pay-callbacks');
+jest.mock('../../../../constants/network', () => ({
+  ...jest.requireActual('../../../../constants/network'),
+  INFURA_PROJECT_ID: 'test-infura-project-id',
+}));
 
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
@@ -128,17 +130,10 @@ describe('Transaction Pay Controller Init', () => {
     expect(getBalance).toBeInstanceOf(Function);
   });
 
-  it('wires Solana Pay callbacks into the controller', () => {
-    const callbacks = {
-      getPreflight: jest.fn(),
-      getTransactionStatus: jest.fn(),
-      signAndSendTransaction: jest.fn(),
-    };
-    jest.mocked(createSolanaPayCallbacks).mockReturnValue(callbacks);
+  it('passes the Infura project ID for Solana RPC URLs', () => {
+    const infuraProjectId = testConstructorOption('infuraProjectId');
 
-    const solana = testConstructorOption('solana');
-
-    expect(solana).toBe(callbacks);
+    expect(infuraProjectId).toBe('test-infura-project-id');
   });
 
   it('wires fiat test options through controller options', () => {

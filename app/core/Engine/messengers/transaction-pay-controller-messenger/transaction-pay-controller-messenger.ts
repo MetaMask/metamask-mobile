@@ -30,6 +30,7 @@ export function getTransactionPayControllerMessenger(
     actions: [
       'AccountsController:getState',
       'AssetsController:getState',
+      'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
@@ -38,6 +39,7 @@ export function getTransactionPayControllerMessenger(
       'RampsController:getQuoteWithFees',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
+      'SnapController:handleRequest',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
       'TransactionController:confirmTransaction',

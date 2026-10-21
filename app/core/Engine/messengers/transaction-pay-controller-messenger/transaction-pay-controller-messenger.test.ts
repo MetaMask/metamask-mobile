@@ -102,6 +102,24 @@ describe('getTransactionPayControllerMessenger', () => {
       'RampsController:transakGetBuyQuote',
     );
   });
+
+  it('delegates the actions Core needs to quote, sign and recover Solana Pay', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
+          'SnapController:handleRequest',
+          'TransactionController:confirmTransaction',
+          'TransactionController:failTransaction',
+        ]),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {
