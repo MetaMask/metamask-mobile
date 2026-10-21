@@ -1878,6 +1878,48 @@ describe('PolymarketProvider', () => {
     expect(mockSubmitProtocolClobOrder).toHaveBeenCalled();
   });
 
+  it('classifies a FAK no-match relayer rejection as a sell order not filled', async () => {
+    const provider = createProvider();
+    mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+      success: false,
+      error:
+        'Polymarket API error (400): {"error":"no orders found to match with FAK order. FAK orders are partially filled or killed if no match is found.","orderID":"0x3be5cb70cc7fb180835fe79def8f5b78c62e2d2479b34fcc655e18abd921be08"}',
+    });
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL, slippage: 0.05 },
+    });
+
+    // The CLOB kills an unmatchable FAK order: same market outcome as an
+    // order that couldn't be fully filled, never a raw API error.
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('expected a failure result');
+    }
+    expect(result.error).toBe(PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED);
+  });
+
+  it('classifies a FAK no-match relayer rejection as a buy order not filled', async () => {
+    const provider = createProvider();
+    mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+      success: false,
+      error:
+        'Polymarket API error (400): {"error":"no orders found to match with FAK order. FAK orders are partially filled or killed if no match is found.","orderID":"0x3be5cb70cc7fb180835fe79def8f5b78c62e2d2479b34fcc655e18abd921be08"}',
+    });
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('expected a failure result');
+    }
+    expect(result.error).toBe(PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED);
+  });
+
   it('submits orders through the protocol CLOB v2 relayer path', async () => {
     const provider = createProvider();
 

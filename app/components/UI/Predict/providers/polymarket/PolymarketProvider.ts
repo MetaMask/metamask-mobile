@@ -681,7 +681,14 @@ export class PolymarketProvider implements PredictProvider {
     error?: string;
     side: Side;
   }): never {
-    if (error?.includes(`order couldn't be fully filled`)) {
+    // A FAK order that matched nothing is killed by the CLOB with a distinct
+    // message, but it is the same market outcome as an order that couldn't be
+    // fully filled: nothing was executable at the order's price, so the caller
+    // gets the descriptive retry outcome instead of a raw API error.
+    if (
+      error?.includes(`order couldn't be fully filled`) ||
+      error?.includes(`no orders found to match with FAK order`)
+    ) {
       throw new Error(
         side === Side.BUY
           ? PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED
