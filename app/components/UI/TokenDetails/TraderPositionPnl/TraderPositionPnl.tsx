@@ -102,14 +102,14 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
           testID={`${testID}-unrealized-pnl`}
         >
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             testID={`${testID}-unrealized-pnl-label`}
           >
             {strings('social_leaderboard.trader_position.unrealized_pnl')}
           </Text>
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
             color={
               pnl.isProfit ? TextColor.SuccessDefault : TextColor.ErrorDefault
