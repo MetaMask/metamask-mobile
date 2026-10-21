@@ -37,6 +37,8 @@ import {
   setDestAmount,
   setSelectedQuoteRequestId,
   setBridgeViewMode,
+  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -87,6 +89,10 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const initialLimitOrderExpirationMinutes =
+    route.params?.initialLimitOrderExpirationMinutes;
+  const initialLimitOrderPriceTolerance =
+    route.params?.initialLimitOrderPriceTolerance;
 
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
@@ -111,6 +117,37 @@ const BridgeView = () => {
     setRenderedTab(initialTab);
     navigation.setParams({ initialTab: undefined });
   }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
+
+  // Deep-link presets for the Limit tab override the session values exactly
+  // once per deep link. Presets the deep link omits keep whatever the user
+  // already picked this app session. Clearing the route params afterwards
+  // stops a later re-mount (e.g. tab switch) from re-applying the presets.
+  useLayoutEffect(() => {
+    if (
+      initialLimitOrderExpirationMinutes === undefined &&
+      initialLimitOrderPriceTolerance === undefined
+    ) {
+      return;
+    }
+
+    if (initialLimitOrderExpirationMinutes !== undefined) {
+      dispatch(
+        setLimitOrderExpirationMinutes(initialLimitOrderExpirationMinutes),
+      );
+    }
+    if (initialLimitOrderPriceTolerance !== undefined) {
+      dispatch(setLimitOrderCostTolerance(initialLimitOrderPriceTolerance));
+    }
+    navigation.setParams({
+      initialLimitOrderExpirationMinutes: undefined,
+      initialLimitOrderPriceTolerance: undefined,
+    });
+  }, [
+    initialLimitOrderExpirationMinutes,
+    initialLimitOrderPriceTolerance,
+    dispatch,
+    navigation,
+  ]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({

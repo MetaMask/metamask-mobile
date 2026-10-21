@@ -103,7 +103,11 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
   );
 
   if (isLoading && posts.length === 0) {
-    return <SocialFeedSkeleton count={postCount} />;
+    return (
+      <Box twClassName="gap-6">
+        <SocialFeedSkeleton count={postCount} />
+      </Box>
+    );
   }
 
   if (error && posts.length === 0) {
@@ -116,11 +120,13 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 
   return (
     <>
-      <SocialV1FeedPostList
-        posts={posts.slice(0, postCount)}
-        dividerKeyPrefix="perps-home-trending"
-        renderPost={renderPost}
-      />
+      <Box twClassName="gap-6">
+        <SocialV1FeedPostList
+          posts={posts.slice(0, postCount)}
+          dividerKeyPrefix="perps-home-trending"
+          renderPost={renderPost}
+        />
+      </Box>
       {onSeeMorePress ? (
         <Box twClassName="px-4 pt-3">
           <Button

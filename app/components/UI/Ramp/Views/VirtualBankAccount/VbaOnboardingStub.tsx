@@ -15,6 +15,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
+import VbaIllustration, {
+  VbaIllustrationSource,
+} from '../../../KYC/components/Illustration';
+import VbaOnboardingError from '../../../KYC/components/OnboardingError';
 
 export type VbaOnboardingStubVariant = 'account_provisioning_error' | 'error';
 
@@ -47,6 +51,28 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
       setIsContinuing(false);
     }
   }, [isContinuing, onContinue]);
+
+  if (variant === 'error') {
+    return (
+      <VbaOnboardingError
+        testID={`${VbaOnboardingStubSelectorsIDs.CONTAINER}-${variant}`}
+        backButtonTestID={VbaOnboardingStubSelectorsIDs.BACK_BUTTON}
+        illustration={
+          <VbaIllustration
+            source={VbaIllustrationSource.hazard}
+            twClassName="h-[65px] w-[71px]"
+          />
+        }
+        title={strings('virtual_bank_account.error.title')}
+        description={strings('virtual_bank_account.error.description')}
+        primaryAction={{
+          label: strings('virtual_bank_account.error.button'),
+          onPress: onContinue,
+          testID: VbaOnboardingStubSelectorsIDs.CONTINUE_BUTTON,
+        }}
+      />
+    );
+  }
 
   return (
     <SafeAreaView

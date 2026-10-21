@@ -76,8 +76,8 @@ inputs:
     default: 'true'
   install-foundry:
     description: >-
-      Whether to install Foundry (anvil/cast/forge) and add `node_modules/.bin`
-      to `$GITHUB_PATH`. Set to `'false'` when the caller already runs
+      Whether to install Foundry (anvil/cast/forge) into `node_modules/.bin`.
+      Set to `'false'` when the caller already runs
       `yarn setup:github-ci` afterwards (which itself runs `install:foundryup`
       via `installFoundryTask`), to avoid the redundant install step. Test
       runner workflows that go straight to Detox/seeder without an intervening
@@ -127,7 +127,6 @@ runs:
     ## Common Setup ##
     - run: echo "Setup E2E Environment started"
       shell: bash
-
     ## Android Setup (early for fail-fast) ##
 
     # Set Android environment variables (self-hosted runner has SDK pre-installed)
@@ -263,7 +262,8 @@ runs:
     - name: Set ANDROID_AVD_HOME for downstream steps
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       shell: bash
-      run: |
+      run:
+        | # zizmor: ignore[github-env] value is only runner-set $HOME, no event data or inputs to inject
         echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
         mkdir -p "$HOME/.android/avd"
 
@@ -384,7 +384,6 @@ runs:
       run: |
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
         yarn install:foundryup
-        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
 
     ## iOS Setup ##
 
@@ -424,30 +423,13 @@ runs:
       working-directory: ios
       shell: bash
 
-    - name: Generate binstubs for CocoaPods
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: bundle binstubs cocoapods --force --path=vendor/bundle/bin
-      working-directory: ios
-      shell: bash
-
-    - name: Add binstubs to PATH
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH"
-      shell: bash
-
+    # CocoaPods is only run through `bundle exec`; its binstubs are not put on
+    # PATH, so a gem cannot shadow other commands for later steps.
     - name: Verify CocoaPods
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: |
         bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
         bundle exec pod --version
-      working-directory: ios
-      shell: bash
-
-    - name: Verify CocoaPods BinStub
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: |
-        bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
-        pod --version
       working-directory: ios
       shell: bash
 
@@ -480,7 +462,7 @@ runs:
         retry_wait_seconds: 60
         on_retry_command: |
           echo "::warning::CocoaPods install failed, retrying after trunk cleanup..."
-          pod repo remove trunk || true
+          (cd ios && bundle exec pod repo remove trunk) || true
         command: cd ios && bundle exec pod install --repo-update
       env:
         COCOAPODS_DISABLE_STATS: 'true'

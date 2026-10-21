@@ -1,21 +1,24 @@
+import { useEffect, useMemo } from 'react';
 import { useInfiniteQuery } from '@metamask/react-data-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { focusManager, useQueryClient } from '@tanstack/react-query';
 import type { CaipChainId } from '@metamask/utils';
 import type {
   GetLimitOrdersResponse,
   LimitOrderState,
 } from '../api/limitOrders/getLimitOrders/types';
 import { limitOrdersQueries } from '../queries/limitOrders';
-import {
-  LIMIT_ORDERS_PAGE_LIMIT,
-  LIMIT_ORDERS_STALE_TIME,
-} from '../constants/limitOrders';
+import { LIMIT_ORDERS_PAGE_LIMIT } from '../constants/limitOrders';
 
 interface UseLimitOrdersParams {
   walletAddress?: string;
   states: LimitOrderState[];
   chainId?: CaipChainId;
   enabled?: boolean;
+  /**
+   * How often, in milliseconds, the orders are refetched from the API while
+   * the query is enabled. Omit to not refetch on an interval.
+   */
+  refetchInterval?: number;
 }
 
 export function useLimitOrders({
@@ -23,21 +26,46 @@ export function useLimitOrders({
   states,
   chainId,
   enabled = true,
+  refetchInterval,
 }: UseLimitOrdersParams) {
   const queryClient = useQueryClient();
-  const descriptor = limitOrdersQueries.getLimitOrders({
-    walletAddress: walletAddress ?? '',
-    states,
-    chainId,
-    limit: LIMIT_ORDERS_PAGE_LIMIT,
-  });
+  const { queryKey } = useMemo(
+    () =>
+      limitOrdersQueries.getLimitOrders({
+        walletAddress: walletAddress ?? '',
+        states,
+        chainId,
+        limit: LIMIT_ORDERS_PAGE_LIMIT,
+      }),
+    [walletAddress, states, chainId],
+  );
+  const isEnabled = enabled && Boolean(walletAddress);
   const query = useInfiniteQuery<GetLimitOrdersResponse>({
-    queryKey: descriptor.queryKey,
+    queryKey,
     getNextPageParam: (lastPage) => lastPage?.nextCursor,
     initialPageParam: undefined as string | undefined,
-    enabled: enabled && Boolean(walletAddress),
-    refetchInterval: LIMIT_ORDERS_STALE_TIME,
+    enabled: isEnabled,
   });
+
+  // A plain `refetchInterval` would be answered from the data service cache
+  // until its stale time lapses, so the query is invalidated instead.
+  useEffect(() => {
+    if (!isEnabled || !refetchInterval) {
+      return undefined;
+    }
+
+    const interval = setInterval(() => {
+      if (!focusManager.isFocused()) {
+        return;
+      }
+
+      queryClient
+        .invalidateQueries({ queryKey, exact: true }, { cancelRefetch: false })
+        .catch(() => undefined);
+    }, refetchInterval);
+
+    return () => clearInterval(interval);
+  }, [isEnabled, queryClient, queryKey, refetchInterval]);
 
   function fetchNextPage() {
     if (!query.hasNextPage || query.isFetchingNextPage) {
@@ -49,6 +77,9 @@ export function useLimitOrders({
 
   return {
     orders: query.data?.pages.flatMap((page) => page.orders) ?? [],
+    // Each page reports the total as of when it was fetched, so the latest
+    // page has the freshest one.
+    total: query.data?.pages.at(-1)?.total,
     isLoading: query.isLoading,
     isError: query.isError,
     hasNextPage: Boolean(query.hasNextPage),
@@ -57,7 +88,7 @@ export function useLimitOrders({
     refetch: query.refetch,
     refresh: () =>
       queryClient.invalidateQueries({
-        queryKey: descriptor.queryKey,
+        queryKey,
         exact: true,
       }),
   };

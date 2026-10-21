@@ -2,6 +2,7 @@ import type { TraderProfileResponse } from '@metamask/social-controllers';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import {
   FAKE_STATS_PREFIX,
+  buildPerformanceCells,
   overlayMyProfileLiveStats,
 } from './overlayMyProfileLiveStats';
 
@@ -61,7 +62,7 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
+    expect(result.performanceCells).toEqual([]);
     expect(result.fallbackFields.winRate).toBe(true);
     expect(result.fallbackFields.holdTime).toBe(false);
     expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
@@ -113,7 +114,7 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.fallbackFields.pnl).toBe(false);
     expect(result.fallbackFields.holdTime).toBe(false);
     expect(result.sheetProfile.stats.medianHoldMinutes).toBeNull();
-    expect(result.timesCopiedLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
     expect(result.fallbackFields.volume).toBe(true);
     expect(result.fallbackFields.tradeCount).toBe(true);
     expect(result.sheetProfile.stats.volumeUsd30d).toBe(386_260);
@@ -139,5 +140,43 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.sheetProfile.stats.tradeCount30d).toBe(39);
     expect(result.profileAgeLabel).toBe('*2y');
     expect(result.copySuccessRateLabel).toBe('*72%');
+  });
+});
+
+describe('buildPerformanceCells', () => {
+  it('returns no cells without a live profile', () => {
+    expect(buildPerformanceCells(null)).toEqual([]);
+  });
+
+  it('returns all four cells in grid order when live stats are present', () => {
+    expect(buildPerformanceCells(liveProfile())).toEqual([
+      { id: 'pnl', value: '+$1,200', tone: 'success' },
+      { id: 'winRate', value: '42%', tone: 'default' },
+      { id: 'holdTime', value: '3h', tone: 'default' },
+      { id: 'volume', value: '$50,000', tone: 'default' },
+    ]);
+  });
+
+  it('marks negative P&L with the error tone', () => {
+    const [pnlCell] = buildPerformanceCells(
+      liveProfile({ stats: { pnl30d: -450 } }),
+    );
+
+    expect(pnlCell).toEqual({ id: 'pnl', value: '-$450', tone: 'error' });
+  });
+
+  it('omits cells whose live value is missing', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: null,
+          winRate30d: 0.5,
+          medianHoldMinutes: null,
+          volumeUsd30d: 1000,
+        },
+      }),
+    );
+
+    expect(cells.map((cell) => cell.id)).toEqual(['winRate', 'volume']);
   });
 });

@@ -21,7 +21,6 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -44,6 +43,8 @@ import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfil
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
+  applyXOnboardingProfile,
+  startManualOnboarding,
   buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
@@ -52,12 +53,13 @@ import {
   getUsernameStatus,
   normalizeUsername,
   type ProfileOnboardingDraft,
+  type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
-import { useSocialOnboardingAccounts } from './useSocialOnboardingAccounts';
+import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
 import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 import {
   generateUsername,
@@ -65,6 +67,7 @@ import {
 } from './generateUsername';
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
+import XProfileIdentityStep from './XProfileIdentityStep';
 
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
@@ -105,9 +108,30 @@ const LIVE_ACTIVITY = [
   },
 ];
 
-const PROGRESS_SEGMENT_COUNT = 4;
+const MANUAL_PROGRESS_SEGMENT_COUNT = 4;
+const X_PROGRESS_SEGMENT_COUNT = 3;
 
-const progressFilledCount = (step: ProfileOnboardingStep): number => {
+const progressSegmentCount = (path: ProfileOnboardingPath): number =>
+  path === 'x' ? X_PROGRESS_SEGMENT_COUNT : MANUAL_PROGRESS_SEGMENT_COUNT;
+
+const progressFilledCount = (
+  step: ProfileOnboardingStep,
+  path: ProfileOnboardingPath,
+): number => {
+  if (path === 'x') {
+    switch (step) {
+      case 'x-identity':
+      case 'avatar':
+        return 1;
+      case 'account':
+        return 2;
+      case 'ready':
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
   switch (step) {
     case 'username':
       return 1;
@@ -145,9 +169,11 @@ const OnboardingTitle: React.FC<{
  */
 const OnboardingProgress: React.FC<{
   step: ProfileOnboardingStep;
+  path: ProfileOnboardingPath;
   topInset: number;
-}> = ({ step, topInset }) => {
-  const filledCount = progressFilledCount(step);
+}> = ({ step, path, topInset }) => {
+  const filledCount = progressFilledCount(step, path);
+  const segmentCount = progressSegmentCount(path);
   if (filledCount === 0) {
     return null;
   }
@@ -161,10 +187,11 @@ const OnboardingProgress: React.FC<{
       style={{ paddingTop: topInset + 8 }}
       testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
     >
-      {Array.from({ length: PROGRESS_SEGMENT_COUNT }, (_, index) => (
+      {Array.from({ length: segmentCount }, (_, index) => (
         <Box
           key={`progress-${index}`}
           twClassName="flex-1 h-1 rounded-full bg-muted overflow-hidden"
+          testID={`${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-${index}`}
         >
           <Box
             twClassName={`h-full bg-icon-default ${
@@ -235,8 +262,9 @@ const LiveActivityFallback: React.FC = () => (
 const ReadyCardFallback: React.FC<{
   avatarPresetId: string | null | undefined;
   avatarBackgroundId: string | null | undefined;
+  imageUrl?: string | null;
   handle: string;
-}> = ({ avatarPresetId, avatarBackgroundId, handle }) => (
+}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -262,6 +290,7 @@ const ReadyCardFallback: React.FC<{
       </Box>
       <Box twClassName="rounded-full border-4 border-success-default p-1">
         <ProfileAvatar
+          imageUrl={imageUrl}
           avatarPresetId={avatarPresetId}
           avatarBackgroundId={avatarBackgroundId}
           size="xl"
@@ -282,10 +311,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
-  const accounts = useSocialOnboardingAccounts();
+  const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, getXAuthorizationUrl } =
-    useProfileController();
+  const { checkUsernameAvailability, createProfile } = useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -294,7 +322,6 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [usernameClaimError, setUsernameClaimError] = useState<string | null>(
     null,
   );
-  const [connectXError, setConnectXError] = useState<string | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -332,18 +359,19 @@ const SocialProfileOnboardingView: React.FC = () => {
     setStep((current) => {
       switch (current) {
         case 'username':
+        case 'x-identity':
           return 'intro';
         case 'avatar':
-          return 'username';
+          return draft.path === 'x' ? 'x-identity' : 'username';
         case 'account':
-          return 'avatar';
+          return draft.path === 'x' ? 'x-identity' : 'avatar';
         case 'ready':
           return 'account';
         default:
           return current;
       }
     });
-  }, []);
+  }, [draft.path]);
 
   const applyUsername = useCallback((username: string) => {
     setUsernameClaimError(null);
@@ -450,28 +478,61 @@ const SocialProfileOnboardingView: React.FC = () => {
     setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
   }, []);
 
-  const handleConnectX = useCallback(async () => {
-    setConnectXError(null);
-    setIsSubmitting(true);
-    try {
-      const session = await getXAuthorizationUrl();
-      await Linking.openURL(session.authorizationUrl);
-    } catch {
-      setConnectXError(
-        strings('social_leaderboard.profile_onboarding.connect_x_error'),
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [getXAuthorizationUrl]);
+  const handleConnectX = useCallback(() => {
+    playSelection().catch(() => undefined);
+    setDraft((current) => applyXOnboardingProfile(current));
+    setStep('x-identity');
+  }, [playSelection]);
+
+  const handleCreateManually = useCallback(() => {
+    playSelection().catch(() => undefined);
+    setUsernameClaimError(null);
+    setDraft((current) => startManualOnboarding(current));
+    setStep('username');
+  }, [playSelection]);
+
+  const handleToggleXUsername = useCallback(
+    (enabled: boolean) => {
+      playSelection().catch(() => undefined);
+      setUsernameClaimError(null);
+      if (enabled) {
+        setDraft((current) => ({
+          ...current,
+          useXUsername: true,
+          username: current.xUsername ?? current.username,
+        }));
+        return;
+      }
+
+      const nextUsername =
+        draft.username === draft.xUsername
+          ? generateUsername()
+          : draft.username;
+      setDraft((current) => ({
+        ...current,
+        useXUsername: false,
+        username: nextUsername,
+      }));
+      scheduleUsernameCheck(normalizeUsername(nextUsername));
+    },
+    [draft.username, draft.xUsername, playSelection, scheduleUsernameCheck],
+  );
+
+  const handleToggleXAvatar = useCallback(
+    (enabled: boolean) => {
+      playSelection().catch(() => undefined);
+      setDraft((current) => ({ ...current, useXAvatar: enabled }));
+    },
+    [playSelection],
+  );
 
   const handleContinue = useCallback(async () => {
     playSelection().catch(() => undefined);
-    if (step !== 'username') {
+    if (step !== 'username' && step !== 'x-identity') {
       setStep((current) => {
         switch (current) {
           case 'avatar':
-            return 'account';
+            return draft.path === 'x' ? 'x-identity' : 'account';
           case 'account':
             return 'ready';
           default:
@@ -489,13 +550,14 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (outcome !== 'available') {
         return;
       }
-      setStep('avatar');
+      setStep(step === 'x-identity' ? 'account' : 'avatar');
     } finally {
       setIsSubmitting(false);
     }
   }, [
     checkHandle,
     clearUsernameCheckTimer,
+    draft.path,
     draft.username,
     playSelection,
     step,
@@ -509,7 +571,9 @@ const SocialProfileOnboardingView: React.FC = () => {
         (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
       await createProfile(buildCreateProfileParams(draft, profileId));
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
-      navigation.navigate(Routes.SOCIAL.V1);
+      navigation.navigate(
+        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+      );
     } catch {
       setFinishError(
         strings('social_leaderboard.profile_onboarding.save_error'),
@@ -522,8 +586,11 @@ const SocialProfileOnboardingView: React.FC = () => {
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
   const continueDisabled =
-    (step === 'username' && !canContinueUsernameStep(draft)) ||
+    ((step === 'username' || step === 'x-identity') &&
+      !canContinueUsernameStep(draft)) ||
     (step === 'account' && !draft.linkedAccountId);
+  const readyImageUrl =
+    draft.useXAvatar && draft.xAvatarUrl ? draft.xAvatarUrl : null;
 
   return (
     <SafeAreaView
@@ -534,7 +601,11 @@ const SocialProfileOnboardingView: React.FC = () => {
       {step === 'intro' ? (
         <Box style={{ paddingTop: insets.top }} />
       ) : (
-        <OnboardingProgress step={step} topInset={insets.top} />
+        <OnboardingProgress
+          step={step}
+          path={draft.path}
+          topInset={insets.top}
+        />
       )}
       <HeaderStandard
         title=""
@@ -569,31 +640,16 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <Button
                   variant={ButtonVariant.Primary}
                   isFullWidth
-                  isLoading={isSubmitting}
                   startIconName={IconName.X}
-                  onPress={() => {
-                    handleConnectX().catch(() => undefined);
-                  }}
+                  onPress={handleConnectX}
                   testID={SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON}
                 >
                   {strings('social_leaderboard.profile_onboarding.connect_x')}
                 </Button>
-                {connectXError ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.ErrorDefault}
-                    twClassName="text-center"
-                  >
-                    {connectXError}
-                  </Text>
-                ) : null}
                 <Button
                   variant={ButtonVariant.Tertiary}
                   isFullWidth
-                  onPress={() => {
-                    playSelection().catch(() => undefined);
-                    setStep('username');
-                  }}
+                  onPress={handleCreateManually}
                   testID={
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON
                   }
@@ -610,6 +666,22 @@ const SocialProfileOnboardingView: React.FC = () => {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
             >
+              {step === 'x-identity' ? (
+                <XProfileIdentityStep
+                  draft={draft}
+                  usernameStatus={usernameStatus}
+                  usernameClaimError={usernameClaimError}
+                  onToggleUsername={handleToggleXUsername}
+                  onToggleAvatar={handleToggleXAvatar}
+                  onUsernameChange={handleUsernameChange}
+                  onShuffleUsername={handleShuffleUsername}
+                  onEditAvatar={() => {
+                    playSelection().catch(() => undefined);
+                    setStep('avatar');
+                  }}
+                />
+              ) : null}
+
               {step === 'username' ? (
                 <Box
                   gap={4}
@@ -828,10 +900,13 @@ const SocialProfileOnboardingView: React.FC = () => {
                     handle={username}
                     avatarPresetId={draft.avatarPresetId}
                     avatarBackgroundId={draft.avatarBackgroundId}
+                    imageUrl={readyImageUrl}
+                    isVerified={draft.path === 'x'}
                     fallback={
                       <ReadyCardFallback
                         avatarPresetId={draft.avatarPresetId}
                         avatarBackgroundId={draft.avatarBackgroundId}
+                        imageUrl={readyImageUrl}
                         handle={username}
                       />
                     }
@@ -862,7 +937,11 @@ const SocialProfileOnboardingView: React.FC = () => {
                   }}
                   testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
                 >
-                  {strings('social_leaderboard.profile_onboarding.lets_go')}
+                  {strings(
+                    draft.path === 'x'
+                      ? 'social_leaderboard.profile_onboarding.view_profile'
+                      : 'social_leaderboard.profile_onboarding.lets_go',
+                  )}
                 </Button>
               ) : (
                 <Button

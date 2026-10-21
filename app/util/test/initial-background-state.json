@@ -568,8 +568,7 @@
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
-    "domains": {},
-    "activeDappNetwork": null
+    "domains": {}
   },
   "SignatureController": {
     "signatureRequests": {},
@@ -626,6 +625,20 @@
     "proofBackfillEnqueued": false,
     "reportedAccounts": [],
     "syncQueue": {}
+  },
+  "ProfileController": {
+    "profile": {
+      "profileId": "",
+      "username": "",
+      "displayName": "",
+      "bio": "",
+      "linkedAddresses": [],
+      "avatarUrl": "",
+      "tradingPrivacy": "public",
+      "connectedToX": false,
+      "createdAt": "",
+      "updatedAt": ""
+    }
   },
   "UserStorageController": {
     "isBackupAndSyncEnabled": true,
@@ -768,6 +781,10 @@
     "lastUnauthenticatedReason": null,
     "redeemWithdrawal": null,
     "signInLink": null,
+    "cardLinks": null,
+    "cardLinksFetchedAt": null,
+    "cardLinksSeeded": false,
+    "cardLinkApiBlocked": false,
     "accountLookupCache": {}
   },
   "UiSlotsController": {

@@ -65,10 +65,6 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
-env:
-  # String "true" except on pull_request, where unit and CV skip Istanbul coverage.
-  COLLECT_COVERAGE: ${{ github.event_name != 'pull_request' }}
-
 jobs:
   get_requirements:
     name: Get workflow and job requirements
@@ -343,9 +339,11 @@ jobs:
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # Stay on 8x16: peak RAM above the 8 GB line.
-          - scripts: lint # 12.3 GB peak
-            profile: namespace-profile-metamask-ci-linux
+          # 16x32 (MCWP-812): the 12288 MB ceiling OOM'd lint on 8x16.
+          # LINT_HEAP_MB raises it here; local `yarn lint` stays at 12288.
+          - scripts: lint # was 12.3 GB peak on 8x16; now intermittently OOMs
+            profile: namespace-profile-metamask-ci-linux-large
+            heap_mb: 24576
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -393,6 +391,11 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
+        env:
+          # Only the `lint` entry defines `heap_mb`; it's blank for every other
+          # matrix entry, so `yarn lint`'s `${LINT_HEAP_MB:-12288}` fallback in
+          # package.json covers both local runs and these other CI scripts.
+          LINT_HEAP_MB: ${{ matrix.heap_mb }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -1055,18 +1058,13 @@ jobs:
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       # Namespace Linux: --maxWorkers=33% (~3 workers on 8 vCPU) + 12GiB heap.
-      # COLLECT_COVERAGE is false on pull_request. Other events keep reporters
-      # so merge can build lcov for Sonar.
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent ${{ env.COLLECT_COVERAGE == 'true' && '--coverageReporters=json' || '--coverage=false' }} --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && ' --maxWorkers=33%' || '' }} --workerIdleMemoryLimit=2GB --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: --max_old_space_size=12288
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mkdir -p ./tests/coverage
-          if [ "$COLLECT_COVERAGE" = "true" ]; then
-            mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
-          fi
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
@@ -1215,15 +1213,9 @@ jobs:
           done
 
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
-      # PRs do not collect unit/CV coverage, so skip the merged lcov, the
-      # coverage threshold, and the Sonar lcov artifact. The job still succeeds
-      # and SonarCloud static analysis runs afterwards.
       - run: yarn test:merge-coverage
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
       - run: yarn test:validate-coverage
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
       - name: Upload lcov.info (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: lcov.info
@@ -1256,10 +1248,8 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate CV test coverage report
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
       - name: Upload cv-test-coverage-html (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-html
@@ -1268,7 +1258,6 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Upload cv-test-coverage-summary (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-summary
@@ -1298,10 +1287,8 @@ jobs:
           retention-days: 7
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate unit test coverage summary
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
       - name: Upload unit-test-coverage-summary (artifact stores)
-        if: ${{ env.COLLECT_COVERAGE == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: unit-test-coverage-summary
@@ -1339,9 +1326,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
-        shard: [1, 2, 3, 4]
+        # The shard list length must match the denominator in --shard below.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1365,21 +1352,17 @@ jobs:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Prepare results directory
         run: mkdir -p tests/results
-      # test:view:ci already collects coverage. PRs append --coverage=false.
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/6 \
             --json \
-            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json ${{ env.COLLECT_COVERAGE != 'true' && '--coverage=false' || '' }}
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
           NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=12288' || '--max-old-space-size=20480' }}
       - name: Rename coverage report and extract test count for this shard
         shell: bash
         run: |
-          mkdir -p ./tests/coverage
-          if [ "$COLLECT_COVERAGE" = "true" ]; then
-            mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
-          fi
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
@@ -1908,13 +1891,13 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - name: Download lcov.info (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && env.COLLECT_COVERAGE == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: lcov.info
           path: coverage/
       - name: Download lcov.info (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && env.COLLECT_COVERAGE == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v7
         with:
           name: lcov.info
@@ -2015,7 +1998,6 @@ jobs:
           MAX_ATTEMPTS=20
           SLEEP_INTERVAL=15
           ERROR_STREAK=0
-          COVERAGE_ONLY_STREAK=0
           ERROR_STREAK_TO_FAIL=8
           for i in $(seq 1 $MAX_ATTEMPTS); do
             RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
@@ -2027,37 +2009,14 @@ jobs:
               echo "Quality Gate passed."
               exit 0
             elif [[ "$STATUS" == "ERROR" ]]; then
-              # PRs do not upload unit/CV lcov. A gate that fails only on coverage
-              # metrics must not fail the check. Any other ERROR condition still fails.
-              COVERAGE_ONLY=$(echo "$RESPONSE" | jq -r '
-                def is_coverage: (.metricKey // "") | test("coverage");
-                (.projectStatus.conditions // []) as $c
-                | if ($c | length) == 0 then "unknown"
-                  elif ($c | map(select(.status == "ERROR" and (is_coverage | not))) | length) > 0 then "no"
-                  elif ($c | map(select(.status == "ERROR" and is_coverage)) | length) > 0 then "yes"
-                  else "unknown"
-                  end
-              ' 2>/dev/null || echo "unknown")
-              if [[ "$COVERAGE_ONLY" == "yes" ]]; then
-                COVERAGE_ONLY_STREAK=$((COVERAGE_ONLY_STREAK + 1))
-                ERROR_STREAK=0
-                if [[ $COVERAGE_ONLY_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                  echo "Quality Gate ERROR is coverage-only across $COVERAGE_ONLY_STREAK polls. PR unit/CV coverage is not collected."
-                  exit 0
-                fi
-                echo "Got coverage-only ERROR ($COVERAGE_ONLY_STREAK/$ERROR_STREAK_TO_FAIL). It may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
-              else
-                COVERAGE_ONLY_STREAK=0
-                ERROR_STREAK=$((ERROR_STREAK + 1))
-                if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                  echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
-                  exit 1
-                fi
-                echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+              ERROR_STREAK=$((ERROR_STREAK + 1))
+              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                exit 1
               fi
+              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
             else
               ERROR_STREAK=0
-              COVERAGE_ONLY_STREAK=0
               echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
             fi
 
