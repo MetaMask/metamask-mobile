@@ -9,6 +9,7 @@ import {
   selectImmersveAppleWalletProvisioningEnabled,
   selectPushProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
+  selectCardBaanxPasswordlessLoginEnabled,
   selectImmersveOnboardingEnabled,
   selectCardTransactionHistoryEnabled,
   selectCardIntercomSupportEnabled,
@@ -877,6 +878,78 @@ describe('selectCardForgotPasswordFeatureEnabled', () => {
     );
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectCardBaanxPasswordlessLoginEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    }) as never;
+
+  beforeEach(() => {
+    delete process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED;
+  });
+
+  it('returns true when the remote flag is enabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    expect(
+      selectCardBaanxPasswordlessLoginEnabled(
+        stateWithFlags({
+          cardBaanxPasswordlessLogin: {
+            enabled: true,
+            minimumVersion: '8.0.0',
+          },
+        }),
+      ),
+    ).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '8.0.0',
+    });
+  });
+
+  it('returns false when the remote flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardBaanxPasswordlessLoginEnabled(
+        stateWithFlags({
+          cardBaanxPasswordlessLogin: {
+            enabled: false,
+            minimumVersion: '8.0.0',
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('returns false when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    expect(selectCardBaanxPasswordlessLoginEnabled(mockedEmptyFlagsState)).toBe(
+      false,
+    );
+  });
+
+  it('falls back to env when the remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED = 'true';
+
+    expect(selectCardBaanxPasswordlessLoginEnabled.resultFunc({})).toBe(true);
   });
 });
 
