@@ -104,6 +104,23 @@ interface PerPositionResult {
   error?: string;
 }
 
+type CompleteFeeResult = PerPositionResult & {
+  fees: FeeCalculationResult & {
+    protocolFeeRate: number;
+    metamaskFeeRate: number;
+  };
+};
+
+function hasCompleteFeeRates(
+  result: PerPositionResult,
+): result is CompleteFeeResult {
+  return (
+    !result.error &&
+    result.fees.protocolFeeRate !== undefined &&
+    result.fees.metamaskFeeRate !== undefined
+  );
+}
+
 /**
  * Hook to aggregate fee calculations and points estimation across multiple positions
  *
@@ -472,18 +489,9 @@ export function usePerpsCloseAllCalculations({
       perPositionResults.length > 0 && perPositionResults[0].points
         ? perPositionResults[0].points.pointsEstimate
         : undefined;
-    const originalTotalFees = perPositionResults.reduce<number | undefined>(
-      (sum, { fees, notionalUsd, error }) => {
-        if (error) {
-          return sum;
-        }
-        if (
-          sum === undefined ||
-          fees.protocolFeeRate === undefined ||
-          fees.metamaskFeeRate === undefined
-        ) {
-          return undefined;
-        }
+    const completeFeeResults = perPositionResults.filter(hasCompleteFeeRates);
+    const originalTotalFees = completeFeeResults.reduce(
+      (sum, { fees, notionalUsd }) => {
         const originalMetamaskFeeRate = presentedOriginalMetamaskRate(fees);
         return (
           sum + notionalUsd * (fees.protocolFeeRate + originalMetamaskFeeRate)
@@ -499,13 +507,9 @@ export function usePerpsCloseAllCalculations({
     let weightedProtocolFeeRate = 0;
     let totalWeight = 0;
 
-    perPositionResults.forEach((result) => {
+    completeFeeResults.forEach((result) => {
       const weight = result.notionalUsd;
-      if (
-        weight > 0 &&
-        result.fees.metamaskFeeRate !== undefined &&
-        result.fees.protocolFeeRate !== undefined
-      ) {
+      if (weight > 0) {
         weightedMetamaskFeeRate += result.fees.metamaskFeeRate * weight;
         if (result.fees.metamaskFeeDiscountBips !== undefined) {
           weightedFeeDiscountBips +=
@@ -522,14 +526,13 @@ export function usePerpsCloseAllCalculations({
     const avgProtocolFeeRate =
       totalWeight > 0 ? weightedProtocolFeeRate / totalWeight : undefined;
 
-    const originalBuilderTotal = perPositionResults.reduce(
+    const originalBuilderTotal = completeFeeResults.reduce(
       (sum, { fees, notionalUsd }) =>
         sum + notionalUsd * presentedOriginalMetamaskRate(fees),
       0,
     );
-    const currentBuilderTotal = perPositionResults.reduce(
-      (sum, { fees, notionalUsd }) =>
-        sum + notionalUsd * (fees.metamaskFeeRate ?? 0),
+    const currentBuilderTotal = completeFeeResults.reduce(
+      (sum, { fees, notionalUsd }) => sum + notionalUsd * fees.metamaskFeeRate,
       0,
     );
     const avgOriginalMetamaskFeeRate =

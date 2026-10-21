@@ -2092,7 +2092,11 @@ export class RewardsController extends BaseController<
         feeBips,
         expiresAt,
       };
-    } catch {
+    } catch (error) {
+      Logger.log(
+        'RewardsController: trading fee grant fetch failed; returning no grant:',
+        error instanceof Error ? error.message : String(error),
+      );
       return null;
     }
   }
