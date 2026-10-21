@@ -6,6 +6,7 @@ import type { TraderFeedRow } from '../../../UI/SocialFeed/types';
 import { mapFeedItem } from '../../../UI/SocialFeed/utils/mapFeedItem';
 import {
   applyRealtimeEventToRow,
+  getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
   toLiveFeedRow,
 } from './useLiveFeed';
@@ -109,5 +110,11 @@ describe('mergeRealtimeFeedItem', () => {
     const liveRow = applyRealtimeEventToRow(row, event, undefined, true);
 
     expect(liveRow?.realtimeEventId).toBe(event.eventId);
+  });
+
+  it('hides pending count while Live is active at the top', () => {
+    expect(getVisiblePendingNewCount(1, false, true)).toBe(0);
+    expect(getVisiblePendingNewCount(1, true, true)).toBe(1);
+    expect(getVisiblePendingNewCount(1, false, false)).toBe(1);
   });
 });

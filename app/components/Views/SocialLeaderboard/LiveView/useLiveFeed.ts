@@ -77,6 +77,12 @@ export const toLiveFeedRow = (row: TraderFeedRow): LiveFeedRow => ({
   feedItemId: row.core.positionId,
 });
 
+export const getVisiblePendingNewCount = (
+  pendingNewCount: number,
+  paused: boolean,
+  nearTop: boolean,
+): number => (paused || !nearTop ? pendingNewCount : 0);
+
 export const applyRealtimeEventToRow = (
   row: TraderFeedRow,
   event: SocialFeedEvent,
@@ -282,6 +288,11 @@ export const useLiveFeed = ({
     () => toSocialFeedPosts(rows, feed.dataUpdatedAt ?? Date.now()),
     [feed.dataUpdatedAt, rows],
   );
+  const visiblePendingNewCount = getVisiblePendingNewCount(
+    pendingNewCount,
+    paused,
+    nearTop,
+  );
   const realtimeEventIds = useMemo(
     () =>
       new Map(
@@ -304,6 +315,6 @@ export const useLiveFeed = ({
     refresh: feed.refresh,
     realtimeEventIds,
     markRealtimeEventAnimated: () => undefined,
-    pendingNewCount,
+    pendingNewCount: visiblePendingNewCount,
   };
 };
