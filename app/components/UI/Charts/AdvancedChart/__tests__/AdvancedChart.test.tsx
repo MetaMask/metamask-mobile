@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import AdvancedChart from '../AdvancedChart';
+import AdvancedChart, {
+  ADVANCED_CHART_WEBVIEW_TEST_ID,
+} from '../AdvancedChart';
 import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
@@ -40,7 +42,13 @@ jest.mock('@metamask/react-native-webview', () => {
         postMessage: mockPostMessage,
         reload: jest.fn(),
       }));
-      return <View testID="mock-webview" {...props} />;
+      return (
+        <View
+          {...props}
+          testID="mock-webview"
+          nativeID={typeof props.testID === 'string' ? props.testID : undefined}
+        />
+      );
     },
   );
   MockWebView.displayName = 'MockWebView';
@@ -60,6 +68,14 @@ describe('AdvancedChart', () => {
   it('renders without crashing', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it('passes advanced-chart-webview to the chart WebView', () => {
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    expect(getByTestId('mock-webview').props.nativeID).toBe(
+      ADVANCED_CHART_WEBVIEW_TEST_ID,
+    );
   });
 
   it('serializes configured price decimals into the WebView template', () => {

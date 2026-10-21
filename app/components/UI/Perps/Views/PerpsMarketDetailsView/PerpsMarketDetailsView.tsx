@@ -2094,7 +2094,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 />
               )}
 
-              <View style={styles.chartTouchContainer}>
+              <View
+                style={styles.chartTouchContainer}
+                testID={PerpsMarketDetailsViewSelectorsIDs.CHART_CONTAINER}
+              >
                 {Platform.OS === 'ios' && (
                   <View
                     style={styles.chartEdgeGuard}

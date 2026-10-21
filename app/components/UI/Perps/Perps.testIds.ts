@@ -468,6 +468,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   MARKET_SUMMARY: 'perps-market-details-market-summary',
   FULLSCREEN_CHART_BUTTON: 'perps-market-details-fullscreen-chart-button',
   PRICE_ALERTS_BUTTON: 'perps-market-details-price-alerts-button',
+  CHART_CONTAINER: 'perps-market-details-chart-container',
   CHART_EDGE_GUARD: 'perps-market-details-chart-edge-guard',
   STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
   STATISTICS_LOW_24H: 'perps-statistics-low-24h',
