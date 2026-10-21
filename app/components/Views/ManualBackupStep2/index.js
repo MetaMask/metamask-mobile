@@ -21,8 +21,8 @@ import {
   TextColor,
   TextField,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
-import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import { connect } from 'react-redux';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import SecureContentView from '../../UI/SecureContentView';
@@ -411,10 +411,10 @@ const ManualBackupStep2 = ({
         }}
       />
       <Box
-        twClassName="flex-1 px-4"
+        twClassName="flex-1 px-4 gap-4"
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
-        <TitleStandardMarketing
+        <TitleStandard
           title={strings('manual_backup_step_2.action')}
           bottomLabel={strings('manual_backup_step_2.info')}
         />

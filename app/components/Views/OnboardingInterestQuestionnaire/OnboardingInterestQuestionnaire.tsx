@@ -11,6 +11,7 @@ import {
   ButtonsAlignment,
   ButtonVariant,
   HeaderStandard,
+  TitleStandard,
   ListItemMultiSelect,
   ListItemVariant,
   Text,
@@ -18,7 +19,6 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -221,8 +221,8 @@ const OnboardingInterestQuestionnaire = () => {
     >
       <HeaderStandard includesTopInset />
 
-      <Box twClassName="px-4">
-        <TitleStandardMarketing
+      <Box twClassName="px-4 pb-4">
+        <TitleStandard
           title={strings('onboarding_interest_questionnaire.title')}
           bottomLabel={strings('onboarding_interest_questionnaire.description')}
         />
