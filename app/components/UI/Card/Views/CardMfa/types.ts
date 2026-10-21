@@ -14,7 +14,6 @@ export interface ImmersveMfaContinuation {
   phone?: string;
   showAccountExistsToast?: boolean;
   navigateFromRoot?: boolean;
-  startProvisioning?: boolean;
 }
 
 export interface CardMfaMethodParams {

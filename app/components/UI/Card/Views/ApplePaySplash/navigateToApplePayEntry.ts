@@ -7,9 +7,10 @@ interface ApplePayNavigation {
 }
 
 /**
- * Opens Card so provisioning can start.
+ * Opens Card so the user can add the card to Apple Wallet.
  * A valid session goes to Card Home, which opens PassKit.
- * Otherwise it opens Card sign-in and signs the wallet in automatically.
+ * Otherwise it opens Card sign-in. After sign-in the user lands on Card Home
+ * and starts provisioning from the Add to Apple Wallet button there.
  */
 export function navigateToApplePayEntry(
   navigation: ApplePayNavigation,
@@ -35,7 +36,7 @@ export function navigateToApplePayEntry(
     screen: Routes.CARD.HOME,
     params: {
       screen: Routes.CARD.AUTHENTICATION,
-      params: { autoSignIn: true, startProvisioning: true },
+      params: { autoSignIn: true },
     },
   });
 }

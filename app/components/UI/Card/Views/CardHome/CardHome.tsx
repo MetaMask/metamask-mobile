@@ -389,7 +389,6 @@ const CardHome = () => {
       navigation.dispatch(
         StackActions.replace(Routes.CARD.AUTHENTICATION, {
           autoSignIn: continueProvisioning,
-          ...(continueProvisioning ? { startProvisioning: true } : {}),
         }),
       );
     }

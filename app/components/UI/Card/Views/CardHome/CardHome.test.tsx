@@ -1623,7 +1623,7 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('keeps provisioning when an expired session opens sign-in', () => {
+  it('signs in automatically when an expired session was about to provision', () => {
     mockIsFocused = true;
     mockCardHomeRouteParams = { startProvisioning: true };
     setupMockSelectors({ isAuthenticated: true });
@@ -1636,7 +1636,7 @@ describe('CardHome Component', () => {
 
     expect(StackActions.replace).toHaveBeenCalledWith(
       Routes.CARD.AUTHENTICATION,
-      { autoSignIn: true, startProvisioning: true },
+      { autoSignIn: true },
     );
   });
 

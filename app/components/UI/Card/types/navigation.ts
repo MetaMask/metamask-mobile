@@ -77,7 +77,6 @@ export type CardScreensStackParamList = {
     | {
         showAuthPrompt?: boolean;
         autoSignIn?: boolean;
-        startProvisioning?: boolean;
         postAuthRedirect?: CardPostAuthRedirect;
       }
     | undefined;

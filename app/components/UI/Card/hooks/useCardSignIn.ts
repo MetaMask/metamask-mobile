@@ -79,7 +79,6 @@ export interface UseCardSignInResult {
     address: string;
     country: string;
     resumeOnboarding?: boolean;
-    startProvisioning?: boolean;
   }) => Promise<void>;
   selectOption: (option: CardSignInOption, country: string) => void;
 }
@@ -188,13 +187,11 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
       address,
       country: signInCountry,
       resumeOnboarding = true,
-      startProvisioning,
     }: {
       option: CardSignInOption;
       address: string;
       country: string;
       resumeOnboarding?: boolean;
-      startProvisioning?: boolean;
     }) => {
       const checksummed = safeToChecksumAddress(address) ?? address;
       const result = await Engine.context.CardController.authenticateWithWallet(
@@ -215,7 +212,6 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
             entrypoint: CardEntryPoint.AUTHENTICATION,
             showAccountExistsToast: false,
             navigateFromRoot: true,
-            startProvisioning,
           },
         });
         return;
@@ -229,7 +225,6 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
           navigateFromRoot: true,
           alreadyAuthenticated: true,
           entrypoint: CardEntryPoint.AUTHENTICATION,
-          startProvisioning,
         });
       }
     },

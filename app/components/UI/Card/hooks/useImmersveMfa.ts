@@ -136,7 +136,6 @@ export function useImmersveMfa() {
         navigateFromRoot: continuation.navigateFromRoot,
         entrypoint: continuation.entrypoint,
         alreadyAuthenticated: true,
-        startProvisioning: continuation.startProvisioning,
       });
     },
     [resume],
