@@ -74,6 +74,7 @@ describe('useWalletHeaderNativeHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useAccountsMenuAttention).mockReturnValue(false);
+    mockSocialV1Enabled = false;
   });
 
   it('passes the screen gate through', () => {
@@ -159,6 +160,19 @@ describe('useWalletHeaderNativeHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it('opens the profile drawer from the account picker when Social V1 is enabled', () => {
+    mockSocialV1Enabled = true;
+    const [accountItem] = renderNativeHeader().leftItems;
+    if (accountItem?.type !== 'custom') {
+      throw new Error('Expected a custom account picker item');
+    }
+
+    const { getByTestId } = renderWithProvider(accountItem.element);
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+  });
+
   it('renders a truncated account picker that opens the account selector', () => {
     const [accountItem] = renderNativeHeader({
       displayName: 'Test Main Account a really long',
@@ -175,18 +189,5 @@ describe('useWalletHeaderNativeHeader', () => {
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
       {},
     );
-  });
-
-  it('opens the profile drawer from the account picker when Social V1 is enabled', () => {
-    mockSocialV1Enabled = true;
-    const [accountItem] = renderNativeHeader().leftItems;
-    if (accountItem?.type !== 'custom') {
-      throw new Error('Expected a custom account picker item');
-    }
-
-    const { getByTestId } = renderWithProvider(accountItem.element);
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
   });
 });
