@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -18,6 +19,8 @@ import {
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
+import { CardStatus } from '../../types';
 import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -52,6 +55,8 @@ const ImmersveReissueCardSheet = () => {
     route.params as ImmersveReissueCardSheetRouteParams | undefined
   )?.cardId;
   const reissueCard = useCardReissue(cardId);
+  const cardHomeData = useSelector(selectCardHomeData);
+  const isFrozen = cardHomeData?.card?.status === CardStatus.FROZEN;
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -97,6 +102,10 @@ const ImmersveReissueCardSheet = () => {
   );
 
   const handleConfirm = useCallback(async () => {
+    if (isFrozen) {
+      return;
+    }
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties(
@@ -155,6 +164,7 @@ const ImmersveReissueCardSheet = () => {
     toastRef,
     showToast,
     reissueCard,
+    isFrozen,
   ]);
 
   return (
@@ -185,7 +195,11 @@ const ImmersveReissueCardSheet = () => {
           twClassName="text-alternative pb-4"
           testID={ImmersveReissueCardSheetTestIds.DESCRIPTION}
         >
-          {strings('card.reissue_card_sheet.description')}
+          {strings(
+            isFrozen
+              ? 'card.reissue_card_sheet.frozen_description'
+              : 'card.reissue_card_sheet.description',
+          )}
         </Text>
         <Box twClassName="gap-4 pt-4">
           <Button
@@ -195,17 +209,23 @@ const ImmersveReissueCardSheet = () => {
             isFullWidth
             testID={ImmersveReissueCardSheetTestIds.KEEP_BUTTON}
           >
-            {strings('card.reissue_card_sheet.keep_button')}
+            {strings(
+              isFrozen
+                ? 'card.reissue_card_sheet.frozen_close_button'
+                : 'card.reissue_card_sheet.keep_button',
+            )}
           </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={handleConfirm}
-            isFullWidth
-            testID={ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON}
-          >
-            {strings('card.reissue_card_sheet.confirm_button')}
-          </Button>
+          {isFrozen ? null : (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleConfirm}
+              isFullWidth
+              testID={ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON}
+            >
+              {strings('card.reissue_card_sheet.confirm_button')}
+            </Button>
+          )}
         </Box>
       </Box>
     </BottomSheet>

@@ -83,11 +83,26 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const renderSheet = () =>
+const renderSheet = (cardStatus?: string) =>
   renderWithProvider(
     <ToastContext.Provider value={{ toastRef: mockToastRef }}>
       <ImmersveReissueCardSheet />
     </ToastContext.Provider>,
+    cardStatus
+      ? {
+          state: {
+            engine: {
+              backgroundState: {
+                CardController: {
+                  cardHomeData: {
+                    card: { status: cardStatus },
+                  },
+                },
+              },
+            },
+          },
+        }
+      : undefined,
   );
 
 describe('ImmersveReissueCardSheet', () => {
@@ -175,6 +190,26 @@ describe('ImmersveReissueCardSheet', () => {
         hasNoTimeout: false,
       }),
     );
+  });
+
+  it('tells the user a frozen card cannot be replaced', () => {
+    const { getByText, queryByTestId } = renderSheet('FROZEN');
+
+    expect(
+      getByText(
+        'Your card is frozen and cannot be replaced. Unfreeze your card using the toggle or contact Support for assistance.',
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Got it')).toBeOnTheScreen();
+    expect(
+      queryByTestId(ImmersveReissueCardSheetTestIds.CONFIRM_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByText('Got it'));
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(withBiometricAuth).not.toHaveBeenCalled();
+    expect(mockMutateAsync).not.toHaveBeenCalled();
   });
 
   it('toasts an error when reissue fails', async () => {

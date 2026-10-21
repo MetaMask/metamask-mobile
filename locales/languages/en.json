@@ -11378,6 +11378,8 @@
       "title": "Replace your card?",
       "description": "You'll get a replacement with the same card number and a new expiry date and security code. Apple Wallet and merchants that support automatic card updates switch over on their own. Anywhere else, update the expiry date and security code.",
       "keep_button": "Keep current card",
+      "frozen_description": "Your card is frozen and cannot be replaced. Unfreeze your card using the toggle or contact Support for assistance.",
+      "frozen_close_button": "Got it",
       "confirm_button": "Replace card",
       "pending": "Getting your new card ready",
       "success": "Your new card is ready",
