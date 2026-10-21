@@ -1,10 +1,10 @@
-import { buildBrazilMusdAutorampRequest } from '@metamask/ramps-controller';
+import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 import {
-  ensureBrazilMusdAutoramp,
-  resetBrazilMusdAutorampSetupGuard,
-} from './ensureBrazilMusdAutoramp';
+  ensureMusdAutoramp,
+  resetMusdAutorampSetupGuard,
+} from './ensureMusdAutoramp';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
@@ -36,10 +36,10 @@ const setAutoramps = (
   ).autoramps = autoramps;
 };
 
-describe('ensureBrazilMusdAutoramp', () => {
+describe('ensureMusdAutoramp', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetBrazilMusdAutorampSetupGuard();
+    resetMusdAutorampSetupGuard();
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockRegister.mockResolvedValue({ type: 'alreadyRegistered' });
@@ -53,16 +53,31 @@ describe('ensureBrazilMusdAutoramp', () => {
         autorampStatus: 'needs_wallet_registration',
       });
 
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('waiting');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('waiting');
     expect(mockCreate).not.toHaveBeenCalled();
 
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
     expect(mockRegister).toHaveBeenCalledWith({ address: '0xabc' });
     expect(mockCreate).toHaveBeenCalledTimes(1);
     expect(mockCreate).toHaveBeenCalledWith(
-      buildBrazilMusdAutorampRequest('0xabc'),
+      buildMusdAutorampRequest('0xabc', 'BRL'),
     );
   });
+
+  it.each(['USD', 'EUR'] as const)(
+    'creates the autoramp in %s',
+    async (currency) => {
+      await expect(ensureMusdAutoramp('0xabc', currency)).resolves.toBe(
+        'ready',
+      );
+
+      expect(mockCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: currency }],
+        }),
+      );
+    },
+  );
 
   it('shares one create across overlapping calls', async () => {
     let releaseCreate: (value: unknown) => void = () => undefined;
@@ -73,8 +88,8 @@ describe('ensureBrazilMusdAutoramp', () => {
         }),
     );
 
-    const first = ensureBrazilMusdAutoramp('0xabc');
-    const second = ensureBrazilMusdAutoramp('0xabc');
+    const first = ensureMusdAutoramp('0xabc', 'BRL');
+    const second = ensureMusdAutoramp('0xABC', 'BRL');
     await flushPromises();
 
     expect(mockHydrate).toHaveBeenCalledTimes(1);
@@ -89,18 +104,27 @@ describe('ensureBrazilMusdAutoramp', () => {
   it('skips create when a usable autoramp exists', async () => {
     setAutoramps([{ walletAddress: '0xabc', status: 'Authorized' }]);
 
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
     expect(mockHydrate).not.toHaveBeenCalled();
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('creates when only rejected or cancelled routes exist', async () => {
+  it('does not replace rejected or cancelled routes on its own', async () => {
     setAutoramps([
       { walletAddress: '0xabc', status: 'Rejected' },
       { walletAddress: '0xabc', status: 'Cancelled' },
     ]);
 
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('ready');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('terminal');
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('replaces a rejected route when asked to', async () => {
+    setAutoramps([{ walletAddress: '0xabc', status: 'Rejected' }]);
+
+    await expect(
+      ensureMusdAutoramp('0xabc', 'BRL', { replaceTerminal: true }),
+    ).resolves.toBe('ready');
     expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
@@ -110,7 +134,13 @@ describe('ensureBrazilMusdAutoramp', () => {
     });
     mockRegister.mockResolvedValue({ type: 'lookupUnavailable' });
 
-    await expect(ensureBrazilMusdAutoramp('0xabc')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('fails when create throws', async () => {
+    mockCreate.mockRejectedValue(new Error('create failed'));
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
   });
 });
