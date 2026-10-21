@@ -779,12 +779,15 @@ describe('SocialLeaderboardOnboarding', () => {
     await advanceToNotifyStep();
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.HOME_TABS, {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
         screen: Routes.SOCIAL.TAB,
         params: { source: 'nux' },
-      }),
+      },
+      { pop: true },
     );
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('swallows an allowNotifications entry pulse on the follow-path Notify step', async () => {
@@ -1104,12 +1107,15 @@ describe('SocialLeaderboardOnboarding', () => {
 
     await fireTrigger(RIVE_TRIGGERS.CLOSE);
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.HOME_TABS, {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
         screen: Routes.SOCIAL.TAB,
         params: { source: 'nux' },
-      }),
+      },
+      { pop: true },
     );
+    expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 

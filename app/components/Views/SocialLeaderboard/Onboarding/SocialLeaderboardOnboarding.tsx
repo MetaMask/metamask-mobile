@@ -591,27 +591,38 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     });
   }, [stepIndex, track]);
 
-  const exitToLeaderboard = useCallback(
+  const returnToSocialTab = useCallback(
     (extraParams?: { showNotificationsBanner?: boolean }) => {
-      const routeName = route.params?.returnToTab
-        ? Routes.HOME_TABS
-        : getFollowTradingHomeRoute();
-      const routeParams = route.params?.returnToTab
-        ? {
-            screen: Routes.SOCIAL.TAB,
-            params: {
-              source: ONBOARDING_SOURCE,
-              ...extraParams,
-            },
-          }
-        : {
+      navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.SOCIAL.TAB,
+          params: {
             source: ONBOARDING_SOURCE,
             ...extraParams,
-          };
-
-      navigation.dispatch(StackActions.replace(routeName, routeParams));
+          },
+        },
+        { pop: true },
+      );
     },
-    [navigation, route.params?.returnToTab],
+    [navigation],
+  );
+
+  const exitToLeaderboard = useCallback(
+    (extraParams?: { showNotificationsBanner?: boolean }) => {
+      if (route.params?.returnToTab) {
+        returnToSocialTab(extraParams);
+        return;
+      }
+
+      navigation.dispatch(
+        StackActions.replace(getFollowTradingHomeRoute(), {
+          source: ONBOARDING_SOURCE,
+          ...extraParams,
+        }),
+      );
+    },
+    [navigation, returnToSocialTab, route.params?.returnToTab],
   );
 
   const goToLeaderboard = useCallback(
@@ -639,17 +650,17 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     void markOnboardingSeen();
     trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.DISMISSED);
     if (route.params?.returnToTab) {
-      navigation.dispatch(
-        StackActions.replace(Routes.HOME_TABS, {
-          screen: Routes.SOCIAL.TAB,
-          params: { source: ONBOARDING_SOURCE },
-        }),
-      );
+      returnToSocialTab();
       return;
     }
 
     navigation.goBack();
-  }, [navigation, route.params?.returnToTab, trackInteraction]);
+  }, [
+    navigation,
+    returnToSocialTab,
+    route.params?.returnToTab,
+    trackInteraction,
+  ]);
 
   // Forward navigation. The "Next" button (Trade slide) AND the artboard's
   // forward tap-zone (right margin) both fire `next`, from whichever slide is
