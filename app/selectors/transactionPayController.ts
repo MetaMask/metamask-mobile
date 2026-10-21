@@ -1,11 +1,9 @@
 import {
-  NonEvmTransactionPayQuote,
   TransactionData,
   TransactionPayQuote,
   TransactionPayStrategy,
   isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
-import { isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 
@@ -18,16 +16,6 @@ export function isNoOpQuote(
   quote: Pick<TransactionPayQuote<unknown>, 'strategy'>,
 ): boolean {
   return quote.strategy === TransactionPayStrategy.None;
-}
-
-/**
- * Check whether a quote pays from an EVM source. Non-EVM quotes, such as
- * Solana sources, carry a CAIP-2 source chain instead of a Hex chain ID.
- */
-export function isEvmTransactionPayQuote<T>(
-  quote: TransactionPayQuote<T> | NonEvmTransactionPayQuote<T>,
-): quote is TransactionPayQuote<T> {
-  return !isCaipChainId(quote.request.sourceChainId);
 }
 
 /**
