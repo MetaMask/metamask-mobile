@@ -31,4 +31,7 @@ export enum AlertKeys {
   TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',
   TokenTrustSignalWarning = 'token_trust_signal_warning',
+  SignatureAddressScanIncomplete = 'signature_address_scan_incomplete',
+  SignatureAddressTrustSignalMalicious = 'signature_address_trust_signal_malicious',
+  SignatureAddressTrustSignalWarning = 'signature_address_trust_signal_warning',
 }
