@@ -132,6 +132,18 @@ describe('selectMoneyVbaPendingActivityEnabled', () => {
       false,
     );
   });
+
+  it('defaults off when the remote flag shape is invalid and local override is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    expect(
+      selectMoneyVbaPendingActivityEnabled(
+        createState({
+          moneyVbaPendingActivityEnabled: { enabled: 'true' },
+          _unique: 'pending-vba-invalid-default-off',
+        }) as never,
+      ),
+    ).toBe(false);
+  });
 });
 
 describe('selectMoneyEnableActivityDetailsFlag', () => {

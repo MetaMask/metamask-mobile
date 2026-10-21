@@ -1,5 +1,5 @@
 import { AutorampStatus } from '@metamask/ramps-controller';
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
@@ -161,8 +161,9 @@ describe('useNeobankAutorampActivity', () => {
       wrapper,
     });
 
-    await Promise.resolve();
-    expect(listAutorampTransactions).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(listAutorampTransactions).toHaveBeenCalledTimes(1);
+    });
     await act(async () => {
       await jest.advanceTimersByTimeAsync(10_000);
     });

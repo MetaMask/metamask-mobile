@@ -87,11 +87,7 @@ function isPendingItem(item: MoneyActivityItem): boolean {
     return getMoneyActivityStatus(item.tx) === 'pending';
   }
   if (item.kind === 'neobank') {
-    return (
-      isNeobankPendingStatus(item.tx.status) ||
-      item.tx.status === 'Failed' ||
-      item.tx.status === 'Cancelled'
-    );
+    return isNeobankPendingStatus(item.tx.status);
   }
   return false;
 }

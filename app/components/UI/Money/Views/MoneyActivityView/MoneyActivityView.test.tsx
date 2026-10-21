@@ -13,6 +13,7 @@ import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectCardTransactionHistoryEnabled } from '../../../../../selectors/featureFlagController/card';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
+import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
 import { useCardTransactionIndex } from '../../../Card/hooks/useCardTransactionIndex';
 import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import {
@@ -73,6 +74,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
   selectMoneyEnableCardActivityEnrichmentFlag: jest.fn(() => false),
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => false),
+  selectMoneyVbaPendingActivityEnabled: jest.fn(() => true),
 }));
 
 jest.mock('../../selectors/eligibility', () => ({
@@ -211,6 +213,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 
 const defaultCardIndexResult = {
@@ -304,6 +307,10 @@ describe('MoneyActivityView', () => {
     mockedSelectEnrichmentFlag.mockReturnValue(false);
     mockedSelectMoneyAccountFlag.mockReturnValue(false);
     mockedSelectGeoEligible.mockReturnValue(false);
+    mockUseNeobankAutorampActivity.mockReturnValue({
+      activity: [],
+      refetch: jest.fn(),
+    });
     mockedSelectCardHistory.mockReturnValue(false);
     mockUseCardTransactionIndex.mockReturnValue(defaultCardIndexResult);
     mockUseMoneyAccountTransactions.mockReturnValue({
@@ -408,6 +415,46 @@ describe('MoneyActivityView', () => {
         'true',
       );
     });
+  });
+
+  it('places failed and cancelled NeoBank deposits in date sections, not Pending', () => {
+    const activity = [
+      {
+        id: 'neo-failed',
+        autorampId: 'ar-1',
+        status: 'Failed',
+        time: 1780574031000,
+      },
+      {
+        id: 'neo-cancelled',
+        autorampId: 'ar-1',
+        status: 'Cancelled',
+        time: 1780574031001,
+      },
+    ];
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: MOCK_DEPOSITS.filter(
+        (tx) => tx.id === 'money-tx-converted',
+      ),
+      deposits: MOCK_DEPOSITS.filter((tx) => tx.id === 'money-tx-converted'),
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+    });
+    mockUseNeobankAutorampActivity.mockReturnValue({
+      activity,
+      refetch: jest.fn(),
+    });
+
+    const { getAllByText, getAllByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    expect(getAllByText('money.transaction.deposit_failed')).toHaveLength(2);
+    expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
+    expect(getAllByTestId(MoneyActivityViewTestIds.DATE_HEADER)).toHaveLength(
+      2,
+    );
   });
 
   it('renders a Pending section for in-flight rows', () => {

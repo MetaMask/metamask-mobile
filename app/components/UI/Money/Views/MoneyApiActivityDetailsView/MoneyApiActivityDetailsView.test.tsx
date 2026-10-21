@@ -85,6 +85,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 let mockBlockExplorerFlag = true;
 let mockPendingActivityEnabled = true;
+let mockLiveNeobankActivity: NeobankBankTransferActivity[] = [];
 let mockRouteParams:
   | {
       activity?: AccountsApiActivity;
@@ -128,9 +129,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 
 jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
   useNeobankAutorampActivity: () => ({
-    activity: mockRouteParams?.neobankActivity
-      ? [mockRouteParams.neobankActivity]
-      : [],
+    activity: mockLiveNeobankActivity,
     refetch: jest.fn(),
   }),
 }));
@@ -689,6 +688,7 @@ describe('MoneyApiActivityDetailsView', () => {
   describe('neobank bank_transfer', () => {
     beforeEach(() => {
       mockPendingActivityEnabled = true;
+      mockLiveNeobankActivity = [];
     });
 
     const pendingNeobank: NeobankBankTransferActivity = {
@@ -737,8 +737,9 @@ describe('MoneyApiActivityDetailsView', () => {
     });
 
     it('marks Bank transfer complete and Money deposit pending after MoonPay Completed', () => {
+      mockLiveNeobankActivity = [{ ...pendingNeobank, status: 'Completed' }];
       mockRouteParams = {
-        neobankActivity: { ...pendingNeobank, status: 'Completed' },
+        neobankActivity: pendingNeobank,
       };
       const { getByText, getByTestId, getAllByTestId, queryByText } = render(
         <MoneyApiActivityDetailsView />,
@@ -756,8 +757,9 @@ describe('MoneyApiActivityDetailsView', () => {
 
     it('keeps provider Completed independent from a nearby confirmed activity', () => {
       mockApiActivity = [{ ...bankTransfer, amount: '15000000' }];
+      mockLiveNeobankActivity = [{ ...pendingNeobank, status: 'Completed' }];
       mockRouteParams = {
-        neobankActivity: { ...pendingNeobank, status: 'Completed' },
+        neobankActivity: pendingNeobank,
       };
       const { getByText, getAllByTestId, queryByText } = render(
         <MoneyApiActivityDetailsView />,
