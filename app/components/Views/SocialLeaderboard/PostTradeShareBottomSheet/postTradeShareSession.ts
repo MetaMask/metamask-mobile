@@ -1,6 +1,9 @@
 import type { QuickBuyTarget, QuickBuyTradeMode } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import type { SocialPostTradePreview } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type {
+  SocialPostPerpsPreview,
+  SocialPostTradePreview,
+} from '../SocialPostComposerView/SocialPostComposerView.types';
 
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
 
@@ -17,11 +20,16 @@ export const PostTradeShareOwner = {
 export type PostTradeShareOwnerId =
   (typeof PostTradeShareOwner)[keyof typeof PostTradeShareOwner];
 
-export interface PostTradeShareSession {
+interface PostTradeShareSessionBase {
   sessionId: string;
   status: PostTradeShareStatus;
   pairLabel?: string;
   tradeInFlightChain?: string;
+  reopenRequested: boolean;
+}
+
+export interface SpotPostTradeShareSession extends PostTradeShareSessionBase {
+  product: 'spot';
   transactionHash?: string;
   target: QuickBuyTarget;
   preview: SocialPostTradePreview;
@@ -30,7 +38,46 @@ export interface PostTradeShareSession {
   copyTradeOrigin?: CopyTradeOrigin;
   /** Screen that should reopen Quick Buy after a failure. */
   owner?: string;
-  reopenRequested: boolean;
+}
+
+export interface PerpsPostTradeShareSession extends PostTradeShareSessionBase {
+  product: 'perps';
+  /** Hyperliquid order id. Absent until the exchange accepts the order. */
+  orderId?: string;
+  preview: SocialPostPerpsPreview;
+}
+
+export type PostTradeShareSession =
+  | SpotPostTradeShareSession
+  | PerpsPostTradeShareSession;
+
+type BeginSpotPostTradeShareSession = Omit<
+  SpotPostTradeShareSession,
+  'reopenRequested' | 'sessionId' | 'status' | 'product'
+> & {
+  status?: PostTradeShareStatus;
+  product?: 'spot';
+};
+
+type BeginPerpsPostTradeShareSession = Omit<
+  PerpsPostTradeShareSession,
+  'reopenRequested' | 'sessionId' | 'status' | 'product'
+> & {
+  status?: PostTradeShareStatus;
+  product: 'perps';
+};
+
+export type BeginPostTradeShareSession =
+  | BeginSpotPostTradeShareSession
+  | BeginPerpsPostTradeShareSession;
+
+export interface PostTradeShareSessionPatch {
+  status?: PostTradeShareStatus;
+  pairLabel?: string;
+  tradeInFlightChain?: string;
+  transactionHash?: string;
+  orderId?: string;
+  preview?: SocialPostTradePreview | SocialPostPerpsPreview;
 }
 
 export interface PostTradeShareReopen {
@@ -75,32 +122,60 @@ export const getPostTradeShareSession = (): PostTradeShareSession | null =>
   state.session;
 
 export const beginPostTradeShareSession = (
-  session: Omit<
-    PostTradeShareSession,
-    'reopenRequested' | 'sessionId' | 'status'
-  > & {
-    status?: PostTradeShareStatus;
-  },
+  session: BeginPostTradeShareSession,
 ): string => {
   const sessionId = String(nextSessionId++);
-  state.session = {
-    ...session,
-    sessionId,
-    status: session.status ?? 'pending',
-    reopenRequested: false,
-  };
+  const status = session.status ?? 'pending';
+  if (session.product === 'perps') {
+    state.session = {
+      ...session,
+      product: 'perps',
+      sessionId,
+      status,
+      reopenRequested: false,
+    };
+  } else {
+    state.session = {
+      ...session,
+      product: 'spot',
+      sessionId,
+      status,
+      reopenRequested: false,
+    };
+  }
   notify();
   return sessionId;
 };
 
 export const patchPostTradeShareSession = (
   sessionId: string,
-  patch: Partial<PostTradeShareSession>,
+  patch: PostTradeShareSessionPatch,
 ): boolean => {
   if (!state.session || state.session.sessionId !== sessionId) {
     return false;
   }
-  state.session = { ...state.session, ...patch };
+  const current = state.session;
+  if (current.product === 'perps') {
+    state.session = {
+      ...current,
+      ...patch,
+      product: 'perps',
+      preview:
+        patch.preview && 'product' in patch.preview
+          ? patch.preview
+          : current.preview,
+    };
+  } else {
+    state.session = {
+      ...current,
+      ...patch,
+      product: 'spot',
+      preview:
+        patch.preview && !('product' in patch.preview)
+          ? patch.preview
+          : current.preview,
+    };
+  }
   notify();
   return true;
 };
@@ -119,7 +194,7 @@ export const requestPostTradeShareReopen = (): void => {
 };
 
 export const consumePostTradeShareReopen = (): PostTradeShareReopen | null => {
-  if (!state.session?.reopenRequested) {
+  if (!state.session?.reopenRequested || state.session.product !== 'spot') {
     return null;
   }
   const { target, copyTradeOrigin, tradeMode } = state.session;

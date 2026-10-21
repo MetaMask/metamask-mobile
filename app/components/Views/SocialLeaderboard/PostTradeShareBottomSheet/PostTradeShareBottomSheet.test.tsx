@@ -158,6 +158,81 @@ describe('PostTradeShareBottomSheet', () => {
     ).toBeDisabled();
   });
 
+  it('navigates to the composer with a Hyperliquid order id on Share', () => {
+    beginPostTradeShareSession({
+      product: 'perps',
+      status: 'complete',
+      orderId: '42',
+      pairLabel: '40x Long ETH',
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+        leverageLabel: '40x',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.order_complete');
+
+    fireEvent.press(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith('SocialPostComposerView', {
+      tradeInFlight: {
+        orderId: '42',
+        chain: 'hyperliquid',
+        tokenAddress: 'ETH',
+      },
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+        leverageLabel: '40x',
+      },
+    });
+    expect(mockNavigate.mock.calls[0][1].tradeInFlight.transactionHash).toBe(
+      undefined,
+    );
+  });
+
+  it('closes a failed perps order without requesting a retry', () => {
+    beginPostTradeShareSession({
+      product: 'perps',
+      status: 'failed',
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.order_failed');
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.close');
+
+    fireEvent.press(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(getPostTradeShareSession()).toBeNull();
+  });
+
   it('clears the session when the close button is pressed', () => {
     beginPostTradeShareSession({
       target,

@@ -29,7 +29,11 @@ export const usePostTradeShareReopen = (
     }
     const unsubscribe = subscribePostTradeShareSession(() => {
       const session = getPostTradeShareSession();
-      if (!session?.reopenRequested || session.owner !== owner) {
+      if (
+        !session?.reopenRequested ||
+        session.product !== 'spot' ||
+        session.owner !== owner
+      ) {
         return;
       }
       const reopened = consumePostTradeShareReopen();

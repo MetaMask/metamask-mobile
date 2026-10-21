@@ -36,10 +36,12 @@ const PostTradeShareBottomSheet: React.FC = () => {
     getPostTradeShareSession,
   );
 
+  const isPerps = session?.product === 'perps';
   const canShare = Boolean(
     session?.status === 'complete' &&
-      session.transactionHash &&
-      session.tradeInFlightChain,
+      (session.product === 'perps'
+        ? session.orderId
+        : session.transactionHash && session.tradeInFlightChain),
   );
 
   const title = useMemo(() => {
@@ -50,9 +52,17 @@ const PostTradeShareBottomSheet: React.FC = () => {
       return strings('social_leaderboard.post_trade_share.in_progress');
     }
     if (session.status === 'failed') {
-      return strings('social_leaderboard.post_trade_share.failed');
+      return strings(
+        session.product === 'perps'
+          ? 'social_leaderboard.post_trade_share.order_failed'
+          : 'social_leaderboard.post_trade_share.failed',
+      );
     }
-    return strings('social_leaderboard.post_trade_share.complete');
+    return strings(
+      session.product === 'perps'
+        ? 'social_leaderboard.post_trade_share.order_complete'
+        : 'social_leaderboard.post_trade_share.complete',
+    );
   }, [session]);
 
   const handleClose = useCallback(() => {
@@ -64,18 +74,37 @@ const PostTradeShareBottomSheet: React.FC = () => {
       return;
     }
     if (session.status === 'failed') {
+      if (session.product === 'perps') {
+        clearPostTradeShareSession();
+        return;
+      }
       requestPostTradeShareReopen();
       return;
     }
-    if (!canShare || !session.transactionHash || !session.tradeInFlightChain) {
+    if (!canShare) {
+      return;
+    }
+    const tradeInFlight =
+      session.product === 'perps' && session.orderId
+        ? {
+            orderId: session.orderId,
+            chain: 'hyperliquid' as const,
+            tokenAddress: session.preview.tokenAddress,
+          }
+        : session.product === 'spot' &&
+            session.transactionHash &&
+            session.tradeInFlightChain
+          ? {
+              transactionHash: session.transactionHash,
+              chain: session.tradeInFlightChain,
+              tokenAddress: session.preview.tokenAddress,
+            }
+          : undefined;
+    if (!tradeInFlight) {
       return;
     }
     const params = {
-      tradeInFlight: {
-        transactionHash: session.transactionHash,
-        chain: session.tradeInFlightChain,
-        tokenAddress: session.preview.tokenAddress,
-      },
+      tradeInFlight,
       preview: session.preview,
     };
     clearPostTradeShareSession();
@@ -88,7 +117,11 @@ const PostTradeShareBottomSheet: React.FC = () => {
 
   const primaryLabel =
     session.status === 'failed'
-      ? strings('social_leaderboard.post_trade_share.try_again')
+      ? strings(
+          isPerps
+            ? 'social_leaderboard.post_trade_share.close'
+            : 'social_leaderboard.post_trade_share.try_again',
+        )
       : strings('social_leaderboard.post_trade_share.share_this_trade');
   const primaryDisabled =
     session.status === 'pending' ||

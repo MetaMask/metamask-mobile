@@ -54,8 +54,13 @@ describe('postTradeShareSession', () => {
       status: 'complete',
     });
 
-    expect(getPostTradeShareSession()?.transactionHash).toBe('0xabc');
-    expect(getPostTradeShareSession()?.status).toBe('complete');
+    const session = getPostTradeShareSession();
+    expect(session?.product).toBe('spot');
+    if (session?.product !== 'spot') {
+      return;
+    }
+    expect(session.transactionHash).toBe('0xabc');
+    expect(session.status).toBe('complete');
   });
 
   it('returns the target and clears the session on consume reopen', () => {
@@ -153,6 +158,53 @@ describe('postTradeShareSession', () => {
       patchPostTradeShareSession(firstSessionId, { status: 'complete' }),
     ).toBe(false);
     expect(getPostTradeShareSession()?.status).toBe('pending');
+  });
+
+  it('patches a perps session to complete with the order id', () => {
+    const sessionId = beginPostTradeShareSession({
+      product: 'perps',
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+      },
+    });
+
+    expect(getPostTradeShareSession()?.status).toBe('pending');
+
+    patchPostTradeShareSession(sessionId, {
+      orderId: '42',
+      status: 'complete',
+    });
+
+    const session = getPostTradeShareSession();
+    expect(session?.product).toBe('perps');
+    if (session?.product !== 'perps') {
+      return;
+    }
+    expect(session.orderId).toBe('42');
+    expect(session.status).toBe('complete');
+  });
+
+  it('ignores a perps patch after the session was cleared', () => {
+    const sessionId = beginPostTradeShareSession({
+      product: 'perps',
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+      },
+    });
+    clearPostTradeShareSession();
+
+    expect(patchPostTradeShareSession(sessionId, { status: 'complete' })).toBe(
+      false,
+    );
+    expect(getPostTradeShareSession()).toBeNull();
   });
 
   it('ignores reopen requests when no session exists', () => {

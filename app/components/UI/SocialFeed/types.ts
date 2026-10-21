@@ -89,6 +89,11 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /**
+   * Composer previews set this to `false` so the card does not offer to copy
+   * the order that was just placed. Absent means the open position is copyable.
+   */
+  showCopyTrade?: boolean;
 }
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
