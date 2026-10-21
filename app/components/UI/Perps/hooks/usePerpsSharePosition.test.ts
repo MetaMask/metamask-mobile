@@ -251,6 +251,48 @@ describe('usePerpsSharePosition', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
+  it('retries once when the lookup a share is waiting on fails, then opens the sheet', async () => {
+    const firstLookup = createDeferred<{ profileId: string }>();
+    mockGetSessionProfile.mockReturnValueOnce(firstLookup.promise);
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    await act(async () => {
+      firstLookup.reject(new Error('Network error'));
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation),
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it('opens the PnL hero card when the retry for a waiting share also fails', async () => {
+    const firstLookup = createDeferred<{ profileId: string }>();
+    mockGetSessionProfile
+      .mockReturnValueOnce(firstLookup.promise)
+      .mockRejectedValueOnce(new Error('Network error'));
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    await act(async () => {
+      firstLookup.reject(new Error('Network error'));
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation),
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
+  });
+
   it('retries a failed session lookup on share and recovers to the sheet', async () => {
     mockGetSessionProfile.mockRejectedValueOnce(new Error('Network error'));
     const { result } = renderWithGates({ hasSocialProfile: false });

@@ -77,7 +77,10 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
     isSocialFeedAvailable &&
     (socialProfile !== undefined || Boolean(lookedUpProfileId));
   const isProfileLookupPending = shouldLookUpProfile && isProfileLookupFetching;
-  const pendingShareRef = useRef<PerpsShareRequest | null>(null);
+  const pendingShareRef = useRef<{
+    request: PerpsShareRequest;
+    hasRetried: boolean;
+  } | null>(null);
 
   const openShare = useCallback(
     ({ position, marketPrice }: PerpsShareRequest) => {
@@ -101,9 +104,19 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
     if (!pendingShare || isProfileLookupPending) {
       return;
     }
+    if (hasProfileLookupFailed && !pendingShare.hasRetried) {
+      pendingShare.hasRetried = true;
+      retryProfileLookup();
+      return;
+    }
     pendingShareRef.current = null;
-    openShare(pendingShare);
-  }, [isProfileLookupPending, openShare]);
+    openShare(pendingShare.request);
+  }, [
+    hasProfileLookupFailed,
+    isProfileLookupPending,
+    openShare,
+    retryProfileLookup,
+  ]);
 
   const sharePosition = useCallback(
     (position: Position, marketPrice?: string) => {
@@ -114,8 +127,12 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
         openShare({ position, marketPrice });
         return;
       }
-      pendingShareRef.current = { position, marketPrice };
-      if (hasProfileLookupFailed && !isProfileLookupFetching) {
+      const shouldRetryNow = hasProfileLookupFailed && !isProfileLookupFetching;
+      pendingShareRef.current = {
+        request: { position, marketPrice },
+        hasRetried: shouldRetryNow,
+      };
+      if (shouldRetryNow) {
         retryProfileLookup();
       }
     },
