@@ -1177,10 +1177,8 @@ export type RootStackParamList = {
   SetPasswordFlow: NavigatorScreenParams<SetPasswordFlowParamList> | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SampleFeature: undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   // Card routes
   CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
