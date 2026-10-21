@@ -708,59 +708,6 @@ describe('ChoosePassword', () => {
       expect(submitButton).toBeDisabled();
     });
 
-    it('shows the mismatch error when lengths match or after blur once confirm is long enough', async () => {
-      const component = renderWithProviders(<ChoosePassword />);
-      await waitForInit();
-
-      const { passwordInput, confirmPasswordInput, submitButton } =
-        getFormElements(component);
-      const mismatchCopy = strings('choose_password.password_error');
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'Test123456!');
-      });
-      await act(async () => {
-        fireEvent.changeText(confirmPasswordInput, 'x');
-        fireEvent(confirmPasswordInput, 'blur');
-      });
-
-      expect(component.queryByText(mismatchCopy)).toBeNull();
-      expect(
-        component.getByText(
-          strings('choose_password.must_be_at_least', { number: 8 }),
-        ),
-      ).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(
-          confirmPasswordInput,
-          'X'.repeat('Test123456!'.length),
-        );
-      });
-
-      expect(component.getByText(mismatchCopy)).toBeOnTheScreen();
-
-      const shorterMismatch = 'Different1';
-      await act(async () => {
-        fireEvent.changeText(confirmPasswordInput, shorterMismatch);
-      });
-
-      expect(component.getByText(mismatchCopy)).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, shorterMismatch);
-      });
-
-      expect(component.queryByText(mismatchCopy)).toBeNull();
-
-      await act(async () => {
-        fireEvent.changeText(passwordInput, 'Test123456!');
-      });
-
-      expect(component.getByText(mismatchCopy)).toBeOnTheScreen();
-      expect(submitButton).toBeDisabled();
-    });
-
     it('keeps submit disabled when passwords do not match', async () => {
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();

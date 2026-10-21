@@ -149,6 +149,36 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
   );
 
   itEach(socialLoginProviders)(
+    'shows the length error after blurring a confirm password below the minimum length for $label login',
+    async ({ provider }) => {
+      const { findByTestId, findByText, queryByText } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider,
+          },
+        });
+      const lengthHelpText = strings('choose_password.must_be_at_least', {
+        number: MIN_PASSWORD_LENGTH,
+      });
+
+      const passwordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, VALID_PASSWORD);
+      fireEvent.changeText(confirmPasswordInput, 'x');
+      fireEvent(confirmPasswordInput, 'blur');
+
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+      expect(await findByText(lengthHelpText)).toBeOnTheScreen();
+    },
+  );
+
+  itEach(socialLoginProviders)(
     'shows a danger mismatch message and keeps create password disabled for $label login',
     async ({ provider }) => {
       const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
