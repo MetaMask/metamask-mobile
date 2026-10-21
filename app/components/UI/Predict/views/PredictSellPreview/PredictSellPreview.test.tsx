@@ -14,9 +14,15 @@ import {
   PredictOutcome,
   PredictPosition,
   PredictPositionStatus,
+  PredictExecutionMetadata,
+  PredictExecutionPreviewResult,
+  PredictFees,
+  Side,
+  type OrderPreview,
 } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
+import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
@@ -114,6 +120,68 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
     handleRetryConfirm: jest.fn(),
   }),
 }));
+
+// Mock usePredictTrading — the pre-submit execution preview is an external
+// controller dependency. usePredictSellExecution runs for real against it.
+const mockPreviewExecutionOrder = jest.fn();
+
+jest.mock('../../hooks/usePredictTrading', () => ({
+  usePredictTrading: () => ({
+    previewExecutionOrder: (...args: unknown[]) =>
+      mockPreviewExecutionOrder(...args),
+    placeOrder: jest.fn(),
+    claim: jest.fn(),
+    getBalance: jest.fn(),
+    previewOrder: jest.fn(),
+    prepareWithdraw: jest.fn(),
+    deposit: jest.fn(),
+    initPayWithAnyToken: jest.fn(),
+  }),
+}));
+
+// Mock the component-library BottomSheet FILE module: the pre-submit execution
+// sheet drives open/close through its ref, and the reanimated close animation
+// callback never completes under fake timers. The folder-index mock in the
+// global test setup does not intercept this direct file import.
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+
+    const BottomSheet = ReactActual.forwardRef(
+      (
+        {
+          children,
+          onClose,
+          onOpen,
+        }: {
+          children?: React.ReactNode;
+          onClose?: (...args: unknown[]) => void;
+          onOpen?: () => void;
+        },
+        ref: React.Ref<unknown>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onOpenDialog: () => onOpen?.(),
+          onOpenBottomSheet: () => onOpen?.(),
+          onCloseDialog: () => onClose?.(),
+          onCloseBottomSheet: (callback?: () => void) => {
+            onClose?.(Boolean(callback));
+            callback?.();
+          },
+        }));
+        return ReactActual.createElement(
+          View,
+          { testID: 'bottom-sheet' },
+          children,
+        );
+      },
+    );
+    BottomSheet.displayName = 'BottomSheet';
+    return { __esModule: true, default: BottomSheet };
+  },
+);
 
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const ReactActual = jest.requireActual('react');
@@ -298,6 +366,83 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   getId: jest.fn(),
 };
 
+const executionFees: PredictFees = {
+  metamaskFee: 0.09,
+  providerFee: 0.03,
+  marketFee: 0.06,
+  totalFee: 0.18,
+  totalFeePercentage: 2,
+  collector: '0x0000000000000000000000000000000000000000',
+  executors: [],
+  permit2Enabled: false,
+};
+
+/** Fresh execution preview returned by the pre-submit validation flow. */
+const createExecutionPreview = (
+  overrides?: Partial<OrderPreview>,
+): OrderPreview => ({
+  marketId: 'market-1',
+  outcomeId: 'outcome-456',
+  outcomeTokenId: 'outcome-token-789',
+  timestamp: Date.now(),
+  side: Side.SELL,
+  sharePrice: 0.49,
+  maxAmountSpent: 100,
+  minAmountReceived: 49,
+  slippage: 0.05,
+  tickSize: 0.01,
+  minOrderSize: 1,
+  negRisk: false,
+  fees: executionFees,
+  ...overrides,
+});
+
+const createExecutionMetadata = (
+  overrides?: Partial<PredictExecutionMetadata>,
+): PredictExecutionMetadata => ({
+  fetchedAt: Date.now(),
+  requestedSize: 100,
+  executableSize: 100,
+  approvedPrice: 0.5,
+  refreshedPrice: 0.49,
+  bandFloorPrice: 0.475,
+  worstExecutablePrice: 0.49,
+  tickSize: 0.01,
+  ...overrides,
+});
+
+/** The `executable` member of `PredictExecutionPreviewResult`. */
+type ExecutablePreviewResult = Extract<
+  PredictExecutionPreviewResult,
+  { status: 'executable' }
+>;
+
+const createExecutableResult = (overrides?: {
+  preview?: OrderPreview;
+  execution?: PredictExecutionMetadata;
+}): ExecutablePreviewResult => ({
+  status: 'executable',
+  preview: overrides?.preview ?? createExecutionPreview(),
+  execution: overrides?.execution ?? createExecutionMetadata(),
+});
+
+function createDeferred<T>() {
+  let resolveDeferred!: (value: T) => void;
+  const promise = new Promise<T>((res) => {
+    resolveDeferred = res;
+  });
+  return { promise, resolve: resolveDeferred };
+}
+
+/**
+ * Drains the resolved-promise microtask chain of a pre-submit flow
+ * (fetch → classify → submit → settle) inside an act block.
+ */
+const flushMicrotasks = (rounds = 10): Promise<void> =>
+  rounds === 0
+    ? Promise.resolve()
+    : Promise.resolve().then(() => flushMicrotasks(rounds - 1));
+
 const initialState = {
   engine: {
     backgroundState,
@@ -344,6 +489,9 @@ describe('PredictSellPreview', () => {
 
     // Reset mock functions
     mockPlaceOrder.mockReset();
+    // The pre-submit flow reads the placement outcome; default to success.
+    mockPlaceOrder.mockReturnValue({ status: 'success' });
+    mockPreviewExecutionOrder.mockReset();
     mockReset.mockReset();
   });
 
@@ -442,11 +590,17 @@ describe('PredictSellPreview', () => {
   });
 
   describe('user interactions', () => {
-    it('invokes placeOrder with correct parameters when cash out button pressed', () => {
+    it('places the fresh execution preview when Cash Out is pressed', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
       };
+      // 0.49 is one tick worse than the displayed 0.50 — inside the
+      // one-tick consent band, so the exact fresh preview auto-submits.
+      const freshPreview = createExecutionPreview();
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({ preview: freshPreview }),
+      );
       const { getByTestId, rerender } = renderWithProvider(
         <PredictSellPreview />,
         {
@@ -455,8 +609,25 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      fireEvent.press(cashOutButton);
+      await act(async () => {
+        fireEvent.press(cashOutButton);
+        await flushMicrotasks();
+      });
 
+      // The pre-submit flow validates the displayed price against a live
+      // order book before anything is signed.
+      expect(mockPreviewExecutionOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          marketId: 'market-1',
+          outcomeId: 'outcome-456',
+          outcomeTokenId: 'outcome-token-789',
+          side: 'SELL',
+          size: 100,
+          approvedPrice: 0.5,
+          positionId: 'position-1',
+        }),
+      );
+      // The exact fresh preview — not the polled preview — is submitted.
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         analyticsProperties: expect.objectContaining({
           marketId: 'market-123',
@@ -474,7 +645,7 @@ describe('PredictSellPreview', () => {
           outcomeId: 'outcome-456',
           outcomeTokenId: 'outcome-token-789',
           side: 'SELL',
-          minAmountReceived: 60,
+          minAmountReceived: 49,
         }),
       });
       rerender(<PredictSellPreview />);
@@ -490,6 +661,279 @@ describe('PredictSellPreview', () => {
 
       expect(getByText('Cashing out...')).toBeOnTheScreen();
       mockLoadingState = false;
+    });
+  });
+
+  describe('pre-submit execution flow', () => {
+    const pressCashOut = () =>
+      act(async () => {
+        fireEvent.press(
+          screen.getByTestId('predict-sell-preview-cash-out-button'),
+        );
+        await flushMicrotasks();
+      });
+
+    it('shows Cash Out loading immediately while the live book is fetched', async () => {
+      const deferred = createDeferred<PredictExecutionPreviewResult>();
+      mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictSellPreview />,
+        {
+          state: initialState,
+        },
+      );
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
+
+      fireEvent.press(cashOutButton);
+
+      // The CTA flips to loading before the fetch resolves.
+      expect(getByText('Cashing out...')).toBeOnTheScreen();
+
+      await act(async () => {
+        deferred.resolve(createExecutableResult());
+        await flushMicrotasks();
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores a second Cash Out press while the flow is active', async () => {
+      const deferred = createDeferred<PredictExecutionPreviewResult>();
+      mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+      const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
+
+      fireEvent.press(cashOutButton);
+      fireEvent.press(cashOutButton);
+
+      expect(mockPreviewExecutionOrder).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        deferred.resolve(createExecutableResult());
+        await flushMicrotasks();
+      });
+
+      expect(mockPreviewExecutionOrder).toHaveBeenCalledTimes(1);
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open the retry sheet when the fresh quote is acceptable', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(createExecutableResult());
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText('Price moved')).toBeNull();
+      expect(screen.queryByText('No match')).toBeNull();
+      expect(screen.queryByText('Market timed out')).toBeNull();
+      expect(screen.queryByText('Price unavailable')).toBeNull();
+    });
+
+    it('shows the moved-price sheet with refreshed price, expected fill, proceeds, worst case, and fees', async () => {
+      // 0.47 is three ticks worse than the displayed 0.50 but still inside
+      // the 5% band: the exact fresh quote is shown for confirmation.
+      const movedResult = createExecutableResult({
+        preview: createExecutionPreview({
+          sharePrice: 0.47,
+          minAmountReceived: 47,
+        }),
+        execution: createExecutionMetadata({
+          refreshedPrice: 0.47,
+          worstExecutablePrice: 0.47,
+        }),
+      });
+      mockPreviewExecutionOrder.mockResolvedValueOnce(movedResult);
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      expect(screen.getByText('Price moved')).toBeOnTheScreen();
+      expect(screen.getByText('47¢')).toBeOnTheScreen();
+      expect(screen.getByText('Expected fill')).toBeOnTheScreen();
+      expect(screen.getByText('100 shares')).toBeOnTheScreen();
+      expect(screen.getByText('You receive')).toBeOnTheScreen();
+      expect(screen.getByText('Worst case (5% band)')).toBeOnTheScreen();
+      expect(screen.getByText('Fees')).toBeOnTheScreen();
+      expect(screen.getByText('Yes, sell at 47¢')).toBeOnTheScreen();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('renders the no-match sheet without submitting', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({
+        status: 'no_match',
+        execution: createExecutionMetadata({ executableSize: 40 }),
+      });
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      expect(screen.getByText('No match')).toBeOnTheScreen();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('renders the timeout sheet distinct from unavailable', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({ status: 'timeout' });
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      expect(screen.getByText('Market timed out')).toBeOnTheScreen();
+      expect(screen.getByText(/Nothing was sold/)).toBeOnTheScreen();
+      expect(screen.queryByText('Price unavailable')).toBeNull();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('renders the unavailable sheet without submitting', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({
+        status: 'unavailable',
+      });
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      expect(screen.getByText('Price unavailable')).toBeOnTheScreen();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('locks the sheet during the Confirm refetch and restores dismissal after settlement', async () => {
+      const movedResult = createExecutableResult({
+        preview: createExecutionPreview({
+          sharePrice: 0.47,
+          minAmountReceived: 47,
+        }),
+        execution: createExecutionMetadata({
+          refreshedPrice: 0.47,
+          worstExecutablePrice: 0.47,
+        }),
+      });
+      mockPreviewExecutionOrder.mockResolvedValueOnce(movedResult);
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      expect(screen.getByText('Price moved')).toBeOnTheScreen();
+      // Dismissal is available at the settled confirm state.
+      expect(
+        screen.getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+
+      // The Confirm refetch stays pending: the sheet keeps its candidate
+      // and locks dismissal while the flow is active.
+      const deferred = createDeferred<PredictExecutionPreviewResult>();
+      mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+        );
+      });
+
+      expect(screen.getByText('Price moved')).toBeOnTheScreen();
+      expect(screen.getByText('Expected fill')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
+
+      // The refetched quote matches the confirmed 0.47 baseline, so the
+      // exact fresh preview is submitted and the sheet closes.
+      const acceptedResult = createExecutableResult({
+        preview: createExecutionPreview({
+          sharePrice: 0.47,
+          minAmountReceived: 47,
+        }),
+        execution: createExecutionMetadata({
+          approvedPrice: 0.47,
+          refreshedPrice: 0.47,
+          worstExecutablePrice: 0.47,
+        }),
+      });
+      await act(async () => {
+        deferred.resolve(acceptedResult);
+        await flushMicrotasks();
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+      const placedParams = mockPlaceOrder.mock.calls[0][0] as {
+        preview: OrderPreview;
+      };
+      expect(placedParams.preview).toBe(acceptedResult.preview);
+      expect(screen.queryByText('Price moved')).toBeNull();
+    });
+
+    it('dismisses the moved-price sheet without submitting an order', async () => {
+      const movedResult = createExecutableResult({
+        preview: createExecutionPreview({
+          sharePrice: 0.47,
+          minAmountReceived: 47,
+        }),
+        execution: createExecutionMetadata({
+          refreshedPrice: 0.47,
+          worstExecutablePrice: 0.47,
+        }),
+      });
+      mockPreviewExecutionOrder.mockResolvedValueOnce(movedResult);
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+        );
+        await flushMicrotasks();
+      });
+
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('offers Try later on no match that dismisses without submitting', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({
+        status: 'no_match',
+        execution: createExecutionMetadata({ executableSize: 40 }),
+      });
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      await pressCashOut();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
+          ),
+        );
+        await flushMicrotasks();
+      });
+
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
   });
 
@@ -564,11 +1008,12 @@ describe('PredictSellPreview', () => {
   });
 
   describe('navigation after successful order', () => {
-    it('dispatches navigation pop action when placeOrder succeeds', () => {
+    it('dispatches navigation pop action when placeOrder succeeds', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
       };
+      mockPreviewExecutionOrder.mockResolvedValueOnce(createExecutableResult());
       const { getByTestId, rerender } = renderWithProvider(
         <PredictSellPreview />,
         {
@@ -577,7 +1022,10 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      fireEvent.press(cashOutButton);
+      await act(async () => {
+        fireEvent.press(cashOutButton);
+        await flushMicrotasks();
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalled();
       rerender(<PredictSellPreview />);

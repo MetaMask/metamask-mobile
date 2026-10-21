@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { PredictOrderRetrySheetRef } from '../components/PredictOrderRetrySheet';
+import type {
+  PredictOrderRetrySheetRef,
+  PredictOrderRetrySheetVariant,
+} from '../components/PredictOrderRetrySheet';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import { getPredictPriceConsent } from '../utils/prices';
 import {
@@ -97,6 +100,20 @@ interface UsePredictSellExecutionParams {
 }
 
 /**
+ * Sheet variant for each settled status. Busy phases (validating,
+ * submitting) keep the last settled variant so an open sheet keeps its
+ * content while a Confirm refetch or placement is in flight.
+ */
+const EXECUTION_SHEET_VARIANTS: Partial<
+  Record<PredictSellExecutionStatus, PredictOrderRetrySheetVariant>
+> = {
+  confirm: 'price_moved',
+  no_match: 'no_match',
+  timeout: 'timeout',
+  unavailable: 'quote_unavailable',
+};
+
+/**
  * Pre-submit sell execution orchestration: fetches a live order book,
  * validates it against the user's approved price and slippage band, and
  * submits the exact fresh preview only when the full size is executable in
@@ -120,6 +137,13 @@ export function usePredictSellExecution({
   // Mirrors render state so entry callbacks never read a stale closure.
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Sheet variant for the current flow: derived from the settled status and
+  // kept stable across the busy phases so an open sheet keeps its content
+  // while a Confirm refetch or placement is in flight.
+  const sheetVariantRef = useRef<PredictOrderRetrySheetVariant>('price_moved');
+  sheetVariantRef.current =
+    EXECUTION_SHEET_VARIANTS[state.status] ?? sheetVariantRef.current;
 
   const executionSheetRef = useRef<PredictOrderRetrySheetRef>(null);
   // Single-flight lock covering validation and placement. Managed
@@ -241,10 +265,11 @@ export function usePredictSellExecution({
       let staleRecoveryUsed = false;
 
       for (;;) {
+        // The candidate quote and execution facts stay visible while an
+        // already-open confirm sheet waits on this fetch; only a new
+        // settled state replaces or clears them.
         updateState({
           status: 'validating',
-          quote: null,
-          execution: null,
           baselinePrice,
           baselineSlippage: slippage,
         });
@@ -416,6 +441,11 @@ export function usePredictSellExecution({
   return {
     /** Ref for the pre-submit PredictOrderRetrySheet instance. */
     executionSheetRef,
+    /**
+     * Variant for the pre-submit sheet: the settled status mapped to its
+     * sheet variant, stable across the busy phases.
+     */
+    sheetVariant: sheetVariantRef.current,
     status: state.status,
     /** Candidate quote shown for confirmation ('confirm' status only). */
     quote: state.quote,

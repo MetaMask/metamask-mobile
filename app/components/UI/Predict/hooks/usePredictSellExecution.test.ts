@@ -254,6 +254,49 @@ describe('usePredictSellExecution', () => {
     expect(mockPlaceOrder).not.toHaveBeenCalled();
   });
 
+  it('maps settled states to sheet variants and keeps the variant and candidate while busy', async () => {
+    const moved = createExecutableResult({
+      preview: createExecutionPreview({ sharePrice: 0.48 }),
+      execution: createExecution({
+        refreshedPrice: 0.48,
+        worstExecutablePrice: 0.48,
+      }),
+    });
+    mockPreviewExecutionOrder.mockResolvedValueOnce(moved);
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.handleCashOut();
+    });
+
+    // The confirm state maps to the price-moved sheet variant.
+    expect(result.current.sheetVariant).toBe('price_moved');
+
+    // While the Confirm refetch is in flight, the busy phase keeps the
+    // variant, candidate quote, and execution facts for the open sheet.
+    const deferred = createDeferred<PredictExecutionPreviewResult>();
+    mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+    let confirmFlow!: Promise<void>;
+    await act(async () => {
+      confirmFlow = result.current.handleConfirm();
+    });
+
+    expect(result.current.status).toBe('validating');
+    expect(result.current.sheetVariant).toBe('price_moved');
+    expect(result.current.quote).toBe(moved.preview);
+    expect(result.current.execution).toBe(moved.execution);
+
+    await act(async () => {
+      deferred.resolve({ status: 'timeout' });
+      await confirmFlow;
+    });
+
+    // A terminal market state settles the timeout variant.
+    expect(result.current.status).toBe('timeout');
+    expect(result.current.sheetVariant).toBe('timeout');
+    expect(mockPlaceOrder).not.toHaveBeenCalled();
+  });
+
   it('settles no_match with partial execution facts and submits nothing', async () => {
     // A book whose in-band depth cannot fill the requested size — including
     // a best bid beyond the 5% band — classifies as no_match.

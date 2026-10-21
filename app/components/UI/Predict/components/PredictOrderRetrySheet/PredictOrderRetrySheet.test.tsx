@@ -11,6 +11,7 @@ const mockGetRefHandlers = jest.fn(() => ({
   onCloseBottomSheet: jest.fn(),
 }));
 let mockIsVisible = true;
+let mockBottomSheetIsInteractable: boolean | undefined;
 
 jest.mock('../../hooks/usePredictBottomSheet', () => ({
   usePredictBottomSheet: (params?: { onDismiss?: () => void }) => ({
@@ -33,12 +34,17 @@ jest.mock(
     const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return ReactActual.forwardRef(
-      (props: { children?: React.ReactNode }, _ref: React.Ref<unknown>) =>
-        ReactActual.createElement(
+      (
+        props: { children?: React.ReactNode; isInteractable?: boolean },
+        _ref: React.Ref<unknown>,
+      ) => {
+        mockBottomSheetIsInteractable = props.isInteractable;
+        return ReactActual.createElement(
           View,
           { testID: 'bottom-sheet' },
           props.children,
-        ),
+        );
+      },
     );
   },
 );
@@ -104,6 +110,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.order.no_match_title': 'No match',
       'predict.order.no_match_body':
         "There isn't enough liquidity to fill your order right now.",
+      'predict.order.market_timeout_title': 'Market timed out',
+      'predict.order.market_timeout_body':
+        'The market took too long to respond. Nothing was sold.',
+      'predict.order.retry_expected_fill_label': 'Expected fill',
+      'predict.order.retry_expected_fill_value': `${params?.shares ?? ''} shares`,
       'predict.order.try_later': 'Try later',
       'predict.order.order_failed_title': 'Order failed',
       'predict.order.order_failed_body':
@@ -117,6 +128,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../utils/format', () => ({
   formatCents: (value: number) => `${Math.round(value * 100)}¢`,
   formatPrice: (value: number) => `$${value.toFixed(2)}`,
+  formatPositionSize: (value: number) => value.toFixed(2),
 }));
 
 function createMockPreview(overrides?: Partial<OrderPreview>): OrderPreview {
@@ -159,6 +171,7 @@ describe('PredictOrderRetrySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsVisible = true;
+    mockBottomSheetIsInteractable = undefined;
   });
 
   describe('visibility', () => {
@@ -486,6 +499,117 @@ describe('PredictOrderRetrySheet', () => {
       expect(mockCloseSheet).toHaveBeenCalledTimes(1);
       expect(onConfirm).not.toHaveBeenCalled();
       expect(onRetry).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('timeout variant', () => {
+    it('renders the timeout title and body distinct from price unavailable', () => {
+      const { getByText, queryByText } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="timeout" />,
+      );
+
+      expect(getByText('Market timed out')).toBeOnTheScreen();
+      expect(
+        getByText('The market took too long to respond. Nothing was sold.'),
+      ).toBeOnTheScreen();
+      expect(queryByText('Price unavailable')).toBeNull();
+    });
+
+    it('offers Try again that re-fetches', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="timeout"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('expected fill row', () => {
+    const sellPreview = createMockPreview({
+      side: Side.SELL,
+      sharePrice: 0.47,
+      maxAmountSpent: 9.5,
+      minAmountReceived: 6.18,
+      slippage: 0.05,
+    });
+
+    it('renders the read-only expected full fill for sell confirmations', () => {
+      const { getByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.SELL}
+          preview={sellPreview}
+          expectedSize={9.5}
+        />,
+      );
+
+      expect(getByText('Expected fill')).toBeOnTheScreen();
+      expect(getByText('9.50 shares')).toBeOnTheScreen();
+    });
+
+    it('omits the expected fill row when no expected size is provided', () => {
+      const { queryByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.SELL}
+          preview={sellPreview}
+        />,
+      );
+
+      expect(queryByText('Expected fill')).toBeNull();
+    });
+
+    it('omits the expected fill row for buy confirmations', () => {
+      const { queryByText } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          side={Side.BUY}
+          preview={createMockPreview()}
+          expectedSize={10}
+        />,
+      );
+
+      expect(queryByText('Expected fill')).toBeNull();
+    });
+  });
+
+  describe('dismissal', () => {
+    it('hides the close button and locks the sheet while dismissal is disabled', () => {
+      const { queryByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="price_moved"
+          isDismissDisabled
+        />,
+      );
+
+      expect(
+        queryByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
+      expect(mockBottomSheetIsInteractable).toBe(false);
+    });
+
+    it('shows the close button and keeps the sheet dismissable by default', () => {
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="price_moved" />,
+      );
+
+      expect(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(mockBottomSheetIsInteractable).toBe(true);
     });
   });
 

@@ -35,6 +35,8 @@ import {
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
+import { usePredictSellExecution } from '../../hooks/usePredictSellExecution';
+import { usePredictTrading } from '../../hooks/usePredictTrading';
 import { Side } from '../../types';
 import {
   PredictNavigationParamList,
@@ -158,6 +160,34 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     orderState: retryOrderState,
   });
 
+  const { previewExecutionOrder } = usePredictTrading();
+
+  // Pre-submit sell execution (PRED-484): Cash Out fetches a live order book
+  // and confirms the displayed price before anything is signed, instead of
+  // submitting the polled preview directly.
+  const {
+    executionSheetRef,
+    sheetVariant: executionSheetVariant,
+    quote: executionQuote,
+    execution: executionMetadata,
+    baselinePrice: executionBaselinePrice,
+    isExecuting,
+    handleCashOut,
+    handleConfirm: handleExecutionConfirm,
+    handleTryAgain: handleExecutionTryAgain,
+    handleDismiss: handleExecutionDismiss,
+  } = usePredictSellExecution({
+    marketId: position.marketId,
+    outcomeId: position.outcomeId,
+    outcomeTokenId: position.outcomeTokenId,
+    size: position.amount,
+    positionId: position.id,
+    preview,
+    previewExecutionOrder,
+    placeOrder,
+    analyticsProperties,
+  });
+
   // Track screen load performance (position data + preview)
   usePredictMeasurement({
     traceName: TraceName.PredictSellPreviewView,
@@ -250,25 +280,20 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     return cashPnl > 0 ? '+' : '-';
   }, [cashPnl]);
 
-  const onCashOut = useCallback(async () => {
-    if (!preview) return;
-
-    await placeOrder({
-      analyticsProperties,
-      preview,
-    });
-  }, [preview, placeOrder, analyticsProperties]);
-
+  // Cash Out runs the pre-submit execution flow (PRED-484): the displayed
+  // price becomes the approved baseline a fresh order book must confirm —
+  // with full in-band liquidity and within one tick — before anything is
+  // signed. The flow owns its loading state; placement loading still applies.
   const renderCashOutButton = () => (
     <Button
       testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       isFullWidth
-      isDisabled={!preview || isLoading}
-      isLoading={isLoading}
+      isDisabled={!preview || isLoading || isExecuting}
+      isLoading={isLoading || isExecuting}
       loadingText={strings('predict.order.cashing_out_loading')}
-      onPress={onCashOut}
+      onPress={handleCashOut}
     >
       {strings('predict.cash_out')}
     </Button>
@@ -501,6 +526,22 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
+      />
+      {/* Pre-submit execution sheet (PRED-484): price moved, no match,
+          timeout, and unavailable states from the Cash Out validation flow.
+          The post-failure retry sheet above stays a separate lifecycle. */}
+      <PredictOrderRetrySheet
+        ref={executionSheetRef}
+        variant={executionSheetVariant}
+        preview={executionQuote}
+        previousPrice={executionBaselinePrice}
+        expectedSize={executionMetadata?.executableSize ?? null}
+        side={Side.SELL}
+        onRetry={handleExecutionTryAgain}
+        onConfirm={handleExecutionConfirm}
+        onDismiss={handleExecutionDismiss}
+        isRetrying={isExecuting}
+        isDismissDisabled={isExecuting}
       />
     </Wrapper>
   );

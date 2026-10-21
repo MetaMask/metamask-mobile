@@ -17,7 +17,11 @@ import BottomSheet from '../../../../../component-library/components/BottomSheet
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../locales/i18n';
-import { formatCents, formatPrice } from '../../utils/format';
+import {
+  formatCents,
+  formatPositionSize,
+  formatPrice,
+} from '../../utils/format';
 import {
   getPredictExchangeFee,
   getPredictSellNetProceeds,
@@ -40,7 +44,8 @@ export type PredictOrderRetrySheetVariant =
   | 'price_moved'
   | 'failed'
   | 'quote_unavailable'
-  | 'no_match';
+  | 'no_match'
+  | 'timeout';
 
 interface PredictOrderRetrySheetProps {
   variant: PredictOrderRetrySheetVariant;
@@ -56,12 +61,23 @@ interface PredictOrderRetrySheetProps {
    * the move from it to the fresh quote is explicit.
    */
   previousPrice?: number | null;
+  /**
+   * Expected full share fill for the refreshed quote (sell confirmations).
+   * Read-only: partial execution is never offered.
+   */
+  expectedSize?: number | null;
   /** Fetches a fresh quote (retry entry point or "Try again"). */
   onRetry: () => void;
   /** Submits the confirmed refreshed quote. */
   onConfirm: () => void;
   onDismiss?: () => void;
   isRetrying?: boolean;
+  /**
+   * Hides every dismissal affordance (close button, backdrop press, swipe,
+   * hardware back) while a pre-submit fetch or placement orchestration is
+   * active. Dismissal is restored once the flow settles.
+   */
+  isDismissDisabled?: boolean;
 }
 
 const PRICE_FORMAT = { minimumDecimals: 2, maximumDecimals: 2 };
@@ -76,6 +92,8 @@ function getTitleForVariant(variant: PredictOrderRetrySheetVariant): string {
       return strings('predict.order.price_moved_title');
     case 'no_match':
       return strings('predict.order.no_match_title');
+    case 'timeout':
+      return strings('predict.order.market_timeout_title');
     default:
       return strings('predict.order.market_busy_title');
   }
@@ -97,6 +115,8 @@ function getBodyForVariant({
       return strings('predict.order.price_unavailable_body');
     case 'no_match':
       return strings('predict.order.no_match_body');
+    case 'timeout':
+      return strings('predict.order.market_timeout_body');
     case 'busy':
       return strings('predict.order.getting_price_body');
     case 'price_moved':
@@ -132,10 +152,12 @@ const PredictOrderRetrySheet = forwardRef<
       side,
       preview,
       previousPrice,
+      expectedSize = null,
       onRetry,
       onConfirm,
       onDismiss,
       isRetrying = false,
+      isDismissDisabled = false,
     },
     ref,
   ) => {
@@ -186,6 +208,20 @@ const PredictOrderRetrySheet = forwardRef<
       if (preview.side === Side.SELL) {
         return [
           priceRow,
+          // Read-only expected full fill; partial execution is never offered.
+          ...(expectedSize !== null
+            ? [
+                {
+                  label: strings('predict.order.retry_expected_fill_label'),
+                  value: strings('predict.order.retry_expected_fill_value', {
+                    shares: formatPositionSize(expectedSize, {
+                      minimumDecimals: 2,
+                      maximumDecimals: 2,
+                    }),
+                  }),
+                },
+              ]
+            : []),
           {
             label: strings('predict.order.retry_proceeds_label'),
             value: formatPrice(getPredictSellNetProceeds(preview), {
@@ -205,7 +241,7 @@ const PredictOrderRetrySheet = forwardRef<
         worstCaseRow,
         feesRow,
       ];
-    }, [preview]);
+    }, [preview, expectedSize]);
 
     if (!isVisible) {
       return null;
@@ -239,20 +275,22 @@ const PredictOrderRetrySheet = forwardRef<
       <BottomSheet
         ref={sheetRef}
         shouldNavigateBack={false}
-        isInteractable
+        isInteractable={!isDismissDisabled}
         onClose={handleSheetClosed}
       >
-        <TouchableOpacity
-          testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
-          onPress={closeSheet}
-          style={tw.style('absolute top-8 right-4 z-10')}
-        >
-          <Icon
-            name={IconName.Close}
-            size={IconSize.Xl}
-            color={IconColor.IconDefault}
-          />
-        </TouchableOpacity>
+        {!isDismissDisabled && (
+          <TouchableOpacity
+            testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
+            onPress={closeSheet}
+            style={tw.style('absolute top-8 right-4 z-10')}
+          >
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Xl}
+              color={IconColor.IconDefault}
+            />
+          </TouchableOpacity>
+        )}
         <Box
           testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
           alignItems={BoxAlignItems.Center}
