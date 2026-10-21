@@ -267,10 +267,10 @@ describeForPlatforms('TopTradersView', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 6. Trading signals intercept navigates to setup sheet when channels are off
+  // 6. Follow runs, then the setup sheet opens when channels are off
   // -------------------------------------------------------------------------
 
-  it('navigates to the trading signals setup sheet when Follow is pressed with both notification channels disabled', async () => {
+  it('follows and then opens the trading signals setup sheet when both notification channels are disabled', async () => {
     // Reconfigure the mock before rendering so the component receives
     // channels-disabled prefs on its first AUS:getNotificationPreferences fetch.
     clearLeaderboardApiMock();
@@ -293,6 +293,12 @@ describeForPlatforms('TopTradersView', () => {
     // The trading signals setup sheet route should have been pushed.
     await screen.findByTestId(
       getRouteProbeTestId(Routes.SOCIAL.TRADING_SIGNALS_SETUP),
+    );
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+      'SocialController:followTrader',
+      {
+        targets: [mockLeaderboardTraders[0].profileId],
+      },
     );
   });
 

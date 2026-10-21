@@ -1,7 +1,7 @@
 import {
   getQuotesReceivedProperties,
+  SwapFeatureTag,
   type MetaMetricsSwapsEventSource,
-  type QuoteMetadata,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
@@ -40,6 +40,7 @@ import {
   isSocialTradeSource,
   recordSocialTrade,
 } from '../../social/socialActivityStorage';
+import { captureException } from '@sentry/react-native';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -151,37 +152,46 @@ export default function useSubmitBridgeTx() {
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        const submittedTransaction = quoteResponse.quote.intent
-          ? await Engine.context.BridgeStatusController.submitIntent({
-              quoteResponse,
-              accountAddress: walletAddress,
-              location,
-              abTests,
-              activeAbTests: mergedActiveAbTests,
-              tokenSecurityTypeDestination,
-              inputPrimaryDenomination,
-              quotesReceivedContext,
-              migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-            })
-          : await Engine.context.BridgeStatusController.submitTx(
-              walletAddress,
-              quoteResponse,
-              stxEnabled,
-              quotesReceivedContext,
-              location,
-              abTests,
-              mergedActiveAbTests,
-              tokenSecurityTypeDestination,
-              undefined, // batchSellTrades
-              inputPrimaryDenomination,
-              BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-            );
+        try {
+          const submittedTransaction = quoteResponse.quote.intent
+            ? await Engine.context.BridgeStatusController.submitIntent({
+                quoteResponse,
+                accountAddress: walletAddress,
+                location,
+                abTests,
+                activeAbTests: mergedActiveAbTests,
+                tokenSecurityTypeDestination,
+                inputPrimaryDenomination,
+                quotesReceivedContext,
+                migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+              })
+            : await Engine.context.BridgeStatusController.submitTx(
+                walletAddress,
+                quoteResponse,
+                stxEnabled,
+                quotesReceivedContext,
+                location,
+                abTests,
+                mergedActiveAbTests,
+                tokenSecurityTypeDestination,
+                undefined, // batchSellTrades
+                inputPrimaryDenomination,
+                BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+              );
 
-        if (isSocialTradeSource(location)) {
-          recordSocialTrade();
+          if (isSocialTradeSource(location)) {
+            recordSocialTrade();
+          }
+
+          return submittedTransaction;
+        } catch (error) {
+          captureException(error as Error, {
+            tags: {
+              feature: SwapFeatureTag.SWAP,
+            },
+          });
+          throw error;
         }
-
-        return submittedTransaction;
       },
     );
   };

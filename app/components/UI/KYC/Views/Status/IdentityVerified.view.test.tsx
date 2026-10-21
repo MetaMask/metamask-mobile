@@ -82,7 +82,7 @@ const ramps = Engine.context.RampsController as unknown as {
   createAutoramp?: jest.Mock;
 };
 const engineContext = Engine.context as unknown as {
-  NeoBankService?: { getPixDepositInstructions: jest.Mock };
+  NeoBankService?: { getDepositInstructions: jest.Mock };
 };
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
@@ -102,7 +102,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     ramps.registerMoneyAccountWallet = jest.fn();
     ramps.createAutoramp = jest.fn();
     engineContext.NeoBankService = {
-      getPixDepositInstructions: jest.fn().mockResolvedValue(null),
+      getDepositInstructions: jest.fn().mockResolvedValue(null),
     };
   });
 
@@ -181,7 +181,8 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       ...ramps.state?.autoramps.find((autoramp) => autoramp.id === id),
       status: 'Approved',
     }));
-    engineContext.NeoBankService?.getPixDepositInstructions.mockResolvedValue({
+    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue({
+      type: 'Pix',
       brCode: '00020126',
       instruction: 'Pay with PIX',
     });

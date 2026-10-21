@@ -24,8 +24,9 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   selectLimitOrderCostTolerance,
+  selectLimitOrderExpirationMinutes,
   selectOrdersNetworkFilter,
-  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
   setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
@@ -100,17 +101,7 @@ const formatTokenAmountValue = (
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-interface BridgeLimitOrderViewContentProps {
-  initialExpirationMinutes?: SwapsLimitOrderExpirationMinutes;
-  initialPriceTolerance?: string;
-  deeplinkInitializationKey?: string;
-}
-
-const BridgeLimitOrderViewContent = ({
-  initialExpirationMinutes,
-  initialPriceTolerance,
-  deeplinkInitializationKey,
-}: BridgeLimitOrderViewContentProps) => {
+const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -120,10 +111,11 @@ const BridgeLimitOrderViewContent = ({
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { latestSourceBalance } = useBridgeSession();
-  const [activeOrdersTab, setActiveOrdersTab] = useState(
-    OrdersTabKey.OpenOrders,
-  );
+  const {
+    latestSourceBalance,
+    limitOrdersTab: activeOrdersTab = OrdersTabKey.OpenOrders,
+    setLimitOrdersTab: setActiveOrdersTab = () => undefined,
+  } = useBridgeSession();
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -316,16 +308,9 @@ const BridgeLimitOrderViewContent = ({
           amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
         })
       : strings('bridge.limit.create_order');
-  const [expirationMinutes, setExpirationMinutes] =
-    useState<SwapsLimitOrderExpirationMinutes>(
-      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
-    );
-
-  useEffect(() => {
-    setExpirationMinutes(
-      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
-    );
-  }, [deeplinkInitializationKey, initialExpirationMinutes]);
+  const expirationMinutes =
+    useSelector(selectLimitOrderExpirationMinutes) ??
+    SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES;
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -452,9 +437,9 @@ const BridgeLimitOrderViewContent = ({
 
   const handleExpirationSelect = useCallback(
     (minutes: SwapsLimitOrderExpirationMinutes) => {
-      setExpirationMinutes(minutes);
+      dispatch(setLimitOrderExpirationMinutes(minutes));
     },
-    [],
+    [dispatch],
   );
 
   const handleExpirationPress = useCallback(() => {
@@ -541,16 +526,6 @@ const BridgeLimitOrderViewContent = ({
     sourceToken,
     triggerPrice,
   ]);
-
-  // Initialize cost tolerance when navigating to the Limit Order screen or
-  // when a new deeplink targets an already-mounted Bridge route.
-  useEffect(() => {
-    dispatch(
-      setLimitOrderCostTolerance(
-        initialPriceTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
-      ),
-    );
-  }, [deeplinkInitializationKey, dispatch, initialPriceTolerance]);
 
   // Keeps the market-comparison label in sync everywhere it's shown: this
   // screen keeps running (and this effect keeps firing) behind the
@@ -665,6 +640,11 @@ const BridgeLimitOrderViewContent = ({
                   <MissingAssetsPriceDataBanner />
                   <LimitOrderFeeTokenErrorBanner
                     reason={feeTokenValidation.reason}
+                    supportedTokenSymbols={
+                      feeTokenValidation.reason === 'unsupported-pair'
+                        ? feeTokenValidation.supportedTokenSymbols
+                        : undefined
+                    }
                     onRetry={feeTokenValidation.retry}
                   />
                 </SwapsBanners>
@@ -689,6 +669,7 @@ const BridgeLimitOrderViewContent = ({
                 enabledChainIds={enabledChainIds}
                 openOrders={openOrders}
                 history={history}
+                activeTab={activeOrdersTab}
                 onTabChange={setActiveOrdersTab}
               />
             </Box>
