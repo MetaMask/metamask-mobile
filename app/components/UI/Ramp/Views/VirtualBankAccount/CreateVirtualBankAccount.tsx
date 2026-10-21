@@ -17,6 +17,7 @@ import {
   ListItem,
   ListItemVariant,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
   TitleStandard,
@@ -203,16 +204,15 @@ const CreateVirtualBankAccount = ({
                 'virtual_bank_account.create_virtual_bank_account.disclaimers_error',
               )}
             </Text>
-            <Text
+            <TextButton
               variant={TextVariant.BodyXs}
-              color={TextColor.PrimaryDefault}
               onPress={retry}
               testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_RETRY}
             >
               {strings(
                 'virtual_bank_account.create_virtual_bank_account.disclaimers_retry',
               )}
-            </Text>
+            </TextButton>
           </Box>
         ) : (
           <Text
@@ -235,15 +235,13 @@ const CreateVirtualBankAccount = ({
                       'virtual_bank_account.create_virtual_bank_account.agreement_separator',
                     )
                   : ''}
-                <Text
+                <TextButton
                   variant={TextVariant.BodyXs}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
                   onPress={() => Linking.openURL(disclaimer.url)}
                   testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
                 >
                   {disclaimer.display_name}
-                </Text>
+                </TextButton>
               </React.Fragment>
             ))}
             {disclaimers?.length
