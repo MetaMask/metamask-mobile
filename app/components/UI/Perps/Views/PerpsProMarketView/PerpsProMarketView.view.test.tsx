@@ -289,7 +289,15 @@ const resetPerpsControllerMocks = () => {
     .mockResolvedValue({ isValid: true });
 };
 
+const engineWithState = Engine as unknown as {
+  state?: Record<string, unknown>;
+};
+let engineStateBeforeTest: Record<string, unknown> | undefined;
+
 beforeEach(() => {
+  // Identity journeys publish controller updates through Engine.state. Snapshot
+  // it so a later preference write cannot reuse that copy and collapse the book.
+  engineStateBeforeTest = engineWithState.state;
   issuedTwapReadPromises.clear();
   activeTwapSubscriptions.clear();
   settledChaseReadPromises.clear();
@@ -355,6 +363,7 @@ afterEach(async () => {
     // assertion cannot leak a frozen clock into the next test.
     dateNowSpy?.mockRestore();
     dateNowSpy = undefined;
+    engineWithState.state = engineStateBeforeTest;
   }
 });
 
@@ -661,9 +670,6 @@ const syncEngineControllerState = (
     | 'RemoteFeatureFlagController',
   nextState: Record<string, unknown>,
 ) => {
-  const engineWithState = Engine as unknown as {
-    state?: Record<string, unknown>;
-  };
   engineWithState.state = {
     ...(engineWithState.state ?? {}),
     [key]: nextState,
