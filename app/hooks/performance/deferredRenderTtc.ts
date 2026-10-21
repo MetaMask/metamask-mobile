@@ -9,6 +9,7 @@ import {
   type DeferredRenderPointId,
   type DeferredRenderScreenId,
   type PerpsChartRenderPath,
+  type PerpsMountedChartPath,
 } from './deferredRenderPerformanceIds';
 import {
   isScreenTtcProbeEnabled,
@@ -18,6 +19,8 @@ import {
 
 const origins = new Map<DeferredRenderScreenId, number>();
 const recordedPoints = new Set<string>();
+/** Perps chart implementations mounted since the current nav start. */
+const perpsPathsSinceNav = new Set<PerpsMountedChartPath>();
 
 function pointKey(
   screenId: DeferredRenderScreenId,
@@ -44,6 +47,9 @@ export function markDeferredRenderNavStart(
     recordedPoints.delete(pointKey(screenId, point));
   }
   recordedPoints.add(pointKey(screenId, DeferredRenderPoint.NAV_START));
+  if (screenId === DeferredRenderScreenIds.PERPS_MARKET_DETAILS) {
+    perpsPathsSinceNav.clear();
+  }
   recordScreenTtc(
     deferredRenderProbeId(screenId, DeferredRenderPoint.NAV_START),
     0,
@@ -59,6 +65,7 @@ export function markDeferredRenderPoint(
   screenId: DeferredRenderScreenId,
   point: DeferredRenderPointId,
   contentState: ScreenTtcContentState = 'filled',
+  chartPath?: PerpsChartRenderPath,
 ): void {
   if (!isScreenTtcProbeEnabled()) {
     return;
@@ -80,7 +87,16 @@ export function markDeferredRenderPoint(
     deferredRenderProbeId(screenId, point),
     now - origin,
     contentState,
+    chartPath,
   );
+}
+
+function perpsChartPathSnapshot(): PerpsChartRenderPath | undefined {
+  if (perpsPathsSinceNav.size > 1) {
+    return 'mixed';
+  }
+  const [onlyPath] = perpsPathsSinceNav;
+  return onlyPath;
 }
 
 /**
@@ -95,31 +111,44 @@ export function markDeferredRenderChartReady(
   }
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      markDeferredRenderPoint(screenId, DeferredRenderPoint.CHART_READY);
+      const chartPath =
+        screenId === DeferredRenderScreenIds.PERPS_MARKET_DETAILS
+          ? perpsChartPathSnapshot()
+          : undefined;
+      if (chartPath) {
+        const now = getPerformanceTimestamp();
+        let origin = origins.get(DeferredRenderScreenIds.PERPS_MARKET_DETAILS);
+        if (origin === undefined) {
+          origin = now;
+          origins.set(DeferredRenderScreenIds.PERPS_MARKET_DETAILS, origin);
+        }
+        recordScreenTtc(
+          PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
+          now - origin,
+          'filled',
+          chartPath,
+        );
+      }
+      markDeferredRenderPoint(
+        screenId,
+        DeferredRenderPoint.CHART_READY,
+        'filled',
+        chartPath,
+      );
     });
   });
 }
 
 /**
- * Last write wins. Records the perps chart implementation that mounted.
+ * Remembers the perps chart implementation mounted since nav start.
+ * The probe is published with {@link markDeferredRenderChartReady}.
  * No-ops when the probe is disabled.
  */
-export function markPerpsChartRenderPath(path: PerpsChartRenderPath): void {
+export function markPerpsChartRenderPath(path: PerpsMountedChartPath): void {
   if (!isScreenTtcProbeEnabled()) {
     return;
   }
-  const now = getPerformanceTimestamp();
-  let origin = origins.get(DeferredRenderScreenIds.PERPS_MARKET_DETAILS);
-  if (origin === undefined) {
-    origin = now;
-    origins.set(DeferredRenderScreenIds.PERPS_MARKET_DETAILS, origin);
-  }
-  recordScreenTtc(
-    PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
-    now - origin,
-    'filled',
-    path,
-  );
+  perpsPathsSinceNav.add(path);
 }
 
 /** Visible pin failure. No-ops when the probe is disabled. */
@@ -143,4 +172,5 @@ export function useDeferredRenderFirstRender(
 export function _resetDeferredRenderTtcForTesting(): void {
   origins.clear();
   recordedPoints.clear();
+  perpsPathsSinceNav.clear();
 }

@@ -5,7 +5,7 @@ import {
 } from '../../../app/hooks/performance/deferredRenderPerformanceIds';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { dismissPerpsOnboardingTutorialIfPresent } from '../../flows/perps.flow';
-import { Assertions, Matchers, Utilities } from '../../framework';
+import { Assertions, Matchers } from '../../framework';
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
@@ -63,14 +63,9 @@ perfTest.describe(
         });
 
         await chartTimer.measure(async () => {
-          const skeletonAppeared = await Utilities.isElementVisible(
-            Matchers.getElementByID('advanced-chart-skeleton'),
-            5_000,
-          );
           await assertDeferredRenderChartDataFilled(
             DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
           );
-          await assertPerpsAdvancedChartPath({ skeletonAppeared });
           await Assertions.expectElementToNotBeVisible(
             Matchers.getElementByID('perps-market-details-view-chart-skeleton'),
             {
@@ -92,6 +87,7 @@ perfTest.describe(
             ),
             { timeoutMs: CHART_THRESHOLD.android },
           );
+          await assertPerpsAdvancedChartPath();
         });
 
         performanceTracker.addTimer(detailsTimer);

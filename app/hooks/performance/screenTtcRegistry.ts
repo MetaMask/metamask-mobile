@@ -45,7 +45,7 @@ export function screenTtcTestId(screenId: ScreenTtcId): string {
  * Accessibility label format Appium parses:
  * `ttc:<screen_id>:<durationMs>:<generation>`
  * A non-filled outcome appends `:<empty|error>` so a rep can be excluded.
- * The perps chart-path probe appends `:<advanced|tradingview>`.
+ * A perps chart snapshot appends `:<advanced|tradingview|mixed>`.
  */
 export function formatScreenTtcAccessibilityLabel(
   record: ScreenTtcRecord,
@@ -64,7 +64,7 @@ export function parseScreenTtcAccessibilityLabel(
   label: string,
 ): ScreenTtcRecord | null {
   const match =
-    /^ttc:([a-z0-9_]+):(\d+(?:\.\d+)?):(\d+)(?::(empty|error|filled))?(?::(advanced|tradingview))?$/.exec(
+    /^ttc:([a-z0-9_]+):(\d+(?:\.\d+)?):(\d+)(?::(empty|error|filled))?(?::(advanced|tradingview|mixed))?$/.exec(
       label.trim(),
     );
   if (!match) {

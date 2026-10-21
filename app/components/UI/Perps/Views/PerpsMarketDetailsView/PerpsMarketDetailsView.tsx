@@ -64,7 +64,7 @@ import Logger from '../../../../../util/Logger';
 import {
   DeferredRenderPoint,
   DeferredRenderScreenIds,
-  type PerpsChartRenderPath,
+  type PerpsMountedChartPath,
 } from '../../../../../hooks/performance/deferredRenderPerformanceIds';
 import {
   markDeferredRenderChartReady,
@@ -286,7 +286,7 @@ function resolvePerpsChartRenderPath(options: {
   hasSymbol: boolean;
   isAdvanced: boolean;
   isFallbackReady: boolean;
-}): PerpsChartRenderPath | undefined {
+}): PerpsMountedChartPath | undefined {
   if (!options.isContextReady || !options.hasSymbol) {
     return undefined;
   }
