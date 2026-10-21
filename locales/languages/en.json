@@ -8425,7 +8425,6 @@
       "passkey_description": "Confirm with your device or password manager",
       "passkey_done": "Saved to this device",
       "email_description": "Get a 6-digit code sent to your inbox",
-      "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
