@@ -2050,9 +2050,9 @@ describe('MainNavigator', () => {
 
       expect(tabs).toEqual([
         Routes.WALLET.HOME,
-        Routes.SOCIAL.TAB,
         Routes.TRENDING_VIEW,
         Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
       ]);
       expect(rootStackScreenNames(container)).toContain(
         Routes.SOCIAL.ONBOARDING,
