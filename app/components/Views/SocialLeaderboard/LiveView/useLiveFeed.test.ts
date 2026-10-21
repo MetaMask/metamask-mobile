@@ -49,21 +49,9 @@ const event = {
   revision: 2,
   occurredAt: '2026-01-01T00:00:02.000Z',
   data: {
-    itemId: 'position-1',
+    ...httpItem,
     timestamp: 200,
-    cardLatestTradeAt: 200,
-    actor: {
-      type: 'user',
-      address: '0x1',
-      name: 'Trader',
-      images: {},
-      profile: { id: 'profile-1', metadata: {} },
-    },
-    metadata: {
-      tokenChain: 'base',
-      tokenAddress: '0xtoken',
-      trades: [{ intent: 'enter', comments: [] }],
-    },
+    lastTradeAt: 200,
   },
 } as unknown as SocialFeedEvent;
 
@@ -78,7 +66,22 @@ describe('mergeRealtimeFeedItem', () => {
       revision: 2,
       occurredAt: '2026-01-01T00:00:02.000Z',
     });
-    expect(merged.trades).toEqual([]);
+    expect(merged?.trades).toEqual([]);
+  });
+
+  it('normalizes a full event without an HTTP row', () => {
+    const fullEvent = {
+      ...event,
+      data: httpItem,
+    } as unknown as SocialFeedEvent;
+    const merged = mergeRealtimeFeedItem(undefined, fullEvent);
+
+    expect(merged).toMatchObject({
+      positionId: 'position-1',
+      tokenSymbol: 'TKN',
+      eventId: 'event-2',
+      revision: 2,
+    });
   });
 
   it('preserves Live identity and ordering while applying an existing row revision', () => {

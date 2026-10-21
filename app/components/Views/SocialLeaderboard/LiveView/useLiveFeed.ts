@@ -36,39 +36,22 @@ interface PendingEvent {
   animate: boolean;
 }
 
-const isCompleteTrade = (
-  value: unknown,
-): value is CoreFeedItem['trades'][number] =>
-  typeof value === 'object' &&
-  value !== null &&
-  'direction' in value &&
-  'intent' in value &&
-  'tokenAmount' in value &&
-  'usdCost' in value &&
-  'timestamp' in value &&
-  'transactionHash' in value;
-
 /**
- * Realtime events carry a compact hydrated payload. The HTTP snapshot remains
- * authoritative for presentation fields; the event supplies identity and
- * revision metadata and replaces any fields that are complete in both shapes.
+ * Full realtime events are normalized by Core and can hydrate a row without
+ * an HTTP snapshot. An existing HTTP row is still used to preserve any
+ * client-side enrichment that the event does not carry.
  */
 export const mergeRealtimeFeedItem = (
-  current: CoreFeedItem,
+  current: CoreFeedItem | undefined,
   event: SocialFeedEvent,
-): CoreFeedItem => {
-  const trades = event.data.metadata.trades.filter(isCompleteTrade);
-
-  return {
-    ...current,
-    positionId: event.data.itemId,
-    timestamp: event.data.timestamp,
-    trades: trades.length > 0 ? trades : current.trades,
+): CoreFeedItem =>
+  ({
+    ...(current ?? {}),
+    ...event.data,
     eventId: event.eventId,
     revision: event.revision,
     occurredAt: event.occurredAt,
-  };
-};
+  }) as CoreFeedItem;
 
 export const toLiveFeedRow = (row: TraderFeedRow): LiveFeedRow => ({
   ...row,
@@ -88,18 +71,18 @@ export const shouldDeferPendingNewRow = (
 ): boolean => pending?.animate === true;
 
 export const applyRealtimeEventToRow = (
-  row: TraderFeedRow,
+  row: TraderFeedRow | undefined,
   event: SocialFeedEvent,
   previous: LiveFeedRow | undefined,
   animate: boolean,
 ): LiveFeedRow | null => {
-  const mergedCore = mergeRealtimeFeedItem(row.core, event);
+  const mergedCore = mergeRealtimeFeedItem(row?.core, event);
   const mappedItem = mapFeedItem(mergedCore);
   if (!mappedItem) {
     return null;
   }
 
-  const stableId = previous?.stableId ?? row.item.id;
+  const stableId = previous?.stableId ?? row?.item.id ?? mappedItem.id;
 
   return {
     item: {
@@ -108,7 +91,8 @@ export const applyRealtimeEventToRow = (
     },
     core: mergedCore,
     stableId,
-    sortTimestamp: previous?.sortTimestamp ?? row.item.timestamp,
+    sortTimestamp:
+      previous?.sortTimestamp ?? row?.item.timestamp ?? mappedItem.timestamp,
     realtimeEventId:
       previous?.realtimeEventId ?? (animate ? event.eventId : undefined),
     feedItemId: event.feedItemId,
@@ -182,7 +166,11 @@ export const useLiveFeed = ({
   );
 
   const applyEvent = useCallback(
-    (event: SocialFeedEvent, row: TraderFeedRow, animate: boolean) => {
+    (
+      event: SocialFeedEvent,
+      row: TraderFeedRow | undefined,
+      animate: boolean,
+    ) => {
       setRealtimeRows((existing) => {
         const previous = existing.find(
           (candidate) => candidate.feedItemId === event.feedItemId,
@@ -228,10 +216,10 @@ export const useLiveFeed = ({
         applyEvent(event, row, false);
         return;
       }
-      queuePendingEvent(event, true);
-      refresh().catch(() => undefined);
+
+      applyEvent(event, undefined, true);
     },
-    [applyEvent, queuePendingEvent, refresh],
+    [applyEvent, queuePendingEvent],
   );
 
   useEffect(() => {
@@ -254,21 +242,13 @@ export const useLiveFeed = ({
   }, [enabled, handleRealtimeEvent, isFocused, realtimeService, refresh]);
 
   useEffect(() => {
-    if (
-      paused ||
-      !nearTop ||
-      feed.rows.length === 0 ||
-      pendingEvents.current.size === 0
-    ) {
+    if (paused || !nearTop || pendingEvents.current.size === 0) {
       return;
     }
     for (const [feedItemId, pending] of pendingEvents.current) {
       const row = feed.rows.find(
         (candidate) => candidate.core.positionId === feedItemId,
       );
-      if (!row) {
-        continue;
-      }
       applyEvent(pending.event, row, pending.animate);
       pendingEvents.current.delete(feedItemId);
     }
