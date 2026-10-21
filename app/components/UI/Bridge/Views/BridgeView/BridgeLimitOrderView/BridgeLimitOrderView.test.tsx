@@ -7,7 +7,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { FeatureId } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -38,6 +41,34 @@ import { OrdersTabKey } from '../../../components/OrdersTabs';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { OrderType } from '../../../types/advancedOrders';
+
+const expectAdvancedOrderProperties = (
+  event: { category: string },
+  properties: {
+    location: string;
+    feature_id: FeatureId;
+    type: OrderType;
+    error?: string;
+  },
+) => {
+  const { createEventBuilder } = useAnalytics();
+
+  expect(createEventBuilder).toHaveBeenCalledWith(event);
+  const callIndex = jest
+    .mocked(createEventBuilder)
+    .mock.calls.map((call) => call[0])
+    .lastIndexOf(event);
+  const added = jest.mocked(createEventBuilder).mock.results[callIndex].value
+    .addProperties.mock.calls[0][0] as Record<string, unknown>;
+
+  expect(added).toEqual(properties);
+  expect(added).toHaveProperty('type');
+  expect(added).not.toHaveProperty('order_type');
+  expect(added).not.toHaveProperty('orderType');
+};
 
 /**
  * Unit tests for BridgeLimitOrderView orchestration (keypad footer swap,
@@ -476,7 +507,9 @@ function buildKeypadMock() {
 function getLimitOrderView() {
   return (
     <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
-      <BridgeLimitOrderView />
+      <BridgeLimitOrderView
+        location={MetaMetricsSwapsEventSource.TransactionDetails}
+      />
     </SwapsFeatureIdProvider>
   );
 }
@@ -1411,5 +1444,48 @@ describe('BridgeLimitOrderView', () => {
 
       expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
     });
+  });
+
+  describe('advanced order events', () => {
+    it.each([
+      {
+        executionType: LimitOrderExecutionType.SELL,
+        priceComparisonDirection:
+          LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+        expectedType: OrderType.SELL_ABOVE,
+      },
+      {
+        executionType: LimitOrderExecutionType.BUY,
+        priceComparisonDirection:
+          LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+        expectedType: OrderType.BUY_BELOW,
+      },
+    ])(
+      'tracks ADVANCED_ORDER_SUBMITTED with type $expectedType',
+      ({ executionType, priceComparisonDirection, expectedType }) => {
+        mockIsAmountFocused = true;
+        mockSourceAmount = '2';
+        jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+          ...buildPriceAdjustMock(),
+          executionType,
+          priceComparisonDirection,
+        }));
+
+        const { getByTestId } = renderLimitOrderView();
+
+        fireEvent.press(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        );
+
+        expectAdvancedOrderProperties(
+          MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED,
+          {
+            location: 'Transaction Details',
+            feature_id: FeatureId.LIMIT_ORDER,
+            type: expectedType,
+          },
+        );
+      },
+    );
   });
 });

@@ -386,9 +386,11 @@ const BridgeView = () => {
           {renderedTab === BridgeTabKey.Market ? (
             <BridgeMarketView location={location} />
           ) : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <BridgeLimitOrderView location={location} />
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <BridgeRecurringBuyView location={location} />
           ) : null}
         </Box>
       </GestureDetector>

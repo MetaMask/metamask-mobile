@@ -28,6 +28,7 @@ export const useTrackSwapPageViewed = (
   useEffect(() => {
     const shouldTrackPageView =
       sourceToken && lastTrackedFeatureId.current !== featureId;
+
     if (shouldTrackPageView) {
       const pageViewedProperties = {
         chain_id_source: getDecimalChainId(sourceToken.chainId),
