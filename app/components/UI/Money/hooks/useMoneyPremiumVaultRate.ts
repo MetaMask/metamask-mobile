@@ -2,11 +2,11 @@ import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { VaultRateResponse } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
-import type { SubscriptionPaymentMethod } from '@metamask/subscription-controller';
 import BigNumber from 'bignumber.js';
 import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { readVaultAddress } from '../utils/readVaultAddress';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
@@ -40,27 +40,6 @@ const parseRatePercent = (rate: string | undefined): number | undefined => {
     .multipliedBy(100)
     .dp(1, BigNumber.ROUND_HALF_UP)
     .toNumber();
-};
-
-/**
- * Reads the Plus subscription's vault-share token.
- *
- * @param paymentMethod - The subscription payment method.
- * @returns The vault address when the payment is crypto.
- */
-const readVaultAddress = (
-  paymentMethod: SubscriptionPaymentMethod | undefined,
-): string | undefined => {
-  if (paymentMethod?.type !== 'crypto') {
-    return undefined;
-  }
-
-  const crypto: object = paymentMethod.crypto;
-  if (!('tokenAddress' in crypto) || typeof crypto.tokenAddress !== 'string') {
-    return undefined;
-  }
-
-  return crypto.tokenAddress.length > 0 ? crypto.tokenAddress : undefined;
 };
 
 /**

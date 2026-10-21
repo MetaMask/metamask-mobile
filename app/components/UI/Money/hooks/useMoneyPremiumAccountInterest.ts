@@ -6,12 +6,12 @@ import type {
   InterestWindow,
 } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
-import type { SubscriptionPaymentMethod } from '@metamask/subscription-controller';
 import BigNumber from 'bignumber.js';
 import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
+import { readVaultAddress } from '../utils/readVaultAddress';
 import {
   clearReportedMoneyInterestError,
   reportMoneyInterestError,
@@ -34,27 +34,6 @@ interface UseMoneyPremiumAccountInterestResult {
    */
   sinceInceptionInterest: string;
 }
-
-/**
- * Reads the Plus subscription's vault-share token.
- *
- * @param paymentMethod - The subscription payment method.
- * @returns The vault address when the payment is crypto.
- */
-const readVaultAddress = (
-  paymentMethod: SubscriptionPaymentMethod | undefined,
-): string | undefined => {
-  if (paymentMethod?.type !== 'crypto') {
-    return undefined;
-  }
-
-  const crypto: object = paymentMethod.crypto;
-  if (!('tokenAddress' in crypto) || typeof crypto.tokenAddress !== 'string') {
-    return undefined;
-  }
-
-  return crypto.tokenAddress.length > 0 ? crypto.tokenAddress : undefined;
-};
 
 /**
  * Formats interest the same way Money Home does: a leading plus on amounts
