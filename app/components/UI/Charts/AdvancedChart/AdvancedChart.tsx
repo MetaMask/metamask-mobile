@@ -15,6 +15,7 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
+import { AdvancedChartSelectorsIDs } from './AdvancedChart.testIds';
 import {
   createAdvancedChartTemplate,
   CHARTING_LIBRARY_BASE_URL,
@@ -63,9 +64,6 @@ const openInAppBrowser = (url: string) => {
  * TradingView Advanced Charts (TM)
  * Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/
  */
-
-/** Stable testID for the chart WebView shared by Token details and Perps. */
-export const ADVANCED_CHART_WEBVIEW_TEST_ID = 'advanced-chart-webview';
 
 /** Hide layout skeleton if WebView never sends `CHART_LAYOUT_SETTLED` (e.g. older HTML). */
 const LAYOUT_SETTLE_FALLBACK_MS = 2500;
@@ -1103,7 +1101,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           pointerEvents={scrollPassthrough ? 'none' : 'auto'}
         >
           <WebView
-            testID={ADVANCED_CHART_WEBVIEW_TEST_ID}
+            testID={AdvancedChartSelectorsIDs.WEBVIEW}
             key={`advanced-chart-${resolvedWebViewKey}`}
             ref={webViewRef}
             source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}

@@ -40,17 +40,28 @@ Those screens keep their current render timing.
    - If the focused screen never emits `transitionEnd` (initial route, tab
      switch, animation disabled, non-stack navigator), the hook flips true
      after `SCREEN_TRANSITION_FALLBACK_MS` (450).
+   - If there is no navigator, `useNavigation` would throw. The hook reads
+     `NavigationContext` and, when it is missing, uses that same 450ms timer
+     without a focus check.
    - If the screen is no longer focused when that timer fires, it stays
-     closed and re-arms on the next `focus`.
+     closed and re-arms on the next `focus`. That focus check applies only
+     when a navigator is present.
 3. After the gate opens, the next animation frame runs. When
    `requestIdleCallback` exists, the first stage also waits for an idle
-   callback. Later stages wait one animation frame each.
-4. If the frame or idle callback never runs,
-   `DEFERRED_RENDER_FRAME_TIMEOUT_MS` (100) releases the pending stage.
-   Deferred content always mounts.
-5. When the last stage is released, `performance.mark` records
-   `deferred-render:<screenId>:complete` and `onDeferredComplete` runs.
-   Both happen once per visit.
+   callback. Later stages wait one animation frame each. If the runtime has
+   no idle callback, the first stage mounts on that frame.
+4. A timeout is armed when the stage is scheduled, before
+   `requestAnimationFrame`, so content still mounts when the frame or idle
+   callback never runs. The first stage waits
+   `DEFERRED_RENDER_FIRST_STAGE_TIMEOUT_MS` (250), because that timer has to
+   cover the frame and the idle wait. Each later stage waits
+   `DEFERRED_RENDER_FRAME_TIMEOUT_MS` (100). Pass `frameTimeoutMs` to use one
+   backup for every stage instead. There is no hardware-tier branching.
+5. After the commit that mounts the last stage's children,
+   `performance.mark` records `deferred-render:<screenId>:complete` and
+   `onDeferredComplete` runs. Both happen once per visit. They mean the
+   deferred children have committed, not merely that the stage was released.
+   A visit that unmounts before that commit does not fire them.
 
 `InteractionManager.runAfterInteractions` is not used. It has been deprecated
 since React Native 0.80.
@@ -69,10 +80,10 @@ children immediately.
 Recorded with `performance.mark` from `react-native-performance` (User Timing).
 Two calls per visit. No detail payload.
 
-| Moment | Mark name |
-| --- | --- |
-| Host first commit | `deferred-render:<screenId>:first-render` |
-| Last stage released | `deferred-render:<screenId>:complete` |
+| Moment                           | Mark name                                 |
+| -------------------------------- | ----------------------------------------- |
+| Host first commit                | `deferred-render:<screenId>:first-render` |
+| Last deferred children committed | `deferred-render:<screenId>:complete`     |
 
 `<screenId>` is the `screenId` prop, unchanged. Pick a stable slug, for
 example `token-details` or `perps-market-details`.
@@ -103,7 +114,7 @@ import { DeferredRender } from '../../components/DeferredRender';
   }}
 >
   <PriceChart />
-</DeferredRender>
+</DeferredRender>;
 ```
 
 `estimatedHeight` is density-independent pixels and should match the chart's
@@ -136,7 +147,7 @@ import {
   <DeferredRender stage={1} estimatedHeight={480}>
     <BelowFoldStats />
   </DeferredRender>
-</DeferredRenderHost>
+</DeferredRenderHost>;
 ```
 
 `stage` must be in `0 .. stages - 1`. A slot past that range stays on the
@@ -162,17 +173,25 @@ const { isStageReady } = useDeferredRender({
   onDeferredComplete: handleReady,
 });
 
-return isStageReady() ? (
-  <PriceChart />
-) : (
-  <DeferredPlaceholder height={280} />
-);
+return isStageReady() ? <PriceChart /> : <DeferredPlaceholder height={280} />;
 ```
 
 `enabled={false}` reveals every stage on the first commit and still fires
-`onDeferredComplete` once. Use it for a screen that should not defer
-(tests, or a path that already paid the cost). Turning `enabled` back on
-does not hide content that was released.
+`onDeferredComplete` once, after that commit. Use it for a screen that
+should not defer (tests, or a path that already paid the cost). Turning
+`enabled` back on does not hide content that was released. Flipping
+`enabled` to false while a visit is still waiting mounts the remaining
+stages on the next commit.
+
+`frameTimeoutMs` replaces both backup timeouts. Omit it for 250ms on the
+first stage and 100ms on each later stage.
+
+Inside a host, `screenId`, `enabled`, `frameTimeoutMs`, and
+`onDeferredComplete` on a slot are ignored. In development, passing them
+logs a warning. A `stage` greater than or equal to `stages` also logs a
+warning in development and stays on its placeholder. A placeholder height
+of `0`, a negative number, or `NaN` logs a warning in development; pass the
+real reserved height.
 
 ## Cleanup
 
@@ -180,5 +199,5 @@ On unmount the hook cancels its animation frame, idle callback, and timeout,
 and `useScreenTransitionComplete` removes its `transitionEnd` and `focus`
 listeners and its fallback timer. Callbacks check a mounted flag before
 `setState`, including when the user pops the screen before the frame runs.
-`onDeferredComplete` does not run for a visit that never released its last
-stage.
+`onDeferredComplete` and the complete mark do not run for a visit that
+unmounts before the last stage's children commit.

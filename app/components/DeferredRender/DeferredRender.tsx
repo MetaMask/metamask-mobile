@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useRef } from 'react';
 
 import { deferredRenderPlaceholderTestId } from './constants';
 import { DeferredPlaceholder } from './DeferredPlaceholder';
@@ -37,7 +37,8 @@ interface DeferredRenderSlotProps {
   children: DeferredRenderProps['children'];
 }
 
-function DeferredRenderSlot({
+/** Rendered by `DeferredRender`. Exported so the missing-host guard can be tested. */
+export function DeferredRenderSlot({
   stage,
   estimatedHeight,
   testID,
@@ -45,9 +46,7 @@ function DeferredRenderSlot({
 }: DeferredRenderSlotProps) {
   const host = useContext(DeferredRenderContext);
   if (!host) {
-    throw new Error(
-      'DeferredRender slot rendered outside DeferredRenderHost',
-    );
+    throw new Error('DeferredRender slot rendered outside DeferredRenderHost');
   }
 
   if (host.isStageReady(stage)) {
@@ -76,9 +75,26 @@ export function DeferredRender({
   testID,
   screenId,
   enabled,
+  frameTimeoutMs,
   onDeferredComplete,
 }: DeferredRenderProps) {
   const host = useContext(DeferredRenderContext);
+  const warnedIgnoredHostPropsRef = useRef(false);
+
+  if (
+    __DEV__ &&
+    host &&
+    !warnedIgnoredHostPropsRef.current &&
+    (screenId !== undefined ||
+      enabled !== undefined ||
+      frameTimeoutMs !== undefined ||
+      onDeferredComplete !== undefined)
+  ) {
+    warnedIgnoredHostPropsRef.current = true;
+    console.warn(
+      'DeferredRender ignores screenId, enabled, and onDeferredComplete inside DeferredRenderHost. Pass them to the host.',
+    );
+  }
 
   if (!host) {
     if (!screenId) {
@@ -91,6 +107,7 @@ export function DeferredRender({
       <DeferredRenderHost
         screenId={screenId}
         enabled={enabled}
+        frameTimeoutMs={frameTimeoutMs}
         onDeferredComplete={onDeferredComplete}
       >
         <DeferredRenderSlot

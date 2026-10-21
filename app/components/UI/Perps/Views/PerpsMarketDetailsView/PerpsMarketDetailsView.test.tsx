@@ -1147,6 +1147,19 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the market details chart container', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      { state: initialState },
+    );
+
+    expect(
+      getByTestId(PerpsMarketDetailsViewSelectorsIDs.CHART_CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
   describe('service interruption banner', () => {
     it('does not render the outage banner when the flag is off', () => {
       const { queryByTestId } = renderWithProvider(

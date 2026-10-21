@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import AdvancedChart, {
-  ADVANCED_CHART_WEBVIEW_TEST_ID,
-} from '../AdvancedChart';
+import AdvancedChart from '../AdvancedChart';
+import { AdvancedChartSelectorsIDs } from '../AdvancedChart.testIds';
 import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
@@ -74,7 +73,7 @@ describe('AdvancedChart', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
 
     expect(getByTestId('mock-webview').props.nativeID).toBe(
-      ADVANCED_CHART_WEBVIEW_TEST_ID,
+      AdvancedChartSelectorsIDs.WEBVIEW,
     );
   });
 
