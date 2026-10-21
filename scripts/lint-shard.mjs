@@ -1,0 +1,288 @@
+#!/usr/bin/env node
+/**
+ * Shard the same file set as `yarn lint`'s ESLint invocation.
+ *
+ * The CLI passes the quoted glob of js, ts, and tsx files to ESLint 8.57
+ * with --cache and no --ext.
+ * Files are enumerated with ESLint's FileEnumerator so .eslintignore,
+ * ignorePatterns, and default ignores match the unsharded command.
+ * Shards are a deterministic longest-first bin pack by file size.
+ *
+ *   node scripts/lint-shard.mjs --plan --shards 4
+ *   node scripts/lint-shard.mjs --check-union
+ *   node scripts/lint-shard.mjs --shard 1 --shards 4
+ *   node scripts/lint-shard.mjs --self-test
+ */
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const require = createRequire(import.meta.url);
+const eslintRoot = path.dirname(require.resolve('eslint/package.json'));
+const { FileEnumerator } = require(
+  path.join(eslintRoot, 'lib/cli-engine/file-enumerator.js'),
+);
+const { ESLint } = require('eslint');
+
+const LINT_PATTERNS = ['**/*.{js,ts,tsx}'];
+
+/**
+ * @param {string} cwd
+ * @returns {string[]} Absolute paths ESLint would lint for LINT_PATTERNS.
+ */
+export function listLintFiles(cwd) {
+  const enumerator = new FileEnumerator({
+    cwd,
+    // null matches the CLI: the glob selects extensions, not --ext.
+    extensions: null,
+    globInputPaths: true,
+    errorOnUnmatchedPattern: true,
+    ignore: true,
+  });
+  /** @type {string[]} */
+  const files = [];
+  for (const entry of enumerator.iterateFiles(LINT_PATTERNS)) {
+    if (!entry.ignored) {
+      files.push(entry.filePath);
+    }
+  }
+  files.sort();
+  return files;
+}
+
+/**
+ * Longest-processing-time bin pack. File size is the weight.
+ * Equal totals go to the lower shard index so the split is stable.
+ * @param {{ path: string, bytes: number }[]} entries
+ * @param {number} shards
+ * @returns {{ files: string[], bytes: number }[]}
+ */
+export function splitBySize(entries, shards) {
+  if (!Number.isInteger(shards) || shards < 1) {
+    throw new Error(`shards must be a positive integer, got ${shards}`);
+  }
+  const bins = Array.from({ length: shards }, () => ({
+    files: /** @type {string[]} */ ([]),
+    bytes: 0,
+  }));
+  const ordered = [...entries].sort(
+    (a, b) => b.bytes - a.bytes || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0),
+  );
+  for (const entry of ordered) {
+    let target = 0;
+    for (let index = 1; index < bins.length; index += 1) {
+      if (bins[index].bytes < bins[target].bytes) {
+        target = index;
+      }
+    }
+    bins[target].files.push(entry.path);
+    bins[target].bytes += entry.bytes;
+  }
+  for (const bin of bins) {
+    bin.files.sort();
+  }
+  return bins;
+}
+
+/**
+ * @param {string[]} files
+ * @param {number} shards
+ */
+export function shardFiles(files, shards) {
+  const entries = files.map((filePath) => ({
+    path: filePath,
+    bytes: fs.statSync(filePath).size,
+  }));
+  return splitBySize(entries, shards);
+}
+
+/**
+ * @param {string[][]} groups
+ * @param {string[]} expected
+ */
+export function unionDiff(groups, expected) {
+  const union = new Set();
+  /** @type {string[]} */
+  const duplicates = [];
+  for (const group of groups) {
+    for (const filePath of group) {
+      if (union.has(filePath)) {
+        duplicates.push(filePath);
+      }
+      union.add(filePath);
+    }
+  }
+  const expectedSet = new Set(expected);
+  const missing = expected.filter((filePath) => !union.has(filePath));
+  const extra = [...union].filter((filePath) => !expectedSet.has(filePath)).sort();
+  return { missing, extra, duplicates };
+}
+
+function selfTest() {
+  const entries = [
+    { path: 'a', bytes: 50 },
+    { path: 'b', bytes: 40 },
+    { path: 'c', bytes: 30 },
+    { path: 'd', bytes: 20 },
+    { path: 'e', bytes: 10 },
+  ];
+  const bins = splitBySize(entries, 2);
+  const again = splitBySize(entries, 2);
+  if (JSON.stringify(bins) !== JSON.stringify(again)) {
+    throw new Error('split is not deterministic');
+  }
+  const diff = unionDiff(
+    bins.map((bin) => bin.files),
+    entries.map((entry) => entry.path),
+  );
+  if (diff.missing.length || diff.extra.length || diff.duplicates.length) {
+    throw new Error(`self-test union failed: ${JSON.stringify(diff)}`);
+  }
+  // 50+10+20 = 80 and 40+30 = 70, or 50+20 = 70 and 40+30+10 = 80.
+  const totals = bins.map((bin) => bin.bytes).sort((a, b) => a - b);
+  if (totals[0] !== 70 || totals[1] !== 80) {
+    throw new Error(`unexpected balance ${totals.join(',')}`);
+  }
+  console.log('self-test ok');
+}
+
+function parseArgs(argv) {
+  /** @type {Record<string, string | boolean>} */
+  const args = { _: [] };
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === '--self-test') args.selfTest = true;
+    else if (token === '--plan') args.plan = true;
+    else if (token === '--check-union') args.checkUnion = true;
+    else if (token === '--list') args.list = true;
+    else if (token === '--skip-messenger') args.skipMessenger = true;
+    else if (token === '--shard') {
+      args.shard = argv[++index];
+    } else if (token === '--shards') {
+      args.shards = argv[++index];
+    } else if (token === '--files-from') {
+      args.filesFrom = argv[++index];
+    } else {
+      throw new Error(`Unknown argument ${token}`);
+    }
+  }
+  return args;
+}
+
+async function lintPaths(cwd, files) {
+  const eslint = new ESLint({
+    cwd,
+    cache: true,
+    cacheStrategy: 'metadata',
+    useEslintrc: true,
+    errorOnUnmatchedPattern: true,
+  });
+  const results = await eslint.lintFiles(files);
+  const formatter = await eslint.loadFormatter('stylish');
+  const text = await formatter.format(results);
+  if (text) {
+    process.stdout.write(text);
+  }
+  return results.reduce((sum, result) => sum + result.errorCount, 0);
+}
+
+function runMessenger(cwd) {
+  const yarnJs = path.join(cwd, '.yarn/releases/yarn-4.14.1.cjs');
+  const result = spawnSync(
+    process.execPath,
+    [yarnJs, 'messenger-action-types:check'],
+    { cwd, stdio: 'inherit', env: process.env },
+  );
+  if (result.error) {
+    throw result.error;
+  }
+  return result.status ?? 1;
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.selfTest) {
+    selfTest();
+    return;
+  }
+
+  const cwd = process.cwd();
+  const files = args.filesFrom
+    ? fs.readFileSync(String(args.filesFrom), 'utf8').split('\n').filter(Boolean)
+    : listLintFiles(cwd);
+
+  if (args.list) {
+    process.stdout.write(`${files.join('\n')}\n`);
+    return;
+  }
+
+  const shards = Number(args.shards || (args.checkUnion ? 0 : 1));
+  if (args.checkUnion) {
+    let failed = false;
+    for (const count of [2, 3, 4]) {
+      const bins = shardFiles(files, count);
+      const diff = unionDiff(
+        bins.map((bin) => bin.files),
+        files,
+      );
+      const widths = bins.map((bin) => bin.bytes);
+      const min = Math.min(...widths);
+      const max = Math.max(...widths);
+      console.log(
+        `shards=${count} files=${files.length} missing=${diff.missing.length} extra=${diff.extra.length} dup=${diff.duplicates.length} bytes=${widths.join(',')} skew=${(max / min).toFixed(3)}`,
+      );
+      if (diff.missing.length || diff.extra.length || diff.duplicates.length) {
+        failed = true;
+      }
+    }
+    if (failed) {
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  if (args.plan) {
+    const bins = shardFiles(files, shards);
+    bins.forEach((bin, index) => {
+      console.log(
+        `shard ${index + 1}/${shards} files=${bin.files.length} bytes=${bin.bytes}`,
+      );
+    });
+    return;
+  }
+
+  const shard = Number(args.shard || 1);
+  if (!Number.isInteger(shard) || shard < 1 || shard > shards) {
+    throw new Error(`--shard must be between 1 and ${shards}`);
+  }
+  const bins = shardFiles(files, shards);
+  const selected = bins[shard - 1];
+  const started = Date.now();
+  const errorCount = await lintPaths(cwd, selected.files);
+  const eslintSeconds = ((Date.now() - started) / 1000).toFixed(1);
+  console.error(
+    `LINT_SHARD_TIMING shard=${shard}/${shards} files=${selected.files.length} bytes=${selected.bytes} eslint_s=${eslintSeconds} errors=${errorCount}`,
+  );
+  if (errorCount > 0) {
+    process.exitCode = 1;
+    return;
+  }
+  if (!args.skipMessenger) {
+    const status = runMessenger(cwd);
+    if (status !== 0) {
+      process.exitCode = status;
+    }
+  }
+}
+
+const invokedDirectly =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
