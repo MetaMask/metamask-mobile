@@ -98,6 +98,7 @@ import type {
   MoneyConfirmationsNavigationParamList,
 } from '../../components/UI/Money/types/navigation';
 import type { VbaOnboardingParamList } from '../../components/UI/Ramp/Views/VirtualBankAccount/routes';
+import type { VbaSourceCurrency } from '../../util/region/getVbaSourceCurrency';
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
@@ -586,7 +587,7 @@ export type RootStackParamList = {
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
   RampVbaOnboarding: NavigatorScreenParams<VbaOnboardingParamList> | undefined;
-  RampVbaDetails: undefined;
+  RampVbaDetails: { sourceCurrency?: VbaSourceCurrency } | undefined;
 
   // Deposit routes
   Deposit: DepositNavigationParams | undefined;

@@ -441,7 +441,7 @@
     "@metamask/profile-controller": "^1.1.0",
     "@metamask/profile-metrics-controller": "^5.1.0",
     "@metamask/profile-sync-controller": "^35.0.0",
-    "@metamask/ramps-controller": "^27.0.1",
+    "@metamask/ramps-controller": "^27.1.0",
     "@metamask/react-data-query": "^1.0.0",
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch",
     "@metamask/react-native-actionsheet": "2.4.2",
