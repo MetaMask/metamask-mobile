@@ -6,7 +6,6 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
@@ -24,7 +23,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
-const PROTECTION_HIGHLIGHT_DELAY_MS = 4200;
 const styles = StyleSheet.create({
   protectionHighlight: {
     position: 'absolute',
@@ -65,16 +63,13 @@ const MoneyHeader = ({
     }
 
     pulseProgress.value = 0;
-    pulseProgress.value = withDelay(
-      PROTECTION_HIGHLIGHT_DELAY_MS,
-      withRepeat(
-        withTiming(1, {
-          duration: 1000,
-          easing: Easing.out(Easing.cubic),
-        }),
-        2,
-        false,
-      ),
+    pulseProgress.value = withRepeat(
+      withTiming(1, {
+        duration: 1000,
+        easing: Easing.out(Easing.cubic),
+      }),
+      2,
+      false,
     );
 
     return () => cancelAnimation(pulseProgress);

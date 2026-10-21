@@ -16,6 +16,7 @@ import Animated, {
   cancelAnimation,
   Easing,
   interpolate,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -27,7 +28,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -78,6 +79,7 @@ import {
 } from '../../hooks/useMoneySecurityMethods';
 import { selectOnboardingStepperProgress } from '../../../../../reducers/user/selectors';
 import { STEPPER_IDS } from '../../hooks/useOnboardingStep';
+import { setOnboardingStepperStep } from '../../../../../actions/user';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
@@ -141,19 +143,42 @@ import {
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
+const PROTECTION_SUCCESS_HOLD_MS = 3000;
+const PROTECTION_DISMISS_MS = 700;
 
 const protectionIconStyles = StyleSheet.create({
   layer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
+  celebrationClip: {
+    overflow: 'hidden',
+  },
+  bannerClip: {
+    overflow: 'hidden',
+  },
 });
 
-const MoneyProtectionIcon = ({ style }: { style: StyleProp<ViewStyle> }) => {
+const MoneyProtectionIcon = ({
+  style,
+  isCelebrating = false,
+}: {
+  style: StyleProp<ViewStyle>;
+  isCelebrating?: boolean;
+}) => {
+  const { colors } = useTheme();
   const progress = useSharedValue(0);
 
   useEffect(() => {
     progress.value = 0;
+    if (isCelebrating) {
+      progress.value = withTiming(1, {
+        duration: 2100,
+        easing: Easing.inOut(Easing.cubic),
+      });
+      return () => cancelAnimation(progress);
+    }
+
     progress.value = withDelay(
       600,
       withRepeat(
@@ -177,44 +202,69 @@ const MoneyProtectionIcon = ({ style }: { style: StyleProp<ViewStyle> }) => {
     );
 
     return () => cancelAnimation(progress);
-  }, [progress]);
+  }, [isCelebrating, progress]);
 
   const lockAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 0.22, 0.78, 1], [1, 1, 0, 0]),
+    opacity: interpolate(progress.value, [0, 0.34, 0.58], [1, 1, 0]),
     transform: [
-      { perspective: 600 },
       {
-        rotateY: `${interpolate(
-          progress.value,
-          [0, 0.68, 1],
-          [0, 100, 100],
-        )}deg`,
+        scale: interpolate(progress.value, [0, 0.34, 0.58], [1, 1, 0.82]),
       },
       {
-        scale: interpolate(
-          progress.value,
-          [0, 0.22, 0.78, 1],
-          [1, 1, 0.65, 0.65],
-        ),
+        translateY: interpolate(progress.value, [0, 0.34, 0.58], [0, 0, -6]),
       },
     ],
   }));
   const checkAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 0.22, 0.78, 1], [0, 0, 1, 1]),
+    opacity: interpolate(progress.value, [0, 0.44, 0.68, 1], [0, 0, 1, 1]),
     transform: [
-      { perspective: 600 },
-      {
-        rotateY: `${interpolate(
-          progress.value,
-          [0, 0.32, 1],
-          [-100, -100, 0],
-        )}deg`,
-      },
       {
         scale: interpolate(
           progress.value,
-          [0, 0.22, 0.78, 1],
-          [0.65, 0.65, 1.14, 1],
+          [0, 0.44, 0.76, 1],
+          [0.82, 0.82, 1.08, 1],
+        ),
+      },
+      {
+        translateY: interpolate(
+          progress.value,
+          [0, 0.44, 0.72, 1],
+          [8, 8, 0, 0],
+        ),
+      },
+    ],
+  }));
+  const celebrationAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: colors.background.muted,
+    transform: [
+      {
+        scale: interpolate(
+          progress.value,
+          [0, 0.4, 0.76, 1],
+          [1, 0.98, 1.06, 1],
+        ),
+      },
+    ],
+  }));
+  const setupTransitionAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 0.45, 0.72, 1],
+      [
+        colors.info.muted,
+        colors.info.muted,
+        colors.success.muted,
+        colors.success.muted,
+      ],
+    ),
+  }));
+  const successFillAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: interpolate(
+          progress.value,
+          [0, 0.34, 0.72, 1],
+          [36, 36, 0, 0],
         ),
       },
     ],
@@ -222,9 +272,26 @@ const MoneyProtectionIcon = ({ style }: { style: StyleProp<ViewStyle> }) => {
 
   return (
     <Animated.View
-      style={style}
+      style={[
+        style,
+        isCelebrating && protectionIconStyles.celebrationClip,
+        isCelebrating && celebrationAnimatedStyle,
+        !isCelebrating && setupTransitionAnimatedStyle,
+      ]}
       testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER_ICON}
     >
+      {isCelebrating && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: colors.success.muted,
+            },
+            successFillAnimatedStyle,
+          ]}
+        />
+      )}
       <Animated.View
         style={[
           StyleSheet.absoluteFill,
@@ -235,7 +302,9 @@ const MoneyProtectionIcon = ({ style }: { style: StyleProp<ViewStyle> }) => {
         <Icon
           name={IconName.Lock}
           size={IconSize.Md}
-          color={IconColor.InfoDefault}
+          color={
+            isCelebrating ? IconColor.IconAlternative : IconColor.InfoDefault
+          }
         />
       </Animated.View>
       <Animated.View
@@ -256,6 +325,7 @@ const MoneyProtectionIcon = ({ style }: { style: StyleProp<ViewStyle> }) => {
 };
 
 const MoneyHomeView = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
@@ -280,9 +350,122 @@ const MoneyHomeView = () => {
     isAuthenticatorAdded,
     isTransactionVerificationEnabled,
   } = useMoneySecurityMethods(passkeyCount);
+  const isProtectionSetupComplete =
+    (onboardingProgress[STEPPER_IDS.MONEY_PASSKEY_COUNT] ?? passkeyCount) > 0 &&
+    (onboardingProgress[STEPPER_IDS.MONEY_SECURITY_AUTHENTICATOR] === 1 ||
+      isAuthenticatorAdded);
+  const protectionAnimationTrigger =
+    onboardingProgress[STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER] ?? 0;
+  const hasPendingProtectionCelebration =
+    isProtectionSetupComplete && protectionAnimationTrigger > 0;
+  const [protectionBannerPhase, setProtectionBannerPhase] = useState<
+    'setup' | 'celebrating' | 'hidden'
+  >(
+    hasPendingProtectionCelebration
+      ? 'celebrating'
+      : isProtectionSetupComplete
+        ? 'hidden'
+        : 'setup',
+  );
+  const hasObservedIncompleteProtection = useRef(
+    !isProtectionSetupComplete || hasPendingProtectionCelebration,
+  );
+  const hasCelebratedProtection = useRef(
+    isProtectionSetupComplete && !hasPendingProtectionCelebration,
+  );
+  const protectionCelebrationStarted = useRef(false);
+  const protectionBannerDismiss = useSharedValue(
+    isProtectionSetupComplete ? 1 : 0,
+  );
+
+  useEffect(() => {
+    if (isProtectionSetupComplete) {
+      return;
+    }
+
+    hasObservedIncompleteProtection.current = true;
+    hasCelebratedProtection.current = false;
+    protectionCelebrationStarted.current = false;
+    protectionBannerDismiss.value = 0;
+    setProtectionBannerPhase('setup');
+  }, [isProtectionSetupComplete, protectionBannerDismiss]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const shouldCelebrate =
+        isProtectionSetupComplete &&
+        hasObservedIncompleteProtection.current &&
+        !hasCelebratedProtection.current &&
+        !protectionCelebrationStarted.current;
+
+      if (!shouldCelebrate) {
+        return undefined;
+      }
+
+      protectionCelebrationStarted.current = true;
+      protectionBannerDismiss.value = 0;
+      setProtectionBannerPhase('celebrating');
+      return undefined;
+    }, [isProtectionSetupComplete, protectionBannerDismiss]),
+  );
+
+  useEffect(() => {
+    if (protectionBannerPhase !== 'celebrating') {
+      return undefined;
+    }
+
+    protectionCelebrationStarted.current = true;
+    protectionBannerDismiss.value = 0;
+    const collapseTimer = setTimeout(() => {
+      protectionBannerDismiss.value = withTiming(1, {
+        duration: PROTECTION_DISMISS_MS,
+        easing: Easing.inOut(Easing.cubic),
+      });
+    }, PROTECTION_SUCCESS_HOLD_MS);
+    const hideTimer = setTimeout(() => {
+      hasCelebratedProtection.current = true;
+      setProtectionBannerPhase('hidden');
+      if (protectionAnimationTrigger > 0) {
+        dispatch(
+          setOnboardingStepperStep(
+            STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER,
+            0,
+          ),
+        );
+      }
+    }, PROTECTION_SUCCESS_HOLD_MS + PROTECTION_DISMISS_MS);
+
+    return () => {
+      clearTimeout(collapseTimer);
+      clearTimeout(hideTimer);
+      cancelAnimation(protectionBannerDismiss);
+      if (!hasCelebratedProtection.current) {
+        protectionCelebrationStarted.current = false;
+      }
+    };
+  }, [
+    dispatch,
+    protectionAnimationTrigger,
+    protectionBannerDismiss,
+    protectionBannerPhase,
+  ]);
+
+  const protectionBannerAnimatedStyle = useAnimatedStyle(() => ({
+    maxHeight: interpolate(protectionBannerDismiss.value, [0, 1], [240, 0]),
+    opacity: interpolate(protectionBannerDismiss.value, [0, 0.7, 1], [1, 1, 0]),
+    transform: [
+      {
+        translateY: interpolate(protectionBannerDismiss.value, [0, 1], [0, -8]),
+      },
+      {
+        scale: interpolate(protectionBannerDismiss.value, [0, 1], [1, 0.98]),
+      },
+    ],
+  }));
   const protectionHighlightTrigger =
-    onboardingProgress[STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER] ||
-    (passkeyCount > 0 && isAuthenticatorAdded ? 1 : 0);
+    isProtectionSetupComplete && protectionBannerPhase === 'hidden'
+      ? protectionAnimationTrigger || 1
+      : 0;
   const defaultVerificationMethod = strings(
     MONEY_DEFAULT_VERIFICATION_METHOD_LABEL_KEYS[defaultVerificationMethodType],
   );
@@ -1120,29 +1303,60 @@ const MoneyHomeView = () => {
           }}
           card={{ onPress: handleActionButtonCardPress }}
         />
-        {!(passkeyCount > 0 && isAuthenticatorAdded) && (
-          <Box twClassName="px-4 pt-2 pb-2">
-            <BannerAlert
-              severity={BannerAlertSeverity.Neutral}
-              startAccessory={
-                <MoneyProtectionIcon style={styles.protectMoneyIcon} />
-              }
-              title={strings('money.protect_money_banner.title')}
-              titleProps={{
-                variant: TextVariant.BodyMd,
-                fontWeight: FontWeight.Medium,
-              }}
-              description={strings('money.protect_money_banner.description')}
-              descriptionProps={{
-                variant: TextVariant.BodySm,
-                color: TextColor.TextAlternative,
-              }}
-              actionButtonLabel={strings('money.protect_money_banner.action')}
-              actionButtonOnPress={handleSetUpPasskey}
-              style={styles.protectMoneyBanner}
-              testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
-            />
-          </Box>
+        {(!isProtectionSetupComplete ||
+          protectionBannerPhase === 'celebrating') && (
+          <Animated.View
+            style={[
+              protectionIconStyles.bannerClip,
+              protectionBannerAnimatedStyle,
+            ]}
+          >
+            <Box twClassName="px-4 pt-2 pb-2">
+              <BannerAlert
+                severity={
+                  protectionBannerPhase === 'celebrating'
+                    ? BannerAlertSeverity.Success
+                    : BannerAlertSeverity.Neutral
+                }
+                startAccessory={
+                  <MoneyProtectionIcon
+                    style={styles.protectMoneyIcon}
+                    isCelebrating={protectionBannerPhase === 'celebrating'}
+                  />
+                }
+                title={strings(
+                  protectionBannerPhase === 'celebrating'
+                    ? 'money.protect_money_banner.completion_title'
+                    : 'money.protect_money_banner.title',
+                )}
+                titleProps={{
+                  variant: TextVariant.BodyMd,
+                  fontWeight: FontWeight.Medium,
+                }}
+                description={strings(
+                  protectionBannerPhase === 'celebrating'
+                    ? 'money.protect_money_banner.completion_description'
+                    : 'money.protect_money_banner.description',
+                )}
+                descriptionProps={{
+                  variant: TextVariant.BodySm,
+                  color: TextColor.TextAlternative,
+                }}
+                actionButtonLabel={
+                  protectionBannerPhase === 'setup'
+                    ? strings('money.protect_money_banner.action')
+                    : undefined
+                }
+                actionButtonOnPress={
+                  protectionBannerPhase === 'setup'
+                    ? handleSetUpPasskey
+                    : undefined
+                }
+                style={styles.protectMoneyBanner}
+                testID={MoneyHomeViewTestIds.PROTECT_MONEY_BANNER}
+              />
+            </Box>
+          </Animated.View>
         )}
         <MoneyOnboardingCard />
         {contentSections.map((section, index) => (

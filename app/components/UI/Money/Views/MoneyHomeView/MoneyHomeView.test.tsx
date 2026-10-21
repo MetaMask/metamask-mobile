@@ -65,6 +65,7 @@ import {
 } from '../../selectors/featureFlags';
 import { userInitialState } from '../../../../../reducers/user';
 import { STEPPER_IDS } from '../../hooks/useOnboardingStep';
+import { setOnboardingStepperStep } from '../../../../../actions/user';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -318,14 +319,17 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useOnboardingStep', () => ({
-  useOnboardingStep: jest.fn(() => ({
-    currentStep: 0,
-    incrementStep: jest.fn(),
-    isVisible: true,
-  })),
-  STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
-}));
+jest.mock('../../hooks/useOnboardingStep', () => {
+  const actual = jest.requireActual('../../hooks/useOnboardingStep');
+  return {
+    ...actual,
+    useOnboardingStep: jest.fn(() => ({
+      currentStep: 0,
+      incrementStep: jest.fn(),
+      isVisible: true,
+    })),
+  };
+});
 
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
@@ -676,6 +680,7 @@ describe('MoneyHomeView', () => {
           onboardingStepperProgress: {
             [STEPPER_IDS.MONEY_PASSKEY_COUNT]: 1,
             [STEPPER_IDS.MONEY_SECURITY_AUTHENTICATOR]: 1,
+            [STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER]: 0,
           },
         },
       },
@@ -684,6 +689,65 @@ describe('MoneyHomeView', () => {
     expect(
       queryByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
     ).not.toBeOnTheScreen();
+  });
+
+  it('celebrates newly completed protection before hiding the prompt', () => {
+    jest.useFakeTimers();
+    const { getByText, queryByTestId, store } = renderWithProvider(
+      <MoneyHomeView />,
+    );
+
+    act(() => {
+      store.dispatch(
+        setOnboardingStepperStep(STEPPER_IDS.MONEY_PASSKEY_COUNT, 1),
+      );
+      store.dispatch(
+        setOnboardingStepperStep(STEPPER_IDS.MONEY_SECURITY_AUTHENTICATOR, 1),
+      );
+    });
+
+    expect(getByText('Money account protected')).toBeOnTheScreen();
+    expect(
+      getByText('Passkey and authenticator app are ready.'),
+    ).toBeOnTheScreen();
+
+    act(() => {
+      jest.advanceTimersByTime(6500);
+    });
+
+    expect(
+      queryByTestId(MoneyHomeViewTestIds.PROTECT_MONEY_BANNER),
+    ).not.toBeOnTheScreen();
+    jest.useRealTimers();
+  });
+
+  it('plays and consumes a pending protection celebration after remount', () => {
+    jest.useFakeTimers();
+    const { getByText, store } = renderWithProvider(<MoneyHomeView />, {
+      state: {
+        user: {
+          ...userInitialState,
+          onboardingStepperProgress: {
+            [STEPPER_IDS.MONEY_PASSKEY_COUNT]: 1,
+            [STEPPER_IDS.MONEY_SECURITY_AUTHENTICATOR]: 1,
+            [STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER]: 123,
+          },
+        },
+      },
+    });
+
+    expect(getByText('Money account protected')).toBeOnTheScreen();
+
+    act(() => {
+      jest.advanceTimersByTime(6500);
+    });
+
+    expect(
+      store.getState().user.onboardingStepperProgress[
+        STEPPER_IDS.MONEY_PROTECTION_ANIMATION_TRIGGER
+      ],
+    ).toBe(0);
+    jest.useRealTimers();
   });
 
   it('renders the onboarding card', () => {

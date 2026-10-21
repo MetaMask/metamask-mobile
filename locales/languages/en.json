@@ -7901,7 +7901,9 @@
     "protect_money_banner": {
       "title": "Protect your Money account",
       "description": "Add 2-step verification for your Money account transactions.",
-      "action": "Set up now"
+      "action": "Set up now",
+      "completion_title": "Money account protected",
+      "completion_description": "Passkey and authenticator app are ready."
     },
     "security_setup": {
       "back": "Back",

@@ -81,9 +81,6 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     letterSpacing: 0.6,
   },
-  setupKeyRow: {
-    marginTop: 12,
-  },
   setupKeyText: {
     flex: 1,
   },
@@ -277,6 +274,15 @@ const MoneyAuthenticatorView = () => {
     await ClipboardManager.setString(MONEY_AUTHENTICATOR_SETUP_KEY_COMPACT);
     setIsCopied(true);
   }, []);
+
+  useEffect(() => {
+    if (!isCopied) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => setIsCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [isCopied]);
 
   const handleContinue = useCallback(() => {
     setStep('verify');
@@ -537,51 +543,50 @@ const MoneyAuthenticatorView = () => {
                 </>
               )}
 
-              <Box
-                twClassName={
-                  isAdditionalFactorPrompt
-                    ? 'mt-4 rounded-xl bg-muted p-4'
-                    : 'mt-6 rounded-xl bg-muted p-4'
-                }
+              <Pressable
+                onPress={handleCopyKey}
+                accessibilityRole="button"
+                accessibilityLabel={strings(
+                  'money.authenticator.copy_key_link',
+                )}
+                testID={MoneyAuthenticatorViewTestIds.COPY_BUTTON}
               >
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('money.authenticator.setup_key')}
-                </Text>
                 <Box
-                  style={styles.setupKeyRow}
+                  twClassName={
+                    isAdditionalFactorPrompt
+                      ? 'mt-4 rounded-xl bg-muted p-4'
+                      : 'mt-6 rounded-xl bg-muted p-4'
+                  }
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    style={[styles.setupKey, styles.setupKeyText]}
-                  >
-                    {MONEY_AUTHENTICATOR_SETUP_KEY}
-                  </Text>
-                  <Pressable
-                    onPress={handleCopyKey}
-                    accessibilityRole="button"
-                    accessibilityLabel={strings(
-                      'money.authenticator.copy_key_link',
-                    )}
-                    testID={MoneyAuthenticatorViewTestIds.COPY_BUTTON}
-                  >
-                    <Icon
-                      name={isCopied ? IconName.CopySuccess : IconName.Copy}
-                      size={IconSize.Md}
-                      color={
-                        isCopied
-                          ? IconColor.SuccessDefault
-                          : IconColor.IconDefault
-                      }
-                    />
-                  </Pressable>
+                  <Box style={styles.setupKeyText}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {strings('money.authenticator.setup_key')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      style={styles.setupKey}
+                      twClassName="mt-1"
+                    >
+                      {MONEY_AUTHENTICATOR_SETUP_KEY}
+                    </Text>
+                  </Box>
+                  <Icon
+                    name={isCopied ? IconName.CopySuccess : IconName.Copy}
+                    size={IconSize.Lg}
+                    color={
+                      isCopied
+                        ? IconColor.SuccessDefault
+                        : IconColor.IconDefault
+                    }
+                  />
                 </Box>
-              </Box>
+              </Pressable>
             </>
           ) : (
             <>

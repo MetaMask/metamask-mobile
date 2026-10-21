@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   methodIconTopAligned: {
+    alignSelf: 'flex-start',
     marginTop: 3,
   },
   footer: {
@@ -74,6 +75,7 @@ interface SecurityMethodRowProps {
   title: string;
   description: string;
   isComplete?: boolean;
+  keepIconTopAligned?: boolean;
 }
 
 const SecurityMethodRow = ({
@@ -81,6 +83,7 @@ const SecurityMethodRow = ({
   title,
   description,
   isComplete = false,
+  keepIconTopAligned = false,
 }: SecurityMethodRowProps) => {
   const [titleLineCount, setTitleLineCount] = useState(1);
   const [descriptionLineCount, setDescriptionLineCount] = useState(1);
@@ -108,7 +111,8 @@ const SecurityMethodRow = ({
       <Box
         style={[
           styles.methodIcon,
-          hasThreeOrMoreLines && styles.methodIconTopAligned,
+          (hasThreeOrMoreLines || keepIconTopAligned) &&
+            styles.methodIconTopAligned,
         ]}
       >
         <Icon
@@ -217,6 +221,7 @@ const MoneySecuritySetupView = () => {
                 : 'money.security_setup.passkey_description',
             )}
             isComplete={passkeyCount > 0}
+            keepIconTopAligned
           />
           <SecurityMethodRow
             iconName={IconName.QrCode}
