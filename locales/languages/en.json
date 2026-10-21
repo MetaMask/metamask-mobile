@@ -3456,7 +3456,10 @@
       "use_price": "Use {{price}} as limit price",
       "depth_band": {
         "title": "Select Price Grouping"
-      }
+      },
+      "data_source_dev": "Data source (dev)",
+      "data_source_hyperliquid": "Hyperliquid",
+      "data_source_hydromancer": "Hydromancer (PoC)"
     },
     "tutorial": {
       "continue": "Continue",

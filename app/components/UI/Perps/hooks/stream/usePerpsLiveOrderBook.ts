@@ -6,6 +6,7 @@ import {
   type OrderBookConnectionStatus,
 } from '@metamask/perps-controller';
 import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
+import { getHydromancerOrderBookConnection } from '../../services/hydromancerOrderBookConnection';
 
 // Re-export types from controllers/types for backwards compatibility
 export {
@@ -44,9 +45,17 @@ export interface UsePerpsLiveOrderBookOptions {
    * `'orderBook'` is the raw / full-precision book via the controller's shared
    * socket (used for mid, spread, slippage). `'orderBookAggregated'` is the
    * server-aggregated book on a dedicated socket so the raw channel is never
-   * coarsened (Pro ladder panel).
+   * coarsened (Pro ladder panel). `'orderBookHydromancer'` is the Hydromancer
+   * `l2Book` order-book-depth PoC (20 levels/side) on its own dedicated
+   * connection — see `../../services/hydromancerOrderBookConnection.ts`.
    */
-  channel?: 'orderBook' | 'orderBookAggregated';
+  channel?: 'orderBook' | 'orderBookAggregated' | 'orderBookHydromancer';
+  /**
+   * Seeds the Hydromancer PoC's mock feed's starting mid price (e.g. the
+   * market's last known price). Ignored by the other channels and by the
+   * Hydromancer channel once a real `MM_PERPS_HYDROMANCER_API_KEY` is set.
+   */
+  referencePrice?: number;
 }
 
 export interface UsePerpsLiveOrderBookReturn {
@@ -97,9 +106,14 @@ export function usePerpsLiveOrderBook(
     resetKey,
     fast = false,
     channel = 'orderBook',
+    referencePrice,
   } = options;
 
   const isAggregated = channel === 'orderBookAggregated';
+  const isHydromancer = channel === 'orderBookHydromancer';
+  // Both dedicated-connection channels report connection health; the raw
+  // channel (shared controller socket) always reports 'connected'.
+  const usesDedicatedConnection = isAggregated || isHydromancer;
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,7 +171,7 @@ export function usePerpsLiveOrderBook(
       setOrderBook(null);
       setDataSymbol(null);
       setIsLoading(false);
-      setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+      setConnectionStatus(usesDedicatedConnection ? 'connecting' : 'connected');
       return;
     }
 
@@ -165,7 +179,7 @@ export function usePerpsLiveOrderBook(
     setDataSymbol(null);
     setIsLoading(true);
     setError(null);
-    setConnectionStatus(isAggregated ? 'connecting' : 'connected');
+    setConnectionStatus(usesDedicatedConnection ? 'connecting' : 'connected');
 
     DevLogger.log(
       `usePerpsLiveOrderBook: Subscribing to ${symbol} (${channel})`,
@@ -190,6 +204,26 @@ export function usePerpsLiveOrderBook(
           levels,
           nSigFigs,
           mantissa,
+          callback: (data: OrderBookData) => {
+            if (!isActive) return;
+            applyUpdate(data, symbol);
+          },
+          onStatusChange: (status) => {
+            if (!isActive) return;
+            setConnectionStatus(status);
+            if (status === 'error') {
+              setDataSymbol(symbol);
+            }
+          },
+        });
+      } else if (isHydromancer) {
+        const connection = getHydromancerOrderBookConnection();
+        unsubscribe = connection.subscribe({
+          symbol,
+          levels,
+          nSigFigs,
+          mantissa,
+          referencePrice,
           callback: (data: OrderBookData) => {
             if (!isActive) return;
             applyUpdate(data, symbol);
@@ -233,7 +267,7 @@ export function usePerpsLiveOrderBook(
       setDataSymbol(symbol);
       setError(catchError);
       setIsLoading(false);
-      if (isAggregated) {
+      if (usesDedicatedConnection) {
         setConnectionStatus('error');
       }
     }
@@ -266,6 +300,9 @@ export function usePerpsLiveOrderBook(
     fast,
     channel,
     isAggregated,
+    isHydromancer,
+    usesDedicatedConnection,
+    referencePrice,
     reconnectNonce,
   ]);
 
@@ -275,7 +312,9 @@ export function usePerpsLiveOrderBook(
       dataSymbol,
       isLoading,
       error,
-      connectionStatus: isAggregated ? connectionStatus : 'connected',
+      connectionStatus: usesDedicatedConnection
+        ? connectionStatus
+        : 'connected',
       reconnect,
     }),
     [
@@ -284,7 +323,7 @@ export function usePerpsLiveOrderBook(
       isLoading,
       error,
       connectionStatus,
-      isAggregated,
+      usesDedicatedConnection,
       reconnect,
     ],
   );

@@ -101,7 +101,7 @@ describe('PerpsProMarketLayout', () => {
     },
   );
 
-  it('uses content-driven column heights with bottom inset on each column', () => {
+  it('lets the order form set the row height and stretches the book to match', () => {
     const { getByTestId } = renderLayout();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT)).toHaveStyle({
@@ -117,8 +117,7 @@ describe('PerpsProMarketLayout', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN),
     ).toHaveStyle({
       width: PRO_ORDER_BOOK_COLUMN_WIDTH,
-      alignSelf: 'flex-start',
-      paddingBottom: PRO_TRADING_AREA_BOTTOM_INSET,
+      alignSelf: 'stretch',
     });
   });
 

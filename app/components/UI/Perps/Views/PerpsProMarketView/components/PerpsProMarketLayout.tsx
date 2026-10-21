@@ -67,7 +67,7 @@ const PerpsProMarketLayout = ({
       entering={FadeInDown.duration(AnimationDuration.Fast)}
       exiting={FadeOut.duration(AnimationDuration.Fast)}
     >
-      {orderBook}
+      <View style={styles.orderBookFill}>{orderBook}</View>
     </Animated.View>
   ) : null;
 
