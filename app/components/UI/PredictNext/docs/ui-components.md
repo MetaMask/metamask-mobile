@@ -54,6 +54,8 @@ When a ticket or slice ships without Figma designs, use the legacy Polymarket im
 - bind rows to canonical PredictNext contracts and omit values the contract does not carry rather than importing legacy data assumptions;
 - keep legacy-only affordances (detail modals, venue-specific flows) out unless the active Jira slice requires them.
 
+This rule applies to new Kalshi UI. The Polymarket branch of a public PredictNext API is different: it renders the existing legacy components, moved as-is, so production Polymarket behavior is unchanged. Do not rebuild, copy, or restyle legacy UI for that branch. See [ADR-0002](./adr/0002-permanent-public-api-private-legacy.md).
+
 ## Story and review expectations
 
 For each complex core UI story:

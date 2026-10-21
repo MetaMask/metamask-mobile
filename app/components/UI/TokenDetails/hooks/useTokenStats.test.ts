@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenStats } from './useTokenStats';
 import { TokenStatKey } from '../constants/tokenStats';
+import type { TokenAssetLaunchpadData } from '../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../queries/tokenMarketData';
 
 const buildMarketData = (
-  overrides: Partial<FungibleAssetPrice> = {},
-): FungibleAssetPrice =>
+  overrides: Partial<TokenMarketData> = {},
+): TokenMarketData =>
   ({
     assetPriceType: 'fungible',
     lastUpdated: 0,
@@ -18,7 +19,7 @@ const buildMarketData = (
     low1d: 0.039812,
     circulatingSupply: 12_400_000,
     ...overrides,
-  }) as FungibleAssetPrice;
+  }) as TokenMarketData;
 
 const buildSecurityData = (
   overrides: Partial<TokenSecurityData> = {},
@@ -58,6 +59,24 @@ const buildSecurityData = (
     created: '2026-10-05T21:57:11Z',
     ...overrides,
   }) as TokenSecurityData;
+
+const buildLaunchpadData = (
+  overrides: Partial<TokenAssetLaunchpadData> = {},
+): TokenAssetLaunchpadData => ({
+  protocol: null,
+  deployer: null,
+  launchedAt: null,
+  description: null,
+  bondingCurve: null,
+  graduationPercent: null,
+  graduationStage: null,
+  devHeldPercent: null,
+  insiderHeldPercent: null,
+  sniperHeldPercent: null,
+  holdersCount: 66,
+  top10HeldPercent: '19.210466818518498',
+  ...overrides,
+});
 
 const renderStats = (
   params: Partial<Parameters<typeof useTokenStats>[0]> = {},
@@ -368,5 +387,36 @@ describe('useTokenStats', () => {
         expect(stats[TokenStatKey.Created]?.value).toBeNull();
       },
     );
+  });
+
+  it('fills gaps from diluted market cap, price liquidity, and trade volume', () => {
+    const stats = renderStats({
+      marketData: buildMarketData({
+        marketCap: undefined,
+        totalVolume: undefined,
+        dilutedMarketCap: 23_975,
+        liquidity: 9_181.67,
+      }),
+      securityData: buildSecurityData({
+        financialStats: {
+          ...buildSecurityData().financialStats,
+          markets: [],
+          tradeVolume24h: 8_355.5,
+        },
+      }),
+    });
+
+    expect(stats[TokenStatKey.MarketCap]?.value).toBe('$24.0K');
+    expect(stats[TokenStatKey.Liquidity]?.value).toBe('$9.2K');
+    expect(stats[TokenStatKey.Volume24h]?.value).toBe('$8.4K');
+  });
+
+  it('reads holders and top 10 from the launchpad ahead of security data', () => {
+    const stats = renderStats({
+      launchpadData: buildLaunchpadData(),
+    });
+
+    expect(stats[TokenStatKey.Holders]?.value).toBe('66');
+    expect(stats[TokenStatKey.Top10]?.value).toBe('19.2%');
   });
 });

@@ -4,6 +4,8 @@ This ledger records the implemented mobile canonical read contract stabilized by
 
 The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). It is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
 
+This ledger covers PredictNext's internal canonical contract. The interface exposed to code outside Predict is described in [the public API contract](./public-api-contract.md). It does not expose these types yet.
+
 ## Canonical read models
 
 - `PredictFeed` is returned by `getFeed` and contains the Feed identity, title, Events, and optional pagination cursor.
