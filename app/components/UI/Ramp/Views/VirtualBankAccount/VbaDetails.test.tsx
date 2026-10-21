@@ -292,11 +292,12 @@ describe('VbaDetails', () => {
       };
     });
 
-    it('shows the US bank transfer rows and copy', async () => {
+    it('shows the US bank transfer rows', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
-      const { getByLabelText, getByTestId, getByText, queryByText } =
-        renderWithProvider(<VbaDetails />);
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <VbaDetails />,
+      );
 
       await waitFor(() => {
         expect(
@@ -312,6 +313,20 @@ describe('VbaDetails', () => {
       expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
       expect(mockGetPix).not.toHaveBeenCalled();
+    });
+
+    it('copies the routing number', async () => {
+      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+      const { getByLabelText, getByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.ACCOUNT_HOLDER),
+        ).toBeOnTheScreen();
+      });
 
       fireEvent.press(getByLabelText('Copy Routing number'));
 
