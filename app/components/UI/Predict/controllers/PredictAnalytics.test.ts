@@ -210,6 +210,66 @@ describe('PredictAnalytics', () => {
         retry_outcome: 'success',
       });
     });
+    it('maps pre-submit execution properties onto the tracked event, keeping zero values', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_DECIDED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        quoteAgeMs: 0,
+        requestedSize: 0,
+        executableSize: 40,
+        approvedPrice: 0.5,
+        refreshedPrice: 0.47,
+        worstExecutablePrice: 0.47,
+        bandFloorPrice: 0.475,
+        tickSize: 0.01,
+        slippageBand: '5%',
+        preSubmitDecision: PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH,
+        failureCategory: PredictEventValues.FAILURE_CATEGORY.NO_MATCH,
+      });
+
+      const event = getTrackedEvent();
+
+      // quote_age_ms and requested_size must survive the spread at 0: a
+      // truthy check would drop them and hide instant decisions and empty
+      // requests from the Mixpanel board.
+      expect(event.properties).toMatchObject({
+        status: 'presubmit_decided',
+        quote_age_ms: 0,
+        requested_size: 0,
+        executable_size: 40,
+        approved_price: 0.5,
+        refreshed_price: 0.47,
+        worst_executable_price: 0.47,
+        band_floor_price: 0.475,
+        tick_size: 0.01,
+        slippage_band: '5%',
+        pre_submit_decision: 'no_match',
+        failure_category: 'no_match',
+      });
+      expect(event.properties.failure_reason).toBeUndefined();
+    });
+    it('maps the reconfirm outcome onto the tracked event', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_DISMISSED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        preSubmitDecision: PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT,
+        reconfirmOutcome: PredictEventValues.RECONFIRM_OUTCOME.DISMISSED,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        status: 'presubmit_dismissed',
+        pre_submit_decision: 'timeout',
+        reconfirm_outcome: 'dismissed',
+      });
+    });
   });
 
   describe('trackTradeConsidered', () => {

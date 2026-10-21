@@ -93,6 +93,18 @@ export const PredictEventProperties = {
   SLIPPAGE_BAND: 'slippage_band',
   RETRY_OUTCOME: 'retry_outcome',
 
+  // Pre-submit sell execution (fresh order book confirmation)
+  QUOTE_AGE_MS: 'quote_age_ms',
+  REQUESTED_SIZE: 'requested_size',
+  EXECUTABLE_SIZE: 'executable_size',
+  APPROVED_PRICE: 'approved_price',
+  REFRESHED_PRICE: 'refreshed_price',
+  WORST_EXECUTABLE_PRICE: 'worst_executable_price',
+  BAND_FLOOR_PRICE: 'band_floor_price',
+  TICK_SIZE: 'tick_size',
+  PRE_SUBMIT_DECISION: 'pre_submit_decision',
+  RECONFIRM_OUTCOME: 'reconfirm_outcome',
+
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',
   HAD_ENTERED_AMOUNT: 'had_entered_amount',
@@ -200,6 +212,30 @@ export const PredictEventValues = {
     NOT_FILLED: 'not_filled',
     FAILED: 'failed',
   },
+  PRE_SUBMIT_DECISION: {
+    // Fresh quote at most 1 tick worse: the exact fresh quote auto-submits.
+    WITHIN_ONE_TICK: 'within_one_tick',
+    // Fresh quote more than 1 tick worse: explicit re-confirmation shown.
+    BEYOND_ONE_TICK: 'beyond_one_tick',
+    // In-band depth cannot fill the requested size: terminal market outcome.
+    NO_MATCH: 'no_match',
+    // The market did not answer the pre-submit fetch in time.
+    TIMEOUT: 'timeout',
+    // The pre-submit fetch failed or the book was unusable.
+    UNAVAILABLE: 'unavailable',
+  },
+  RECONFIRM_OUTCOME: {
+    // Confirm refetch accepted: the exact fresh quote was submitted.
+    CONFIRMED: 'confirmed',
+    // Confirm refetch moved again: a new candidate is shown.
+    REFRESHED_AGAIN: 'refreshed_again',
+    // The user dismissed the sheet without submitting.
+    DISMISSED: 'dismissed',
+    // A stale-signing rejection was recovered once and resubmitted.
+    STALE_RECOVERED: 'stale_recovered',
+    // The flow settled without any order submission.
+    NOT_SUBMITTED: 'not_submitted',
+  },
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
@@ -269,6 +305,8 @@ export const PredictTradeStatus = {
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
   RETRY_COMPLETED: 'retry_completed',
+  PRESUBMIT_DECIDED: 'presubmit_decided',
+  PRESUBMIT_DISMISSED: 'presubmit_dismissed',
   PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
   ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
   ATTEMPT_STARTED: 'attempt_started',
@@ -302,6 +340,12 @@ export type PredictOneTickDecisionValue =
 
 export type PredictRetryOutcomeValue =
   (typeof PredictEventValues.RETRY_OUTCOME)[keyof typeof PredictEventValues.RETRY_OUTCOME];
+
+export type PredictPreSubmitDecisionValue =
+  (typeof PredictEventValues.PRE_SUBMIT_DECISION)[keyof typeof PredictEventValues.PRE_SUBMIT_DECISION];
+
+export type PredictReconfirmOutcomeValue =
+  (typeof PredictEventValues.RECONFIRM_OUTCOME)[keyof typeof PredictEventValues.RECONFIRM_OUTCOME];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event

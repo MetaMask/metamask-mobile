@@ -14,6 +14,8 @@ import {
   PredictFailureStageValue,
   PredictOneTickDecisionValue,
   PredictPaymentMethodValue,
+  PredictPreSubmitDecisionValue,
+  PredictReconfirmOutcomeValue,
   PredictRetryOutcomeValue,
   PredictRetryReasonValue,
   PredictShareStatusValue,
@@ -58,6 +60,26 @@ export interface TrackPredictOrderEventArgs {
   slippageBand?: string;
   /** Terminal outcome of a retry submission. */
   retryOutcome?: PredictRetryOutcomeValue;
+  /** Age (ms) of the fresh execution quote at the pre-submit decision. */
+  quoteAgeMs?: number;
+  /** Shares the pre-submit flow was asked to sell. */
+  requestedSize?: number;
+  /** Shares executable inside the approved slippage band. */
+  executableSize?: number;
+  /** Displayed (approved baseline) price the decision measured from. */
+  approvedPrice?: number;
+  /** Live book price the decision classified. */
+  refreshedPrice?: number;
+  /** Deepest in-band price consumed while filling the requested size. */
+  worstExecutablePrice?: number;
+  /** Signed slippage band-floor price. */
+  bandFloorPrice?: number;
+  /** Market tick size from the fresh book. */
+  tickSize?: number;
+  /** How the pre-submit flow classified the fresh order book. */
+  preSubmitDecision?: PredictPreSubmitDecisionValue;
+  /** How a pre-submit confirmation episode resolved. */
+  reconfirmOutcome?: PredictReconfirmOutcomeValue;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -256,6 +278,16 @@ export class PredictAnalytics {
     oneTickDecision,
     slippageBand,
     retryOutcome,
+    quoteAgeMs,
+    requestedSize,
+    executableSize,
+    approvedPrice,
+    refreshedPrice,
+    worstExecutablePrice,
+    bandFloorPrice,
+    tickSize,
+    preSubmitDecision,
+    reconfirmOutcome,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -375,6 +407,36 @@ export class PredictAnalytics {
       }),
       ...(retryOutcome && {
         [PredictEventProperties.RETRY_OUTCOME]: retryOutcome,
+      }),
+      ...(quoteAgeMs !== undefined && {
+        [PredictEventProperties.QUOTE_AGE_MS]: quoteAgeMs,
+      }),
+      ...(requestedSize !== undefined && {
+        [PredictEventProperties.REQUESTED_SIZE]: requestedSize,
+      }),
+      ...(executableSize !== undefined && {
+        [PredictEventProperties.EXECUTABLE_SIZE]: executableSize,
+      }),
+      ...(approvedPrice !== undefined && {
+        [PredictEventProperties.APPROVED_PRICE]: approvedPrice,
+      }),
+      ...(refreshedPrice !== undefined && {
+        [PredictEventProperties.REFRESHED_PRICE]: refreshedPrice,
+      }),
+      ...(worstExecutablePrice !== undefined && {
+        [PredictEventProperties.WORST_EXECUTABLE_PRICE]: worstExecutablePrice,
+      }),
+      ...(bandFloorPrice !== undefined && {
+        [PredictEventProperties.BAND_FLOOR_PRICE]: bandFloorPrice,
+      }),
+      ...(tickSize !== undefined && {
+        [PredictEventProperties.TICK_SIZE]: tickSize,
+      }),
+      ...(preSubmitDecision && {
+        [PredictEventProperties.PRE_SUBMIT_DECISION]: preSubmitDecision,
+      }),
+      ...(reconfirmOutcome && {
+        [PredictEventProperties.RECONFIRM_OUTCOME]: reconfirmOutcome,
       }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {

@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Engine from '../../../../core/Engine';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+  type PredictPreSubmitDecisionValue,
+  type PredictReconfirmOutcomeValue,
+} from '../constants/eventNames';
 import type {
   PredictOrderRetrySheetRef,
   PredictOrderRetrySheetVariant,
@@ -99,8 +106,7 @@ interface UsePredictSellExecutionParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
 }
 
-/**
- * Sheet variant for each settled status. Busy phases (validating,
+/** Sheet variant for each settled status. Busy phases (validating,
  * submitting) keep the last settled variant so an open sheet keeps its
  * content while a Confirm refetch or placement is in flight.
  */
@@ -111,6 +117,115 @@ const EXECUTION_SHEET_VARIANTS: Partial<
   no_match: 'no_match',
   timeout: 'timeout',
   unavailable: 'quote_unavailable',
+};
+
+/** Stable pre-submit decision value for each classification outcome. */
+const DECISION_FOR_OUTCOME: Record<
+  ExecutionClassification['outcome'],
+  PredictPreSubmitDecisionValue
+> = {
+  submit: PredictEventValues.PRE_SUBMIT_DECISION.WITHIN_ONE_TICK,
+  confirm: PredictEventValues.PRE_SUBMIT_DECISION.BEYOND_ONE_TICK,
+  no_match: PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH,
+  timeout: PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT,
+  unavailable: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
+};
+
+/** Stable pre-submit decision value for the sheet state a dismissal fires from. */
+const DECISION_FOR_STATUS: Partial<
+  Record<PredictSellExecutionStatus, PredictPreSubmitDecisionValue>
+> = {
+  confirm: PredictEventValues.PRE_SUBMIT_DECISION.BEYOND_ONE_TICK,
+  no_match: PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH,
+  timeout: PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT,
+  unavailable: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
+};
+
+/** Which entry started a validation pass. */
+type ExecutionFlowOrigin =
+  | 'cash_out'
+  | 'confirm'
+  | 'try_again'
+  | 'stale_recovery';
+
+/** Applied band as a percentage string, e.g. '5%'. */
+const getSlippageBand = (slippage: number): string =>
+  `${Math.round(slippage * 100)}%`;
+
+/**
+ * Re-confirm outcome for a classified pass, given the flow origin: how the
+ * confirmation episode the pass belongs to resolved. Non-confirm origins
+ * have no confirmation episode, and terminal market/transport states settle
+ * without an order submission.
+ */
+const getReconfirmOutcome = (
+  classification: ExecutionClassification,
+  origin: ExecutionFlowOrigin,
+): PredictReconfirmOutcomeValue | undefined => {
+  switch (classification.outcome) {
+    case 'submit':
+    case 'confirm':
+      if (origin === 'confirm') {
+        return classification.outcome === 'submit'
+          ? PredictEventValues.RECONFIRM_OUTCOME.CONFIRMED
+          : PredictEventValues.RECONFIRM_OUTCOME.REFRESHED_AGAIN;
+      }
+      if (origin === 'stale_recovery' && classification.outcome === 'submit') {
+        return PredictEventValues.RECONFIRM_OUTCOME.STALE_RECOVERED;
+      }
+      return undefined;
+    default:
+      return PredictEventValues.RECONFIRM_OUTCOME.NOT_SUBMITTED;
+  }
+};
+
+/**
+ * Emits the pre-submit decision on the existing Predict order lifecycle
+ * event: the classification together with the exact facts it was decided
+ * from. A no-match is a terminal market outcome (`failure_category =
+ * no_match` with the partial execution facts), never a technical
+ * order-submission failure, and carries no order IDs.
+ */
+const trackPreSubmitDecision = ({
+  analyticsProperties,
+  size,
+  baselinePrice,
+  slippage,
+  origin,
+  classification,
+}: {
+  analyticsProperties: PlaceOrderParams['analyticsProperties'];
+  size: number;
+  baselinePrice: number;
+  slippage: number;
+  origin: ExecutionFlowOrigin;
+  classification: ExecutionClassification;
+}): void => {
+  const execution: PredictExecutionMetadata | null =
+    'execution' in classification ? classification.execution : null;
+  void Engine.context.PredictController.trackPredictOrderEvent({
+    status: PredictTradeStatus.PRESUBMIT_DECIDED,
+    analyticsProperties,
+    sharePrice:
+      classification.outcome === 'submit' ||
+      classification.outcome === 'confirm'
+        ? classification.preview.sharePrice
+        : undefined,
+    quoteAgeMs: execution ? Date.now() - execution.fetchedAt : undefined,
+    requestedSize: size,
+    executableSize: execution?.executableSize,
+    approvedPrice: baselinePrice,
+    refreshedPrice: execution?.refreshedPrice,
+    worstExecutablePrice: execution?.worstExecutablePrice,
+    bandFloorPrice: execution?.bandFloorPrice,
+    tickSize: execution?.tickSize,
+    slippageBand: getSlippageBand(slippage),
+    preSubmitDecision: DECISION_FOR_OUTCOME[classification.outcome],
+    reconfirmOutcome: getReconfirmOutcome(classification, origin),
+    ...(classification.outcome === 'no_match' && {
+      failureCategory: PredictEventValues.FAILURE_CATEGORY.NO_MATCH,
+    }),
+  });
 };
 
 /**
@@ -255,14 +370,17 @@ export function usePredictSellExecution({
       intentId,
       baselinePrice,
       slippage,
+      origin,
     }: {
       intentId: number;
       baselinePrice: number;
       slippage: number;
+      origin: Exclude<ExecutionFlowOrigin, 'stale_recovery'>;
     }) => {
       const isCurrentIntent = () =>
         intentIdRef.current === intentId && isMountedRef.current;
       let staleRecoveryUsed = false;
+      let currentOrigin: ExecutionFlowOrigin = origin;
 
       for (;;) {
         // The candidate quote and execution facts stay visible while an
@@ -281,6 +399,17 @@ export function usePredictSellExecution({
         if (!isCurrentIntent()) {
           return;
         }
+
+        // Analytics: the pre-submit decision with the exact facts it was
+        // decided from. Emission only — never a decision input.
+        trackPreSubmitDecision({
+          analyticsProperties,
+          size,
+          baselinePrice,
+          slippage,
+          origin: currentOrigin,
+          classification,
+        });
 
         switch (classification.outcome) {
           case 'no_match':
@@ -347,12 +476,14 @@ export function usePredictSellExecution({
         // One bounded recovery: repeat validation + submission once against
         // the same user-approved baseline.
         staleRecoveryUsed = true;
+        currentOrigin = 'stale_recovery';
       }
     },
     [
       fetchClassification,
       placeOrder,
       analyticsProperties,
+      size,
       updateState,
       settleIdle,
     ],
@@ -374,6 +505,7 @@ export function usePredictSellExecution({
         intentId,
         baselinePrice: preview.sharePrice,
         slippage: preview.slippage,
+        origin: 'cash_out',
       });
     } finally {
       isInFlightRef.current = false;
@@ -397,6 +529,7 @@ export function usePredictSellExecution({
         intentId,
         baselinePrice: quote.sharePrice,
         slippage: quote.slippage,
+        origin: 'confirm',
       });
     } finally {
       isInFlightRef.current = false;
@@ -423,6 +556,7 @@ export function usePredictSellExecution({
         intentId,
         baselinePrice,
         slippage: baselineSlippage,
+        origin: 'try_again',
       });
     } finally {
       isInFlightRef.current = false;
@@ -435,8 +569,34 @@ export function usePredictSellExecution({
    */
   const handleDismiss = useCallback(() => {
     intentIdRef.current += 1;
+    const { status, execution, baselinePrice, baselineSlippage } =
+      stateRef.current;
+    const preSubmitDecision = DECISION_FOR_STATUS[status];
+    // Dismissal analytics fire only from a settled sheet state: the
+    // programmatic close of a terminal placement settle is not a user
+    // dismissal. No order is submitted either way.
+    if (preSubmitDecision) {
+      void Engine.context.PredictController.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_DISMISSED,
+        analyticsProperties,
+        quoteAgeMs: execution ? Date.now() - execution.fetchedAt : undefined,
+        requestedSize: size,
+        executableSize: execution?.executableSize,
+        approvedPrice: baselinePrice ?? undefined,
+        refreshedPrice: execution?.refreshedPrice,
+        worstExecutablePrice: execution?.worstExecutablePrice,
+        bandFloorPrice: execution?.bandFloorPrice,
+        tickSize: execution?.tickSize,
+        slippageBand:
+          baselineSlippage === null
+            ? undefined
+            : getSlippageBand(baselineSlippage),
+        preSubmitDecision,
+        reconfirmOutcome: PredictEventValues.RECONFIRM_OUTCOME.DISMISSED,
+      });
+    }
     settleIdle();
-  }, [settleIdle]);
+  }, [analyticsProperties, size, settleIdle]);
 
   return {
     /** Ref for the pre-submit PredictOrderRetrySheet instance. */

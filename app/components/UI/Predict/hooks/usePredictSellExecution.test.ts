@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import Engine from '../../../../core/Engine';
 import { usePredictSellExecution } from './usePredictSellExecution';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import {
@@ -8,6 +9,18 @@ import {
   type PredictExecutionMetadata,
   type PredictExecutionPreviewResult,
 } from '../types';
+import { PredictTradeStatus } from '../constants/eventNames';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
+}));
+
+const mockTrackEvent = Engine.context.PredictController
+  .trackPredictOrderEvent as jest.Mock;
 
 const SELL_SLIPPAGE = 0.05;
 
@@ -516,5 +529,224 @@ describe('usePredictSellExecution', () => {
 
     expect(mockPlaceOrder).not.toHaveBeenCalled();
     expect(result.current.status).toBe('idle');
+  });
+
+  describe('pre-submit analytics', () => {
+    it('tracks the decision with the exact facts it was decided from', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(createExecutableResult());
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({
+        status: PredictTradeStatus.PRESUBMIT_DECIDED,
+        analyticsProperties: { marketId: 'market-1' },
+        sharePrice: 0.5,
+        quoteAgeMs: expect.any(Number),
+        requestedSize: 10,
+        executableSize: 10,
+        approvedPrice: 0.5,
+        refreshedPrice: 0.49,
+        worstExecutablePrice: 0.49,
+        bandFloorPrice: 0.48,
+        tickSize: 0.01,
+        slippageBand: '5%',
+        preSubmitDecision: 'within_one_tick',
+        // The acceptable auto-submit path has no confirmation episode.
+        reconfirmOutcome: undefined,
+      });
+    });
+
+    it('tracks no-match as a terminal market outcome without a technical failure', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({
+        status: 'no_match',
+        execution: createExecution({
+          executableSize: 4,
+          refreshedPrice: undefined,
+          worstExecutablePrice: undefined,
+        }),
+      });
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      const noMatchEvent = mockTrackEvent.mock.calls.find(
+        ([args]) => args.preSubmitDecision === 'no_match',
+      );
+      expect(noMatchEvent).toBeDefined();
+      const [noMatchArgs] = noMatchEvent as unknown as [
+        {
+          requestedSize?: number;
+          executableSize?: number;
+          failureCategory?: string;
+          failureReason?: string;
+        },
+      ];
+      // A no-match is a terminal market outcome: the requested and
+      // executable sizes say why, with no technical submission failure.
+      expect(noMatchArgs.requestedSize).toBe(10);
+      expect(noMatchArgs.executableSize).toBe(4);
+      expect(noMatchArgs.failureCategory).toBe('no_match');
+      expect(noMatchArgs.failureReason).toBeUndefined();
+    });
+
+    it('tracks timeout and unavailable as distinct decisions', async () => {
+      mockPreviewExecutionOrder
+        .mockResolvedValueOnce({ status: 'timeout' })
+        .mockResolvedValueOnce({ status: 'unavailable' });
+
+      const first = setupHook();
+      await act(async () => {
+        await first.result.current.handleCashOut();
+      });
+
+      const second = setupHook();
+      await act(async () => {
+        await second.result.current.handleCashOut();
+      });
+
+      const decisions = mockTrackEvent.mock.calls
+        .map(([args]) => args.preSubmitDecision)
+        .filter(
+          (decision) => decision === 'timeout' || decision === 'unavailable',
+        );
+      expect(decisions).toEqual(['timeout', 'unavailable']);
+    });
+
+    it('tracks confirmed and refreshed-again reconfirm outcomes', async () => {
+      // First pass: moved quote asks for confirmation.
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({
+          preview: createExecutionPreview({ sharePrice: 0.48 }),
+          execution: createExecution({
+            refreshedPrice: 0.48,
+            worstExecutablePrice: 0.48,
+          }),
+        }),
+      );
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      // Confirm refetch moves again: the candidate is replaced and the user
+      // is asked once more.
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({
+          preview: createExecutionPreview({ sharePrice: 0.46 }),
+          execution: createExecution({
+            approvedPrice: 0.48,
+            refreshedPrice: 0.46,
+            worstExecutablePrice: 0.46,
+          }),
+        }),
+      );
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      // The confirm refetch accepts the candidate and submits.
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({
+          preview: createExecutionPreview({ sharePrice: 0.46 }),
+          execution: createExecution({
+            approvedPrice: 0.46,
+            refreshedPrice: 0.46,
+            worstExecutablePrice: 0.46,
+          }),
+        }),
+      );
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      const reconfirmOutcomes = mockTrackEvent.mock.calls
+        .map(([args]) => args.reconfirmOutcome)
+        .filter((outcome) => outcome !== undefined);
+      expect(reconfirmOutcomes).toEqual(['refreshed_again', 'confirmed']);
+    });
+
+    it('tracks stale-recovered on the bounded recovery', async () => {
+      mockPreviewExecutionOrder
+        .mockResolvedValueOnce(createExecutableResult())
+        .mockResolvedValueOnce(createExecutableResult());
+      // First submission is rejected as stale; the single recovery resubmits.
+      mockPlaceOrder
+        .mockResolvedValueOnce({ status: 'preview_stale' })
+        .mockResolvedValueOnce(successOutcome);
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      const staleRecoveredEvent = mockTrackEvent.mock.calls.find(
+        ([args]) => args.reconfirmOutcome === 'stale_recovered',
+      );
+      expect(staleRecoveredEvent).toBeDefined();
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('tracks the user dismissal without a submission', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({
+          preview: createExecutionPreview({ sharePrice: 0.48 }),
+          execution: createExecution({
+            refreshedPrice: 0.48,
+            worstExecutablePrice: 0.48,
+          }),
+        }),
+      );
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+      expect(result.current.status).toBe('confirm');
+
+      act(() => {
+        result.current.handleDismiss();
+      });
+
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      const dismissedEvent = mockTrackEvent.mock.calls.find(
+        ([args]) => args.status === PredictTradeStatus.PRESUBMIT_DISMISSED,
+      );
+      expect(dismissedEvent).toBeDefined();
+      const [dismissedArgs] = dismissedEvent as unknown as [
+        {
+          preSubmitDecision: string;
+          reconfirmOutcome: string;
+          requestedSize: number;
+        },
+      ];
+      expect(dismissedArgs.preSubmitDecision).toBe('beyond_one_tick');
+      expect(dismissedArgs.reconfirmOutcome).toBe('dismissed');
+      expect(dismissedArgs.requestedSize).toBe(10);
+    });
+
+    it('does not track a dismissal for the terminal settlement close', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(createExecutableResult());
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const statuses = mockTrackEvent.mock.calls.map(([args]) => args.status);
+      expect(statuses).not.toContain(PredictTradeStatus.PRESUBMIT_DISMISSED);
+    });
   });
 });
