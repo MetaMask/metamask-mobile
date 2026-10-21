@@ -62,6 +62,88 @@ const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 4;
 
 type LiveStreamState = 'paused' | 'live';
 
+interface LiveFeedListItemProps {
+  eventId?: string;
+  isFirst: boolean;
+  onAnimationComplete: (eventId: string) => void;
+  onAuthorPress: (post: SocialV1FeedPost) => void;
+  onPositionPress: (post: SocialV1FeedPost) => void;
+  post: SocialV1FeedPost;
+  scheduleEntryDelay: () => number;
+}
+
+const areReactionsEqual = (
+  previous: SocialV1FeedPost['reactions'],
+  next: SocialV1FeedPost['reactions'],
+): boolean =>
+  previous.length === next.length &&
+  previous.every(
+    (reaction, index) =>
+      reaction.emotion === next[index]?.emotion &&
+      reaction.count === next[index]?.count,
+  );
+
+const areLiveFeedListItemPropsEqual = (
+  previous: LiveFeedListItemProps,
+  next: LiveFeedListItemProps,
+): boolean => {
+  const previousPost = previous.post;
+  const nextPost = next.post;
+  const previousPosition = previousPost.position;
+  const nextPosition = nextPost.position;
+
+  return (
+    previous.eventId === next.eventId &&
+    previous.isFirst === next.isFirst &&
+    previous.onAnimationComplete === next.onAnimationComplete &&
+    previous.onAuthorPress === next.onAuthorPress &&
+    previous.onPositionPress === next.onPositionPress &&
+    previous.scheduleEntryDelay === next.scheduleEntryDelay &&
+    previousPost.id === nextPost.id &&
+    previousPost.authorHandle === nextPost.authorHandle &&
+    previousPost.authorImageUrl === nextPost.authorImageUrl &&
+    previousPost.timestampMs === nextPost.timestampMs &&
+    previousPost.commentId === nextPost.commentId &&
+    previousPost.copyCount === nextPost.copyCount &&
+    previousPost.gifUri === nextPost.gifUri &&
+    previousPost.userReaction === nextPost.userReaction &&
+    areReactionsEqual(previousPost.reactions, nextPost.reactions) &&
+    previousPosition?.eventId === nextPosition?.eventId &&
+    previousPosition?.revision === nextPosition?.revision &&
+    previousPosition?.timestamp === nextPosition?.timestamp
+  );
+};
+
+const LiveFeedListItem = React.memo(
+  ({
+    eventId,
+    isFirst,
+    onAnimationComplete,
+    onAuthorPress,
+    onPositionPress,
+    post,
+    scheduleEntryDelay,
+  }: LiveFeedListItemProps) => (
+    <FeedItemEntryAnimation
+      eventId={eventId}
+      scheduleEntryDelay={scheduleEntryDelay}
+      onAnimationComplete={onAnimationComplete}
+    >
+      <>
+        {!isFirst ? <Box twClassName="h-px bg-muted" /> : null}
+        <Box twClassName="px-4">
+          <SocialFeedPostShell
+            post={post}
+            onAuthorPress={onAuthorPress}
+            onPositionPress={post.position ? onPositionPress : undefined}
+          />
+        </Box>
+      </>
+    </FeedItemEntryAnimation>
+  ),
+  areLiveFeedListItemPropsEqual,
+);
+
 export interface LiveViewProps {
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
@@ -225,24 +307,15 @@ const LiveView: React.FC<LiveViewProps> = ({
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => {
       const eventId = realtimeEventIds.get(item.id);
       return (
-        <FeedItemEntryAnimation
+        <LiveFeedListItem
           eventId={eventId}
-          scheduleEntryDelay={scheduleEntryDelay}
+          isFirst={index === 0}
           onAnimationComplete={markRealtimeEventAnimated}
-        >
-          <>
-            {index > 0 ? <Box twClassName="h-px bg-muted" /> : null}
-            <Box twClassName="px-4">
-              <SocialFeedPostShell
-                post={item}
-                onAuthorPress={handleAuthorPress}
-                onPositionPress={
-                  item.position ? handlePositionPress : undefined
-                }
-              />
-            </Box>
-          </>
-        </FeedItemEntryAnimation>
+          onAuthorPress={handleAuthorPress}
+          onPositionPress={handlePositionPress}
+          post={item}
+          scheduleEntryDelay={scheduleEntryDelay}
+        />
       );
     },
     [

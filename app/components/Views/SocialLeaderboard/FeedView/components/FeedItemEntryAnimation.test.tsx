@@ -7,17 +7,13 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import FeedItemEntryAnimation, {
-  FEED_ITEM_ENTRY_BLUR_RADIUS,
   FEED_ITEM_ENTRY_DURATION_MS,
   FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS,
-  FEED_ITEM_ENTRY_SNAPSHOT_TIMEOUT_MS,
   FEED_ITEM_ENTRY_STAGGER_MS,
   createFeedItemEntryScheduler,
 } from './FeedItemEntryAnimation';
 
 const timingCallbacks: ((finished: boolean) => void)[] = [];
-const mockCaptureRef = jest.fn<Promise<string>, []>();
-const mockReleaseCapture = jest.fn();
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
@@ -52,11 +48,6 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
-jest.mock('react-native-view-shot', () => ({
-  captureRef: () => mockCaptureRef(),
-  releaseCapture: (uri: string) => mockReleaseCapture(uri),
-}));
-
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const { lightTheme } = jest.requireActual('@metamask/design-tokens');
   const twStyles: Record<string, object> = {
@@ -82,8 +73,7 @@ const EXPECTED_STAGGER_MS = 70;
 
 const getClip = () => screen.getByTestId('entry-animation');
 const getMotion = () => getClip().props.children;
-const getContent = () => getMotion().props.children[0];
-const getBlurOverlay = () => getMotion().props.children[1];
+const getContent = () => getMotion().props.children;
 const flattenStyle = (node: { props: { style?: StyleProp<ViewStyle> } }) =>
   StyleSheet.flatten(node.props.style) ?? {};
 
@@ -98,12 +88,6 @@ const layoutContent = async (height = 160): Promise<void> => {
     getContent().props.onLayout({ nativeEvent: { layout: { height } } });
   });
   await advance();
-};
-
-const loadBlurSnapshot = async (): Promise<void> => {
-  await act(async () => {
-    getBlurOverlay().props.children.props.onLoad();
-  });
 };
 
 const renderLiveEntry = (
@@ -124,7 +108,6 @@ describe('FeedItemEntryAnimation', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     timingCallbacks.length = 0;
-    mockCaptureRef.mockResolvedValue('/tmp/snapshot.png');
     mockUseReducedMotion.mockReturnValue(false);
   });
 
@@ -153,11 +136,10 @@ describe('FeedItemEntryAnimation', () => {
       opacity: 1,
       transform: IDENTITY_TRANSFORM,
     });
-    expect(mockCaptureRef).not.toHaveBeenCalled();
     expect(mockWithTiming).not.toHaveBeenCalled();
   });
 
-  it('holds a socket row at its collapsed, transparent start until the blur snapshot loads', async () => {
+  it('runs the entrance after the row is measured', async () => {
     renderLiveEntry();
 
     await layoutContent();
@@ -168,24 +150,6 @@ describe('FeedItemEntryAnimation', () => {
       opacity: 0,
       transform: [{ translateY: 20 }, { scale: 0.97 }],
     });
-    expect(getBlurOverlay().props.children.props).toEqual(
-      expect.objectContaining({
-        blurRadius: FEED_ITEM_ENTRY_BLUR_RADIUS,
-        source: { uri: 'file:///tmp/snapshot.png' },
-      }),
-    );
-    expect(flattenStyle(getBlurOverlay())).toEqual(
-      expect.objectContaining({ height: 160, opacity: 1 }),
-    );
-    expect(mockWithTiming).not.toHaveBeenCalled();
-  });
-
-  it('runs the 520ms entrance on linear time once the blur snapshot loads', async () => {
-    renderLiveEntry();
-    await layoutContent();
-
-    await loadBlurSnapshot();
-
     expect(mockWithTiming).toHaveBeenCalledTimes(1);
     expect(mockWithTiming).toHaveBeenCalledWith(
       1,
@@ -197,7 +161,6 @@ describe('FeedItemEntryAnimation', () => {
   it('opens the wrapper to the natural height of the floating row', async () => {
     const { rerender } = renderLiveEntry();
     await layoutContent(142);
-    await loadBlurSnapshot();
 
     rerender(
       <FeedItemEntryAnimation eventId="event-1" testID="entry-animation">
@@ -217,7 +180,6 @@ describe('FeedItemEntryAnimation', () => {
   it('replays the entrance once for each new socket event id', async () => {
     const { rerender } = renderLiveEntry();
     await layoutContent();
-    await loadBlurSnapshot();
 
     rerender(
       <FeedItemEntryAnimation eventId="event-1" testID="entry-animation">
@@ -232,18 +194,15 @@ describe('FeedItemEntryAnimation', () => {
       </FeedItemEntryAnimation>,
     );
     await advance();
-    await loadBlurSnapshot();
 
     expect(timingCallsForSameEvent).toBe(1);
-    expect(mockCaptureRef).toHaveBeenCalledTimes(2);
     expect(mockWithTiming).toHaveBeenCalledTimes(2);
   });
 
-  it('restores neutral styles and drops the snapshot when the entrance completes', async () => {
+  it('restores neutral styles when the entrance completes', async () => {
     const onAnimationComplete = jest.fn();
     renderLiveEntry({ onAnimationComplete });
     await layoutContent();
-    await loadBlurSnapshot();
 
     await act(async () => {
       timingCallbacks[0]?.(true);
@@ -256,35 +215,10 @@ describe('FeedItemEntryAnimation', () => {
       transform: IDENTITY_TRANSFORM,
     });
     expect(getContent().props.style).toBeUndefined();
-    expect(getBlurOverlay()).toBeNull();
-    expect(mockReleaseCapture).toHaveBeenCalledWith('/tmp/snapshot.png');
     expect(onAnimationComplete).toHaveBeenCalledWith('event-1');
   });
 
-  it('starts without blur when the snapshot is not ready in time', async () => {
-    mockCaptureRef.mockReturnValue(new Promise<string>(() => undefined));
-    renderLiveEntry();
-    await layoutContent();
-
-    await advance(FEED_ITEM_ENTRY_SNAPSHOT_TIMEOUT_MS);
-
-    expect(mockWithTiming).toHaveBeenCalledTimes(1);
-    expect(getBlurOverlay()).toBeNull();
-  });
-
-  it('starts without blur when the snapshot capture fails', async () => {
-    mockCaptureRef.mockRejectedValue(new Error('capture failed'));
-    renderLiveEntry();
-    await layoutContent();
-
-    await advance(100);
-
-    expect(mockCaptureRef).toHaveBeenCalledTimes(3);
-    expect(mockWithTiming).toHaveBeenCalledTimes(1);
-    expect(getBlurOverlay()).toBeNull();
-  });
-
-  it('uses a 200ms fade and height entrance without blur or transform for reduced motion', async () => {
+  it('uses a 200ms fade and height entrance without transform for reduced motion', async () => {
     mockUseReducedMotion.mockReturnValue(true);
     renderLiveEntry();
 
@@ -302,16 +236,12 @@ describe('FeedItemEntryAnimation', () => {
       opacity: 0,
       transform: IDENTITY_TRANSFORM,
     });
-    expect(mockCaptureRef).not.toHaveBeenCalled();
-    expect(getBlurOverlay()).toBeNull();
   });
 
   it('waits for the scheduled stagger delay before starting', async () => {
     const scheduleEntryDelay = jest.fn(() => EXPECTED_STAGGER_MS * 2);
     renderLiveEntry({ scheduleEntryDelay });
     await layoutContent();
-
-    await loadBlurSnapshot();
 
     expect(scheduleEntryDelay).toHaveBeenCalledTimes(1);
     expect(mockWithDelay).toHaveBeenCalledWith(EXPECTED_STAGGER_MS * 2, 1);

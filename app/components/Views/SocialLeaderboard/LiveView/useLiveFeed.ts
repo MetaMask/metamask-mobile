@@ -18,6 +18,7 @@ export const LIVE_FEED_BUFFER_SIZE = 60;
 const LIVE_FEED_PAGE_SIZE = 30;
 const LIVE_FEED_REVEAL_BATCH_SIZE = 6;
 const LIVE_FEED_REVEAL_INTERVAL_MS = 16;
+const noopAnimationComplete = (_eventId: string): void => undefined;
 
 const LIVE_FEED_SOURCE: SocialFeedSource = {
   kind: 'all',
@@ -322,7 +323,7 @@ export const useLiveFeed = ({
     error: feed.error,
     refresh: feed.refresh,
     realtimeEventIds,
-    markRealtimeEventAnimated: () => undefined,
+    markRealtimeEventAnimated: noopAnimationComplete,
     pendingNewCount: visiblePendingNewCount,
   };
 };
