@@ -49,6 +49,7 @@ import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagControlle
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
 import { BridgeTabKey } from './BridgeView.constants';
 import BridgeViewContent from '.';
+import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -2738,6 +2739,41 @@ describe('BridgeView', () => {
       });
       expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
       expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+    });
+
+    it('resets a reused Limit tab from History to Open orders', async () => {
+      const rendered = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+      fireEvent.press(rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.press(rendered.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB));
+      expect(
+        rendered.getByText(strings('bridge.orders.empty.history')),
+      ).toBeOnTheScreen();
+
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Limit,
+      };
+      rendered.rerender(<BridgeView />);
+
+      await waitFor(() => {
+        expect(
+          rendered.getByText(strings('bridge.orders.empty.open_orders')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        rendered.queryByText(strings('bridge.orders.empty.history')),
+      ).toBeNull();
     });
 
     it('navigates to the next tab on a left swipe', async () => {

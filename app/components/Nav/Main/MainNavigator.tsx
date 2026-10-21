@@ -120,6 +120,7 @@ import { useABTest } from '../../../hooks';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
+import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -660,11 +661,6 @@ const HomeTabs = () => {
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
   const homeNavBarConfig = useHomeNavBarConfig({ trackExposure: true });
-  const { variant: socialV1Variant } = useABTest(
-    SOCIAL_V1_AB_KEY,
-    SOCIAL_V1_VARIANTS,
-    SOCIAL_V1_ASSIGNMENT_OPTIONS,
-  );
   const isFloatingTabBar = homeNavBarConfig.isRefreshedNavBar;
   // Refreshed nav configs use `search` or `trade`. `none` is control-only and
   // does not render this bar. Undefined keeps `TabBarFloating`'s `search` default.
@@ -681,11 +677,14 @@ const HomeTabs = () => {
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
   const showSocialTab =
-    homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled;
+    homeNavBarConfig.isSocialHeader ||
+    (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
+  const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
+  const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
-  const socialTabComponent = socialV1Variant.useSocialV1
+  const socialTabComponent = homeNavBarConfig.isSocialHeader
     ? SocialV1View
     : SocialV0View;
 
@@ -705,6 +704,8 @@ const HomeTabs = () => {
     useHomeTabDefinitions({
       isMoneyAccountVisible,
       showSocialTab,
+      isSocialV1Enabled,
+      showSocialTabNewBadge,
       trackMoneyTabPress,
     });
   const systemSlotTab = useNativeSystemSlotTab(
@@ -809,8 +810,8 @@ const HomeTabs = () => {
       options={
         tab.hidesTabBarFor
           ? ({ route }: { route: HomeTabRoute }) =>
-              toNativeTabOptions(tab, route)
-          : toNativeTabOptions(tab)
+              toNativeTabOptions(tab, route, colors.success.default)
+          : toNativeTabOptions(tab, undefined, colors.success.default)
       }
       listeners={getNativeTabListeners(tab)}
       component={tabComponentFor(tab)}
@@ -998,8 +999,9 @@ const MainNavigator = () => {
     SOCIAL_V1_VARIANTS,
     SOCIAL_V1_ASSIGNMENT_OPTIONS,
   );
-  const isSocialV1Enabled =
-    isSocialLeaderboardEnabled && socialV1Variant.useSocialV1;
+  const isSocialV1Enabled = socialV1Variant.useSocialV1;
+  const isSocialExperienceEnabled =
+    isSocialV1Enabled || isSocialLeaderboardEnabled;
   return (
     <NativeStack.Navigator
       screenOptions={defaultScreenOptions}
@@ -1098,11 +1100,13 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.DRAWER}
-          component={ProfileDrawer}
-          options={slideFromLeftNativeOptions}
-        />
+        {isSocialV1Enabled && (
+          <NativeStack.Screen
+            name={Routes.SOCIAL_PROFILE.DRAWER}
+            component={ProfileDrawer}
+            options={slideFromLeftNativeOptions}
+          />
+        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
@@ -1442,13 +1446,15 @@ const MainNavigator = () => {
           />
         </NativeStack.Group>
       )}
-      {isSocialLeaderboardEnabled && (
+      {isSocialExperienceEnabled && (
         <>
-          <NativeStack.Screen
-            name={Routes.SOCIAL.V0}
-            component={SocialV0View}
-            options={slideFromRightNativeOptions}
-          />
+          {isSocialLeaderboardEnabled && (
+            <NativeStack.Screen
+              name={Routes.SOCIAL.V0}
+              component={SocialV0View}
+              options={slideFromRightNativeOptions}
+            />
+          )}
           <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
             <NativeStack.Screen
               name={Routes.SOCIAL.PROFILE}

@@ -8,12 +8,12 @@ import {
 import {
   Box,
   BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
   ButtonSize,
   TextArea,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../../locales/i18n';
 import { OtherBottomSheetTestIds } from './OtherBottomSheet.testIds';
 
@@ -101,14 +101,15 @@ const OtherBottomSheetContent = ({
       keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
       testID={OtherBottomSheetTestIds.BOTTOM_SHEET}
     >
-      <BottomSheetHeader
+      <HeaderStandardGlass
+        isFloating={false}
         onClose={handleClose}
         closeButtonProps={{
           testID: `${OtherBottomSheetTestIds.BOTTOM_SHEET}-close-button`,
         }}
       >
         {strings('onboarding_interest_questionnaire.option_other')}
-      </BottomSheetHeader>
+      </HeaderStandardGlass>
 
       <Box paddingHorizontal={4}>
         <TextArea
@@ -124,7 +125,7 @@ const OtherBottomSheetContent = ({
         />
       </Box>
 
-      <BottomSheetFooter
+      <FooterGlass
         twClassName="mt-4 pb-6"
         primaryButtonProps={{
           children: strings('onboarding_interest_questionnaire.done'),

@@ -8,6 +8,11 @@ import {
   resetHomepageSearchPasteStateForTests,
   useHomepageSearchPaste,
 } from './useHomepageSearchPaste';
+import {
+  HOMEPAGE_SEARCH_AB_KEY,
+  HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_SEARCH_VARIANTS,
+} from './abTestConfig';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (effect: () => void) => {
@@ -109,6 +114,14 @@ describe('useHomepageSearchPaste', () => {
       expect(result.current.showPastePill).toBe(false);
     });
     expect(mockClipboardManager.hasString).not.toHaveBeenCalled();
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      HOMEPAGE_SEARCH_AB_KEY,
+      HOMEPAGE_SEARCH_VARIANTS,
+      {
+        ...HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+        trackExposure: false,
+      },
+    );
   });
 
   it('does not read or show Paste when the search header is disabled', async () => {

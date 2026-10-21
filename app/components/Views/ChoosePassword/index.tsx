@@ -7,28 +7,31 @@ import React, {
   useMemo,
 } from 'react';
 import { Platform, Keyboard, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Button,
   BoxFlexDirection,
   TextVariant,
-  ButtonVariant,
   ButtonSize,
   TextField,
   IconName,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   TitleStandard,
   HelpText,
   HelpTextSeverity,
   ListItemMultiSelect,
   ListItemVariant,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -172,6 +175,11 @@ async function reimportPrivateKeyAccounts(
 const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -824,7 +832,9 @@ const ChoosePassword = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-background-default')}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          backdrop="static"
+          onLayout={onHeaderLayout}
           includesTopInset
           onBack={() => navigation.goBack()}
           backButtonProps={{
@@ -832,6 +842,7 @@ const ChoosePassword = () => {
           }}
         />
         <KeyboardAwareScrollView
+          style={{ marginTop: headerInset }}
           contentContainerStyle={tw.style('flex-1 px-4')}
           keyboardShouldPersistTaps="handled"
           // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
@@ -985,23 +996,18 @@ const ChoosePassword = () => {
               />
             )}
 
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              twClassName="w-full mt-auto"
-              gap={4}
-              style={tw.style(Platform.OS === 'android' ? 'mb-6' : 'mb-4')}
-            >
-              <Button
-                variant={ButtonVariant.Primary}
-                onPress={onPressCreate}
-                isFullWidth
-                isLoading={isAwaitingGeolocation}
-                size={ButtonSize.Lg}
-                testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-              >
-                {strings('choose_password.create_password_cta')}
-              </Button>
-            </Box>
+            <FooterGlass
+              twClassName={`px-0 w-full mt-auto ${
+                Platform.OS === 'android' ? 'mb-6' : 'mb-4'
+              }`}
+              primaryButtonProps={{
+                children: strings('choose_password.create_password_cta'),
+                onPress: onPressCreate,
+                isLoading: isAwaitingGeolocation,
+                size: ButtonSize.Lg,
+                testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+              }}
+            />
           </Box>
         </KeyboardAwareScrollView>
         <PasswordResetWarningSheet
