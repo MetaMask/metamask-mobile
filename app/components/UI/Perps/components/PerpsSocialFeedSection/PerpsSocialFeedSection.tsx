@@ -25,8 +25,9 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
   const handleOpenSocial = useCallback(() => {
     navigateToSocialLeaderboard(navigation.navigate, {
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      initialTab: tab === 'top_traders' ? 'leaderboard' : 'trending',
     });
-  }, [navigation]);
+  }, [navigation, tab]);
 
   return (
     <Box

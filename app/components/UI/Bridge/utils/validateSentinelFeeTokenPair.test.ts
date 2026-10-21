@@ -11,8 +11,8 @@ const POLYGON_USDC_ASSET_ID =
 
 const SENTINEL_FEE_TOKENS: SentinelFeeTokensByChain = {
   'eip155:1': [
-    { assetId: ETH_ASSET_ID, symbol: 'DUM0' },
-    { assetId: USDC_ASSET_ID, symbol: 'DUM8' },
+    { assetId: ETH_ASSET_ID, symbol: 'ETH' },
+    { assetId: USDC_ASSET_ID, symbol: 'USDC' },
   ],
 };
 

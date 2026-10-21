@@ -23,6 +23,13 @@ import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
 jest.mock('../../../../../util/haptics');
 
 const mockNavigateTo = jest.fn();
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 let mockLivePriceHeaderProps:
   | { currentPrice: number; percentChange24h: number | null }
   | undefined;
@@ -473,7 +480,7 @@ describe('PerpsTradeScreen errors', () => {
     );
     expect(mockPerpsTokenLogoProps).toEqual({
       symbol: 'kPEPE',
-      size: 32,
+      size: 40,
     });
   });
 

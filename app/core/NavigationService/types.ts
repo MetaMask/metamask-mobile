@@ -6,6 +6,7 @@ import type {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 import type { SocialPostComposerViewParams } from '../../components/Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
+import type { SocialShellTab } from '../../components/Views/SocialLeaderboard/shell/types';
 import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
@@ -1034,13 +1035,19 @@ export type RootStackParamList = {
   /**
    * Social tab root (SOCIAL.TAB). Mounts SocialV1View or SocialV0View from
    * TSA-1122, matching `getFollowTradingHomeRoute()`. Params are the V0
-   * shape; V1 reads the overlapping `source` / `showNotificationsBanner`.
+   * shape plus `initialTab`; V1 reads `source` / `showNotificationsBanner` /
+   * `initialTab`.
    */
-  SocialLeaderboardTab: RootStackParamList['SocialV0View'];
+  SocialLeaderboardTab:
+    | (NonNullable<RootStackParamList['SocialV0View']> & {
+        initialTab?: SocialShellTab;
+      })
+    | undefined;
   SocialV1View:
     | {
         source?: string;
         showNotificationsBanner?: boolean;
+        initialTab?: SocialShellTab;
       }
     | undefined;
   SocialPostComposerView: SocialPostComposerViewParams | undefined;
