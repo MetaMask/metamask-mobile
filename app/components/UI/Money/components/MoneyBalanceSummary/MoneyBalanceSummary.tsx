@@ -167,8 +167,7 @@ const MoneyBalanceSummary = ({
         titleProps={{ testID: MoneyBalanceSummaryTestIds.TITLE }}
         amount={renderBalanceSlot()}
         amountWrapperProps={{
-          marginTop: 6,
-          testID: MoneyBalanceSummaryTestIds.AMOUNT,
+          twClassName: 'mt-6',
         }}
         bottomLabel={apyLabel}
         bottomLabelWrapperProps={{ twClassName: 'mt-1' }}
