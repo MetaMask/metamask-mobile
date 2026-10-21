@@ -62,10 +62,8 @@ import {
   isUserRejectedError,
 } from '../../util/errorHandling/isUserRejectedError';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import {
-  getWalletConnectSessionId,
-  trackWalletConnectEvent,
-} from './wc-analytics';
+import { getWalletConnectSessionId } from './wc-analytics';
+import { trackWalletConnectEvent } from '../../util/analytics/walletConnectTracking';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;

@@ -1,7 +1,4 @@
 import { v5 as uuidv5 } from 'uuid';
-import { analytics } from '../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
-import type { IMetaMetricsEvent } from '../Analytics/MetaMetrics.types';
 
 /**
  * Fixed namespace used to derive WalletConnect `remote_session_id` values.
@@ -13,11 +10,13 @@ export const WC_SESSION_ID_NAMESPACE = '2e7bd3d3-2b90-40a0-9e86-bbbab5a1ddc5';
 // Why the session id is derived rather than randomly generated:
 //
 // - The value must be identical in the connection-lifecycle events (emitted by
-//   WalletConnectV2 while handling the session proposal) and in the
-//   transaction/signature events (emitted much later by the RPC middleware via
-//   the per-session BackgroundBridge). Deriving from the pairing topic means
-//   both sides arrive at the same id without sharing state or persisting
-//   anything, and it survives app restarts and session restoration.
+//   WalletConnectV2 while handling the session proposal) and on later
+//   transaction and signature events. Signatures go through the session
+//   BackgroundBridge. eth_sendTransaction does not: handleSendTransaction
+//   writes the confirmation metric itself and must use this same derivation.
+//   Deriving from the pairing topic means both sides arrive at the same id
+//   without sharing state or persisting anything, and it survives app
+//   restarts and session restoration.
 // - It keeps remote_session_id a UUID, matching the shape MetaMask Connect
 //   (MWP) and SDK v1 already emit, so warehouse joins on that column work
 //   uniformly across transports.
@@ -37,26 +36,4 @@ export const WC_SESSION_ID_NAMESPACE = '2e7bd3d3-2b90-40a0-9e86-bbbab5a1ddc5';
  */
 export function getWalletConnectSessionId(pairingTopic: string): string {
   return uuidv5(pairingTopic, WC_SESSION_ID_NAMESPACE);
-}
-
-/**
- * Fire-and-forget analytics helper for WalletConnect flows.
- * Never throws — a broken analytics call must not block connection handling.
- *
- * Mirrors `trackMwpEvent` for the MWP transport; kept separate so each
- * transport owns its own telemetry entry point.
- */
-export function trackWalletConnectEvent(
-  event: IMetaMetricsEvent,
-  properties: Record<string, unknown>,
-): void {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-    );
-  } catch {
-    // Intentionally swallowed: analytics must not block WalletConnect flows.
-  }
 }

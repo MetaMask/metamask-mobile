@@ -17,10 +17,8 @@ import { ActionType } from '../../actions/sdk';
 // eslint-disable-next-line import-x/no-namespace
 import * as waitUtil from '../SDKConnect/utils/wait.util';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
-import {
-  getWalletConnectSessionId,
-  trackWalletConnectEvent,
-} from './wc-analytics';
+import { getWalletConnectSessionId } from './wc-analytics';
+import { trackWalletConnectEvent } from '../../util/analytics/walletConnectTracking';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -60,10 +58,9 @@ jest.mock('../NavigationService', () => ({
   },
 }));
 
-// Only the emitter is stubbed; getWalletConnectSessionId stays real so the
+// Stub only the emitter. getWalletConnectSessionId stays real so the
 // assertions below exercise the actual id derivation.
-jest.mock('./wc-analytics', () => ({
-  ...jest.requireActual('./wc-analytics'),
+jest.mock('../../util/analytics/walletConnectTracking', () => ({
   trackWalletConnectEvent: jest.fn(),
 }));
 

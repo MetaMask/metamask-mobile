@@ -185,9 +185,10 @@ class WalletConnect2Session {
           hostname: this.selfReportedHostname,
           getProviderState,
           channelId,
-          // Carries `remote_session_id` onto every transaction/signature event
-          // raised on this connection, which is what makes WalletConnect
-          // activity attributable back to its connection event.
+          // Carries `remote_session_id` onto signature and other RPC events that
+          // pass through this middleware. eth_sendTransaction does not use
+          // this path; handleSendTransaction writes the same id onto the
+          // confirmation metric.
           //
           // `isRemoteConn` stays false on purpose: it is the flag the RPC
           // middleware's getSource() uses to pick between the SDK v1 and
@@ -908,6 +909,10 @@ class WalletConnect2Session {
               request_source: getRequestSourceForTransport(
                 RemoteTransport.WalletConnect,
               ),
+              // Same derivation as the connection funnel. This metric is what
+              // lands on the transaction event; the bridge analytics object
+              // above is never consulted for eth_sendTransaction.
+              remote_session_id: getWalletConnectSessionId(this.channelId),
             },
           },
         }),
