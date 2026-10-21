@@ -24,6 +24,7 @@ import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegat
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { ToastSeverity } from '@metamask/design-system-react-native';
+import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
@@ -32,6 +33,7 @@ import type { LimitOrderConfirmationModalParams } from './types';
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
+const mockSetLimitOrdersTab = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -58,6 +60,10 @@ jest.mock('../../hooks/useFiatToUsdRate', () => ({
 
 jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: () => ({ setLimitOrdersTab: mockSetLimitOrdersTab }),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -733,6 +739,20 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('switches the orders list to the Open orders tab once the order is created', async () => {
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockSetLimitOrdersTab).toHaveBeenCalledWith(
+        OrdersTabKey.OpenOrders,
+      );
+    });
+  });
+
   it('clears the token amounts and preserves the remaining form state once the order is created', async () => {
     const { getByTestId, store } = renderScreen(
       createBridgeTestState({
@@ -800,6 +820,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();
+    expect(mockSetLimitOrdersTab).not.toHaveBeenCalled();
     expect(store.getState().bridge.sourceAmount).toBe('0.1');
     expect(store.getState().bridge.destAmount).toBe('341.22');
   });

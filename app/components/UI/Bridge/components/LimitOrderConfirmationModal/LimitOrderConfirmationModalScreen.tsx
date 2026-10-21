@@ -30,6 +30,8 @@ import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import type { LimitOrderConfirmationModalParams } from './types';
 import { strings } from '../../../../../../locales/i18n';
 import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -63,6 +65,7 @@ export const LimitOrderConfirmationModalScreen = () => {
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
+  const { setLimitOrdersTab } = useBridgeSession();
   const delegationFee = useEIP7702UpgradeFee();
   const feeTokenValidation = useSentinelFeeTokenValidation({
     chainId: parseCaipAssetType(params.order.sourceAssetId).chainId,
@@ -253,6 +256,7 @@ export const LimitOrderConfirmationModalScreen = () => {
 
     // The order is placed, so the sheet has nothing left to confirm.
     dispatch(resetBridgeTokenInputs());
+    setLimitOrdersTab?.(OrdersTabKey.OpenOrders);
     navigation.goBack();
     toast({
       severity: ToastSeverity.Success,
@@ -269,6 +273,7 @@ export const LimitOrderConfirmationModalScreen = () => {
     feeTokenValidation.isValid,
     navigation,
     params.order.destAmount,
+    setLimitOrdersTab,
     trigger,
     costTolerancePercent,
   ]);

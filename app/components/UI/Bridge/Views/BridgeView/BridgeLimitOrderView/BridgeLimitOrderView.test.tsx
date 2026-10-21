@@ -57,18 +57,32 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeSession', () => ({
-  useBridgeSession: jest.fn().mockReturnValue({
-    selectedTab: 'limit',
-    renderedTab: 'limit',
-    setSelectedTab: jest.fn(),
-    setRenderedTab: jest.fn(),
-    latestSourceBalance: {
-      displayBalance: '1.0',
-      atomicBalance: undefined,
+let mockInitialLimitOrdersTab = 'openOrders';
+
+jest.mock('../../../hooks/useBridgeSession', () => {
+  const { useState } = jest.requireActual('react');
+
+  return {
+    useBridgeSession: () => {
+      const [limitOrdersTab, setLimitOrdersTab] = useState(
+        mockInitialLimitOrdersTab,
+      );
+
+      return {
+        selectedTab: 'limit',
+        renderedTab: 'limit',
+        setSelectedTab: jest.fn(),
+        setRenderedTab: jest.fn(),
+        limitOrdersTab,
+        setLimitOrdersTab,
+        latestSourceBalance: {
+          displayBalance: '1.0',
+          atomicBalance: undefined,
+        },
+      };
     },
-  }),
-}));
+  };
+});
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
@@ -235,11 +249,19 @@ jest.mock('../../../components/SwapsInputs', () => {
 });
 
 let mockOnOrdersTabChange: ((tab: string) => void) | undefined;
+let mockOrdersActiveTab: string | undefined;
 
 jest.mock('../../../components/OrdersTabs', () => ({
   __esModule: true,
   ...jest.requireActual('../../../components/OrdersTabs'),
-  default: ({ onTabChange }: { onTabChange?: (tab: string) => void }) => {
+  default: ({
+    activeTab,
+    onTabChange,
+  }: {
+    activeTab?: string;
+    onTabChange?: (tab: string) => void;
+  }) => {
+    mockOrdersActiveTab = activeTab;
     mockOnOrdersTabChange = onTabChange;
     return null;
   },
@@ -482,6 +504,8 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '';
     mockHardwareTier = 'HIGH';
     mockNetworkTier = 'WIFI';
+    mockInitialLimitOrdersTab = OrdersTabKey.OpenOrders;
+    mockOrdersActiveTab = undefined;
 
     jest
       .mocked(useLimitOrderSwapInputs)
@@ -1266,6 +1290,21 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         states: expect.arrayContaining([LimitOrderState.Open]),
         enabled: false,
+      }),
+    );
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+  });
+
+  it('shows the orders tab held in the bridge session', () => {
+    mockInitialLimitOrdersTab = OrdersTabKey.History;
+
+    renderLimitOrderView();
+
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
       }),
     );
   });

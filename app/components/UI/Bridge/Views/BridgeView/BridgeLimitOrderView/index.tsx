@@ -111,10 +111,11 @@ const BridgeLimitOrderViewContent = () => {
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const { latestSourceBalance } = useBridgeSession();
-  const [activeOrdersTab, setActiveOrdersTab] = useState(
-    OrdersTabKey.OpenOrders,
-  );
+  const {
+    latestSourceBalance,
+    limitOrdersTab: activeOrdersTab = OrdersTabKey.OpenOrders,
+    setLimitOrdersTab: setActiveOrdersTab = () => undefined,
+  } = useBridgeSession();
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const walletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -668,6 +669,7 @@ const BridgeLimitOrderViewContent = () => {
                 enabledChainIds={enabledChainIds}
                 openOrders={openOrders}
                 history={history}
+                activeTab={activeOrdersTab}
                 onTabChange={setActiveOrdersTab}
               />
             </Box>
