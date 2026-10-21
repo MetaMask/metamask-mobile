@@ -70,7 +70,8 @@ const arrange = ({
     addPasskeyAndTurnOn: jest.fn(),
     retry: jest.fn(),
     turnOff: jest.fn(),
-    dismissFailure: jest.fn(),
+    isSettingUpBannerDismissed: false,
+    dismissSettingUpBanner: jest.fn(),
     refreshCredentials: jest.fn(),
   });
   mockUseSelector.mockImplementation((selector: unknown) => {

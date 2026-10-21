@@ -9,7 +9,10 @@ import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
 import { moneyMfaStore } from './moneyMfaStore';
-import { createMfaMoneyAccount } from './createMfaMoneyAccount';
+import {
+  moneyAccountMigration,
+  type MoneyAccountMigrationStatus,
+} from './moneyAccountMigration';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -46,14 +49,56 @@ jest.mock('../../../../core/NavigationService', () => ({
   },
 }));
 
-jest.mock('./createMfaMoneyAccount', () => ({
-  createMfaMoneyAccount: jest.fn(),
-}));
+jest.mock('./moneyAccountMigration', () => {
+  let status = 'not_started';
+  const listeners = new Set<() => void>();
+  const setStatus = (next: string) => {
+    status = next;
+    listeners.forEach((listener) => listener());
+  };
+  return {
+    moneyAccountMigration: {
+      getStatus: () => status,
+      subscribe: (listener: () => void) => {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+      },
+      start: jest.fn(),
+      reset: () => setStatus('not_started'),
+      setStatusForTest: setStatus,
+    },
+  };
+});
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMfa = jest.mocked(useMfa);
 const mockIsMfaKitEnabled = jest.mocked(isMfaKitEnabled);
-const mockCreateMfaMoneyAccount = jest.mocked(createMfaMoneyAccount);
+const mockStart = jest.mocked(moneyAccountMigration.start);
+const setMigration = (status: MoneyAccountMigrationStatus) =>
+  act(() => {
+    (
+      moneyAccountMigration as unknown as {
+        setStatusForTest: (next: MoneyAccountMigrationStatus) => void;
+      }
+    ).setStatusForTest(status);
+  });
+
+// Resolves the migration on demand, like the real one finishing.
+const deferMigration = () => {
+  let finish: (ok: boolean) => void = () => undefined;
+  mockStart.mockImplementation(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        setMigration('migrating');
+        finish = (ok) => {
+          setMigration(ok ? 'done' : 'failed');
+          if (ok) resolve();
+          else reject(new Error('migration failed'));
+        };
+      }),
+  );
+  return (ok: boolean) => finish(ok);
+};
 const mockRefreshEnrolledCredentials = jest.mocked(
   mobileMfaControllerAdapter.refreshEnrolledCredentials,
 );
@@ -120,9 +165,13 @@ describe('useMoneyMfa', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     moneyMfaStore.reset();
+    moneyAccountMigration.reset();
     mockEnroll.mockResolvedValue({});
     mockVerifyOrEnroll.mockResolvedValue({});
-    mockCreateMfaMoneyAccount.mockResolvedValue(undefined);
+    mockStart.mockImplementation(async () => {
+      setMigration('migrating');
+      setMigration('done');
+    });
     mockRefreshEnrolledCredentials.mockResolvedValue([]);
   });
 
@@ -139,14 +188,6 @@ describe('useMoneyMfa', () => {
       expect(result.current.status).toBe('unavailable');
     });
 
-    it('returns unavailable over a setting_up phase when the flag is off', () => {
-      moneyMfaStore.setState({ phase: 'setting_up' });
-
-      const { result } = arrange({ isFlagEnabled: false });
-
-      expect(result.current.status).toBe('unavailable');
-    });
-
     it('returns not_set_up when 2FA was never turned on, even with both methods', () => {
       const { result } = arrange({ credentials: [activePasskey, activeEmail] });
 
@@ -154,40 +195,52 @@ describe('useMoneyMfa', () => {
     });
 
     it('returns enabled when 2FA is on', () => {
-      moneyMfaStore.setState({ isEnabled: true, hasBeenEnabled: true });
+      setMigration('done');
+      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
 
       const { result } = arrange();
 
       expect(result.current.status).toBe('enabled');
     });
 
-    it('returns off when 2FA was turned on before and is now off', () => {
-      moneyMfaStore.setState({ isEnabled: false, hasBeenEnabled: true });
+    it('returns off when the migration is done and 2FA is off', () => {
+      setMigration('done');
 
       const { result } = arrange();
 
       expect(result.current.status).toBe('off');
     });
 
-    it.each(['setting_up', 'failed'] as const)(
-      'returns %s from the setup phase',
-      (phase) => {
-        moneyMfaStore.setState({ phase });
+    it('returns failed when the migration failed', () => {
+      setMigration('failed');
 
-        const { result } = arrange();
-
-        expect(result.current.status).toBe(phase);
-      },
-    );
-
-    it('updates when the store changes after render', () => {
       const { result } = arrange();
 
-      act(() => {
-        moneyMfaStore.setState({ isEnabled: true, hasBeenEnabled: true });
-      });
+      expect(result.current.status).toBe('failed');
+    });
 
+    it('returns setting_up and resumes a migration that was interrupted', async () => {
+      const finish = deferMigration();
+      setMigration('migrating');
+
+      const { result } = arrange();
+
+      expect(result.current.status).toBe('setting_up');
+      expect(mockStart).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        finish(true);
+      });
       expect(result.current.status).toBe('enabled');
+      expectEnabledSheetShown();
+    });
+
+    it('does not resume while the flag is off', () => {
+      setMigration('migrating');
+
+      const { result } = arrange({ isFlagEnabled: false });
+
+      expect(result.current.status).toBe('unavailable');
+      expect(mockStart).not.toHaveBeenCalled();
     });
   });
 
@@ -207,73 +260,66 @@ describe('useMoneyMfa', () => {
       });
     });
 
-    it('creates the Money account and shows the enabled sheet on first setup', async () => {
+    it('migrates, turns 2FA on and shows the enabled sheet on first setup', async () => {
       const { result } = arrange();
 
       await act(async () => {
         await result.current.turnOn();
       });
 
-      expect(mockCreateMfaMoneyAccount).toHaveBeenCalledTimes(1);
-      expect(moneyMfaStore.getState()).toEqual({
-        phase: 'idle',
-        isEnabled: true,
-        hasBeenEnabled: true,
-      });
+      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(result.current.status).toBe('enabled');
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(true);
       expectEnabledSheetShown();
       expect(mockShowToast).not.toHaveBeenCalled();
     });
 
-    it('sets the phase to setting_up while the Money account is created', async () => {
-      let resolveCreate: () => void = () => undefined;
-      mockCreateMfaMoneyAccount.mockReturnValue(
-        new Promise<void>((resolve) => {
-          resolveCreate = resolve;
-        }),
-      );
+    it('shows the setting-up banner again for a new migration', async () => {
+      moneyMfaStore.setState({ isMigrationBannerDismissed: true });
+      const finish = deferMigration();
       const { result } = arrange();
 
-      let turnOnPromise: Promise<void> = Promise.resolve();
+      let turnOn: Promise<void> = Promise.resolve();
       await act(async () => {
-        turnOnPromise = result.current.turnOn();
-        await Promise.resolve();
-        await Promise.resolve();
+        turnOn = result.current.turnOn();
       });
 
       expect(result.current.status).toBe('setting_up');
-
+      expect(result.current.isSettingUpBannerDismissed).toBe(false);
       await act(async () => {
-        resolveCreate();
-        await turnOnPromise;
+        finish(true);
+        await turnOn;
       });
     });
 
-    it('sets the phase to failed when the Money account creation rejects', async () => {
-      mockCreateMfaMoneyAccount.mockRejectedValue(new Error('create failed'));
+    it('leaves 2FA off when the migration fails', async () => {
+      const finish = deferMigration();
       const { result } = arrange();
 
+      let turnOn: Promise<void> = Promise.resolve();
       await act(async () => {
-        await result.current.turnOn();
+        turnOn = result.current.turnOn();
+      });
+      await act(async () => {
+        finish(false);
+        await turnOn;
       });
 
-      expect(moneyMfaStore.getState()).toEqual({
-        phase: 'failed',
-        isEnabled: false,
-        hasBeenEnabled: false,
-      });
+      expect(result.current.status).toBe('failed');
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(false);
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('turns 2FA back on with a toast and no new account when it was on before', async () => {
-      moneyMfaStore.setState({ hasBeenEnabled: true });
+    it('turns 2FA back on with a toast and no migration when it was done before', async () => {
+      setMigration('done');
       const { result } = arrange({ credentials: [activePasskey, activeEmail] });
 
       await act(async () => {
         await result.current.turnOn();
       });
 
-      expect(moneyMfaStore.getState().isEnabled).toBe(true);
-      expect(mockCreateMfaMoneyAccount).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('enabled');
+      expect(mockStart).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
       expectToast('money.mfa.toast_on');
     });
@@ -286,13 +332,13 @@ describe('useMoneyMfa', () => {
         await result.current.turnOn();
       });
 
-      expect(mockCreateMfaMoneyAccount).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockStart).not.toHaveBeenCalled();
       expect(result.current.status).toBe('not_set_up');
     });
 
-    it('does nothing while the Money account is already being set up', async () => {
-      moneyMfaStore.setState({ phase: 'setting_up' });
+    it('does nothing while the migration is running', async () => {
+      const finish = deferMigration();
+      setMigration('migrating');
       const { result } = arrange();
 
       await act(async () => {
@@ -300,6 +346,9 @@ describe('useMoneyMfa', () => {
       });
 
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      await act(async () => {
+        finish(true);
+      });
     });
   });
 
@@ -342,36 +391,25 @@ describe('useMoneyMfa', () => {
   });
 
   describe('retry', () => {
-    it('re-runs the Money account creation and shows the enabled sheet', async () => {
-      moneyMfaStore.setState({ phase: 'failed' });
+    it('runs the migration again without the kit', async () => {
+      setMigration('failed');
       const { result } = arrange();
 
       await act(async () => {
         await result.current.retry();
       });
 
-      expect(mockCreateMfaMoneyAccount).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledTimes(1);
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
       expect(result.current.status).toBe('enabled');
       expectEnabledSheetShown();
-    });
-
-    it('sets the phase back to failed when the retry rejects', async () => {
-      mockCreateMfaMoneyAccount.mockRejectedValue(new Error('create failed'));
-      moneyMfaStore.setState({ phase: 'failed' });
-      const { result } = arrange();
-
-      await act(async () => {
-        await result.current.retry();
-      });
-
-      expect(result.current.status).toBe('failed');
     });
   });
 
   describe('turnOff', () => {
     beforeEach(() => {
-      moneyMfaStore.setState({ isEnabled: true, hasBeenEnabled: true });
+      setMigration('done');
+      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
     });
 
     it('verifies with every active method, turns 2FA off and shows a toast', async () => {
@@ -404,16 +442,15 @@ describe('useMoneyMfa', () => {
     });
   });
 
-  describe('dismissFailure', () => {
-    it('sets the phase back to idle', () => {
-      moneyMfaStore.setState({ phase: 'failed' });
+  describe('dismissSettingUpBanner', () => {
+    it('remembers that the setting-up banner was closed', () => {
       const { result } = arrange();
 
       act(() => {
-        result.current.dismissFailure();
+        result.current.dismissSettingUpBanner();
       });
 
-      expect(result.current.status).toBe('not_set_up');
+      expect(result.current.isSettingUpBannerDismissed).toBe(true);
     });
   });
 

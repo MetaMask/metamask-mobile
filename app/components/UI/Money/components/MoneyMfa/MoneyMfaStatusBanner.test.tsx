@@ -5,17 +5,18 @@ import type { MoneyMfaStatus } from '../../hooks/useMoneyMfa';
 import MoneyMfaStatusBanner from './MoneyMfaStatusBanner';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 
-const renderBanner = (status: MoneyMfaStatus) => {
+const renderBanner = (status: MoneyMfaStatus, isSettingUpDismissed = false) => {
   const onRetry = jest.fn();
-  const onDismissFailure = jest.fn();
+  const onDismissSettingUp = jest.fn();
   const utils = render(
     <MoneyMfaStatusBanner
       status={status}
+      isSettingUpDismissed={isSettingUpDismissed}
+      onDismissSettingUp={onDismissSettingUp}
       onRetry={onRetry}
-      onDismissFailure={onDismissFailure}
     />,
   );
-  return { ...utils, onRetry, onDismissFailure };
+  return { ...utils, onRetry, onDismissSettingUp };
 };
 
 describe('MoneyMfaStatusBanner', () => {
@@ -36,55 +37,18 @@ describe('MoneyMfaStatusBanner', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the banner when close is pressed', () => {
-      const { getByTestId, queryByTestId, onDismissFailure } =
-        renderBanner('setting_up');
+    it('calls onDismissSettingUp when close is pressed', () => {
+      const { getByTestId, onDismissSettingUp } = renderBanner('setting_up');
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
 
-      expect(
-        queryByTestId(MoneyMfaTestIds.SETTING_UP_BANNER),
-      ).not.toBeOnTheScreen();
-      expect(onDismissFailure).not.toHaveBeenCalled();
+      expect(onDismissSettingUp).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the failed banner after a hidden setup fails', () => {
-      const { getByTestId, rerender, onRetry, onDismissFailure } =
-        renderBanner('setting_up');
-      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
+    it('renders nothing once the user closed it', () => {
+      const { toJSON } = renderBanner('setting_up', true);
 
-      rerender(
-        <MoneyMfaStatusBanner
-          status="failed"
-          onRetry={onRetry}
-          onDismissFailure={onDismissFailure}
-        />,
-      );
-
-      expect(getByTestId(MoneyMfaTestIds.FAILED_BANNER)).toBeOnTheScreen();
-    });
-
-    it('shows the setting up banner again on a new setup after it was hidden', () => {
-      const { getByTestId, rerender, onRetry, onDismissFailure } =
-        renderBanner('setting_up');
-      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
-      rerender(
-        <MoneyMfaStatusBanner
-          status="failed"
-          onRetry={onRetry}
-          onDismissFailure={onDismissFailure}
-        />,
-      );
-
-      rerender(
-        <MoneyMfaStatusBanner
-          status="setting_up"
-          onRetry={onRetry}
-          onDismissFailure={onDismissFailure}
-        />,
-      );
-
-      expect(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER)).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
     });
   });
 
@@ -111,12 +75,13 @@ describe('MoneyMfaStatusBanner', () => {
       expect(onRetry).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onDismissFailure when close is pressed', () => {
-      const { getByTestId, onDismissFailure } = renderBanner('failed');
+    it('has no close button, even when the setting-up banner was closed', () => {
+      const { getByTestId, queryByTestId } = renderBanner('failed', true);
 
-      fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_CLOSE));
-
-      expect(onDismissFailure).toHaveBeenCalledTimes(1);
+      expect(getByTestId(MoneyMfaTestIds.FAILED_BANNER)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE),
+      ).not.toBeOnTheScreen();
     });
   });
 

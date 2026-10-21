@@ -281,7 +281,7 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
 
 const mockMfaTurnOn = jest.fn();
 const mockMfaRetry = jest.fn();
-const mockMfaDismissFailure = jest.fn();
+const mockMfaDismissBanner = jest.fn();
 const mockMfaRefreshCredentials = jest.fn();
 
 const mockMfaStatus = (status: MoneyMfaStatus) =>
@@ -291,7 +291,8 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
     addPasskeyAndTurnOn: jest.fn(),
     retry: mockMfaRetry,
     turnOff: jest.fn(),
-    dismissFailure: mockMfaDismissFailure,
+    isSettingUpBannerDismissed: false,
+    dismissSettingUpBanner: mockMfaDismissBanner,
     refreshCredentials: mockMfaRefreshCredentials,
   });
 
@@ -2024,13 +2025,13 @@ describe('MoneyHomeView', () => {
       expect(mockMfaRetry).toHaveBeenCalledTimes(1);
     });
 
-    it('dismisses the failure from the failed banner', () => {
-      mockMfaStatus('failed');
+    it('closes the setting-up banner', () => {
+      mockMfaStatus('setting_up');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_CLOSE));
+      fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
 
-      expect(mockMfaDismissFailure).toHaveBeenCalledTimes(1);
+      expect(mockMfaDismissBanner).toHaveBeenCalledTimes(1);
     });
 
     it('opens the setting up sheet instead of Transfer while the Money account is set up', () => {
@@ -2064,6 +2065,17 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(getByTestId(MoneyMfaTestIds.HEADER_BADGE)).toBeOnTheScreen();
+    });
+
+    it('opens the 2-step verification sheet from the header badge', () => {
+      mockMfaStatus('enabled');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+      });
     });
 
     it('omits the header badge when 2-step verification is off', () => {

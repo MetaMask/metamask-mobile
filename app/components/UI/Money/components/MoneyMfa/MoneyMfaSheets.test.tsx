@@ -55,7 +55,8 @@ describe('Money 2-step verification sheets', () => {
       addPasskeyAndTurnOn: mockAddPasskeyAndTurnOn,
       retry: jest.fn(),
       turnOff: mockTurnOff,
-      dismissFailure: jest.fn(),
+      isSettingUpBannerDismissed: false,
+      dismissSettingUpBanner: jest.fn(),
       refreshCredentials: jest.fn(),
     });
   });

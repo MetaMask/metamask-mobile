@@ -10,7 +10,8 @@ jest.mock('../../../../store/storage-wrapper', () => ({
   },
 }));
 
-const mockSetItem = StorageWrapper.setItem as jest.Mock;
+const mockSetItem = jest.mocked(StorageWrapper.setItem);
+const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
 
 describe('moneyMfaStore', () => {
   afterEach(() => {
@@ -18,90 +19,74 @@ describe('moneyMfaStore', () => {
     jest.clearAllMocks();
   });
 
-  it('starts idle with 2-step verification never turned on', () => {
+  it('starts with 2-step verification off and the banner not dismissed', () => {
     expect(moneyMfaStore.getState()).toEqual({
-      phase: 'idle',
-      isEnabled: false,
-      hasBeenEnabled: false,
+      isMoneyAccountMfaEnabled: false,
+      isMigrationBannerDismissed: false,
     });
   });
 
   it('merges a patch into the current state', () => {
-    moneyMfaStore.setState({ isEnabled: true });
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
 
-    moneyMfaStore.setState({ phase: 'setting_up' });
+    moneyMfaStore.setState({ isMigrationBannerDismissed: true });
 
     expect(moneyMfaStore.getState()).toEqual({
-      phase: 'setting_up',
-      isEnabled: true,
-      hasBeenEnabled: false,
+      isMoneyAccountMfaEnabled: true,
+      isMigrationBannerDismissed: true,
     });
   });
 
-  it('persists isEnabled and hasBeenEnabled when they change', () => {
-    moneyMfaStore.setState({ isEnabled: true, hasBeenEnabled: true });
+  it('saves the state on every change', () => {
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
 
     expect(mockSetItem).toHaveBeenCalledWith(
       MONEY_MFA_STORAGE_KEY,
-      JSON.stringify({ isEnabled: true, hasBeenEnabled: true }),
+      JSON.stringify({
+        isMoneyAccountMfaEnabled: true,
+        isMigrationBannerDismissed: false,
+      }),
     );
   });
 
-  it('does not persist a phase-only change', () => {
-    moneyMfaStore.setState({ phase: 'failed' });
-
-    expect(mockSetItem).not.toHaveBeenCalled();
-  });
-
-  it('notifies subscribers when the state changes', () => {
-    const listener = jest.fn();
-    moneyMfaStore.subscribe(listener);
-
-    moneyMfaStore.setState({ phase: 'failed' });
-
-    expect(listener).toHaveBeenCalledTimes(1);
-  });
-
-  it('stops notifying a listener after it unsubscribes', () => {
+  it('notifies subscribers until they unsubscribe', () => {
     const listener = jest.fn();
     const unsubscribe = moneyMfaStore.subscribe(listener);
 
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
     unsubscribe();
-    moneyMfaStore.setState({ phase: 'failed' });
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: false });
 
-    expect(listener).not.toHaveBeenCalled();
-  });
-
-  it('restores the initial state and notifies subscribers on reset', () => {
-    moneyMfaStore.setState({ phase: 'failed', isEnabled: true });
-    const listener = jest.fn();
-    moneyMfaStore.subscribe(listener);
-
-    moneyMfaStore.reset();
-
-    expect(moneyMfaStore.getState()).toEqual({
-      phase: 'idle',
-      isEnabled: false,
-      hasBeenEnabled: false,
-    });
     expect(listener).toHaveBeenCalledTimes(1);
   });
-});
 
-describe('moneyMfaStore persisted state', () => {
   it('reads the saved state at startup', () => {
+    mockGetItemSync.mockReturnValueOnce(
+      JSON.stringify({
+        isMoneyAccountMfaEnabled: true,
+        isMigrationBannerDismissed: true,
+      }),
+    );
+
     jest.isolateModules(() => {
-      (StorageWrapper.getItemSync as jest.Mock).mockReturnValueOnce(
-        JSON.stringify({ isEnabled: false, hasBeenEnabled: true }),
-      );
       const { moneyMfaStore: freshStore } =
         jest.requireActual<typeof import('./moneyMfaStore')>('./moneyMfaStore');
 
       expect(freshStore.getState()).toEqual({
-        phase: 'idle',
-        isEnabled: false,
-        hasBeenEnabled: true,
+        isMoneyAccountMfaEnabled: true,
+        isMigrationBannerDismissed: true,
       });
+    });
+  });
+
+  it('falls back to the defaults when the saved state is unreadable', () => {
+    mockGetItemSync.mockReturnValueOnce('not json');
+
+    jest.isolateModules(() => {
+      const { moneyMfaStore: freshStore } =
+        jest.requireActual<typeof import('./moneyMfaStore')>('./moneyMfaStore');
+
+      expect(freshStore.getState().isMoneyAccountMfaEnabled).toBe(false);
     });
   });
 });
