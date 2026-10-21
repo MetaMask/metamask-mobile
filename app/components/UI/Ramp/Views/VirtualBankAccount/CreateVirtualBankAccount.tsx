@@ -18,6 +18,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -133,26 +134,17 @@ const CreateVirtualBankAccount = ({
         contentContainerStyle={tw.style('flex-grow pb-6')}
         testID={CreateVirtualBankAccountSelectorsIDs.CONTAINER}
       >
-        <Box twClassName="gap-2 p-4">
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            twClassName="text-center"
-          >
-            {strings('virtual_bank_account.create_virtual_bank_account.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings(
-              'virtual_bank_account.create_virtual_bank_account.description',
-            )}
-          </Text>
-        </Box>
+        <TitleStandard
+          title={strings(
+            'virtual_bank_account.create_virtual_bank_account.title',
+          )}
+          bottomLabel={strings(
+            'virtual_bank_account.create_virtual_bank_account.description',
+          )}
+          twClassName="px-4 pb-4"
+        />
 
-        <Box twClassName="px-4 py-2.5">
+        <Box twClassName="px-4 pb-2.5">
           <Box twClassName="rounded-3xl bg-muted">
             <FeatureRow
               icon={IconName.MoneyBag}
