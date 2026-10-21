@@ -5,6 +5,10 @@ import PushNotificationOnboarding, {
   type PushPrePromptCompletionReason,
 } from '.';
 import { usePushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
+import {
+  getPushPrePromptActive,
+  setPushPrePromptActive,
+} from '../../../../util/notifications/pushPrePromptPresence';
 import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 
 jest.mock(
@@ -51,12 +55,13 @@ const mockDismissPrePrompt = jest.fn();
 const mockMarkPrePromptShown = jest.fn();
 
 const mockPrePromptState = ({
+  isResolving = false,
   nativeOsPermissionEnabled = null,
   variant = null,
 }: Partial<ReturnType<typeof usePushPrePromptVariant>> = {}) => {
   mockUsePushPrePromptVariant.mockReturnValue({
     dismiss: mockDismissPrePrompt,
-    isResolving: false,
+    isResolving,
     markShown: mockMarkPrePromptShown,
     nativeOsPermissionEnabled,
     variant,
@@ -72,6 +77,7 @@ describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPrePromptEnabled = true;
+    setPushPrePromptActive(true);
     mockPrePromptState();
   });
 
@@ -151,6 +157,42 @@ describe('PushNotificationOnboardingRoot', () => {
     );
   });
 
+  it('marks the pre-prompt inactive when there is nothing to show', () => {
+    mockPrePromptState({ isResolving: false, variant: null });
+
+    render(<PushNotificationOnboardingRoot />);
+
+    expect(getPushPrePromptActive()).toBe(false);
+  });
+
+  it('keeps the pre-prompt active while it is still resolving', () => {
+    mockPrePromptState({ isResolving: true, variant: null });
+
+    render(<PushNotificationOnboardingRoot />);
+
+    expect(getPushPrePromptActive()).toBe(true);
+  });
+
+  it('keeps the pre-prompt active while a sheet is visible', () => {
+    mockPrePromptState({ variant: 'push_permission' });
+
+    render(<PushNotificationOnboardingRoot />);
+
+    expect(getPushPrePromptActive()).toBe(true);
+  });
+
+  it('marks the pre-prompt inactive after the sheet completes', () => {
+    mockPrePromptState({ variant: 'push_permission' });
+    render(<PushNotificationOnboardingRoot />);
+
+    mockPrePromptState({ variant: null });
+    act(() => {
+      getLatestProps().onComplete('dismiss' as PushPrePromptCompletionReason);
+    });
+
+    expect(getPushPrePromptActive()).toBe(false);
+  });
+
   describe('feature flag gate', () => {
     it('renders the soft pre-prompt content when the flag is enabled', () => {
       mockIsPrePromptEnabled = true;
@@ -169,6 +211,7 @@ describe('PushNotificationOnboardingRoot', () => {
 
       expect(mockPushNotificationPermissionFallback).toHaveBeenCalled();
       expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+      expect(getPushPrePromptActive()).toBe(false);
     });
   });
 });

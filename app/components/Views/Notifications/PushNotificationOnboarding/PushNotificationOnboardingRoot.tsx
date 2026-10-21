@@ -9,6 +9,7 @@ import {
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { isE2EOrExpEnvironment } from '../../../../util/test/utils';
 import { selectPrePushPromptEnabled } from '../../../../selectors/featureFlagController/engagement';
+import { setPushPrePromptActive } from '../../../../util/notifications/pushPrePromptPresence';
 import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 
 type VisibleVariant = Exclude<PushPrePromptVariant, null>;
@@ -20,6 +21,7 @@ interface VisiblePrePrompt {
 const PushNotificationOnboardingRootContent = () => {
   const {
     dismiss: dismissPrePrompt,
+    isResolving,
     markShown: markPrePromptShown,
     nativeOsPermissionEnabled,
     variant,
@@ -37,6 +39,18 @@ const PushNotificationOnboardingRootContent = () => {
   const currentPrePrompt =
     visiblePrePrompt ??
     (variant ? { nativeOsPermissionEnabled, variant } : null);
+  const prePromptPending = isResolving || currentPrePrompt !== null;
+
+  useEffect(() => {
+    setPushPrePromptActive(prePromptPending);
+  }, [prePromptPending]);
+
+  useEffect(
+    () => () => {
+      setPushPrePromptActive(false);
+    },
+    [],
+  );
 
   const handleComplete = useCallback(
     (_reason: PushPrePromptCompletionReason) => {
@@ -63,6 +77,12 @@ const PushNotificationOnboardingRootContent = () => {
 
 const PushNotificationOnboardingRoot = () => {
   const isPrePromptEnabled = useSelector(selectPrePushPromptEnabled);
+
+  useEffect(() => {
+    if (isE2EOrExpEnvironment || !isPrePromptEnabled) {
+      setPushPrePromptActive(false);
+    }
+  }, [isPrePromptEnabled]);
 
   if (isE2EOrExpEnvironment) {
     return null;

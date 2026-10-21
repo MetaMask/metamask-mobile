@@ -7,6 +7,7 @@ import {
   setApplePayHomeSplashSeen,
   setApplePayHomeSplashShownThisSession,
 } from '../../../../../core/redux/slices/card';
+import { usePushPrePromptActive } from '../../../../../util/notifications/pushPrePromptPresence';
 import type { ApplePayHomeEligibility } from './useApplePayHomeEligibility';
 
 const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
@@ -40,9 +41,10 @@ function isRootModalPresented(navigation: AppNavigationProp): boolean {
 }
 
 /**
- * Shows the Apple Pay splash on wallet Home once, and only when no other
- * root modal is open. How often it should return is still for Apple and FIME
- * to confirm; until then it shows once per device.
+ * Shows the Apple Pay splash on wallet Home once, after the push notification
+ * pre-prompt has closed, and only when no other root modal is open. How often
+ * it should return is still for Apple and FIME to confirm; until then it shows
+ * once per device.
  */
 export function usePresentApplePayHomeSplash(
   eligibility: ApplePayHomeEligibility,
@@ -50,6 +52,7 @@ export function usePresentApplePayHomeSplash(
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const isFocused = useIsFocused();
+  const pushPrePromptActive = usePushPrePromptActive();
   const presented = useRef(false);
 
   useEffect(() => {
@@ -58,6 +61,7 @@ export function usePresentApplePayHomeSplash(
       presented.current ||
       !isFocused ||
       !eligibility.showSplash ||
+      pushPrePromptActive ||
       isRootModalPresented(navigation)
     ) {
       return;
@@ -70,5 +74,11 @@ export function usePresentApplePayHomeSplash(
       screen: Routes.MODAL.APPLE_PAY_HOME_SPLASH,
       params: { source: 'home' },
     });
-  }, [dispatch, eligibility.showSplash, isFocused, navigation]);
+  }, [
+    dispatch,
+    eligibility.showSplash,
+    isFocused,
+    navigation,
+    pushPrePromptActive,
+  ]);
 }
