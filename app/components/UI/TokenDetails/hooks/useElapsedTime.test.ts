@@ -1,12 +1,9 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 
-import {
-  ELAPSED_MINUTES_TICK_MS,
-  useElapsedMinutes,
-} from './useElapsedMinutes';
+import { useElapsedTime } from './useElapsedTime';
 
-describe('useElapsedMinutes', () => {
+describe('useElapsedTime', () => {
   const t0 = 1_700_000_000_000;
   let appState: AppStateStatus;
   let listeners: ((state: AppStateStatus) => void)[];
@@ -42,9 +39,7 @@ describe('useElapsedMinutes', () => {
   // Distinct from the unfetched case below: the caller words this as "just
   // now", so it must not collapse into the same `null`.
   it('returns zero below one minute', () => {
-    const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: true }),
-    );
+    const { result } = renderHook(() => useElapsedTime({ since: t0 }));
 
     expect(result.current).toBe(0);
 
@@ -54,9 +49,7 @@ describe('useElapsedMinutes', () => {
   });
 
   it('returns whole minutes once a minute has passed', () => {
-    const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: true }),
-    );
+    const { result } = renderHook(() => useElapsedTime({ since: t0 }));
 
     advance(60_000);
 
@@ -64,9 +57,7 @@ describe('useElapsedMinutes', () => {
   });
 
   it('advances on each tick', () => {
-    const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: true }),
-    );
+    const { result } = renderHook(() => useElapsedTime({ since: t0 }));
 
     advance(5 * 60_000);
     expect(result.current).toBe(5);
@@ -76,9 +67,7 @@ describe('useElapsedMinutes', () => {
   });
 
   it('floors a partial minute rather than rounding up', () => {
-    const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: true }),
-    );
+    const { result } = renderHook(() => useElapsedTime({ since: t0 }));
 
     advance(119_000);
 
@@ -88,9 +77,7 @@ describe('useElapsedMinutes', () => {
   it.each([undefined, 0])(
     'returns null for an unfetched since of %p',
     (since) => {
-      const { result } = renderHook(() =>
-        useElapsedMinutes({ since, enabled: true }),
-      );
+      const { result } = renderHook(() => useElapsedTime({ since }));
 
       advance(5 * 60_000);
 
@@ -98,24 +85,20 @@ describe('useElapsedMinutes', () => {
     },
   );
 
-  it('does not tick while disabled', () => {
+  it('does not advance an age of an hour or more', () => {
     const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: false }),
+      useElapsedTime({ since: t0 - 3 * 60 * 60_000 }),
     );
 
-    advance(5 * ELAPSED_MINUTES_TICK_MS);
+    advance(10 * 60_000);
 
-    // Still the mount-time reading, rather than the two and a half minutes
-    // that actually elapsed.
-    expect(result.current).toBe(0);
+    expect(result.current).toBe(180);
   });
 
   it('does not tick while the app is backgrounded', () => {
     appState = 'background';
 
-    const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: true }),
-    );
+    const { result } = renderHook(() => useElapsedTime({ since: t0 }));
 
     advance(5 * 60_000);
 
@@ -127,9 +110,7 @@ describe('useElapsedMinutes', () => {
   it('snaps to the current age when the app returns to the foreground', () => {
     appState = 'background';
 
-    const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0, enabled: true }),
-    );
+    const { result } = renderHook(() => useElapsedTime({ since: t0 }));
 
     advance(10 * 60_000);
     expect(result.current).toBe(0);
@@ -144,8 +125,7 @@ describe('useElapsedMinutes', () => {
 
   it('snaps when the measured instant changes, as on a refetch', () => {
     const { result, rerender } = renderHook(
-      ({ since }: { since: number }) =>
-        useElapsedMinutes({ since, enabled: true }),
+      ({ since }: { since: number }) => useElapsedTime({ since }),
       { initialProps: { since: t0 } },
     );
 
@@ -162,7 +142,7 @@ describe('useElapsedMinutes', () => {
   // negative age.
   it('clamps a since in the future to zero rather than going negative', () => {
     const { result } = renderHook(() =>
-      useElapsedMinutes({ since: t0 + 10 * 60_000, enabled: true }),
+      useElapsedTime({ since: t0 + 10 * 60_000 }),
     );
 
     advance(60_000);
