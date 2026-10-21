@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { store } from '../../store';
+import { generateStateLogs } from '../logs';
 import { getCommandQueueServerPortInApp } from './utils';
 
 /**
@@ -17,6 +18,18 @@ export function captureAppState(): Record<string, unknown> {
 }
 
 /**
+ * Captures state with the same sanitization as the in-app state log export.
+ *
+ * @returns The parsed state-log document.
+ */
+export function captureExportedAppState(): Record<string, unknown> {
+  return JSON.parse(generateStateLogs(store.getState())) as Record<
+    string,
+    unknown
+  >;
+}
+
+/**
  * Handles the export-state command by capturing app state and POSTing it
  * to the CommandQueueServer.
  */
@@ -24,4 +37,13 @@ export async function handleExportStateCommand(): Promise<void> {
   const state = captureAppState();
   const port = getCommandQueueServerPortInApp();
   await axios.post(`http://localhost:${port}/exported-state`, state);
+}
+
+/**
+ * Handles the export-app-state command by posting the in-app state log export.
+ */
+export async function handleExportAppStateCommand(): Promise<void> {
+  const state = captureExportedAppState();
+  const port = getCommandQueueServerPortInApp();
+  await axios.post(`http://localhost:${port}/exported-app-state`, state);
 }

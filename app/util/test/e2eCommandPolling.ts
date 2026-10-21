@@ -2,7 +2,10 @@ import axios, { AxiosResponse } from 'axios';
 import { hasTestOverrides, getCommandQueueServerPortInApp } from './utils';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { E2ECommandTypes } from '../../../tests/framework/types';
-import { handleExportStateCommand } from './e2eStateExport';
+import {
+  handleExportAppStateCommand,
+  handleExportStateCommand,
+} from './e2eStateExport';
 import { dispatchPerpsCommand } from './e2ePerpsCommandHandler';
 import { dispatchQrSyncCommand } from './e2eQrSyncCommandHandler';
 
@@ -87,6 +90,18 @@ async function pollOnce(): Promise<void> {
             DevLogger.log(
               '[E2E Command Server Polling] Error handling export-state',
               e,
+            );
+          }
+          break;
+        }
+        case E2ECommandTypes.exportAppState: {
+          try {
+            await handleExportAppStateCommand();
+          } catch (e) {
+            const message = e instanceof Error ? e.message : 'export failed';
+            DevLogger.log(
+              '[E2E Command Server Polling] Error handling export-app-state',
+              message,
             );
           }
           break;
