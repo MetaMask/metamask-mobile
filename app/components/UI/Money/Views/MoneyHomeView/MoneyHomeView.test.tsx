@@ -1977,27 +1977,27 @@ describe('MoneyHomeView', () => {
       expect(mockMfaRefreshCredentials).toHaveBeenCalled();
     });
 
-    it('renders the setup card when 2-step verification is not set up', () => {
-      mockMfaStatus('not_set_up');
+    it.each<MoneyMfaStatus>(['not_set_up', 'off'])(
+      'renders the setup card when the status is %s',
+      (status) => {
+        mockMfaStatus(status);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(getByTestId(MoneyMfaTestIds.SETUP_CARD)).toBeOnTheScreen();
-    });
+        expect(getByTestId(MoneyMfaTestIds.SETUP_CARD)).toBeOnTheScreen();
+      },
+    );
 
-    it.each<MoneyMfaStatus>([
-      'unavailable',
-      'setting_up',
-      'failed',
-      'enabled',
-      'off',
-    ])('omits the setup card when the status is %s', (status) => {
-      mockMfaStatus(status);
+    it.each<MoneyMfaStatus>(['unavailable', 'setting_up', 'failed', 'enabled'])(
+      'omits the setup card when the status is %s',
+      (status) => {
+        mockMfaStatus(status);
 
-      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+        const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
-    });
+        expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
+      },
+    );
 
     it('turns on 2-step verification when the setup card is pressed', () => {
       mockMfaStatus('not_set_up');

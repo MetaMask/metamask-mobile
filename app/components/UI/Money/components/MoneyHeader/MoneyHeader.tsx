@@ -54,6 +54,8 @@ interface MoneyHeaderTabProps {
 export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
+const MFA_BADGE_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
 const MoneyHeader = (props: MoneyHeaderProps) => {
   const {
     onMenuPress,
@@ -112,6 +114,7 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
             size={ButtonIconSize.Sm}
             iconProps={{ color: IconColor.SuccessDefault }}
             onPress={onMfaBadgePress}
+            hitSlop={MFA_BADGE_HIT_SLOP}
             accessibilityLabel={strings('money.mfa.badge_label')}
             testID={MoneyMfaTestIds.HEADER_BADGE}
           />
