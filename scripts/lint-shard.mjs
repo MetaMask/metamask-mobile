@@ -8,6 +8,11 @@
  * ignorePatterns, and default ignores match the unsharded command.
  * Shards are a deterministic longest-first bin pack by file size.
  *
+ * The messenger action types check runs once, on shard 1. Shards 2 and
+ * later only lint their files. A shard 1 failure still fails the aggregate
+ * `Run lint` job.
+ *
+ *   node scripts/lint-shard.mjs --help
  *   node scripts/lint-shard.mjs --plan --shards 4
  *   node scripts/lint-shard.mjs --check-union
  *   node scripts/lint-shard.mjs --shard 1 --shards 4
@@ -153,7 +158,8 @@ function parseArgs(argv) {
   const args = { _: [] };
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
-    if (token === '--self-test') args.selfTest = true;
+    if (token === '--help' || token === '-h') args.help = true;
+    else if (token === '--self-test') args.selfTest = true;
     else if (token === '--plan') args.plan = true;
     else if (token === '--check-union') args.checkUnion = true;
     else if (token === '--list') args.list = true;
@@ -188,13 +194,61 @@ async function lintPaths(cwd, files) {
   return results.reduce((sum, result) => sum + result.errorCount, 0);
 }
 
+/**
+ * Yarn binary for the messenger check.
+ * `yarn <script>` sets npm_execpath to the running Yarn. A direct node
+ * invocation uses yarnPath from .yarnrc.yml, so a Yarn bump does not require
+ * editing this file.
+ * @param {string} cwd
+ * @returns {string}
+ */
+function resolveYarnBinary(cwd) {
+  const fromEnv = process.env.npm_execpath;
+  if (fromEnv) {
+    return fromEnv;
+  }
+  const yarnrcPath = path.join(cwd, '.yarnrc.yml');
+  const yarnrc = fs.readFileSync(yarnrcPath, 'utf8');
+  const match = /^yarnPath:\s*(.+)$/m.exec(yarnrc);
+  if (!match) {
+    throw new Error(`yarnPath is missing from ${yarnrcPath}`);
+  }
+  const configured = match[1]
+    .trim()
+    .replace(/\s+#.*$/, '')
+    .replace(/^['"]|['"]$/g, '');
+  return path.resolve(cwd, configured);
+}
+
+/**
+ * Print the flags this script actually accepts.
+ */
+function printHelp() {
+  console.log(`Usage: node scripts/lint-shard.mjs [options]
+
+Shard the same file set as yarn lint. The messenger action types check runs
+only on shard 1.
+
+Options:
+  --shard <n>          Shard index, from 1 to --shards (default 1)
+  --shards <n>         Number of shards (default 1)
+  --plan               Print file and byte counts per shard
+  --check-union        Check shards 2, 3, and 4 against the full file set
+  --list               Print the unsharded file list
+  --files-from <path>  Lint newline-separated paths instead of enumerating
+  --skip-messenger     Skip messenger-action-types:check on shard 1
+  --self-test          Run the bin-pack self test
+  -h, --help           Show this help
+`);
+}
+
 function runMessenger(cwd) {
-  const yarnJs = path.join(cwd, '.yarn/releases/yarn-4.14.1.cjs');
-  const result = spawnSync(
-    process.execPath,
-    [yarnJs, 'messenger-action-types:check'],
-    { cwd, stdio: 'inherit', env: process.env },
-  );
+  const yarnBin = resolveYarnBinary(cwd);
+  const result = spawnSync(yarnBin, ['messenger-action-types:check'], {
+    cwd,
+    stdio: 'inherit',
+    env: process.env,
+  });
   if (result.error) {
     throw result.error;
   }
@@ -203,6 +257,10 @@ function runMessenger(cwd) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  if (args.help) {
+    printHelp();
+    return;
+  }
   if (args.selfTest) {
     selfTest();
     return;
@@ -269,7 +327,10 @@ async function main() {
     process.exitCode = 1;
     return;
   }
-  if (!args.skipMessenger) {
+  // Once per `yarn lint`, on shard 1. Later shards would repeat the same
+  // repository-wide check. Shard 1 is required, so a failure still fails the
+  // aggregate lint job.
+  if (shard === 1 && !args.skipMessenger) {
     const status = runMessenger(cwd);
     if (status !== 0) {
       process.exitCode = status;

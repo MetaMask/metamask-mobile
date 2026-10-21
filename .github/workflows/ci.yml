@@ -456,6 +456,8 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
+      # messenger-action-types:check runs only on shard 1. That leg is required,
+      # so a failure still fails the aggregate Run `lint` job and Check all jobs pass.
       - name: Lint shard
         run: yarn lint:shard --shard ${{ matrix.shard }} --shards ${{ matrix.shards }}
         env:
