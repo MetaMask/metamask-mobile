@@ -148,6 +148,44 @@ describe('MfaMethodDetails', () => {
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
 
+  it('describes an authenticator app without an app name', () => {
+    const { getAllByText, getByText } = renderDetails(
+      { method: 'totp', index: 0 },
+      [{ type: 'totp', status: 'active' }],
+    );
+
+    // The header and the card both say what it is: the server cannot know
+    // which app the user picked.
+    expect(getAllByText('Authenticator app')).toHaveLength(2);
+    expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
+  });
+
+  it('removes an authenticator app after verifying with another method', async () => {
+    const authenticatorApp: EnrolledCredential = {
+      type: 'totp',
+      status: 'active',
+    };
+    const { getByTestId } = renderDetails({ method: 'totp', index: 0 }, [
+      email,
+      authenticatorApp,
+    ]);
+
+    await confirmRemoval(getByTestId);
+
+    expect(mockStartMfaFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: expect.objectContaining({ verifyWith: ['email_otp'] }),
+        reason: { operation: 'settings.removeAuthenticatorApp' },
+      }),
+    );
+    expect(mockRemove).toHaveBeenCalledWith(authenticatorApp, token);
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Authenticator app removed' }],
+      }),
+    );
+  });
+
   it('names the passkey by its position', () => {
     const { getByText } = renderDetails({ method: 'passkey', index: 1 }, [
       { type: 'passkey', status: 'active' },
