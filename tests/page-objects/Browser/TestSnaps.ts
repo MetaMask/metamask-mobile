@@ -442,8 +442,15 @@ class TestSnaps {
   }
 
   async tapConfirmButton() {
-    const button = Matchers.getElementByText(/^Confirm$/i);
-    await Gestures.waitAndTap(button);
+    // Snap UI footer buttons include the snap icon. iOS concatenates that
+    // into the button label ("D, Confirm" for Dialog Example Snap) and leaves
+    // the inner "Confirm" text visible=false. Match the button, and skip the
+    // displayed check the same way OK / Submit do.
+    const button = Matchers.getElementByText(/^(., )?Confirm$/i);
+    await Gestures.waitAndTap(
+      button,
+      this.snapUiTapOptions({ elemDescription: 'Snap UI Confirm' }),
+    );
   }
 
   async tapCancelButton() {
@@ -570,7 +577,18 @@ class TestSnaps {
       iosAppiumXPath: SnapUIInputSelectorXPaths.textfieldIos,
     });
 
-    await Gestures.typeText(input, text, { hideKeyboard: true });
+    // iOS tapOutside on this sheet hits the approval backdrop
+    // (onBackdropPress cancels the dialog) or leaves the keyboard over the
+    // absolute footer, so Confirm stays displayed=false.
+    await Gestures.typeText(input, text, {
+      hideKeyboard: !PlatformDetector.isIOSAppium(),
+    });
+    if (PlatformDetector.isIOSAppium()) {
+      await Gestures.tap(Matchers.getElementByText(/^Custom Dialog$/i), {
+        checkEnabled: false,
+        elemDescription: 'Custom Dialog heading — dismiss keyboard',
+      });
+    }
   }
 
   async selectInNativeDropdown(
