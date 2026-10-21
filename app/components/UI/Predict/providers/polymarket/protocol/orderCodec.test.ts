@@ -151,6 +151,24 @@ describe('polymarket protocol order codec', () => {
     expect(order).toHaveProperty('takerAmount', '18873080');
   });
 
+  it('does not apply slippage twice to an execution-checked sell preview', () => {
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview: {
+        ...preview,
+        side: Side.SELL,
+        maxAmountSpent: 10,
+        minAmountReceived: 4.8,
+        minAmountReceivedAfterSlippage: 4.5,
+        slippage: 0.05,
+      },
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
+    });
+
+    expect(order.takerAmount).toBe('4500000');
+  });
+
   it('builds a deposit-wallet order with POLY_1271 signature type', () => {
     const order = buildProtocolUnsignedOrder({
       protocol,

@@ -421,7 +421,46 @@ describe('usePredictOrderPreview', () => {
       });
 
       expect(result.current.isLoading).toBe(false);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: { feature: 'Predict', component: 'usePredictOrderPreview' },
+        }),
+      );
 
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('logs no-match preview errors softly instead of as errors', async () => {
+      const { Wrapper } = createWrapper();
+      mockPreviewOrder.mockRejectedValue(
+        new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL),
+      );
+
+      const consoleLogSpy = jest
+        .spyOn(console, 'log')
+        .mockImplementation(() => undefined);
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(consoleLogSpy).toHaveBeenCalled();
+
+      consoleLogSpy.mockRestore();
       consoleErrorSpy.mockRestore();
     });
   });

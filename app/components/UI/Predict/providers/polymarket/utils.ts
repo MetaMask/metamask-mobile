@@ -3081,6 +3081,10 @@ export const previewExecutionOrder = async (
       amount: depth.grossAmount,
       decimals: roundConfig.amount,
     });
+    const minAmountReceivedAfterSlippage = roundOrderAmount({
+      amount: makerAmount * depth.bandFloorPrice,
+      decimals: roundConfig.amount,
+    });
     const preview: OrderPreview = {
       marketId,
       outcomeId,
@@ -3091,6 +3095,7 @@ export const previewExecutionOrder = async (
       sharePrice: depth.refreshedPrice ?? approvedPrice,
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
+      minAmountReceivedAfterSlippage,
       slippage,
       tickSize: numericTickSize,
       minOrderSize: parseFloat(book.min_order_size),

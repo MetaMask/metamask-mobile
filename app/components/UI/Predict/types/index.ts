@@ -803,6 +803,13 @@ export interface OrderPreview {
   sharePrice: number;
   maxAmountSpent: number;
   minAmountReceived: number;
+  /**
+   * Final taker-amount floor for an execution-checked preview. Unlike
+   * `minAmountReceived`, which is the expected proceeds from the fresh book,
+   * this already includes the approved slippage band and must not have
+   * slippage applied a second time while encoding the order.
+   */
+  minAmountReceivedAfterSlippage?: number;
   slippage: number;
   tickSize: number;
   minOrderSize: number;

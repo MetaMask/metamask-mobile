@@ -106,6 +106,14 @@ interface UsePredictSellExecutionParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
 }
 
+/**
+ * Position-scoped single-flight locks shared by every mounted sell surface.
+ * A component-local ref prevents same-frame duplicate presses; this registry
+ * also prevents two simultaneously mounted instances for the same position
+ * (for example, a sheet and a routed screen) from placing duplicate orders.
+ */
+const inFlightSellPositions = new Set<string>();
+
 /** Sheet variant for each settled status. Busy phases (validating,
  * submitting) keep the last settled variant so an open sheet keeps its
  * content while a Confirm refetch or placement is in flight.
@@ -271,6 +279,22 @@ export function usePredictSellExecution({
   // Generation identity: bumped on every user action and on dismissal so
   // late responses from an obsolete intent are discarded.
   const intentIdRef = useRef(0);
+  const sellPositionKey =
+    positionId ?? `${marketId}:${outcomeId}:${outcomeTokenId}`;
+
+  const acquireSubmitLock = useCallback((): boolean => {
+    if (isInFlightRef.current || inFlightSellPositions.has(sellPositionKey)) {
+      return false;
+    }
+    isInFlightRef.current = true;
+    inFlightSellPositions.add(sellPositionKey);
+    return true;
+  }, [sellPositionKey]);
+
+  const releaseSubmitLock = useCallback(() => {
+    isInFlightRef.current = false;
+    inFlightSellPositions.delete(sellPositionKey);
+  }, [sellPositionKey]);
 
   useEffect(
     () => () => {
@@ -495,10 +519,9 @@ export function usePredictSellExecution({
    * signed.
    */
   const handleCashOut = useCallback(async () => {
-    if (!preview || isInFlightRef.current) {
+    if (!preview || !acquireSubmitLock()) {
       return;
     }
-    isInFlightRef.current = true;
     const intentId = ++intentIdRef.current;
     try {
       await runFlow({
@@ -508,9 +531,9 @@ export function usePredictSellExecution({
         origin: 'cash_out',
       });
     } finally {
-      isInFlightRef.current = false;
+      releaseSubmitLock();
     }
-  }, [preview, runFlow]);
+  }, [preview, acquireSubmitLock, runFlow, releaseSubmitLock]);
 
   /**
    * Confirm entry point (price-moved sheet). Pressing Confirm adopts the
@@ -519,10 +542,9 @@ export function usePredictSellExecution({
    */
   const handleConfirm = useCallback(async () => {
     const { quote } = stateRef.current;
-    if (!quote || isInFlightRef.current) {
+    if (!quote || !acquireSubmitLock()) {
       return;
     }
-    isInFlightRef.current = true;
     const intentId = ++intentIdRef.current;
     try {
       await runFlow({
@@ -532,9 +554,9 @@ export function usePredictSellExecution({
         origin: 'confirm',
       });
     } finally {
-      isInFlightRef.current = false;
+      releaseSubmitLock();
     }
-  }, [runFlow]);
+  }, [acquireSubmitLock, runFlow, releaseSubmitLock]);
 
   /**
    * Try Again entry point (no-match / timeout / unavailable sheets).
@@ -545,11 +567,10 @@ export function usePredictSellExecution({
     if (
       baselinePrice === null ||
       baselineSlippage === null ||
-      isInFlightRef.current
+      !acquireSubmitLock()
     ) {
       return;
     }
-    isInFlightRef.current = true;
     const intentId = ++intentIdRef.current;
     try {
       await runFlow({
@@ -559,9 +580,9 @@ export function usePredictSellExecution({
         origin: 'try_again',
       });
     } finally {
-      isInFlightRef.current = false;
+      releaseSubmitLock();
     }
-  }, [runFlow]);
+  }, [acquireSubmitLock, runFlow, releaseSubmitLock]);
 
   /**
    * Dismissal entry point. Invalidates any in-flight intent, settles idle,

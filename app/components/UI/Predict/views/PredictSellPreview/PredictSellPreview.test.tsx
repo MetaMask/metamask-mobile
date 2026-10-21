@@ -17,6 +17,7 @@ import {
   PredictExecutionMetadata,
   PredictExecutionPreviewResult,
   PredictFees,
+  Recurrence,
   Side,
   type OrderPreview,
 } from '../../types';
@@ -328,8 +329,7 @@ const mockMarket = {
   description: 'Market description',
   image: 'https://example.com/market.png',
   status: 'open' as const,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  recurrence: 'none' as any,
+  recurrence: Recurrence.NONE,
   category: 'crypto' as const,
   tags: ['blockchain', 'cryptocurrency'],
   outcomes: [mockOutcome],

@@ -3951,6 +3951,7 @@ describe('polymarket utils', () => {
           sharePrice: 0.49,
           maxAmountSpent: 80,
           minAmountReceived: 39,
+          minAmountReceivedAfterSlippage: 38.4,
           slippage: 0.05,
           tickSize: 0.01,
           timestamp: new Date(orderBook.timestamp).getTime(),

@@ -436,6 +436,28 @@ describe('usePredictSellExecution', () => {
     expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
   });
 
+  it('allows only one in-flight sell across mounted surfaces for the same position', async () => {
+    const deferred = createDeferred<PredictExecutionPreviewResult>();
+    mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+
+    const first = setupHook();
+    const second = setupHook();
+    let firstFlow!: Promise<void>;
+    await act(async () => {
+      firstFlow = first.result.current.handleCashOut();
+      await second.result.current.handleCashOut();
+    });
+
+    await act(async () => {
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+      deferred.resolve(createExecutableResult());
+      await firstFlow;
+    });
+
+    expect(mockPreviewExecutionOrder).toHaveBeenCalledTimes(1);
+    expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+  });
+
   it('releases the lock after a terminal market state so Try Again starts a new flow', async () => {
     mockPreviewExecutionOrder
       .mockResolvedValueOnce({ status: 'timeout' })
@@ -580,7 +602,7 @@ describe('usePredictSellExecution', () => {
       const noMatchEvent = mockTrackEvent.mock.calls.find(
         ([args]) => args.preSubmitDecision === 'no_match',
       );
-      expect(noMatchEvent).toBeDefined();
+      expect(noMatchEvent).toHaveLength(1);
       const [noMatchArgs] = noMatchEvent as unknown as [
         {
           requestedSize?: number;
@@ -692,7 +714,7 @@ describe('usePredictSellExecution', () => {
       const staleRecoveredEvent = mockTrackEvent.mock.calls.find(
         ([args]) => args.reconfirmOutcome === 'stale_recovered',
       );
-      expect(staleRecoveredEvent).toBeDefined();
+      expect(staleRecoveredEvent).toHaveLength(1);
       expect(mockPlaceOrder).toHaveBeenCalledTimes(2);
     });
 
@@ -721,7 +743,7 @@ describe('usePredictSellExecution', () => {
       const dismissedEvent = mockTrackEvent.mock.calls.find(
         ([args]) => args.status === PredictTradeStatus.PRESUBMIT_DISMISSED,
       );
-      expect(dismissedEvent).toBeDefined();
+      expect(dismissedEvent).toHaveLength(1);
       const [dismissedArgs] = dismissedEvent as unknown as [
         {
           preSubmitDecision: string;

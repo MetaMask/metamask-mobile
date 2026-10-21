@@ -110,7 +110,7 @@ export function usePredictOrderPreview(
   useEffect(() => {
     if (!query.error) return;
 
-    Logger.error(ensureError(query.error), {
+    const errorContext = {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictOrderPreview',
@@ -126,7 +126,14 @@ export function usePredictOrderPreview(
           outcomeId: debouncedParams.outcomeId,
         },
       },
-    });
+    };
+
+    if (isPredictNoMatchError(query.error)) {
+      Logger.log('Predict order preview returned no-match', errorContext);
+      return;
+    }
+
+    Logger.error(ensureError(query.error), errorContext);
   }, [
     query.error,
     debouncedParams.side,
