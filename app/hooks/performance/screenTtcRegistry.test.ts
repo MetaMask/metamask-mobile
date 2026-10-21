@@ -85,6 +85,11 @@ describe('screenTtcRegistry', () => {
         'ttc:perps_market_details_chart_path:4:3:tradingview',
       )?.chartPath,
     ).toBe('tradingview');
+    expect(
+      parseScreenTtcAccessibilityLabel(
+        'ttc:perps_market_details_chart_path:4:3:mixed',
+      )?.chartPath,
+    ).toBe('mixed');
   });
 
   it('returns null for malformed accessibility labels', () => {

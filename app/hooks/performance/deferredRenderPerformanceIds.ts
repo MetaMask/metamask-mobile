@@ -23,8 +23,14 @@ export const DeferredRenderPoint = {
   CHART_READY: 'chart_ready',
 } as const;
 
-/** Which perps chart implementation actually mounted. */
-export type PerpsChartRenderPath = 'advanced' | 'tradingview';
+/**
+ * Perps chart implementation for a sample.
+ * `mixed` means more than one implementation mounted after nav start.
+ */
+export type PerpsChartRenderPath = 'advanced' | 'tradingview' | 'mixed';
+
+/** Implementation that can actually mount. `mixed` is a snapshot only. */
+export type PerpsMountedChartPath = Exclude<PerpsChartRenderPath, 'mixed'>;
 
 /** Probe id for the mounted perps chart implementation. */
 export const PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID =

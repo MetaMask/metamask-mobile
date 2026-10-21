@@ -40,29 +40,20 @@ export async function assertDeferredRenderChartDataFilled(
 }
 
 /**
- * The sample has to be the advanced chart. A TradingView mount, or neither
- * the advanced path probe nor `advanced-chart-skeleton`, is excluded.
+ * Keeps the rep only when the chart-path snapshot taken with chart_ready
+ * is `advanced`. `tradingview` and `mixed` are excluded.
  */
-export async function assertPerpsAdvancedChartPath(options: {
-  skeletonAppeared: boolean;
-}): Promise<PerpsChartRenderPath | undefined> {
+export async function assertPerpsAdvancedChartPath(): Promise<PerpsChartRenderPath> {
   const record = await waitForAppScreenTtcRecord(
     PERPS_MARKET_DETAILS_CHART_PATH_PROBE_ID,
     { timeoutMs: PROBE_TIMEOUT_MS },
   );
-  const chartPath = record.chartPath;
-  const pathIsAdvanced = chartPath === 'advanced';
-  if (!pathIsAdvanced && !options.skeletonAppeared) {
+  if (record.chartPath !== 'advanced') {
     throw new Error(
-      `Excluding rep: perps_market_details chart path is ${chartPath ?? 'unset'} and advanced-chart-skeleton did not appear`,
+      `Excluding rep: perps_market_details chart path is ${record.chartPath ?? 'unset'}`,
     );
   }
-  if (!pathIsAdvanced) {
-    throw new Error(
-      `Excluding rep: perps_market_details chart path is ${chartPath ?? 'unset'}`,
-    );
-  }
-  return chartPath;
+  return record.chartPath;
 }
 
 const DEFERRED_RENDER_POINTS: readonly DeferredRenderPointId[] = [

@@ -1,6 +1,7 @@
 import type { Json } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { PERPS_ADVANCED_CHART_ENABLED_FLAG_KEY } from '../../components/UI/Perps/selectors/featureFlags';
+import { markPerpsChartPinFailed } from './deferredRenderTtc';
 
 /**
  * `perpsAdvancedChartEnabledV2` productionDefault from
@@ -35,6 +36,7 @@ export function pinPerpsAdvancedChartProductionDefault(
   }
   const controller = Engine.context?.RemoteFeatureFlagController;
   if (!controller) {
+    markPerpsChartPinFailed();
     return;
   }
   pinned = true;
