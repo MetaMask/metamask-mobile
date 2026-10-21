@@ -1,9 +1,6 @@
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import VbaIllustration, {
-  VbaIllustrationSource,
-} from '../../components/Illustration';
 import VbaOnboardingError from '../../components/OnboardingError';
 
 export const VbaKycRejectedSelectorsIDs = {
@@ -24,12 +21,6 @@ const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => (
   <VbaOnboardingError
     testID={VbaKycRejectedSelectorsIDs.CONTAINER}
     backButtonTestID={VbaKycRejectedSelectorsIDs.BACK_BUTTON}
-    illustration={
-      <VbaIllustration
-        source={VbaIllustrationSource.hazard}
-        twClassName="h-[65px] w-[71px]"
-      />
-    }
     title={strings('virtual_bank_account.kyc_rejected.title')}
     description={strings('virtual_bank_account.kyc_rejected.description')}
     items={[
