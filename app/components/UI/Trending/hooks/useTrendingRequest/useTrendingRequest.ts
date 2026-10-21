@@ -92,6 +92,12 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minVolume24h: 25000, // Minimum filter
   },
 
+  // Stablecoin chain with tiny volumes: the defaults return an empty list
+  [NetworkToCaipChainId.TEMPO]: {
+    minLiquidity: 0,
+    minVolume24h: 500,
+  },
+
   'tron:728126428': {
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter

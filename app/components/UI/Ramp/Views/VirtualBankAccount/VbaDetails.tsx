@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
+import { AccessibilityInfo, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,10 +15,7 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
   Text,
   TextColor,
@@ -52,17 +49,18 @@ import VbaCreatingAccount from './VbaCreatingAccount';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
+// Keep the Figma disclosure ready while Product finalizes the copy.
+const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   HEADER: 'vba-details-header',
+  BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
   COPY_BUTTON: 'vba-details-copy-button',
-  DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
-  ROW_ICON: 'vba-details-row-icon',
-  WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
+  HELPER_TEXT: 'vba-details-helper-text',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   SETUP_ERROR: 'vba-details-setup-error',
@@ -138,7 +136,6 @@ const VbaDetails = () => {
   const [loadError, setLoadError] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
   const [isTerminal, setIsTerminal] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
@@ -268,12 +265,6 @@ const VbaDetails = () => {
         });
       } finally {
         inFlight = false;
-        // A network-tier change cancels this effect while the request is
-        // still in flight. The response can still store Pix instructions, so
-        // finish the load unless the screen itself has unmounted.
-        if (isMountedRef.current) {
-          setHasLoaded(true);
-        }
       }
     };
     tick().catch(() => undefined);
@@ -331,6 +322,15 @@ const VbaDetails = () => {
     });
   }, [navigation]);
 
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    handleDone();
+  }, [handleDone, navigation]);
+
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
       Clipboard.setString(value);
@@ -370,9 +370,12 @@ const VbaDetails = () => {
       : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null);
 
-  // Offline never fetches, so it skips straight to the waiting copy.
-  const isLoading = !hasLoaded && networkTier !== 'NONE';
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+  const errorMessage = setupFailed
+    ? strings('virtual_bank_account.vba_details.setup_error')
+    : loadError
+      ? strings('virtual_bank_account.vba_details.load_error')
+      : null;
 
   if (!isApproved && !hasSetupError) {
     return <VbaCreatingAccount onBack={handleDone} />;
@@ -383,7 +386,12 @@ const VbaDetails = () => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard includesTopInset testID={VbaDetailsSelectorsIDs.HEADER} />
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+        testID={VbaDetailsSelectorsIDs.HEADER}
+      />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
@@ -408,7 +416,58 @@ const VbaDetails = () => {
         >
           {strings('virtual_bank_account.vba_details.description')}
         </Text>
-        {hasSetupError ? null : isLoading ? (
+        {rows.length > 0 ? (
+          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
+            {rows.map((row) => (
+              <Box key={row.id} testID={row.testID}>
+                <ListItem
+                  title={row.label}
+                  titleProps={{
+                    variant: TextVariant.BodySm,
+                    fontWeight: FontWeight.Regular,
+                    color: TextColor.TextAlternative,
+                  }}
+                  description={row.value}
+                  descriptionProps={{
+                    variant: TextVariant.BodyMd,
+                    color: TextColor.TextDefault,
+                    numberOfLines: 1,
+                  }}
+                  endAccessory={
+                    <ButtonIcon
+                      iconName={IconName.Copy}
+                      size={ButtonIconSize.Md}
+                      onPress={handleCopy(row.value, row.label)}
+                      accessibilityLabel={strings(
+                        'virtual_bank_account.vba_details.copy_label',
+                        { field: row.label },
+                      )}
+                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
+                    />
+                  }
+                  accessoryGap={3}
+                />
+              </Box>
+            ))}
+          </Box>
+        ) : hasSetupError || errorMessage ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            twClassName="mt-6 text-center"
+            testID={
+              hasSetupError
+                ? VbaDetailsSelectorsIDs.SETUP_ERROR
+                : VbaDetailsSelectorsIDs.LOAD_ERROR
+            }
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
+            {hasSetupError
+              ? strings('virtual_bank_account.vba_details.setup_error')
+              : errorMessage}
+          </Text>
+        ) : (
           <Box
             twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
             accessible
@@ -454,90 +513,19 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : rows.length > 0 ? (
-          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
-            {rows.map((row) => (
-              <Box key={row.id} testID={row.testID}>
-                <ListItem
-                  title={row.label}
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    fontWeight: FontWeight.Regular,
-                    color: TextColor.TextAlternative,
-                  }}
-                  description={row.value}
-                  descriptionProps={{
-                    variant: TextVariant.BodyMd,
-                    color: TextColor.TextDefault,
-                    numberOfLines: 1,
-                  }}
-                  startAccessory={
-                    <View
-                      accessible={false}
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      testID={`${VbaDetailsSelectorsIDs.ROW_ICON}-${row.id}`}
-                    >
-                      <Icon
-                        name={IconName.Key}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
-                    </View>
-                  }
-                  endAccessory={
-                    <ButtonIcon
-                      iconName={IconName.Copy}
-                      size={ButtonIconSize.Md}
-                      onPress={handleCopy(row.value, row.label)}
-                      accessibilityLabel={strings(
-                        'virtual_bank_account.vba_details.copy_label',
-                        { field: row.label },
-                      )}
-                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
-                    />
-                  }
-                  accessoryGap={3}
-                />
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-6 text-center"
-            testID={VbaDetailsSelectorsIDs.WAITING_FOR_PIX}
-          >
-            {strings('virtual_bank_account.vba_details.waiting_for_pix')}
-          </Text>
         )}
-        {loadError && !instructions?.brCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.load_error')}
-          </Text>
-        ) : null}
-        {hasSetupError ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.SETUP_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.setup_error')}
-          </Text>
-        ) : null}
       </ScrollView>
       <Box twClassName="gap-4 px-4 pb-2 pt-4">
+        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+          >
+            {strings('virtual_bank_account.vba_details.helper_text')}
+          </Text>
+        ) : null}
         {hasSetupError ? (
           <Button
             variant={ButtonVariant.Secondary}
@@ -560,15 +548,6 @@ const VbaDetails = () => {
             {'Debug'}
           </Button>
         ) : null}
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleDone}
-          testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
-        >
-          {strings('virtual_bank_account.vba_details.button')}
-        </Button>
       </Box>
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet

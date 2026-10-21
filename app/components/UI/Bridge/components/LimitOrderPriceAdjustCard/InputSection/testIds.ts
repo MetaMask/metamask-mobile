@@ -2,8 +2,10 @@ export const LimitOrderPriceAdjustInputSectionSelectorsIDs = {
   CONTAINER: 'limit-order-price-adjust-input-section',
   QUOTE_UNIT: 'limit-order-price-adjust-quote-unit',
   QUOTE_UNIT_AVATAR: 'limit-order-price-adjust-quote-unit-avatar',
+  INPUT_ROW: 'limit-order-price-adjust-input-row',
   INPUT: 'limit-order-price-adjust-input',
   AMOUNT_TYPE_TOGGLE: 'limit-order-price-adjust-amount-type-toggle',
+  AMOUNT_TYPE_TOGGLE_ICON: 'limit-order-price-adjust-amount-type-toggle-icon',
   SECONDARY_VALUE: 'limit-order-price-adjust-secondary-value',
   MARKET_COMPARISON: 'limit-order-price-adjust-market-comparison',
 } as const;

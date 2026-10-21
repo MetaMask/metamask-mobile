@@ -20,9 +20,9 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
-import { selectInternalEvmAccounts } from '../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { renderShortAddress } from '../../../../util/address';
+import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useProfileController } from './hooks/useProfileController';
 import ManageProfileNavRow from './components/ManageProfileNavRow';
@@ -35,7 +35,7 @@ const ManageProfileView: React.FC = () => {
   const tw = useTailwind();
   const { profile } = useMyProfile();
   const { isControllerBacked, disconnectX } = useProfileController();
-  const accounts = useSelector(selectInternalEvmAccounts);
+  const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const [isDisconnectingX, setIsDisconnectingX] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -47,12 +47,11 @@ const ManageProfileView: React.FC = () => {
           profile.linkedAccountAddress?.toLowerCase(),
       )
     : undefined;
-  const linkedAccountName = linkedAccount
-    ? linkedAccount.metadata.name?.trim() ||
-      renderShortAddress(linkedAccount.address)
-    : profile?.linkedAccountAddress
+  const linkedAccountName =
+    linkedAccount?.name ??
+    (profile?.linkedAccountAddress
       ? renderShortAddress(profile.linkedAccountAddress)
-      : undefined;
+      : undefined);
 
   const handleOpenTextEditor = useCallback(
     (field: ManageProfileTextEditorField) => {

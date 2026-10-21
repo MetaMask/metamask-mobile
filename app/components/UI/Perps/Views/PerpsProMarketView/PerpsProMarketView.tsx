@@ -262,9 +262,15 @@ const PerpsProMarketView = ({
     [activeProvider, markets, routeMarket?.symbol, routeProviderId],
   );
   const market = useMemo(() => {
-    if (hasFormattedMaxLeverage) return routeMarket;
-    return enrichedMarket ?? routeMarket;
-  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket]);
+    const resolvedMarket = hasFormattedMaxLeverage
+      ? routeMarket
+      : (enrichedMarket ?? routeMarket);
+    return resolvedMarket &&
+      resolvedMarket.providerId === undefined &&
+      routeProviderId === PROVIDER_CONFIG.LighterProvider
+      ? { ...resolvedMarket, providerId: PROVIDER_CONFIG.LighterProvider }
+      : resolvedMarket;
+  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket, routeProviderId]);
   const { isOrderBookExpanded, setOrderBookExpanded } =
     usePerpsProOrderBookExpanded();
   const isOrderBookCollapsed = !isOrderBookExpanded;

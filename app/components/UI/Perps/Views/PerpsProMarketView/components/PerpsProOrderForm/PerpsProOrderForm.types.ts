@@ -10,6 +10,12 @@ export interface ScaleOrderRung {
 
 export type PerpsProOrderDirection = 'long' | 'short';
 
+export interface PerpsProRebateQuote {
+  coin: string;
+  direction: PerpsProOrderDirection;
+  notionalUsd: string;
+}
+
 /**
  * Active size-denomination for the Pro order form size field.
  * USD is the canonical controller amount; asset is a UI conversion view.
@@ -182,6 +188,7 @@ export interface PerpsProOrderFormProps {
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   placeOrderLabel: string;
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;
