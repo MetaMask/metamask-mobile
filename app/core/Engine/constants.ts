@@ -79,7 +79,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
   'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
@@ -89,10 +88,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
   'CronjobController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'MultichainTransactionsController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',

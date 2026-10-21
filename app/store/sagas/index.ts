@@ -369,7 +369,6 @@ export function* initializeSDKServicesSaga() {
   }
 }
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 /**
  * Handles updating the Snaps registry when the user has booted the app and is onboarded
  */
@@ -398,7 +397,6 @@ export function* handleSnapsRegistry() {
     }
   }
 }
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Handles initializing app services on start up
@@ -452,7 +450,5 @@ export function* rootSaga() {
   yield fork(watchMarketingAttributionOnClearOnboarding);
 
   yield fork(promptIosGoogleWarningSheetSaga);
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   yield fork(handleSnapsRegistry);
-  ///: END:ONLY_INCLUDE_IF
 }

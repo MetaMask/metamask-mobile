@@ -1,6 +1,5 @@
 /* eslint-disable arrow-body-style */
 import { InternalAccount } from '@metamask/keyring-internal-api';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   getMultichainNetworkAggregatedBalance,
   MultichainNetworkAggregatedBalance,
@@ -11,7 +10,6 @@ import {
   MultichainAssetsRatesControllerState,
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
-///: END:ONLY_INCLUDE_IF
 import { formatWithThreshold } from '../../../util/assets';
 import I18n from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -53,7 +51,6 @@ const getEvmBalance = (
   };
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 const getMultiChainFiatBalance = (
   balance: number | undefined,
   currency: string,
@@ -82,7 +79,6 @@ const getNonEvmDisplayBalance = (
     currentCurrency,
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 export const getShouldShowAggregatedPercentage = (
   chainId: SupportedCaipChainId,
@@ -107,19 +103,16 @@ export const getAccountBalanceData = (
   currentCurrency: string,
   totalFiatBalancesCrossEvmChain: TotalFiatBalancesCrossChains,
   isOriginalNativeEvmTokenSymbol: boolean,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
   shouldShowFiat: boolean,
-  ///: END:ONLY_INCLUDE_IF
 ): {
   displayBalance: string;
   totalFiatBalance: number | undefined;
   totalNativeTokenBalance: string | undefined;
   nativeTokenUnit: string;
 } => {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (!isEvmAccountType(account.type)) {
     const nonEvmAccountBalance = getMultichainNetworkAggregatedBalance(
       account,
@@ -139,7 +132,6 @@ export const getAccountBalanceData = (
       nativeTokenUnit: nonEvmAccountBalance.totalNativeTokenBalance?.unit || '',
     };
   }
-  ///: END:ONLY_INCLUDE_IF
   const evmAccountBalance = getEvmBalance(
     account,
     isOriginalNativeEvmTokenSymbol,

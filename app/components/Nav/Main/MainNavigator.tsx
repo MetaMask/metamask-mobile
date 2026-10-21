@@ -130,14 +130,12 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
@@ -471,7 +469,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -491,7 +488,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -617,18 +613,14 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
+      {}
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {}
     </NativeStack.Navigator>
   );
 };

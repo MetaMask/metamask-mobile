@@ -5,9 +5,7 @@ import {
   getPermissionSpecifications,
   unrestrictedMethods,
 } from '../../../Permissions/specifications';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { getSnapPermissionSpecifications } from '../../../Snaps/permissions/specifications';
-///: END:ONLY_INCLUDE_IF
 import type { PermissionControllerInitMessenger } from '../messengers/permission-controller-messenger';
 
 type PermissionControllerInstanceOptions = NonNullable<
@@ -39,9 +37,7 @@ export function getPermissionControllerInstanceOptions(
     }),
     permissionSpecifications: {
       ...getPermissionSpecifications(),
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       ...getSnapPermissionSpecifications(messenger),
-      ///: END:ONLY_INCLUDE_IF
     },
     unrestrictedMethods,
   };

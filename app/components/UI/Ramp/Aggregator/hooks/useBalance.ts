@@ -20,10 +20,8 @@ import {
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { getEvmHexChainId } from '../utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-///: END:ONLY_INCLUDE_IF
 
 const defaultReturn = {
   balance: null,
@@ -40,9 +38,7 @@ interface Asset {
 
 export default function useBalance(asset?: Asset) {
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const multiChainTokenBalance = useSelector(selectMultichainBalances);
-  ///: END:ONLY_INCLUDE_IF
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -74,7 +70,6 @@ export default function useBalance(asset?: Asset) {
 
   let balance, balanceFiat, balanceBN;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   if (asset.assetId) {
     const selectedAccount = selectInternalAccountByScope(
       asset.chainId as CaipChainId,
@@ -93,7 +88,6 @@ export default function useBalance(asset?: Asset) {
     }`.trim();
   }
 
-  ///: END:ONLY_INCLUDE_IF
   if (!balance && asset.address === NATIVE_ADDRESS && asset.chainId) {
     const hexChainId = toHex(asset.chainId);
     // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time

@@ -1,7 +1,5 @@
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetId,
-  ///: END:ONLY_INCLUDE_IF
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
@@ -27,9 +25,7 @@ import {
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { formatMarketDetails } from '../utils/marketDetails';
@@ -97,14 +93,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
     allMultichainAssetsRates[asset.address as CaipAssetId];
 
   const nonEvmMarketData = multichainAssetRates?.marketData;
-  ///: END:ONLY_INCLUDE_IF
 
   const evmMarketData = useSelector((state: RootState) =>
     !isNonEvmAsset && tokenContractAddress

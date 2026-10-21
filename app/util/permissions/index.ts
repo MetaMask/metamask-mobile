@@ -9,9 +9,7 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { ApprovalType } from '@metamask/controller-utils';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../../core/RPCMethods/RPCMethodMiddleware';
-///: END:ONLY_INCLUDE_IF
 
 const approvalLog = createProjectLogger('approval-utils');
 
@@ -53,14 +51,12 @@ const rejectApproval = ({
       deleteInterface?.(interfaceId);
       break;
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountCreation:
     case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.confirmAccountRemoval:
     case SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showSnapAccountRedirect:
       approvalLog('Rejecting snap account confirmation', { id, origin, type });
       ApprovalController.acceptRequest(id, false);
       break;
-    ///: END:ONLY_INCLUDE_IF
 
     default:
       approvalLog('Rejecting pending approval', { id, origin, type });
