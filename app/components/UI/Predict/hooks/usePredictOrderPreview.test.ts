@@ -10,6 +10,10 @@ import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
 import Logger from '../../../../util/Logger';
 
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
 const mockPreviewOrder = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {

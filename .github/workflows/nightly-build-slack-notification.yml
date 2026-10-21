@@ -47,10 +47,6 @@ jobs:
     # ios-exp -> ios-rc (TestFlight upload) and android-exp -> android-rc,
     # so a run starting at 04:00 UTC can still be going by 07:00 UTC.
     timeout-minutes: 120
-    # Uncomment once the Runway bucket secrets live in a dedicated GitHub
-    # environment (see .github/workflows/slack-rc-notification.yml's
-    # ANDROID_PUBLIC_BUCKET_URL for the equivalent RC-build secret):
-    # environment: nightly-builds
     env:
       SLACK_CHANNEL_ID: 'C093JQSEPJL' # #nightly-builds
     steps:
@@ -149,6 +145,47 @@ jobs:
         run: |
           gh run download "$RUN_ID" --repo "$REPO" -n nightly-build-metadata -D .
 
+      - name: Download previous nightly build metadata
+        id: previous
+        if: steps.resolve.outputs.skip != 'true'
+        # Only feeds the optional "changes since last nightly" compare links.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.resolve.outputs.run-id }}
+        run: |
+          set -euo pipefail
+          mkdir -p previous-nightly-metadata
+
+          # Up to 7 earlier runs, so a build that failed last night can still be
+          # compared against the last nightly where it succeeded. The metadata
+          # artifact is kept for 7 days, so older runs would have none anyway.
+          PREVIOUS_RUNS=$(gh run list \
+            --repo "$REPO" \
+            --workflow nightly-build.yml \
+            --branch main \
+            --status completed \
+            --limit 20 \
+            --json databaseId,headSha \
+            | jq -r --argjson current "$RUN_ID" \
+              '[.[] | select(.databaseId < $current)] | .[:7][] | "\(.databaseId) \(.headSha)"')
+
+          FALLBACK_SHA=""
+          while read -r PREVIOUS_ID PREVIOUS_SHA; do
+            [ -n "$PREVIOUS_ID" ] || continue
+            if [ -z "$FALLBACK_SHA" ]; then
+              FALLBACK_SHA="$PREVIOUS_SHA"
+            fi
+            gh run download "$PREVIOUS_ID" --repo "$REPO" -n nightly-build-metadata \
+              -D "previous-nightly-metadata/$PREVIOUS_ID" \
+              || echo "No nightly-build-metadata artifact on run $PREVIOUS_ID"
+          done <<< "$PREVIOUS_RUNS"
+
+          if [[ "$FALLBACK_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "fallback-sha=$FALLBACK_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Post Slack notification
         if: steps.resolve.outputs.skip != 'true'
         env:
@@ -161,6 +198,7 @@ jobs:
           TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs","moduleResolution":"node"}'
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_NIGHTLY_NOTIFICATION_DRY_RUN: ${{ inputs.dry_run || false }}
+          PREVIOUS_NIGHTLY_SHA: ${{ steps.previous.outputs.fallback-sha }}
           RUNWAY_NIGHTLY_ANDROID_RC_URL: ${{ secrets.RUNWAY_NIGHTLY_ANDROID_RC_URL }}
           RUNWAY_NIGHTLY_ANDROID_EXP_URL: ${{ secrets.RUNWAY_NIGHTLY_ANDROID_EXP_URL }}
           RUNWAY_NIGHTLY_IOS_RC_URL: ${{ secrets.RUNWAY_NIGHTLY_IOS_RC_URL }}

@@ -174,7 +174,10 @@ const VbaOnboardingError = ({
         includesTopInset
       />
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
+        contentContainerStyle={tw.style(
+          'flex-grow px-4 pb-6',
+          items.length === 0 && 'justify-center',
+        )}
         testID={testID}
       >
         <TitleAlert

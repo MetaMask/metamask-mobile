@@ -71,7 +71,7 @@ export interface WalletHeaderInterimActionsProps
   twClassName?: string;
 }
 
-/** Activity (where Money is available), Search and Menu, in one tight row. */
+/** Search, Activity (where Money is available) and Menu, in one tight row. */
 const WalletHeaderInterimActions = ({
   isMoneyAccountVisible,
   handleActivityPress,
@@ -85,6 +85,15 @@ const WalletHeaderInterimActions = ({
     alignItems={BoxAlignItems.Center}
     twClassName={`gap-2 ${twClassName}`}
   >
+    <ButtonIcon
+      iconProps={{ color: MMDSIconColor.IconDefault }}
+      onPress={() => handleSearchPress()}
+      iconName={MMDSIconName.Search}
+      size={ButtonIconSize.Md}
+      testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+      accessibilityLabel={strings('wallet.search_accessibility_label')}
+      hitSlop={touchAreaSlop}
+    />
     {isMoneyAccountVisible && (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}
@@ -96,15 +105,6 @@ const WalletHeaderInterimActions = ({
         hitSlop={touchAreaSlop}
       />
     )}
-    <ButtonIcon
-      iconProps={{ color: MMDSIconColor.IconDefault }}
-      onPress={() => handleSearchPress()}
-      iconName={MMDSIconName.Search}
-      size={ButtonIconSize.Md}
-      testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-      accessibilityLabel={strings('wallet.search_accessibility_label')}
-      hitSlop={touchAreaSlop}
-    />
     <WalletHeaderMenuButton
       handleHamburgerPress={handleHamburgerPress}
       touchAreaSlop={touchAreaSlop}
