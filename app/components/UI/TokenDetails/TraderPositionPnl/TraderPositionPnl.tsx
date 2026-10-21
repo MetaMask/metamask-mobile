@@ -63,7 +63,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
   }
 
   const positionRows = (
-    <Box twClassName="gap-1.5">
+    <Box twClassName="gap-0.5">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
