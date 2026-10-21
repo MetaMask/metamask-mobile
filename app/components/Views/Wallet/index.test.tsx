@@ -268,6 +268,12 @@ jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
   selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
 }));
 
+// Social V1 entry-point gate (default off so existing destination tests are unaffected)
+let mockSocialV1Enabled = false;
+jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
+}));
+
 const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
 const CAROUSEL_TEST_ID = 'carousel-mock';
 
@@ -1994,6 +2000,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
     mockHeaderNavBarVariantName = 'control';
+    mockSocialV1Enabled = false;
     jest
       .mocked(useSelector)
       .mockImplementation((callback: (state: unknown) => unknown) =>
@@ -2006,6 +2013,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
     mockSearchPasteTreatment = false;
+    mockSocialV1Enabled = false;
     mockUseWalletHeaderNativeHeader.mockReturnValue(false);
   });
 
@@ -2348,6 +2356,18 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
+  it('opens the profile drawer from the treatment avatar when Social V1 is enabled', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+    mockSocialV1Enabled = true;
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+  });
+
   it('opens rewards from the treatment gift icon', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
 
@@ -2366,6 +2386,18 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+  });
+
+  it('opens the profile drawer from the account name above the balance when Social V1 is enabled', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+    mockSocialV1Enabled = true;
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
   });
 });
 

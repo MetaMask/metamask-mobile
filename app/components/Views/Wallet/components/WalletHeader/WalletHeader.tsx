@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -32,6 +33,9 @@ import WalletHeaderInterimActions, {
 } from './WalletHeaderInterimActions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../../../SocialProfile/ProfileDrawer';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -92,6 +96,7 @@ const WalletHeader = ({
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
   const measureSearchOrigin = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
@@ -143,10 +148,18 @@ const WalletHeader = ({
   };
 
   const handleAccountPickerPress = useCallback(() => {
+    // Social V1 treatment opens the profile drawer instead of the account
+    // selector; the drawer route is registered under the same gate.
+    if (isSocialV1Enabled) {
+      (navigation as NavigationProp<ParamListBase>).navigate(
+        ...createProfileDrawerNavDetails({}),
+      );
+      return;
+    }
     (navigation as NavigationProp<ParamListBase>).navigate(
       ...createAccountSelectorNavDetails({}),
     );
-  }, [navigation]);
+  }, [navigation, isSocialV1Enabled]);
 
   const pickerAccountName = isInterimLayout
     ? formatInterimAccountName(displayName)

@@ -202,6 +202,9 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../SocialProfile/ProfileDrawer';
+import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
@@ -399,6 +402,7 @@ const Wallet = ({
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
@@ -883,8 +887,14 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
+    // Social V1 treatment opens the profile drawer instead of the account
+    // hub; the drawer route is registered under the same gate.
+    if (isSocialV1Enabled) {
+      navigation.navigate(...createProfileDrawerNavDetails({}));
+      return;
+    }
     navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
-  }, [navigation]);
+  }, [navigation, isSocialV1Enabled]);
 
   const handleRewardsPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);

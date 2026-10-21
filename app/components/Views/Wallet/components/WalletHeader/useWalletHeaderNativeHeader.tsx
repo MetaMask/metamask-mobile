@@ -6,9 +6,13 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
 import PickerAccount from '../../../../../component-library/components/Pickers/PickerAccount';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../../../SocialProfile/ProfileDrawer';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import WalletHeaderInterimActions from './WalletHeaderInterimActions';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
@@ -64,9 +68,17 @@ export const useWalletHeaderNativeHeader = ({
     [tw],
   );
 
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+
   const handleAccountPickerPress = useCallback(() => {
+    // Social V1 treatment opens the profile drawer instead of the account
+    // selector; the drawer route is registered under the same gate.
+    if (isSocialV1Enabled) {
+      navigation.navigate(...createProfileDrawerNavDetails({}));
+      return;
+    }
     navigation.navigate(...createAccountSelectorNavDetails({}));
-  }, [navigation]);
+  }, [navigation, isSocialV1Enabled]);
 
   const leftItems = useCallback(
     (): NativeStackHeaderItem[] => [

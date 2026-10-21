@@ -24,6 +24,16 @@ jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
 
+// The hook reads the Social V1 gate via `useSelector`, but renderHook runs
+// outside any redux Provider. Stub the hook (default off so the picker keeps
+// its account-selector destination in these tests) while keeping the real
+// react-redux `Provider` for the element renders below.
+let mockSocialV1Enabled = false;
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => mockSocialV1Enabled),
+}));
+
 const params: WalletHeaderNativeHeaderParams = {
   displayName: 'Account 1',
   isMoneyAccountVisible: true,
@@ -169,5 +179,18 @@ describe('useWalletHeaderNativeHeader', () => {
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
       {},
     );
+  });
+
+  it('opens the profile drawer from the account picker when Social V1 is enabled', () => {
+    mockSocialV1Enabled = true;
+    const [accountItem] = renderNativeHeader().leftItems;
+    if (accountItem?.type !== 'custom') {
+      throw new Error('Expected a custom account picker item');
+    }
+
+    const { getByTestId } = renderWithProvider(accountItem.element);
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
   });
 });
