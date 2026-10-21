@@ -639,6 +639,11 @@ const BridgeLimitOrderViewContent = () => {
                   <MissingAssetsPriceDataBanner />
                   <LimitOrderFeeTokenErrorBanner
                     reason={feeTokenValidation.reason}
+                    supportedTokenSymbols={
+                      feeTokenValidation.reason === 'unsupported-pair'
+                        ? feeTokenValidation.supportedTokenSymbols
+                        : undefined
+                    }
                     onRetry={feeTokenValidation.retry}
                   />
                 </SwapsBanners>

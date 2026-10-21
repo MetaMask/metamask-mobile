@@ -5,6 +5,7 @@ import type { Caip19AssetId } from '@metamask/assets-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { merge } from 'lodash';
@@ -28,7 +29,6 @@ import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
-import { strings } from '../../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
@@ -271,9 +271,10 @@ describe('LimitOrderConfirmationModalScreen', () => {
     mockUseSentinelFeeTokenValidation.mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
-    const { getByTestId } = renderScreen();
+    const { getByTestId, getByText } = renderScreen();
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -283,6 +284,13 @@ describe('LimitOrderConfirmationModalScreen', () => {
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByText(
+        strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: 'ETH, USDC',
+        }),
+      ),
+    ).toBeOnTheScreen();
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
