@@ -22,6 +22,7 @@ const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
+let mockRegionOverride: string | undefined;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
@@ -54,6 +55,7 @@ jest.mock(
       isEnabled: true,
       regions: ['BR'],
       regionCurrencies: { BR: 'BRL' },
+      regionOverride: mockRegionOverride,
     }),
   }),
 );
@@ -152,6 +154,7 @@ describe('VbaDetails', () => {
     resetMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
+    mockRegionOverride = undefined;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -486,6 +489,44 @@ describe('VbaDetails', () => {
       expect(mockGetPix).not.toHaveBeenCalled();
     });
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('creates the autoramp for the flag region override ahead of the IP country', async () => {
+    setAutoramps([]);
+    mockLocation = 'DE';
+    mockRegionOverride = 'BR';
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'needs_wallet_registration',
+    });
+    mockCreateAutoramp.mockImplementation(async () => {
+      setAutoramps([
+        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
+      ]);
+      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+        }),
+      );
+    });
+  });
+
+  it('does not use the IP currency when the region override has no currency', async () => {
+    setAutoramps([]);
+    mockLocation = 'BR';
+    mockRegionOverride = 'DE';
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('shows the setup error without creating when the country has no currency', async () => {

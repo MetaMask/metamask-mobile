@@ -31,10 +31,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  getVbaRegionOverride,
-  selectMoneyMovementNeobank,
-} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
@@ -102,7 +99,9 @@ const readAutoramps = (): AutorampCursor[] =>
 
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the autoramp, in the fiat mapped from the IP country.
+ * wallet and creates the autoramp, in the fiat mapped from the effective
+ * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
+ * IP country).
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -114,9 +113,11 @@ const VbaDetails = () => {
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const location = useSelector(selectGeolocationLocation);
-  const { regionCurrencies } = useSelector(selectMoneyMovementNeobank);
+  const { regionCurrencies, regionOverride } = useSelector(
+    selectMoneyMovementNeobank,
+  );
   const sourceCurrency = getVbaSourceCurrencyForCountry(
-    getVbaRegionOverride() ?? location,
+    regionOverride ?? location,
     regionCurrencies,
   );
   const hardwareTier = getHardwareTier();
