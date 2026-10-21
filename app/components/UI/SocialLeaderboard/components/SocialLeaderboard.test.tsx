@@ -14,12 +14,6 @@ import SocialLeaderboard, {
 } from './SocialLeaderboard';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
 
-jest.mock('@shopify/flash-list', () =>
-  jest.requireActual(
-    '../../../Views/SocialLeaderboard/testUtils/flashListMock',
-  ),
-);
-
 const mockUseTopTraders = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
