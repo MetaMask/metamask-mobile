@@ -24,6 +24,7 @@ interface SignInOtpFieldsProps {
   otpError: string | null;
   resendCooldown: number;
   otpLoading: boolean;
+  showResend?: boolean;
   isScreenTransitionComplete: boolean;
   onChangeCode: (text: string) => void;
   onResend: () => void;
@@ -35,6 +36,7 @@ const SignInOtpFields = ({
   otpError,
   resendCooldown,
   otpLoading,
+  showResend = true,
   isScreenTransitionComplete,
   onChangeCode,
   onResend,
@@ -79,40 +81,42 @@ const SignInOtpFields = ({
           </Text>
         )}
       </Box>
-      <Box twClassName="mt-2">
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-text-alternative"
-          testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
-        >
-          {resendCooldown > 0 ? (
-            strings('card.card_otp_authentication.resend_cooldown', {
-              seconds: resendCooldown,
-            })
-          ) : (
-            <>
-              {strings('card.card_otp_authentication.didnt_receive_code')}
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-text-alternative underline"
-                onPress={resendCooldown > 0 ? undefined : onResend}
-                disabled={resendCooldown > 0 || otpLoading}
-              >
-                {strings('card.card_otp_authentication.resend_verification')}
-              </Text>
-            </>
-          )}
-        </Text>
-        {otpError && (
+      {showResend && (
+        <Box twClassName="mt-2">
           <Text
-            testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
             variant={TextVariant.BodySm}
-            twClassName="text-error-default"
+            twClassName="text-text-alternative"
+            testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
           >
-            {otpError}
+            {resendCooldown > 0 ? (
+              strings('card.card_otp_authentication.resend_cooldown', {
+                seconds: resendCooldown,
+              })
+            ) : (
+              <>
+                {strings('card.card_otp_authentication.didnt_receive_code')}
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-text-alternative underline"
+                  onPress={resendCooldown > 0 ? undefined : onResend}
+                  disabled={resendCooldown > 0 || otpLoading}
+                >
+                  {strings('card.card_otp_authentication.resend_verification')}
+                </Text>
+              </>
+            )}
           </Text>
-        )}
-      </Box>
+          {otpError && (
+            <Text
+              testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
+              variant={TextVariant.BodySm}
+              twClassName="text-error-default"
+            >
+              {otpError}
+            </Text>
+          )}
+        </Box>
+      )}
     </>
   );
 };
