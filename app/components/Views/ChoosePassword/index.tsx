@@ -54,6 +54,7 @@ import {
 } from '../../../constants/storage';
 import {
   passwordRequirementsMet,
+  shouldShowPasswordMismatchError,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -111,6 +112,22 @@ import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import PasswordResetWarningSheet from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet';
+
+const confirmValidationShouldArm = (
+  nextPassword: string,
+  nextConfirm: string,
+) =>
+  nextPassword.length > 0 &&
+  nextPassword.length === nextConfirm.length &&
+  passwordRequirementsMet(nextConfirm);
+
+const reservedHelpTextProps = (isHidden: boolean) => ({
+  accessibilityElementsHidden: isHidden,
+  importantForAccessibility: isHidden
+    ? ('no-hide-descendants' as const)
+    : ('auto' as const),
+  ...(isHidden ? { style: { opacity: 0 } } : {}),
+});
 
 interface KeyringState {
   type: string;
@@ -195,7 +212,10 @@ const ChoosePassword = () => {
   const isAwaitingGeolocation = isSocialLoginUser && !isGeolocationResolved;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasLeftPasswordField, setHasLeftPasswordField] = useState(false);
+  const [hasLeftConfirmPasswordField, setHasLeftConfirmPasswordField] =
+    useState(false);
+  const [confirmValidationArmed, setConfirmValidationArmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isWarningSheetVisible, setIsWarningSheetVisible] = useState(false);
   const stallOauthProvider = route.params?.provider;
@@ -717,7 +737,6 @@ const ChoosePassword = () => {
   ]);
 
   const onPressCreate = useCallback(async () => {
-    setHasSubmitted(true);
     const validation = validatePasswordSubmission();
     if (!validation.valid) return;
 
@@ -741,8 +760,17 @@ const ChoosePassword = () => {
 
   const onPasswordChange = useCallback(
     (val: string) => {
+      const nextConfirm = val === '' ? '' : confirmPassword;
       setPassword(val);
-      setConfirmPassword(val === '' ? '' : confirmPassword);
+      setConfirmPassword(nextConfirm);
+      if (val === '') {
+        setConfirmValidationArmed(false);
+        setHasLeftConfirmPasswordField(false);
+        return;
+      }
+      if (confirmValidationShouldArm(val, nextConfirm)) {
+        setConfirmValidationArmed(true);
+      }
     },
     [confirmPassword],
   );
@@ -757,13 +785,19 @@ const ChoosePassword = () => {
   }, []);
 
   const jumpToConfirmPassword = useCallback(() => {
-    const input = confirmPasswordInputRef.current;
-    if (input) input.focus();
+    setHasLeftPasswordField(true);
+    confirmPasswordInputRef.current?.focus();
   }, []);
 
-  const setConfirmPasswordValue = useCallback((val: string) => {
-    setConfirmPassword(val);
-  }, []);
+  const setConfirmPasswordValue = useCallback(
+    (val: string) => {
+      setConfirmPassword(val);
+      if (confirmValidationShouldArm(password, val)) {
+        setConfirmValidationArmed(true);
+      }
+    },
+    [password],
+  );
 
   useEffect(() => {
     const initBiometrics = async () => {
@@ -814,10 +848,18 @@ const ChoosePassword = () => {
       return <OnboardingFoxLoader ref={foxRiveLoaderRef} />;
     }
 
-    const isPasswordInvalid =
-      hasSubmitted && !passwordRequirementsMet(password);
-    const isConfirmPasswordInvalid =
-      hasSubmitted && (confirmPassword === '' || password !== confirmPassword);
+    const passwordMeetsLength = passwordRequirementsMet(password);
+    const passwordsMatch = password !== '' && password === confirmPassword;
+    const canSubmitPassword = passwordMeetsLength && passwordsMatch;
+    const showPasswordError = hasLeftPasswordField && !passwordMeetsLength;
+    const showConfirmPasswordError =
+      confirmValidationArmed &&
+      shouldShowPasswordMismatchError(password, confirmPassword);
+    const showConfirmTooShortError =
+      hasLeftConfirmPasswordField &&
+      passwordMeetsLength &&
+      confirmPassword.length > 0 &&
+      !passwordRequirementsMet(confirmPassword);
 
     return (
       <SafeAreaView
@@ -869,10 +911,13 @@ const ChoosePassword = () => {
                 autoFocus
                 value={password}
                 onChangeText={onPasswordChange}
+                onBlur={() => {
+                  setHasLeftPasswordField(true);
+                }}
                 placeholder={strings(
                   'choose_password.new_password_placeholder',
                 )}
-                isError={isPasswordInvalid}
+                isError={showPasswordError}
                 endAccessory={
                   <ButtonIcon
                     testID={
@@ -906,8 +951,9 @@ const ChoosePassword = () => {
               />
               <HelpText
                 severity={
-                  isPasswordInvalid ? HelpTextSeverity.Danger : undefined
+                  showPasswordError ? HelpTextSeverity.Danger : undefined
                 }
+                {...reservedHelpTextProps(passwordMeetsLength)}
               >
                 {strings('choose_password.must_be_at_least', {
                   number: MIN_PASSWORD_LENGTH,
@@ -924,6 +970,12 @@ const ChoosePassword = () => {
                 inputRef={confirmPasswordInputRef}
                 value={confirmPassword}
                 onChangeText={setConfirmPasswordValue}
+                onBlur={() => {
+                  setHasLeftConfirmPasswordField(true);
+                  if (passwordRequirementsMet(confirmPassword)) {
+                    setConfirmValidationArmed(true);
+                  }
+                }}
                 placeholder={strings(
                   'choose_password.confirm_password_placeholder',
                 )}
@@ -948,7 +1000,7 @@ const ChoosePassword = () => {
                   />
                 }
                 isDisabled={password === ''}
-                isError={isConfirmPasswordInvalid}
+                isError={showConfirmPasswordError || showConfirmTooShortError}
                 inputProps={{
                   secureTextEntry: showPasswordIndex.includes(1),
                   testID: ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
@@ -961,9 +1013,16 @@ const ChoosePassword = () => {
                   keyboardAppearance: themeAppearance,
                 }}
               />
-              {isConfirmPasswordInvalid && (
+              {showConfirmPasswordError && (
                 <HelpText severity={HelpTextSeverity.Danger}>
                   {strings('choose_password.password_error')}
+                </HelpText>
+              )}
+              {showConfirmTooShortError && (
+                <HelpText severity={HelpTextSeverity.Danger}>
+                  {strings('choose_password.must_be_at_least', {
+                    number: MIN_PASSWORD_LENGTH,
+                  })}
                 </HelpText>
               )}
             </Box>
@@ -995,6 +1054,7 @@ const ChoosePassword = () => {
                 variant={ButtonVariant.Primary}
                 onPress={onPressCreate}
                 isFullWidth
+                isDisabled={!canSubmitPassword}
                 isLoading={isAwaitingGeolocation}
                 size={ButtonSize.Lg}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
