@@ -64,6 +64,16 @@ on:
         required: false
         type: string
         default: ''
+      testmu_project_name:
+        description: 'TestMu AI project name. Empty keeps the provider default.'
+        required: false
+        type: string
+        default: ''
+      testmu_build_name:
+        description: 'TestMu AI build name before the HyperExecute suffix. Empty uses the branch-based name.'
+        required: false
+        type: string
+        default: ''
       he_concurrency:
         description: 'HyperExecute autosplit concurrency for the TestMu lane'
         required: false
@@ -83,7 +93,6 @@ permissions:
   actions: write
   pull-requests: write
   statuses: write
-
 
 env:
   MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
@@ -354,7 +363,8 @@ jobs:
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
       testmu_app_url: ${{ inputs.testmu_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
+      testmu_project_name: ${{ inputs.testmu_project_name }}
+      testmu_build_name: ${{ inputs.testmu_build_name || format('TestMu-Android-Performance-{0}-Branch', inputs.branch_name) }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
@@ -386,7 +396,8 @@ jobs:
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
       testmu_app_url: ${{ inputs.testmu_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
+      testmu_project_name: ${{ inputs.testmu_project_name }}
+      testmu_build_name: ${{ inputs.testmu_build_name || format('TestMu-Android-Performance-{0}-Branch', inputs.branch_name) }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
@@ -437,8 +448,9 @@ jobs:
     name: Post Performance Results to PR
     runs-on: ubuntu-latest
     needs: [aggregate-results]
-    # Only runs when triggered from a PR via workflow_call with a pr_number
-    if: always() && !cancelled() && needs.aggregate-results.result != 'skipped' && inputs.pr_number != ''
+    # Labeled PR runs pass pr_number. A run that never executed tests
+    # (skipped suite, cancelled before TestMu) must not replace the comment.
+    if: always() && !cancelled() && needs.aggregate-results.result == 'success' && inputs.pr_number != ''
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -461,11 +473,21 @@ jobs:
             aggregated-reports/summary.json \
             performance-pr-comment.md
 
-      - name: Delete previous performance / app-profiling comments
+      - name: Post PR comment when tests ran
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
+          SUMMARY="aggregated-reports/summary.json"
+          TOTAL=0
+          if [ -f "$SUMMARY" ]; then
+            TOTAL=$(jq -r '.uniqueTests // .totalTests // 0' "$SUMMARY")
+          fi
+          if [ "$TOTAL" = "0" ] || [ "$TOTAL" = "null" ]; then
+            echo "No performance tests executed. Leaving the existing PR comment in place."
+            exit 0
+          fi
+
           ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments?per_page=100" \
             --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
@@ -479,13 +501,8 @@ jobs:
             echo "Deleted previous performance / app-profiling comments"
           fi
 
-      - name: Post PR comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
           MARKER="<!-- perf-test-results -->"
-          COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
+          COMMENT=$(cat performance-pr-comment.md)
           FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
           gh pr comment "${PR_NUMBER}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
           echo "Performance results posted to PR #${PR_NUMBER}"

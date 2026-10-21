@@ -17,10 +17,10 @@ export const BridgeSessionContext = createContext<{
   renderedTab: BridgeTabKey;
   setSelectedTab: (tab: BridgeTabKey) => void;
   setRenderedTab: (tab: BridgeTabKey) => void;
-  recurringOrdersTab?: OrdersTabKey;
-  setRecurringOrdersTab?: (tab: OrdersTabKey) => void;
   limitOrdersTab?: OrdersTabKey;
   setLimitOrdersTab?: (tab: OrdersTabKey) => void;
+  recurringOrdersTab?: OrdersTabKey;
+  setRecurringOrdersTab?: (tab: OrdersTabKey) => void;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   quoteParams: QuoteParams;
   setQuoteParams: (quoteParams: QuoteParams) => void;
@@ -43,10 +43,10 @@ export const BridgeSessionProvider = ({
   // of holding up that feedback.
   const [selectedTab, setSelectedTab] = useState(BridgeTabKey.Market);
   const [renderedTab, setRenderedTab] = useState(BridgeTabKey.Market);
+  const [limitOrdersTab, setLimitOrdersTab] = useState(OrdersTabKey.OpenOrders);
   const [recurringOrdersTab, setRecurringOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
   );
-  const [limitOrdersTab, setLimitOrdersTab] = useState(OrdersTabKey.OpenOrders);
   const featureIdToUse = featureId ?? TAB_TO_FEATURE_ID[renderedTab];
 
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
@@ -70,10 +70,10 @@ export const BridgeSessionProvider = ({
       renderedTab,
       setSelectedTab,
       setRenderedTab,
-      recurringOrdersTab,
-      setRecurringOrdersTab,
       limitOrdersTab,
       setLimitOrdersTab,
+      recurringOrdersTab,
+      setRecurringOrdersTab,
       latestSourceBalance,
       quoteParams,
       setQuoteParams,
@@ -81,8 +81,8 @@ export const BridgeSessionProvider = ({
     [
       selectedTab,
       renderedTab,
-      recurringOrdersTab,
       limitOrdersTab,
+      recurringOrdersTab,
       latestSourceBalance,
       quoteParams,
     ],

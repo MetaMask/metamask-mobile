@@ -10,7 +10,7 @@ import {
   VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { CreateVirtualBankAccountSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.testIds';
-import { resetBrazilMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureBrazilMusdAutoramp';
+import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingStubSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
@@ -48,7 +48,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
 
   afterEach(() => {
     restoreVbaReduxServiceStore();
-    resetBrazilMusdAutorampSetupGuard();
+    resetMusdAutorampSetupGuard();
     netInfoMock.__resetMockNetInfo();
   });
 
@@ -196,6 +196,17 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   });
 
   it('returns to Money home from completed Pix details', async () => {
+    const ramps = Engine.context.RampsController as { state?: unknown };
+    const previousState = ramps.state;
+    ramps.state = {
+      autoramps: [
+        {
+          id: 'ar-1',
+          walletAddress: '0x0000000000000000000000000000000000000001',
+          status: 'Approved',
+        },
+      ],
+    };
     mockHydrateVbaOnboarding.mockResolvedValue({
       sessionExists: true,
       vendorDisclaimersComplete: true,
@@ -221,6 +232,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
+    ramps.state = previousState;
   });
 
   it('shows the account setup error when creating the account fails', async () => {

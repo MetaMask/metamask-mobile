@@ -21,6 +21,14 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
 
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'MID'),
+}));
+
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
+}));
+
 jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
@@ -180,6 +188,7 @@ describe('MainNavigator', () => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+    mockSelectIsMoneyAccountVisible.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -844,6 +853,61 @@ describe('MainNavigator', () => {
       expect(v1Screen?.props?.options?.freezeOnBlur).toBe(false);
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.V0);
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
+    });
+
+    const stateWithSocialArm = (variant: string) => ({
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              socialAiTSA1122AbtestSocialBundleV1: variant,
+            },
+          },
+        },
+      },
+    });
+
+    it('registers the ProfileDrawer route under the Social V1 treatment arm', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialArm('treatment'),
+      });
+
+      const screenProps = root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+      expect(screenProps).toContain(Routes.SOCIAL_PROFILE.DRAWER);
+    });
+
+    it('does not register the ProfileDrawer route under the control arm', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialArm('control'),
+      });
+
+      const screenProps = root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+      expect(screenProps).not.toContain(Routes.SOCIAL_PROFILE.DRAWER);
     });
 
     it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
@@ -1953,6 +2017,64 @@ describe('MainNavigator', () => {
       expect(tabs).toContain(Routes.REWARDS_VIEW);
       expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+    });
+
+    it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
+      mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+      const baseState = stateForArm('control', 'treatment');
+      const state = {
+        ...baseState,
+        engine: {
+          ...baseState.engine,
+          backgroundState: {
+            ...baseState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...baseState.engine.backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...baseState.engine.backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: false,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      const tabs = homeTabNames(container, state).filter(
+        (tab) => tab !== Routes.BROWSER.HOME,
+      );
+
+      expect(tabs).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ]);
+      expect(rootStackScreenNames(container)).toContain(
+        Routes.SOCIAL.ONBOARDING,
+      );
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
+
+    it('keeps legacy Social users on the existing tab layout', () => {
+      mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+      const state = stateForArm('tradeFocused', 'control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(homeTabNames(container, state)).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.BROWSER.HOME,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ]);
+      expect(rootStackScreenNames(container)).not.toContain(Routes.SOCIAL.V1);
     });
 
     it.each([

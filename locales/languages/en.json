@@ -1196,6 +1196,10 @@
       "description": "Your identity check is complete.",
       "button": "Continue"
     },
+    "creating_account": {
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
+    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
@@ -1217,17 +1221,34 @@
       "description": "We couldn't load your bank account details.",
       "button": "Try again"
     },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
+    },
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
       "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
       "copia_cola_label": "PIX Copia e Cola",
       "pix_key_label": "PIX key",
+      "bank_transfer_title": "Add money by bank transfer",
+      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
+      "account_holder_label": "Account holder",
+      "routing_number_label": "Routing number",
+      "account_number_label": "Account number",
+      "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "Done",
-      "waiting_for_pix": "PIX instructions appear here once the account is approved.",
-      "loading": "Loading PIX details",
+      "waiting_for_details": "Your account details will appear here shortly.",
+      "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
       "retry": "Try again"
@@ -8436,7 +8457,6 @@
       "email_description": "Get a 6-digit code sent to your inbox",
       "totp_description": "Get a 6-digit code from an app like Google Authenticator",
       "totp_done": "Set up in your authenticator app",
-      "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
@@ -9260,7 +9280,7 @@
       "account_is_ready": {
         "title": "You’re all set",
         "description": "Your virtual account details are ready.",
-        "cta": "View Pix details"
+        "cta": "View account details"
       },
       "kyc_pending": {
         "title": "Verifying your identity",
