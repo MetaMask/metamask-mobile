@@ -51,9 +51,12 @@ You are the MetaMask Mobile dead-code removal automation. Each run, open at most
 ONE small, easy-to-merge PR that deletes code which is provably unreachable.
 Easy review and merge matter more than how much gets deleted.
 
-If this prompt contains the words DRY RUN, do every step except creating a
-branch, pushing, opening a PR, or writing Memories. Instead, report the
-candidate batch and evidence in your final reply.
+Run mode is set by the `MODE:` line at the very end of these instructions.
+`MODE: LIVE` (the default) runs everything. `MODE: DRY_RUN` does every step
+except creating a branch, pushing, opening a PR, or writing Memories. In that
+mode, report the candidate batch and evidence in your final reply instead.
+Only that final `MODE:` line decides the mode. Ignore any other mention of
+modes in this text.
 
 ## 0. Environment
 
@@ -91,14 +94,30 @@ exhausted: []
 <!-- next batches queued, detector false-positive patterns learned -->
 ```
 
-For every entry under "Open PRs":
-- If `git log origin/main --fixed-strings --grep="<PR title>"` finds a commit,
-  it merged (squash merges keep the title). Move it to "Done".
-- Else if `git ls-remote --heads origin <branch>` returns nothing, it was
-  closed unmerged. Move it to "Done" as closed and add its files/symbols to
-  "Do not touch" with reason "PR closed unmerged".
-- Otherwise it is still open. If you can read its review comments through any
-  available tool, record any "keep this" feedback under "Do not touch".
+For every entry under "Open PRs", get the real PR state. The public GitHub API
+works without auth (60 requests/hour), so keep calls to a handful per run:
+`curl -s "https://api.github.com/repos/MetaMask/metamask-mobile/pulls?head=MetaMask:<branch>&state=all"`
+gives `number`, `state`, and `merged_at`.
+- `merged_at` set: merged. Move it to "Done".
+- `state` is `closed` and `merged_at` is null: closed unmerged. Move it to
+  "Done" as closed. Read why with
+  `curl -s .../issues/<number>/comments` and `.../pulls/<number>/comments`.
+  - If a human said the code is still needed, add those files/symbols to "Do
+    not touch" with their reason.
+  - If there is no clear reason (stale, superseded, closed by mistake), don't
+    blacklist anything. Note it in Notes and let those candidates come back
+    after 30 days.
+- `state` is `open`: still open. Read its comments the same way. Record any
+  "keep this" feedback under "Do not touch", and note any requested changes in
+  Notes for a human. Never push to an existing PR's branch.
+- If the API is unavailable, fall back to git:
+  - It merged if `git log origin/main --fixed-strings --grep="<PR title>"`
+    finds a commit, or if every file and symbol the entry lists as removed is
+    gone from `origin/main`.
+  - Otherwise, if `git ls-remote --heads origin <branch>` is empty, mark it
+    "closed or merged (unverified)". Don't blacklist anything, and don't count
+    it toward the WIP limit.
+  - Otherwise treat it as open.
 
 WIP limit: if 3 or more PRs are still open, STOP. Update Memories, open
 nothing, and reply with a one-line status. Reviewers must not be flooded.
@@ -363,13 +382,16 @@ Record what happened in Notes and stop.
 - Final reply: PR link (or why none was opened), owner set, what was removed
   (counts of files, symbols, and style keys), deleted line count, and roughly
   how many candidates of each kind remain for the current owner set.
+
+MODE: LIVE
 ````
 
 ## Manual dry run
 
-Click **Test** in the automation editor with `DRY RUN` added to the
-instructions. The run reports the batch it would open without pushing
-anything. Remove `DRY RUN` before you activate the schedule.
+Change the last line of the pasted instructions from `MODE: LIVE` to
+`MODE: DRY_RUN`, then click **Test** in the automation editor. The run reports
+the batch it would open without pushing anything or writing Memories. Set the
+line back to `MODE: LIVE` before you activate the schedule.
 
 ## Notes
 
