@@ -4,15 +4,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import {
   FontFamily,
-  FontWeight,
-  Text as TextDs,
-  TextVariant as TextVariantDs,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -155,22 +151,20 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           ) : null}
         </View>
 
-        <TextDs
-          variant={TextVariantDs.AmountDisplayLg}
+        <Text
+          variant={TextVariant.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
-          fontWeight={FontWeight.Regular}
-          twClassName="text-[48px] leading-[52.8px]"
           style={styles.mainAmount}
         >
           {order.cryptoAmount} {order.cryptocurrency}
-        </TextDs>
+        </Text>
 
         {order?.data &&
         hasDepositOrderField(order.data, 'statusDescription') &&
         order.data.statusDescription ? (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
             style={styles.subtitle}
           >
             {order.data.statusDescription}
@@ -180,7 +174,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
       <View style={styles.detailsContainer}>
         <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('deposit.order_processing.account')}
           </Text>
           <View style={styles.accountInfo}>
@@ -192,31 +186,31 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
                 size={AvatarSize.Xs}
               />
             ) : null}
-            <Text variant={TextVariant.BodyMD}>{accountName}</Text>
+            <Text variant={TextVariant.BodyMd}>{accountName}</Text>
           </View>
         </View>
 
         <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('deposit.order_processing.network')}
           </Text>
           <View style={styles.networkInfo}>
             {networkImageSource ? (
               <Image source={networkImageSource} style={styles.networkIcon} />
             ) : null}
-            <Text variant={TextVariant.BodyMD}>{networkName}</Text>
+            <Text variant={TextVariant.BodyMd}>{networkName}</Text>
           </View>
         </View>
 
         <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('deposit.order_processing.order_id')}
           </Text>
           <TouchableOpacity
             style={styles.orderIdContainer}
             onPress={handleCopyOrderId}
           >
-            <Text variant={TextVariant.BodyMD}>..{shortOrderId}</Text>
+            <Text variant={TextVariant.BodyMd}>..{shortOrderId}</Text>
             <Icon
               name={IconName.Copy}
               size={IconSize.Lg}
@@ -229,18 +223,18 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
         {Boolean(orderFee) && (
           <View style={styles.detailRow}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
               {strings('deposit.order_processing.fees')}
             </Text>
-            <Text variant={TextVariant.BodyMD}>{orderFee}</Text>
+            <Text variant={TextVariant.BodyMd}>{orderFee}</Text>
           </View>
         )}
 
         <View style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('deposit.order_processing.total')}
           </Text>
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {formatCurrency(Number(order.amount), currency)}
           </Text>
         </View>
