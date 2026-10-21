@@ -15,15 +15,15 @@ const logHydrationError = (err: unknown) => {
  *
  * Called once at Engine startup. Hydration only runs when the wallet is
  * already unlocked and AuthenticationController is already signed in, so it
- * never triggers a sign-in. Otherwise it is skipped silently and the
- * controller's persisted state from the previous session is used.
+ * never triggers an initial sign-in. Otherwise it is skipped silently and the
+ * controller's persisted state from the previous session is used. The wallet
+ * is normally locked at cold start, so in practice this is usually skipped.
  *
  * Failures are non-fatal: they are logged and the persisted state is kept.
  */
 export async function hydrateSocialFollowing(): Promise<void> {
-  const messenger = Engine.controllerMessenger;
-
   try {
+    const messenger = Engine.controllerMessenger;
     const { isUnlocked } = messenger.call('KeyringController:getState');
     if (!isUnlocked) {
       return;
@@ -34,9 +34,7 @@ export async function hydrateSocialFollowing(): Promise<void> {
       return;
     }
 
-    await (messenger.call as CallableFunction)(
-      'SocialController:updateFollowing',
-    );
+    await messenger.call('SocialController:updateFollowing');
   } catch (err) {
     logHydrationError(err);
   }
