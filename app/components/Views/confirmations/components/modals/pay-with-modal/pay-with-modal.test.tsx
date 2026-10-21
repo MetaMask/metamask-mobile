@@ -11,7 +11,10 @@ import {
 } from '../../../__mocks__/controllers/transaction-controller-mock';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { initialState } from '../../../../../UI/Bridge/_mocks_/initialState';
-import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import {
+  useSetNonEvmPayToken,
+  useTransactionPayToken,
+} from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   CHAIN_IDS,
@@ -26,7 +29,11 @@ import {
 } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
-import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  SolAccountType,
+  SolScope,
+} from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
@@ -212,8 +219,25 @@ function render({ minimumFiatBalance }: { minimumFiatBalance?: number } = {}) {
   );
 }
 
+const SOLANA_USDC_ASSET_ID = `${SolScope.Mainnet}/token:USDCMint` as const;
+
+const SOLANA_TOKEN_MOCK = {
+  accountId: 'solana-account-id',
+  accountType: SolAccountType.DataAccount,
+  address: SOLANA_USDC_ASSET_ID,
+  assetId: SOLANA_USDC_ASSET_ID,
+  balance: '7.89',
+  balanceInSelectedCurrency: '$7.89',
+  chainId: SolScope.Mainnet,
+  decimals: 6,
+  name: 'Solana USD Coin',
+  standard: TokenStandard.ERC20,
+  symbol: 'USDC',
+} as AssetType;
+
 describe('PayWithModal', () => {
   const setPayTokenMock = jest.fn();
+  const setNonEvmPayTokenMock = jest.fn();
   const onPerpsPaymentTokenChangeMock = jest.fn();
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
@@ -255,6 +279,7 @@ describe('PayWithModal', () => {
       payToken: { address: NATIVE_TOKEN_ADDRESS, chainId: CHAIN_ID_1_MOCK },
       setPayToken: setPayTokenMock,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
+    jest.mocked(useSetNonEvmPayToken).mockReturnValue(setNonEvmPayTokenMock);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -310,6 +335,21 @@ describe('PayWithModal', () => {
         address: TOKENS_MOCK[1].address,
         chainId: TOKENS_MOCK[1].chainId,
       });
+    });
+
+    it('selects a Solana source by CAIP asset ID and wallet account', async () => {
+      getAvailableTokensMock.mockReturnValue([SOLANA_TOKEN_MOCK]);
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Solana USD Coin'));
+
+      await waitFor(() =>
+        expect(setNonEvmPayTokenMock).toHaveBeenCalledWith({
+          assetId: SOLANA_USDC_ASSET_ID,
+          walletAccountId: 'solana-account-id',
+        }),
+      );
+      expect(setPayTokenMock).not.toHaveBeenCalled();
     });
 
     it('does not call setPayToken when the selected token matches the current payToken', async () => {

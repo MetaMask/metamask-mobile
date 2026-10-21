@@ -1,6 +1,9 @@
 import { ChainId } from '@metamask/controller-utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useTransactionPayToken } from './useTransactionPayToken';
+import {
+  useSetNonEvmPayToken,
+  useTransactionPayToken,
+} from './useTransactionPayToken';
 import { cloneDeep, merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -12,6 +15,7 @@ import {
 import { TransactionType } from '@metamask/transaction-controller';
 import {
   EvmPaymentToken,
+  NonEvmPaymentToken,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../core/Engine';
@@ -64,12 +68,25 @@ const REQUIRED_TOKEN_MOCK = {
   skipIfBalance: false,
 } as unknown as TransactionPayRequiredToken;
 
+const NON_EVM_PAY_TOKEN_MOCK = {
+  accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+  assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+  balanceFiat: '300',
+  balanceHuman: '2',
+  balanceRaw: '2000000000',
+  balanceUsd: '300',
+  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+  decimals: 9,
+  symbol: 'SOL',
+  walletAccountId: 'solana-account-id',
+} as NonEvmPaymentToken;
+
 function runHook({
   payToken,
   type,
   requiredTokens,
 }: {
-  payToken?: EvmPaymentToken;
+  payToken?: EvmPaymentToken | NonEvmPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
 } = {}) {
@@ -308,6 +325,32 @@ describe('useTransactionPayToken', () => {
         }),
         TRANSACTION_ID_MOCK,
       );
+    });
+  });
+
+  it('exposes a non-EVM payment token separately from the EVM pay token', () => {
+    const { result } = runHook({ payToken: NON_EVM_PAY_TOKEN_MOCK });
+
+    expect(result.current.nonEvmPayToken).toStrictEqual(NON_EVM_PAY_TOKEN_MOCK);
+    expect(result.current.payToken).toBeUndefined();
+    expect(result.current.isNative).toBeFalsy();
+  });
+
+  it('selects a non-EVM payment token by CAIP asset ID and wallet account', () => {
+    const mockState = cloneDeep(STATE_MOCK);
+    const { result } = renderHookWithProvider(useSetNonEvmPayToken, {
+      state: mockState,
+    });
+
+    result.current({
+      assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
+      walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
+    });
+
+    expect(updatePaymentTokenMock).toHaveBeenCalledWith({
+      transactionId: TRANSACTION_ID_MOCK,
+      assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
+      walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
     });
   });
 });

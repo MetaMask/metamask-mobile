@@ -23,13 +23,14 @@ import {
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { Json } from '@metamask/utils';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
+import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useIsPaidByMetaMask');
 jest.mock('../../token-icon', () => ({
   ...jest.requireActual('../../token-icon'),
   TokenIcon: jest.fn(() => null),
+  NonEvmTokenIcon: jest.fn(() => null),
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
@@ -560,6 +561,32 @@ describe('BridgeFeeRow', () => {
         expect.objectContaining({
           address: NATIVE_TOKEN_ADDRESS_MOCK,
           chainId: '0x1',
+        }),
+        undefined,
+      );
+    });
+
+    it('renders native SOL for a Solana source quote', async () => {
+      useTransactionPayQuotesMock.mockReturnValue([
+        createQuoteMock({
+          sourceChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        } as unknown as Partial<TransactionPayQuote<Json>['request']>),
+      ]);
+
+      const { getByTestId, getByText } = render();
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(getByText('$1.23')).toBeDefined();
+      expect(tokenIconMock).not.toHaveBeenCalled();
+      expect(jest.mocked(NonEvmTokenIcon)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          symbol: 'SOL',
+          variant: TokenIconVariant.Row,
         }),
         undefined,
       );
