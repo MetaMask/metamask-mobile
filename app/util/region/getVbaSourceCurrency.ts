@@ -26,14 +26,15 @@ export const VBA_CHOOSABLE_SOURCE_CURRENCIES: readonly VbaSourceCurrency[] =
  * Picks the autoramp fiat from a GeolocationController location.
  *
  * Only the leading country segment is used, so `US-CA` reads as `US`. Callers
- * pass the IP country, or `MM_MONEY_VBA_REGION_OVERRIDE` when it is set. That
- * country must be in `regions`; a country outside the list creates nothing.
+ * pass `regionOverride` from `moneyMovementNeobank` when the flag sets one,
+ * otherwise the IP country. That country must be in `regions`; a country
+ * outside the list creates nothing.
  * An explicit `regionCurrencies` entry wins. Otherwise `defaultCurrency` is
  * used. A missing mapping, a missing default, or a currency without a details
  * layout fails closed. An explicit currency that has no details layout does
  * not fall through to the default.
  *
- * @param location - Raw GeolocationController location, such as `BR` or `US-CA`.
+ * @param location - Effective location, such as `BR` or `US-CA`.
  * @param regionCurrencies - Country-to-currency map from the remote flag.
  * @param regions - Enabled country codes from the remote flag.
  * @param defaultCurrency - Fiat for an enabled region with no explicit entry.

@@ -42,13 +42,15 @@ interface MoneyMovementNeobankFlag extends VersionGatedFeatureFlag {
   regionCurrencies?: unknown;
   defaultCurrency?: unknown;
   chooseCurrency?: unknown;
+  regionOverride?: unknown;
 }
 
 /**
  * `validatedVersionGatedFeatureFlag` unwraps `{ name, value }` and then
  * returns only a boolean, which drops `regions`, `regionCurrencies`,
- * `defaultCurrency`, and `chooseCurrency`. Recover the same payload here so
- * those fields can be read after the enabled + minimumVersion gate.
+ * `defaultCurrency`, `chooseCurrency`, and `regionOverride`. Recover the same
+ * payload here so those fields can be read after the enabled + minimumVersion
+ * gate.
  *
  * @param remoteFlag - Raw `moneyMovementNeobank` value from RemoteFeatureFlagController.
  * @returns The version-gated object, including any extra fields, or undefined.
@@ -147,6 +149,24 @@ function normalizeVbaRegionCurrencies(
   return normalized;
 }
 
+/**
+ * Trim and uppercase a country code from `regionOverride`. A missing,
+ * non-string, or blank value is no override. Any non-blank string is kept.
+ * This is a country code, not a currency.
+ *
+ * @param regionOverride - Raw `regionOverride` field from the flag payload.
+ * @returns An uppercase country code, or undefined when there is no override.
+ */
+function normalizeVbaRegionOverride(
+  regionOverride: unknown,
+): string | undefined {
+  if (typeof regionOverride !== 'string') {
+    return undefined;
+  }
+  const code = regionOverride.trim().toUpperCase();
+  return code || undefined;
+}
+
 export interface MoneyMovementNeobankRollout {
   /**
    * Whether this binary may offer Virtual Bank Accounts. False when the flag
@@ -169,10 +189,17 @@ export interface MoneyMovementNeobankRollout {
   defaultCurrency: VbaFlagCurrency | undefined;
   /**
    * True when the user picks the account currency on Choose Currency. False
-   * creates it in the currency mapped from the IP country. Only a literal
+   * creates it in the currency mapped from the effective location
+   * (`regionOverride` when set, otherwise the IP country). Only a literal
    * `true` enables it, and it is false whenever `isEnabled` is false.
    */
   chooseCurrency: boolean;
+  /**
+   * Country code used ahead of the IP location. Undefined when the field is
+   * missing, not a string, blank, or the gate is closed. The country must
+   * still be listed in `regions`.
+   */
+  regionOverride: string | undefined;
 }
 
 const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
@@ -181,16 +208,19 @@ const NEOBANK_ROLLOUT_DISABLED: MoneyMovementNeobankRollout = {
   regionCurrencies: {},
   defaultCurrency: undefined,
   chooseCurrency: false,
+  regionOverride: undefined,
 };
 
 /**
  * Virtual Bank Account rollout from `moneyMovementNeobank`.
  *
  * The object is the only switch: `{ enabled, minimumVersion, regions,
- * regionCurrencies, defaultCurrency, chooseCurrency }`.
+ * regionCurrencies, defaultCurrency, chooseCurrency, regionOverride }`.
  * `validatedVersionGatedFeatureFlag` checks enabled and minimumVersion; the
  * other fields are read from that same payload. A closed gate allows no
- * country and exposes no default currency.
+ * country, exposes no default currency, and returns no region override.
+ * `regionOverride` is optional and absent in production; an RC or internal
+ * variation can set a country code.
  *
  * @returns The enabled country list, or a disabled rollout.
  */
@@ -212,6 +242,7 @@ export const selectMoneyMovementNeobank = createSelector(
       regionCurrencies: normalizeVbaRegionCurrencies(payload.regionCurrencies),
       defaultCurrency: normalizeVbaFlagCurrency(payload.defaultCurrency),
       chooseCurrency: payload.chooseCurrency === true,
+      regionOverride: normalizeVbaRegionOverride(payload.regionOverride),
     };
   },
 );
@@ -226,16 +257,6 @@ export const selectMoneyMovementNeobank = createSelector(
  */
 export function isVbaGeoBypassEnabled(): boolean {
   return process.env.MM_MONEY_VBA_GEO_BYPASS === 'true';
-}
-
-/**
- * Optional lower-environment IP-country override for testing the whole VBA
- * flow. The remote flag must still enable and map the overridden country.
- */
-export function getVbaRegionOverride(): string | undefined {
-  const override =
-    process.env.MM_MONEY_VBA_REGION_OVERRIDE?.trim().toUpperCase();
-  return override || undefined;
 }
 
 export const SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY =

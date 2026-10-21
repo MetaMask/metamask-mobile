@@ -4,7 +4,6 @@ import {
   selectMoneyAccountVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
   selectMoneyMovementNeobank,
-  getVbaRegionOverride,
   isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
   selectProSubscriptionEnabled,
@@ -116,6 +115,7 @@ describe('Money Account feature flag selectors', () => {
       regionCurrencies: {},
       defaultCurrency: undefined,
       chooseCurrency: false,
+      regionOverride: undefined,
     };
     const enabledFlag = {
       enabled: true,
@@ -142,6 +142,7 @@ describe('Money Account feature flag selectors', () => {
         regionCurrencies: { BR: 'BRL' },
         defaultCurrency: undefined,
         chooseCurrency: false,
+        regionOverride: undefined,
       });
     });
 
@@ -159,6 +160,7 @@ describe('Money Account feature flag selectors', () => {
         regionCurrencies: { BR: 'BRL' },
         defaultCurrency: undefined,
         chooseCurrency: false,
+        regionOverride: undefined,
       });
     });
 
@@ -212,6 +214,7 @@ describe('Money Account feature flag selectors', () => {
         regionCurrencies: {},
         defaultCurrency: 'USD',
         chooseCurrency: false,
+        regionOverride: undefined,
       });
       expect(
         selectMoneyMovementNeobank.resultFunc({
@@ -306,6 +309,61 @@ describe('Money Account feature flag selectors', () => {
       expect(result).toEqual(disabled);
     });
 
+    it('uppercases and trims regionOverride without limiting it to a currency', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          regionOverride: ' de ',
+        },
+      });
+
+      expect(result.regionOverride).toBe('DE');
+    });
+
+    it('ignores a blank, missing, or non-string regionOverride', () => {
+      const readOverride = (regionOverride: unknown) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            regionOverride,
+          },
+        }).regionOverride;
+
+      expect(readOverride('')).toBeUndefined();
+      expect(readOverride('   ')).toBeUndefined();
+      expect(readOverride(null)).toBeUndefined();
+      expect(readOverride(1)).toBeUndefined();
+      expect(readOverride(true)).toBeUndefined();
+      expect(readOverride(['BR'])).toBeUndefined();
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
+        }).regionOverride,
+      ).toBeUndefined();
+    });
+
+    it('drops a present regionOverride when the gate is closed', () => {
+      const readClosed = (flag: Record<string, unknown>) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            regionOverride: 'BR',
+            ...flag,
+          },
+        });
+
+      expect(readClosed({ enabled: false })).toEqual(disabled);
+      expect(readClosed({ minimumVersion: '999.0.0' })).toEqual(disabled);
+      expect(readClosed({ regions: [] })).toEqual(disabled);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            regionOverride: 'BR',
+          },
+        }),
+      ).toEqual(disabled);
+    });
+
     it('is disabled when the flag serves enabled: false', () => {
       const result = selectMoneyMovementNeobank.resultFunc({
         [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
@@ -395,31 +453,6 @@ describe('Money Account feature flag selectors', () => {
 
       process.env.MM_MONEY_VBA_GEO_BYPASS = 'false';
       expect(isVbaGeoBypassEnabled()).toBe(false);
-    });
-  });
-
-  describe('getVbaRegionOverride', () => {
-    const originalOverride = process.env.MM_MONEY_VBA_REGION_OVERRIDE;
-
-    afterEach(() => {
-      if (originalOverride === undefined) {
-        delete process.env.MM_MONEY_VBA_REGION_OVERRIDE;
-      } else {
-        process.env.MM_MONEY_VBA_REGION_OVERRIDE = originalOverride;
-      }
-    });
-
-    it('normalizes a configured country code', () => {
-      process.env.MM_MONEY_VBA_REGION_OVERRIDE = ' us ';
-
-      expect(getVbaRegionOverride()).toBe('US');
-    });
-
-    it('returns undefined when the override is blank or missing', () => {
-      process.env.MM_MONEY_VBA_REGION_OVERRIDE = ' ';
-      expect(getVbaRegionOverride()).toBeUndefined();
-      delete process.env.MM_MONEY_VBA_REGION_OVERRIDE;
-      expect(getVbaRegionOverride()).toBeUndefined();
     });
   });
 

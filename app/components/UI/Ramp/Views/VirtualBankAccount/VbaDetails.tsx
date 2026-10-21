@@ -38,10 +38,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  getVbaRegionOverride,
-  selectMoneyMovementNeobank,
-} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   getVbaSourceCurrencyForCountry,
   isVbaSourceCurrency,
@@ -206,7 +203,9 @@ const buildDetailRows = (
 
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the autoramp, in the fiat mapped from the IP country.
+ * wallet and creates the autoramp, in the fiat mapped from the effective
+ * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
+ * IP country).
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -220,9 +219,14 @@ const VbaDetails = () => {
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const { chooseCurrency, regionCurrencies, regions, defaultCurrency } =
-    useSelector(selectMoneyMovementNeobank);
-  const effectiveLocation = getVbaRegionOverride() ?? location;
+  const {
+    chooseCurrency,
+    regionCurrencies,
+    regions,
+    defaultCurrency,
+    regionOverride,
+  } = useSelector(selectMoneyMovementNeobank);
+  const effectiveLocation = regionOverride ?? location;
   // With chooseCurrency on, only the picked currency may create an account.
   const regionCurrency = chooseCurrency
     ? undefined
