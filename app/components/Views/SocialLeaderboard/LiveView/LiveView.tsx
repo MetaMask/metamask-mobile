@@ -58,7 +58,7 @@ interface LiveScrollContext {
 const LIVE_FEED_INITIAL_RENDER_COUNT = 6;
 const LIVE_FEED_MAX_RENDER_PER_BATCH = 6;
 const LIVE_FEED_WINDOW_SIZE = 5;
-const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 48;
+const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 4;
 
 type LiveStreamState = 'paused' | 'live';
 
@@ -225,13 +225,13 @@ const LiveView: React.FC<LiveViewProps> = ({
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => {
       const eventId = realtimeEventIds.get(item.id);
       return (
-        <React.Fragment>
-          {index > 0 ? <Box twClassName="h-px bg-muted" /> : null}
-          <FeedItemEntryAnimation
-            eventId={eventId}
-            scheduleEntryDelay={scheduleEntryDelay}
-            onAnimationComplete={markRealtimeEventAnimated}
-          >
+        <FeedItemEntryAnimation
+          eventId={eventId}
+          scheduleEntryDelay={scheduleEntryDelay}
+          onAnimationComplete={markRealtimeEventAnimated}
+        >
+          <>
+            {index > 0 ? <Box twClassName="h-px bg-muted" /> : null}
             <Box twClassName="px-4">
               <SocialFeedPostShell
                 post={item}
@@ -241,8 +241,8 @@ const LiveView: React.FC<LiveViewProps> = ({
                 }
               />
             </Box>
-          </FeedItemEntryAnimation>
-        </React.Fragment>
+          </>
+        </FeedItemEntryAnimation>
       );
     },
     [

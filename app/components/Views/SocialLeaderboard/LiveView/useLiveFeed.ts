@@ -16,6 +16,8 @@ import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSou
 
 export const LIVE_FEED_BUFFER_SIZE = 60;
 const LIVE_FEED_PAGE_SIZE = 30;
+const LIVE_FEED_REVEAL_BATCH_SIZE = 6;
+const LIVE_FEED_REVEAL_INTERVAL_MS = 16;
 
 const LIVE_FEED_SOURCE: SocialFeedSource = {
   kind: 'all',
@@ -143,6 +145,7 @@ export const useLiveFeed = ({
   nearTopRef.current = nearTop;
 
   const [pendingNewCount, setPendingNewCount] = useState(0);
+  const [pendingDrainVersion, setPendingDrainVersion] = useState(0);
   const queuePendingEvent = useCallback(
     (event: SocialFeedEvent, animate: boolean) => {
       const previous = pendingEvents.current.get(event.feedItemId);
@@ -243,9 +246,14 @@ export const useLiveFeed = ({
 
   useEffect(() => {
     if (paused || !nearTop || pendingEvents.current.size === 0) {
-      return;
+      return undefined;
     }
-    for (const [feedItemId, pending] of pendingEvents.current) {
+
+    const batch = Array.from(pendingEvents.current.entries()).slice(
+      0,
+      LIVE_FEED_REVEAL_BATCH_SIZE,
+    );
+    for (const [feedItemId, pending] of batch) {
       const row = feed.rows.find(
         (candidate) => candidate.core.positionId === feedItemId,
       );
@@ -253,7 +261,17 @@ export const useLiveFeed = ({
       pendingEvents.current.delete(feedItemId);
     }
     setPendingNewCount(pendingEvents.current.size);
-  }, [applyEvent, feed.rows, nearTop, paused]);
+
+    if (pendingEvents.current.size === 0) {
+      return undefined;
+    }
+
+    const nextBatchTimer = setTimeout(
+      () => setPendingDrainVersion((version) => version + 1),
+      LIVE_FEED_REVEAL_INTERVAL_MS,
+    );
+    return () => clearTimeout(nextBatchTimer);
+  }, [applyEvent, feed.rows, nearTop, paused, pendingDrainVersion]);
 
   const rows = useMemo(() => {
     const byPositionId = new Map<string, LiveFeedRow>();
