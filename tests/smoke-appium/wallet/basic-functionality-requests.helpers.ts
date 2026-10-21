@@ -150,20 +150,9 @@ function missingEnabledRequirements(requests: ObservedRequest[]): string[] {
 }
 
 function unexpectedDisabledRequests(requests: ObservedRequest[]): string[] {
-  return BASIC_FUNCTIONALITY_SERVICES.flatMap((service) =>
-    requests
-      .filter((request) => service.matches(request.url))
-      .map((request) => `${service.label}: ${request.url}`),
-  ).concat(
-    requests
-      .filter(
-        (request) =>
-          request.url.includes('gas.api.cx.metamask.io') ||
-          (request.url.includes('infura.io') &&
-            !request.url.includes(SELECTED_RPC_HOST)),
-      )
-      .map((request) => `non-selected service: ${request.url}`),
-  );
+  return requests
+    .filter((request) => !request.url.includes(SELECTED_RPC_HOST))
+    .map((request) => `${request.httpMethod} ${request.url}`);
 }
 
 function formatObservedRequests(requests: ObservedRequest[]): string {
@@ -216,7 +205,7 @@ export async function waitForBasicFunctionalityRequests(
   const unexpected = unexpectedDisabledRequests(latest);
   if (selectedRpcRequests(latest).length === 0 || unexpected.length > 0) {
     throw new Error(
-      `Basic functionality off should keep only the selected RPC (${SELECTED_RPC_HOST}). Missing selected RPC: ${String(selectedRpcRequests(latest).length === 0)}. Unexpected: ${unexpected.join(', ') || '(none)'}\nSeen requests:\n${formatObservedRequests(latest)}`,
+      `Basic functionality off should send requests only to the selected RPC (${SELECTED_RPC_HOST}). Missing selected RPC: ${String(selectedRpcRequests(latest).length === 0)}. Other requests: ${unexpected.join(', ') || '(none)'}\nSeen requests:\n${formatObservedRequests(latest)}`,
     );
   }
 

@@ -50,6 +50,38 @@ describe('basic functionality request policy', () => {
       expect(blocked).toBe(true);
     });
 
+    it('blocks a host that is not the selected RPC', () => {
+      const blocked = isBasicFunctionalityRequestBlocked(
+        'https://api.etherscan.io/api',
+        [SELECTED_INFURA_URL],
+      );
+
+      expect(blocked).toBe(true);
+    });
+
+    it('blocks a MetaMask service hidden inside the E2E proxy URL', () => {
+      const proxiedPriceUrl =
+        'http://127.0.0.1:8080/proxy?url=' +
+        encodeURIComponent(
+          'https://price.api.cx.metamask.io/v2/chains/1/spot-prices',
+        );
+
+      const blocked = isBasicFunctionalityRequestBlocked(proxiedPriceUrl, [
+        SELECTED_INFURA_URL,
+      ]);
+
+      expect(blocked).toBe(true);
+    });
+
+    it('allows the local test harness', () => {
+      const blocked = isBasicFunctionalityRequestBlocked(
+        'http://127.0.0.1:8080/health-check',
+        [SELECTED_INFURA_URL],
+      );
+
+      expect(blocked).toBe(false);
+    });
+
     it('allows a selected custom RPC', () => {
       const blocked = isBasicFunctionalityRequestBlocked(
         SELECTED_CUSTOM_RPC_URL,

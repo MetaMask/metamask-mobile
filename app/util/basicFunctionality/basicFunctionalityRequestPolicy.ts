@@ -1,5 +1,12 @@
-import AppConstants from '../../core/AppConstants';
 import type { RootState } from '../../reducers';
+
+const LOCAL_HARNESS_HOSTS = new Set([
+  'localhost',
+  '127.0.0.1',
+  '0.0.0.0',
+  '10.0.2.2',
+  'bs-local.com',
+]);
 
 export interface BasicFunctionalityGateState {
   enabled: boolean;
@@ -69,22 +76,48 @@ export function requestMatchesSelectedRpc(
 }
 
 /**
- * True when basic functionality is off and this URL is a MetaMask service
- * rather than the selected RPC. JSON-RPC methods share the RPC URL, so
- * eth_chainId, eth_blockNumber, eth_getBalance, and fee methods stay allowed
- * together.
+ * Follow a mock-server `/proxy?url=` wrapper to the real destination.
+ * The E2E shim rewrites fetches to that shape.
+ */
+export function unwrapProxiedRequestUrl(requestUrl: string): string {
+  try {
+    const parsed = new URL(requestUrl);
+    const innerUrl = parsed.searchParams.get('url');
+    if (innerUrl && parsed.pathname.includes('/proxy')) {
+      return unwrapProxiedRequestUrl(innerUrl);
+    }
+  } catch {
+    return requestUrl;
+  }
+  return requestUrl;
+}
+
+function isLocalHarnessUrl(requestUrl: string): boolean {
+  try {
+    return LOCAL_HARNESS_HOSTS.has(new URL(requestUrl).hostname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True when basic functionality is off and this URL is anything other than
+ * the selected RPC. JSON-RPC methods share that URL, so eth_chainId,
+ * eth_blockNumber, eth_getBalance, and fee methods stay allowed together.
+ * Local test-harness hosts stay open so the device can reach the mock server.
  */
 export function isBasicFunctionalityRequestBlocked(
   requestUrl: string,
   selectedRpcUrls: string[],
 ): boolean {
-  if (requestMatchesSelectedRpc(requestUrl, selectedRpcUrls)) {
+  const targetUrl = unwrapProxiedRequestUrl(requestUrl);
+  if (requestMatchesSelectedRpc(targetUrl, selectedRpcUrls)) {
     return false;
   }
-
-  return AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST.some((blockedUrl) =>
-    requestUrl.includes(blockedUrl),
-  );
+  if (isLocalHarnessUrl(targetUrl)) {
+    return false;
+  }
+  return true;
 }
 
 export function readBasicFunctionalityGateState(

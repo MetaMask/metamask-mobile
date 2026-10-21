@@ -53,16 +53,18 @@ describe('overrideXMLHttpRequest', () => {
   );
 
   notBlockedURLs.forEach((url) =>
-    it(`does not block requests to non blocked URL ${url} when enabled`, (done) => {
+    it(`blocks ${url} because it is not the selected RPC`, (done) => {
       const logSpy = jest.spyOn(console, 'error');
       overrideXMLHttpRequest();
       const req = new global.XMLHttpRequest();
-      req.onload = () => {
-        expect(logSpy.mock.calls.length).toBe(0);
-        done();
-      };
       req.open('POST', url);
       req.send('{"foo": "bar"}');
+      setImmediate(() => {
+        expect(logSpy.mock.calls[0][0].message).toMatch(
+          `Disallowed URL: ${url}`,
+        );
+        done();
+      });
     }),
   );
 });
