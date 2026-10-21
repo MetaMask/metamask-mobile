@@ -8,7 +8,7 @@ import {
   type ViewProps,
   type ViewStyle,
 } from 'react-native';
-import { GlassView, type GlassStyle } from 'expo-glass-effect';
+import { GlassView } from 'expo-glass-effect';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -50,11 +50,6 @@ export interface BoxGlassProps extends ViewProps {
   hasSheen?: boolean;
   /** Fills the glass with a colour, e.g. a primary button's background. */
   tintColor?: ColorValue;
-  /**
-   * `regular` matches the system containers. `clear` is more transparent.
-   * @default 'regular'
-   */
-  glassEffectStyle?: GlassStyle;
   /** The screen's flag; the surface turns opaque where the OS can't draw glass. */
   isGlass?: boolean;
 }
@@ -67,7 +62,6 @@ const OpaqueSurface = ({
   isInteractive: _isInteractive,
   hasSheen: _hasSheen,
   tintColor: _tintColor,
-  glassEffectStyle: _glassEffectStyle,
   style,
   children,
   ...props
@@ -89,7 +83,6 @@ const LiquidGlassSurface = ({
   isInteractive = false,
   hasSheen = false,
   tintColor,
-  glassEffectStyle = 'regular',
   style,
   children,
   ...props
@@ -133,7 +126,7 @@ const LiquidGlassSurface = ({
       ]}
     >
       <GlassView
-        glassEffectStyle={glassEffectStyle}
+        glassEffectStyle="regular"
         colorScheme={glassColorScheme}
         isInteractive={isInteractive}
         tintColor={tintColor}

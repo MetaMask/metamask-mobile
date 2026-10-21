@@ -50,7 +50,6 @@ const SrpWordSuggestions: React.FC<SrpWordSuggestionsProps> = ({
         radiusClassName="rounded-full"
         isGlass={isGlass}
         isInteractive
-        glassEffectStyle="clear"
         testID="srp-word-suggestions"
         containerStyle={[tw.style('w-full'), shadows.size.md]}
         style={tw.style('h-12 w-full justify-center')}
