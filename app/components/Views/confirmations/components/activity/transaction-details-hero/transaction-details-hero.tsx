@@ -54,7 +54,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
   FontFamily,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -299,12 +298,7 @@ export function TransactionDetailsHero() {
       gap={12}
       style={styles.container}
     >
-      <Text
-        variant={TextVariant.AmountDisplayLg}
-        fontFamily={FontFamily.Hero}
-        fontWeight={FontWeight.Regular}
-        twClassName="text-[48px] leading-[52.8px]"
-      >
+      <Text variant={TextVariant.AmountDisplayLg} fontFamily={FontFamily.Hero}>
         {formattedAmount}
       </Text>
     </Box>
