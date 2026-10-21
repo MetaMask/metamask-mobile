@@ -4,10 +4,6 @@ import { selectSocialLeaderboardEnabled } from '../socialLeaderboard';
 import { SOCIAL_V1_AB_KEY, SocialV1Variant } from '../../../constants/socialV1';
 import { resolveABTestAssignment } from '../../../util/abTest';
 
-/**
- * Social V1: leaderboard flag on AND TSA-1122 treatment.
- * Assignment-only — never emits an exposure event.
- */
 export const selectIsSocialV1Enabled = createSelector(
   selectSocialLeaderboardEnabled,
   selectRemoteFeatureFlags,

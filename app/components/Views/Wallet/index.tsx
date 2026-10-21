@@ -887,7 +887,6 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
-    // Social V1: open the profile drawer instead of the account hub.
     if (isSocialV1Enabled) {
       navigation.navigate(...createProfileDrawerNavDetails({}));
       return;

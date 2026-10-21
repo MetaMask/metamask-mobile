@@ -1098,7 +1098,6 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        {/* ProfileDrawer is Social V1-only. */}
         {isSocialV1Enabled && (
           <NativeStack.Screen
             name={Routes.SOCIAL_PROFILE.DRAWER}
