@@ -56,6 +56,12 @@ export interface UserState {
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
+  /**
+   * Plus subscription id for which the Money home "Upgrading" pill was
+   * already shown. Null until the first post-subscribe visit, or after a
+   * developer-options reset.
+   */
+  moneyPremiumUpgradeSeenSubscriptionId: string | null;
   moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;
   /** Candle interval (e.g. '15m') when technical indicators chart is enabled. */

@@ -8,7 +8,10 @@ import {
 import type { ReactTestInstance } from 'react-test-renderer';
 import BigNumber from 'bignumber.js';
 import type { MoneyAccount } from '@metamask/money-account-controller';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -839,6 +842,7 @@ describe('MoneyHomeView', () => {
       apyDecimal: 0.05,
       apyPercent: 5,
       apyPercentFormatted: '5%',
+      baseApyPercent: 5,
       vaultApyQuery: {
         data: { apy: 0.05, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
@@ -1178,6 +1182,7 @@ describe('MoneyHomeView', () => {
         apyDecimal: undefined,
         apyPercent: undefined,
         apyPercentFormatted: undefined,
+        baseApyPercent: undefined,
         vaultApyQuery: {
           data: undefined,
           isLoading: true,
@@ -2246,7 +2251,122 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: 5 },
+      params: { apy: 5, isPremium: false },
+    });
+  });
+
+  describe('premium upgrade pill', () => {
+    const plusSubscriptionState = (
+      id: string,
+      { premiumApy = true }: { premiumApy?: boolean } = {},
+    ): DeepPartial<RootState> => ({
+      engine: {
+        backgroundState: {
+          SubscriptionController: {
+            subscriptions: [
+              {
+                id,
+                status: 'active',
+                products: [{ name: 'money_account_plus' }],
+                paymentMethod: {
+                  type: 'crypto',
+                  crypto: {
+                    payerAddress: '0x15ffacc73fce2323d469df2cd23251e3e104352e',
+                    chainId: '0x8f',
+                    tokenSymbol: 'pvmUSD',
+                  },
+                },
+              },
+            ],
+            trialedProducts: [],
+            productEntitlements: {
+              money_account_plus: {
+                plan: 'premium',
+                entitlements: {
+                  swapFeeWaiver: false,
+                  perpsFeeWaiver: false,
+                  predictFreeTx: false,
+                  premiumApy,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    it('shows the upgrading pill on the first visit after entitlement and marks it seen', () => {
+      const { getByTestId, store } = renderWithProvider(<MoneyHomeView />, {
+        state: plusSubscriptionState('sub-plus-1'),
+      });
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).toBeOnTheScreen();
+      expect(store.getState().user.moneyPremiumUpgradeSeenSubscriptionId).toBe(
+        'sub-plus-1',
+      );
+    });
+
+    it('hides the upgrading pill on a later visit with the same subscription id', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: {
+          ...plusSubscriptionState('sub-plus-1'),
+          user: {
+            moneyPremiumUpgradeSeenSubscriptionId: 'sub-plus-1',
+          },
+        },
+      });
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the upgrading pill again for a new subscription id', () => {
+      const { getByTestId, store } = renderWithProvider(<MoneyHomeView />, {
+        state: {
+          ...plusSubscriptionState('sub-plus-2'),
+          user: {
+            moneyPremiumUpgradeSeenSubscriptionId: 'sub-plus-1',
+          },
+        },
+      });
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).toBeOnTheScreen();
+      expect(store.getState().user.moneyPremiumUpgradeSeenSubscriptionId).toBe(
+        'sub-plus-2',
+      );
+    });
+
+    it('never shows the upgrading pill when the premiumApy entitlement is missing', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: plusSubscriptionState('sub-plus-1', { premiumApy: false }),
+      });
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the Premium tag when the premiumApy entitlement is granted', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: {
+          ...plusSubscriptionState('sub-plus-1'),
+          user: {
+            moneyPremiumUpgradeSeenSubscriptionId: 'sub-plus-1',
+          },
+        },
+      });
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+      ).toBeOnTheScreen();
     });
   });
 

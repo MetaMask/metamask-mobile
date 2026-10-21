@@ -18,6 +18,7 @@ import {
   selectDisplayedMoneyAccountPlusSubscription,
   selectHasAnyMoneyAccountPlusEntitlement,
   selectHasExistingMoneyAccountPlusSubscription,
+  selectHasMoneyAccountPremiumApyEntitlement,
   selectIsMoneyAccountPlusSubscriber,
   selectIsMoneyAccountPlusTrialing,
   selectLastSelectedPaymentMethodByProduct,
@@ -939,6 +940,53 @@ describe('subscriptionController selectors', () => {
 
       it('fails closed when the controller is absent', () => {
         expect(selectHasAnyMoneyAccountPlusEntitlement(createState())).toBe(
+          false,
+        );
+      });
+    });
+
+    describe('selectHasMoneyAccountPremiumApyEntitlement', () => {
+      it('returns true when premiumApy is granted', () => {
+        const state = createPlusState({ premiumApy: true });
+
+        expect(selectHasMoneyAccountPremiumApyEntitlement(state)).toBe(true);
+      });
+
+      it('returns false when premiumApy is revoked', () => {
+        expect(
+          selectHasMoneyAccountPremiumApyEntitlement(createPlusState({})),
+        ).toBe(false);
+      });
+
+      it('keeps premiumApy for a past_due subscription the active-subscriber selector rejects', () => {
+        const state = createState({
+          subscriptions: [
+            createSubscription({
+              id: 'sub-plus',
+              products: [createProduct(PRODUCT_TYPES.MONEY_ACCOUNT_PLUS)],
+              status: SUBSCRIPTION_STATUSES.pastDue,
+            }),
+          ],
+          trialedProducts: [],
+          productEntitlements: {
+            [PRODUCT_TYPES.MONEY_ACCOUNT_PLUS]: {
+              plan: 'premium',
+              entitlements: {
+                swapFeeWaiver: false,
+                perpsFeeWaiver: false,
+                predictFreeTx: false,
+                premiumApy: true,
+              },
+            },
+          },
+        });
+
+        expect(selectIsMoneyAccountPlusSubscriber(state)).toBe(false);
+        expect(selectHasMoneyAccountPremiumApyEntitlement(state)).toBe(true);
+      });
+
+      it('fails closed when the controller is absent', () => {
+        expect(selectHasMoneyAccountPremiumApyEntitlement(createState())).toBe(
           false,
         );
       });

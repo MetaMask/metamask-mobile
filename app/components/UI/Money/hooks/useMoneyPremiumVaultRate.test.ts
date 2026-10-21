@@ -106,10 +106,8 @@ describe('useMoneyPremiumVaultRate', () => {
   });
 
   it.each([
-    ['subscription token address', { tokenAddress: '' }],
     ['premium vault config', { premiumChainId: '' }],
     ['valid premium vault chain id', { premiumChainId: 'invalid' }],
-    ['crypto payment method', { paymentType: 'card' as const }],
   ])('disables the rate query without a %s', (_label, selectorOverrides) => {
     setSelectors(selectorOverrides);
 
@@ -117,6 +115,35 @@ describe('useMoneyPremiumVaultRate', () => {
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('falls back to the premium vault config address after a crypto payment lapse', () => {
+    setSelectors({ tokenAddress: '' });
+
+    renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(mockUseQuery).toHaveBeenCalledWith({
+      queryKey: [
+        MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
+        MOCK_VAULT_ADDRESS,
+        { chainId: 143 },
+      ],
+      enabled: true,
+      refetchInterval: FIVE_MINUTES_MS,
+    });
+  });
+
+  it('falls back to the premium vault config address for a card payment method', () => {
+    setSelectors({ paymentType: 'card' });
+
+    renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: expect.arrayContaining([MOCK_VAULT_ADDRESS]),
+        enabled: true,
+      }),
     );
   });
 
@@ -167,5 +194,13 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.rate).toBeUndefined();
     expect(result.current.ratePercent).toBeUndefined();
     expect(result.current.ratePercentFormatted).toBeUndefined();
+  });
+
+  it('disables the rate query when enabled is false', () => {
+    renderHook(() => useMoneyPremiumVaultRate({ enabled: false }));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 });

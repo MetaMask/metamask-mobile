@@ -98,6 +98,50 @@ describe('MoneyBalanceSummary', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the Premium tag when isPremium is true', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary apy={7.1} displayState={balanceState()} isPremium />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).toHaveTextContent('Premium');
+  });
+
+  it('hides the Premium tag when isPremium is false', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the upgrading pill when showUpgradePill is true', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={5}
+        displayState={balanceState()}
+        showUpgradePill
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+  });
+
+  it('hides the upgrading pill when showUpgradePill is false', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the APY row when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(

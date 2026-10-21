@@ -9184,6 +9184,8 @@
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
+    "apy_premium_tag": "Premium",
+    "apy_upgrading_pill": "Upgrading to Premium APY",
     "apy_info_label": "APY info",
     "balance_unavailable": "Balance unavailable",
     "balance_unavailable_value": "$—",
@@ -9447,6 +9449,7 @@
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
+      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Pro Premium APY.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
       "paragraph_4": "Money account is powered by Monad.",

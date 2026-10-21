@@ -24,13 +24,19 @@ type MoneyApyInfoSheetVariant = 'default' | 'deposit';
 interface MoneyApyInfoSheetParams {
   apy?: number;
   variant?: MoneyApyInfoSheetVariant;
+  /** When true, the opening paragraph uses the Premium APY copy. */
+  isPremium?: boolean;
 }
 
 const MoneyApyInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
+  const {
+    apy,
+    variant = 'default',
+    isPremium = false,
+  } = useParams<MoneyApyInfoSheetParams>();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
@@ -54,7 +60,12 @@ const MoneyApyInfoSheet = () => {
     ) : (
       <>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.apy_tooltip.paragraph_1', { percentage: apy })}
+          {strings(
+            isPremium
+              ? 'money.apy_tooltip.paragraph_1_premium'
+              : 'money.apy_tooltip.paragraph_1',
+            { percentage: apy },
+          )}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_2')}

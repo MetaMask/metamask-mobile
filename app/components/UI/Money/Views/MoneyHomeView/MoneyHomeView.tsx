@@ -20,7 +20,7 @@ import {
   navigateWithDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -72,6 +72,12 @@ import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyAct
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { setMoneyPremiumUpgradeSeenSubscriptionId } from '../../../../../actions/user';
+import { selectMoneyPremiumUpgradeSeenSubscriptionId } from '../../../../../reducers/user/selectors';
+import {
+  selectHasMoneyAccountPremiumApyEntitlement,
+  selectMoneyAccountPlusSubscription,
+} from '../../../../../selectors/subscriptionController';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
@@ -173,11 +179,55 @@ const MoneyHomeView = () => {
   const { vaultApyQuery, apyPercent, apyDecimal } = useMoneyVaultApy();
   const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
     useMoneyAccountInterest();
+  const dispatch = useDispatch();
+  const isEntitled = useSelector(selectHasMoneyAccountPremiumApyEntitlement);
+  const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
+  const premiumUpgradeSeenSubscriptionId = useSelector(
+    selectMoneyPremiumUpgradeSeenSubscriptionId,
+  );
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
+
+  // One-time upgrade pill for the first Money home visit after the premiumApy
+  // entitlement turns on. Local state keeps it visible for the rest of that
+  // visit after the seen marker is written; it clears when the entitlement is
+  // lost or the subscription id changes to a different non-empty value
+  // (resubscribe).
+  const plusSubscriptionId = plusSubscription?.id;
+  const [showUpgradePill, setShowUpgradePill] = useState(false);
+  const previousPlusSubscriptionIdRef = useRef(plusSubscriptionId);
+
+  useEffect(() => {
+    const previousId = previousPlusSubscriptionIdRef.current;
+    previousPlusSubscriptionIdRef.current = plusSubscriptionId;
+    // Ignore transient undefined gaps while the subscription slice reloads.
+    if (previousId && plusSubscriptionId && previousId !== plusSubscriptionId) {
+      setShowUpgradePill(false);
+    }
+  }, [plusSubscriptionId]);
+
+  useEffect(() => {
+    if (!isEntitled) {
+      setShowUpgradePill(false);
+      return;
+    }
+    if (
+      !plusSubscriptionId ||
+      premiumUpgradeSeenSubscriptionId === plusSubscriptionId
+    ) {
+      return;
+    }
+    setShowUpgradePill(true);
+    dispatch(setMoneyPremiumUpgradeSeenSubscriptionId(plusSubscriptionId));
+  }, [
+    dispatch,
+    isEntitled,
+    plusSubscriptionId,
+    premiumUpgradeSeenSubscriptionId,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -657,9 +707,9 @@ const MoneyHomeView = () => {
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent },
+      params: { apy: apyPercent, isPremium: isEntitled },
     });
-  }, [trackTooltipClicked, navigation, apyPercent]);
+  }, [trackTooltipClicked, navigation, apyPercent, isEntitled]);
 
   const handleBalancePress = useCallback(() => {
     PreferencesController.setPrivacyMode(!privacyMode);
@@ -1096,6 +1146,8 @@ const MoneyHomeView = () => {
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
             showTitle={isPushed && !isNativeHeader}
+            isPremium={isEntitled}
+            showUpgradePill={showUpgradePill}
           />
         </Box>
         <MoneyActionButtonRow
