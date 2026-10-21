@@ -190,7 +190,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     feeResults.metamaskFee,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
-    feeResults.feeDiscountKind,
     feeResults.protocolFeeRate,
     markPrice,
     price,
