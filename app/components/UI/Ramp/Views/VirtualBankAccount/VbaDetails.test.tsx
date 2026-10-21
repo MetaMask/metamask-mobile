@@ -343,8 +343,9 @@ describe('VbaDetails', () => {
           depositRailsSummary: { currency: 'USD' },
         },
       ]);
-      let resolveInstructions: (value: typeof usBankInstructions) => void =
-        () => undefined;
+      let resolveInstructions: (
+        value: typeof usBankInstructions,
+      ) => void = () => undefined;
       mockGetDepositInstructions.mockReturnValue(
         new Promise((resolve) => {
           resolveInstructions = resolve;
