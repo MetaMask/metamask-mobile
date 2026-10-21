@@ -3,6 +3,8 @@ import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,10 +13,9 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
+  ListItem,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
@@ -40,21 +41,14 @@ const FeatureRow = ({
   title: string;
   description: string;
 }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="min-h-14 gap-3 px-4 py-3"
-  >
-    <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
-    <Box twClassName="flex-1">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {title}
-      </Text>
-      <Text variant={TextVariant.BodySm} twClassName="opacity-72">
-        {description}
-      </Text>
-    </Box>
-  </Box>
+  <ListItem
+    variant={ListItemVariant.TwoLines}
+    avatar={
+      <AvatarIcon iconName={icon} severity={AvatarIconSeverity.Neutral} />
+    }
+    title={title}
+    description={description}
+  />
 );
 
 interface CreateVirtualBankAccountProps {
@@ -144,59 +138,57 @@ const CreateVirtualBankAccount = ({
           twClassName="px-4 pb-4"
         />
 
-        <Box twClassName="px-4 pb-2.5">
-          <Box twClassName="rounded-3xl bg-muted">
-            <FeatureRow
-              icon={IconName.MoneyBag}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
-              )}
-              description={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
-              )}
-            />
-            <FeatureRow
-              icon={IconName.Clock}
-              title={
-                arrivalTimeframe
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-                      { timeframe: arrivalTimeframe },
-                    )
-                  : strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
-                    )
-              }
-              description={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
-              )}
-            />
-            <FeatureRow
-              icon={IconName.Refresh}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
-              )}
-              description={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
-              )}
-            />
-            <FeatureRow
-              icon={IconName.TrendUp}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
-              )}
-              description={
-                isPositiveNumberOrZero(apyPercent)
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
-                      { percentage: apyPercent },
-                    )
-                  : strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
-                    )
-              }
-            />
-          </Box>
+        <Box>
+          <FeatureRow
+            icon={IconName.MoneyBag}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
+            )}
+            description={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
+            )}
+          />
+          <FeatureRow
+            icon={IconName.Clock}
+            title={
+              arrivalTimeframe
+                ? strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+                    { timeframe: arrivalTimeframe },
+                  )
+                : strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+                  )
+            }
+            description={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
+            )}
+          />
+          <FeatureRow
+            icon={IconName.Refresh}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
+            )}
+            description={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
+            )}
+          />
+          <FeatureRow
+            icon={IconName.TrendUp}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
+            )}
+            description={
+              isPositiveNumberOrZero(apyPercent)
+                ? strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
+                    { percentage: apyPercent },
+                  )
+                : strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
+                  )
+            }
+          />
         </Box>
       </ScrollView>
 
