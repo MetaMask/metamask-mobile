@@ -438,7 +438,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             thresholdVersion: 2,
             value: {
               enabled: true,
-              tabConfig: ['feed', 'holders', 'overview', 'security'],
+              tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
               tokenApiBaseUrl: 'https://token.api.cx.metamask.io',
             },
           },

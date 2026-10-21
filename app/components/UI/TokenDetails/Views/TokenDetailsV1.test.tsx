@@ -19,7 +19,7 @@ import {
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
 import {
-  selectMemecoinTdpV1TabConfig,
+  selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import {
@@ -67,11 +67,11 @@ const PROD_TOKEN_API_BASE_URL = 'https://token.api.cx.metamask.io';
  */
 const mockSelectors = ({
   socialEnabled = false,
-  tabConfig = TOKEN_DETAILS_V1_TABS,
+  tabConfigOrder = TOKEN_DETAILS_V1_TABS,
   tokenApiBaseUrl = PROD_TOKEN_API_BASE_URL,
 }: {
   socialEnabled?: boolean;
-  tabConfig?: TokenDetailsV1TabKey[];
+  tabConfigOrder?: TokenDetailsV1TabKey[];
   tokenApiBaseUrl?: string;
 } = {}) => {
   const { useSelector } = jest.requireMock('react-redux') as {
@@ -82,8 +82,8 @@ const mockSelectors = ({
     if (selector === selectSocialLeaderboardEnabled) {
       return socialEnabled;
     }
-    if (selector === selectMemecoinTdpV1TabConfig) {
-      return tabConfig;
+    if (selector === selectMemecoinTdpV1TabConfigOrder) {
+      return tabConfigOrder;
     }
     if (selector === selectMemecoinTdpV1TokenApiBaseUrl) {
       return tokenApiBaseUrl;
@@ -1033,7 +1033,7 @@ describe('TokenDetailsV1', () => {
     it('renders the tabs in the order the config gives', () => {
       mockSelectors({
         socialEnabled: true,
-        tabConfig: ['security', 'overview', 'feed', 'holders'],
+        tabConfigOrder: ['security', 'overview', 'feed', 'holders'],
       });
       withHolders();
 
@@ -1052,7 +1052,7 @@ describe('TokenDetailsV1', () => {
     it('lands on the first tab in the config rather than Feed', () => {
       mockSelectors({
         socialEnabled: true,
-        tabConfig: ['security', 'overview', 'feed'],
+        tabConfigOrder: ['security', 'overview', 'feed'],
       });
 
       const { getByText } = renderTabs();
@@ -1064,7 +1064,7 @@ describe('TokenDetailsV1', () => {
     it('never renders a tab the config leaves out', () => {
       mockSelectors({
         socialEnabled: true,
-        tabConfig: ['overview', 'security'],
+        tabConfigOrder: ['overview', 'security'],
       });
       withHolders();
 
@@ -1083,7 +1083,7 @@ describe('TokenDetailsV1', () => {
     it('does not grant a listed tab that the social gate denies', () => {
       mockSelectors({
         socialEnabled: false,
-        tabConfig: ['feed', 'holders', 'overview', 'security'],
+        tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
       });
       withHolders();
 

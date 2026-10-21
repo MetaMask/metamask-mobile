@@ -13,7 +13,7 @@ import {
 interface AssetsMemecoinTdpV1FeatureFlag {
   enabled?: boolean;
   /** Tab order and allowlist for the V1 page. */
-  tabConfig?: unknown;
+  tabConfigOrder?: unknown;
   /** Token API host the V1 page calls `/v2/assets` on. */
   tokenApiBaseUrl?: unknown;
 }
@@ -78,16 +78,16 @@ const KNOWN_TABS: ReadonlySet<string> = new Set(TOKEN_DETAILS_V1_TABS);
  * every wallet already running. An array with nothing usable left in it falls
  * back to the default order for the same reason.
  */
-export const selectMemecoinTdpV1TabConfig = createSelector(
+export const selectMemecoinTdpV1TabConfigOrder = createSelector(
   selectAssetsMemecoinTdpV1Config,
   (config): TokenDetailsV1TabKey[] => {
-    const tabConfig = config?.tabConfig;
+    const tabConfigOrder = config?.tabConfigOrder;
 
-    if (!Array.isArray(tabConfig)) {
+    if (!Array.isArray(tabConfigOrder)) {
       return TOKEN_DETAILS_V1_TABS;
     }
 
-    const tabs = Array.from(new Set(tabConfig)).filter(
+    const tabs = Array.from(new Set(tabConfigOrder)).filter(
       (tab): tab is TokenDetailsV1TabKey =>
         typeof tab === 'string' && KNOWN_TABS.has(tab),
     );

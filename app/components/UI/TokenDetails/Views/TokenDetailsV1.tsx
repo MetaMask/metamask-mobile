@@ -94,7 +94,7 @@ import {
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
 import {
-  selectMemecoinTdpV1TabConfig,
+  selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
@@ -506,11 +506,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   // Order and membership come from the remote config, which lets the tab
   // layout be reshuffled without a release. It only ever takes tabs away: a
   // tab it lists still has to clear the two gates above.
-  const tabConfig = useSelector(selectMemecoinTdpV1TabConfig);
+  const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
 
   const visibleTabs = useMemo(
     () =>
-      tabConfig.filter((tab) => {
+      tabConfigOrder.filter((tab) => {
         if (tab === 'feed') {
           return showSocialTabs;
         }
@@ -519,7 +519,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         }
         return true;
       }),
-    [tabConfig, showHoldersTab, showSocialTabs],
+    [tabConfigOrder, showHoldersTab, showSocialTabs],
   );
   // Whichever tab survives first is where the page lands, so reordering the
   // config moves the landing tab with it. An empty feed still keeps its tab;

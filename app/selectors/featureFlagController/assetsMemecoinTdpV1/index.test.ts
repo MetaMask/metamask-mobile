@@ -7,7 +7,7 @@ import { TOKEN_DETAILS_V1_TABS } from '../../../components/UI/TokenDetails/const
 import type { StateWithPartialEngine } from '../types';
 import {
   selectAssetsMemecoinTdpV1Enabled,
-  selectMemecoinTdpV1TabConfig,
+  selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '.';
 
@@ -62,12 +62,12 @@ describe('selectAssetsMemecoinTdpV1Enabled', () => {
   });
 });
 
-describe('selectMemecoinTdpV1TabConfig', () => {
+describe('selectMemecoinTdpV1TabConfigOrder', () => {
   it('returns the configured order', () => {
-    const result = selectMemecoinTdpV1TabConfig(
+    const result = selectMemecoinTdpV1TabConfigOrder(
       stateWithFlag({
         enabled: true,
-        tabConfig: ['overview', 'security', 'feed', 'holders'],
+        tabConfigOrder: ['overview', 'security', 'feed', 'holders'],
       }),
     );
 
@@ -75,18 +75,21 @@ describe('selectMemecoinTdpV1TabConfig', () => {
   });
 
   it('keeps a config that names only some of the tabs', () => {
-    const result = selectMemecoinTdpV1TabConfig(
-      stateWithFlag({ enabled: true, tabConfig: ['overview', 'security'] }),
+    const result = selectMemecoinTdpV1TabConfigOrder(
+      stateWithFlag({
+        enabled: true,
+        tabConfigOrder: ['overview', 'security'],
+      }),
     );
 
     expect(result).toStrictEqual(['overview', 'security']);
   });
 
   it('drops tab keys this release does not know', () => {
-    const result = selectMemecoinTdpV1TabConfig(
+    const result = selectMemecoinTdpV1TabConfigOrder(
       stateWithFlag({
         enabled: true,
-        tabConfig: ['overview', 'liquidity', 42, 'security'],
+        tabConfigOrder: ['overview', 'liquidity', 42, 'security'],
       }),
     );
 
@@ -94,10 +97,10 @@ describe('selectMemecoinTdpV1TabConfig', () => {
   });
 
   it('de-duplicates repeated tab keys', () => {
-    const result = selectMemecoinTdpV1TabConfig(
+    const result = selectMemecoinTdpV1TabConfigOrder(
       stateWithFlag({
         enabled: true,
-        tabConfig: ['overview', 'overview', 'security'],
+        tabConfigOrder: ['overview', 'overview', 'security'],
       }),
     );
 
@@ -105,15 +108,15 @@ describe('selectMemecoinTdpV1TabConfig', () => {
   });
 
   it('ignores the config when the feature is off', () => {
-    const result = selectMemecoinTdpV1TabConfig(
-      stateWithFlag({ enabled: false, tabConfig: ['security'] }),
+    const result = selectMemecoinTdpV1TabConfigOrder(
+      stateWithFlag({ enabled: false, tabConfigOrder: ['security'] }),
     );
 
     expect(result).toStrictEqual(TOKEN_DETAILS_V1_TABS);
   });
 
   it('falls back to the default order when the entry is absent', () => {
-    const result = selectMemecoinTdpV1TabConfig(
+    const result = selectMemecoinTdpV1TabConfigOrder(
       stateWithFlag({ enabled: true }),
     );
 
@@ -121,19 +124,19 @@ describe('selectMemecoinTdpV1TabConfig', () => {
   });
 
   it('falls back to the default order when the entry is not an array', () => {
-    const result = selectMemecoinTdpV1TabConfig(
-      stateWithFlag({ enabled: true, tabConfig: 'overview' }),
+    const result = selectMemecoinTdpV1TabConfigOrder(
+      stateWithFlag({ enabled: true, tabConfigOrder: 'overview' }),
     );
 
     expect(result).toStrictEqual(TOKEN_DETAILS_V1_TABS);
   });
 
   it('falls back to the default order when nothing in the array is usable', () => {
-    const emptyResult = selectMemecoinTdpV1TabConfig(
-      stateWithFlag({ enabled: true, tabConfig: [] }),
+    const emptyResult = selectMemecoinTdpV1TabConfigOrder(
+      stateWithFlag({ enabled: true, tabConfigOrder: [] }),
     );
-    const unknownResult = selectMemecoinTdpV1TabConfig(
-      stateWithFlag({ enabled: true, tabConfig: ['liquidity'] }),
+    const unknownResult = selectMemecoinTdpV1TabConfigOrder(
+      stateWithFlag({ enabled: true, tabConfigOrder: ['liquidity'] }),
     );
 
     expect(emptyResult).toStrictEqual(TOKEN_DETAILS_V1_TABS);
