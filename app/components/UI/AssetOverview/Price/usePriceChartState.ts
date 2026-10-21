@@ -31,6 +31,12 @@ import {
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import {
+  DeferredRenderPoint,
+  DeferredRenderScreenIds,
+} from '../../../../hooks/performance/deferredRenderPerformanceIds';
+import { markDeferredRenderPoint } from '../../../../hooks/performance/deferredRenderTtc';
+import { isScreenTtcProbeEnabled } from '../../../../hooks/performance/screenTtcRegistry';
 import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
@@ -440,6 +446,10 @@ export const usePriceChartState = ({
   }, []);
 
   const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    markDeferredRenderPoint(
+      DeferredRenderScreenIds.TOKEN_DETAILS,
+      DeferredRenderPoint.CHART_READY,
+    );
     const isInitialReveal = !hasChartBeenRevealed;
     setHasChartBeenRevealed(true);
     setChartInitFailed(false);
@@ -522,6 +532,18 @@ export const usePriceChartState = ({
     interval: effectiveInterval,
     vsCurrency: currentCurrency,
   });
+
+  useEffect(() => {
+    if (!isScreenTtcProbeEnabled() || !assetId || chartLoading) {
+      return;
+    }
+    if (ohlcvData.length > 0 || hasEmptyData || chartError) {
+      markDeferredRenderPoint(
+        DeferredRenderScreenIds.TOKEN_DETAILS,
+        DeferredRenderPoint.CHART_DATA_READY,
+      );
+    }
+  }, [assetId, chartError, chartLoading, hasEmptyData, ohlcvData.length]);
 
   const maLabel = useMemo(() => {
     if (selectedMAs.length === 0) return 'MA';

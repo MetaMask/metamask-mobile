@@ -20,6 +20,8 @@ import {
   Platform,
 } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import { DeferredRenderScreenIds } from '../../../../../hooks/performance/deferredRenderPerformanceIds';
+import { markDeferredRenderNavStart } from '../../../../../hooks/performance/deferredRenderTtc';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsMarketSortFieldBottomSheet from '../../components/PerpsMarketSortFieldBottomSheet';
@@ -285,6 +287,9 @@ const PerpsMarketListView = ({
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
+        markDeferredRenderNavStart(
+          DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
+        );
         // Compute source_section so asset_details can include it in PERPS_SCREEN_VIEWED.
         // Callers like the Recently Viewed rail pass an explicit override since
         // that section is orthogonal to the current search/watchlist/category state.

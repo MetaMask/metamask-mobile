@@ -61,6 +61,15 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import {
+  DeferredRenderPoint,
+  DeferredRenderScreenIds,
+} from '../../../../../hooks/performance/deferredRenderPerformanceIds';
+import {
+  markDeferredRenderPoint,
+  useDeferredRenderFirstRender,
+} from '../../../../../hooks/performance/deferredRenderTtc';
+import { isScreenTtcProbeEnabled } from '../../../../../hooks/performance/screenTtcRegistry';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
@@ -297,6 +306,7 @@ const resolveAccountSectionState = (
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
 }) => {
+  useDeferredRenderFirstRender(DeferredRenderScreenIds.PERPS_MARKET_DETAILS);
   // Use centralized navigation hook for all Perps navigation
   const {
     navigateToOrder,
@@ -1068,6 +1078,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     },
     [advancedChartReadinessKey, advancedChartSeriesKey],
   );
+  const handleDeferredRenderChartReady = useCallback(() => {
+    markDeferredRenderPoint(
+      DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
+      DeferredRenderPoint.CHART_READY,
+    );
+  }, []);
 
   const marketHasResolvedMetadata = Boolean(
     market?.symbol &&
@@ -1102,6 +1118,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     ),
     hasFallbackData: hasHistoricalData,
   });
+  useEffect(() => {
+    if (!isScreenTtcProbeEnabled()) {
+      return;
+    }
+    if (chartSectionState === 'content' || chartSectionState === 'empty') {
+      markDeferredRenderPoint(
+        DeferredRenderScreenIds.PERPS_MARKET_DETAILS,
+        DeferredRenderPoint.CHART_DATA_READY,
+      );
+    }
+  }, [chartSectionState]);
   const hasCurrentLiveMarketStats =
     !marketStats.hasError &&
     marketStats.dataSymbol === market?.symbol &&
@@ -1934,6 +1961,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         onCrosshairDataChange={setOhlcData}
         onLatestPriceChange={setAdvancedChartCurrentPrice}
         onResolved={handleAdvancedChartResolved}
+        onSkeletonHidden={handleDeferredRenderChartReady}
         onFreshDelivery={() =>
           setChartDeliveryRevision((revision) => revision + 1)
         }
@@ -1964,6 +1992,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onChartReady={handleDeferredRenderChartReady}
         onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
       />

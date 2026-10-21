@@ -37,6 +37,8 @@ import {
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { TraceName, endTrace } from '../../../../util/trace';
+import { DeferredRenderScreenIds } from '../../../../hooks/performance/deferredRenderPerformanceIds';
+import { useDeferredRenderFirstRender } from '../../../../hooks/performance/deferredRenderTtc';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
@@ -962,6 +964,7 @@ export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
  * Swapping component types keeps the two pages' hooks fully independent.
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
+  useDeferredRenderFirstRender(DeferredRenderScreenIds.TOKEN_DETAILS);
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
   const { variant, isLoading } = useTokenDetailsVariant(token);

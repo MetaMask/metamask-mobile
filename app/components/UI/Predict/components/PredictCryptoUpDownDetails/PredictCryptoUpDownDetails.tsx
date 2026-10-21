@@ -27,6 +27,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
+import { DeferredRenderScreenIds } from '../../../../../hooks/performance/deferredRenderPerformanceIds';
+import { useDeferredRenderFirstRender } from '../../../../../hooks/performance/deferredRenderTtc';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
@@ -133,6 +135,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   isMarketLoading = false,
   isClaimPending = false,
 }) => {
+  useDeferredRenderFirstRender(DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS);
   const tw = useTailwind();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
