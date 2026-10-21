@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
+import { AccessibilityInfo, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,10 +15,7 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
   Text,
   TextColor,
@@ -33,32 +30,39 @@ import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
+import bankTransferImage from '../../../../../images/bank-transfer.png';
 import {
   pickLatestTransaction,
   type AutorampTransactionSummary,
 } from './pickLatestTransaction';
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
-import {
-  ensureBrazilMusdAutoramp,
-  findUsableAutoramp,
-} from './ensureBrazilMusdAutoramp';
+import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import VbaCreatingAccount from './VbaCreatingAccount';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
+// Keep the Figma disclosure ready while Product finalizes the copy.
+const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   HEADER: 'vba-details-header',
+  BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
   COPY_BUTTON: 'vba-details-copy-button',
-  DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
-  ROW_ICON: 'vba-details-row-icon',
-  WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
+  ACCOUNT_HOLDER: 'vba-details-account-holder',
+  ROUTING_NUMBER: 'vba-details-routing-number',
+  ACCOUNT_NUMBER: 'vba-details-account-number',
+  BANK_NAME: 'vba-details-bank-name',
+  HELPER_TEXT: 'vba-details-helper-text',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   SETUP_ERROR: 'vba-details-setup-error',
@@ -78,13 +82,34 @@ interface PixDepositInstructions {
   pixKey?: string;
 }
 
+interface UsBankDepositInstructions {
+  accountHolder: string;
+  routingNumber: string;
+  accountNumber: string;
+  bankName: string;
+}
+
+type DepositInstructions =
+  | ({ type: 'Pix' } & PixDepositInstructions)
+  | ({ type: 'UsBank' } & UsBankDepositInstructions);
+
 interface DepositNeoBank {
-  getPixDepositInstructions: (
+  getDepositInstructions?: (
+    autorampId: string,
+  ) => Promise<DepositInstructions | null>;
+  getPixDepositInstructions?: (
     autorampId: string,
   ) => Promise<PixDepositInstructions | null>;
-  listAutorampTransactions: (
+  listAutorampTransactions?: (
     autorampId: string,
   ) => Promise<AutorampTransactionSummary[]>;
+}
+
+interface DetailRow {
+  id: string;
+  testID: string;
+  label: string;
+  value: string;
 }
 
 interface DepositRamps {
@@ -92,33 +117,122 @@ interface DepositRamps {
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
 }
 
+const isTerminalStatus = (status: string): boolean =>
+  status === 'Rejected' || status === 'Cancelled';
+
+const readAutoramps = (): AutorampCursor[] =>
+  (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
+
+// ramps-controller releases before 27.1 only expose the PIX reader.
+const loadDepositInstructions = async (
+  neoBank: DepositNeoBank,
+  autorampId: string,
+): Promise<DepositInstructions | null> => {
+  if (neoBank.getDepositInstructions) {
+    return neoBank.getDepositInstructions(autorampId);
+  }
+  const pix = await neoBank.getPixDepositInstructions?.(autorampId);
+  return pix?.brCode ? { type: 'Pix', ...pix } : null;
+};
+
+const buildDetailRows = (
+  instructions: DepositInstructions | null,
+): DetailRow[] => {
+  if (instructions?.type === 'UsBank') {
+    return [
+      {
+        id: 'account-holder',
+        testID: VbaDetailsSelectorsIDs.ACCOUNT_HOLDER,
+        label: strings('virtual_bank_account.vba_details.account_holder_label'),
+        value: instructions.accountHolder,
+      },
+      {
+        id: 'routing-number',
+        testID: VbaDetailsSelectorsIDs.ROUTING_NUMBER,
+        label: strings('virtual_bank_account.vba_details.routing_number_label'),
+        value: instructions.routingNumber,
+      },
+      {
+        id: 'account-number',
+        testID: VbaDetailsSelectorsIDs.ACCOUNT_NUMBER,
+        label: strings('virtual_bank_account.vba_details.account_number_label'),
+        value: instructions.accountNumber,
+      },
+      {
+        id: 'bank-name',
+        testID: VbaDetailsSelectorsIDs.BANK_NAME,
+        label: strings('virtual_bank_account.vba_details.bank_name_label'),
+        value: instructions.bankName,
+      },
+    ];
+  }
+  if (instructions?.type !== 'Pix') {
+    return [];
+  }
+  const rows: DetailRow[] = [
+    {
+      id: 'copia-cola',
+      testID: VbaDetailsSelectorsIDs.PIX_CODE,
+      label: strings('virtual_bank_account.vba_details.copia_cola_label'),
+      value: instructions.brCode,
+    },
+  ];
+  if (instructions.pixKey) {
+    rows.push({
+      id: 'pix-key',
+      testID: VbaDetailsSelectorsIDs.PIX_KEY,
+      label: strings('virtual_bank_account.vba_details.pix_key_label'),
+      value: instructions.pixKey,
+    });
+  }
+  return rows;
+};
+
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the BRL autoramp. Until a PIX rail exists, the existing
- * waiting state stays on screen. Pushed on the root stack
+ * wallet and creates the autoramp, in the fiat mapped from the effective
+ * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
+ * IP country).
+ * Until the autoramp is Approved it shows the creating state. Polling stops
+ * once deposit details load or the autoramp is Rejected or Cancelled; only
+ * Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
- * onboarding. The header stays, without a back button. PIX values come from
- * `NeoBankService.getPixDepositInstructions`.
+ * onboarding. PIX or US bank details come from
+ * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const location = useSelector(selectGeolocationLocation);
+  const { regionCurrencies, regionOverride } = useSelector(
+    selectMoneyMovementNeobank,
+  );
+  const sourceCurrency = getVbaSourceCurrencyForCountry(
+    regionOverride ?? location,
+    regionCurrencies,
+  );
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
-  const [instructions, setInstructions] =
-    useState<PixDepositInstructions | null>(null);
+  const [instructions, setInstructions] = useState<DepositInstructions | null>(
+    null,
+  );
   const [autorampId, setAutorampId] = useState<string | null>(null);
-  const [autorampStatus, setAutorampStatus] = useState<string | null>(null);
+  const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
+    walletAddress
+      ? (findUsableAutoramp(readAutoramps(), walletAddress)?.status ?? null)
+      : null,
+  );
   const [transactionStatus, setTransactionStatus] = useState<string | null>(
     null,
   );
   const [loadError, setLoadError] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [isTerminal, setIsTerminal] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
+  const pollingDoneRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -127,78 +241,95 @@ const VbaDetails = () => {
     };
   }, []);
 
-  const refreshDeposit = useCallback(async () => {
-    if (!walletAddress) {
-      return;
-    }
-    const ramps = Engine.context.RampsController as DepositRamps;
-    let autoramp = findUsableAutoramp(
-      ramps.state?.autoramps ?? [],
-      walletAddress,
-    );
-    if (!autoramp) {
-      const outcome = await ensureBrazilMusdAutoramp(walletAddress);
-      if (!isMountedRef.current) {
+  const refreshDeposit = useCallback(
+    async (replaceTerminal = false) => {
+      if (!walletAddress) {
         return;
       }
-      autoramp = findUsableAutoramp(
-        ramps.state?.autoramps ?? [],
-        walletAddress,
-      );
+      const ramps = Engine.context.RampsController as DepositRamps;
+      let autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
       if (!autoramp) {
-        setSetupFailed(outcome === 'failed');
-        setAutorampId(null);
-        setAutorampStatus(null);
+        if (!sourceCurrency) {
+          setSetupFailed(true);
+          return;
+        }
+        const outcome = await ensureMusdAutoramp(
+          walletAddress,
+          sourceCurrency,
+          { replaceTerminal },
+        );
+        if (!isMountedRef.current) {
+          return;
+        }
+        autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+        if (!autoramp) {
+          setSetupFailed(outcome === 'failed');
+          setIsTerminal(outcome === 'terminal');
+          pollingDoneRef.current = outcome === 'terminal';
+          setAutorampId(null);
+          setAutorampStatus(null);
+          setInstructions(null);
+          return;
+        }
+      }
+      setSetupFailed(false);
+
+      let status = autoramp.status;
+      if (status !== 'Approved' && ramps.refreshAutoramp) {
+        const refreshed = await ramps.refreshAutoramp(autoramp.id);
+        status = refreshed.status;
+      }
+      setAutorampId(autoramp.id);
+      setAutorampStatus(status);
+      const terminal = isTerminalStatus(status);
+      setIsTerminal(terminal);
+      if (terminal) {
+        pollingDoneRef.current = true;
         setInstructions(null);
         return;
       }
-    }
-    setSetupFailed(false);
+      if (status !== 'Approved') {
+        return;
+      }
 
-    let status = autoramp.status;
-    if (status !== 'Approved' && ramps.refreshAutoramp) {
-      const refreshed = await ramps.refreshAutoramp(autoramp.id);
-      status = refreshed.status;
-    }
-    setAutorampId(autoramp.id);
-    setAutorampStatus(status);
+      const neoBank = (
+        Engine.context as unknown as { NeoBankService?: DepositNeoBank }
+      ).NeoBankService;
+      if (!neoBank) {
+        return;
+      }
 
-    const neoBank = (
-      Engine.context as unknown as { NeoBankService?: DepositNeoBank }
-    ).NeoBankService;
-    if (!neoBank) {
-      return;
-    }
-
-    // Fetch PIX on its own so a flaky transaction poll cannot hide the code.
-    if (neoBank.getPixDepositInstructions) {
+      // Fetch details on their own so a flaky transaction poll cannot hide them.
       try {
-        const pix = await neoBank.getPixDepositInstructions(autoramp.id);
-        if (pix?.brCode) {
-          setInstructions(pix);
+        const details = await loadDepositInstructions(neoBank, autoramp.id);
+        if (details) {
+          setInstructions(details);
+          // Debug builds keep polling so the latest deposit stays visible.
+          pollingDoneRef.current = !debugEnabled;
         }
       } catch (error) {
         Logger.error(error as Error, {
-          message: 'VbaDetails: failed to load PIX deposit instructions',
+          message: 'VbaDetails: failed to load deposit instructions',
         });
       }
-    }
 
-    if (debugEnabled && neoBank.listAutorampTransactions) {
-      try {
-        const transactions = await neoBank.listAutorampTransactions(
-          autoramp.id,
-        );
-        setTransactionStatus(
-          pickLatestTransaction(transactions)?.status ?? null,
-        );
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'VbaDetails: failed to list autoramp transactions',
-        });
+      if (debugEnabled && neoBank.listAutorampTransactions) {
+        try {
+          const transactions = await neoBank.listAutorampTransactions(
+            autoramp.id,
+          );
+          setTransactionStatus(
+            pickLatestTransaction(transactions)?.status ?? null,
+          );
+        } catch (error) {
+          Logger.error(error as Error, {
+            message: 'VbaDetails: failed to list autoramp transactions',
+          });
+        }
       }
-    }
-  }, [debugEnabled, walletAddress]);
+    },
+    [debugEnabled, sourceCurrency, walletAddress],
+  );
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -208,7 +339,7 @@ const VbaDetails = () => {
     let cancelled = false;
     let inFlight = false;
     const tick = async () => {
-      if (cancelled || inFlight) {
+      if (cancelled || inFlight || pollingDoneRef.current) {
         return;
       }
       inFlight = true;
@@ -226,12 +357,6 @@ const VbaDetails = () => {
         });
       } finally {
         inFlight = false;
-        // A network-tier change cancels this effect while the request is
-        // still in flight. The response can still store Pix instructions, so
-        // finish the load unless the screen itself has unmounted.
-        if (isMountedRef.current) {
-          setHasLoaded(true);
-        }
       }
     };
     tick().catch(() => undefined);
@@ -249,26 +374,37 @@ const VbaDetails = () => {
     };
   }, [hardwareTier, networkTier, refreshDeposit]);
 
+  const isApproved = autorampStatus === 'Approved';
+  const hasSetupError = (setupFailed || isTerminal) && !isApproved;
+
   useEffect(() => {
-    if (!loadError || instructions?.brCode) {
+    if (!loadError || !isApproved || instructions) {
       return;
     }
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.load_error'),
     );
-  }, [instructions?.brCode, loadError]);
+  }, [instructions, isApproved, loadError]);
 
   useEffect(() => {
-    if (!setupFailed || instructions?.brCode) {
+    if (!hasSetupError) {
       return;
     }
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.setup_error'),
     );
-  }, [instructions?.brCode, setupFailed]);
+  }, [hasSetupError]);
 
   const handleRetrySetup = useCallback(() => {
-    refreshDeposit().catch(() => undefined);
+    pollingDoneRef.current = false;
+    setSetupFailed(false);
+    setIsTerminal(false);
+    refreshDeposit(true).catch((error: unknown) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: retry setup failed',
+      });
+      setSetupFailed(true);
+    });
   }, [refreshDeposit]);
 
   const handleDone = useCallback(() => {
@@ -277,6 +413,15 @@ const VbaDetails = () => {
       params: { screen: Routes.MONEY.HOME },
     });
   }, [navigation]);
+
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
+    handleDone();
+  }, [handleDone, navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
@@ -298,42 +443,40 @@ const VbaDetails = () => {
     setIsDebugOpen(false);
   }, []);
 
-  const rows = [
-    instructions?.brCode
-      ? {
-          id: 'copia-cola',
-          testID: VbaDetailsSelectorsIDs.PIX_CODE,
-          label: strings('virtual_bank_account.vba_details.copia_cola_label'),
-          value: instructions.brCode,
-        }
-      : null,
-    instructions?.pixKey
-      ? {
-          id: 'pix-key',
-          testID: VbaDetailsSelectorsIDs.PIX_KEY,
-          label: strings('virtual_bank_account.vba_details.pix_key_label'),
-          value: instructions.pixKey,
-        }
-      : null,
-  ].filter((row): row is NonNullable<typeof row> => row !== null);
+  const rows = buildDetailRows(instructions);
+  const isBankTransfer =
+    instructions?.type === 'UsBank' ||
+    (!instructions && sourceCurrency === 'USD');
 
-  // Offline never fetches, so it skips straight to the waiting copy.
-  const isLoading = !hasLoaded && networkTier !== 'NONE';
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+  const errorMessage = setupFailed
+    ? strings('virtual_bank_account.vba_details.setup_error')
+    : loadError
+      ? strings('virtual_bank_account.vba_details.load_error')
+      : null;
+
+  if (!isApproved && !hasSetupError) {
+    return <VbaCreatingAccount onBack={handleDone} />;
+  }
 
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard includesTopInset testID={VbaDetailsSelectorsIDs.HEADER} />
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+        testID={VbaDetailsSelectorsIDs.HEADER}
+      />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
           <Image
-            source={vbaPixLogo}
+            source={isBankTransfer ? bankTransferImage : vbaPixLogo}
             accessibilityIgnoresInvertColors
             accessible={false}
             importantForAccessibility="no"
@@ -342,22 +485,81 @@ const VbaDetails = () => {
           />
         </Box>
         <Text variant={TextVariant.HeadingLg} twClassName="mt-6 text-center">
-          {strings('virtual_bank_account.vba_details.title')}
+          {strings(
+            isBankTransfer
+              ? 'virtual_bank_account.vba_details.bank_transfer_title'
+              : 'virtual_bank_account.vba_details.title',
+          )}
         </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="mt-2 text-center"
         >
-          {strings('virtual_bank_account.vba_details.description')}
+          {strings(
+            isBankTransfer
+              ? 'virtual_bank_account.vba_details.bank_transfer_description'
+              : 'virtual_bank_account.vba_details.description',
+          )}
         </Text>
-        {isLoading ? (
+        {rows.length > 0 ? (
+          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
+            {rows.map((row) => (
+              <Box key={row.id} testID={row.testID}>
+                <ListItem
+                  title={row.label}
+                  titleProps={{
+                    variant: TextVariant.BodySm,
+                    fontWeight: FontWeight.Regular,
+                    color: TextColor.TextAlternative,
+                  }}
+                  description={row.value}
+                  descriptionProps={{
+                    variant: TextVariant.BodyMd,
+                    color: TextColor.TextDefault,
+                    numberOfLines: 1,
+                  }}
+                  endAccessory={
+                    <ButtonIcon
+                      iconName={IconName.Copy}
+                      size={ButtonIconSize.Md}
+                      onPress={handleCopy(row.value, row.label)}
+                      accessibilityLabel={strings(
+                        'virtual_bank_account.vba_details.copy_label',
+                        { field: row.label },
+                      )}
+                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
+                    />
+                  }
+                  accessoryGap={3}
+                />
+              </Box>
+            ))}
+          </Box>
+        ) : hasSetupError || errorMessage ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            twClassName="mt-6 text-center"
+            testID={
+              hasSetupError
+                ? VbaDetailsSelectorsIDs.SETUP_ERROR
+                : VbaDetailsSelectorsIDs.LOAD_ERROR
+            }
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
+            {hasSetupError
+              ? strings('virtual_bank_account.vba_details.setup_error')
+              : errorMessage}
+          </Text>
+        ) : (
           <Box
             twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
             accessible
             accessibilityRole="progressbar"
             accessibilityLabel={strings(
-              'virtual_bank_account.vba_details.loading',
+              'virtual_bank_account.vba_details.loading_details',
             )}
             testID={VbaDetailsSelectorsIDs.LOADING}
           >
@@ -397,91 +599,20 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : rows.length > 0 ? (
-          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
-            {rows.map((row) => (
-              <Box key={row.id} testID={row.testID}>
-                <ListItem
-                  title={row.label}
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    fontWeight: FontWeight.Regular,
-                    color: TextColor.TextAlternative,
-                  }}
-                  description={row.value}
-                  descriptionProps={{
-                    variant: TextVariant.BodyMd,
-                    color: TextColor.TextDefault,
-                    numberOfLines: 1,
-                  }}
-                  startAccessory={
-                    <View
-                      accessible={false}
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      testID={`${VbaDetailsSelectorsIDs.ROW_ICON}-${row.id}`}
-                    >
-                      <Icon
-                        name={IconName.Key}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
-                    </View>
-                  }
-                  endAccessory={
-                    <ButtonIcon
-                      iconName={IconName.Copy}
-                      size={ButtonIconSize.Md}
-                      onPress={handleCopy(row.value, row.label)}
-                      accessibilityLabel={strings(
-                        'virtual_bank_account.vba_details.copy_label',
-                        { field: row.label },
-                      )}
-                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
-                    />
-                  }
-                  accessoryGap={3}
-                />
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-6 text-center"
-            testID={VbaDetailsSelectorsIDs.WAITING_FOR_PIX}
-          >
-            {strings('virtual_bank_account.vba_details.waiting_for_pix')}
-          </Text>
         )}
-        {loadError && !instructions?.brCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.load_error')}
-          </Text>
-        ) : null}
-        {setupFailed && !instructions?.brCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.SETUP_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.setup_error')}
-          </Text>
-        ) : null}
       </ScrollView>
       <Box twClassName="gap-4 px-4 pb-2 pt-4">
-        {setupFailed && !instructions?.brCode ? (
+        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+          >
+            {strings('virtual_bank_account.vba_details.helper_text')}
+          </Text>
+        ) : null}
+        {hasSetupError ? (
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
@@ -503,15 +634,6 @@ const VbaDetails = () => {
             {'Debug'}
           </Button>
         ) : null}
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleDone}
-          testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
-        >
-          {strings('virtual_bank_account.vba_details.button')}
-        </Button>
       </Box>
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet

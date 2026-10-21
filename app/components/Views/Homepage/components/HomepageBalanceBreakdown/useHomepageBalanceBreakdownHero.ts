@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   cancelAnimation,
@@ -38,6 +38,7 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   const { PreferencesController } = Engine.context;
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
+  const previousPrivacyMode = useRef(privacyMode);
   const selectedChainId = useSelector(selectEvmChainId);
   const accountGroupBalance = useSelector(
     selectAccountGroupBalanceForEmptyState,
@@ -60,6 +61,8 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     hero.status === 'error' || hero.status === 'ineligible'
       ? '—'
       : formatCurrency(hero.totalFiat, hero.userCurrency);
+  const zeroBalance = formatCurrency(0, hero.userCurrency);
+  const skipBalanceAnimation = previousPrivacyMode.current && !privacyMode;
   const amountText = useMemo(
     () =>
       hero.delta
@@ -113,6 +116,10 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     return () => cancelAnimation(balanceOpacity);
   }, [balanceOpacity, hero.isPartiallyLoaded]);
 
+  useEffect(() => {
+    previousPrivacyMode.current = privacyMode;
+  }, [privacyMode]);
+
   return {
     accessibilityHint,
     accessibilityLabel,
@@ -123,7 +130,9 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     isLoading,
     percentText,
     privacyMode,
+    skipBalanceAnimation,
     shouldShowEmptyState,
     togglePrivacy,
+    zeroBalance,
   };
 }

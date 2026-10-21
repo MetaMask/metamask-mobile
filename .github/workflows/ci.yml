@@ -1326,9 +1326,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
-        shard: [1, 2, 3, 4]
+        # The shard list length must match the denominator in --shard below.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1354,7 +1354,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/6 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1530,33 +1530,22 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Smart E2E Selection performance contract:
-    # - ["ALL"] → run every performance test
-    # - ["@Tag", ...] → run those tests
-    # - [] → run none
-    # - blank output → run none
-    # - selection error → run none
-    # The run-performance-tests label still forces ["ALL"].
-    # PRs targeting release/* or stable only run performance tests via the label.
+    # PR performance runs only from labels, on non-fork PRs whose base is
+    # not stable. run-performance-tests runs the full suite. Each
+    # run-performance-<area>-tests label runs that area. Smart E2E Selection
+    # does not start this job. Scheduled and manual runs use
+    # run-performance-e2e-manual.yml.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
-        (
-          needs.get_requirements.outputs.run_performance == 'true' ||
-          (
-            github.event.pull_request.base.ref == 'main' &&
-            needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != ''
-          )
-        )
+        needs.get_requirements.outputs.run_performance == 'true'
       }}
-    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
+    needs: [get_requirements, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.get_requirements.outputs.run_performance == 'true' && '["ALL"]' || needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.performance_tags_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}

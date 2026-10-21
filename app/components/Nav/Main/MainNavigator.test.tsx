@@ -846,6 +846,61 @@ describe('MainNavigator', () => {
       expect(groupedScreenNames(group)).not.toContain(Routes.SOCIAL.PROFILE);
     });
 
+    const stateWithSocialArm = (variant: string) => ({
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            ...initialRootState.engine.backgroundState
+              .RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController.remoteFeatureFlags,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.1',
+              },
+              socialAiTSA1122AbtestSocialBundleV1: variant,
+            },
+          },
+        },
+      },
+    });
+
+    it('registers the ProfileDrawer route under the Social V1 treatment arm', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialArm('treatment'),
+      });
+
+      const screenProps = root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+      expect(screenProps).toContain(Routes.SOCIAL_PROFILE.DRAWER);
+    });
+
+    it('does not register the ProfileDrawer route under the control arm', () => {
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: stateWithSocialArm('control'),
+      });
+
+      const screenProps = root
+        .findAll(
+          (child: ReactTestInstance) =>
+            child.type?.toString?.() === 'Screen' &&
+            typeof child.props?.name === 'string',
+        )
+        .map((child) => child.props.name as string);
+
+      expect(screenProps).not.toContain(Routes.SOCIAL_PROFILE.DRAWER);
+    });
+
     it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
       const stateWithSocialLeaderboard = {
         ...initialRootState,
@@ -942,10 +997,13 @@ describe('MainNavigator', () => {
           name: Routes.RAMP.VBA_DETAILS,
           options: expect.objectContaining({
             animation: 'ios_from_right',
-            gestureEnabled: false,
             headerShown: false,
           }),
         }),
+      );
+      expect(vbaDetailsScreen?.options).not.toHaveProperty(
+        'gestureEnabled',
+        false,
       );
     });
 

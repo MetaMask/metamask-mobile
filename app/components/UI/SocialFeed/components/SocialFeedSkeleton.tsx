@@ -12,13 +12,15 @@ export interface SocialFeedSkeletonProps {
 }
 
 /**
- * Placeholder posts with the same dividers and padding as
+ * Placeholder posts with the same wrapper, dividers and padding as
  * `SocialV1FeedPostList`, so the first page replaces them without a shift.
  */
 const SocialFeedSkeleton: React.FC<SocialFeedSkeletonProps> = ({
   count = SOCIAL_FEED_SKELETON_DEFAULT_COUNT,
 }) => (
-  <>
+  // A real view, not a fragment, so a parent's `gap` spaces the placeholders
+  // as one block, matching the loaded list.
+  <Box>
     {Array.from({ length: count }, (_, index) => (
       <Fragment key={`social-feed-skeleton-${index}`}>
         {index > 0 ? (
@@ -32,7 +34,7 @@ const SocialFeedSkeleton: React.FC<SocialFeedSkeletonProps> = ({
         </Box>
       </Fragment>
     ))}
-  </>
+  </Box>
 );
 
 export default SocialFeedSkeleton;

@@ -31,6 +31,8 @@ import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/Perp
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { useTheme } from '../../../../util/theme';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLRouter from '../Views/PerpsTPSLRouter';
@@ -104,6 +106,7 @@ export const getPerpsConversionScreenOptions = (
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
+  screenBackgroundColor?: string,
 ): NativeStackNavigationOptions {
   if (params?.useBottomSheet) {
     return {
@@ -116,16 +119,35 @@ export function getRedesignedConfirmationsHeaderOptions(
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
-  if (showPerpsHeader) {
-    return {
-      ...getEmptyNavHeader(),
-      headerBackVisible: false,
-    };
+  const headerOptions: NativeStackNavigationOptions = showPerpsHeader
+    ? {
+        ...getEmptyNavHeader(),
+        headerBackVisible: false,
+      }
+    : {
+        headerShown: false,
+        title: '',
+        headerBackVisible: false,
+      };
+
+  // The adjust-margin sheet is a transparent modal. A card or page sheet
+  // leaves that sheet's rounded top visible above the deposit screen.
+  if (params?.launchedFrom !== ConfirmationLaunchSource.PerpsAdjustMargin) {
+    return headerOptions;
   }
+
   return {
-    headerShown: false,
-    title: '',
-    headerBackVisible: false,
+    ...headerOptions,
+    presentation: 'fullScreenModal',
+    headerTransparent: false,
+    // iOS 26 otherwise draws a transparent edge that shows the screen behind.
+    scrollEdgeEffects: { top: 'hidden' },
+    ...(screenBackgroundColor
+      ? {
+          contentStyle: { backgroundColor: screenBackgroundColor },
+          headerStyle: { backgroundColor: screenBackgroundColor },
+        }
+      : {}),
   };
 }
 
@@ -286,6 +308,7 @@ const PerpsModalStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const { colors } = useTheme();
 
   if (!isBasicFunctionalityEnabled) {
     return (
@@ -384,6 +407,7 @@ const PerpsModalStack = () => {
             options={({ route }) =>
               getRedesignedConfirmationsHeaderOptions(
                 route.params as PerpsNavigationParamList['RedesignedConfirmations'],
+                colors.background.default,
               )
             }
           />
@@ -432,6 +456,7 @@ const PerpsScreenStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const { colors } = useTheme();
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
@@ -663,7 +688,10 @@ const PerpsScreenStack = () => {
                 name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
                 component={PerpsConfirmScreen}
                 options={({ route }) =>
-                  getRedesignedConfirmationsHeaderOptions(route.params)
+                  getRedesignedConfirmationsHeaderOptions(
+                    route.params,
+                    colors.background.default,
+                  )
                 }
               />
             </Stack.Navigator>

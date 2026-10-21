@@ -23,8 +23,15 @@ export const WalletViewSelectorsIDs = {
   NAVBAR_NETWORK_TEXT: 'open-networks-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
   ACCOUNT_ICON: 'account-picker',
+  ACCOUNT_PICKER_AVATAR: 'account-picker-avatar',
   ACCOUNT_NAME_LABEL_INPUT: 'account-label-text-input',
   ACCOUNT_NAME_LABEL_TEXT: 'account-label',
+  /** Account picker row pinned under the wallet header when Social V1 is on. */
+  WALLET_ACCOUNT_PICKER_ROW: 'wallet-account-picker-row',
+  WALLET_ACCOUNT_PICKER_ROW_PICKER: 'wallet-account-picker-row-picker',
+  WALLET_ACCOUNT_PICKER_ROW_NAME: 'wallet-account-picker-row-name',
+  /** Stack holding the header plus the Social V1 account picker row. */
+  WALLET_HEADER_WITH_ACCOUNT_PICKER: 'wallet-header-with-account-picker',
   TOKENS_CONTAINER: 'tokens',
   TOKENS_CONTAINER_LIST: 'token-list',
   ACCOUNT_OVERVIEW: 'account-overview',

@@ -13,6 +13,7 @@ import {
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
+import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 
 jest.mock('react-native-device-info', () => ({
@@ -109,11 +110,17 @@ describe('Money Account feature flag selectors', () => {
   });
 
   describe('selectMoneyMovementNeobank', () => {
-    const disabled = { isEnabled: false, regions: [] };
+    const disabled = {
+      isEnabled: false,
+      regions: [],
+      regionCurrencies: {},
+      regionOverride: undefined,
+    };
     const enabledFlag = {
       enabled: true,
       minimumVersion: '0.0.0',
       regions: ['BR'],
+      regionCurrencies: { BR: 'BRL' },
     };
 
     it('reads the camelCase key Client Config stores for money-movement-neobank', () => {
@@ -128,7 +135,12 @@ describe('Money Account feature flag selectors', () => {
         },
       });
 
-      expect(result).toEqual({ isEnabled: true, regions: ['BR', 'US'] });
+      expect(result).toEqual({
+        isEnabled: true,
+        regions: ['BR', 'US'],
+        regionCurrencies: { BR: 'BRL' },
+        regionOverride: undefined,
+      });
     });
 
     it('reads regions from a progressive-rollout wrapper', () => {
@@ -139,7 +151,82 @@ describe('Money Account feature flag selectors', () => {
         },
       });
 
-      expect(result).toEqual({ isEnabled: true, regions: ['US'] });
+      expect(result).toEqual({
+        isEnabled: true,
+        regions: ['US'],
+        regionCurrencies: { BR: 'BRL' },
+        regionOverride: undefined,
+      });
+    });
+
+    it('normalizes the region currency map and drops unsupported values', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          regionCurrencies: {
+            br: 'brl',
+            ' us ': ' usd ',
+            DE: 'GBP',
+          },
+        },
+      });
+
+      expect(result.regionCurrencies).toEqual({ BR: 'BRL', US: 'USD' });
+    });
+
+    it('uppercases and trims regionOverride without limiting it to a currency', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          regionOverride: ' de ',
+        },
+      });
+
+      expect(result.regionOverride).toBe('DE');
+    });
+
+    it('ignores a blank, missing, or non-string regionOverride', () => {
+      const readOverride = (regionOverride: Json) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            regionOverride,
+          },
+        }).regionOverride;
+
+      expect(readOverride('')).toBeUndefined();
+      expect(readOverride('   ')).toBeUndefined();
+      expect(readOverride(null)).toBeUndefined();
+      expect(readOverride(1)).toBeUndefined();
+      expect(readOverride(true)).toBeUndefined();
+      expect(readOverride(['BR'])).toBeUndefined();
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
+        }).regionOverride,
+      ).toBeUndefined();
+    });
+
+    it('drops a present regionOverride when the gate is closed', () => {
+      const readClosed = (flag: Record<string, Json>) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            regionOverride: 'BR',
+            ...flag,
+          },
+        });
+
+      expect(readClosed({ enabled: false })).toEqual(disabled);
+      expect(readClosed({ minimumVersion: '999.0.0' })).toEqual(disabled);
+      expect(readClosed({ regions: [] })).toEqual(disabled);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            regionOverride: 'BR',
+          },
+        }),
+      ).toEqual(disabled);
     });
 
     it('is disabled when the flag serves enabled: false', () => {

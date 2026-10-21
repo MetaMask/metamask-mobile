@@ -135,6 +135,25 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         source: 'home_carousel',
       });
     });
+
+    it('forwards the initial tab to the Social V1 route', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+      });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+      });
+    });
   });
 
   describe('navigateToSocialTab', () => {
