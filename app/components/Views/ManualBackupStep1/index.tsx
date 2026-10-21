@@ -20,12 +20,11 @@ import {
   ButtonSize,
   BoxAlignItems,
   BoxJustifyContent,
-  FontWeight,
   HeaderStandard,
+  TitleStandard,
   TextButton,
   BottomSheetFooter,
 } from '@metamask/design-system-react-native';
-import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { strings } from '../../../../locales/i18n';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -344,28 +343,22 @@ const ManualBackupStep1 = () => {
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
       <Box
-        twClassName="flex-1 flex-col"
+        twClassName="flex-1 flex-col gap-4"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <TitleStandardMarketing
-          title={strings('manual_backup_step_1.action')}
-          bottomLabel={
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {strings('manual_backup_step_1.description')}{' '}
-              <TextButton
-                variant={TextVariant.BodyMd}
-                onPress={showWhatIsSeedphrase}
-                testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
-              >
-                {strings('manual_backup_step_1.what_is_srp')}
-              </TextButton>
-            </Text>
-          }
-        />
+        <Box gap={1}>
+          <TitleStandard
+            title={strings('manual_backup_step_1.action')}
+            bottomLabel={strings('manual_backup_step_1.description')}
+          />
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={showWhatIsSeedphrase}
+            testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
+          >
+            {strings('manual_backup_step_1.what_is_srp')}
+          </TextButton>
+        </Box>
         {seedPhraseHidden ? (
           <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
             {renderSeedPhraseConcealer()}

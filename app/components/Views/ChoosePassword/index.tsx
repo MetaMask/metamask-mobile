@@ -23,12 +23,12 @@ import {
   ButtonIcon,
   ButtonIconSize,
   HeaderStandard,
+  TitleStandard,
   HelpText,
   HelpTextSeverity,
   ListItemMultiSelect,
   ListItemVariant,
 } from '@metamask/design-system-react-native';
-import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -840,9 +840,10 @@ const ChoosePassword = () => {
           <Box
             flexDirection={BoxFlexDirection.Column}
             twClassName="flex-1"
+            gap={4}
             testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >
-            <TitleStandardMarketing
+            <TitleStandard
               title={strings('choose_password.title')}
               titleProps={{
                 testID: ChoosePasswordSelectorsIDs.TITLE_ID,
@@ -861,154 +862,145 @@ const ChoosePassword = () => {
 
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="flex-1"
-              gap={4}
+              twClassName="relative"
+              gap={2}
             >
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative"
-                gap={2}
-              >
-                <TextField
-                  autoFocus
-                  value={password}
-                  onChangeText={onPasswordChange}
-                  placeholder={strings(
-                    'choose_password.new_password_placeholder',
-                  )}
-                  isError={isPasswordInvalid}
-                  endAccessory={
-                    <ButtonIcon
-                      testID={
-                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
-                      }
-                      iconName={
-                        showPasswordIndex.includes(0)
-                          ? IconName.Eye
-                          : IconName.EyeSlash
-                      }
-                      size={ButtonIconSize.Md}
-                      onPress={() => toggleShowPassword(0)}
-                      accessibilityLabel={strings(
-                        showPasswordIndex.includes(0)
-                          ? 'choose_password.show'
-                          : 'choose_password.hide',
-                      )}
-                    />
-                  }
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(0),
-                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    onSubmitEditing: jumpToConfirmPassword,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'next',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                <HelpText
-                  severity={
-                    isPasswordInvalid ? HelpTextSeverity.Danger : undefined
-                  }
-                >
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
-                </HelpText>
-              </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative"
-                gap={2}
-              >
-                <TextField
-                  inputRef={confirmPasswordInputRef}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPasswordValue}
-                  placeholder={strings(
-                    'choose_password.confirm_password_placeholder',
-                  )}
-                  endAccessory={
-                    <ButtonIcon
-                      testID={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
-                      }
-                      iconName={
-                        showPasswordIndex.includes(1)
-                          ? IconName.Eye
-                          : IconName.EyeSlash
-                      }
-                      size={ButtonIconSize.Md}
-                      isDisabled={password === ''}
-                      onPress={() => toggleShowPassword(1)}
-                      accessibilityLabel={strings(
-                        showPasswordIndex.includes(1)
-                          ? 'choose_password.show'
-                          : 'choose_password.hide',
-                      )}
-                    />
-                  }
-                  isDisabled={password === ''}
-                  isError={isConfirmPasswordInvalid}
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(1),
-                    testID:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    autoComplete: 'password-new',
-                    onSubmitEditing: Keyboard.dismiss,
-                    returnKeyType: 'done',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                {isConfirmPasswordInvalid && (
-                  <HelpText severity={HelpTextSeverity.Danger}>
-                    {strings('choose_password.password_error')}
-                  </HelpText>
+              <TextField
+                autoFocus
+                value={password}
+                onChangeText={onPasswordChange}
+                placeholder={strings(
+                  'choose_password.new_password_placeholder',
                 )}
-              </Box>
-
-              {getOauth2LoginSuccess() && (
-                <ListItemMultiSelect
-                  variant={ListItemVariant.MultiLine}
-                  isSelected={marketingOptInChecked}
-                  onPress={setSelection}
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: marketingOptInChecked }}
-                  twClassName="mt-2 border border-muted rounded-xl"
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
-                  }}
-                  title={strings(
-                    'choose_password.marketing_opt_in_description',
-                  )}
-                />
-              )}
-
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="w-full mt-auto"
-                gap={4}
-                style={tw.style(Platform.OS === 'android' ? 'mb-6' : 'mb-4')}
+                isError={isPasswordInvalid}
+                endAccessory={
+                  <ButtonIcon
+                    testID={
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                    }
+                    iconName={
+                      showPasswordIndex.includes(0)
+                        ? IconName.Eye
+                        : IconName.EyeSlash
+                    }
+                    size={ButtonIconSize.Md}
+                    onPress={() => toggleShowPassword(0)}
+                    accessibilityLabel={strings(
+                      showPasswordIndex.includes(0)
+                        ? 'choose_password.show'
+                        : 'choose_password.hide',
+                    )}
+                  />
+                }
+                inputProps={{
+                  secureTextEntry: showPasswordIndex.includes(0),
+                  testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                  accessibilityLabel:
+                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                  onSubmitEditing: jumpToConfirmPassword,
+                  autoComplete: 'password-new',
+                  returnKeyType: 'next',
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
+                }}
+              />
+              <HelpText
+                severity={
+                  isPasswordInvalid ? HelpTextSeverity.Danger : undefined
+                }
               >
-                <Button
-                  variant={ButtonVariant.Primary}
-                  onPress={onPressCreate}
-                  isFullWidth
-                  isLoading={isAwaitingGeolocation}
-                  size={ButtonSize.Lg}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                >
-                  {strings('choose_password.create_password_cta')}
-                </Button>
-              </Box>
+                {strings('choose_password.must_be_at_least', {
+                  number: MIN_PASSWORD_LENGTH,
+                })}
+              </HelpText>
+            </Box>
+
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              twClassName="relative"
+              gap={2}
+            >
+              <TextField
+                inputRef={confirmPasswordInputRef}
+                value={confirmPassword}
+                onChangeText={setConfirmPasswordValue}
+                placeholder={strings(
+                  'choose_password.confirm_password_placeholder',
+                )}
+                endAccessory={
+                  <ButtonIcon
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                    }
+                    iconName={
+                      showPasswordIndex.includes(1)
+                        ? IconName.Eye
+                        : IconName.EyeSlash
+                    }
+                    size={ButtonIconSize.Md}
+                    isDisabled={password === ''}
+                    onPress={() => toggleShowPassword(1)}
+                    accessibilityLabel={strings(
+                      showPasswordIndex.includes(1)
+                        ? 'choose_password.show'
+                        : 'choose_password.hide',
+                    )}
+                  />
+                }
+                isDisabled={password === ''}
+                isError={isConfirmPasswordInvalid}
+                inputProps={{
+                  secureTextEntry: showPasswordIndex.includes(1),
+                  testID: ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                  accessibilityLabel:
+                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                  autoComplete: 'password-new',
+                  onSubmitEditing: Keyboard.dismiss,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
+                }}
+              />
+              {isConfirmPasswordInvalid && (
+                <HelpText severity={HelpTextSeverity.Danger}>
+                  {strings('choose_password.password_error')}
+                </HelpText>
+              )}
+            </Box>
+
+            {getOauth2LoginSuccess() && (
+              <ListItemMultiSelect
+                variant={ListItemVariant.MultiLine}
+                isSelected={marketingOptInChecked}
+                onPress={setSelection}
+                testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: marketingOptInChecked }}
+                twClassName="mt-2 border border-muted rounded-xl"
+                titleProps={{
+                  variant: TextVariant.BodySm,
+                  testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
+                }}
+                title={strings('choose_password.marketing_opt_in_description')}
+              />
+            )}
+
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              twClassName="w-full mt-auto"
+              gap={4}
+              style={tw.style(Platform.OS === 'android' ? 'mb-6' : 'mb-4')}
+            >
+              <Button
+                variant={ButtonVariant.Primary}
+                onPress={onPressCreate}
+                isFullWidth
+                isLoading={isAwaitingGeolocation}
+                size={ButtonSize.Lg}
+                testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
+              >
+                {strings('choose_password.create_password_cta')}
+              </Button>
             </Box>
           </Box>
         </KeyboardAwareScrollView>
