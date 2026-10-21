@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type {
@@ -12,13 +12,26 @@ import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/feat
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { moneyFormatUsd } from '../utils/moneyFormatFiat';
+import {
+  clearReportedMoneyInterestError,
+  reportMoneyInterestError,
+} from '../utils/reportMoneyInterestError';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const SINCE_INCEPTION_WINDOW: InterestWindow = 'since_inception';
 
+/**
+ * Same character Pro Hub uses when the APY rate is missing.
+ */
+const FAILED_INTEREST_PLACEHOLDER = '—';
+
 interface UseMoneyPremiumAccountInterestResult {
   sinceInceptionQuery: UseQueryResult<InterestResponse>;
-  /** Formatted since-inception interest, or `$0.00` when it is not available. */
+  /**
+   * Formatted since-inception interest. `$0.00` when the amount is missing
+   * and the query has not failed. `—` when the query failed and the amount
+   * is missing.
+   */
   sinceInceptionInterest: string;
 }
 
@@ -123,14 +136,26 @@ const useMoneyPremiumAccountInterest =
 
     const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
-    const sinceInceptionInterest = useMemo(
-      () =>
-        formatInterestEarned(
-          sinceInceptionQuery.data?.interest_earned_usd,
-          formattedZero,
-        ),
-      [formattedZero, sinceInceptionQuery.data?.interest_earned_usd],
-    );
+    useEffect(() => {
+      if (!sinceInceptionQuery.isError) {
+        clearReportedMoneyInterestError(SINCE_INCEPTION_WINDOW);
+        return;
+      }
+
+      reportMoneyInterestError(
+        SINCE_INCEPTION_WINDOW,
+        sinceInceptionQuery.error,
+      );
+    }, [sinceInceptionQuery.error, sinceInceptionQuery.isError]);
+
+    const interestEarnedUsd = sinceInceptionQuery.data?.interest_earned_usd;
+    const sinceInceptionInterest = useMemo(() => {
+      if (sinceInceptionQuery.isError && interestEarnedUsd === undefined) {
+        return FAILED_INTEREST_PLACEHOLDER;
+      }
+
+      return formatInterestEarned(interestEarnedUsd, formattedZero);
+    }, [formattedZero, interestEarnedUsd, sinceInceptionQuery.isError]);
 
     return {
       sinceInceptionQuery,

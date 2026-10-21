@@ -5,6 +5,10 @@ import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/feat
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import {
+  clearReportedMoneyInterestError,
+  reportMoneyInterestError,
+} from '../utils/reportMoneyInterestError';
 import useMoneyPremiumAccountInterest from './useMoneyPremiumAccountInterest';
 
 jest.mock('react-redux', () => ({
@@ -20,8 +24,17 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
+jest.mock('../utils/reportMoneyInterestError', () => ({
+  reportMoneyInterestError: jest.fn(),
+  clearReportedMoneyInterestError: jest.fn(),
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
+const mockReportMoneyInterestError = jest.mocked(reportMoneyInterestError);
+const mockClearReportedMoneyInterestError = jest.mocked(
+  clearReportedMoneyInterestError,
+);
 
 const MOCK_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 const MOCK_VAULT_ADDRESS = '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7';
@@ -154,5 +167,32 @@ describe('useMoneyPremiumAccountInterest', () => {
     const { result } = renderHook(() => useMoneyPremiumAccountInterest());
 
     expect(result.current.sinceInceptionInterest).toBe('$0.00');
+  });
+
+  it('returns an em dash and reports a failed since-inception query without interest', () => {
+    const interestError = new Error('interest down');
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: interestError,
+    } as never);
+
+    const { result } = renderHook(() => useMoneyPremiumAccountInterest());
+
+    expect(result.current.sinceInceptionInterest).toBe('—');
+    expect(mockReportMoneyInterestError).toHaveBeenCalledWith(
+      'since_inception',
+      interestError,
+    );
+  });
+
+  it('clears a reported since-inception failure when the query is not in error', () => {
+    renderHook(() => useMoneyPremiumAccountInterest());
+
+    expect(mockClearReportedMoneyInterestError).toHaveBeenCalledWith(
+      'since_inception',
+    );
+    expect(mockReportMoneyInterestError).not.toHaveBeenCalled();
   });
 });
