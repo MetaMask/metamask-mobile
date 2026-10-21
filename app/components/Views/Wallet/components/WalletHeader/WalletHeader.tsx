@@ -125,12 +125,10 @@ const WalletHeader = ({
   const [isCompactTitleInteractive, setIsCompactTitleInteractive] =
     useState(false);
   const isCompactTitleVisible = useDerivedValue(() => {
-    if (!scrollY || !titleSectionHeight) {
-      return false;
-    }
-
-    const hasMeasured = titleSectionHeight.value > 0;
-    return hasMeasured && scrollY.value >= titleSectionHeight.value;
+    const measuredHeight = titleSectionHeight?.value ?? 0;
+    return Boolean(
+      scrollY && measuredHeight > 0 && scrollY.value >= measuredHeight,
+    );
   });
   const compactTitleProgress = useDerivedValue(() =>
     withTiming(isCompactTitleVisible.value ? 1 : 0, { duration: 200 }),

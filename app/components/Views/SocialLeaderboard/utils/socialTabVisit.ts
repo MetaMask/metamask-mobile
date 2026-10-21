@@ -11,11 +11,7 @@ export const markSocialTabVisited = (): void => {
     return;
   }
 
-  try {
-    StorageWrapper.setItem(SOCIAL_TAB_VISITED, 'true').catch(() => undefined);
-  } catch {
-    // A failed write can only make the discovery dot return next launch.
-  }
+  StorageWrapper.setItem(SOCIAL_TAB_VISITED, 'true').catch(() => undefined);
 };
 
 /** Subscribes to Social V1 home visit updates for the current app process. */

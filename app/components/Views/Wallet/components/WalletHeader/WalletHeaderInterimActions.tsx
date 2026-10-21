@@ -83,22 +83,11 @@ const WalletHeaderInterimActions = ({
   touchAreaSlop,
   isSocialLayout = false,
   twClassName = '',
-}: WalletHeaderInterimActionsProps) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName={`gap-2 ${twClassName}`}
-  >
-    <ButtonIcon
-      iconProps={{ color: MMDSIconColor.IconDefault }}
-      onPress={() => handleSearchPress()}
-      iconName={MMDSIconName.Search}
-      size={ButtonIconSize.Md}
-      testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-      accessibilityLabel={strings('wallet.search_accessibility_label')}
-      hitSlop={touchAreaSlop}
-    />
-    {isSocialLayout ? (
+}: WalletHeaderInterimActionsProps) => {
+  let secondaryAction: React.ReactNode = null;
+
+  if (isSocialLayout) {
+    secondaryAction = (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}
         onPress={handleRewardsPress}
@@ -108,7 +97,9 @@ const WalletHeaderInterimActions = ({
         accessibilityLabel={strings('wallet.rewards_accessibility_label')}
         hitSlop={touchAreaSlop}
       />
-    ) : isMoneyAccountVisible ? (
+    );
+  } else if (isMoneyAccountVisible) {
+    secondaryAction = (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}
         onPress={handleActivityPress}
@@ -118,12 +109,31 @@ const WalletHeaderInterimActions = ({
         accessibilityLabel={strings('activity_view.title')}
         hitSlop={touchAreaSlop}
       />
-    ) : null}
-    <WalletHeaderMenuButton
-      handleHamburgerPress={handleHamburgerPress}
-      touchAreaSlop={touchAreaSlop}
-    />
-  </Box>
-);
+    );
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName={`gap-2 ${twClassName}`}
+    >
+      <ButtonIcon
+        iconProps={{ color: MMDSIconColor.IconDefault }}
+        onPress={() => handleSearchPress()}
+        iconName={MMDSIconName.Search}
+        size={ButtonIconSize.Md}
+        testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+        accessibilityLabel={strings('wallet.search_accessibility_label')}
+        hitSlop={touchAreaSlop}
+      />
+      {secondaryAction}
+      <WalletHeaderMenuButton
+        handleHamburgerPress={handleHamburgerPress}
+        touchAreaSlop={touchAreaSlop}
+      />
+    </Box>
+  );
+};
 
 export default WalletHeaderInterimActions;

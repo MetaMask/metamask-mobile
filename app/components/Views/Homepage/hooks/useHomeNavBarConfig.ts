@@ -70,21 +70,23 @@ export const useHomeNavBarConfig = ({
     },
   );
 
-  return useMemo(
-    () =>
-      isSocialV1Enabled
-        ? SOCIAL_CONFIG
-        : isInterim
-          ? INTERIM_CONFIG
-          : {
-              isRefreshedNavBar: variant.isCompactHeaderEnabled,
-              isCompactHeader: variant.isCompactHeaderEnabled,
-              isInterimHeader: false,
-              isSocialHeader: false,
-              isHeaderSearchEnabled: variant.isHeaderSearchEnabled,
-              isSocialTabAllowed: variant.isCompactHeaderEnabled,
-              trailingNavBarAction: variant.trailingNavBarAction,
-            },
-    [isInterim, isSocialV1Enabled, variant],
-  );
+  return useMemo(() => {
+    if (isSocialV1Enabled) {
+      return SOCIAL_CONFIG;
+    }
+
+    if (isInterim) {
+      return INTERIM_CONFIG;
+    }
+
+    return {
+      isRefreshedNavBar: variant.isCompactHeaderEnabled,
+      isCompactHeader: variant.isCompactHeaderEnabled,
+      isInterimHeader: false,
+      isSocialHeader: false,
+      isHeaderSearchEnabled: variant.isHeaderSearchEnabled,
+      isSocialTabAllowed: variant.isCompactHeaderEnabled,
+      trailingNavBarAction: variant.trailingNavBarAction,
+    };
+  }, [isInterim, isSocialV1Enabled, variant]);
 };
