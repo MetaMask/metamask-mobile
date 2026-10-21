@@ -167,14 +167,16 @@ describe('MoneyVbaHomeCard', () => {
   );
 
   it('hides the kyc_decision card when Dismiss is pressed', () => {
+    const onDismiss = jest.fn();
     const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision;
     const { getByTestId, queryByTestId } = render(
-      <MoneyVbaHomeCard variant="kyc_decision" />,
+      <MoneyVbaHomeCard variant="kyc_decision" onDismiss={onDismiss} />,
     );
 
     fireEvent.press(getByTestId(testIds.DISMISS_BUTTON as string));
 
     expect(queryByTestId(testIds.CONTAINER)).toBeNull();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(mockTrackButtonClicked).toHaveBeenCalledWith(
       expect.objectContaining({
         button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -284,7 +286,10 @@ describe('MoneyVbaHomeCard', () => {
         }),
     );
 
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_decision" />);
+    const onDismiss = jest.fn();
+    const { getByTestId } = render(
+      <MoneyVbaHomeCard variant="kyc_decision" onDismiss={onDismiss} />,
+    );
     fireEvent.press(
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CTA_BUTTON),
     );
@@ -297,6 +302,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
     ).toBeOnTheScreen();
+    expect(onDismiss).not.toHaveBeenCalled();
     expect(mockTrackButtonClicked).not.toHaveBeenCalledWith(
       expect.objectContaining({ button_intent: MONEY_BUTTON_INTENTS.DISMISS }),
     );

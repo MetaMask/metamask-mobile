@@ -475,6 +475,16 @@ const VBA_ELIGIBILITY_ELIGIBLE: VbaEligibility = {
   location: 'BR',
 };
 
+/** Flag on, IP lookup still in flight — a VBA card may still appear. */
+const VBA_ELIGIBILITY_LOADING: VbaEligibility = {
+  isEligible: false,
+  isLoading: true,
+  isFlagEnabled: true,
+  isRegionEligible: false,
+  isDevBypassEnabled: false,
+  location: undefined,
+};
+
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
@@ -995,18 +1005,125 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the VBA card above the onboarding card', () => {
+    it.each([
+      'get_started',
+      'account_is_ready',
+      'kyc_pending',
+      'finish_verification',
+      'kyc_decision',
+    ] as const)(
+      'hides the onboarding card while the %s VBA card is visible',
+      (variant) => {
+        mockUseVbaHomeCard.mockReturnValue({ type: variant } as VbaHomeCard);
+
+        const { getByTestId, queryByTestId } = renderWithProvider(
+          <MoneyHomeView />,
+        );
+
+        expect(
+          getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS[variant].CONTAINER),
+        ).toBeOnTheScreen();
+        expect(queryByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeNull();
+      },
+    );
+
+    it('renders the onboarding card when no VBA card is shown', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      VBA_CARD_CONTAINERS.forEach((testId) => {
+        expect(queryByTestId(testId)).toBeNull();
+      });
+    });
+
+    it('renders the onboarding card after the dismissible VBA card is dismissed', () => {
+      mockUseVbaHomeCard.mockReturnValue({
+        type: 'kyc_decision',
+      } as VbaHomeCard);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      fireEvent.press(
+        getByTestId(
+          MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.DISMISS_BUTTON as string,
+        ),
+      );
+
+      expect(
+        queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
+      ).toBeNull();
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the onboarding card while VBA eligibility is still loading', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_LOADING);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { queryByTestId, getByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(queryByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeNull();
+      VBA_CARD_CONTAINERS.forEach((testId) => {
+        expect(queryByTestId(testId)).toBeNull();
+      });
+
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
       } as VbaHomeCard);
+      rerender(<MoneyHomeView />);
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeNull();
+    });
 
-      expectTestIdBefore(
-        getByTestId(MoneyHomeViewTestIds.SCROLL_VIEW),
-        MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CONTAINER,
-        MoneyOnboardingCardTestIds.CONTAINER,
+    it('renders the onboarding card when VBA eligibility resolves with no card', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_LOADING);
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MoneyHomeView />,
       );
+
+      expect(queryByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeNull();
+
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
+      rerender(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the onboarding card while geolocation loads when the VBA flag is off', () => {
+      mockUseVbaEligibility.mockReturnValue({
+        ...VBA_ELIGIBILITY_NOT_ELIGIBLE,
+        isLoading: true,
+      });
+      mockUseVbaHomeCard.mockReturnValue({ type: 'none' } as VbaHomeCard);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyOnboardingCardTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      VBA_CARD_CONTAINERS.forEach((testId) => {
+        expect(queryByTestId(testId)).toBeNull();
+      });
     });
 
     it('wires the one-shot KYC session refresh on mount', () => {
@@ -1047,6 +1164,7 @@ describe('MoneyHomeView', () => {
       expect(
         queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
       ).toBeNull();
+      expect(queryByTestId(MoneyOnboardingCardTestIds.CONTAINER)).toBeNull();
     });
 
     it('renders no VBA card for the none variant', () => {
