@@ -22,6 +22,7 @@ export const initialStateVba = ({
         enabled: flagEnabled,
         minimumVersion: '0.0.0',
         regions: ['BR'],
+        regionCurrencies: { BR: 'BRL' },
       },
     })
     .withOverrides({
