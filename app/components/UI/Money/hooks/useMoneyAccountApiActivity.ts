@@ -1,10 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
-import Logger from '../../../../util/Logger';
 import {
   annotateTrace,
   trace,
@@ -12,15 +11,9 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import {
-  selectMoneyCardActivityCashbackMultisendContracts,
-  selectMoneyVbaActivityDepositFromAddresses,
-} from '../selectors/featureFlags';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
-import { selectMoneyAccountVedaTokenConfig } from '../../../../selectors/cardController';
+import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
-import Engine from '../../../../core/Engine';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import {
   oldestRawActivityTime,
@@ -30,11 +23,6 @@ import {
   readCachedFirstPage,
   writeCachedFirstPage,
 } from '../utils/moneyActivityCache';
-import {
-  fetchCardSpendRateHistory,
-  selectHistoricalRateForBlock,
-} from './moneyAccountCardSpendRate';
-import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
@@ -86,11 +74,6 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const cashbackMultisendContracts = useSelector(
     selectMoneyCardActivityCashbackMultisendContracts,
   );
-  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  const vedaTokenConfig = useSelector(selectMoneyAccountVedaTokenConfig);
-  const vbaDepositFromAddresses = useSelector(
-    selectMoneyVbaActivityDepositFromAddresses,
-  );
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
   const enabled = moneyAddress !== '';
@@ -123,31 +106,18 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
           tags: { is_initial_page: pageParam === undefined },
         },
         async (context) => {
-          try {
-            const response = await apiClient.accounts.fetchV1AccountTransactions(
-              moneyAddress,
-              {
-                ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
-                cursor: pageParam,
-              },
-            );
-            annotateTrace(context, {
-              row_count: response.data?.length ?? 0,
-              has_next_page: response.pageInfo?.hasNextPage ?? false,
-            });
-            Logger.log('[MoneyActivity] accounts API page', {
-              address: moneyAddress,
-              rowCount: response.data?.length ?? 0,
-              hasNextPage: response.pageInfo?.hasNextPage ?? false,
-            });
-            return response;
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              '[MoneyActivity] accounts API fetch failed',
-            );
-            throw error;
-          }
+          const response = await apiClient.accounts.fetchV1AccountTransactions(
+            moneyAddress,
+            {
+              ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+              cursor: pageParam,
+            },
+          );
+          annotateTrace(context, {
+            row_count: response.data?.length ?? 0,
+            has_next_page: response.pageInfo?.hasNextPage ?? false,
+          });
+          return response;
         },
       );
 
@@ -184,13 +154,12 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     // last row of one page repeated as the first of the next), the duplicate
     // would otherwise render twice and collide on the list's `id` key.
     const seen = new Set<string>();
-    const parsed = pages
+    return pages
       .flatMap((page) =>
         parseAccountsApiActivity(
           page,
           moneyAddress,
           cashbackMultisendContracts,
-          vbaDepositFromAddresses,
         ),
       )
       .filter((row) => {
@@ -201,132 +170,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
         seen.add(key);
         return true;
       });
-    Logger.log('[MoneyActivity] parsed rows', {
-      address: moneyAddress,
-      rawPages: pages.length,
-      allowlist: vbaDepositFromAddresses,
-      parsedCount: parsed.length,
-      kinds: parsed.map((row) => row.kind),
-    });
-    return parsed;
-  }, [pages, moneyAddress, cashbackMultisendContracts, vbaDepositFromAddresses]);
-
-  const configuredChainId = vaultConfig
-    ? vaultConfig.chainId.startsWith('0x')
-      ? Number.parseInt(vaultConfig.chainId, 16)
-      : Number(vaultConfig.chainId)
-    : NaN;
-  const isConfiguredVaultShare = useCallback(
-    (
-      row: AccountsApiActivity,
-    ): row is Extract<AccountsApiActivity, { kind: 'card' }> =>
-      row.kind === 'card' &&
-      row.token.address.toLowerCase() ===
-        vedaTokenConfig?.address.toLowerCase() &&
-      row.token.decimals === 6,
-    [vedaTokenConfig?.address],
-  );
-  const vaultCardActivities = useMemo(
-    () =>
-      activity.filter(
-        (row) =>
-          isConfiguredVaultShare(row) &&
-          row.chainId.toLowerCase() === vaultConfig?.chainId.toLowerCase(),
-      ),
-    [activity, isConfiguredVaultShare, vaultConfig?.chainId],
-  );
-  const rateActivities = useMemo(
-    () => vaultCardActivities.filter((row) => row.blockNumber !== undefined),
-    [vaultCardActivities],
-  );
-  const rateHistoryEnabled = Boolean(
-    rateActivities.length > 0 &&
-      vaultConfig?.boringVault &&
-      Number.isSafeInteger(configuredChainId),
-  );
-  const rateQueryKey = useMemo(
-    () => [
-      MoneyAccountApiDataServiceQueryKeys.FETCH_RATE_HISTORY,
-      vaultConfig?.boringVault ?? '',
-      {
-        chainId: configuredChainId,
-        from: rateActivities.length
-          ? new Date(
-              Math.min(...rateActivities.map(({ time }) => time)) -
-                365 * 24 * 60 * 60 * 1000,
-            ).toISOString()
-          : '',
-        to: rateActivities.length
-          ? new Date(
-              Math.min(
-                Math.max(...rateActivities.map(({ time }) => time)),
-                Date.now(),
-              ) +
-                24 * 60 * 60 * 1000,
-            ).toISOString()
-          : '',
-      },
-    ],
-    [configuredChainId, rateActivities, vaultConfig?.boringVault],
-  );
-  const rateHistoryQuery = useQuery({
-    queryKey: rateQueryKey,
-    queryFn: () =>
-      fetchCardSpendRateHistory(
-        (vaultAddress, options) =>
-          Engine.controllerMessenger.call(
-            'MoneyAccountApiDataService:fetchRateHistory',
-            vaultAddress,
-            options,
-          ),
-        vaultConfig?.boringVault ?? '',
-        configuredChainId,
-        rateActivities.map(({ blockNumber, time }) => ({
-          blockNumber,
-          time,
-        })),
-      ),
-    enabled: rateHistoryEnabled,
-    staleTime: 5 * MINUTE,
-    retry: false,
-    placeholderData: (previousData, previousQuery) => {
-      const previousQueryKey = previousQuery?.queryKey;
-      const previousScope = previousQueryKey?.[2] as
-        | { chainId?: number }
-        | undefined;
-      const sameVaultAndChain =
-        previousQueryKey?.[0] === rateQueryKey[0] &&
-        previousQueryKey?.[1] === rateQueryKey[1] &&
-        previousScope?.chainId === configuredChainId;
-      return sameVaultAndChain ? previousData : undefined;
-    },
-  });
-
-  const resolvedActivity = useMemo(() => {
-    const rates = rateHistoryQuery.data ?? [];
-    return activity.map((row) => {
-      if (
-        !isConfiguredVaultShare(row) ||
-        row.chainId.toLowerCase() !== vaultConfig?.chainId.toLowerCase()
-      ) {
-        return row;
-      }
-      const historicalRate = selectHistoricalRateForBlock(
-        rates,
-        row.blockNumber,
-      );
-      return {
-        ...row,
-        isVaultShare: true,
-        ...(rateHistoryQuery.data ? { historicalRate } : {}),
-      };
-    });
-  }, [
-    activity,
-    rateHistoryQuery.data,
-    isConfiguredVaultShare,
-    vaultConfig?.chainId,
-  ]);
+  }, [pages, moneyAddress, cashbackMultisendContracts]);
 
   // "Complete" means no further pages will arrive, so the merged list can be
   // shown in full. This happens if:
@@ -352,7 +196,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 
   return {
-    activity: resolvedActivity,
+    activity,
     watermark,
     isComplete,
     pageCount: pages.length,

@@ -13,6 +13,7 @@ import {
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyVbaActivityDepositFromAddresses,
+  selectMoneyVbaPendingActivityEnabled,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
@@ -26,10 +27,7 @@ import {
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
 } from './featureFlags';
-import {
-  DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
-  DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES,
-} from '../utils/accountsApi';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {},
@@ -66,6 +64,74 @@ const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
       },
     },
   },
+});
+
+describe('selectMoneyVbaPendingActivityEnabled', () => {
+  const originalEnv = process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
+  const originalProcessEnv = process.env;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...process.env };
+    delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
+  });
+
+  afterEach(() => {
+    process.env = originalProcessEnv;
+    if (originalEnv === undefined) {
+      delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
+    } else {
+      process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED = originalEnv;
+    }
+  });
+
+  it('returns true when the remote version-gated flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+    expect(
+      selectMoneyVbaPendingActivityEnabled(
+        createState({
+          moneyVbaPendingActivityEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        }) as never,
+      ),
+    ).toBe(true);
+  });
+
+  it('returns false when the remote flag is disabled even if local override is enabled', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED = 'true';
+    expect(
+      selectMoneyVbaPendingActivityEnabled(
+        createState({
+          moneyVbaPendingActivityEnabled: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        }) as never,
+      ),
+    ).toBe(false);
+  });
+
+  it('uses the local QA override when remote flag shape is invalid', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED = 'true';
+    expect(
+      selectMoneyVbaPendingActivityEnabled(
+        createState({
+          moneyVbaPendingActivityEnabled: { enabled: 'yes' },
+        }) as never,
+      ),
+    ).toBe(true);
+  });
+
+  it('defaults off when remote flag is absent and local override is unset', () => {
+    mockedValidate.mockReturnValue(undefined);
+    expect(selectMoneyVbaPendingActivityEnabled(createState() as never)).toBe(
+      false,
+    );
+  });
 });
 
 describe('selectMoneyEnableActivityDetailsFlag', () => {
@@ -721,17 +787,6 @@ describe('selectMoneyCardActivityCashbackMultisendContracts', () => {
 });
 
 describe('selectMoneyVbaActivityDepositFromAddresses', () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    process.env = { ...originalEnv };
-    delete process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES;
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
   it('returns normalized remote addresses when valid', () => {
     const state = createState({
       moneyVbaActivityDepositFromAddresses: [
@@ -746,34 +801,22 @@ describe('selectMoneyVbaActivityDepositFromAddresses', () => {
     ]);
   });
 
-  it('falls back to the local env list when remote is absent', () => {
-    process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES =
-      '0x1111111111111111111111111111111111111111, not-an-address';
-
-    expect(
-      selectMoneyVbaActivityDepositFromAddresses(createState({}) as never),
-    ).toEqual(['0x1111111111111111111111111111111111111111']);
-  });
-
-  it('prefers the local env list over a valid remote list', () => {
-    process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES =
-      '0x798eEE80db111278B9730609E91430ed3f85f801';
+  it('fails closed when the remote allowlist is malformed', () => {
     const state = createState({
       moneyVbaActivityDepositFromAddresses: [
         '0x1111111111111111111111111111111111111111',
+        'not-an-address',
       ],
     });
-
-    expect(selectMoneyVbaActivityDepositFromAddresses(state as never)).toEqual([
-      '0x798eee80db111278b9730609e91430ed3f85f801',
-    ]);
+    expect(selectMoneyVbaActivityDepositFromAddresses(state as never)).toEqual(
+      [],
+    );
   });
 
-  it('returns an empty list when remote and env are unset (no hardcoded EOAs)', () => {
+  it('returns an empty allowlist when the remote flag is absent', () => {
     expect(
       selectMoneyVbaActivityDepositFromAddresses(createState({}) as never),
     ).toEqual([]);
-    expect(DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES).toEqual([]);
   });
 });
 

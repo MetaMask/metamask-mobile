@@ -46,14 +46,14 @@ const dataServiceMessenger = {
   },
 };
 
-function createQueryClient() {
+export function createComponentViewQueryClient() {
   return createUIQueryClient(DATA_SERVICES, dataServiceMessenger, {
     defaultOptions: { queries: { retry: false } },
   });
 }
 
 function QueryClientBoundary({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(createQueryClient);
+  const [queryClient] = React.useState(createComponentViewQueryClient);
 
   React.useEffect(
     () => () => {

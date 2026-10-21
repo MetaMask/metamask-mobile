@@ -307,6 +307,14 @@ describe('SocialV1View', () => {
     );
   });
 
+  it('shows the account mask icon when no profile exists', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeOnTheScreen();
+  });
+
   it('opens My Profile from the avatar', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -651,6 +659,9 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeNull();
   });
 
   describe('notifications nudge banner', () => {

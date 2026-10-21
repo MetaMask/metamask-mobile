@@ -2,16 +2,11 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    tokenDetailsContainer: {
-      marginTop: 16,
-      gap: 24,
-    },
     title: {
-      paddingVertical: 8,
+      paddingBottom: 8,
     } as TextStyle,
     listWrapper: {
       paddingTop: 8,
-      paddingBottom: 8,
     },
     listItem: {
       flexDirection: 'row',

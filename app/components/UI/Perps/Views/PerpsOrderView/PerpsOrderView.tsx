@@ -82,6 +82,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsFeesDisplay from '../../components/PerpsFeesDisplay';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet';
@@ -115,13 +116,11 @@ import {
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
-import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import {
-  useBottomSafeAreaInset,
   useHasExistingPosition,
   useMinimumOrderAmount,
   usePerpsLiquidationPrice,
@@ -212,6 +211,13 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import {
+  postCopyTradeIntent,
+  type CopyTradeOrigin,
+} from '../../../../../util/social/copyTradeIntent';
+import { buildPerpsCopyTradeIntent } from '../../utils/copyTradeIntent';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -238,6 +244,8 @@ interface OrderRouteParams {
    * market details. The order still places and the same toasts still fire.
    */
   stayOnCurrentScreen?: boolean;
+  /** Social post being copied; a matching order records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section forwarded from market details */
@@ -310,8 +318,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const stayOnCurrentScreen = route.params?.stayOnCurrentScreen ?? false;
+  const copyTradeOrigin = route.params?.copyTradeOrigin;
+  const activePerpsProvider = useSelector(selectPerpsProvider);
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const { colors } = useTheme();
-  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   useAddToken({
     chainId: CHAIN_IDS.ARBITRUM,
@@ -335,16 +347,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { setConfirmationMetric } = useConfirmationMetricEvents();
 
   const styles = createStyles(colors);
-
-  // Dynamic bottom padding for fixed container: system navigation-bar inset plus
-  // the visual padding, so the CTA is never drawn under the navigation bar.
-  const fixedBottomContainerStyle = useMemo(
-    () => ({
-      ...styles.fixedBottomContainer,
-      paddingBottom: bottomSafeAreaInset + FIXED_BOTTOM_CONTAINER_PADDING,
-    }),
-    [styles.fixedBottomContainer, bottomSafeAreaInset],
-  );
 
   // Deferred loading: Load non-critical data after UI renders
   const [isDataReady, setIsDataReady] = useState(false);
@@ -783,7 +785,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
@@ -1204,11 +1205,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // `stayOnCurrentScreen` is set.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
-      onSuccess: (_position) => {
+      onSuccess: (_position, result) => {
         showToast(
           PerpsToastOptions.orderManagement[
             getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+        );
+        postCopyTradeIntent(
+          () =>
+            buildPerpsCopyTradeIntent({
+              copyTradeOrigin,
+              asset: orderForm.asset,
+              orderType: orderForm.type,
+              result,
+              address: getSelectedAccountByScope('eip155:1')?.address,
+              activeProvider: activePerpsProvider,
+            }),
+          { surface: 'trader_feed', source: 'PerpsOrderView' },
         );
       },
       onError: (error) => {
@@ -2682,6 +2695,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
           hasError={spendableBalance > 0 && !!filteredErrors.length}
           isLoading={isLoadingAccount}
+          twClassName="pt-4"
         />
 
         {/* Amount Slider - Hide when keypad is active */}
@@ -3047,7 +3061,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       )}
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
-        <View style={fixedBottomContainerStyle}>
+        <View
+          style={styles.fixedBottomContainer}
+          testID={PerpsOrderViewSelectorsIDs.FOOTER}
+        >
+          <PerpsRebateBanner
+            coin={orderForm.asset}
+            direction={orderForm.direction}
+            notionalUsd={orderForm.amount}
+            twClassName="mb-3"
+          />
+          <Box twClassName="-mx-4 mb-3 border-t border-muted" />
+
           {footerErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null && (

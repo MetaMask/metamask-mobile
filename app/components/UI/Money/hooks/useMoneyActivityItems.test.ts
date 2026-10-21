@@ -24,6 +24,7 @@ import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featu
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyVbaPendingActivityEnabled,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { NeobankBankTransferActivity } from '../types/moneyActivity';
@@ -65,11 +66,13 @@ function mockEnrichmentFlags({
   enrichment = false,
   moneyAccount = false,
   geoEligible = false,
+  pendingActivity = true,
 }: {
   master?: boolean;
   enrichment?: boolean;
   moneyAccount?: boolean;
   geoEligible?: boolean;
+  pendingActivity?: boolean;
 } = {}) {
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectCardTransactionHistoryEnabled) {
@@ -83,6 +86,9 @@ function mockEnrichmentFlags({
     }
     if (selector === selectIsMoneyAccountGeoEligible) {
       return geoEligible;
+    }
+    if (selector === selectMoneyVbaPendingActivityEnabled) {
+      return pendingActivity;
     }
     return false;
   });
@@ -181,6 +187,21 @@ describe('mergeMoneyActivity', () => {
     ]);
   });
 
+  it('excludes completed provider rows and deduplicates stable ids', () => {
+    const items = mergeMoneyActivity(
+      [],
+      [],
+      [],
+      [
+        { id: 'same', autorampId: 'ar-1', status: 'Pending', time: 200 },
+        { id: 'same', autorampId: 'ar-1', status: 'Pending', time: 100 },
+        { id: 'done', autorampId: 'ar-1', status: 'Completed', time: 300 },
+      ],
+    );
+
+    expect(items.map((item) => item.id)).toEqual(['same']);
+  });
+
   it('orders rows sharing a timestamp deterministically by id', () => {
     // A spend and its cashback can settle in the same second; the tie must
     // resolve the same way regardless of input order.
@@ -206,6 +227,31 @@ describe('buildMoneyActivityBuckets', () => {
   const card = cardTx('0xcard' as Hex, 200);
   const cashback = cashbackTx('0xback' as Hex, 300);
   const refund = refundTx('0xrefund' as Hex, 250);
+
+  it('shows only active NeoBank deposits in All and Deposits', () => {
+    const neobank: NeobankBankTransferActivity[] = [
+      { id: 'pending', autorampId: 'ar-1', status: 'Pending', time: 400 },
+      { id: 'failed', autorampId: 'ar-1', status: 'Failed', time: 300 },
+      { id: 'completed', autorampId: 'ar-1', status: 'Completed', time: 500 },
+    ];
+    const buckets = buildMoneyActivityBuckets(
+      { all: [], deposits: [], transfers: [] },
+      [],
+      Number.NEGATIVE_INFINITY,
+      [],
+      neobank,
+    );
+
+    expect(buckets[MoneyActivityFilter.All].map((item) => item.id)).toEqual([
+      'pending',
+      'failed',
+    ]);
+    expect(
+      buckets[MoneyActivityFilter.Deposits].map((item) => item.id),
+    ).toEqual(['pending', 'failed']);
+    expect(buckets[MoneyActivityFilter.Transfers]).toEqual([]);
+    expect(buckets[MoneyActivityFilter.Purchases]).toEqual([]);
+  });
 
   it('keeps card spends and cashback out of Deposits and Sends; both into All', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [card, cashback]);
@@ -427,6 +473,24 @@ describe('useMoneyActivityItems', () => {
       result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
     ).toEqual(['0xnew']);
     expect(result.current.hasMore).toBe(true);
+  });
+
+  it('does not expose provider rows when pending VBA activity is disabled', () => {
+    mockEnrichmentFlags({ pendingActivity: false });
+    mockUseNeobankAutorampActivity.mockReturnValue({
+      activity: [
+        { id: 'pending', autorampId: 'ar-1', status: 'Pending', time: 300 },
+      ],
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
+    expect(result.current.buckets[MoneyActivityFilter.Deposits]).toEqual([]);
+    expect(mockUseNeobankAutorampActivity).toHaveBeenCalledWith(
+      '0xmoney',
+      false,
+    );
   });
 
   it('fetches more pages until the fill bucket reaches its count', () => {
@@ -789,9 +853,7 @@ describe('useMoneyActivityItems', () => {
     );
   });
 
-  it('refetches Accounts API while a Completed NeoBank deposit awaits settlement', () => {
-    jest.useFakeTimers();
-    const refetch = jest.fn();
+  it('does not include Completed NeoBank deposits in activity buckets', () => {
     const completedNeobank: NeobankBankTransferActivity = {
       id: 'neo-done',
       autorampId: 'ar-1',
@@ -803,15 +865,9 @@ describe('useMoneyActivityItems', () => {
       activity: [completedNeobank],
       refetch: jest.fn(),
     });
-    mockUseMoneyAccountApiActivity.mockReturnValue(
-      apiResult({ activity: [], refetch }),
-    );
 
-    renderHook(() => useMoneyActivityItems());
-
-    expect(refetch).toHaveBeenCalledTimes(1);
-    jest.advanceTimersByTime(10_000);
-    expect(refetch).toHaveBeenCalledTimes(2);
-    jest.useRealTimers();
+    const { result } = renderHook(() => useMoneyActivityItems());
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
+    expect(result.current.buckets[MoneyActivityFilter.Deposits]).toEqual([]);
   });
 });

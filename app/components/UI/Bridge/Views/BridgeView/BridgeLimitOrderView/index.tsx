@@ -57,6 +57,8 @@ import {
   HISTORY_LIMIT_ORDER_STATES,
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
   LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+  LIMIT_ORDERS_REFETCH_INTERVAL,
   LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD,
   OPEN_LIMIT_ORDER_STATES,
   SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
@@ -70,6 +72,9 @@ import {
   type MeasureInWindow,
 } from '../../../hooks/useScrollIntoViewAboveKeypad';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { formatSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
 import {
   formatMinimumReceived,
   getCurrencySymbol,
@@ -95,7 +100,17 @@ const formatTokenAmountValue = (
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-const BridgeLimitOrderViewContent = () => {
+interface BridgeLimitOrderViewContentProps {
+  initialExpirationMinutes?: SwapsLimitOrderExpirationMinutes;
+  initialPriceTolerance?: string;
+  deeplinkInitializationKey?: string;
+}
+
+const BridgeLimitOrderViewContent = ({
+  initialExpirationMinutes,
+  initialPriceTolerance,
+  deeplinkInitializationKey,
+}: BridgeLimitOrderViewContentProps) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -144,17 +159,27 @@ const BridgeLimitOrderViewContent = () => {
     sourceAssetId,
     destinationAssetId,
   });
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  let ordersRefetchInterval: number | undefined = LIMIT_ORDERS_REFETCH_INTERVAL;
+  if (networkTier === 'NONE') {
+    ordersRefetchInterval = undefined;
+  } else if (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR') {
+    ordersRefetchInterval = LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL;
+  }
   const openOrdersQuery = useLimitOrders({
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+    refetchInterval: ordersRefetchInterval,
   });
   const historyQuery = useLimitOrders({
     walletAddress,
     states: HISTORY_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: activeOrdersTab === OrdersTabKey.History,
+    refetchInterval: ordersRefetchInterval,
   });
   const {
     commitCustomPercent,
@@ -171,6 +196,7 @@ const BridgeLimitOrderViewContent = () => {
     isTriggerPriceNearMarket,
     executionType,
     limitPrice,
+    limitPriceDecimals,
     marketComparison,
     priceComparisonDirection,
     onAmountTypeTogglePress,
@@ -191,9 +217,11 @@ const BridgeLimitOrderViewContent = () => {
     focusLimitPrice,
     handleChange: handleKeypadChange,
     handleCustomPercentSelectionChange,
+    handleKeypadClose,
     handleLimitPriceSelectionChange,
     isAmountFocused,
     isCustomPercentFocused,
+    isCustomPercentKeypadOpen,
     keypadProps,
     keypadRef,
     limitPriceSelection,
@@ -201,6 +229,7 @@ const BridgeLimitOrderViewContent = () => {
     customPercent: customValue,
     isLimitFiatMode,
     limitPrice,
+    limitPriceDecimals,
     nativeToken: counterToken,
     onCustomPercentChange: handleCustomValueChange,
     onLimitPriceChange: handleLimitPriceChange,
@@ -225,6 +254,12 @@ const BridgeLimitOrderViewContent = () => {
     scrollViewRef,
     measureTarget: measureCustomPercentInput,
   });
+
+  const { onClose: onKeypadLayoutClose } = keypadLayoutProps;
+  const onKeypadClose = useCallback(() => {
+    onKeypadLayoutClose();
+    handleKeypadClose();
+  }, [handleKeypadClose, onKeypadLayoutClose]);
 
   // Limit orders are not quoted, so the destination amount is derived from the
   // amount being paid and the price the order would trigger at.
@@ -266,7 +301,11 @@ const BridgeLimitOrderViewContent = () => {
     sourceToken,
     sourceAmount,
   });
+  const hasNonZeroSourceAmount =
+    Boolean(sourceAmount) && Number(sourceAmount) > 0;
+  const hasValidLimitPrice = Boolean(limitPrice) && Number(limitPrice) > 0;
   const isCreateOrderDisabled =
+    !hasValidLimitPrice ||
     isMissingPrice ||
     isHardwareWallet ||
     isBelowMinAmount ||
@@ -279,8 +318,14 @@ const BridgeLimitOrderViewContent = () => {
       : strings('bridge.limit.create_order');
   const [expirationMinutes, setExpirationMinutes] =
     useState<SwapsLimitOrderExpirationMinutes>(
-      SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
     );
+
+  useEffect(() => {
+    setExpirationMinutes(
+      initialExpirationMinutes ?? SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+    );
+  }, [deeplinkInitializationKey, initialExpirationMinutes]);
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -302,6 +347,7 @@ const BridgeLimitOrderViewContent = () => {
 
   const openOrders = createLimitOrdersTab({
     orders: openOrdersQuery.orders,
+    totalCount: openOrdersQuery.total,
     isLoading: openOrdersQuery.isLoading,
     isError: openOrdersQuery.isError,
     isFetchingNextPage: openOrdersQuery.isFetchingNextPage,
@@ -431,9 +477,18 @@ const BridgeLimitOrderViewContent = () => {
   const costToleranceLabel = `${
     costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
   }%`;
-  const triggerPrice = `${
-    isLimitFiatMode ? getCurrencySymbol(currentCurrency || 'usd') : ''
-  }${formatAmountWithLocaleSeparators(value)}`;
+  const formattedLimitPrice =
+    formatSubscriptNotation(Number(value)) ??
+    formatAmountWithLocaleSeparators(value);
+  let triggerPrice = formattedLimitPrice;
+  if (isLimitFiatMode) {
+    triggerPrice = `${getCurrencySymbol(currentCurrency || 'usd')}${formattedLimitPrice}`;
+  } else if (counterToken?.symbol) {
+    triggerPrice = strings('bridge.limit.quote_unit', {
+      amount: formattedLimitPrice,
+      symbol: counterToken.symbol,
+    });
+  }
 
   const handleCreateOrderPress = useCallback(() => {
     if (!feeTokenValidation.isValid) {
@@ -447,6 +502,10 @@ const BridgeLimitOrderViewContent = () => {
         sourceToken,
         destToken,
         payingAmount: formatTokenAmountValue(sourceAmount, sourceToken?.symbol),
+        estReceivingAmount: formatTokenAmountValue(
+          destTokenAmount,
+          destToken?.symbol,
+        ),
         triggerPrice,
         triggerToken: quotedToken,
         expiry: expiration,
@@ -483,11 +542,15 @@ const BridgeLimitOrderViewContent = () => {
     triggerPrice,
   ]);
 
-  // Reset cost tolerance when navigating to limit orders screen.
+  // Initialize cost tolerance when navigating to the Limit Order screen or
+  // when a new deeplink targets an already-mounted Bridge route.
   useEffect(() => {
-    dispatch(setLimitOrderCostTolerance(LIMIT_ORDER_DEFAULT_COST_TOLERANCE));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    dispatch(
+      setLimitOrderCostTolerance(
+        initialPriceTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+      ),
+    );
+  }, [deeplinkInitializationKey, dispatch, initialPriceTolerance]);
 
   // Keeps the market-comparison label in sync everywhere it's shown: this
   // screen keeps running (and this effect keeps firing) behind the
@@ -565,6 +628,7 @@ const BridgeLimitOrderViewContent = () => {
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
               onLimitPriceInputPress={onLimitPriceInputPress}
+              isLimitPriceInputPressDisabled={isCustomPercentKeypadOpen}
               limitPriceSelection={limitPriceSelection}
               onLimitPriceSelectionChange={handleLimitPriceSelectionChange}
               secondaryLimitPrice={secondaryValue}
@@ -642,8 +706,9 @@ const BridgeLimitOrderViewContent = () => {
           onChange={handleKeypadChange}
           {...keypadLayoutProps}
           {...keypadProps}
+          onClose={onKeypadClose}
         >
-          {isAmountFocused && sourceAmount && sourceAmount !== '0' ? (
+          {hasNonZeroSourceAmount ? (
             <SwapsLimitOrderConfirmButton
               onPress={handleCreateOrderPress}
               label={createOrderLabel}

@@ -84,11 +84,13 @@ const declinedCardTransaction: CardTransaction = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 let mockBlockExplorerFlag = true;
+let mockPendingActivityEnabled = true;
 let mockRouteParams:
   | {
       activity?: AccountsApiActivity;
       enrichment?: CardTransaction;
       cardTransaction?: CardTransaction;
+      neobankActivity?: NeobankBankTransferActivity;
     }
   | undefined;
 jest.mock('@react-navigation/native', () => ({
@@ -121,6 +123,22 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: () =>
     mockBlockExplorerFlag,
+  selectMoneyVbaPendingActivityEnabled: () => mockPendingActivityEnabled,
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: () => ({
+    activity: mockRouteParams?.neobankActivity
+      ? [mockRouteParams.neobankActivity]
+      : [],
+    refetch: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
+  useMoneyAccountTransactions: () => ({
+    moneyAddress: '0xd663e49775d776300aa45ac2a51f0431bb459282',
+  }),
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
@@ -238,39 +256,35 @@ jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../Views/confirmations/components/progress-list',
-  () => {
-    const { View, Text: RNText, Pressable } =
-      jest.requireActual('react-native');
-    return {
-      ProgressList: ({ children }: { children: React.ReactNode }) => (
-        <View testID="progress-list">{children}</View>
-      ),
-      ProgressListItem: ({
-        title,
-        subtitle,
-        severity,
-        onButtonPress,
-      }: {
-        title: string;
-        subtitle: string;
-        severity?: string;
-        onButtonPress?: () => void;
-      }) => (
-        <View testID={`progress-list-item-${severity ?? 'success'}`}>
-          <RNText>{title}</RNText>
-          <RNText>
-            {severity === 'warning' ? 'transaction.pending' : subtitle}
-          </RNText>
-          {onButtonPress ? (
-            <Pressable testID="block-explorer-button" onPress={onButtonPress} />
-          ) : null}
-        </View>
-      ),
-    };
-  },
-);
+jest.mock('../../../../Views/confirmations/components/progress-list', () => {
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+  return {
+    ProgressList: ({ children }: { children: React.ReactNode }) => (
+      <View testID="progress-list">{children}</View>
+    ),
+    ProgressListItem: ({
+      title,
+      subtitle,
+      severity,
+      onButtonPress,
+    }: {
+      title: string;
+      subtitle: string;
+      severity?: string;
+      onButtonPress?: () => void;
+    }) => (
+      <View testID={`progress-list-item-${severity ?? 'success'}`}>
+        <RNText>{title}</RNText>
+        <RNText>
+          {severity === 'warning' ? 'transaction.pending' : subtitle}
+        </RNText>
+        {onButtonPress ? (
+          <Pressable testID="block-explorer-button" onPress={onButtonPress} />
+        ) : null}
+      </View>
+    ),
+  };
+});
 
 describe('MoneyApiActivityDetailsView', () => {
   beforeEach(() => {
@@ -642,7 +656,9 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByTestId('header-title')).toHaveTextContent(
         'money.transaction.deposited',
       );
-      expect(getByText('money.api_activity_details.you_deposited')).toBeTruthy();
+      expect(
+        getByText('money.api_activity_details.you_deposited'),
+      ).toBeTruthy();
     });
 
     it('renders the Steps timeline with bank transfer and Money deposit', () => {
@@ -671,6 +687,10 @@ describe('MoneyApiActivityDetailsView', () => {
   });
 
   describe('neobank bank_transfer', () => {
+    beforeEach(() => {
+      mockPendingActivityEnabled = true;
+    });
+
     const pendingNeobank: NeobankBankTransferActivity = {
       id: 'neo-pending',
       autorampId: 'ar-1',
@@ -679,10 +699,22 @@ describe('MoneyApiActivityDetailsView', () => {
       destinationAmount: '15',
     };
 
+    it('blocks restored pending details when pending activity is disabled', () => {
+      mockPendingActivityEnabled = false;
+      mockRouteParams = { neobankActivity: pendingNeobank };
+      render(<MoneyApiActivityDetailsView />);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
     it('keeps both Steps pending while MoonPay pay-in is still open', () => {
       mockRouteParams = { neobankActivity: pendingNeobank };
-      const { getByTestId, getByText, getAllByText, getAllByTestId, queryByText } =
-        render(<MoneyApiActivityDetailsView />);
+      const {
+        getByTestId,
+        getByText,
+        getAllByText,
+        getAllByTestId,
+        queryByText,
+      } = render(<MoneyApiActivityDetailsView />);
 
       expect(getByText('money.api_activity_details.pending')).toBeTruthy();
       // Header title + hero copy both use Depositing.
@@ -720,10 +752,9 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(queryByText(/\+15\.00/)).toBeNull();
       expect(getByTestId('progress-list-item-success')).toBeTruthy();
       expect(getAllByTestId('progress-list-item-warning')).toHaveLength(1);
-      expect(mockRefetchApiActivity).toHaveBeenCalled();
     });
 
-    it('flips to settled bank_transfer detail once Accounts API indexes mUSD', () => {
+    it('keeps provider Completed independent from a nearby confirmed activity', () => {
       mockApiActivity = [{ ...bankTransfer, amount: '15000000' }];
       mockRouteParams = {
         neobankActivity: { ...pendingNeobank, status: 'Completed' },
@@ -732,11 +763,9 @@ describe('MoneyApiActivityDetailsView', () => {
         <MoneyApiActivityDetailsView />,
       );
 
-      expect(getByText('money.api_activity_details.you_deposited')).toBeTruthy();
-      expect(getByText('money.api_activity_details.completed')).toBeTruthy();
-      expect(getByText(/\+15\.00/)).toBeTruthy();
-      expect(queryByText('money.api_activity_details.pending')).toBeNull();
-      expect(getAllByTestId('progress-list-item-success')).toHaveLength(2);
+      expect(getByText('money.api_activity_details.pending')).toBeTruthy();
+      expect(queryByText(/\+15\.00/)).toBeNull();
+      expect(getAllByTestId('progress-list-item-success')).toHaveLength(1);
     });
   });
 

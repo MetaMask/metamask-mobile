@@ -1,10 +1,7 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import type {
-  AccountsApiActivity,
-  NeobankBankTransferActivity,
-} from '../types/moneyActivity';
+import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 
 /** MoonPay autoramp transaction statuses that are no longer in flight. */
@@ -24,6 +21,10 @@ export function isNeobankFailedStatus(status: string): boolean {
 
 export function isNeobankCompletedStatus(status: string): boolean {
   return status === 'Completed';
+}
+
+export function isNeobankVisibleActivityStatus(status: string): boolean {
+  return !isNeobankCompletedStatus(status);
 }
 
 /**
@@ -58,59 +59,6 @@ export function mapAutorampTransactionToNeobankActivity(tx: {
     destinationAmount: tx.destinationAmount,
     transactionHash: hash,
   };
-}
-
-/**
- * Allowlisted on-chain bank_transfer that settles this NeoBank deposit, if any.
- * MoonPay `created_at` can precede the payout by a few minutes; accept credits
- * from shortly before the autoramp tx through a generous post-window.
- */
-export function findSettlingBankTransfer(
-  neobank: NeobankBankTransferActivity,
-  apiActivity: readonly AccountsApiActivity[],
-): Extract<AccountsApiActivity, { kind: 'bank_transfer' }> | undefined {
-  const bankTransfers = apiActivity.filter(
-    (row): row is Extract<AccountsApiActivity, { kind: 'bank_transfer' }> =>
-      row.kind === 'bank_transfer',
-  );
-  if (bankTransfers.length === 0) {
-    return undefined;
-  }
-
-  if (neobank.transactionHash) {
-    const byHash = bankTransfers.find(
-      (row) =>
-        row.hash.toLowerCase() === neobank.transactionHash?.toLowerCase(),
-    );
-    if (byHash) {
-      return byHash;
-    }
-  }
-
-  // Time-window match only after MoonPay pay-in is Completed — a Pending
-  // NeoBank row must not be swallowed by an unrelated earlier credit.
-  if (!isNeobankCompletedStatus(neobank.status)) {
-    return undefined;
-  }
-
-  const windowStart = neobank.time - 60_000;
-  const windowEnd = neobank.time + 30 * 60_000;
-  return bankTransfers
-    .filter((row) => row.time >= windowStart && row.time <= windowEnd)
-    .sort((left, right) => left.time - right.time)[0];
-}
-
-/**
- * Drops NeoBank rows that Accounts API (or an overlapping bank_transfer) already
- * covers, so Completed sandbox/off-chain rows do not double-count once mUSD lands.
- */
-export function filterNeobankActivityForMerge(
-  neobank: NeobankBankTransferActivity[],
-  apiActivity: AccountsApiActivity[],
-): NeobankBankTransferActivity[] {
-  return neobank.filter(
-    (tx) => findSettlingBankTransfer(tx, apiActivity) === undefined,
-  );
 }
 
 export function neobankActivityDisplayInfo(

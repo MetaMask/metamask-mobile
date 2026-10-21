@@ -29,11 +29,8 @@ import {
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
-import {
-  DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
-  DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES,
-} from '../utils/accountsApi';
-import { isValidAddress } from 'ethereumjs-util';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
+import { parseMoneyVbaActivityDepositFromAddresses } from '../utils/moneyVbaActivityDepositFromAddresses';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -113,43 +110,27 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
 );
 
 /**
- * Sender addresses whose inbound mUSD credits show as VBA "Bank transfer"
- * deposits in Money Activity. Local
- * `MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES` (comma-separated) wins when
- * set; else remote LD `moneyVbaActivityDepositFromAddresses`; else empty.
+ * Selects the remotely managed Iron/MoonPay sender addresses for completed VBA
+ * deposits. The allowlist can overlap while provider addresses rotate. An
+ * absent or malformed flag fails closed; production addresses are never bundled.
  */
 export const selectMoneyVbaActivityDepositFromAddresses = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): string[] => {
-    // Local QA env wins when set so Metro `.js.env` is not shadowed by an LD
-    // list that omits the sandbox Iron payout EOA.
-    const localRaw = process.env.MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES;
-    if (typeof localRaw === 'string' && localRaw.trim().length > 0) {
-      const fromEnv = localRaw
-        .split(',')
-        .map((part) => part.trim())
-        .filter((part) => isValidAddress(part))
-        .map((addr) => addr.toLowerCase());
-      if (fromEnv.length > 0) {
-        return fromEnv;
-      }
-    }
+  (remoteFeatureFlags): string[] =>
+    parseMoneyVbaActivityDepositFromAddresses(
+      remoteFeatureFlags?.moneyVbaActivityDepositFromAddresses,
+    ),
+);
 
-    const remote = remoteFeatureFlags?.moneyVbaActivityDepositFromAddresses;
-    if (
-      Array.isArray(remote) &&
-      remote.length > 0 &&
-      remote.every(
-        (item): item is string =>
-          typeof item === 'string' && isValidAddress(item),
-      )
-    ) {
-      return remote.map((addr) => addr.toLowerCase());
-    }
-
-    return DEFAULT_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES.map((addr) =>
-      addr.toLowerCase(),
-    );
+/** Dedicated opt-in gate for pending VBA activity from NeoBankService. */
+export const selectMoneyVbaPendingActivityEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaPendingActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 

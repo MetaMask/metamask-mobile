@@ -130,6 +130,7 @@ describe('ContactDetails', () => {
       userCountry: null,
       userNationality: null,
       isLoading: false,
+      isRegistrationSettingsFetched: true,
       error: null,
       refetch: jest.fn().mockResolvedValue(null),
     });

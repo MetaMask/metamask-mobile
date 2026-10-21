@@ -47,13 +47,16 @@ import type {
 } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import {
-  findSettlingBankTransfer,
   isNeobankCompletedStatus,
   isNeobankFailedStatus,
   neobankActivityDisplayInfo,
 } from '../../utils/neobankActivity';
-import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
-import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  selectMoneyVbaPendingActivityEnabled,
+} from '../../selectors/featureFlags';
+import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
+import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import MoneyIcon from '../../../../../images/money.png';
 import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLabel';
 import {
@@ -103,13 +106,42 @@ export function MoneyApiActivityDetailsView() {
   const activity = params?.activity;
   const enrichment = params?.enrichment;
   const cardTransaction = params?.cardTransaction;
-  const neobankActivity = params?.neobankActivity;
+  const routeNeobankActivity = params?.neobankActivity;
+  const pendingVbaActivityEnabled = useSelector(
+    selectMoneyVbaPendingActivityEnabled,
+  );
+  const { moneyAddress } = useMoneyAccountTransactions();
+  const { activity: liveNeobankActivity } = useNeobankAutorampActivity(
+    moneyAddress,
+    Boolean(routeNeobankActivity),
+  );
+  const currentRouteIsAllowed =
+    !routeNeobankActivity || pendingVbaActivityEnabled;
+  const liveRouteActivity = routeNeobankActivity
+    ? liveNeobankActivity.find((item) => item.id === routeNeobankActivity.id)
+    : undefined;
+  const neobankActivity = currentRouteIsAllowed
+    ? routeNeobankActivity
+      ? (liveRouteActivity ?? routeNeobankActivity)
+      : undefined
+    : undefined;
 
   useEffect(() => {
+    if (routeNeobankActivity && !pendingVbaActivityEnabled) {
+      navigation.goBack();
+      return;
+    }
     if (!activity && !cardTransaction && !neobankActivity) {
       navigation.goBack();
     }
-  }, [activity, cardTransaction, neobankActivity, navigation]);
+  }, [
+    activity,
+    cardTransaction,
+    neobankActivity,
+    navigation,
+    pendingVbaActivityEnabled,
+    routeNeobankActivity,
+  ]);
 
   if (cardTransaction) {
     return <MoneyDeclinedCardDetailsContent transaction={cardTransaction} />;
@@ -528,7 +560,7 @@ function MoneyApiActivityDetailsContent({
               size={ButtonSize.Lg}
               isFullWidth
               onPress={handleViewOnExplorer}
-              startIconName={IconName.Export}
+              startIconName={IconName.ArrowSquareOut}
               testID="card-transaction-details-explorer-button"
             >
               {strings('transaction_details.view_on_block_explorer')}
@@ -547,15 +579,6 @@ function NeobankBankTransferDetailsContent({
 }) {
   const tw = useTailwind();
   const handleBack = useGoBack();
-  const {
-    activity: apiActivity,
-    refetch: refetchApiActivity,
-  } = useMoneyAccountApiActivity();
-
-  const settlement = useMemo(
-    () => findSettlingBankTransfer(activity, apiActivity),
-    [activity, apiActivity],
-  );
 
   const display = useMemo(
     () => neobankActivityDisplayInfo(activity),
@@ -569,28 +592,8 @@ function NeobankBankTransferDetailsContent({
   const failed = isNeobankFailedStatus(activity.status);
   const payinCompleted = isNeobankCompletedStatus(activity.status);
 
-  // MoonPay Completed but Accounts API has not indexed the allowlisted credit
-  // yet — keep refetching so Deposit to Money Account can flip without leaving
-  // and re-entering the screen.
-  useEffect(() => {
-    if (failed || !payinCompleted || settlement) {
-      return;
-    }
-    void refetchApiActivity();
-    const id = setInterval(() => {
-      void refetchApiActivity();
-    }, 10_000);
-    return () => clearInterval(id);
-  }, [failed, payinCompleted, settlement, refetchApiActivity]);
-
-  // Once mUSD is indexed, show the settled Accounts API bank_transfer detail
-  // (amount, Completed, both Steps green) instead of the in-flight NeoBank UI.
-  if (settlement) {
-    return <MoneyApiActivityDetailsContent activity={settlement} />;
-  }
-
-  // NeoBank rows never represent on-chain settlement — Money Account deposit
-  // stays pending until Accounts API takes over after mUSD lands.
+  // Provider Completed confirms the bank pay-in only. Main's confirmed on-chain
+  // TransactionMeta is displayed separately through the existing flow.
   const bankTransferSeverity: BankTransferStepSeverity = failed
     ? 'error'
     : payinCompleted

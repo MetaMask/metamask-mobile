@@ -1,37 +1,40 @@
 import type { CaipAssetType } from '@metamask/utils';
-
-/**
- * Placeholder meme-token check for the ASSETS-4055 feature flag rollout.
- *
- * TODO(ASSETS-4055): replace with a real signal — either a backend
- * `badges:v1:meme` label from token.api.cx.metamask.io or the
- * `/v3/tokens/meme/trending` endpoint, cached via TanStack Query.
- * For now we hardcode PEPE on mainnet so the TDP routing path is
- * exercisable end-to-end behind the LaunchDarkly flag.
- */
-const HARDCODED_MEME_ASSET_IDS: ReadonlySet<string> = new Set([
-  // PEPE on Ethereum mainnet
-  'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933',
-]);
+// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+import {
+  DEV_TOKEN_API_BASE_URL,
+  useTokenAssetDetails,
+} from '../queries/tokenAssetQuery';
 
 export interface UseIsMemeTokenOptions {
   assetId: CaipAssetType | null;
-  /**
-   * Reserved for the real impl (gates the network call). Ignored by the
-   * hardcoded placeholder — present so callers don't need to change when
-   * we swap this out.
-   */
+  /** Gates the network call — when `false` the query is disabled. */
   enabled?: boolean;
 }
 
 export interface UseIsMemeTokenResult {
   isMeme: boolean;
+  /** `true` while the /v2/assets query is still in flight. */
+  isLoading: boolean;
 }
 
+/**
+ * A token is treated as a meme token when its `/v2/assets` record carries
+ * `launchpadData`. The field is populated for tokens launched through
+ * on-chain launchpads (pump.fun, Pons, etc.) and absent for standard
+ * ERC-20s/SPL tokens.
+ */
 export const useIsMemeToken = ({
   assetId,
-}: UseIsMemeTokenOptions): UseIsMemeTokenResult => ({
-  isMeme: Boolean(
-    assetId && HARDCODED_MEME_ASSET_IDS.has(assetId.toLowerCase()),
-  ),
-});
+  enabled = true,
+}: UseIsMemeTokenOptions): UseIsMemeTokenResult => {
+  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  const { asset, isLoading } = useTokenAssetDetails(
+    enabled ? assetId : null,
+    DEV_TOKEN_API_BASE_URL,
+  );
+
+  return {
+    isMeme: asset?.launchpadData != null,
+    isLoading,
+  };
+};

@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ReactTestInstance } from 'react-test-renderer';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -19,13 +20,27 @@ import {
 import { useSocialFeed } from '../../../UI/SocialFeed/data/useSocialFeed';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { FeedSortFilterSelectorsIDs } from '../components/Filters';
+import { SOCIAL_FEED_ERROR_TEST_ID } from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
+import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
+
+const collectTestIds = (node: ReactTestInstance, ids: string[] = []) => {
+  if (typeof node.props.testID === 'string') {
+    ids.push(node.props.testID);
+  }
+  node.children.forEach((child) => {
+    if (typeof child !== 'string') {
+      collectTestIds(child, ids);
+    }
+  });
+  return ids;
+};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -41,13 +56,13 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
       post,
       onCopyTrade,
     }: {
-      post: { item: SocialV1FeedItem };
-      onCopyTrade?: (item: SocialV1FeedItem) => void;
+      post: { item: SocialV1FeedItem; commentId?: string };
+      onCopyTrade?: (item: SocialV1FeedItem, commentId?: string) => void;
     }) => (
       <View>
         <Pressable
           testID={`social-v1-feed-card-${post.item.id}`}
-          onPress={() => onCopyTrade?.(post.item)}
+          onPress={() => onCopyTrade?.(post.item, post.commentId)}
         />
       </View>
     ),
@@ -255,11 +270,35 @@ describe('EmptyShellTabPage', () => {
 
     fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
 
-    expect(onQuickBuy).toHaveBeenCalledWith({
-      tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-      tokenSymbol: 'PUMP',
-      tokenName: 'PUMP',
-      chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      {
+        tokenAddress: 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
+        tokenSymbol: 'PUMP',
+        tokenName: 'PUMP',
+        chain: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      },
+      expect.anything(),
+    );
+  });
+
+  it('passes the copied post comment id as the QuickBuy copy-trade origin', () => {
+    const item = MOCK_SOCIAL_V1_FEED_ITEMS[1];
+    const onQuickBuy = jest.fn();
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+        onQuickBuy={onQuickBuy}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(`social-v1-feed-card-${item.id}`));
+
+    expect(onQuickBuy).toHaveBeenCalledWith(expect.any(Object), {
+      commentId: `mock-comment-${item.id}`,
     });
   });
 
@@ -527,6 +566,127 @@ describe('EmptyShellTabPage', () => {
     expect(
       screen.getByTestId('popular-traders-carousel-section'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the empty state when the tab feed has no posts', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
+      posts: [],
+      pendingPost: null,
+      pendingStartedAtMs: null,
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: () => undefined,
+      error: null,
+      refresh: () => Promise.resolve(),
+    }));
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.v1_empty.following.title'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+  });
+
+  it('places the Trending empty state above Popular traders', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
+      posts: [],
+      pendingPost: null,
+      pendingStartedAtMs: null,
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: () => undefined,
+      error: null,
+      refresh: () => Promise.resolve(),
+    }));
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    const testIds = collectTestIds(screen.getByTestId('trending-page-content'));
+    const emptyAt = testIds.indexOf(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID);
+    const railAt = testIds.indexOf('popular-traders-carousel-section');
+
+    expect(emptyAt).toBeGreaterThan(-1);
+    expect(railAt).toBeGreaterThan(emptyAt);
+    expect(
+      screen.getByText('social_leaderboard.feed.v1_empty.trending.title'),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the empty state hidden while the feed is loading', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1FeedLoading);
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  it('shows the feed error instead of the empty state when the first load fails', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
+      posts: [],
+      pendingPost: null,
+      pendingStartedAtMs: null,
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: () => undefined,
+      error: 'Network request failed',
+      refresh: () => Promise.resolve(),
+    }));
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+    expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('hides the empty state when the feed has posts', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
   });
 
   it('shows feed post skeletons and hides Popular traders during initial load', () => {

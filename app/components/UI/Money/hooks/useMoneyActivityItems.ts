@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
@@ -14,19 +14,19 @@ import { MoneyActivityFilter } from '../constants/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { useNeobankAutorampActivity } from './useNeobankAutorampActivity';
-import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
-import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
-import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyVbaPendingActivityEnabled,
 } from '../selectors/featureFlags';
+import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
+import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
+import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
-  filterNeobankActivityForMerge,
-  isNeobankCompletedStatus,
-  findSettlingBankTransfer,
+  isNeobankPendingStatus,
+  isNeobankVisibleActivityStatus,
 } from '../utils/neobankActivity';
 
 /** The list shown for each activity filter tab. */
@@ -122,10 +122,17 @@ export function mergeMoneyActivity(
     // we ignore any on chain data that exists in the accounts API response.
     .filter((tx) => !(tx.hash && apiHashes.has(tx.hash.toLowerCase())))
     .map(onchainItem);
-  const neobank = filterNeobankActivityForMerge(
-    neobankActivity,
-    apiActivity,
-  ).map(neobankItem);
+  const seenNeoBankIds = new Set<string>();
+  const neobank = neobankActivity
+    .filter((item) => isNeobankVisibleActivityStatus(item.status))
+    .filter((item) => {
+      if (seenNeoBankIds.has(item.id)) {
+        return false;
+      }
+      seenNeoBankIds.add(item.id);
+      return true;
+    })
+    .map(neobankItem);
   // Time-descending, with `id` as a stable tiebreak so rows sharing a timestamp
   // (e.g. a spend and its cashback in the same second) keep a deterministic
   // order across renders/refetches and across the two merged sources.
@@ -176,10 +183,7 @@ export function buildMoneyActivityBuckets(
       watermark,
     ),
     [MoneyActivityFilter.Transfers]: onchainOnly(
-      safeItems(
-        mergeMoneyActivity(onchain.transfers, apiActivity, [], neobankActivity),
-        watermark,
-      ),
+      safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
     ),
     // Purchases is API-only (+ declined card rows); the watermark gate still
     // applies for same-timestamp siblings on the next page.
@@ -210,43 +214,20 @@ export function useMoneyActivityItems({
     error,
     refetch: refetchApiActivity,
   } = useMoneyAccountApiActivity();
-  const { activity: neobankActivity, refetch: refetchNeobankActivity } =
-    useNeobankAutorampActivity(moneyAddress);
-
-  // MoonPay can report Completed before Accounts API indexes the allowlisted
-  // mUSD credit. Keep refetching until those Completed NeoBank rows settle so
-  // Deposit-to-Money-Account can flip green and replace the off-chain row.
-  const awaitingOnChainSettlement = useMemo(
-    () =>
-      neobankActivity.some(
-        (tx) =>
-          isNeobankCompletedStatus(tx.status) &&
-          findSettlingBankTransfer(tx, activity) === undefined,
-      ),
-    [neobankActivity, activity],
+  const pendingActivityEnabled = useSelector(
+    selectMoneyVbaPendingActivityEnabled,
   );
-  const settlementPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  useEffect(() => {
-    if (!awaitingOnChainSettlement) {
-      if (settlementPollRef.current) {
-        clearInterval(settlementPollRef.current);
-        settlementPollRef.current = null;
-      }
-      return;
-    }
-
-    void refetchApiActivity();
-    settlementPollRef.current = setInterval(() => {
-      void refetchApiActivity();
-    }, 10_000);
-
-    return () => {
-      if (settlementPollRef.current) {
-        clearInterval(settlementPollRef.current);
-        settlementPollRef.current = null;
-      }
-    };
-  }, [awaitingOnChainSettlement, refetchApiActivity]);
+  const { activity: neobankActivity, refetch: refetchNeobankActivity } =
+    useNeobankAutorampActivity(moneyAddress, pendingActivityEnabled);
+  const visibleNeobankActivity = useMemo(
+    () =>
+      pendingActivityEnabled
+        ? neobankActivity.filter((item) =>
+            isNeobankVisibleActivityStatus(item.status),
+          )
+        : [],
+    [pendingActivityEnabled, neobankActivity],
+  );
 
   const isCardTxHistoryEnabled = useSelector(
     selectCardTransactionHistoryEnabled,
@@ -311,7 +292,7 @@ export function useMoneyActivityItems({
         activity,
         watermark,
         declinedForFeed,
-        neobankActivity,
+        visibleNeobankActivity,
       ),
     [
       allTransactions,
@@ -320,7 +301,7 @@ export function useMoneyActivityItems({
       activity,
       watermark,
       declinedForFeed,
-      neobankActivity,
+      visibleNeobankActivity,
     ],
   );
 

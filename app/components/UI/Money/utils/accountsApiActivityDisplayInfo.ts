@@ -4,7 +4,6 @@ import { strings } from '../../../../../locales/i18n';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import { moneyFormatUsd } from './moneyFormatFiat';
-import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { formatCardAmount } from '../../Card/utils/cardTransactionAmount';
@@ -26,32 +25,13 @@ export function accountsApiActivityDisplayInfo(
     activity.kind === 'bank_transfer';
   const sign = isIncoming ? '+' : '-';
 
-  const rawValue = new BigNumber(activity.amount).dividedBy(
+  // Card activity amounts are already denominated in USD (mUSD is USD-pegged).
+  const usdValue = new BigNumber(activity.amount).dividedBy(
     new BigNumber(10).pow(activity.token.decimals),
   );
-  let usdValue = rawValue;
-  if (
-    activity.kind === 'card' &&
-    activity.isVaultShare &&
-    activity.historicalRate
-  ) {
-    const convertedAssets =
-      (BigInt(activity.amount) * BigInt(activity.historicalRate)) / 10n ** 18n;
-    usdValue = new BigNumber(convertedAssets.toString()).dividedBy(
-      new BigNumber(10).pow(MUSD_DECIMALS),
-    );
-  }
-  const amountAvailable =
-    activity.kind !== 'card' ||
-    !activity.isVaultShare ||
-    Boolean(activity.historicalRate);
 
-  const primaryAmount = amountAvailable
-    ? `${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`
-    : strings('money.api_activity_details.amount_unavailable');
-  const fiatAmount = amountAvailable
-    ? `${sign}${moneyFormatUsd(usdValue)}`
-    : strings('money.api_activity_details.amount_unavailable');
+  const primaryAmount = `${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
+  const fiatAmount = `${sign}${moneyFormatUsd(usdValue)}`;
 
   const base: MoneyTransactionDisplayInfo = {
     description:
@@ -81,6 +61,6 @@ export function accountsApiActivityDisplayInfo(
   return {
     ...base,
     description: enrichment.merchant?.name ?? base.description,
-    fiatAmount: amountAvailable ? secondaryAmount : fiatAmount,
+    fiatAmount: secondaryAmount,
   };
 }

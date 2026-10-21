@@ -7,11 +7,12 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
+import Engine from '../../../../../core/Engine';
 
 // Local reanimated mock needed: Reanimated.default.call override is required
 // for RewardsAnimations component rendering.
@@ -39,6 +40,9 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 
 import {
   PerpsOrderViewSelectorsIDs,
@@ -47,6 +51,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
+  useBottomSafeAreaInset,
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
@@ -634,6 +639,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockSelectedEvmAccount: { address: string } | undefined;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -647,6 +653,12 @@ jest.mock('react-redux', () => ({
     );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
+    }
+    const { selectSelectedInternalAccountByScope } = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accounts',
+    );
+    if (selector === selectSelectedInternalAccountByScope) {
+      return () => mockSelectedEvmAccount;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -711,6 +723,7 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
 // Mock Engine context to prevent accessing real PerpsController
 jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: { call: jest.fn() },
   context: {
     PerpsController: {
       subscribeToPrices: jest.fn(() => jest.fn()),
@@ -873,6 +886,13 @@ jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
 jest.mock('../../components/PerpsBottomSheetTooltip', () =>
   createBottomSheetMock('perps-order-view-bottom-sheet-tooltip'),
 );
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 interface MockTradeScreenProps {
   orderType: 'market' | 'limit';
@@ -1455,6 +1475,46 @@ describe('PerpsOrderView', () => {
     await waitFor(() => {
       expect(screen.getByText('Leverage')).toBeDefined();
     });
+  });
+
+  it('renders the Perps rebate banner with the order metadata', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coin: 'ETH',
+        direction: 'long',
+      }),
+    );
+  });
+
+  it('does not reserve fixed-footer space inside the scroll content', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const scrollView = screen.getByTestId(
+      PerpsOrderViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    expect(StyleSheet.flatten(scrollView.props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ paddingBottom: 0 }),
+    );
+  });
+
+  it('does not apply the bottom safe-area inset twice', () => {
+    const mockUseBottomSafeAreaInset = jest.mocked(useBottomSafeAreaInset);
+    mockUseBottomSafeAreaInset.mockReturnValue(34);
+
+    try {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const footer = screen.getByTestId(PerpsOrderViewSelectorsIDs.FOOTER);
+
+      expect(StyleSheet.flatten(footer.props.style)).toEqual(
+        expect.objectContaining({ paddingBottom: 16 }),
+      );
+    } finally {
+      mockUseBottomSafeAreaInset.mockReturnValue(0);
+    }
   });
 
   it('renders the Trade bottom sheet for the treatment route', async () => {
@@ -7218,5 +7278,72 @@ describe('PerpsOrderView', () => {
     // integration test (which drives the real confirm button). Driving the full
     // place-order flow here is too dependent on cross-test mock state to assert
     // reliably.
+  });
+
+  describe('copy-trade intents', () => {
+    const copyTradeOrigin = { commentId: 'comment-1', asset: 'ETH' };
+    const mockMessengerCall = jest.mocked(Engine.controllerMessenger.call);
+
+    const getOnSuccess = () => {
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onSuccess) {
+        throw new Error('usePerpsOrderExecution was not given onSuccess');
+      }
+      return options.onSuccess;
+    };
+
+    beforeEach(() => {
+      mockSelectedEvmAccount = { address: '0xTRADER' };
+      mockMessengerCall.mockResolvedValue({});
+    });
+
+    it('posts a perps intent for the placed order on the copied market', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { asset: 'ETH', direction: 'long', copyTradeOrigin },
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        await getOnSuccess()(undefined, { success: true, orderId: '42' });
+      });
+
+      expect(mockMessengerCall).toHaveBeenCalledWith(
+        'SocialService:createCopyTradeIntent',
+        {
+          origin: { kind: 'comment', id: 'comment-1' },
+          copierAccount: { caip10: 'eip155:42161:0xTRADER' },
+          execution: { product: 'perps', oid: '42' },
+        },
+      );
+    });
+
+    it('posts no intent for an order opened outside a social post', async () => {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        await getOnSuccess()(undefined, { success: true, orderId: '42' });
+      });
+
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('completes the order success when the intent action is not registered', () => {
+      mockMessengerCall.mockImplementation(() => {
+        throw new Error(
+          'A handler for SocialService:createCopyTradeIntent has not been registered',
+        );
+      });
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { asset: 'ETH', direction: 'long', copyTradeOrigin },
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(() =>
+        getOnSuccess()(undefined, { success: true, orderId: '42' }),
+      ).not.toThrow();
+      expect(mockMessengerCall).toHaveBeenCalled();
+    });
   });
 });
