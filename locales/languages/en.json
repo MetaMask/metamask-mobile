@@ -8436,7 +8436,6 @@
       "email_description": "Get a 6-digit code sent to your inbox",
       "totp_description": "Get a 6-digit code from an app like Google Authenticator",
       "totp_done": "Set up in your authenticator app",
-      "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
