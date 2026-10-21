@@ -58,6 +58,7 @@ interface LiveScrollContext {
 const LIVE_FEED_INITIAL_RENDER_COUNT = 6;
 const LIVE_FEED_MAX_RENDER_PER_BATCH = 6;
 const LIVE_FEED_WINDOW_SIZE = 5;
+const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 48;
 
 type LiveStreamState = 'paused' | 'live';
 
@@ -168,7 +169,7 @@ const LiveView: React.FC<LiveViewProps> = ({
     {
       onScroll: (event, context) => {
         const nextNearTop =
-          event.contentOffset.y <= event.layoutMeasurement.height;
+          event.contentOffset.y <= LIVE_FEED_NEAR_TOP_THRESHOLD_PX;
         if (context.nearTop !== nextNearTop) {
           context.nearTop = nextNearTop;
           scheduleOnRN(setNearTopFromScroll, nextNearTop);
