@@ -94,7 +94,7 @@ const VbaEmailAdapter = () => {
         Engine.context.KycController.readSessionStatus();
 
       let aal2Token: string | undefined;
-      if (existingActiveSession) {
+      if (!existingActiveSession) {
         const result = await verifyOrEnroll({
           methods: ['email_otp'],
           verifyWith: 'email_otp',
