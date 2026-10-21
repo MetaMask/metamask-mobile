@@ -68,16 +68,20 @@ export interface WalletHeaderInterimActionsProps
   isMoneyAccountVisible: boolean;
   handleActivityPress: () => void;
   handleSearchPress: () => void;
+  handleRewardsPress?: () => void;
+  isSocialLayout?: boolean;
   twClassName?: string;
 }
 
-/** Search, Activity (where Money is available) and Menu, in one tight row. */
+/** Search, Activity/Rewards and Menu, in one tight row. */
 const WalletHeaderInterimActions = ({
   isMoneyAccountVisible,
   handleActivityPress,
   handleSearchPress,
+  handleRewardsPress,
   handleHamburgerPress,
   touchAreaSlop,
+  isSocialLayout = false,
   twClassName = '',
 }: WalletHeaderInterimActionsProps) => (
   <Box
@@ -94,7 +98,17 @@ const WalletHeaderInterimActions = ({
       accessibilityLabel={strings('wallet.search_accessibility_label')}
       hitSlop={touchAreaSlop}
     />
-    {isMoneyAccountVisible && (
+    {isSocialLayout ? (
+      <ButtonIcon
+        iconProps={{ color: MMDSIconColor.IconDefault }}
+        onPress={handleRewardsPress}
+        iconName={MMDSIconName.Gift}
+        size={ButtonIconSize.Md}
+        testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
+        accessibilityLabel={strings('wallet.rewards_accessibility_label')}
+        hitSlop={touchAreaSlop}
+      />
+    ) : isMoneyAccountVisible ? (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}
         onPress={handleActivityPress}
@@ -104,7 +118,7 @@ const WalletHeaderInterimActions = ({
         accessibilityLabel={strings('activity_view.title')}
         hitSlop={touchAreaSlop}
       />
-    )}
+    ) : null}
     <WalletHeaderMenuButton
       handleHamburgerPress={handleHamburgerPress}
       touchAreaSlop={touchAreaSlop}

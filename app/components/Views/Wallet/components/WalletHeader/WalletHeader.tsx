@@ -1,7 +1,15 @@
-import React, { memo, useCallback, useRef } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import Animated, {
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -13,11 +21,15 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonBase,
+  ButtonAnimated,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   HeaderRoot,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -72,11 +84,16 @@ export interface WalletHeaderProps {
   handleActivityPress: () => void;
   handleCardPress: () => void;
   handleHamburgerPress: () => void;
+  handleRewardsPress?: () => void;
+  handleProfilePress?: () => void;
   touchAreaSlop: TouchAreaSlop;
   headerActionButtonsContainerStyle: ViewStyle;
   headerAccountPickerStyle: ViewStyle;
-  /** Interim brand refresh: Activity, Search and Menu only, on Liquid Glass where available. */
+  /** Interim brand refresh: header actions use Liquid Glass where available. */
   isInterimLayout?: boolean;
+  isSocialLayout?: boolean;
+  scrollY?: SharedValue<number>;
+  titleSectionHeight?: SharedValue<number>;
 }
 
 const WalletHeader = ({
@@ -89,17 +106,51 @@ const WalletHeader = ({
   handleActivityPress,
   handleCardPress,
   handleHamburgerPress,
+  handleRewardsPress,
+  handleProfilePress,
   touchAreaSlop,
   displayName,
   navigation,
   headerActionButtonsContainerStyle,
   headerAccountPickerStyle,
   isInterimLayout = false,
+  isSocialLayout = false,
+  scrollY,
+  titleSectionHeight,
 }: WalletHeaderProps) => {
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const [isCompactTitleInteractive, setIsCompactTitleInteractive] =
+    useState(false);
+  const isCompactTitleVisible = useDerivedValue(() => {
+    if (!scrollY || !titleSectionHeight) {
+      return false;
+    }
+
+    const hasMeasured = titleSectionHeight.value > 0;
+    return hasMeasured && scrollY.value >= titleSectionHeight.value;
+  });
+  const compactTitleProgress = useDerivedValue(() =>
+    withTiming(isCompactTitleVisible.value ? 1 : 0, { duration: 200 }),
+  );
+  useAnimatedReaction(
+    () => isCompactTitleVisible.value,
+    (isVisible, wasVisible) => {
+      if (isVisible !== wasVisible) {
+        scheduleOnRN(setIsCompactTitleInteractive, isVisible);
+      }
+    },
+    [],
+  );
+  const compactTitleStyle = useAnimatedStyle(() => {
+    const progress = compactTitleProgress.value;
+    return {
+      opacity: progress,
+      transform: [{ translateY: (1 - progress) * 8 }],
+    };
+  });
 
   const measureSearchOrigin = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
@@ -219,6 +270,85 @@ const WalletHeader = ({
       )}
     </View>
   );
+
+  if (
+    isInterimLayout &&
+    isSocialLayout &&
+    !useSearchHeaderLayout &&
+    scrollY &&
+    titleSectionHeight
+  ) {
+    const socialActions = (
+      <CapsuleGlass
+        twClassName="shrink-0 px-2"
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
+      >
+        <WalletHeaderInterimActions
+          isMoneyAccountVisible={isMoneyAccountVisible}
+          handleActivityPress={handleActivityPress}
+          handleSearchPress={handleSearchPress}
+          handleRewardsPress={handleRewardsPress}
+          isSocialLayout
+          handleHamburgerPress={handleHamburgerPress}
+          touchAreaSlop={touchAreaSlop}
+        />
+      </CapsuleGlass>
+    );
+
+    return (
+      <Box
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="h-14 px-3"
+      >
+        <CapsuleGlass twClassName="h-10 w-10 shrink-0 justify-center">
+          <ButtonIcon
+            iconName={MMDSIconName.UserCircle}
+            iconProps={{ color: MMDSIconColor.IconDefault }}
+            size={ButtonIconSize.Md}
+            onPress={handleProfilePress}
+            testID={WalletViewSelectorsIDs.PROFILE_BUTTON}
+            accessibilityLabel={strings(
+              'social_leaderboard.my_profile.open_profile',
+            )}
+            hitSlop={touchAreaSlop}
+          />
+        </CapsuleGlass>
+        <Animated.View
+          testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_CONTAINER}
+          style={[tw.style('min-w-0 shrink'), compactTitleStyle]}
+          pointerEvents={isCompactTitleInteractive ? 'auto' : 'none'}
+          accessibilityElementsHidden={!isCompactTitleInteractive}
+          importantForAccessibility={
+            isCompactTitleInteractive ? 'auto' : 'no-hide-descendants'
+          }
+        >
+          <ButtonAnimated
+            onPress={handleAccountSelectorPress}
+            style={tw.style('shrink')}
+            accessibilityRole="button"
+            accessibilityLabel={displayName}
+            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_BUTTON}
+          >
+            <CapsuleGlass twClassName="shrink px-3">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {displayName}
+              </Text>
+            </CapsuleGlass>
+          </ButtonAnimated>
+        </Animated.View>
+        <Box twClassName="flex-1" />
+        {socialActions}
+      </Box>
+    );
+  }
 
   if (isInterimLayout && !useSearchHeaderLayout) {
     const interimActions = (

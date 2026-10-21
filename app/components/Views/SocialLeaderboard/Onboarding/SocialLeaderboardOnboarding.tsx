@@ -10,8 +10,16 @@ import React, {
 import { Animated, PixelRatio, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, StackActions } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import {
+  useNavigation,
+  useRoute,
+  StackActions,
+  type RouteProp,
+} from '@react-navigation/native';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import {
   Fit,
@@ -241,6 +249,8 @@ const markOnboardingSeen = () =>
  */
 const SocialLeaderboardOnboarding: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<RootStackParamList, 'SocialLeaderboardOnboarding'>>();
   const styles = useMemo(() => createStyles(), []);
   const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
@@ -583,14 +593,25 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   const exitToLeaderboard = useCallback(
     (extraParams?: { showNotificationsBanner?: boolean }) => {
-      navigation.dispatch(
-        StackActions.replace(getFollowTradingHomeRoute(), {
-          source: ONBOARDING_SOURCE,
-          ...extraParams,
-        }),
-      );
+      const routeName = route.params?.returnToTab
+        ? Routes.HOME_TABS
+        : getFollowTradingHomeRoute();
+      const routeParams = route.params?.returnToTab
+        ? {
+            screen: Routes.SOCIAL.TAB,
+            params: {
+              source: ONBOARDING_SOURCE,
+              ...extraParams,
+            },
+          }
+        : {
+            source: ONBOARDING_SOURCE,
+            ...extraParams,
+          };
+
+      navigation.dispatch(StackActions.replace(routeName, routeParams));
     },
-    [navigation],
+    [navigation, route.params?.returnToTab],
   );
 
   const goToLeaderboard = useCallback(
@@ -617,8 +638,18 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   const handleClose = useCallback(() => {
     void markOnboardingSeen();
     trackInteraction(SocialLeaderboardEventValues.INTERACTION_TYPE.DISMISSED);
+    if (route.params?.returnToTab) {
+      navigation.dispatch(
+        StackActions.replace(Routes.HOME_TABS, {
+          screen: Routes.SOCIAL.TAB,
+          params: { source: ONBOARDING_SOURCE },
+        }),
+      );
+      return;
+    }
+
     navigation.goBack();
-  }, [navigation, trackInteraction]);
+  }, [navigation, route.params?.returnToTab, trackInteraction]);
 
   // Forward navigation. The "Next" button (Trade slide) AND the artboard's
   // forward tap-zone (right margin) both fire `next`, from whichever slide is
