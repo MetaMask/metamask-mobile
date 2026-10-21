@@ -1888,10 +1888,6 @@ export class RewardsDataService {
    * profile-switch boundary.
    */
   async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
-    if (__DEV__ && process.env.NODE_ENV !== 'test') {
-      return MOCK_TRADING_FEE_GRANT_RESPONSE;
-    }
-
     const token = await this.#messenger.call(
       'AuthenticationController:getBearerToken',
     );
