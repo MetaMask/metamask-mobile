@@ -2,8 +2,16 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { View } from 'react-native';
 import MarketingMoment from './MarketingMoment';
-import { MarketingMomentSelectorsIDs } from './MarketingMoment.testIds';
 import type { MarketingMomentProps } from './MarketingMoment.types';
+
+const testIds = {
+  container: 'marketing-moment',
+  title: 'marketing-moment-title',
+  description: 'marketing-moment-description',
+  artwork: 'marketing-moment-artwork',
+  primaryButton: 'marketing-moment-primary-button',
+  secondaryButton: 'marketing-moment-secondary-button',
+} as const;
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const ReactActual = jest.requireActual('react');
@@ -117,17 +125,20 @@ const onSecondaryPress = jest.fn();
 const renderMoment = (props: Partial<MarketingMomentProps> = {}) =>
   render(
     <MarketingMoment
+      testID={testIds.container}
       title="Perps are here"
+      titleProps={{ testID: testIds.title }}
       description="Long or short with up to 40x leverage."
+      descriptionProps={{ testID: testIds.description }}
       primaryAction={{
         label: 'Get started',
         onPress: onPrimaryPress,
-        testID: MarketingMomentSelectorsIDs.PRIMARY_BUTTON,
+        testID: testIds.primaryButton,
       }}
       secondaryAction={{
         label: 'Not now',
         onPress: onSecondaryPress,
-        testID: MarketingMomentSelectorsIDs.SECONDARY_BUTTON,
+        testID: testIds.secondaryButton,
       }}
       {...props}
     />,
@@ -141,15 +152,11 @@ describe('MarketingMoment', () => {
   it('renders a string title as a header and a string description', () => {
     const { getByTestId } = renderMoment();
 
-    expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
-      'Perps are here',
+    expect(getByTestId(testIds.title)).toHaveTextContent('Perps are here');
+    expect(getByTestId(testIds.title).props.accessibilityRole).toBe('header');
+    expect(getByTestId(testIds.description)).toHaveTextContent(
+      'Long or short with up to 40x leverage.',
     );
-    expect(
-      getByTestId(MarketingMomentSelectorsIDs.TITLE).props.accessibilityRole,
-    ).toBe('header');
-    expect(
-      getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
-    ).toHaveTextContent('Long or short with up to 40x leverage.');
   });
 
   it('spreads titleProps and descriptionProps onto the text', () => {
@@ -182,12 +189,8 @@ describe('MarketingMoment', () => {
 
     expect(getByTestId('custom-title-node')).toBeOnTheScreen();
     expect(getByTestId('custom-description-node')).toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.TITLE),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
-    ).not.toBeOnTheScreen();
+    expect(queryByTestId(testIds.title)).not.toBeOnTheScreen();
+    expect(queryByTestId(testIds.description)).not.toBeOnTheScreen();
   });
 
   it('renders children in a wrapper that accepts animated view props', () => {
@@ -223,7 +226,7 @@ describe('MarketingMoment', () => {
   it('calls the primary action when pressed', () => {
     const { getByTestId } = renderMoment();
 
-    fireEvent.press(getByTestId(MarketingMomentSelectorsIDs.PRIMARY_BUTTON));
+    fireEvent.press(getByTestId(testIds.primaryButton));
 
     expect(onPrimaryPress).toHaveBeenCalledTimes(1);
   });
@@ -231,7 +234,7 @@ describe('MarketingMoment', () => {
   it('calls the not now action when pressed', () => {
     const { getByTestId } = renderMoment();
 
-    fireEvent.press(getByTestId(MarketingMomentSelectorsIDs.SECONDARY_BUTTON));
+    fireEvent.press(getByTestId(testIds.secondaryButton));
 
     expect(onSecondaryPress).toHaveBeenCalledTimes(1);
   });
@@ -244,24 +247,12 @@ describe('MarketingMoment', () => {
       secondaryAction: undefined,
     });
 
-    expect(
-      getByTestId(MarketingMomentSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.TITLE),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.ARTWORK),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.PRIMARY_BUTTON),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MarketingMomentSelectorsIDs.SECONDARY_BUTTON),
-    ).not.toBeOnTheScreen();
+    expect(getByTestId(testIds.container)).toBeOnTheScreen();
+    expect(queryByTestId(testIds.title)).not.toBeOnTheScreen();
+    expect(queryByTestId(testIds.description)).not.toBeOnTheScreen();
+    expect(queryByTestId(testIds.artwork)).not.toBeOnTheScreen();
+    expect(queryByTestId(testIds.primaryButton)).not.toBeOnTheScreen();
+    expect(queryByTestId(testIds.secondaryButton)).not.toBeOnTheScreen();
   });
 
   it('renders a page background and forced theme when provided', () => {

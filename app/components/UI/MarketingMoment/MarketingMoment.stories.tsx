@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, BoxJustifyContent } from '@metamask/design-system-react-native';
 import { Theme } from '@metamask/design-system-twrnc-preset';
 import I18n, { I18nEvents } from '../../../../locales/i18n';
+import MarketingMomentTitle from '../MarketingMomentTitle';
 import MarketingMoment from './MarketingMoment';
 
 const setLocale = (locale: string) => {
@@ -79,11 +80,23 @@ export const DarkBackground = {
 
 export const UnsupportedLanguage = {
   render: () => {
-    setLocale('el');
+    setLocale('zh');
     return (
       <MarketingMoment
-        title="Τα perps είναι εδώ"
-        description="Grotzec cannot draw Greek, so the title uses the system face at a smaller size."
+        title={
+          <Box twClassName="w-full" gap={6}>
+            <MarketingMomentTitle twClassName="w-full text-center">
+              永续合约来了
+            </MarketingMomentTitle>
+            <MarketingMomentTitle twClassName="w-full text-center">
+              Перпы уже здесь
+            </MarketingMomentTitle>
+            <MarketingMomentTitle twClassName="w-full text-center">
+              Τα perps είναι εδώ
+            </MarketingMomentTitle>
+          </Box>
+        }
+        description="Grotzec cannot draw Chinese, Russian, or Greek, so these titles use the system face at a smaller size."
         {...actions}
       />
     );

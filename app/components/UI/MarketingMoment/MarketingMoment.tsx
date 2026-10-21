@@ -19,7 +19,6 @@ import {
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
 import MarketingMomentTitle from '../MarketingMomentTitle';
-import { MarketingMomentSelectorsIDs } from './MarketingMoment.testIds';
 import type {
   MarketingMomentAction,
   MarketingMomentProps,
@@ -54,7 +53,7 @@ const MarketingMomentContent = ({
   primaryAction,
   secondaryAction,
   background,
-  testID = MarketingMomentSelectorsIDs.CONTAINER,
+  testID,
 }: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
   const { label: primaryLabel, ...primaryButtonProps } =
@@ -94,7 +93,6 @@ const MarketingMomentContent = ({
             <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
               {typeof title === 'string' ? (
                 <MarketingMomentTitle
-                  testID={MarketingMomentSelectorsIDs.TITLE}
                   {...titleTextProps}
                   twClassName="w-full text-center"
                   style={[
@@ -116,7 +114,6 @@ const MarketingMomentContent = ({
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   twClassName="text-center"
-                  testID={MarketingMomentSelectorsIDs.DESCRIPTION}
                   {...descriptionProps}
                 >
                   {description}
@@ -146,7 +143,6 @@ const MarketingMomentContent = ({
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               paddingHorizontal={6}
-              testID={MarketingMomentSelectorsIDs.ARTWORK}
               {...artworkBoxSpreadProps}
               twClassName={`min-h-0 w-full flex-1 overflow-hidden${
                 artworkBoxProps.className ? ` ${artworkBoxProps.className}` : ''
