@@ -15,24 +15,29 @@ import {
 } from '../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import { usePerpsSharePosition } from './usePerpsSharePosition';
 
-const mockNavigate = jest.fn();
-const mockGetSessionProfileId = jest.fn();
-const mockFetchAndUpdateProfile = jest.fn();
+const PERPS_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000001';
 
-jest.mock(
-  '../../../../util/notifications/utils/get-session-profile-id',
-  () => ({
-    getSessionProfileId: () => mockGetSessionProfileId(),
-  }),
-);
+const mockNavigate = jest.fn();
+const mockGetSessionProfile = jest.fn();
+const mockFetchAndUpdateProfile = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
+    AuthenticationController: {
+      getSessionProfile: () => mockGetSessionProfile(),
+    },
     ProfileController: {
       fetchAndUpdateProfile: (profileId: string) =>
         mockFetchAndUpdateProfile(profileId),
     },
   },
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  ...jest.requireActual('../../../../selectors/multichainAccounts/accounts'),
+  selectSelectedInternalAccountByScope: () => () => ({
+    address: PERPS_ACCOUNT_ADDRESS,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -62,7 +67,7 @@ const socialProfile = {
   username: 'trader',
   displayName: 'trader',
   bio: '',
-  linkedAddresses: ['eip155:1:0x0000000000000000000000000000000000000001'],
+  linkedAddresses: [`eip155:1:${PERPS_ACCOUNT_ADDRESS}`],
   avatarUrl: '',
   tradingPrivacy: 'public',
   connectedToX: false,
@@ -70,20 +75,44 @@ const socialProfile = {
   updatedAt: '',
 };
 
+const sheetNavigation = [
+  Routes.PERPS.MODALS.ROOT,
+  {
+    screen: Routes.PERPS.MODALS.SHARE_POSITION,
+    params: { position, marketPrice, accountAddress: PERPS_ACCOUNT_ADDRESS },
+  },
+];
+const pnlCardNavigation = [
+  Routes.PERPS.PNL_HERO_CARD,
+  { position, marketPrice },
+];
+
 const createQueryClient = () =>
   new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
+
+const createDeferred = <T>() => {
+  let resolve: (value: T) => void = () => undefined;
+  let reject: (error: unknown) => void = () => undefined;
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve;
+    reject = onReject;
+  });
+  return { promise, resolve, reject };
+};
 
 const renderWithGates = (
   {
     perpsSocialEnabled = true,
     socialLeaderboardEnabled = true,
     hasSocialProfile = true,
+    isSignedIn = true,
   }: {
     perpsSocialEnabled?: boolean;
     socialLeaderboardEnabled?: boolean;
     hasSocialProfile?: boolean;
+    isSignedIn?: boolean;
   } = {},
   queryClient = createQueryClient(),
 ) => {
@@ -105,6 +134,7 @@ const renderWithGates = (
           remoteFeatureFlags,
           cacheTimestamp: 0,
         },
+        AuthenticationController: { isSignedIn },
         ProfileController: hasSocialProfile
           ? { profile: socialProfile }
           : getDefaultProfileControllerState(),
@@ -119,38 +149,54 @@ const renderWithGates = (
   });
 };
 
+const flushQueries = async () => {
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+};
+
 describe('usePerpsSharePosition', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(getVersion).mockReturnValue('8.17.0');
-    mockGetSessionProfileId.mockResolvedValue('session-profile-id');
+    mockGetSessionProfile.mockResolvedValue({
+      profileId: 'session-profile-id',
+    });
     mockFetchAndUpdateProfile.mockResolvedValue(socialProfile);
   });
 
-  it('opens the Share position sheet when the user can post to the Social feed', () => {
+  it('opens the Share position sheet with the Perps account when the user can post to the Social feed', () => {
     const { result } = renderWithGates();
 
     result.current.sharePosition(position, marketPrice);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
-      screen: Routes.PERPS.MODALS.SHARE_POSITION,
-      params: { position, marketPrice },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation);
   });
 
   it.each([
-    ['Perps social is off', { perpsSocialEnabled: false }],
-    ['the Social leaderboard is off', { socialLeaderboardEnabled: false }],
-    ['the user has no Social profile', { hasSocialProfile: false }],
+    [
+      'Perps social is off',
+      { perpsSocialEnabled: false, hasSocialProfile: false },
+    ],
+    [
+      'the Social leaderboard is off',
+      { socialLeaderboardEnabled: false, hasSocialProfile: false },
+    ],
+    ['the user is signed out', { isSignedIn: false, hasSocialProfile: false }],
   ])('opens the PnL hero card directly when %s', (_, gates) => {
     const { result } = renderWithGates(gates);
 
     result.current.sharePosition(position, marketPrice);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.PNL_HERO_CARD, {
-      position,
-      marketPrice,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
+  });
+
+  it('opens the PnL hero card when Perps social is off even with a Social profile', () => {
+    const { result } = renderWithGates({ perpsSocialEnabled: false });
+
+    result.current.sharePosition(position, marketPrice);
+
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
   });
 
   it('loads the Social profile when the Social feed is available and the profile has not loaded', async () => {
@@ -163,7 +209,90 @@ describe('usePerpsSharePosition', () => {
     );
   });
 
-  it('does not reload a missing Social profile when the screen remounts', async () => {
+  it('waits for a profile lookup in flight, then opens the sheet when the profile arrives', async () => {
+    const profileLookup = createDeferred<typeof socialProfile>();
+    mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      profileLookup.resolve(socialProfile);
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation),
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for a profile lookup in flight, then opens the PnL hero card when no profile exists', async () => {
+    const profileLookup = createDeferred<typeof socialProfile>();
+    mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      profileLookup.reject(new Error('GET_PROFILE_FAILED: 404'));
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation),
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a failed session lookup on share and recovers to the sheet', async () => {
+    mockGetSessionProfile.mockRejectedValueOnce(new Error('Network error'));
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
+    await flushQueries();
+    expect(mockFetchAndUpdateProfile).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(...sheetNavigation),
+    );
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledWith(
+      'session-profile-id',
+    );
+  });
+
+  it('does not keep a failed session lookup as a missing profile when the screen remounts', async () => {
+    mockGetSessionProfile.mockRejectedValueOnce(new Error('Network error'));
+    const queryClient = createQueryClient();
+    const firstMount = renderWithGates(
+      { hasSocialProfile: false },
+      queryClient,
+    );
+    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
+    await flushQueries();
+    firstMount.unmount();
+
+    renderWithGates({ hasSocialProfile: false }, queryClient);
+
+    await waitFor(() =>
+      expect(mockFetchAndUpdateProfile).toHaveBeenCalledWith(
+        'session-profile-id',
+      ),
+    );
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reload a confirmed missing Social profile when the screen remounts', async () => {
     mockFetchAndUpdateProfile.mockRejectedValue(
       new Error('GET_PROFILE_FAILED: 404'),
     );
@@ -175,14 +304,18 @@ describe('usePerpsSharePosition', () => {
     await waitFor(() =>
       expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(1),
     );
+    await flushQueries();
     firstMount.unmount();
 
-    renderWithGates({ hasSocialProfile: false }, queryClient);
-    await act(async () => {
-      await Promise.resolve();
-    });
+    const { result } = renderWithGates(
+      { hasSocialProfile: false },
+      queryClient,
+    );
+    await flushQueries();
 
     expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(1);
+    result.current.sharePosition(position, marketPrice);
+    expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation);
   });
 
   it.each([
@@ -194,15 +327,14 @@ describe('usePerpsSharePosition', () => {
       'the Social leaderboard is off',
       { socialLeaderboardEnabled: false, hasSocialProfile: false },
     ],
+    ['the user is signed out', { isSignedIn: false, hasSocialProfile: false }],
     ['the profile has already loaded', {}],
   ])('does not load the Social profile when %s', async (_, gates) => {
     renderWithGates(gates);
 
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await flushQueries();
 
-    expect(mockGetSessionProfileId).not.toHaveBeenCalled();
+    expect(mockGetSessionProfile).not.toHaveBeenCalled();
     expect(mockFetchAndUpdateProfile).not.toHaveBeenCalled();
   });
 });

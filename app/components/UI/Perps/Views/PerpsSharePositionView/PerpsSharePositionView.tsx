@@ -28,6 +28,7 @@ import Foxicon, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { areAddressesEqual } from '../../../../../util/address';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
 import { useTraderPositions } from '../../../../Views/SocialLeaderboard/TraderProfileView/hooks';
 import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
@@ -46,12 +47,21 @@ const PerpsSharePositionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsModalsNavigationParamList, 'PerpsSharePosition'>>();
-  const { position, marketPrice } = params;
+  const { position, marketPrice, accountAddress } = params;
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasSelectedOptionRef = useRef(false);
   const { profile } = useMyProfile();
-  const { openPositions } = useTraderPositions(
-    profile?.linkedAccountAddress?.trim() ?? '',
+  const linkedAddress = profile?.linkedAccountAddress?.trim() ?? '';
+  const isFromLinkedAccount =
+    linkedAddress !== '' &&
+    accountAddress !== undefined &&
+    areAddressesEqual(accountAddress, linkedAddress);
+  const isFromOtherAccount =
+    linkedAddress !== '' &&
+    accountAddress !== undefined &&
+    !isFromLinkedAccount;
+  const { openPositions, isLoadingOpen } = useTraderPositions(
+    isFromLinkedAccount ? linkedAddress : '',
   );
   const { openComposer } = useOpenSocialPostComposer();
 
@@ -73,6 +83,14 @@ const PerpsSharePositionView = () => {
     [direction, isHyperliquidPosition, openPositions, position.symbol],
   );
   const isPostDisabled = !socialPosition;
+  let postDescription = strings(
+    'perps.share_position.post_to_metamask_description',
+  );
+  if (isFromOtherAccount) {
+    postDescription = strings('perps.share_position.post_other_account');
+  } else if (isPostDisabled && !isLoadingOpen) {
+    postDescription = strings('perps.share_position.post_not_ready');
+  }
 
   const eventProperties = useMemo(
     () => ({
@@ -162,9 +180,7 @@ const PerpsSharePositionView = () => {
             {strings('perps.share_position.new_badge')}
           </Tag>
         }
-        description={strings(
-          'perps.share_position.post_to_metamask_description',
-        )}
+        description={postDescription}
         endAccessory={chevron}
         accessoryGap={2}
         onPress={handlePostToMetaMask}

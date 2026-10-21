@@ -11,6 +11,7 @@
 import type {
   FeedItem as CoreFeedItem,
   Position as SocialPosition,
+  SwapCommentResponse,
 } from '@metamask/social-controllers';
 import Engine from '../../../app/core/Engine';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
@@ -168,6 +169,7 @@ export interface LeaderboardApiMockOptions {
    */
   feedFailuresBeforeSuccess?: number;
   openPositions?: SocialPosition[];
+  swapComment?: SwapCommentResponse;
 }
 
 const PERP_CHAIN = 'hyperliquid';
@@ -194,6 +196,7 @@ export function setupLeaderboardApiMock(
     leaderboardFailuresBeforeSuccess = 0,
     feedFailuresBeforeSuccess = 0,
     openPositions,
+    swapComment,
   } = options;
 
   const prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
@@ -243,6 +246,15 @@ export function setupLeaderboardApiMock(
             action === 'SocialService:fetchOpenPositions' ? openPositions : [],
           pagination: { hasMore: false },
         }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
+
+      if (
+        swapComment !== undefined &&
+        action === 'SocialService:createSwapComment'
+      ) {
+        return Promise.resolve(swapComment) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
       }
 
       if (action === 'SocialService:fetchLeaderboard') {

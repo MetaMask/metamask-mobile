@@ -1,19 +1,28 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/perps-controller';
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
+import { selectIsSignedIn } from '../../../../selectors/identity';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useProfileController } from '../../../Views/SocialLeaderboard/ManageProfileView/hooks/useProfileController';
+import { isProfileNotFoundError } from '../../../Views/SocialLeaderboard/MyProfileView/utils/isProfileNotFoundError';
 import { usePerpsSocialEnabled } from './usePerpsSocialEnabled';
 
 const PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY = [
   'perps',
   'shareSocialProfile',
 ] as const;
+const PERPS_ACCOUNT_SCOPE = 'eip155:1';
+
+interface PerpsShareRequest {
+  position: Position;
+  marketPrice?: string;
+}
 
 export interface UsePerpsSharePositionResult {
   sharePosition: (position: Position, marketPrice?: string) => void;
@@ -25,30 +34,57 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const isSignedIn = useSelector(selectIsSignedIn);
+  const accountAddress = useSelector(selectSelectedInternalAccountByScope)(
+    PERPS_ACCOUNT_SCOPE,
+  )?.address;
   const { profile: socialProfile, fetchAndUpdateProfile } =
     useProfileController();
   const isSocialFeedAvailable =
     isPerpsSocialEnabled && isSocialLeaderboardEnabled;
-  const canPostToSocial = isSocialFeedAvailable && socialProfile !== undefined;
+  const shouldLookUpProfile =
+    isSocialFeedAvailable && isSignedIn && socialProfile === undefined;
 
-  useQuery({
-    queryKey: PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY,
+  const {
+    data: lookedUpProfileId,
+    isFetching: isProfileLookupFetching,
+    isError: hasProfileLookupFailed,
+    refetch: retryProfileLookup,
+  } = useQuery({
+    queryKey: [...PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY, isSignedIn],
     queryFn: async () => {
-      const sessionProfileId = await getSessionProfileId();
-      return sessionProfileId ? fetchAndUpdateProfile(sessionProfileId) : null;
+      const sessionProfile =
+        await Engine.context.AuthenticationController.getSessionProfile();
+      if (!sessionProfile?.profileId) {
+        return null;
+      }
+      try {
+        await fetchAndUpdateProfile(sessionProfile.profileId);
+        return sessionProfile.profileId;
+      } catch (error) {
+        if (isProfileNotFoundError(error)) {
+          return null;
+        }
+        throw error;
+      }
     },
-    enabled: isSocialFeedAvailable && socialProfile === undefined,
+    enabled: shouldLookUpProfile,
     staleTime: Infinity,
     retry: false,
-    retryOnMount: false,
   });
 
-  const sharePosition = useCallback(
-    (position: Position, marketPrice?: string) => {
+  const canPostToSocial =
+    isSocialFeedAvailable &&
+    (socialProfile !== undefined || Boolean(lookedUpProfileId));
+  const isProfileLookupPending = shouldLookUpProfile && isProfileLookupFetching;
+  const pendingShareRef = useRef<PerpsShareRequest | null>(null);
+
+  const openShare = useCallback(
+    ({ position, marketPrice }: PerpsShareRequest) => {
       if (canPostToSocial) {
         navigation.navigate(Routes.PERPS.MODALS.ROOT, {
           screen: Routes.PERPS.MODALS.SHARE_POSITION,
-          params: { position, marketPrice },
+          params: { position, marketPrice, accountAddress },
         });
         return;
       }
@@ -57,7 +93,39 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
         marketPrice,
       });
     },
-    [canPostToSocial, navigation],
+    [accountAddress, canPostToSocial, navigation],
+  );
+
+  useEffect(() => {
+    const pendingShare = pendingShareRef.current;
+    if (!pendingShare || isProfileLookupPending) {
+      return;
+    }
+    pendingShareRef.current = null;
+    openShare(pendingShare);
+  }, [isProfileLookupPending, openShare]);
+
+  const sharePosition = useCallback(
+    (position: Position, marketPrice?: string) => {
+      const isProfileUnresolved =
+        shouldLookUpProfile &&
+        (isProfileLookupFetching || hasProfileLookupFailed);
+      if (!isProfileUnresolved) {
+        openShare({ position, marketPrice });
+        return;
+      }
+      pendingShareRef.current = { position, marketPrice };
+      if (hasProfileLookupFailed && !isProfileLookupFetching) {
+        retryProfileLookup();
+      }
+    },
+    [
+      hasProfileLookupFailed,
+      isProfileLookupFetching,
+      openShare,
+      retryProfileLookup,
+      shouldLookUpProfile,
+    ],
   );
 
   return { sharePosition };

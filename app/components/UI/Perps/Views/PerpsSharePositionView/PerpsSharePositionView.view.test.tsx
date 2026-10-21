@@ -10,7 +10,10 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/perps-controller';
-import type { Position as SocialPosition } from '@metamask/social-controllers';
+import type {
+  Position as SocialPosition,
+  SwapCommentResponse,
+} from '@metamask/social-controllers';
 import {
   defaultPositionForViews,
   renderPerpsView,
@@ -29,10 +32,15 @@ import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  SocialPostComposerView,
+  SocialPostComposerViewSelectorsIDs,
+} from '../../../../Views/SocialLeaderboard/SocialPostComposerView';
 import PerpsSharePositionView from './PerpsSharePositionView';
 import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from './PerpsSharePositionView.constants';
 
 const LINKED_ADDRESS = '0x0000000000000000000000000000000000000001';
+const OTHER_ADDRESS = '0x0000000000000000000000000000000000000002';
 const MARKET_PRICE = '2900';
 
 const socialEthLong: SocialPosition = {
@@ -112,13 +120,16 @@ const RootLauncher = () => {
   return null;
 };
 
-const createPositionHost = (position: Position): ComponentType<unknown> => {
+const createPositionHost = (
+  position: Position,
+  accountAddress: string,
+): ComponentType<unknown> => {
   const PositionHost = () => {
     const navigation = useNavigation<NavigationProp<ParamListBase>>();
     useEffect(() => {
       navigation.navigate(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.SHARE_POSITION,
-        params: { position, marketPrice: MARKET_PRICE },
+        params: { position, marketPrice: MARKET_PRICE, accountAddress },
       });
     }, [navigation]);
     return (
@@ -130,15 +141,21 @@ const createPositionHost = (position: Position): ComponentType<unknown> => {
   return PositionHost as ComponentType<unknown>;
 };
 
-const renderSharePositionSheet = (
-  position: Position = defaultPositionForViews,
-) =>
+const renderSharePositionSheet = ({
+  position = defaultPositionForViews,
+  accountAddress = LINKED_ADDRESS,
+  withRealComposer = false,
+}: {
+  position?: Position;
+  accountAddress?: string;
+  withRealComposer?: boolean;
+} = {}) =>
   renderPerpsView(RootLauncher, 'ShareLauncher', {
     overrides: profileOverrides,
     extraRoutes: [
       {
         name: PERPS_POSITION_HOST,
-        Component: createPositionHost(position),
+        Component: createPositionHost(position, accountAddress),
         mount: 'perps-root',
       },
       {
@@ -153,7 +170,13 @@ const renderSharePositionSheet = (
       },
       {
         name: Routes.SOCIAL.POST_COMPOSER,
-        Component: createParamsProbe(Routes.SOCIAL.POST_COMPOSER),
+        Component: withRealComposer
+          ? (SocialPostComposerView as unknown as ComponentType<unknown>)
+          : createParamsProbe(Routes.SOCIAL.POST_COMPOSER),
+      },
+      {
+        name: Routes.SOCIAL.V1,
+        Component: createParamsProbe(Routes.SOCIAL.V1),
       },
     ],
   });
@@ -257,15 +280,86 @@ describe('PerpsSharePositionView', () => {
 
     expect(postRow).toBeDisabled();
     expect(
+      screen.getByText(strings('perps.share_position.post_not_ready')),
+    ).toBeOnTheScreen();
+    expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps Post to MetaMask disabled for a position from another wallet, even when the linked wallet holds the same position', async () => {
+    const messengerSpy = setupLeaderboardApiMock({
+      openPositions: [socialEthLong],
+    });
+    renderSharePositionSheet({ accountAddress: OTHER_ADDRESS });
+
+    const postRow = await screen.findByTestId(
+      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
+    );
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    fireEvent.press(postRow);
+
+    expect(postRow).toBeDisabled();
+    expect(
+      screen.getByText(strings('perps.share_position.post_other_account')),
+    ).toBeOnTheScreen();
+    expect(messengerSpy).not.toHaveBeenCalledWith(
+      'SocialService:fetchOpenPositions',
+      expect.anything(),
+    );
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER)),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsSharePositionSheetSelectorsIDs.SHARE_EXTERNALLY),
+    ).toBeEnabled();
+  });
+
+  it('posts through the composer and lands on the Social feed', async () => {
+    const swapComment: SwapCommentResponse = {
+      uid: 'comment-1',
+      transactionHash: '0xabc',
+      chain: 'hyperliquid',
+      tokenAddress: 'ETH',
+      commentText: '',
+      author: { id: 'profile-1', name: 'trader' },
+      timestamp: 1_700_000_100,
+      isAppUserComment: true,
+      metrics: { reactions: [], userReaction: null },
+    };
+    const messengerSpy = setupLeaderboardApiMock({
+      openPositions: [socialEthLong],
+      swapComment,
+    });
+    renderSharePositionSheet({ withRealComposer: true });
+    const postRow = await screen.findByTestId(
+      PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
+    );
+    await waitFor(() => expect(postRow).toBeEnabled());
+
+    fireEvent.press(postRow);
+    fireEvent.press(
+      await screen.findByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(messengerSpy).toHaveBeenCalledWith(
+      'SocialService:createSwapComment',
+      expect.objectContaining({ positionUid: socialEthLong.positionId }),
+    );
+    expect(
+      screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
   it('keeps Post to MetaMask disabled for a Lighter position even when a Hyperliquid one matches', async () => {
     setupLeaderboardApiMock({ openPositions: [socialEthLong] });
     renderSharePositionSheet({
-      ...defaultPositionForViews,
-      providerId: 'lighter',
+      position: { ...defaultPositionForViews, providerId: 'lighter' },
     });
     await waitForOpenPositionsFetch();
 
