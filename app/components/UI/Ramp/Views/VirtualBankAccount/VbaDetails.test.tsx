@@ -14,7 +14,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockGetPix = jest.fn();
+const mockGetDepositInstructions = jest.fn();
 const mockListTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
@@ -108,7 +108,8 @@ jest.mock('../../../../../core/Engine', () => ({
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
     },
     NeoBankService: {
-      getPixDepositInstructions: (...args: unknown[]) => mockGetPix(...args),
+      getDepositInstructions: (...args: unknown[]) =>
+        mockGetDepositInstructions(...args),
       listAutorampTransactions: (...args: unknown[]) =>
         mockListTransactions(...args),
     },
@@ -130,6 +131,7 @@ const approvedAutoramp: TestAutoramp = {
 };
 
 const pixInstructions = {
+  type: 'Pix' as const,
   brCode: '00020126',
   instruction: 'Pay with PIX',
   pixKey: 'pix@example.com',
@@ -143,14 +145,14 @@ const setAutoramps = (autoramps: TestAutoramp[]) => {
 
 interface EngineContextMock {
   NeoBankService?: {
-    getPixDepositInstructions: typeof mockGetPix;
+    getDepositInstructions: typeof mockGetDepositInstructions;
     listAutorampTransactions: typeof mockListTransactions;
   };
 }
 
 const restoreNeoBankService = () => {
   (Engine.context as unknown as EngineContextMock).NeoBankService = {
-    getPixDepositInstructions: mockGetPix,
+    getDepositInstructions: mockGetDepositInstructions,
     listAutorampTransactions: mockListTransactions,
   };
 };
@@ -168,7 +170,7 @@ describe('VbaDetails', () => {
     mockHardwareTier = null;
     mockNetworkTier = null;
     mockCanGoBack = true;
-    mockGetPix.mockResolvedValue(null);
+    mockGetDepositInstructions.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
@@ -198,7 +200,7 @@ describe('VbaDetails', () => {
       queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
     ).not.toBeOnTheScreen();
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     expect(mockListTransactions).not.toHaveBeenCalled();
   });
@@ -206,7 +208,7 @@ describe('VbaDetails', () => {
   it('returns to the caller from the header', async () => {
     const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
@@ -220,7 +222,7 @@ describe('VbaDetails', () => {
     mockCanGoBack = false;
     const { getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
 
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
@@ -233,7 +235,7 @@ describe('VbaDetails', () => {
   });
 
   it('shows both Pix rows without leading key icons', async () => {
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
     const { getByLabelText, getByTestId, getByText, queryByTestId } =
       renderWithProvider(<VbaDetails />);
@@ -257,7 +259,7 @@ describe('VbaDetails', () => {
   });
 
   it('copies a Pix value', async () => {
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
     const { getByLabelText, getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
@@ -273,7 +275,6 @@ describe('VbaDetails', () => {
   });
 
   describe('when NeoBankService reads every deposit rail', () => {
-    const mockGetDepositInstructions = jest.fn();
     const usBankInstructions = {
       type: 'UsBank',
       rail: 'ACH',
@@ -282,18 +283,6 @@ describe('VbaDetails', () => {
       accountNumber: '123456789',
       bankName: 'Lead Bank',
     };
-
-    beforeEach(() => {
-      (
-        Engine.context as unknown as {
-          NeoBankService: Record<string, jest.Mock>;
-        }
-      ).NeoBankService = {
-        getDepositInstructions: mockGetDepositInstructions,
-        getPixDepositInstructions: mockGetPix,
-        listAutorampTransactions: mockListTransactions,
-      };
-    });
 
     it('shows the US bank transfer rows', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
@@ -314,7 +303,6 @@ describe('VbaDetails', () => {
       expect(getByText('Lead Bank')).toBeOnTheScreen();
       expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
-      expect(mockGetPix).not.toHaveBeenCalled();
     });
 
     it('copies the routing number', async () => {
@@ -422,7 +410,7 @@ describe('VbaDetails', () => {
 
   it('shows a loading skeleton until Pix loads', async () => {
     let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
-    mockGetPix.mockReturnValue(
+    mockGetDepositInstructions.mockReturnValue(
       new Promise((resolve) => {
         resolvePix = resolve;
       }),
@@ -445,7 +433,7 @@ describe('VbaDetails', () => {
 
   it('shows Pix rows when the first fetch finishes after the network tier changes', async () => {
     let resolveFirst: (value: typeof pixInstructions) => void = () => undefined;
-    mockGetPix
+    mockGetDepositInstructions
       .mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -475,7 +463,7 @@ describe('VbaDetails', () => {
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
   });
@@ -485,12 +473,13 @@ describe('VbaDetails', () => {
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
-    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
   });
 
   it('hides the Pix key row when MoonPay omits it', async () => {
-    mockGetPix.mockResolvedValue({
+    mockGetDepositInstructions.mockResolvedValue({
+      type: 'Pix',
       brCode: '00020126',
       instruction: 'Pay with PIX',
     });
@@ -505,7 +494,7 @@ describe('VbaDetails', () => {
 
   it('keeps the Pix code when the debug transaction poll fails', async () => {
     mockDebugEnv = 'true';
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
     mockListTransactions.mockRejectedValue(new Error('tx poll failed'));
 
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
@@ -524,7 +513,7 @@ describe('VbaDetails', () => {
 
   it('shows the newest deposit status in the debug sheet', async () => {
     mockDebugEnv = 'true';
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
     mockListTransactions.mockResolvedValue([
       { id: 'tx-old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
       { id: 'tx-new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
@@ -550,7 +539,7 @@ describe('VbaDetails', () => {
       walletAddress: '0xabc',
       status: 'Approved',
     });
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
@@ -596,7 +585,7 @@ describe('VbaDetails', () => {
     expect(
       getByText(strings('virtual_bank_account.creating_account.title')),
     ).toBeOnTheScreen();
-    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
   });
 
@@ -638,7 +627,7 @@ describe('VbaDetails', () => {
       getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
-    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
     ).not.toBeOnTheScreen();
@@ -653,7 +642,7 @@ describe('VbaDetails', () => {
       getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     await waitFor(() => {
-      expect(mockGetPix).not.toHaveBeenCalled();
+      expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     });
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
   });
@@ -726,7 +715,7 @@ describe('VbaDetails', () => {
       ]);
       return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
     });
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
     const announceSpy = jest.spyOn(
       AccessibilityInfo,
       'announceForAccessibility',
@@ -765,7 +754,7 @@ describe('VbaDetails', () => {
         getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON),
       ).toBeOnTheScreen();
     });
-    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
@@ -777,7 +766,7 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     });
-    expect(mockGetPix).not.toHaveBeenCalled();
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
   });
 
   it('registers and creates the autoramp in the country fiat once across StrictMode mounts', async () => {
@@ -797,7 +786,7 @@ describe('VbaDetails', () => {
       ]);
       return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
     });
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
     renderWithProvider(
       <StrictMode>
@@ -815,7 +804,7 @@ describe('VbaDetails', () => {
       }),
     );
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-new');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-new');
     });
   });
 
@@ -866,7 +855,7 @@ describe('VbaDetails', () => {
 
   it('drops a details response that belongs to the previous currency', async () => {
     let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
-    mockGetPix.mockImplementation(
+    mockGetDepositInstructions.mockImplementation(
       (autorampId: string) =>
         new Promise((resolve) => {
           if (autorampId === 'ar-1') {
@@ -886,7 +875,7 @@ describe('VbaDetails', () => {
     });
     const view = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-1');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
 
     mockRouteParams = { sourceCurrency: 'USD' };
@@ -973,7 +962,7 @@ describe('VbaDetails', () => {
         ]);
         return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
       });
-    mockGetPix.mockResolvedValue(pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
@@ -985,7 +974,7 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
 
     await waitFor(() => {
-      expect(mockGetPix).toHaveBeenCalledWith('ar-new');
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-new');
     });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(2);
   });
@@ -1005,7 +994,7 @@ describe('VbaDetails', () => {
         setAutoramps([created]);
         return created;
       });
-    mockGetPix.mockRejectedValue(new Error('details failed'));
+    mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
 
     const { findByTestId, getByTestId, queryByTestId } = renderWithProvider(
       <VbaDetails />,

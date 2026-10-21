@@ -30,6 +30,7 @@ import type {
   AppNavigationProp,
   RootStackParamList,
 } from '../../../../../core/NavigationService/types';
+import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -89,30 +90,10 @@ interface AutorampCursor {
   depositRailsSummary?: { currency?: string };
 }
 
-interface PixDepositInstructions {
-  brCode: string;
-  instruction: string;
-  pixKey?: string;
-}
-
-interface UsBankDepositInstructions {
-  accountHolder: string;
-  routingNumber: string;
-  accountNumber: string;
-  bankName: string;
-}
-
-type DepositInstructions =
-  | ({ type: 'Pix' } & PixDepositInstructions)
-  | ({ type: 'UsBank' } & UsBankDepositInstructions);
-
 interface DepositNeoBank {
-  getDepositInstructions?: (
+  getDepositInstructions: (
     autorampId: string,
-  ) => Promise<DepositInstructions | null>;
-  getPixDepositInstructions?: (
-    autorampId: string,
-  ) => Promise<PixDepositInstructions | null>;
+  ) => Promise<AutorampDepositInstructions | null>;
   listAutorampTransactions?: (
     autorampId: string,
   ) => Promise<AutorampTransactionSummary[]>;
@@ -136,20 +117,8 @@ const isTerminalStatus = (status: string): boolean =>
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
 
-// ramps-controller releases before 27.1 only expose the PIX reader.
-const loadDepositInstructions = async (
-  neoBank: DepositNeoBank,
-  autorampId: string,
-): Promise<DepositInstructions | null> => {
-  if (neoBank.getDepositInstructions) {
-    return neoBank.getDepositInstructions(autorampId);
-  }
-  const pix = await neoBank.getPixDepositInstructions?.(autorampId);
-  return pix?.brCode ? { type: 'Pix', ...pix } : null;
-};
-
 const buildDetailRows = (
-  instructions: DepositInstructions | null,
+  instructions: AutorampDepositInstructions | null,
 ): DetailRow[] => {
   if (instructions?.type === 'UsBank') {
     return [
@@ -247,7 +216,7 @@ const VbaDetails = () => {
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
-  const [instructions, setInstructions] = useState<DepositInstructions | null>(
+  const [instructions, setInstructions] = useState<AutorampDepositInstructions | null>(
     null,
   );
   const [autorampId, setAutorampId] = useState<string | null>(null);
@@ -381,7 +350,7 @@ const VbaDetails = () => {
 
       // Fetch details on their own so a flaky transaction poll cannot hide them.
       try {
-        const details = await loadDepositInstructions(neoBank, autoramp.id);
+        const details = await neoBank.getDepositInstructions(autoramp.id);
         if (!stillCurrent()) {
           return;
         }
