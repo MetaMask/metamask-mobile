@@ -168,19 +168,18 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
         ) : null}
       </Box>
 
-      <Box twClassName="mb-4 rounded-lg border border-muted bg-default py-2">
+      <Box twClassName="mb-4 rounded-3xl border border-muted bg-default py-2">
         <KeyValueRow
           keyLabel={strings('deposit.order_processing.account')}
           value={accountName ?? ''}
+          valueTextProps={{ twClassName: 'shrink min-w-0' }}
           valueStartAccessory={
             selectedAddress ? (
-              <Box twClassName="ml-4">
-                <AvatarAccount
-                  address={selectedAddress}
-                  size={AvatarAccountSize.Xs}
-                  variant={getAvatarAccountVariant(accountAvatarType)}
-                />
-              </Box>
+              <AvatarAccount
+                address={selectedAddress}
+                size={AvatarAccountSize.Xs}
+                variant={getAvatarAccountVariant(accountAvatarType)}
+              />
             ) : undefined
           }
         />
