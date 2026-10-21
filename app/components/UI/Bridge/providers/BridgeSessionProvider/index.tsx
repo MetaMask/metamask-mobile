@@ -46,9 +46,7 @@ export const BridgeSessionProvider = ({
   const [recurringOrdersTab, setRecurringOrdersTab] = useState(
     OrdersTabKey.OpenOrders,
   );
-  const [limitOrdersTab, setLimitOrdersTab] = useState(
-    OrdersTabKey.OpenOrders,
-  );
+  const [limitOrdersTab, setLimitOrdersTab] = useState(OrdersTabKey.OpenOrders);
   const featureIdToUse = featureId ?? TAB_TO_FEATURE_ID[renderedTab];
 
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
