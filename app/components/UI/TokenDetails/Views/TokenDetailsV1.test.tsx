@@ -654,7 +654,7 @@ describe('TokenDetailsV1', () => {
     expect(queryByTestId('token-details-v1-tab-holders')).toBeNull();
   });
 
-  it('wires the Overview panel with the token, asset id and currency', () => {
+  it('wires the Overview panel with the token, asset id and spot-prices market data', () => {
     render(
       <TokenDetailsV1
         token={baseToken}
@@ -666,7 +666,7 @@ describe('TokenDetailsV1', () => {
       expect.objectContaining({
         token: baseToken,
         assetId: 'eip155:1/erc20:0x6982508145454Ce325dDbE47a25d4ec3d2311933',
-        currentCurrency: 'usd',
+        marketData: null,
       }),
     );
   });
