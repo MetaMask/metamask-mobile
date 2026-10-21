@@ -1,4 +1,5 @@
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import type { Json } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../../../../selectors/featureFlagController/moneyAccount';
@@ -177,9 +178,9 @@ describe('useVbaEligibility regionOverride', () => {
   });
 
   const renderEligibility = (
-    regionOverride: unknown,
+    regionOverride: Json,
     location: string,
-    flag: Record<string, unknown> = enabledFlag,
+    flag: Record<string, Json> = enabledFlag,
   ) =>
     renderHookWithProvider(() => useVbaEligibility(), {
       state: {
