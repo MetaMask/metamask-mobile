@@ -19,7 +19,7 @@ import React, { ReactNode, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
-import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
+import TitleStandardMarketing from '../../../../component-library/components-temp/TitleStandardMarketing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
@@ -207,9 +207,9 @@ const SelectHardwareWallet = () => {
       })}
     >
       <HeaderStandard includesTopInset onBack={navigation.goBack} />
-      <TitleStandard
+      <TitleStandardMarketing
         title={strings('connect_hardware.title_select_hardware')}
-        twClassName="px-4 pb-6"
+        twClassName="px-4"
       />
       <Box twClassName="gap-3 px-4">
         {hardwareOptions.map(renderHardwareButton)}

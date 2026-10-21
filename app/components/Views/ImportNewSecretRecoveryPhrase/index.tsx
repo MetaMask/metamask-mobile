@@ -39,7 +39,7 @@ import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { DUPLICATE_MNEMONIC_ERROR_MESSAGES } from '../../../core/QrSync/duplicateMnemonicError';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import TitleStandard from '../../../component-library/components-temp/TitleStandard';
+import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import {
   ToastContext,
   ToastVariants,
@@ -291,7 +291,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           },
         ]}
       />
-      <TitleStandard
+      <TitleStandardMarketing
         testID={ImportSRPIDs.SCREEN_TITLE_ID}
         title={strings('import_new_secret_recovery_phrase.import_wallet_title')}
         bottomAccessory={
@@ -318,7 +318,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             />
           </Box>
         }
-        twClassName="px-4 pt-1 pb-3"
+        twClassName="px-4 pt-1"
       />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style(

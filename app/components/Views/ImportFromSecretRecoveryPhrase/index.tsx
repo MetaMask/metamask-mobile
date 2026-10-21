@@ -77,8 +77,8 @@ import {
   TextColor,
   TextField,
   TextVariant,
-  TitleStandard,
 } from '@metamask/design-system-react-native';
+import TitleStandardMarketing from '../../../component-library/components-temp/TitleStandardMarketing';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
 import type { AuthData } from '../../../core/Authentication/Authentication';
@@ -790,8 +790,8 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box twClassName="gap-y-2">
-              <TitleStandard
+            <Box>
+              <TitleStandardMarketing
                 title={strings('import_from_seed.title')}
                 titleProps={{
                   testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
@@ -842,8 +842,8 @@ const ImportFromSecretRecoveryPhrase = () => {
           )}
 
           {currentStep === 1 && (
-            <Box twClassName="gap-y-4 flex-grow">
-              <TitleStandard
+            <Box twClassName="flex-grow">
+              <TitleStandardMarketing
                 title={strings('import_from_seed.metamask_password')}
                 titleProps={{
                   testID: ChoosePasswordSelectorsIDs.TITLE_ID,
@@ -859,96 +859,98 @@ const ImportFromSecretRecoveryPhrase = () => {
                 }
               />
 
-              <Box twClassName="relative gap-2">
-                <Label
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  style={tw.style('-mb-1')}
-                >
-                  {strings('import_from_seed.create_new_password')}
-                </Label>
-                <TextField
-                  value={password}
-                  onChangeText={onPasswordChange}
-                  onFocus={() => setIsPasswordFieldFocused(true)}
-                  onBlur={() => setIsPasswordFieldFocused(false)}
-                  isError={isPasswordTooShort}
-                  endAccessory={
-                    <PasswordVisibilityToggle
-                      isVisible={showPasswordIndex.includes(0)}
-                      onToggle={() => toggleShowPassword(0)}
-                      testID={
-                        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
-                      }
-                    />
-                  }
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(0),
-                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    onSubmitEditing: jumpToConfirmPassword,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'next',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                <HelpText
-                  severity={
-                    isPasswordTooShort ? HelpTextSeverity.Danger : undefined
-                  }
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
-                </HelpText>
-              </Box>
-
-              <Box twClassName="relative gap-2">
-                <Label
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  style={tw.style('-mb-1')}
-                >
-                  {strings('import_from_seed.confirm_password')}
-                </Label>
-                <TextField
-                  inputRef={confirmPasswordInputRef}
-                  onChangeText={onPasswordConfirmChange}
-                  value={confirmPassword}
-                  isError={isError}
-                  endAccessory={
-                    <PasswordVisibilityToggle
-                      isVisible={showPasswordIndex.includes(1)}
-                      onToggle={() => toggleShowPassword(1)}
-                      testID={
-                        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
-                      }
-                    />
-                  }
-                  isDisabled={password === ''}
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(1),
-                    testID:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    onSubmitEditing: Keyboard.dismiss,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'done',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                {isError && (
-                  <HelpText severity={HelpTextSeverity.Danger}>
-                    {strings('import_from_seed.password_error')}
+              <Box twClassName="gap-y-4">
+                <Box twClassName="relative gap-2">
+                  <Label
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    style={tw.style('-mb-1')}
+                  >
+                    {strings('import_from_seed.create_new_password')}
+                  </Label>
+                  <TextField
+                    value={password}
+                    onChangeText={onPasswordChange}
+                    onFocus={() => setIsPasswordFieldFocused(true)}
+                    onBlur={() => setIsPasswordFieldFocused(false)}
+                    isError={isPasswordTooShort}
+                    endAccessory={
+                      <PasswordVisibilityToggle
+                        isVisible={showPasswordIndex.includes(0)}
+                        onToggle={() => toggleShowPassword(0)}
+                        testID={
+                          ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID
+                        }
+                      />
+                    }
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(0),
+                      testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                      onSubmitEditing: jumpToConfirmPassword,
+                      autoComplete: 'password-new',
+                      returnKeyType: 'next',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
+                  />
+                  <HelpText
+                    severity={
+                      isPasswordTooShort ? HelpTextSeverity.Danger : undefined
+                    }
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('choose_password.must_be_at_least', {
+                      number: MIN_PASSWORD_LENGTH,
+                    })}
                   </HelpText>
-                )}
+                </Box>
+
+                <Box twClassName="relative gap-2">
+                  <Label
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    style={tw.style('-mb-1')}
+                  >
+                    {strings('import_from_seed.confirm_password')}
+                  </Label>
+                  <TextField
+                    inputRef={confirmPasswordInputRef}
+                    onChangeText={onPasswordConfirmChange}
+                    value={confirmPassword}
+                    isError={isError}
+                    endAccessory={
+                      <PasswordVisibilityToggle
+                        isVisible={showPasswordIndex.includes(1)}
+                        onToggle={() => toggleShowPassword(1)}
+                        testID={
+                          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID
+                        }
+                      />
+                    }
+                    isDisabled={password === ''}
+                    inputProps={{
+                      secureTextEntry: showPasswordIndex.includes(1),
+                      testID:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      accessibilityLabel:
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                      onSubmitEditing: Keyboard.dismiss,
+                      autoComplete: 'password-new',
+                      returnKeyType: 'done',
+                      autoCapitalize: 'none',
+                      keyboardAppearance: themeAppearance,
+                    }}
+                  />
+                  {isError && (
+                    <HelpText severity={HelpTextSeverity.Danger}>
+                      {strings('import_from_seed.password_error')}
+                    </HelpText>
+                  )}
+                </Box>
               </Box>
             </Box>
           )}
