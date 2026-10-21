@@ -191,6 +191,17 @@ describe('hydrateSocialFollowing', () => {
       expect(Logger.error).not.toHaveBeenCalled();
     });
 
+    it('hydrates when unlock fires right after the call, before it is awaited', async () => {
+      const { updateFollowing, unlock } = setupMessenger({ isUnlocked: false });
+
+      const pending = hydrateSocialFollowing();
+      unlock();
+      await pending;
+      await flushPromises();
+
+      expect(updateFollowing).toHaveBeenCalledTimes(1);
+    });
+
     it('removes its unlock listener after the first unlock', async () => {
       const { subscribeSpy, unsubscribeSpy, unlock } = setupMessenger({
         isUnlocked: false,
@@ -288,6 +299,21 @@ describe('hydrateSocialFollowing', () => {
       expect(updateFollowing).not.toHaveBeenCalled();
       expect(subscribeSpy).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('allows a later call to hydrate after KeyringController state was unavailable', async () => {
+      const { messenger, updateFollowing } = setupMessenger({
+        isUnlocked: true,
+      });
+      messenger.unregisterActionHandler('KeyringController:getState');
+      await hydrateSocialFollowing();
+
+      messenger.registerActionHandler('KeyringController:getState', () => ({
+        isUnlocked: true,
+      }));
+      await hydrateSocialFollowing();
+
+      expect(updateFollowing).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -53,6 +53,8 @@ export async function hydrateSocialFollowing(): Promise<void> {
   try {
     ({ isUnlocked } = messenger.call('KeyringController:getState'));
   } catch (err) {
+    // Nothing was scheduled, so allow a later call to try again.
+    hydratedMessengers.delete(messenger);
     logHydrationError(err);
     return;
   }
