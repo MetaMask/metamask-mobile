@@ -948,4 +948,35 @@ describe('VbaDetails', () => {
     });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(2);
   });
+
+  it('shows a load error when retry creates the account but details fail', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+    mockCreateAutoramp
+      .mockRejectedValueOnce(new Error('create failed'))
+      .mockImplementation(async () => {
+        const created = {
+          id: 'ar-new',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        };
+        setAutoramps([created]);
+        return created;
+      });
+    mockGetPix.mockRejectedValue(new Error('details failed'));
+
+    const { findByTestId, getByTestId, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
+
+    fireEvent.press(await findByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+    ).not.toBeOnTheScreen();
+  });
 });

@@ -501,15 +501,25 @@ const VbaDetails = () => {
   const handleRetrySetup = useCallback(() => {
     pollingDoneRef.current = false;
     setSetupFailed(false);
+    setLoadError(false);
     setAwaitingProviderApproval(false);
     setIsTerminal(false);
     refreshDeposit(true).catch((error: unknown) => {
       Logger.error(error as Error, {
         message: 'VbaDetails: retry setup failed',
       });
+      // Details are fetched only after the autoramp is Approved, and that
+      // fetch rethrows. A failure there is a load error, not a failed create.
+      const approved =
+        findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+          ?.status === 'Approved';
+      if (approved) {
+        setLoadError(true);
+        return;
+      }
       setSetupFailed(true);
     });
-  }, [refreshDeposit]);
+  }, [refreshDeposit, sourceCurrency, walletAddress]);
 
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
