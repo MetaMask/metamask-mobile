@@ -1098,11 +1098,13 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        <NativeStack.Screen
-          name={Routes.SOCIAL_PROFILE.DRAWER}
-          component={ProfileDrawer}
-          options={slideFromLeftNativeOptions}
-        />
+        {isSocialV1Enabled && (
+          <NativeStack.Screen
+            name={Routes.SOCIAL_PROFILE.DRAWER}
+            component={ProfileDrawer}
+            options={slideFromLeftNativeOptions}
+          />
+        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
