@@ -79,6 +79,11 @@
       "title": "Transaction in progress",
       "message": "A previous transaction is still being signed or submitted."
     },
+    "suggested_gas_fee_high": {
+      "title": "High site fee",
+      "message": "This site is suggesting a higher network fee than necessary. Edit the network fee to pay less.",
+      "edit_action": "Edit network fee"
+    },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
