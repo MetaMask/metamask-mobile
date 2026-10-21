@@ -1,7 +1,6 @@
 import type { View } from 'react-native';
 import type { PositionCardHeaderLiveState } from '../components/PositionCardHeader';
 import { formatLiveFigures } from './formatLiveFigures';
-import type { SocialLivePriceTrend } from './SocialLivePriceStore';
 import type { SocialLivePriceSource } from './types';
 import { useSocialLivePrice } from './useSocialLivePrice';
 
@@ -19,18 +18,6 @@ export interface UseLiveCardHeaderResult extends LiveCardHeaderLabels {
   live?: PositionCardHeaderLiveState;
 }
 
-const flipTrend = (
-  trend: SocialLivePriceTrend | null,
-): SocialLivePriceTrend | null => {
-  if (trend === 'up') {
-    return 'down';
-  }
-  if (trend === 'down') {
-    return 'up';
-  }
-  return null;
-};
-
 /**
  * Open card header labels, following the live price once one arrives and the
  * API snapshot until then. A figure the live math cannot produce keeps its
@@ -41,10 +28,7 @@ export function useLiveCardHeader(
   source: SocialLivePriceSource | undefined,
   snapshot: LiveCardHeaderLabels,
 ): UseLiveCardHeaderResult {
-  const { trackRef, figures, trend, reduceMotion } = useSocialLivePrice(
-    id,
-    source,
-  );
+  const { trackRef, figures, reduceMotion } = useSocialLivePrice(id, source);
 
   if (!figures || !source) {
     return { ...snapshot, trackRef };
@@ -59,8 +43,6 @@ export function useLiveCardHeader(
     pnlValueLabel: labels.pnlValueLabel ?? snapshot.pnlValueLabel,
     isPnlPositive: labels.isPnlPositive ?? snapshot.isPnlPositive,
     live: {
-      priceTrend: trend,
-      pnlTrend: source.direction === -1 ? flipTrend(trend) : trend,
       reduceMotion,
     },
   };
