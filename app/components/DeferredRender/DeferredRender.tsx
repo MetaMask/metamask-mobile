@@ -92,7 +92,7 @@ export function DeferredRender({
   ) {
     warnedIgnoredHostPropsRef.current = true;
     console.warn(
-      'DeferredRender ignores screenId, enabled, and onDeferredComplete inside DeferredRenderHost. Pass them to the host.',
+      'DeferredRender ignores screenId, enabled, frameTimeoutMs, and onDeferredComplete inside DeferredRenderHost. Pass them to the host.',
     );
   }
 
