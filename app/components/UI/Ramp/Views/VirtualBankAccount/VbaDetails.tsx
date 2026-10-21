@@ -214,9 +214,8 @@ const VbaDetails = () => {
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
-  const [instructions, setInstructions] = useState<AutorampDepositInstructions | null>(
-    null,
-  );
+  const [instructions, setInstructions] =
+    useState<AutorampDepositInstructions | null>(null);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress

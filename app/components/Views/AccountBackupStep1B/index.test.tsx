@@ -145,7 +145,7 @@ describe('AccountBackupStep1B', () => {
       expect(androidBackHandler.props.customBackPress).toBeDefined();
     });
 
-    it('renders HeaderStandard with MetaMask logo and no back button', () => {
+    it('renders the MetaMask logo header without a back button', () => {
       const { wrapper, mockNav } = setupTest();
 
       expect(mockNav.setOptions).not.toHaveBeenCalled();

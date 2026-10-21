@@ -366,10 +366,7 @@ describe('VbaDetails', () => {
           depositRailsSummary: { currency: 'USD' },
         },
       ]);
-      mockGetDepositInstructions.mockResolvedValue({
-        type: 'Pix',
-        ...pixInstructions,
-      });
+      mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
       const { findByTestId } = renderWithProvider(<VbaDetails />);
 
@@ -379,10 +376,7 @@ describe('VbaDetails', () => {
     });
 
     it('shows the Pix rows when the autoramp has a Pix rail', async () => {
-      mockGetDepositInstructions.mockResolvedValue({
-        type: 'Pix',
-        ...pixInstructions,
-      });
+      mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
       const { getByTestId } = renderWithProvider(<VbaDetails />);
 
