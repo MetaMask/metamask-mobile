@@ -619,20 +619,6 @@ describe('PredictSellPreview', () => {
       expect(cashOutTexts.length).toBe(1);
     });
 
-    it('renders the cash-out amount in Grotzec Hero at 48px in sheet mode', () => {
-      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
-        state: initialState,
-      });
-
-      const amount = screen.getAllByText('$57.30')[0];
-      expect(amount).toHaveStyle({
-        fontSize: 48,
-        lineHeight: 52.8,
-        fontFamily: 'GrotzecCond-Bold',
-      });
-      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
-    });
-
     it('hides position icon row in sheet mode', () => {
       renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
         state: initialState,

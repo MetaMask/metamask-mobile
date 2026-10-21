@@ -3,7 +3,6 @@ import {
   Box,
   BoxAlignItems,
   FontFamily,
-  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -20,7 +19,7 @@ import {
 } from '../../../../utils/format';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
-const PRIMARY_SKELETON_HEIGHT = 53;
+const PRIMARY_SKELETON_HEIGHT = 56;
 const SECONDARY_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 export interface PredictPortfolioSummaryProps {
@@ -110,8 +109,6 @@ const PredictPortfolioSummary: React.FC<PredictPortfolioSummaryProps> = ({
       >
         <SensitiveText
           fontFamily={FontFamily.Hero}
-          fontWeight={FontWeight.Regular}
-          twClassName="text-[48px] leading-[52.8px]"
           isHidden={isHidden && !hasError}
           length={SensitiveTextLength.Long}
           testID={PREDICT_PORTFOLIO_TEST_IDS.PRIMARY_VALUE}

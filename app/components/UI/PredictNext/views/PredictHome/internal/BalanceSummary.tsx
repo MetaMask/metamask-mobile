@@ -6,7 +6,6 @@ import {
   Button,
   ButtonVariant,
   FontFamily,
-  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   Skeleton,
@@ -75,8 +74,6 @@ export const BalanceSummary = ({
       <SensitiveText
         variant={TextVariant.AmountDisplayLg}
         fontFamily={FontFamily.Hero}
-        fontWeight={FontWeight.Regular}
-        twClassName="text-[48px] leading-[52.8px]"
         isHidden={privacyMode}
         length={SensitiveTextLength.Medium}
         testID={PredictHomeTestIds.BALANCE_AMOUNT}

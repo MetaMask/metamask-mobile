@@ -3,7 +3,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontFamily,
-  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   Spinner,
@@ -269,8 +268,6 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
             <SensitiveText
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
-              fontWeight={FontWeight.Regular}
-              twClassName="text-[48px] leading-[52.8px]"
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
