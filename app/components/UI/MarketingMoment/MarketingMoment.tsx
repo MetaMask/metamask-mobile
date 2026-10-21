@@ -86,7 +86,7 @@ const MarketingMomentContent = ({
       <SafeAreaView style={tw.style('min-h-0 flex-1')}>
         <Box
           flexDirection={BoxFlexDirection.Column}
-          gap={4}
+          gap={2}
           paddingHorizontal={6}
           twClassName="mt-12 shrink-0"
         >
@@ -162,7 +162,7 @@ const MarketingMomentContent = ({
         {primaryAction || secondaryAction ? (
           <Animated.View
             entering={enterDown(ACTION_ENTER_STEP)}
-            style={{ zIndex: 1 }}
+            style={tw.style('z-[1]')}
           >
             <Box
               flexDirection={BoxFlexDirection.Column}

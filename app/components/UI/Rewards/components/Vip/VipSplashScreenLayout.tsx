@@ -88,7 +88,10 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
         />
       }
       description={strings('rewards.vip.splash_description')}
-      descriptionProps={{ testID: testIDs.description }}
+      descriptionProps={{
+        testID: testIDs.description,
+        twClassName: 'text-center px-6',
+      }}
       artwork={
         <Image
           source={VipSplashFox}

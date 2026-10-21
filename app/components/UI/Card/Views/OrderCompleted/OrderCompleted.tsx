@@ -80,9 +80,12 @@ const OrderCompleted: React.FC = () => {
     <MarketingMoment
       testID={OrderCompletedSelectors.CONTAINER}
       title={strings('card.order_completed.title')}
-      titleProps={{ testID: OrderCompletedSelectors.TITLE }}
+      titleProps={{
+        testID: OrderCompletedSelectors.TITLE,
+        twClassName: 'px-10',
+      }}
       description={
-        <Box flexDirection={BoxFlexDirection.Column} gap={4}>
+        <Box flexDirection={BoxFlexDirection.Column} gap={2}>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}

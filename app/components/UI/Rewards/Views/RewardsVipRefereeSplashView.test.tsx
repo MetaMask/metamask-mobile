@@ -137,6 +137,11 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
 
 jest.mock('../../../../../locales/i18n', () => ({
+  default: { locale: 'en' },
+  I18nEvents: {
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+  },
   strings: jest.fn((key: string, opts?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nFOX COLLECTIVE',

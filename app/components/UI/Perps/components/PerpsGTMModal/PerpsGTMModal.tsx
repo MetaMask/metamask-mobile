@@ -75,6 +75,9 @@ const PerpsGTMModal = () => {
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
       title={strings('perps.gtm_content.title')}
       description={strings('perps.gtm_content.title_description')}
+      descriptionProps={{
+        twClassName: 'text-center px-4',
+      }}
       artworkWrapperProps={{
         justifyContent: BoxJustifyContent.Start,
         className: 'overflow-visible',

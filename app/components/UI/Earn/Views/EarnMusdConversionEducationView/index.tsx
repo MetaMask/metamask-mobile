@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
-import { Image, useColorScheme } from 'react-native';
+import { Image, StyleSheet, useColorScheme } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
@@ -14,20 +14,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
-// component-library TagBase: DSRN Tag has no startAccessory + Rectangle shape support
-import TagBase from '../../../../../component-library/base-components/TagBase';
-import {
-  TagShape,
-  TagSeverity,
-} from '../../../../../component-library/base-components/TagBase/TagBase.types';
-import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
+import MusdEducationChecklistMarquee from './MusdEducationChecklistMarquee';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -77,6 +68,15 @@ export interface EarnMusdConversionEducationViewRouteParams {
  * Displays educational content before user's first mUSD conversion.
  * Once completed, marks the education as seen and proceeds to conversion flow.
  */
+const COIN_ASPECT_RATIO = 1179 / 1362;
+
+const coinFrameStyle = StyleSheet.create({
+  frame: {
+    aspectRatio: COIN_ASPECT_RATIO,
+    maxHeight: '100%',
+  },
+});
+
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
@@ -381,13 +381,33 @@ const EarnMusdConversionEducationView = () => {
       description={strings('earn.musd_conversion.education.description', {
         percentage: MUSD_CONVERSION_APY,
       })}
+      descriptionProps={{ twClassName: 'text-center px-10' }}
+      artworkWrapperProps={{
+        alignItems: BoxAlignItems.Stretch,
+        justifyContent: BoxJustifyContent.Start,
+      }}
       artwork={
-        <Image
-          source={backgroundImage}
-          style={tw.style('h-full w-full')}
-          resizeMode="contain"
-          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="min-h-0 w-full flex-1"
+        >
+          <MusdEducationChecklistMarquee />
+          <Box
+            justifyContent={BoxJustifyContent.Start}
+            twClassName="min-h-0 w-full flex-1"
+          >
+            <Box twClassName="w-full" style={coinFrameStyle.frame}>
+              <Image
+                source={backgroundImage}
+                style={tw.style('absolute inset-0 h-full w-full')}
+                resizeMode="contain"
+                testID={
+                  EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE
+                }
+              />
+            </Box>
+          </Box>
+        </Box>
       }
       primaryAction={{
         label: primaryButtonText,
@@ -399,41 +419,7 @@ const EarnMusdConversionEducationView = () => {
         onPress: handleNotNow,
         testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
       }}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-wrap gap-1"
-      >
-        {[
-          'earn.musd_conversion.education.checklist.dollar_backed',
-          'earn.musd_conversion.education.checklist.no_lockups',
-          'earn.musd_conversion.education.checklist.daily_bonus',
-          'earn.musd_conversion.education.checklist.metamask_stablecoins',
-          'earn.musd_conversion.education.checklist.no_metamask_fee',
-        ].map((key) => (
-          <TagBase
-            key={key}
-            shape={TagShape.Rectangle}
-            severity={TagSeverity.Neutral}
-            gap={4}
-            startAccessory={
-              <Icon
-                name={IconName.CheckBold}
-                size={IconSize.Sm}
-                color={IconColor.SuccessDefault}
-              />
-            }
-            textProps={{
-              variant: ComponentTextVariant.BodySMMedium,
-              numberOfLines: 1,
-            }}
-          >
-            {strings(key)}
-          </TagBase>
-        ))}
-      </Box>
-    </MarketingMoment>
+    />
   );
 };
 

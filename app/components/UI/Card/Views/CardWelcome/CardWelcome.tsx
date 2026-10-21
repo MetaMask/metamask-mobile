@@ -182,7 +182,7 @@ const CardWelcome = () => {
       descriptionProps={{
         testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
         // padding to prevent orphan
-        twClassName: 'text-accent02-light text-center px-1',
+        twClassName: 'text-accent02-light text-center px-3',
       }}
       artwork={
         animationState === 'pending' ? null : (
