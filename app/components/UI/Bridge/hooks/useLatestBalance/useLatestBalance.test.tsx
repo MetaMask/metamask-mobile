@@ -22,6 +22,8 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceContext,
+  type TraceRequest,
 } from '../../../../../util/trace';
 
 // Mock dependencies
@@ -46,7 +48,9 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useLatestBalance', () => {
@@ -93,6 +97,9 @@ describe('useLatestBalance', () => {
         isNative: true,
       },
       startTime: expect.any(Number),
+      tags: {
+        feature: 'swap',
+      },
     });
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TraceName.BridgeBalancesUpdated,

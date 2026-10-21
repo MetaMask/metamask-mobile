@@ -54,6 +54,7 @@ import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/feat
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
+import WalletHeaderAccountPickerRow from './components/WalletHeader/WalletHeaderAccountPickerRow';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { useWalletHeaderNativeHeader } from './components/WalletHeader/useWalletHeaderNativeHeader';
 import { NATIVE_HEADER_BAR_HEIGHT } from '../../hooks/useNativeHeader';
@@ -202,6 +203,11 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../SocialProfile/ProfileDrawer';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createAccountSelectorNavDetails } from '../AccountSelector';
+import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
@@ -399,6 +405,7 @@ const Wallet = ({
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
@@ -883,7 +890,17 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
+    if (isSocialV1Enabled) {
+      navigation.navigate(...createProfileDrawerNavDetails({}));
+      return;
+    }
     navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
+  }, [navigation, isSocialV1Enabled]);
+
+  // Social V1 hides the account name in the header, so switching accounts moves
+  // to this row pinned under the header.
+  const handleHeaderAccountPickerPress = useCallback(() => {
+    navigation.navigate(...createAccountSelectorNavDetails({}));
   }, [navigation]);
 
   const handleRewardsPress = useCallback(() => {
@@ -1097,6 +1114,27 @@ const Wallet = ({
       isInterimLayout={isInterimHeader}
     />
   );
+
+  // On iOS 26 UIKit draws the header, so `WalletHeader` never renders and the
+  // screen pins the named picker under the bar itself. Everywhere else the JS
+  // header owns the row, which keeps it out of the layout math below. Compact is
+  // a scrolling nav-bar title, so it is out of scope.
+  const showHeaderAccountPickerRow =
+    isSocialV1Enabled &&
+    isNativeHeader &&
+    !isCompactHeader &&
+    Boolean(selectedInternalAccount);
+
+  // The native bar is a transparent overlay, so the row clears it itself.
+  const renderHeaderAccountPickerRow = () =>
+    showHeaderAccountPickerRow ? (
+      <WalletHeaderAccountPickerRow
+        displayName={displayName}
+        onPress={handleHeaderAccountPickerPress}
+        hitSlop={touchAreaSlop}
+        style={{ paddingTop: nativeHeaderInset }}
+      />
+    ) : null;
 
   const handleBannerError = useCallback(() => {
     // Log the error but don't block the UI
@@ -1349,6 +1387,7 @@ const Wallet = ({
               ) : isFloatingJsHeader ? null : (
                 renderWalletHeader()
               )}
+
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
@@ -1372,6 +1411,9 @@ const Wallet = ({
                   </HeaderGlass>
                 )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+                {showHeaderAccountPickerRow
+                  ? renderHeaderAccountPickerRow()
+                  : null}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >

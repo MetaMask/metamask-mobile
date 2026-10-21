@@ -3,26 +3,34 @@ import { AppState, type AppStateStatus } from 'react-native';
 
 import useInterval from '../../../hooks/useInterval';
 
-/** How often the security provenance line re-reads the wall clock. */
-export const ELAPSED_MINUTES_TICK_MS = 30_000;
-
-const MS_PER_MINUTE = 60_000;
+const SECOND_MS = 1_000;
+const MINUTE_MS = 60 * SECOND_MS;
+const HOUR_MS = 60 * MINUTE_MS;
 
 const isForegroundAppState = (appState: AppStateStatus): boolean =>
   appState !== 'background' && appState !== 'inactive';
 
-export interface UseElapsedMinutesOptions {
+const getTickDelayMs = (elapsedMs: number): number | null => {
+  if (elapsedMs < MINUTE_MS) {
+    const intoSecond = elapsedMs % SECOND_MS;
+    return intoSecond === 0 ? SECOND_MS : SECOND_MS - intoSecond;
+  }
+
+  if (elapsedMs < HOUR_MS) {
+    const intoMinute = elapsedMs % MINUTE_MS;
+    return intoMinute === 0 ? MINUTE_MS : MINUTE_MS - intoMinute;
+  }
+
+  return null;
+};
+
+export interface UseElapsedTimeOptions {
   /**
    * Instant being measured from, typically a query's `dataUpdatedAt`. `0` or
    * `undefined` means nothing has been fetched yet, which is the only case
    * that yields `null`.
    */
   since: number | undefined;
-  /**
-   * When false the interval is paused. Resuming snaps the clock immediately so
-   * a long pause does not show a stale figure until the next tick.
-   */
-  enabled: boolean;
 }
 
 interface ClockSnap {
@@ -41,21 +49,20 @@ interface ClockSnap {
  * caller can word "just now" differently from "not fetched" — the two mean
  * opposite things and only one of them has an answer to give.
  *
- * Ticks only while `enabled` and the app is not backgrounded or inactive
- * (`unknown` still ticks, which is RN's state before the first AppState event).
+ * Ticks only while the app is not backgrounded or inactive (`unknown` still
+ * ticks, which is RN's state before the first AppState event).
  *
- * @param options - Instant to measure from, and the gate.
+ * @param options - Instant to measure from.
  * @returns Whole minutes elapsed, or `null` when `since` is unset.
  */
-export const useElapsedMinutes = ({
+export const useElapsedTime = ({
   since,
-  enabled,
-}: UseElapsedMinutesOptions): number | null => {
+}: UseElapsedTimeOptions): number | null => {
   const [appState, setAppState] = useState<AppStateStatus>(
     () => AppState.currentState,
   );
   const [now, setNow] = useState(() => Date.now());
-  const isTicking = enabled && isForegroundAppState(appState);
+  const isTicking = isForegroundAppState(appState);
   const [lastSnap, setLastSnap] = useState<ClockSnap>(() => ({
     isTicking,
     since,
@@ -79,14 +86,16 @@ export const useElapsedMinutes = ({
     return () => subscription.remove();
   }, []);
 
+  const elapsedMs = since ? Math.max(0, now - since) : 0;
+
   useInterval(
     () => {
       setNow(Date.now());
     },
-    { delay: isTicking ? ELAPSED_MINUTES_TICK_MS : null },
+    { delay: isTicking && since ? getTickDelayMs(elapsedMs) : null },
   );
 
   // Clamped because `Date.now()` is wall-clock: a backwards clock correction
   // would otherwise produce a negative age.
-  return since ? Math.floor(Math.max(0, now - since) / MS_PER_MINUTE) : null;
+  return since ? Math.floor(elapsedMs / MINUTE_MS) : null;
 };

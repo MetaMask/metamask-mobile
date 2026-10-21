@@ -34,6 +34,8 @@ const asset = {
     devHeldPercent: null,
     insiderHeldPercent: null,
     sniperHeldPercent: null,
+    holdersCount: null,
+    top10HeldPercent: null,
   },
 } as TokenAssetRecord;
 

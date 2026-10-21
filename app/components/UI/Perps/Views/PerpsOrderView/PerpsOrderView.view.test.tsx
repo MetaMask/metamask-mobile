@@ -1016,7 +1016,6 @@ describe('PerpsOrderView', () => {
         const placeOrder = jest.mocked(
           Engine.context.PerpsController.placeOrder,
         );
-        let deliver: ((value: OrderBookData) => void) | undefined;
         const blockedBook = book(
           shallow
             ? [bookLevel(2500, 0.001)]
@@ -1026,16 +1025,31 @@ describe('PerpsOrderView', () => {
               ],
           direction,
         );
+        // The live book hook throttles and can resubscribe. Replaying only the
+        // first payload drops a recovered book that arrived inside the throttle
+        // window, so the CTA stays disabled. Keep the latest book and fan it
+        // out to every active subscriber.
+        const subscribers = new Set<(value: OrderBookData) => void>();
+        let latestBook: OrderBookData | undefined =
+          shallow === null ? undefined : blockedBook;
+        const deliver = (value: OrderBookData) => {
+          latestBook = value;
+          subscribers.forEach((subscriber) => {
+            subscriber(value);
+          });
+        };
         jest
           .mocked(Engine.context.PerpsController.subscribeToOrderBook)
           .mockImplementation(({ callback, onError }) => {
-            deliver = callback;
-            if (shallow === null) {
-              onError?.(new Error('order book unavailable'));
+            subscribers.add(callback);
+            if (latestBook) {
+              callback(latestBook);
             } else {
-              callback(blockedBook);
+              onError?.(new Error('order book unavailable'));
             }
-            return () => undefined;
+            return () => {
+              subscribers.delete(callback);
+            };
           });
         const { stream } = renderPerpsOrderView({
           overrides: eligibleOverrides,
@@ -1074,24 +1088,24 @@ describe('PerpsOrderView', () => {
         expect(placeOrder).not.toHaveBeenCalled();
 
         await act(async () => {
-          deliver?.(book([bookLevel(2500, 1)], direction));
+          deliver(book([bookLevel(2500, 1)], direction));
         });
-        await waitFor(() =>
-          expect(screen.getByTestId(submitId)).not.toBeDisabled(),
-        );
+        await waitForEnabledPlaceOrderButton(submitId);
         expect(screen.queryByText(message)).not.toBeOnTheScreen();
         await act(async () => {
           fireEvent.press(screen.getByTestId(submitId));
         });
-        await waitFor(() =>
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              isBuy: direction === 'long',
-              orderType: 'market',
-              usdAmount: '120',
-            }),
-          ),
+        await waitFor(
+          () =>
+            expect(placeOrder).toHaveBeenCalledWith(
+              expect.objectContaining({
+                symbol: 'ETH',
+                isBuy: direction === 'long',
+                orderType: 'market',
+                usdAmount: '120',
+              }),
+            ),
+          { timeout: TIMEOUT_MS },
         );
       },
     );
