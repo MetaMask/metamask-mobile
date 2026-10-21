@@ -57,6 +57,24 @@ describe('BoxGlass', () => {
     });
   });
 
+  it('uses regular glass unless a clearer style is requested', () => {
+    const { getByTestId, rerender } = render(
+      <BoxGlass radiusClassName="rounded-xl" testID="glass" />,
+    );
+
+    expect(getByTestId('glass')).toHaveProp('glassEffectStyle', 'regular');
+
+    rerender(
+      <BoxGlass
+        radiusClassName="rounded-xl"
+        testID="glass"
+        glassEffectStyle="clear"
+      />,
+    );
+
+    expect(getByTestId('glass')).toHaveProp('glassEffectStyle', 'clear');
+  });
+
   it('is static unless marked interactive', () => {
     const { getByTestId, rerender } = render(
       <BoxGlass radiusClassName="rounded-xl" testID="glass" />,
