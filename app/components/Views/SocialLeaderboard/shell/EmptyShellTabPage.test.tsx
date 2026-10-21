@@ -28,6 +28,18 @@ import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => null,
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
+jest.mock('@shopify/flash-list', () =>
+  jest.requireActual('../testUtils/flashListMock'),
+);
+
 const mockNavigate = jest.fn();
 
 const collectTestIds = (node: ReactTestInstance, ids: string[] = []) => {
@@ -68,6 +80,18 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
     ),
   };
 });
+
+jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    isFetching: false,
+    hasFetched: false,
+    error: null,
+    refresh: jest.fn(),
+    toggleFollow: jest.fn(),
+  })),
+}));
 
 jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
   const ReactActual = jest.requireActual('react') as typeof import('react');

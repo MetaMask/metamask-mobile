@@ -8,15 +8,21 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React, {
-  Fragment,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import type { ScrollView } from 'react-native';
+import {
+  FlashList,
+  type FlashListProps,
+  type FlashListRef,
+} from '@shopify/flash-list';
 import Animated from 'react-native-reanimated';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -45,9 +51,27 @@ type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
 >['onScroll'];
 
+type LiveTradesFlashListProps = FlashListProps<LiveTradeRowModel> & {
+  ref?: React.Ref<FlashListRef<LiveTradeRowModel>>;
+};
+
+const AnimatedLiveTradesList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<LiveTradesFlashListProps>,
+) as unknown as React.ComponentType<LiveTradesFlashListProps>;
+
+/** Pixels of list drawn past the viewport. LOW devices keep a short window. */
+const LOW_LIST_DRAW_DISTANCE = 80;
+
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveTradesViewProps {
+  /** Pauses the clock and holds rows back until this page has been opened. */
+  isActive?: boolean;
+  /**
+   * The landing tab has already painted. Draw this list now when the device
+   * and network can take that work.
+   */
+  prepare?: boolean;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -60,6 +84,8 @@ export interface LiveTradesViewProps {
  * the websocket stream replaces the static fixtures.
  */
 const LiveTradesView: React.FC<LiveTradesViewProps> = ({
+  isActive = true,
+  prepare = false,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -68,12 +94,25 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const scrollRef = useRef<ScrollView>(null);
+  const listRef = useRef<FlashListRef<LiveTradeRowModel>>(null);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const prepareRows =
+    prepare &&
+    hardwareTier !== 'LOW' &&
+    networkTier !== 'NONE' &&
+    networkTier !== 'SLOW_CELLULAR';
   const livePrices = useSocialLivePrices();
   const handleScrollSettled = useCallback(() => {
     livePrices?.requestVisibilityCheck();
   }, [livePrices]);
-  const now = useFeedNow({ enabled: true });
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  useEffect(() => {
+    if (isActive || prepareRows) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, prepareRows]);
+  const now = useFeedNow({ enabled: isActive });
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const { isEntryHidden } = useSocialEntryModeration();
@@ -97,7 +136,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
     pageRef,
     () => ({
       scrollToOffset: (offset: number, animated = false) => {
-        scrollRef.current?.scrollTo({ y: offset, animated });
+        listRef.current?.scrollToOffset({ offset, animated });
       },
     }),
     [],
@@ -140,65 +179,79 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
     [navigation],
   );
 
+  const listData = hasBeenActive ? visibleItems : [];
+
+  const renderItem = useCallback(
+    ({ item, index }: { item: LiveTradeRowModel; index: number }) => (
+      <Box>
+        {index > 0 ? (
+          <SectionDivider
+            marginVertical={1}
+            testID={getSocialV1FeedEntryDividerTestId(`live-trades-${index}`)}
+          />
+        ) : null}
+        <LiveTradeRow
+          item={item}
+          now={now}
+          onPositionPress={handlePositionPress}
+          onTraderPress={handleTraderPress}
+        />
+      </Box>
+    ),
+    [handlePositionPress, handleTraderPress, now],
+  );
+
   return (
     <SocialFeedSurfaceProvider location="social_live_trades" showMockedFields>
       <Box
         twClassName="flex-1 bg-default"
         testID={LiveTradesViewSelectorsIDs.CONTAINER}
       >
-        <Animated.ScrollView
-          ref={scrollRef}
+        <AnimatedLiveTradesList
+          ref={listRef}
           style={tw.style('flex-1')}
           contentContainerStyle={tw.style('flex-grow pb-8')}
+          data={listData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => item?.id ?? String(index)}
+          getItemType={() => 'liveTrade'}
+          drawDistance={
+            hardwareTier === 'LOW' ? LOW_LIST_DRAW_DISTANCE : undefined
+          }
+          extraData={now}
+          ListHeaderComponent={
+            <SocialTabFilterBar
+              onOpenFilters={onOpenFilters}
+              isFilterActive={isFilterActive}
+              filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
+            >
+              <FilterButton
+                isSelected
+                variant={FilterButtonVariant.Primary}
+                size={FilterButtonSize.Md}
+                onPress={handleStreamToggle}
+                testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
+                accessibilityLabel={streamLabel}
+                startAccessory={
+                  <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
+                }
+              >
+                {streamLabel}
+              </FilterButton>
+            </SocialTabFilterBar>
+          }
+          ListEmptyComponent={
+            hasBeenActive && visibleItems.length === 0 ? (
+              <SocialV1FeedEmptyState tab="liveTrades" />
+            ) : null
+          }
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}
           onScrollEndDrag={handleScrollSettled}
           scrollEventThrottle={16}
           testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
-        >
-          <SocialTabFilterBar
-            onOpenFilters={onOpenFilters}
-            isFilterActive={isFilterActive}
-            filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
-          >
-            <FilterButton
-              isSelected
-              variant={FilterButtonVariant.Primary}
-              size={FilterButtonSize.Md}
-              onPress={handleStreamToggle}
-              testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
-              accessibilityLabel={streamLabel}
-              startAccessory={
-                <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
-              }
-            >
-              {streamLabel}
-            </FilterButton>
-          </SocialTabFilterBar>
-          {visibleItems.length === 0 ? (
-            <SocialV1FeedEmptyState tab="liveTrades" />
-          ) : (
-            visibleItems.map((item, index) => (
-              <Fragment key={item.id}>
-                {index > 0 ? (
-                  <SectionDivider
-                    marginVertical={1}
-                    testID={getSocialV1FeedEntryDividerTestId(
-                      `live-trades-${index}`,
-                    )}
-                  />
-                ) : null}
-                <LiveTradeRow
-                  item={item}
-                  now={now}
-                  onPositionPress={handlePositionPress}
-                  onTraderPress={handleTraderPress}
-                />
-              </Fragment>
-            ))
-          )}
-        </Animated.ScrollView>
+        />
       </Box>
     </SocialFeedSurfaceProvider>
   );

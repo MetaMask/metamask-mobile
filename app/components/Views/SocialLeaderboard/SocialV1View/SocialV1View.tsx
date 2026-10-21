@@ -20,13 +20,14 @@ import {
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { Pressable, View } from 'react-native';
+import { InteractionManager, Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
@@ -37,6 +38,7 @@ import Animated, {
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import {
@@ -74,6 +76,7 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
+import { PageMotionProvider } from '../../../UI/SocialFeed/PageMotionContext';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
@@ -179,11 +182,20 @@ const SocialV1ViewContent: React.FC = () => {
   const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
-  const leaderboardIndex = tabOrder.indexOf('leaderboard');
   const [landingIndex] = useState(() =>
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  // Chrome (`activeIndex`) updates on the tap. Page content follows in a
+  // transition so the native slide is not blocked by the list commit.
+  const [contentIndex, setContentIndex] = useState(landingIndex);
+  const [idlePrefetch, setIdlePrefetch] = useState(false);
+  // The landing tab is the first render. The other three mount on the
+  // following commit and stay mounted, so a later tab press does not mount them.
+  const [deferredTabsMounted, setDeferredTabsMounted] = useState(false);
+  // Their rows wait one more commit. The mount transition stays a shell, and
+  // a tab press still paints that page immediately through `isActive`.
+  const [deferredRowsReady, setDeferredRowsReady] = useState(false);
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
@@ -222,9 +234,19 @@ const SocialV1ViewContent: React.FC = () => {
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(landingIndex);
+  // The hot-token crawl commits the shadow tree every frame. 0 holds it.
+  // LOW skips it (light animation). null stays on the crawl. Updated here so
+  // Trending stops writing as soon as another tab is selected.
+  const hotTokenCrawl = useSharedValue(0);
   const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);
   const liveTradesIndexSv = useSharedValue(liveTradesIndex);
+  useEffect(() => {
+    const tier = getHardwareTier();
+    hotTokenCrawl.value =
+      contentIndex === trendingIndex && tier !== 'LOW' ? 1 : 0;
+  }, [contentIndex, hotTokenCrawl, trendingIndex]);
+
   const scrollY = useDerivedValue(() => {
     if (activeIndexSv.value === trendingIndexSv.value) {
       return trendingScrollY.value;
@@ -470,6 +492,9 @@ const SocialV1ViewContent: React.FC = () => {
       syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
+      startTransition(() => {
+        setContentIndex(index);
+      });
       livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
     [
@@ -519,8 +544,29 @@ const SocialV1ViewContent: React.FC = () => {
   );
 
   useEffect(() => {
-    pagerRef.current?.setPage(activeIndex);
-  }, [activeIndex]);
+    startTransition(() => {
+      setDeferredTabsMounted(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!deferredTabsMounted) {
+      return;
+    }
+    startTransition(() => {
+      setDeferredRowsReady(true);
+    });
+  }, [deferredTabsMounted]);
+
+  useEffect(() => {
+    setIdlePrefetch(false);
+    const task = InteractionManager.runAfterInteractions(() => {
+      setIdlePrefetch(true);
+    });
+    return () => {
+      task?.cancel?.();
+    };
+  }, [contentIndex]);
 
   const title = strings('homepage.sections.top_traders');
 
@@ -636,10 +682,11 @@ const SocialV1ViewContent: React.FC = () => {
               ref={pagerRef}
               style={tw.style('flex-1 mt-6')}
               initialPage={landingIndex}
+              offscreenPageLimit={1}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
             >
-              {tabOrder.map((tab) => {
+              {tabOrder.map((tab, pageIndex) => {
                 const testIds = PAGE_TEST_IDS[tab];
                 const pageRef =
                   tab === 'trending'
@@ -649,6 +696,12 @@ const SocialV1ViewContent: React.FC = () => {
                       : tab === 'liveTrades'
                         ? liveTradesPageRef
                         : leaderboardPageRef;
+                const pageIsActive = contentIndex === pageIndex;
+                const mountPage = pageIsActive || deferredTabsMounted;
+                const prefetch =
+                  idlePrefetch &&
+                  !pageIsActive &&
+                  Math.abs(pageIndex - contentIndex) === 1;
                 return (
                   <View
                     key={tab}
@@ -656,48 +709,59 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    {tab === 'leaderboard' ? (
-                      <LeaderboardShellTabPage
-                        isActive={activeIndex === leaderboardIndex}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        appliedFilters={applied.leaderboard}
-                        onOpenFilters={handleOpenLeaderboardFilters}
-                        isFilterActive={hasActiveFilters('leaderboard')}
-                      />
-                    ) : tab === 'liveTrades' ? (
-                      <LiveTradesView
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        onOpenFilters={handleOpenLiveTradesFilters}
-                        isFilterActive={hasActiveFilters('liveTrades')}
-                        appliedFilters={applied.liveTrades}
-                      />
-                    ) : (
-                      <EmptyShellTabPage
-                        tab={tab}
-                        isActive={
-                          tab === 'trending'
-                            ? activeIndex === trendingIndex
-                            : activeIndex === followingIndex
-                        }
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        scrollTestID={testIds.scroll}
-                        onOpenFilters={
-                          tab === 'following'
-                            ? handleOpenFollowingFilters
-                            : undefined
-                        }
-                        isFilterActive={hasActiveFilters('following')}
-                        appliedFilters={
-                          tab === 'following' ? applied.following : undefined
-                        }
-                        onQuickBuy={openQuickBuy}
-                      />
-                    )}
+                    {mountPage ? (
+                      <PageMotionProvider value={pageIsActive}>
+                        {tab === 'leaderboard' ? (
+                          <LeaderboardShellTabPage
+                            isActive={pageIsActive}
+                            prefetch={prefetch}
+                            prepare={deferredRowsReady}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            containerTestID={testIds.container}
+                            appliedFilters={applied.leaderboard}
+                            onOpenFilters={handleOpenLeaderboardFilters}
+                            isFilterActive={hasActiveFilters('leaderboard')}
+                          />
+                        ) : tab === 'liveTrades' ? (
+                          <LiveTradesView
+                            isActive={pageIsActive}
+                            prepare={deferredRowsReady}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            onOpenFilters={handleOpenLiveTradesFilters}
+                            isFilterActive={hasActiveFilters('liveTrades')}
+                            appliedFilters={applied.liveTrades}
+                          />
+                        ) : (
+                          <EmptyShellTabPage
+                            tab={tab}
+                            isActive={pageIsActive}
+                            prefetch={prefetch}
+                            prepare={deferredRowsReady}
+                            hotTokenCrawl={
+                              tab === 'trending' ? hotTokenCrawl : undefined
+                            }
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            containerTestID={testIds.container}
+                            scrollTestID={testIds.scroll}
+                            onOpenFilters={
+                              tab === 'following'
+                                ? handleOpenFollowingFilters
+                                : undefined
+                            }
+                            isFilterActive={hasActiveFilters('following')}
+                            appliedFilters={
+                              tab === 'following'
+                                ? applied.following
+                                : undefined
+                            }
+                            onQuickBuy={openQuickBuy}
+                          />
+                        )}
+                      </PageMotionProvider>
+                    ) : null}
                   </View>
                 );
               })}

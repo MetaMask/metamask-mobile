@@ -17,6 +17,14 @@ import {
   getLiveTradeRowTestId,
 } from './components/LiveTradeRow.testIds';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => null,
+}));
+
+jest.mock('@shopify/flash-list', () =>
+  jest.requireActual('../testUtils/flashListMock'),
+);
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();

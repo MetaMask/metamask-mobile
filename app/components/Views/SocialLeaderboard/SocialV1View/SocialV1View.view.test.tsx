@@ -10,6 +10,7 @@
  */
 import '../../../../../tests/component-view/mocks';
 
+import NetInfo from '@react-native-community/netinfo';
 import React from 'react';
 import {
   fireEvent,
@@ -32,6 +33,7 @@ import {
 import { initialStateSocialLeaderboard } from '../../../../../tests/component-view/presets/socialLeaderboard';
 import { renderSocialV1ViewWithRoutes } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import { AccessRestrictedProvider } from '../../../UI/Compliance';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { getSocialFeedPositionCardCopyTradeTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import { SocialFeedPostShellSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedPostShell.testIds';
@@ -111,9 +113,25 @@ const installComplianceController = (blocked: boolean) => {
 };
 
 const pressCopyTrade = async () => {
-  const button = await screen.findByTestId(copyTradeButtonTestId);
+  const page = await screen.findByTestId(
+    SocialV1ViewSelectorsIDs.TRENDING_PAGE,
+  );
+  const button = await within(page).findByTestId(copyTradeButtonTestId);
   fireEvent.press(button);
 };
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+beforeEach(() => {
+  netInfoMock.__setMockNetInfo({
+    type: 'wifi',
+    isInternetReachable: true,
+  });
+});
+
+afterEach(() => {
+  netInfoMock.__resetMockNetInfo();
+});
 
 describe('SocialV1View copy trade', () => {
   beforeEach(() => {
@@ -188,7 +206,10 @@ describe('SocialV1View copy trade', () => {
       overrides: eligibleOverrides,
     });
 
-    const card = await screen.findByTestId(
+    const page = await screen.findByTestId(
+      SocialV1ViewSelectorsIDs.TRENDING_PAGE,
+    );
+    const card = await within(page).findByTestId(
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
     );
     const cardScope = within(card);
@@ -233,20 +254,35 @@ describe('SocialV1View initial tab', () => {
     renderWithInitialTab('leaderboard');
 
     expect(
-      await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+      screen.getByTestId(SocialV1ViewSelectorsIDs.PAGER).props.initialPage,
+    ).toBe(2);
+    const leaderboard = await screen.findByTestId(
+      SocialV1ViewSelectorsIDs.LEADERBOARD_PAGE,
+    );
+    expect(
+      await within(leaderboard).findByTestId(
+        TopTradersViewSelectorsIDs.TRADER_LIST,
+      ),
     ).toBeOnTheScreen();
     await waitFor(() =>
       expect(getCalledActions()).toContain('SocialService:fetchFeed'),
     );
-    expect(screen.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+    expect(
+      within(leaderboard).queryByTestId(feedPostTestId),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens on Trending when the initial tab is not a Social V1 tab', async () => {
     renderWithInitialTab('feed');
 
-    expect(await screen.findByTestId(feedPostTestId)).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId(SocialV1ViewSelectorsIDs.PAGER).props.initialPage,
+    ).toBe(0);
+    const trending = await screen.findByTestId(
+      SocialV1ViewSelectorsIDs.TRENDING_PAGE,
+    );
+    expect(
+      await within(trending).findByTestId(feedPostTestId),
+    ).toBeOnTheScreen();
   });
 });

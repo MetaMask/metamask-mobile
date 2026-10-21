@@ -6,10 +6,12 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { usePageMotion } from '../PageMotionContext';
 import { TRADER_STAT_ROTATION_MS } from '../utils/traderStats';
 
 /** Length of each half of the cross-fade (out, then in). */
@@ -49,13 +51,15 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
 
   const count = labels.length;
   const shouldRotate = count > 1;
+  const pageMotion = usePageMotion();
 
   useEffect(() => {
     setIndex((current) => (current < count ? current : 0));
   }, [count]);
 
   useEffect(() => {
-    if (!shouldRotate) {
+    if (!shouldRotate || !pageMotion) {
+      cancelAnimation(opacity);
       opacity.value = 1;
       return undefined;
     }
@@ -76,7 +80,7 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
       }
       opacity.value = 1;
     };
-  }, [shouldRotate, count, intervalMs, opacity]);
+  }, [shouldRotate, count, intervalMs, opacity, pageMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
 

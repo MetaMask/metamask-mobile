@@ -5,6 +5,18 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
+
+jest.mock('@shopify/flash-list', () =>
+  jest.requireActual('../testUtils/flashListMock'),
+);
+
+jest.mock('@react-native-community/netinfo', () =>
+  jest.requireActual('../../../../__mocks__/@react-native-community/netinfo'),
+);
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => null),
+}));
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
 import { SocialFeedPostingBannerSelectorsIDs } from './feed/components/SocialFeedPostingBanner.testIds';
@@ -95,6 +107,18 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
     ),
   };
 });
+
+jest.mock('./feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    isFetching: false,
+    hasFetched: false,
+    error: null,
+    refresh: jest.fn(),
+    toggleFollow: jest.fn(),
+  })),
+}));
 
 jest.mock('./feed/components/PopularTradersCarousel', () => {
   const ReactActual = jest.requireActual('react') as typeof import('react');
@@ -287,6 +311,25 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
 
+  it('keeps Following mounted after switching back to Trending', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-content`),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-content`),
+    ).toBeOnTheScreen();
+  });
+
   it('renders the three mocked position cards on Trending', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -400,6 +443,9 @@ describe('SocialV1View', () => {
 
   it('renders the Live trades filter icon on the Live trades page', () => {
     renderWithProvider(<SocialV1View />);
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     expect(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
@@ -411,6 +457,9 @@ describe('SocialV1View', () => {
 
   it('opens the filters bottom sheet from the Live trades filter button', () => {
     renderWithProvider(<SocialV1View />);
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
@@ -421,6 +470,9 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
@@ -432,6 +484,9 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when the backdrop is pressed', () => {
     renderWithProvider(<SocialV1View />);
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
@@ -588,6 +643,9 @@ describe('SocialV1View', () => {
 
   it('marks Live trades filters active after applying a draft change', () => {
     renderWithProvider(<SocialV1View />);
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     const filterButton = () =>
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON);

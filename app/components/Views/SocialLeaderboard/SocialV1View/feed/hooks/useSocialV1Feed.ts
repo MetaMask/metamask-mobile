@@ -7,6 +7,14 @@ import {
 } from '../store/socialV1ComposedFeedStore';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 
+export interface UseSocialV1FeedOptions {
+  /**
+   * Gate the query. Defaults to enabled so existing callers keep fetching.
+   * Always additionally gated on unlock inside `useSocialFeed`.
+   */
+  enabled?: boolean;
+}
+
 /** Trending reads the generic `leaderboard` scope, Following the per-user one. */
 const TAB_AUDIENCE = {
   trending: 'all',
@@ -23,6 +31,7 @@ const TAB_AUDIENCE = {
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
+  { enabled = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   // Everything composer-related must come off this snapshot rather than a
   // direct store read: React Compiler memoizes this hook's result, so a read
@@ -50,7 +59,7 @@ export const useSocialV1Feed = (
     loadMore,
     error,
     refresh,
-  } = useSocialFeed(source);
+  } = useSocialFeed(source, { enabled });
 
   const pagination = {
     isLoading,

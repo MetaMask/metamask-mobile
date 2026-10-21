@@ -9,14 +9,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, type ScrollView } from 'react-native';
+import { RefreshControl } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -59,6 +61,16 @@ export interface LeaderboardShellTabPageProps {
    */
   isActive?: boolean;
   /**
+   * Neighbor of the visible tab. Starts the leaderboard query without painting
+   * rows when the device and network allow an adjacent prefetch.
+   */
+  prefetch?: boolean;
+  /**
+   * The landing tab has already painted. Load this list now when the device
+   * and network allow it. The screen-viewed event still waits for `isActive`.
+   */
+  prepare?: boolean;
+  /**
    * Scroll handler forwarded by the tabs container so the page's scroll drives
    * the parent's collapsing title.
    */
@@ -81,6 +93,8 @@ export interface LeaderboardShellTabPageProps {
  */
 const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   isActive = true,
+  prefetch = false,
+  prepare = false,
   onScroll,
   pageRef,
   containerTestID,
@@ -103,8 +117,13 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   );
   const [isRankingSheetOpen, setIsRankingSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
   const leaderboardRef = useRef<SocialLeaderboardHandle>(null);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const allowPrefetch =
+    hardwareTier !== 'LOW' &&
+    networkTier !== 'NONE' &&
+    networkTier !== 'SLOW_CELLULAR';
   const hasFiredScreenViewedRef = useRef(false);
 
   useEffect(() => {
@@ -117,7 +136,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     pageRef,
     () => ({
       scrollToOffset: (offset: number, animated = false) => {
-        scrollRef.current?.scrollTo({ y: offset, animated });
+        leaderboardRef.current?.scrollToOffset(offset, animated);
       },
     }),
     [],
@@ -177,59 +196,66 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
 
   const openRankingSheet = useCallback(() => setIsRankingSheetOpen(true), []);
   const closeRankingSheet = useCallback(() => setIsRankingSheetOpen(false), []);
+  const paintPrepared = prepare && allowPrefetch;
+  const shouldMount =
+    hasBeenActive || paintPrepared || (prefetch && allowPrefetch);
 
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
-      {hasBeenActive && (
-        <>
-          <Animated.ScrollView
-            ref={scrollRef}
-            style={tw.style('flex-1')}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style(
-              `pb-[${24 + floatingTabBarInset}px]`,
-            )}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
+      {shouldMount ? (
+        <SocialFeedSurfaceProvider showMockedFields>
+          <SocialLeaderboard
+            ref={leaderboardRef}
+            source={source}
+            location="social_leaderboard"
+            filters={filters}
+            showViewerRow
+            visible={hasBeenActive || paintPrepared}
+            onScroll={hasBeenActive ? onScroll : undefined}
+            scrollTestID={
+              hasBeenActive ? TopTradersViewSelectorsIDs.TRADER_LIST : undefined
             }
-          >
-            <SocialTabFilterBar
-              onOpenFilters={onOpenFilters}
-              isFilterActive={isFilterActive}
-              filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
-            >
-              <RankingFilterSelector
-                value={ranking}
-                onPress={openRankingSheet}
-                testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
-              />
-            </SocialTabFilterBar>
-            <SocialFeedSurfaceProvider showMockedFields>
-              <SocialLeaderboard
-                ref={leaderboardRef}
-                source={source}
-                location="social_leaderboard"
-                filters={filters}
-                showViewerRow
-              />
-            </SocialFeedSurfaceProvider>
-          </Animated.ScrollView>
-          <RankingFilterSheet
-            isOpen={isRankingSheetOpen}
-            value={ranking}
-            onChange={setRanking}
-            onClose={closeRankingSheet}
+            refreshControl={
+              hasBeenActive ? (
+                <RefreshControl
+                  colors={[colors.primary.default]}
+                  tintColor={colors.icon.default}
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
+              ) : undefined
+            }
+            contentContainerStyle={
+              hasBeenActive
+                ? tw.style(`pb-[${24 + floatingTabBarInset}px]`)
+                : undefined
+            }
+            listHeader={
+              hasBeenActive ? (
+                <SocialTabFilterBar
+                  onOpenFilters={onOpenFilters}
+                  isFilterActive={isFilterActive}
+                  filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+                >
+                  <RankingFilterSelector
+                    value={ranking}
+                    onPress={openRankingSheet}
+                    testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
+                  />
+                </SocialTabFilterBar>
+              ) : null
+            }
           />
-        </>
-      )}
+        </SocialFeedSurfaceProvider>
+      ) : null}
+      {hasBeenActive ? (
+        <RankingFilterSheet
+          isOpen={isRankingSheetOpen}
+          value={ranking}
+          onChange={setRanking}
+          onClose={closeRankingSheet}
+        />
+      ) : null}
     </Box>
   );
 };

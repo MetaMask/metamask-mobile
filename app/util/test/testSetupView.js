@@ -618,6 +618,24 @@ jest.mock('@metamask/react-native-webview', () => {
 // Mock @metamask/react-native-search-api
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
 
+// FlashList v2's Jest entry throws (RecyclerView is not exported). View tests
+// render rows through FlatList instead. Unit tests keep their own mock.
+jest.mock('@shopify/flash-list', () => {
+  const React = require('react');
+  const { FlatList } = require('react-native');
+
+  const FlashList = React.forwardRef((props, ref) => {
+    const { renderScrollComponent: _renderScrollComponent, ...rest } = props;
+    return React.createElement(FlatList, {
+      ...rest,
+      ref,
+      initialNumToRender: rest.data?.length,
+    });
+  });
+
+  return { FlashList };
+});
+
 // Mock react-native-sensors
 jest.mock('react-native-sensors', () => 'RNSensors');
 
