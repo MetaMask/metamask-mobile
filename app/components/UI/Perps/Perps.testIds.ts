@@ -318,6 +318,11 @@ export const PerpsHomeViewSelectorsIDs = {
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
   TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
   TOP_MOVERS_LIST: 'perps-home-top-movers-list',
+  SOCIAL_FEED_SECTION: 'perps-home-social-feed-section',
+  SOCIAL_FEED_HEADER: 'perps-home-social-feed-header',
+  SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
+  SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
+  SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -1046,6 +1051,7 @@ export const PerpsOrderViewSelectorsIDs = {
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
+  FOOTER: 'perps-order-view-footer',
   SCROLL_VIEW: 'perps-order-view-scroll-view',
   AMOUNT_SLIDER: 'perps-order-view-amount-slider',
   KEYPAD: 'perps-order-view-keypad',
@@ -1263,6 +1269,9 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   ERROR: 'perps-adjust-margin-bottom-sheet-error',
   MARGIN_VALUE: 'perps-adjust-margin-bottom-sheet-margin-value',
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
+  ADD_FUNDS_BUTTON: 'perps-adjust-margin-bottom-sheet-add-funds-button',
+  GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
+    'perps-adjust-margin-bottom-sheet-geo-block-tooltip',
   LIQUIDATION_PRICE_VALUE:
     'perps-adjust-margin-bottom-sheet-liquidation-price-value',
   LIQUIDATION_PRICE_INFO:

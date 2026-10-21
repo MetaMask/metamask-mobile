@@ -383,6 +383,7 @@ const Routes = {
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
         'LimitOrderAccountUpgradeFeeInfoModal',
+      LIMIT_ORDER_METAMASK_FEE_INFO_MODAL: 'LimitOrderMetaMaskFeeInfoModal',
       OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
       CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
@@ -474,7 +475,6 @@ const Routes = {
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
-  LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
@@ -669,6 +669,8 @@ const Routes = {
   MFA: {
     FLOW: 'MfaFlow',
     SETTINGS: 'MfaSettings',
+    PASSKEYS: 'MfaPasskeys',
+    METHOD_DETAILS: 'MfaMethodDetails',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

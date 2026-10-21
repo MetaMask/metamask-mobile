@@ -1188,8 +1188,8 @@
       "button": "Subukang muli"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Subukang muli"
     },
     "vba_details": {
@@ -1564,6 +1564,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Username",
       "display_name_label": "Ipinapakitang pangalan",

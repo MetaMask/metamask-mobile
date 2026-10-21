@@ -5,6 +5,7 @@ import type { Caip19AssetId } from '@metamask/assets-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { merge } from 'lodash';
@@ -25,6 +26,7 @@ import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrde
 import { ToastSeverity } from '@metamask/design-system-react-native';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
 
@@ -163,6 +165,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
   payingAmount: '0.1 ETH',
+  estReceivingAmount: '341.22 USDC',
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',
@@ -268,9 +271,10 @@ describe('LimitOrderConfirmationModalScreen', () => {
     mockUseSentinelFeeTokenValidation.mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
-    const { getByTestId } = renderScreen();
+    const { getByTestId, getByText } = renderScreen();
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -280,6 +284,13 @@ describe('LimitOrderConfirmationModalScreen', () => {
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByText(
+        strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: 'ETH, USDC',
+        }),
+      ),
+    ).toBeOnTheScreen();
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
@@ -373,6 +384,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
       ).toBeNull();
     });
   });
+
+  it.each([
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      'bridge.limit.trigger_condition_at_or_above',
+    ],
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      'bridge.limit.trigger_condition_at_or_below',
+    ],
+  ])(
+    'signs the trigger price of an order placed %s the limit price',
+    (priceComparisonDirection, expectedPrefixKey) => {
+      mockUseParams.mockReturnValue({
+        ...mockParams,
+        triggerInput: { ...mockTriggerInput, priceComparisonDirection },
+      });
+
+      const { getByTestId } = renderScreen();
+
+      expect(
+        getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+      ).toHaveTextContent(strings(expectedPrefixKey));
+    },
+  );
 
   it('displays the cost tolerance from bridge state', () => {
     const { getByText } = renderScreen(

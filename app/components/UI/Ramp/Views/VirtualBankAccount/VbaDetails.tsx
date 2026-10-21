@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView, View } from 'react-native';
+import { AccessibilityInfo, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -15,10 +15,7 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
   Text,
   TextColor,
@@ -41,22 +38,29 @@ import {
 } from './pickLatestTransaction';
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
+import {
+  ensureBrazilMusdAutoramp,
+  findUsableAutoramp,
+} from './ensureBrazilMusdAutoramp';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
+// Keep the Figma disclosure ready while Product finalizes the copy.
+const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
 export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   HEADER: 'vba-details-header',
+  BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
   COPY_BUTTON: 'vba-details-copy-button',
-  DONE_BUTTON: 'vba-details-done-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
-  ROW_ICON: 'vba-details-row-icon',
-  WAITING_FOR_PIX: 'vba-details-waiting-for-pix',
+  HELPER_TEXT: 'vba-details-helper-text',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
+  SETUP_ERROR: 'vba-details-setup-error',
+  RETRY_BUTTON: 'vba-details-retry-button',
   DEBUG_BUTTON: 'vba-details-debug-button',
 } as const;
 
@@ -86,24 +90,13 @@ interface DepositRamps {
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
 }
 
-const findUsableAutoramp = (
-  autoramps: AutorampCursor[],
-  walletAddress: string,
-): AutorampCursor | undefined => {
-  const normalized = walletAddress.toLowerCase();
-  return autoramps.find(
-    (autoramp) =>
-      autoramp.walletAddress.toLowerCase() === normalized &&
-      autoramp.status !== 'Rejected' &&
-      autoramp.status !== 'Cancelled',
-  );
-};
-
 /**
- * Completed virtual bank account screen. Reached once the Money account is
- * provisioned. Pushed on the root stack (`Routes.RAMP.VBA_DETAILS`) with the
- * same horizontal transition as onboarding. The header stays, without a back
- * button. PIX values come from `NeoBankService.getPixDepositInstructions`.
+ * Virtual bank account screen. This is the only place that registers the
+ * wallet and creates the BRL autoramp. Until a PIX rail exists, the existing
+ * loading state stays on screen. Pushed on the root stack
+ * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
+ * onboarding. PIX values come from
+ * `NeoBankService.getPixDepositInstructions`.
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -120,7 +113,7 @@ const VbaDetails = () => {
     null,
   );
   const [loadError, setLoadError] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [setupFailed, setSetupFailed] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
 
@@ -136,16 +129,28 @@ const VbaDetails = () => {
       return;
     }
     const ramps = Engine.context.RampsController as DepositRamps;
-    const autoramp = findUsableAutoramp(
+    let autoramp = findUsableAutoramp(
       ramps.state?.autoramps ?? [],
       walletAddress,
     );
     if (!autoramp) {
-      setAutorampId(null);
-      setAutorampStatus(null);
-      setInstructions(null);
-      return;
+      const outcome = await ensureBrazilMusdAutoramp(walletAddress);
+      if (!isMountedRef.current) {
+        return;
+      }
+      autoramp = findUsableAutoramp(
+        ramps.state?.autoramps ?? [],
+        walletAddress,
+      );
+      if (!autoramp) {
+        setSetupFailed(outcome === 'failed');
+        setAutorampId(null);
+        setAutorampStatus(null);
+        setInstructions(null);
+        return;
+      }
     }
+    setSetupFailed(false);
 
     let status = autoramp.status;
     if (status !== 'Approved' && ramps.refreshAutoramp) {
@@ -218,12 +223,6 @@ const VbaDetails = () => {
         });
       } finally {
         inFlight = false;
-        // A network-tier change cancels this effect while the request is
-        // still in flight. The response can still store Pix instructions, so
-        // finish the load unless the screen itself has unmounted.
-        if (isMountedRef.current) {
-          setHasLoaded(true);
-        }
       }
     };
     tick().catch(() => undefined);
@@ -250,7 +249,25 @@ const VbaDetails = () => {
     );
   }, [instructions?.brCode, loadError]);
 
-  const handleDone = useCallback(() => {
+  useEffect(() => {
+    if (!setupFailed || instructions?.brCode) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('virtual_bank_account.vba_details.setup_error'),
+    );
+  }, [instructions?.brCode, setupFailed]);
+
+  const handleRetrySetup = useCallback(() => {
+    refreshDeposit().catch(() => undefined);
+  }, [refreshDeposit]);
+
+  const handleBack = useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
@@ -296,16 +313,25 @@ const VbaDetails = () => {
       : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null);
 
-  // Offline never fetches, so it skips straight to the waiting copy.
-  const isLoading = !hasLoaded && networkTier !== 'NONE';
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
+  const showSetupRetry = setupFailed && !instructions?.brCode;
+  const errorMessage = setupFailed
+    ? strings('virtual_bank_account.vba_details.setup_error')
+    : loadError
+      ? strings('virtual_bank_account.vba_details.load_error')
+      : null;
 
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard includesTopInset testID={VbaDetailsSelectorsIDs.HEADER} />
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: VbaDetailsSelectorsIDs.BACK_BUTTON }}
+        includesTopInset
+        testID={VbaDetailsSelectorsIDs.HEADER}
+      />
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
@@ -330,7 +356,56 @@ const VbaDetails = () => {
         >
           {strings('virtual_bank_account.vba_details.description')}
         </Text>
-        {isLoading ? (
+        {rows.length > 0 ? (
+          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
+            {rows.map((row) => (
+              <Box key={row.id} testID={row.testID}>
+                <ListItem
+                  title={row.label}
+                  titleProps={{
+                    variant: TextVariant.BodySm,
+                    fontWeight: FontWeight.Regular,
+                    color: TextColor.TextAlternative,
+                  }}
+                  description={row.value}
+                  descriptionProps={{
+                    variant: TextVariant.BodyMd,
+                    color: TextColor.TextDefault,
+                    numberOfLines: 1,
+                  }}
+                  endAccessory={
+                    <ButtonIcon
+                      iconName={IconName.Copy}
+                      size={ButtonIconSize.Md}
+                      onPress={handleCopy(row.value, row.label)}
+                      accessibilityLabel={strings(
+                        'virtual_bank_account.vba_details.copy_label',
+                        { field: row.label },
+                      )}
+                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
+                    />
+                  }
+                  accessoryGap={3}
+                />
+              </Box>
+            ))}
+          </Box>
+        ) : errorMessage ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.ErrorDefault}
+            twClassName="mt-6 text-center"
+            testID={
+              setupFailed
+                ? VbaDetailsSelectorsIDs.SETUP_ERROR
+                : VbaDetailsSelectorsIDs.LOAD_ERROR
+            }
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
+            {errorMessage}
+          </Text>
+        ) : (
           <Box
             twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
             accessible
@@ -376,78 +451,30 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : rows.length > 0 ? (
-          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
-            {rows.map((row) => (
-              <Box key={row.id} testID={row.testID}>
-                <ListItem
-                  title={row.label}
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    fontWeight: FontWeight.Regular,
-                    color: TextColor.TextAlternative,
-                  }}
-                  description={row.value}
-                  descriptionProps={{
-                    variant: TextVariant.BodyMd,
-                    color: TextColor.TextDefault,
-                    numberOfLines: 1,
-                  }}
-                  startAccessory={
-                    <View
-                      accessible={false}
-                      accessibilityElementsHidden
-                      importantForAccessibility="no-hide-descendants"
-                      testID={`${VbaDetailsSelectorsIDs.ROW_ICON}-${row.id}`}
-                    >
-                      <Icon
-                        name={IconName.Key}
-                        size={IconSize.Md}
-                        color={IconColor.IconAlternative}
-                      />
-                    </View>
-                  }
-                  endAccessory={
-                    <ButtonIcon
-                      iconName={IconName.Copy}
-                      size={ButtonIconSize.Md}
-                      onPress={handleCopy(row.value, row.label)}
-                      accessibilityLabel={strings(
-                        'virtual_bank_account.vba_details.copy_label',
-                        { field: row.label },
-                      )}
-                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
-                    />
-                  }
-                  accessoryGap={3}
-                />
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-6 text-center"
-            testID={VbaDetailsSelectorsIDs.WAITING_FOR_PIX}
-          >
-            {strings('virtual_bank_account.vba_details.waiting_for_pix')}
-          </Text>
         )}
-        {loadError && !instructions?.brCode ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-4 text-center"
-            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
-            accessibilityRole="alert"
-            accessibilityLiveRegion="polite"
-          >
-            {strings('virtual_bank_account.vba_details.load_error')}
-          </Text>
-        ) : null}
       </ScrollView>
       <Box twClassName="gap-4 px-4 pb-2 pt-4">
+        {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.HELPER_TEXT}
+          >
+            {strings('virtual_bank_account.vba_details.helper_text')}
+          </Text>
+        ) : null}
+        {showSetupRetry ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleRetrySetup}
+            testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
+          >
+            {strings('virtual_bank_account.vba_details.retry')}
+          </Button>
+        ) : null}
         {debugEnabled ? (
           <Button
             variant={ButtonVariant.Secondary}
@@ -459,15 +486,6 @@ const VbaDetails = () => {
             {'Debug'}
           </Button>
         ) : null}
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleDone}
-          testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
-        >
-          {strings('virtual_bank_account.vba_details.button')}
-        </Button>
       </Box>
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet

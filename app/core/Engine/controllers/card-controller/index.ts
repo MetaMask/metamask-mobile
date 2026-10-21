@@ -1,6 +1,13 @@
+import { Platform } from 'react-native';
+import { getBuildNumber, getVersion } from 'react-native-device-info';
+import QuickCrypto from 'react-native-quick-crypto';
 import type { MessengerClientInitFunction } from '../../types';
 import { CardController, defaultCardControllerState } from './CardController';
-import type { CardControllerMessenger } from './types';
+import type {
+  CardClientInfo,
+  CardControllerMessenger,
+  CardSha256,
+} from './types';
 import { BaanxService } from './services/BaanxService';
 import { BaanxProvider } from './providers/BaanxProvider';
 import { resolveBaanxConfig } from './services/baanx-config';
@@ -10,6 +17,7 @@ import { resolveImmersveConfig } from './services/immersve-config';
 import { CardService } from './services/CardService';
 import { CardProviderIds } from './provider-types';
 import { getDefaultCardApiBaseUrlForMetaMaskEnv } from '../../../../components/UI/Card/util/mapCardApiUrl';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import {
   readCardFeatureFlag,
   readCardProviderConfig,
@@ -17,6 +25,18 @@ import {
   type ImmersveProgramConfig,
 } from '../../../../selectors/featureFlagController/card';
 import { getImmersveMoneyAccountConfig } from '../../../../components/UI/Card/util/immersveMoneyAccount';
+
+const getMobileClientInfo = (): CardClientInfo => ({
+  product: 'metamask-mobile',
+  version: getVersion(),
+  build: getBuildNumber(),
+  platform: Platform.OS,
+});
+
+const mobileSha256: CardSha256 = async (text) =>
+  new Uint8Array(
+    await QuickCrypto.subtle.digest('SHA-256', new TextEncoder().encode(text)),
+  );
 
 /**
  * Initialize the CardController.
@@ -28,7 +48,7 @@ export const cardControllerInit: MessengerClientInitFunction<
   CardController,
   CardControllerMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, persistedState, getState } = request;
 
   const getRemoteFeatureFlags = () =>
     controllerMessenger.call('RemoteFeatureFlagController:getState')
@@ -66,6 +86,7 @@ export const cardControllerInit: MessengerClientInitFunction<
   const cardService = new CardService({
     getBaseUrl: () =>
       getDefaultCardApiBaseUrlForMetaMaskEnv(process.env.METAMASK_ENVIRONMENT),
+    getClientInfo: getMobileClientInfo,
   });
 
   const controller = new CardController({
@@ -78,6 +99,9 @@ export const cardControllerInit: MessengerClientInitFunction<
       [CardProviderIds.Immersve]: immersveProvider,
     },
     cardService,
+    sha256: mobileSha256,
+    isBasicFunctionalityEnabled: () =>
+      selectBasicFunctionalityEnabled(getState()),
   });
 
   readSelectedCountry = () => controller.state.selectedCountry;

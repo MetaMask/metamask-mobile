@@ -25,12 +25,14 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type { AssetStackParamList } from '../../../../../Nav/Main/types/navigation';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useSecurityFacts } from '../../../hooks/useSecurityFacts';
 import SecurityAttribution, {
   SECURITY_ATTRIBUTION_EXPLAINER,
 } from '../SecurityAttribution/SecurityAttribution';
 import TokenExplainerSheet from '../TokenExplainerSheet/TokenExplainerSheet';
-import { useElapsedMinutes } from '../../../hooks/useElapsedMinutes';
+import { useElapsedTime } from '../../../hooks/useElapsedTime';
 import { useTokenCaipAssetId } from '../../../hooks/useTokenCaipAssetId';
 import { useTokenSecurityQuery } from '../../../../Tokens/hooks/useTokenSecurityQuery';
 import type { SecurityRisk } from '../../../utils/securityFacts';
@@ -198,8 +200,14 @@ export const ContractSecurityScreen: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
-  const { token } =
-    useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const {
+    token,
+    // Defaults keep the event correct even if an opener omits them: this
+    // screen is V1-only, which reports as `v3` / `memecoin`.
+    tdpVersion = 'v3',
+    tokenCategory = 'memecoin',
+  } = useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
 
   /**
    * Resolved the same way the detail page resolves it, so both land on one
@@ -221,11 +229,43 @@ export const ContractSecurityScreen: React.FC = () => {
     error,
   });
 
+  // Fire the "Contract security opened" event once per view. A ref guard
+  // mirrors the legacy SecurityTrustScreen so a re-render never re-fires.
+  const hasTrackedView = React.useRef(false);
+  React.useEffect(() => {
+    if (hasTrackedView.current) {
+      return;
+    }
+    hasTrackedView.current = true;
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.TOKEN_DETAILS_CONTRACT_SECURITY_OPENED,
+      )
+        .addProperties({
+          tdp_version: tdpVersion,
+          token_category: tokenCategory,
+          chain_id: token.chainId,
+          verdict: facts.verdict,
+          token_address: token.address,
+          token_symbol: token.symbol,
+        })
+        .build(),
+    );
+  }, [
+    trackEvent,
+    createEventBuilder,
+    tdpVersion,
+    tokenCategory,
+    token.chainId,
+    token.address,
+    token.symbol,
+    facts.verdict,
+  ]);
+
   // This screen is always the foreground route while mounted, so the clock
   // needs no gate beyond the hook's own AppState check.
-  const fetchedMinutesAgo = useElapsedMinutes({
+  const fetchedMinutesAgo = useElapsedTime({
     since: dataUpdatedAt,
-    enabled: true,
   });
 
   const scrollContentStyle = React.useMemo(
