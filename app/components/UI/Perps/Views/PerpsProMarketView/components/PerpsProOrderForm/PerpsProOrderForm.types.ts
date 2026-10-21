@@ -156,6 +156,7 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   chaseMaxDistance?: string;
   onChaseMaxDistanceChange?: (value: string) => void;
+  onChaseMaxDistanceFocus?: () => void;
   chaseMaxDistanceUnit?: 'usd' | 'percent';
   onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
   chaseReferencePrice?: string;

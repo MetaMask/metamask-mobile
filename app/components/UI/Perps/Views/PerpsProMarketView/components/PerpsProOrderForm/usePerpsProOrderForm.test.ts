@@ -119,6 +119,7 @@ const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetTriggerPrice = jest.fn();
 const mockResetPriceInputInteraction = jest.fn();
+const mockRegisterPriceFieldHandlers = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
@@ -149,6 +150,7 @@ const mockContextValue = {
   triggerPrice: undefined as string | undefined,
   setTriggerPrice: mockSetTriggerPrice,
   resetPriceInputInteraction: mockResetPriceInputInteraction,
+  registerPriceFieldHandlers: mockRegisterPriceFieldHandlers,
   setOrderType: mockSetOrderType,
   pendingReduceOnly: undefined as boolean | undefined,
   handlePercentageAmount: mockHandlePercentageAmount,
@@ -4775,6 +4777,52 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
+    it('registers order-book price-field handlers for Scale start/end and Chase max distance (TAT-4100)', () => {
+      mockOrderForm.type = 'scale';
+      renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      expect(typeof handlers?.scaleStart).toBe('function');
+      expect(typeof handlers?.scaleEnd).toBe('function');
+      expect(typeof handlers?.chaseMaxDistance).toBe('function');
+    });
+
+    it('fills the Scale start price from a registered order-book handler', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleStart?.('88000');
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('88000');
+    });
+
+    it('fills the Scale end price from a registered order-book handler', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleEnd?.('92000');
+      });
+
+      expect(result.current.scaleOrder.endPrice).toBe('92000');
+    });
+
+    it('ignores an undefined order-book price for Scale fields', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.scaleStart?.(undefined);
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('');
+    });
+
     it('keeps Scale placement disabled for a Lighter route', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
@@ -8635,6 +8683,52 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.chaseMaxDistanceUnit).toBe('percent');
+      expect(result.current.chaseMaxDistance).toBe('');
+    });
+
+    it('fills Chase max distance (USD) from a tapped order-book price (TAT-4100)', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('91000');
+      });
+
+      expect(result.current.chaseMaxDistanceUnit).toBe('usd');
+      expect(result.current.chaseMaxDistance).toBe(
+        formatHyperLiquidPrice({ price: '1000', szDecimals: mockSizeDecimals }),
+      );
+    });
+
+    it('fills Chase max distance (percent) from a tapped order-book price (TAT-4100)', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('91800');
+      });
+
+      expect(result.current.chaseMaxDistance).toBe('2.00');
+    });
+
+    it('ignores a tapped price equal to the live reference price for Chase max distance', () => {
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('90000');
+      });
+
       expect(result.current.chaseMaxDistance).toBe('');
     });
 

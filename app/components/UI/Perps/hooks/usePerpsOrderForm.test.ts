@@ -989,6 +989,108 @@ describe('usePerpsOrderForm', () => {
       ).toHaveBeenCalledWith('limit');
     });
 
+    it('clears the active price field when the order type changes', () => {
+      // A field tied to the previous type (e.g. a Scale rung) no longer
+      // exists once the type changes, so a stale selection must not persist.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setActivePriceField('scaleStart');
+      });
+      expect(result.current.activePriceField).toBe('scaleStart');
+
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+
+      expect(result.current.activePriceField).toBeNull();
+    });
+
+    it('clears the active price field when the asset changes', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setActivePriceField('limit');
+      });
+      expect(result.current.activePriceField).toBe('limit');
+
+      act(() => {
+        result.current.setAsset('SOL');
+      });
+
+      expect(result.current.activePriceField).toBeNull();
+    });
+
+    it('commits an order-book price to the limit field without a registered handler', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('limit', '50000');
+      });
+
+      expect(committed).toBe(true);
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+    });
+
+    it('commits an order-book price to the trigger field without a registered handler', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('trigger', '51000');
+      });
+
+      expect(committed).toBe(true);
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
+    });
+
+    it('returns false for a Pro-only field with no registered handler', () => {
+      // Lite never registers Scale/Chase handlers, so the caller (an
+      // order-book tap) knows to fall back to its own default field.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      let committed = true;
+      act(() => {
+        committed = result.current.commitPriceToField('scaleStart', '50000');
+      });
+
+      expect(committed).toBe(false);
+    });
+
+    it('routes to a handler registered for a Pro-only field', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      const scaleStartHandler = jest.fn();
+      act(() => {
+        result.current.registerPriceFieldHandlers({
+          scaleStart: scaleStartHandler,
+        });
+      });
+
+      let committed = false;
+      act(() => {
+        committed = result.current.commitPriceToField('scaleStart', '50000');
+      });
+
+      expect(committed).toBe(true);
+      expect(scaleStartHandler).toHaveBeenCalledWith('50000');
+    });
+
     it('persists leverage via saveTradeConfiguration', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -1385,6 +1487,9 @@ describe('usePerpsOrderForm', () => {
       'setLimitPrice',
       'setTriggerPrice',
       'setOrderType',
+      'setActivePriceField',
+      'registerPriceFieldHandlers',
+      'commitPriceToField',
       'handlePercentageAmount',
       'handleMaxAmount',
       'handleMinAmount',

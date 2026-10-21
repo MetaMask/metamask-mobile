@@ -108,8 +108,10 @@ interface PerpsProOrderBookColumnProps {
  * Order-book column bridged to the shared order-form state (TAT-3643).
  *
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
- * bid/ask row tap can prefill the semantic price field for the selected type
- * without changing a trigger placement to plain Limit.
+ * bid/ask row tap can fill the price field the user last focused — Scale
+ * start/end, Chase max distance, limit, or trigger — in place, with no
+ * order-type switch (TAT-4100). Only when nothing is focused does it fall
+ * back to the order type's own default field.
  */
 const PerpsProOrderBookColumn = ({
   symbol,
@@ -119,8 +121,14 @@ const PerpsProOrderBookColumn = ({
   onCollapse,
   onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
-  const { orderForm, commitLimitPrice, setOrderType, commitTriggerPrice } =
-    usePerpsOrderContext();
+  const {
+    orderForm,
+    commitLimitPrice,
+    setOrderType,
+    commitTriggerPrice,
+    activePriceField,
+    commitPriceToField,
+  } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
@@ -136,6 +144,18 @@ const PerpsProOrderBookColumn = ({
           ? price
           : canonicalizeOrderPrice(price, marketData.szDecimals);
 
+      // A field the user explicitly focused (including Scale/Chase fields,
+      // which have no concept of order type) wins over the type-based
+      // default below — it is filled in place, with no order-type switch
+      // (TAT-4100). Falls through when nothing is focused or the field has
+      // no registered handler (e.g. a stale selection after a type switch).
+      if (
+        activePriceField &&
+        commitPriceToField(activePriceField, selectedPrice)
+      ) {
+        return;
+      }
+
       if (isTriggerOrderType(orderForm.type)) {
         if (isLimitExecutionOrderType(orderForm.type)) {
           commitLimitPrice(selectedPrice);
@@ -149,6 +169,8 @@ const PerpsProOrderBookColumn = ({
       commitLimitPrice(selectedPrice);
     },
     [
+      activePriceField,
+      commitPriceToField,
       commitLimitPrice,
       commitTriggerPrice,
       marketData?.szDecimals,

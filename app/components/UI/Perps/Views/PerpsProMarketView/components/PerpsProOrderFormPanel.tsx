@@ -11,6 +11,7 @@ import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
@@ -285,6 +286,11 @@ const PerpsProOrderFormPanel = ({
     isCrossMarginAvailable,
   });
 
+  // Order book and order form are siblings inside the same PerpsOrderProvider
+  // (TAT-3643); reading setActivePriceField here lets a focused field be
+  // filled by an order-book row tap without switching order type (TAT-4100).
+  const { setActivePriceField } = usePerpsOrderContext();
+
   const { styles } = useStyles(createStyles, {});
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
@@ -338,10 +344,27 @@ const PerpsProOrderFormPanel = ({
   // Limit and trigger share the order-type card because only one is visible.
   const {
     cardRef: orderTypeCardRef,
-    onFocus: onLimitPriceFocus,
+    onFocus: onPriceCardFocus,
     onBlur: onLimitPriceCardBlur,
     realign: onLimitPriceFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+
+  // Each field sets its own `activePriceField` so an order-book row tap can
+  // fill it directly (TAT-4100), even though limit and trigger share one
+  // keyboard-scroll instance above (only one field is ever visible at a time).
+  const onLimitPriceFocus = useCallback(() => {
+    setActivePriceField('limit');
+    onPriceCardFocus();
+  }, [onPriceCardFocus, setActivePriceField]);
+
+  const onTriggerPriceFocus = useCallback(() => {
+    setActivePriceField('trigger');
+    onPriceCardFocus();
+  }, [onPriceCardFocus, setActivePriceField]);
+
+  const onChaseMaxDistanceFocus = useCallback(() => {
+    setActivePriceField('chaseMaxDistance');
+  }, [setActivePriceField]);
 
   // Composed, not replaced: the form's own handlers clear the slider preview
   // and drive the focused-size styling.
@@ -394,8 +417,20 @@ const PerpsProOrderFormPanel = ({
         scaleOrder={scaleOrder}
         activeChaseCount={activeChaseCount}
         scaleKeyboardScroll={{
-          startPrice: scaleStartKeyboardScroll,
-          endPrice: scaleEndKeyboardScroll,
+          startPrice: {
+            ...scaleStartKeyboardScroll,
+            onFocus: () => {
+              setActivePriceField('scaleStart');
+              scaleStartKeyboardScroll.onFocus();
+            },
+          },
+          endPrice: {
+            ...scaleEndKeyboardScroll,
+            onFocus: () => {
+              setActivePriceField('scaleEnd');
+              scaleEndKeyboardScroll.onFocus();
+            },
+          },
           totalOrders: scaleTotalOrdersKeyboardScroll,
           sizeSkew: scaleSizeSkewKeyboardScroll,
         }}
@@ -406,6 +441,7 @@ const PerpsProOrderFormPanel = ({
         onChaseMaxDistanceUnitChange={onChaseMaxDistanceUnitChange}
         chaseReferencePrice={chaseReferencePrice}
         onChaseMaxDistanceChange={onChaseMaxDistanceChange}
+        onChaseMaxDistanceFocus={onChaseMaxDistanceFocus}
         onLimitPriceChange={onLimitPriceChange}
         onLimitPriceFocus={onLimitPriceFocus}
         onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}
@@ -414,7 +450,7 @@ const PerpsProOrderFormPanel = ({
         onUseMidPricePress={onUseMidPricePress}
         triggerPrice={triggerPrice}
         onTriggerPriceChange={onTriggerPriceChange}
-        onTriggerPriceFocus={onLimitPriceFocus}
+        onTriggerPriceFocus={onTriggerPriceFocus}
         onTriggerPriceBlur={onTriggerPriceBlurWithKeyboardScroll}
         onTriggerPriceFieldPress={onLimitPriceFieldPress}
         priceCardMessage={priceCardMessage}

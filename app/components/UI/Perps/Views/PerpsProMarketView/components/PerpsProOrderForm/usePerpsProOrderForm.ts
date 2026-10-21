@@ -685,6 +685,7 @@ export const usePerpsProOrderForm = ({
     triggerPrice,
     setTriggerPrice,
     resetPriceInputInteraction,
+    registerPriceFieldHandlers,
     setOrderType,
     pendingReduceOnly,
     maxPossibleAmount,
@@ -4038,6 +4039,71 @@ export const usePerpsProOrderForm = ({
     },
     [scaleAnalyticsProperties, track],
   );
+
+  // Exposes commit handlers for the Pro-only price fields this hook owns
+  // (Scale start/end, Chase max distance) so an order-book row tap can fill
+  // whichever one the user last focused without lifting this state into the
+  // shared order-form context (TAT-4100). The order-book side reads these
+  // through `commitPriceToField`; `activePriceField` decides whether to use
+  // them at all.
+  //
+  // Chase has no absolute "price" field — Max Distance is an offset from the
+  // live reference price — so a tapped book price is converted to that
+  // offset (in the field's current unit) rather than committed verbatim.
+  useEffect(() => {
+    registerPriceFieldHandlers({
+      scaleStart: (price) =>
+        guardScaleMutation(() => {
+          if (price === undefined) {
+            return;
+          }
+          setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(true);
+          setScaleStartPrice(price);
+          trackScaleConfiguration(
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
+          );
+        }),
+      scaleEnd: (price) =>
+        guardScaleMutation(() => {
+          if (price === undefined) {
+            return;
+          }
+          setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(true);
+          setScaleEndPrice(price);
+          trackScaleConfiguration(
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE,
+          );
+        }),
+      chaseMaxDistance: (price) =>
+        guardScaleMutation(() => {
+          const tappedPrice = Number.parseFloat(price ?? '');
+          if (!Number.isFinite(tappedPrice) || assetData.price <= 0) {
+            return;
+          }
+          const distance = Math.abs(tappedPrice - assetData.price);
+          if (distance <= 0) {
+            return;
+          }
+          const nextValue =
+            chaseMaxDistanceUnit === 'percent'
+              ? ((distance / assetData.price) * 100).toFixed(2)
+              : (canonicalizeOrderPrice(distance.toString(), szDecimals) ??
+                distance.toString());
+          setChaseMaxDistance(nextValue);
+        }),
+    });
+
+    return () => registerPriceFieldHandlers({});
+  }, [
+    assetData.price,
+    chaseMaxDistanceUnit,
+    guardScaleMutation,
+    registerPriceFieldHandlers,
+    szDecimals,
+    trackScaleConfiguration,
+  ]);
 
   // Margin reports the whole ladder requirement. With no open position, the
   // liquidation row reports the new position at the ladder's average entry.
