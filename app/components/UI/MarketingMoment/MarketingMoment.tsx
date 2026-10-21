@@ -156,9 +156,7 @@ const MarketingMomentContent = ({
         )}
 
         {primaryAction || secondaryAction ? (
-          <Animated.View
-            entering={enterDown(ACTION_ENTER_STEP)}
-          >
+          <Animated.View entering={enterDown(ACTION_ENTER_STEP)}>
             <Box
               flexDirection={BoxFlexDirection.Column}
               gap={2}
