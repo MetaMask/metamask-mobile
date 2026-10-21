@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type ViewStyle } from 'react-native';
 import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialFeedPostSkeleton from './SocialFeedPostSkeleton';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 
-const flatStyle = (style: unknown) => StyleSheet.flatten(style) ?? {};
+const flatStyle = (style: unknown): ViewStyle =>
+  (StyleSheet.flatten(style) ?? {}) as ViewStyle;
 
 interface RenderedNode {
   props?: { style?: unknown };
