@@ -62,9 +62,11 @@ export async function hydrateSocialFollowing(): Promise<void> {
     return;
   }
 
+  // No await between the getState() read above and subscribe() below, so an
+  // unlock cannot be emitted in between and missed.
   const onUnlock = () => {
     messenger.unsubscribe('KeyringController:unlock', onUnlock);
-    runHydration();
+    runHydration().catch(logHydrationError);
   };
   messenger.subscribe('KeyringController:unlock', onUnlock);
 }
