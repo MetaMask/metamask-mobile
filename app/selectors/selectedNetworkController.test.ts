@@ -1,8 +1,6 @@
-import { makeSelectNetworkClientIdForDomain } from './selectedNetworkController';
+import { selectNetworkClientIdForDomain } from './selectedNetworkController';
 
-describe('makeSelectNetworkClientIdForDomain', () => {
-  const selectNetworkClientIdForDomain = makeSelectNetworkClientIdForDomain();
-
+describe('selectNetworkClientIdForDomain', () => {
   it('returns the per-dapp network client when domains has the hostname', () => {
     const result = selectNetworkClientIdForDomain.resultFunc(
       { 'example.com': 'domain-client' },

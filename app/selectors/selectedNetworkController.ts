@@ -42,16 +42,15 @@ export const makeSelectDomainNetworkClientId = () =>
  * `getNetworkClientIdForDomain`: the per-dapp `domains` entry, or the
  * globally selected network client when that origin has none.
  */
-export const makeSelectNetworkClientIdForDomain = () =>
-  createSelector(
-    [
-      selectNetworkClientIdsByDomains,
-      selectSelectedNetworkClientId,
-      (_: RootState, hostname?: string) => hostname,
-    ],
-    (domains, selectedNetworkClientId, hostname) =>
-      (hostname ? domains?.[hostname] : undefined) ?? selectedNetworkClientId,
-  );
+export const selectNetworkClientIdForDomain = createSelector(
+  [
+    selectNetworkClientIdsByDomains,
+    selectSelectedNetworkClientId,
+    (_: RootState, hostname?: string) => hostname,
+  ],
+  (domains, selectedNetworkClientId, hostname) =>
+    (hostname ? domains?.[hostname] : undefined) ?? selectedNetworkClientId,
+);
 
 const selectProviderNetworkName = createSelector(
   [
@@ -100,10 +99,7 @@ const selectProviderNetworkImageSource = createSelector(
 );
 
 const selectChainIdToUse = createSelector(
-  [
-    selectEvmNetworkConfigurationsByChainId,
-    makeSelectNetworkClientIdForDomain(),
-  ],
+  [selectEvmNetworkConfigurationsByChainId, selectNetworkClientIdForDomain],
   (networkConfigurations, networkClientIdForDomain) => {
     let chainIdToUse;
 
@@ -128,7 +124,7 @@ export const makeSelectNetworkName = () =>
     [
       selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkName,
-      makeSelectNetworkClientIdForDomain(),
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
@@ -161,7 +157,7 @@ export const makeSelectNetworkImageSource = () =>
     [
       selectEvmNetworkConfigurationsByChainId,
       selectProviderNetworkImageSource,
-      makeSelectNetworkClientIdForDomain(),
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
@@ -195,7 +191,7 @@ export const makeSelectChainId = () =>
   createSelector(
     [
       selectProviderChainId,
-      makeSelectNetworkClientIdForDomain(),
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
       selectChainIdToUse,
@@ -227,7 +223,7 @@ export const makeSelectRpcUrl = () =>
     [
       selectEvmNetworkConfigurationsByChainId,
       selectProviderRpcUrl,
-      makeSelectNetworkClientIdForDomain(),
+      selectNetworkClientIdForDomain,
       selectEvmChainId,
       (_: RootState, hostname?: string) => hostname,
     ],
