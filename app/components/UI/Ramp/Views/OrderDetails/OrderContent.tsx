@@ -361,8 +361,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
           testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.AmountDisplayLg}
           fontFamily={FontFamily.Hero}
-          fontWeight={FontWeight.Regular}
-          twClassName="mt-6 text-center text-[48px] leading-[52.8px]"
+          twClassName="mt-6 text-center"
         >
           {order.cryptoAmount != null && Number(order.cryptoAmount) > 0
             ? (formatSubscriptNotation(
