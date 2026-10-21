@@ -14,7 +14,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { EvmPaymentToken } from '@metamask/transaction-pay-controller';
 import { isHardwareAccount } from '../../../../../util/address';
 
 const FROM_MOCK = '0x123';
@@ -277,7 +277,7 @@ describe('useSignedOrSubmittedAlert', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           chainId: CHAIN_ID_2_MOCK,
-        } as TransactionPaymentToken,
+        } as EvmPaymentToken,
         setPayToken: jest.fn(),
       });
 

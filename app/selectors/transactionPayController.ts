@@ -1,8 +1,11 @@
 import {
+  NonEvmTransactionPayQuote,
   TransactionData,
   TransactionPayQuote,
   TransactionPayStrategy,
+  isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
+import { isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 
@@ -18,6 +21,16 @@ export function isNoOpQuote(
 }
 
 /**
+ * Check whether a quote pays from an EVM source. Non-EVM quotes, such as
+ * Solana sources, carry a CAIP-2 source chain instead of a Hex chain ID.
+ */
+export function isEvmTransactionPayQuote<T>(
+  quote: TransactionPayQuote<T> | NonEvmTransactionPayQuote<T>,
+): quote is TransactionPayQuote<T> {
+  return !isCaipChainId(quote.request.sourceChainId);
+}
+
+/**
  * A pay-type deposit or conversion may submit without quotes only when the
  * user pays with the required token itself and the controller recorded no
  * pending conversion. Anything else (payment token missing or different, or
@@ -30,7 +43,7 @@ export function isNoOpQuote(
 function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
   const paymentToken = data?.paymentToken;
 
-  if (!paymentToken) {
+  if (!paymentToken || isNonEvmPaymentToken(paymentToken)) {
     return false;
   }
 
@@ -85,10 +98,6 @@ function isValidatedFiatDeposit(data: TransactionData | undefined): boolean {
 export function isPayTokenSubmitReady(
   data: TransactionData | undefined,
 ): boolean {
-  if (data?.solanaPayQuote) {
-    return data.solanaPayQuote.preflight.affordability.isAffordable;
-  }
-
   const executableQuotes = (data?.quotes ?? []).filter(
     (quote) => !isNoOpQuote(quote),
   );
@@ -151,32 +160,6 @@ export const selectTransactionPaymentTokenByTransactionId = createSelector(
   (transactionData) => transactionData?.paymentToken,
 );
 
-// Read transaction metadata directly rather than importing
-// `./transactionController`, whose import graph cycles back through
-// `../reducers` and leaves its selectors undefined at module load.
-const selectTransactionMetadataById = createSelector(
-  (state: RootState) =>
-    state.engine.backgroundState.TransactionController?.transactions,
-  (_state: RootState, transactionId: string) => transactionId,
-  (transactions, transactionId) =>
-    transactions?.find((transaction) => transaction.id === transactionId),
-);
-
-export const selectTransactionPaySourceByTransactionId = createSelector(
-  selectTransactionMetadataById,
-  (transaction) => transaction?.metamaskPay?.source,
-);
-
-export const selectSolanaPayExecutionByTransactionId = createSelector(
-  selectTransactionMetadataById,
-  (transaction) => transaction?.metamaskPay?.solanaExecution,
-);
-
-export const selectSolanaPayQuoteByTransactionId = createSelector(
-  selectTransactionDataByTransactionId,
-  (transactionData) => transactionData?.solanaPayQuote,
-);
-
 export const selectTransactionPaySourceAmountsByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.sourceAmounts,
@@ -221,13 +204,5 @@ export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
 
 export const selectIsTransactionPaySubmitReadyByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
-  selectTransactionPaySourceByTransactionId,
-  selectSolanaPayExecutionByTransactionId,
-  (transactionData, source, execution) =>
-    source?.sourceAccountId.startsWith('solana:')
-      ? transactionData?.solanaPayQuote?.preflight.affordability
-          .isAffordable === true &&
-        (execution?.atomicProductActionRequired !== true ||
-          transactionData.solanaPayQuote.route.atomicProductActionIncluded)
-      : isPayTokenSubmitReady(transactionData),
+  (transactionData) => isPayTokenSubmitReady(transactionData),
 );

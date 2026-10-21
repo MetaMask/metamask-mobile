@@ -14,14 +14,14 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import {
-  isSolanaPayAsset,
-  useTransactionPaySource,
-} from '../pay/useTransactionPaySource';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getPaymentTokenKey,
+  getTokenAddress,
+} from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { debounce } from 'lodash';
@@ -144,14 +144,10 @@ export function useTransactionCustomAmount({
   const skipFiatRateConversion =
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
-  const { paySource } = useTransactionPaySource();
-  let payTokenAddress = '';
-  if (paySource) {
-    payTokenAddress = isSolanaPayAsset(paySource)
-      ? paySource.address
-      : paySource.address.toLowerCase();
-  }
-  const payTokenKey = `${paySource?.chainId ?? ''}:${payTokenAddress}`;
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
+  const payTokenKey = nonEvmPayToken
+    ? getPaymentTokenKey(nonEvmPayToken)
+    : `${payToken?.chainId ?? ''}:${payToken?.address.toLowerCase() ?? ''}`;
 
   useEffect(() => {
     userHasEditedRef.current = false;
@@ -160,7 +156,7 @@ export function useTransactionCustomAmount({
     prefetchedQuotePayTokenKeyRef.current = undefined;
     setPrefetchedQuoteAmountHuman(undefined);
     setPrefetchedQuotePayTokenKey(undefined);
-  }, [paySource?.address, paySource?.chainId]);
+  }, [payTokenKey]);
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -299,7 +295,7 @@ export function useTransactionCustomAmount({
 
   const isFixedSpreadRoute = isSubsidizedRoute(
     relayFixedSpreadConfig,
-    { chainId: paySource?.chainId ?? '', address: paySource?.address ?? '' },
+    { chainId: payToken?.chainId ?? '', address: payToken?.address ?? '' },
     { chainId, address: tokenAddress ?? '' },
   );
   const shouldHintAtomicMax = isAtomicMaxEnabled && isFixedSpreadRoute;

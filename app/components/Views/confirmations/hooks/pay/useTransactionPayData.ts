@@ -10,7 +10,6 @@ import {
   selectTransactionPayQuotesByTransactionId,
   selectTransactionPayQuotesLastUpdatedByTransactionId,
   selectTransactionPayRawQuotesByTransactionId,
-  selectSolanaPayQuoteByTransactionId,
   selectTransactionPaySourceAmountsByTransactionId,
   selectTransactionPayTokensByTransactionId,
   selectTransactionPayTotalsByTransactionId,
@@ -24,10 +23,6 @@ export function useTransactionPayQuotesRaw() {
 
 export function useTransactionPayQuotes() {
   return useTransactionPayData(selectTransactionPayQuotesByTransactionId);
-}
-
-export function useSolanaPayQuote() {
-  return useTransactionPayData(selectSolanaPayQuoteByTransactionId);
 }
 
 export function useTransactionPayQuotesLastUpdated() {

@@ -11,7 +11,7 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
-  TransactionPaymentToken,
+  EvmPaymentToken,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../core/Engine';
@@ -56,7 +56,7 @@ const PAY_TOKEN_MOCK = {
   chainId: ChainId.mainnet,
   decimals: 4,
   symbol: 'TST',
-} as TransactionPaymentToken;
+} as EvmPaymentToken;
 
 const REQUIRED_TOKEN_MOCK = {
   address: tokenAddress1Mock,
@@ -69,7 +69,7 @@ function runHook({
   type,
   requiredTokens,
 }: {
-  payToken?: TransactionPaymentToken;
+  payToken?: EvmPaymentToken;
   type?: TransactionType;
   requiredTokens?: TransactionPayRequiredToken[];
 } = {}) {
@@ -153,7 +153,7 @@ describe('useTransactionPayToken', () => {
       payToken: {
         ...PAY_TOKEN_MOCK,
         address: '0x0000000000000000000000000000000000000000',
-      } as TransactionPaymentToken,
+      } as EvmPaymentToken,
     });
 
     expect(result.current.isNative).toBe(true);

@@ -11,9 +11,11 @@ import {
   TransactionPayRequiredToken,
   TransactionPayTotals,
   TransactionPaymentToken,
+  isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
+import { SolScope } from '@metamask/keyring-api';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
 import { BigNumber } from 'bignumber.js';
@@ -28,7 +30,6 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
-import { SolScope } from '@metamask/keyring-api';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -166,44 +167,42 @@ export function getAvailableTokens({
   tokens,
   blockedTokens,
   fiatPayment,
-  selectedAssetId,
+  isSolanaPayEnabled = false,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
   fiatPayment?: TransactionFiatPayment;
-  selectedAssetId?: string;
+  /** Whether Solana SOL and SPL balances may be offered as new sources. */
+  isSolanaPayEnabled?: boolean;
 }): AssetType[] {
   const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return tokens
-    .filter((token) => {
-      if (!token.address) {
-        return false;
+    .flatMap((token): AssetType[] => {
+      if (isSolanaPayAsset(token)) {
+        const isSelected = isSelectedPayToken(token, payToken);
+
+        // Solana assets carry no address, so the CAIP-19 asset ID stands in
+        // for it wherever the token list compares addresses.
+        return isSelected ||
+          (isSolanaPayEnabled && new BigNumber(token.balance).gt(0))
+          ? [{ ...token, address: token.assetId }]
+          : [];
       }
 
-      const isEvmToken =
-        token.standard === TokenStandard.ERC20 &&
-        token.accountType?.includes('eip155') &&
-        !(token.chainId && isTestNet(token.chainId));
-      const isSolanaToken =
-        token.chainId === SolScope.Mainnet &&
-        token.accountType?.startsWith('solana:') &&
-        (token.address === `${SolScope.Mainnet}/slip44:501` ||
-          token.address.startsWith(`${SolScope.Mainnet}/token:`));
-
-      if (!isEvmToken && !isSolanaToken) {
-        return false;
+      if (
+        !token.address ||
+        token.standard !== TokenStandard.ERC20 ||
+        !token.accountType?.includes('eip155') ||
+        (token.chainId && isTestNet(token.chainId))
+      ) {
+        return [];
       }
 
-      const isSelected =
-        selectedAssetId === (token.assetId ?? token.address) ||
-        (payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-          payToken?.chainId === token.chainId);
-
-      if (isSelected) {
-        return true;
+      if (isSelectedPayToken(token, payToken)) {
+        return [token];
       }
 
       const isRequiredToken = (requiredTokens ?? []).some(
@@ -214,10 +213,10 @@ export function getAvailableTokens({
       );
 
       if (isRequiredToken) {
-        return true;
+        return [token];
       }
 
-      return new BigNumber(token.balance).gt(0);
+      return new BigNumber(token.balance).gt(0) ? [token] : [];
     })
     .map((token) => {
       const blocked = isTokenBlocked(token, blockedTokens);
@@ -230,9 +229,7 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : selectedAssetId === (token.assetId ?? token.address) ||
-          (payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-            payToken?.chainId === token.chainId);
+        : isSelectedPayToken(token, payToken);
 
       return {
         ...token,
@@ -242,6 +239,76 @@ export function getAvailableTokens({
       };
     })
     .sort((a, b) => Number(a.disabled) - Number(b.disabled));
+}
+
+/**
+ * Stable identity of a payment token: CAIP-19 asset and wallet account for
+ * non-EVM tokens, lowercase chain and address for EVM tokens.
+ *
+ * @param token - Payment token.
+ * @returns Identity key, or an empty string when no token is selected.
+ */
+export function getPaymentTokenKey(
+  token: TransactionPaymentToken | undefined,
+): string {
+  if (!token) {
+    return '';
+  }
+
+  if (isNonEvmPaymentToken(token)) {
+    return `${token.walletAccountId}:${token.assetId}`;
+  }
+
+  return `${token.chainId.toLowerCase()}:${token.address.toLowerCase()}`;
+}
+
+/**
+ * Whether a token-list asset is a Solana mainnet SOL or SPL balance held by a
+ * Solana account, which MetaMask Pay can use as a non-EVM payment source.
+ *
+ * @param token - Token-list asset.
+ * @returns True for Solana SOL and SPL assets.
+ */
+export function isSolanaPayAsset(
+  token: AssetType,
+): token is AssetType & { accountId: string; assetId: CaipAssetType } {
+  return (
+    token.chainId === SolScope.Mainnet &&
+    Boolean(token.accountId) &&
+    Boolean(token.accountType?.startsWith(`${KnownCaipNamespace.Solana}:`)) &&
+    (token.assetId === `${SolScope.Mainnet}/slip44:501` ||
+      Boolean(token.assetId?.startsWith(`${SolScope.Mainnet}/token:`)))
+  );
+}
+
+/**
+ * Whether a token-list asset is the selected payment token. Non-EVM tokens
+ * match on CAIP-19 asset ID and wallet account; EVM tokens on address and
+ * chain.
+ *
+ * @param token - Token-list asset.
+ * @param payToken - Selected payment token.
+ * @returns True when the asset is the selected payment token.
+ */
+export function isSelectedPayToken(
+  token: AssetType,
+  payToken: TransactionPaymentToken | undefined,
+): boolean {
+  if (!payToken) {
+    return false;
+  }
+
+  if (isNonEvmPaymentToken(payToken)) {
+    return (
+      token.assetId === payToken.assetId &&
+      token.accountId === payToken.walletAccountId
+    );
+  }
+
+  return (
+    payToken.address.toLowerCase() === token.address?.toLowerCase() &&
+    payToken.chainId === token.chainId
+  );
 }
 
 export function getBlockedTokensForTransactionType(

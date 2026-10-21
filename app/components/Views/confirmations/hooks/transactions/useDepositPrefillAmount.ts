@@ -71,7 +71,7 @@ export function useDepositPrefillAmount({
 } = {}): DepositPrefillResult {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
   const { amount } = useParams<{ amount?: string }>();
-  const { payToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
   const fiatPayment = useTransactionPayFiatPayment();
   const { availableTokens } = useTransactionPayAvailableTokens();
 
@@ -261,9 +261,12 @@ export function useDepositPrefillAmount({
   // amount is a sub-cent dust balance, which is skipped like no balance.
   const isDustBalance =
     Boolean(payToken) && hasUsableBalance && prefillAmount === undefined;
+  // A non-EVM source, such as Solana, is only selected explicitly after entry,
+  // so it never drives the balance-based prefill.
   const isSkipped =
     enabled &&
-    (isFiatPrefillSkipped ||
+    (Boolean(nonEvmPayToken) ||
+      isFiatPrefillSkipped ||
       (Boolean(payToken) && !hasUsableBalance) ||
       isDustBalance ||
       (!payToken && !hasFundedToken));

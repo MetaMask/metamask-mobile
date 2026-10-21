@@ -11,8 +11,11 @@ import {
   payBalanceUsd,
   getRequiredBalance,
   getTokenAddress,
+  getPaymentTokenKey,
   getTokenTransferData,
   isMatchingPayToken,
+  isSelectedPayToken,
+  isSolanaPayAsset,
   isTokenBlocked,
   replaceAccountInNestedTransactions,
   resolvePreferredPayToken,
@@ -30,6 +33,7 @@ import {
 } from '@metamask/keyring-api';
 import { AssetType, TokenStandard } from '../types/token';
 import {
+  NonEvmPaymentToken,
   TransactionPayRequiredToken,
   TransactionPaymentToken,
   PaymentOverride,
@@ -284,50 +288,6 @@ describe('Transaction Pay Utils', () => {
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
-    });
-
-    it('returns Solana native and SPL balances from the selected account', () => {
-      const native = {
-        ...TOKEN_MOCK,
-        accountId: 'solana-account-id',
-        accountType: SolAccountType.DataAccount,
-        address: `${SolScope.Mainnet}/slip44:501`,
-        assetId: `${SolScope.Mainnet}/slip44:501`,
-        chainId: SolScope.Mainnet,
-        symbol: 'SOL',
-      } as AssetType;
-      const spl = {
-        ...native,
-        address: `${SolScope.Mainnet}/token:USDCMint`,
-        assetId: `${SolScope.Mainnet}/token:USDCMint`,
-        isNative: false,
-        symbol: 'USDC',
-      } as AssetType;
-
-      const result = getAvailableTokens({ tokens: [native, spl] });
-
-      expect(result).toHaveLength(2);
-      expect(result.map((token) => token.symbol)).toEqual(['SOL', 'USDC']);
-    });
-
-    it('marks the canonical Solana asset as selected', () => {
-      const assetId = `${SolScope.Mainnet}/token:USDCMint`;
-      const spl = {
-        ...TOKEN_MOCK,
-        accountId: 'solana-account-id',
-        accountType: SolAccountType.DataAccount,
-        address: assetId,
-        assetId,
-        chainId: SolScope.Mainnet,
-        symbol: 'USDC',
-      } as AssetType;
-
-      const result = getAvailableTokens({
-        selectedAssetId: assetId,
-        tokens: [spl],
-      });
-
-      expect(result[0].isSelected).toBe(true);
     });
 
     it('does not return token if no balance', async () => {
@@ -586,6 +546,181 @@ describe('Transaction Pay Utils', () => {
         expect(result[0].disabled).toBe(false);
         expect(result[0].disabledMessage).toBeUndefined();
       });
+    });
+  });
+
+  describe('getAvailableTokens with Solana sources', () => {
+    const SOL_ASSET_ID = `${SolScope.Mainnet}/slip44:501` as const;
+    const USDC_ASSET_ID = `${SolScope.Mainnet}/token:USDCMint` as const;
+
+    const SOL_TOKEN_MOCK = {
+      accountId: 'solana-account-id',
+      accountType: SolAccountType.DataAccount,
+      address: undefined,
+      assetId: SOL_ASSET_ID,
+      balance: '2',
+      chainId: SolScope.Mainnet,
+      decimals: 9,
+      isNative: true,
+      name: 'Solana',
+      standard: TokenStandard.ERC20,
+      symbol: 'SOL',
+    } as unknown as AssetType;
+
+    const USDC_TOKEN_MOCK = {
+      ...SOL_TOKEN_MOCK,
+      assetId: USDC_ASSET_ID,
+      isNative: false,
+      name: 'USD Coin',
+      symbol: 'USDC',
+    } as AssetType;
+
+    const SOLANA_PAY_TOKEN_MOCK = {
+      accountId: `${SolScope.Mainnet}:SoLAddress`,
+      assetId: USDC_ASSET_ID,
+      balanceFiat: '0',
+      balanceHuman: '0',
+      balanceRaw: '0',
+      balanceUsd: '0',
+      chainId: SolScope.Mainnet,
+      decimals: 6,
+      symbol: 'USDC',
+      walletAccountId: 'solana-account-id',
+    } as NonEvmPaymentToken;
+
+    it('lists Solana SOL and SPL balances when Solana Pay is enabled', () => {
+      const result = getAvailableTokens({
+        isSolanaPayEnabled: true,
+        tokens: [SOL_TOKEN_MOCK, USDC_TOKEN_MOCK],
+      });
+
+      expect(result.map((token) => token.symbol)).toEqual(['SOL', 'USDC']);
+      expect(result.map((token) => token.address)).toEqual([
+        SOL_ASSET_ID,
+        USDC_ASSET_ID,
+      ]);
+    });
+
+    it('hides Solana balances when Solana Pay is disabled', () => {
+      const result = getAvailableTokens({
+        tokens: [SOL_TOKEN_MOCK, USDC_TOKEN_MOCK],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('hides Solana balances that are empty', () => {
+      const result = getAvailableTokens({
+        isSolanaPayEnabled: true,
+        tokens: [{ ...USDC_TOKEN_MOCK, balance: '0' } as AssetType],
+      });
+
+      expect(result).toStrictEqual([]);
+    });
+
+    it('keeps an already selected Solana source visible after a rollback', () => {
+      const result = getAvailableTokens({
+        payToken: SOLANA_PAY_TOKEN_MOCK,
+        tokens: [{ ...USDC_TOKEN_MOCK, balance: '0' } as AssetType],
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].isSelected).toBe(true);
+    });
+
+    it('does not change the EVM output when Solana Pay is enabled', () => {
+      const tokens = [TOKEN_MOCK, ERC20_TOKEN_MOCK];
+
+      expect(
+        getAvailableTokens({ isSolanaPayEnabled: true, tokens }),
+      ).toStrictEqual(getAvailableTokens({ tokens }));
+    });
+  });
+
+  describe('isSolanaPayAsset', () => {
+    const SOL_TOKEN_MOCK = {
+      accountId: 'solana-account-id',
+      accountType: SolAccountType.DataAccount,
+      assetId: `${SolScope.Mainnet}/slip44:501`,
+      chainId: SolScope.Mainnet,
+    } as AssetType;
+
+    it('returns true for Solana mainnet SOL and SPL assets', () => {
+      expect(isSolanaPayAsset(SOL_TOKEN_MOCK)).toBe(true);
+      expect(
+        isSolanaPayAsset({
+          ...SOL_TOKEN_MOCK,
+          assetId: `${SolScope.Mainnet}/token:USDCMint`,
+        } as AssetType),
+      ).toBe(true);
+    });
+
+    it('returns false for EVM, Solana devnet and accountless assets', () => {
+      expect(isSolanaPayAsset(TOKEN_MOCK)).toBe(false);
+      expect(
+        isSolanaPayAsset({
+          ...SOL_TOKEN_MOCK,
+          assetId: `${SolScope.Devnet}/slip44:501`,
+          chainId: SolScope.Devnet,
+        } as AssetType),
+      ).toBe(false);
+      expect(
+        isSolanaPayAsset({
+          ...SOL_TOKEN_MOCK,
+          accountId: undefined,
+        } as AssetType),
+      ).toBe(false);
+    });
+  });
+
+  describe('isSelectedPayToken', () => {
+    it('matches a non-EVM payment token by asset ID and wallet account', () => {
+      const payToken = {
+        assetId: `${SolScope.Mainnet}/slip44:501`,
+        chainId: SolScope.Mainnet,
+        walletAccountId: 'solana-account-id',
+      } as NonEvmPaymentToken;
+      const token = {
+        accountId: 'solana-account-id',
+        assetId: `${SolScope.Mainnet}/slip44:501`,
+      } as AssetType;
+
+      expect(isSelectedPayToken(token, payToken)).toBe(true);
+      expect(
+        isSelectedPayToken({ ...token, accountId: 'other' }, payToken),
+      ).toBe(false);
+    });
+
+    it('matches an EVM payment token by address and chain', () => {
+      const payToken = {
+        address: TOKEN_MOCK.address.toUpperCase(),
+        chainId: CHAIN_ID_MOCK,
+      } as TransactionPaymentToken;
+
+      expect(isSelectedPayToken(TOKEN_MOCK, payToken)).toBe(true);
+      expect(isSelectedPayToken(TOKEN_MOCK, undefined)).toBe(false);
+    });
+  });
+
+  describe('getPaymentTokenKey', () => {
+    it('returns the wallet account and asset ID for a non-EVM token', () => {
+      expect(
+        getPaymentTokenKey({
+          assetId: `${SolScope.Mainnet}/slip44:501`,
+          chainId: SolScope.Mainnet,
+          walletAccountId: 'solana-account-id',
+        } as NonEvmPaymentToken),
+      ).toBe(`solana-account-id:${SolScope.Mainnet}/slip44:501`);
+    });
+
+    it('returns the lowercase chain and address for an EVM token', () => {
+      expect(
+        getPaymentTokenKey({
+          address: '0xABC',
+          chainId: '0xA',
+        } as TransactionPaymentToken),
+      ).toBe('0xa:0xabc');
+      expect(getPaymentTokenKey(undefined)).toBe('');
     });
   });
 

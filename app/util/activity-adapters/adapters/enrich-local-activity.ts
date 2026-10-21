@@ -1,4 +1,5 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import { isNonEvmPaymentToken } from '@metamask/transaction-pay-controller';
 import {
   TransactionStatus,
   TransactionType,
@@ -163,7 +164,13 @@ function getEoaFacingMoneyToken(
   environment: ActivityAdapterEnvironment,
 ): TokenAmount | undefined {
   const transaction = transactionGroup.initialTransaction;
-  const paymentToken = transactionGroup.transactionPayData?.paymentToken;
+  const transactionPaymentToken =
+    transactionGroup.transactionPayData?.paymentToken;
+  // A non-EVM source is never the EOA-facing Money token.
+  const paymentToken =
+    transactionPaymentToken && !isNonEvmPaymentToken(transactionPaymentToken)
+      ? transactionPaymentToken
+      : undefined;
   const tokenAddress =
     paymentToken?.address ?? transaction.metamaskPay?.tokenAddress;
   const tokenChainId =

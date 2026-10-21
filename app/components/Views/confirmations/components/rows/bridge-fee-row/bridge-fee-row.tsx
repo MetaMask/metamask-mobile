@@ -12,6 +12,8 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 import {
+  NonEvmQuoteRequest,
+  NonEvmTransactionPayQuote,
   TransactionPayQuote,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
@@ -30,7 +32,14 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { Hex, Json } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  Json,
+  isCaipChainId,
+} from '@metamask/utils';
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import Icon, {
   IconColor,
@@ -44,8 +53,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { TokenIcon, TokenIconVariant } from '../../token-icon';
-import { useSolanaPayPresentation } from '../../../hooks/pay/useSolanaPayPresentation';
+import { NonEvmTokenIcon, TokenIcon, TokenIconVariant } from '../../token-icon';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -59,17 +67,6 @@ export function BridgeFeeRow() {
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
-  const solanaPay = useSolanaPayPresentation();
-
-  if (solanaPay) {
-    return (
-      <SolanaTransactionFeeRow
-        feeUsd={solanaPay.feeUsd}
-        hasAlert={!solanaPay.affordability.isAffordable}
-        reserveSol={solanaPay.reserveSol}
-      />
-    );
-  }
 
   return (
     <TransactionFeeRow
@@ -102,7 +99,7 @@ function TransactionFeeRow({
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
   hasSourceAmounts: boolean;
-  quotes?: TransactionPayQuote<Json>[];
+  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
   isFiatPayment: boolean;
@@ -188,43 +185,6 @@ function TransactionFeeRow({
   );
 }
 
-function SolanaTransactionFeeRow({
-  feeUsd,
-  hasAlert,
-  reserveSol,
-}: Readonly<{
-  feeUsd: BigNumber;
-  hasAlert: boolean;
-  reserveSol: BigNumber;
-}>) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  return (
-    <AlertRow
-      testID="bridge-fee-row"
-      alertField={RowAlertKey.PayWithFee}
-      label={strings('confirm.label.transaction_fees')}
-      tooltip={
-        <Text>
-          {strings('confirm.solana_pay.reserve', {
-            amount: reserveSol.toFixed(6),
-          })}
-        </Text>
-      }
-      tooltipTitle={strings('confirm.tooltip.title.transaction_fee')}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        color={hasAlert ? TextColor.ErrorDefault : TextColor.TextAlternative}
-        testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
-      >
-        {formatFiat(feeUsd)}
-      </Text>
-    </AlertRow>
-  );
-}
-
 function PaidByLabel() {
   return (
     <Box
@@ -278,7 +238,7 @@ function Tooltip({
   transactionMeta,
   totals,
 }: {
-  quotes?: TransactionPayQuote<Json>[];
+  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
@@ -311,17 +271,24 @@ function Tooltip({
  * since post-quote flows (withdrawals) treat the payment token as the
  * destination. Defaults to the native token of the source chain, unless a gas
  * fee token is used, which the gas station always prices in the source token.
+ * A non-EVM source, such as Solana, always pays in its native asset.
  */
 function getNetworkFeeToken({
   quotes,
   totals,
   transactionMeta,
 }: {
-  quotes?: TransactionPayQuote<Json>[];
+  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
-}): { address: Hex; chainId: Hex } {
+}): NetworkFeeToken {
   const request = quotes?.[0]?.request;
+
+  if (request && isNonEvmQuoteRequest(request)) {
+    const { assetId, symbol } = getNativeAssetForChainId(request.sourceChainId);
+    return { assetId, chainId: request.sourceChainId, symbol };
+  }
+
   const chainId = request?.sourceChainId ?? transactionMeta.chainId;
 
   const address =
@@ -332,6 +299,16 @@ function getNetworkFeeToken({
   return { address, chainId };
 }
 
+type NetworkFeeToken =
+  | { address: Hex; chainId: Hex }
+  | { assetId: CaipAssetType; chainId: CaipChainId; symbol: string };
+
+function isNonEvmQuoteRequest(
+  request: TransactionPayQuote<Json>['request'] | NonEvmQuoteRequest,
+): request is NonEvmQuoteRequest {
+  return isCaipChainId(request.sourceChainId);
+}
+
 function FeesTooltip({
   message,
   quotes,
@@ -339,7 +316,7 @@ function FeesTooltip({
   transactionMeta,
 }: {
   message: string;
-  quotes?: TransactionPayQuote<Json>[];
+  quotes?: (TransactionPayQuote<Json> | NonEvmTransactionPayQuote<Json>)[];
   totals: TransactionPayTotals;
   transactionMeta: TransactionMeta;
 }) {
@@ -390,13 +367,21 @@ function FeesTooltip({
           alignItems={AlignItems.center}
           gap={6}
         >
-          {showNetworkFeeToken && (
-            <TokenIcon
-              address={networkFeeToken.address}
-              chainId={networkFeeToken.chainId}
-              variant={TokenIconVariant.Row}
-            />
-          )}
+          {showNetworkFeeToken &&
+            ('assetId' in networkFeeToken ? (
+              <NonEvmTokenIcon
+                assetId={networkFeeToken.assetId}
+                chainId={networkFeeToken.chainId}
+                symbol={networkFeeToken.symbol}
+                variant={TokenIconVariant.Row}
+              />
+            ) : (
+              <TokenIcon
+                address={networkFeeToken.address}
+                chainId={networkFeeToken.chainId}
+                variant={TokenIconVariant.Row}
+              />
+            ))}
           <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
         </Box>
       </Box>

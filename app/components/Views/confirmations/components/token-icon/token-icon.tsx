@@ -1,6 +1,6 @@
 import React from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
 import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -67,6 +67,50 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
       <BaseTokenIcon
         testID="token-icon"
         icon={icon}
+        symbol={symbol}
+        style={styles.tokenIcon}
+      />
+    </BadgeWrapper>
+  );
+};
+
+export interface NonEvmTokenIconProps {
+  assetId: CaipAssetType;
+  chainId: CaipChainId;
+  symbol: string;
+  variant?: TokenIconVariant;
+}
+
+/**
+ * Icon for a non-EVM token, such as a Solana SOL or SPL payment token, which
+ * is identified by CAIP-19 asset type rather than by EVM address.
+ */
+export const NonEvmTokenIcon: React.FC<NonEvmTokenIconProps> = ({
+  assetId,
+  chainId,
+  symbol,
+  variant = TokenIconVariant.Default,
+}) => {
+  const { styles } = useStyles(styleSheet, { variant });
+  const networkImageSource = getNetworkImageSource({ chainId });
+
+  return (
+    <BadgeWrapper
+      style={styles.container}
+      badgePosition={BadgePosition.BottomRight}
+      badgeElement={
+        networkImageSource ? (
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+            style={styles.badge}
+          />
+        ) : undefined
+      }
+    >
+      <BaseTokenIcon
+        testID="token-icon"
+        icon={getAssetImageUrl(assetId, chainId)}
         symbol={symbol}
         style={styles.tokenIcon}
       />

@@ -40,13 +40,11 @@ import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
-import { useTransactionPaySource } from './useTransactionPaySource';
 
 jest.mock('./useIsMoneyAccountFlagDefault');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('./useTransactionPayToken');
-jest.mock('./useTransactionPaySource');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
@@ -123,7 +121,6 @@ function runHook({
 
 describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTransactionPaySourceMock = jest.mocked(useTransactionPaySource);
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
@@ -159,21 +156,6 @@ describe('useAutomaticTransactionPayToken', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
       setPayToken: setPayTokenMock,
-    });
-    useTransactionPaySourceMock.mockImplementation(() => {
-      const { payToken } = useTransactionPayTokenMock();
-      return {
-        isSolana: false,
-        paySource: payToken,
-        setPaySource: (token) =>
-          setPayTokenMock({
-            address: token.address as Hex,
-            chainId: token.chainId as Hex,
-          }),
-        solanaAsset: undefined,
-        solanaExecution: undefined,
-        solanaSource: undefined,
-      };
     });
 
     useTransactionPayRequiredTokensMock.mockReturnValue([

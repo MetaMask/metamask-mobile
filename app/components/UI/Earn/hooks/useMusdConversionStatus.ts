@@ -19,13 +19,18 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import { store } from '../../../../store';
-import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
+import {
+  isEvmTransactionPayQuote,
+  selectTransactionPayQuotesByTransactionId,
+} from '../../../../selectors/transactionPayController';
 import { getNetworkName } from '../utils/network';
 import { getMusdConversionQuoteTrackingData } from '../utils/analytics';
 
 function getTransactionPayQuotes(transactionId: string) {
   const state = store.getState();
-  return selectTransactionPayQuotesByTransactionId(state, transactionId) ?? [];
+  return (
+    selectTransactionPayQuotesByTransactionId(state, transactionId) ?? []
+  ).filter(isEvmTransactionPayQuote);
 }
 
 /**

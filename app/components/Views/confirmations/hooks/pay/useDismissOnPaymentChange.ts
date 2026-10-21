@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
+import { getPaymentTokenKey } from '../../utils/transaction-pay';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
 
@@ -24,11 +24,12 @@ export function useDismissOnPaymentChange({
   dismissOnPayTokenChange = true,
 }: UseDismissOnPaymentChangeOptions = {}): void {
   const navigation = useNavigation<AppNavigationProp>();
-  const { payToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
+  const payTokenKey = getPaymentTokenKey(payToken ?? nonEvmPayToken);
   const fiatPayment = useTransactionPayFiatPayment();
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
 
-  const initialPayTokenRef = useRef(payToken);
+  const initialPayTokenKeyRef = useRef(payTokenKey);
   const initialSelectedPaymentMethodIdRef = useRef(selectedPaymentMethodId);
   const isDismissingRef = useRef(false);
 
@@ -37,16 +38,8 @@ export function useDismissOnPaymentChange({
       return;
     }
 
-    const initialPayToken = initialPayTokenRef.current;
     const payTokenMatchesInitial =
-      !dismissOnPayTokenChange ||
-      (!initialPayToken && !payToken) ||
-      (!!initialPayToken &&
-        !!payToken &&
-        isMatchingPayToken(payToken, {
-          address: initialPayToken.address,
-          chainId: initialPayToken.chainId,
-        }));
+      !dismissOnPayTokenChange || payTokenKey === initialPayTokenKeyRef.current;
 
     const fiatMatchesInitial =
       selectedPaymentMethodId === initialSelectedPaymentMethodIdRef.current;
@@ -62,5 +55,10 @@ export function useDismissOnPaymentChange({
 
     isDismissingRef.current = true;
     navigation.goBack();
-  }, [dismissOnPayTokenChange, navigation, payToken, selectedPaymentMethodId]);
+  }, [
+    dismissOnPayTokenChange,
+    navigation,
+    payTokenKey,
+    selectedPaymentMethodId,
+  ]);
 }

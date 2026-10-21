@@ -4,7 +4,6 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionPaySource } from './useTransactionPaySource';
 import { isHardwareAccount } from '../../../../../util/address';
 import {
   CHAIN_IDS,
@@ -35,6 +34,7 @@ import {
   isSubsidizedSource,
   RelayFixedSpreadConfig,
 } from '../../utils/relayFixedSpread';
+import { isSolanaPayAsset } from '../../utils/transaction-pay';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
@@ -64,8 +64,8 @@ export function useAutomaticTransactionPayToken({
   preferredToken?: SetPayTokenRequest;
 } = {}) {
   const isUpdated = useRef<string | undefined>(undefined);
-  const { payToken } = useTransactionPayToken();
-  const { paySource, setPaySource } = useTransactionPaySource();
+  const { nonEvmPayToken, payToken, setPayToken } = useTransactionPayToken();
+  const paymentToken = payToken ?? nonEvmPayToken;
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -129,7 +129,8 @@ export function useAutomaticTransactionPayToken({
     () =>
       isWithdraw
         ? withdrawTokenFilter(availableTokens)
-        : availableTokens.filter((t) => !t.disabled),
+        : // Solana sources are only ever selected explicitly by the user.
+          availableTokens.filter((t) => !t.disabled && !isSolanaPayAsset(t)),
     [availableTokens, isWithdraw, withdrawTokenFilter],
   );
 
@@ -141,7 +142,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     hasFiatPaymentSelected,
     hasTokenBalance: tokens.length > 0,
-    payTokenSelected: Boolean(paySource),
+    payTokenSelected: Boolean(paymentToken),
   });
 
   const selectBestToken = useCallback(
@@ -185,7 +186,7 @@ export function useAutomaticTransactionPayToken({
   useEffect(() => {
     if (
       disable ||
-      paySource ||
+      paymentToken ||
       hasFiatPaymentSelected ||
       !transactionId ||
       isUpdated.current === transactionId
@@ -243,7 +244,10 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    setPaySource(resolveAutomaticSource(automaticToken, tokens));
+    setPayToken({
+      address: automaticToken.address,
+      chainId: automaticToken.chainId,
+    });
 
     isUpdated.current = transactionId;
 
@@ -258,10 +262,10 @@ export function useAutomaticTransactionPayToken({
     isMoneyAccountPayPending,
     isMoneyPaymentOverride,
     maxDelayMinutesForPaymentMethods,
-    paySource,
     paymentMethods,
+    paymentToken,
     requiredTokens,
-    setPaySource,
+    setPayToken,
     shouldSelectMoneyAccount,
     tokens,
     transactionId,
@@ -270,7 +274,7 @@ export function useAutomaticTransactionPayToken({
   // In fiat flows a pay token only exists once the user explicitly selects an
   // ERC-20; the latch survives the token reset that an account change causes.
   const payTokenEverSelectedRef = useRef(false);
-  if (payToken) {
+  if (paymentToken) {
     payTokenEverSelectedRef.current = true;
   }
 
@@ -300,7 +304,10 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (automaticToken) {
-      setPaySource(resolveAutomaticSource(automaticToken, tokens));
+      setPayToken({
+        address: automaticToken.address,
+        chainId: automaticToken.chainId,
+      });
       log('Re-selected pay token after account change', automaticToken);
     }
   }, [
@@ -311,8 +318,7 @@ export function useAutomaticTransactionPayToken({
     from,
     hasFiatPaymentSelected,
     postQuoteTransactionType,
-    setPaySource,
-    tokens,
+    setPayToken,
   ]);
 
   // Re-select the pay token when the user switches between global account and
@@ -333,7 +339,10 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (automaticToken) {
-      setPaySource(resolveAutomaticSource(automaticToken, tokens));
+      setPayToken({
+        address: automaticToken.address,
+        chainId: automaticToken.chainId,
+      });
       log('Re-selected pay token after money account change', automaticToken);
     }
   }, [
@@ -341,25 +350,11 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    setPaySource,
+    setPayToken,
     isMoneyPaymentOverride,
-    tokens,
   ]);
 
   return automaticToken;
-}
-
-function resolveAutomaticSource(
-  token: SetPayTokenRequest,
-  tokens: AssetType[],
-): AssetType | SetPayTokenRequest {
-  return (
-    tokens.find(
-      (candidate) =>
-        candidate.address === token.address &&
-        candidate.chainId === token.chainId,
-    ) ?? token
-  );
 }
 
 function getBestToken({
@@ -388,7 +383,7 @@ function getBestToken({
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
-}): SetPayTokenRequest | undefined {
+}): { address: Hex; chainId: Hex } | undefined {
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,

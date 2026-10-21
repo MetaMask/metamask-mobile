@@ -4,8 +4,13 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import { Hex } from '@metamask/utils';
+import {
+  EvmPaymentToken,
+  NonEvmPaymentToken,
+  TransactionPaymentToken,
+  isNonEvmPaymentToken,
+} from '@metamask/transaction-pay-controller';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
@@ -18,17 +23,38 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
 
+export interface SetNonEvmPayTokenRequest {
+  /** CAIP-19 asset type of the non-EVM token. */
+  assetId: CaipAssetType;
+  /** ID of the `InternalAccount` holding the token. */
+  walletAccountId: string;
+}
+
 export function useTransactionPayToken(): {
   isNative?: boolean;
-  payToken: TransactionPaymentToken | undefined;
+  /** Selected payment token when it is an EVM token. */
+  payToken: EvmPaymentToken | undefined;
+  /** Selected payment token when it is a non-EVM token, such as Solana. */
+  nonEvmPayToken?: NonEvmPaymentToken;
   setPayToken: (newPayToken: { address: Hex; chainId: Hex }) => void;
 } {
   const transactionMeta = useTransactionMetadataRequest();
   const { id: transactionId } = transactionMeta || { id: '' };
 
-  const payToken = useSelector((state: RootState) =>
-    selectTransactionPaymentTokenByTransactionId(state, transactionId),
+  const paymentToken: TransactionPaymentToken | undefined = useSelector(
+    (state: RootState) =>
+      selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
+
+  const nonEvmPayToken =
+    paymentToken && isNonEvmPaymentToken(paymentToken)
+      ? paymentToken
+      : undefined;
+
+  const payToken =
+    paymentToken && !isNonEvmPaymentToken(paymentToken)
+      ? paymentToken
+      : undefined;
 
   const requiredTokens = useTransactionPayRequiredTokens();
   const primaryRequiredToken = (requiredTokens ?? []).find(
@@ -98,7 +124,38 @@ export function useTransactionPayToken(): {
 
   return {
     isNative,
+    nonEvmPayToken,
     payToken,
     setPayToken,
   };
+}
+
+/**
+ * Selects a non-EVM payment token, such as Solana SOL or an SPL token, on the
+ * current transaction by CAIP-19 asset type and wallet account. Core resolves
+ * the balance, quotes and submission.
+ *
+ * @returns Callback that selects the non-EVM payment token.
+ */
+export function useSetNonEvmPayToken(): (
+  request: SetNonEvmPayTokenRequest,
+) => void {
+  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+
+  return useCallback(
+    ({ assetId, walletAccountId }: SetNonEvmPayTokenRequest) => {
+      try {
+        Engine.context.TransactionPayController.updatePaymentToken({
+          transactionId,
+          assetId,
+          walletAccountId,
+        });
+      } catch (error) {
+        Logger.error(error as Error, 'Error updating payment token');
+      }
+
+      EngineService.flushState();
+    },
+    [transactionId],
+  );
 }

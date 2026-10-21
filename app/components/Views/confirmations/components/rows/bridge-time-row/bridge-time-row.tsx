@@ -7,7 +7,6 @@ import {
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { useTransactionPaySource } from '../../../hooks/pay/useTransactionPaySource';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
@@ -25,15 +24,10 @@ export function BridgeTimeRow() {
   const { estimatedDuration } = useTransactionPayTotals() ?? {};
   const quotes = useTransactionPayQuotes();
   const { payToken } = useTransactionPayToken();
-  const { isSolana } = useTransactionPaySource();
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId } = transactionMetadata ?? {};
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
-
-  if (isSolana) {
-    return null;
-  }
 
   const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
 

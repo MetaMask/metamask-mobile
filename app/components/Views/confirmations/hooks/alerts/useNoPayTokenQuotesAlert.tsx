@@ -24,7 +24,8 @@ import {
 import { useTransactionPayWithdraw } from '../pay/useTransactionPayWithdraw';
 
 export function useNoPayTokenQuotesAlert() {
-  const { payToken } = useTransactionPayToken();
+  const { nonEvmPayToken, payToken } = useTransactionPayToken();
+  const paymentToken = payToken ?? nonEvmPayToken;
   const fiatPayment = useTransactionPayFiatPayment();
   const quotes = useTransactionPayQuotesRaw();
   const isQuotesLoading = useIsTransactionPayLoading();
@@ -67,7 +68,7 @@ export function useNoPayTokenQuotesAlert() {
   );
 
   const shouldShowNonFiatNoQuotesAlert =
-    payToken &&
+    paymentToken &&
     !isQuotesLoading &&
     !quotes?.length &&
     hasPositiveRequiredTokenAmount;
@@ -81,7 +82,7 @@ export function useNoPayTokenQuotesAlert() {
 
   const shouldShowPostQuoteNoQuotesAlert =
     isPostQuote &&
-    Boolean(payToken) &&
+    Boolean(paymentToken) &&
     !isQuotesLoading &&
     !quotes?.length &&
     hasPositiveRequiredAmount;
@@ -117,7 +118,7 @@ export function useNoPayTokenQuotesAlert() {
     hasTransactionType(transactionMeta, PAY_TOKEN_REQUIRED_TRANSACTION_TYPES) &&
     !isQuotesLoading &&
     hasPositiveRequiredAmount &&
-    !payToken &&
+    !paymentToken &&
     !hasSelectedFiatPaymentMethod;
 
   // A quote may be returned but fail validation (e.g. insufficient balance).
