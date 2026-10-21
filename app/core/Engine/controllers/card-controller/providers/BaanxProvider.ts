@@ -460,10 +460,24 @@ export class BaanxProvider implements ICardProvider {
     if (credentials.type === 'email_password') {
       return this.handleEmailPassword(session, credentials);
     }
+    if (credentials.type === 'email_code') {
+      return this.handleEmailCode(session, credentials);
+    }
     throw new Error(`Unsupported credential type: ${credentials.type}`);
   }
 
+  async requestEmailLoginCode(email: string): Promise<void> {
+    try {
+      await this.service.post('/v1/auth/login/email-code/request', { email });
+    } catch (error) {
+      throw mapApiError(error, 'requestEmailLoginCode');
+    }
+  }
+
   async executeStepAction(session: CardAuthSession): Promise<void> {
+    if (session._metadata.otpMode === 'TOTP') {
+      return;
+    }
     const userId = session._metadata.otpUserId as string | undefined;
     if (!userId) {
       throw new CardProviderError(
@@ -1663,6 +1677,7 @@ export class BaanxProvider implements ICardProvider {
 
     if (loginResponse.isOtpRequired) {
       session._metadata.otpUserId = loginResponse.userId;
+      delete session._metadata.otpMode;
       return {
         done: false,
         nextStep: {
@@ -1680,6 +1695,61 @@ export class BaanxProvider implements ICardProvider {
           phase: loginResponse.phase,
         },
       };
+    }
+
+    try {
+      return await this.completeAuth(session, loginResponse);
+    } catch (error) {
+      throw mapApiError(error, 'completeAuth');
+    }
+  }
+
+  private async handleEmailCode(
+    session: CardAuthSession,
+    credentials: Extract<CardCredentials, { type: 'email_code' }>,
+  ): Promise<CardAuthResult> {
+    let loginResponse: CardLoginResponse & {
+      otpMode?: 'SMS' | 'TOTP' | null;
+    };
+    try {
+      loginResponse = await this.service.post('/v1/auth/login/email-code', {
+        email: credentials.email,
+        code: credentials.code,
+        ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
+      });
+    } catch (error) {
+      throw mapLoginError(error, !!credentials.otpCode);
+    }
+
+    if (loginResponse.isOtpRequired) {
+      const mode = loginResponse.otpMode === 'TOTP' ? 'TOTP' : 'SMS';
+      session._metadata.otpUserId = loginResponse.userId;
+      session._metadata.otpMode = mode;
+      return {
+        done: false,
+        nextStep: {
+          type: 'otp',
+          destination: loginResponse.phoneNumber ?? credentials.email,
+          mode,
+        },
+      };
+    }
+
+    if (loginResponse.phase) {
+      return {
+        done: false,
+        onboardingRequired: {
+          sessionId: loginResponse.userId,
+          phase: loginResponse.phase,
+        },
+      };
+    }
+
+    if (!loginResponse.accessToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Email-code login response missing access token',
+      );
     }
 
     try {
