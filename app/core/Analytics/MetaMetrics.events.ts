@@ -446,6 +446,7 @@ enum EVENT_NAME {
 
   // Limit/Recurring Swaps
   ADVANCED_ORDER_PAGE_VIEWED = 'Advanced Order Page Viewed',
+  ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS = 'Advanced Order Asset Search Empty Results Displayed',
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
@@ -1838,6 +1839,9 @@ const events = {
   // Limit/Recurring Swaps
   ADVANCED_ORDER_PAGE_VIEWED: generateOpt(
     EVENT_NAME.ADVANCED_ORDER_PAGE_VIEWED,
+  ),
+  ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS: generateOpt(
+    EVENT_NAME.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
   ),
 
   // Bridge
