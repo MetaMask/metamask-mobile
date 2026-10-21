@@ -151,12 +151,13 @@ export const useInsufficientNativeReserveError = ({
         activeQuote.quote.gasIncluded7702 ||
         activeQuote.quote.gasSponsored,
     );
+    const defaultNetworkFeeAmount = quoteNativeReserve ? '0' : undefined;
     const networkFeeAmount = isQuoteGasSeparatelyFunded
       ? '0'
       : (sumAmounts(
           activeQuote.quote.feeData.network,
           activeQuote.quote.feeData.relayer,
-        )?.normalizedAmount ?? (quoteNativeReserve ? '0' : undefined));
+        )?.normalizedAmount ?? defaultNetworkFeeAmount);
     const sentAmount = activeQuote.quote.src?.normalizedAmount;
     const networkFeeBaseUnits = networkFeeAmount
       ? toBaseUnitBigNumber(networkFeeAmount, token.decimals)
