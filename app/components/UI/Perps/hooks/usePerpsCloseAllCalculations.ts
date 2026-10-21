@@ -473,7 +473,10 @@ export function usePerpsCloseAllCalculations({
         ? perPositionResults[0].points.pointsEstimate
         : undefined;
     const originalTotalFees = perPositionResults.reduce<number | undefined>(
-      (sum, { fees, notionalUsd }) => {
+      (sum, { fees, notionalUsd, error }) => {
+        if (error) {
+          return sum;
+        }
         if (
           sum === undefined ||
           fees.protocolFeeRate === undefined ||
@@ -505,7 +508,8 @@ export function usePerpsCloseAllCalculations({
       ) {
         weightedMetamaskFeeRate += result.fees.metamaskFeeRate * weight;
         if (result.fees.metamaskFeeDiscountBips !== undefined) {
-          weightedFeeDiscountBips += result.fees.metamaskFeeDiscountBips * weight;
+          weightedFeeDiscountBips +=
+            result.fees.metamaskFeeDiscountBips * weight;
           weightedDiscountWeight += weight;
         }
         weightedProtocolFeeRate += result.fees.protocolFeeRate * weight;

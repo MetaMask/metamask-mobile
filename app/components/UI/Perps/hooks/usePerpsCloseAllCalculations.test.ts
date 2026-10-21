@@ -528,6 +528,47 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.hasError).toBe(true);
       expect(result.current.totalFees).toBe(0);
     });
+
+    it('keeps the original fee total for successful positions when another calculation fails', async () => {
+      // Arrange
+      const positions = [
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH' }),
+      ];
+      const priceData = {
+        BTC: { price: '51000' },
+        ETH: { price: '3000' },
+      };
+      mockCalculateFees
+        .mockResolvedValueOnce(
+          createMockFeeResult({
+            feeRate: 0.0007,
+            feeAmount: 17.85,
+            protocolFeeRate: 0.00045,
+            protocolFeeAmount: 11.475,
+            metamaskFeeRate: 0.00025,
+            metamaskFeeAmount: 6.375,
+            chargesMetamaskBuilderFee: true,
+            feeSource: 'grant',
+            metamaskFeeDiscountBips: 7500,
+            undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+          }),
+        )
+        .mockRejectedValueOnce(new Error('Fee calculation failed'));
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsCloseAllCalculations({ positions, priceData }),
+      );
+
+      // Assert
+      await waitFor(() => {
+        expect(result.current.hasError).toBe(true);
+      });
+      expect(result.current.totalFees).toBeCloseTo(17.85, 6);
+      expect(result.current.originalTotalFees).toBeCloseTo(36.975, 6);
+      expect(result.current.avgFeeDiscountPercentage).toBe(75);
+    });
   });
 
   describe('Resolved fee from calculateFees', () => {
