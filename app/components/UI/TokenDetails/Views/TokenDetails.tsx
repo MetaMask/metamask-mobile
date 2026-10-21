@@ -66,6 +66,7 @@ import {
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
@@ -95,6 +96,8 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useLatestOpenRecurringOrderForAsset } from '../../Bridge/hooks/useLatestOpenRecurringOrderForAsset';
 
+import TokenDetailsPagePending from './TokenDetailsPagePending';
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -112,6 +115,10 @@ const styleSheet = (params: { theme: Theme }) => {
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  // Legacy page is always `v2` / `standard`; computed from the shared helper so
+  // both pages derive these the same way.
+  const { tdp_version, token_category } = getTdpAnalyticsBase(params, null);
 
   return useCallback(
     ({
@@ -148,6 +155,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       const eventProperties = {
         source,
         chain_id: params.chainId,
+        tdp_version,
+        token_category,
         token_symbol: params.symbol,
         token_address: params.address,
         token_name: params.name,
@@ -173,6 +182,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.name,
       params.source,
       params.symbol,
+      tdp_version,
+      token_category,
       trackEvent,
     ],
   );
@@ -462,6 +473,7 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    tdpVersion: 'v2',
   });
 
   const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
@@ -654,6 +666,7 @@ const TokenDetails: React.FC<{
       <TokenDetailsInlineHeader
         token={token}
         securityData={securityData}
+        tdpVersion="v2"
         onBackPress={handleBackPress}
         onSharePress={handleShare}
         starButton={starButton}
@@ -951,8 +964,12 @@ export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const variant = useTokenDetailsVariant(token);
+  const { variant, isLoading } = useTokenDetailsVariant(token);
   usePrefetchTokenDetails(token);
+
+  if (isLoading) {
+    return <TokenDetailsPagePending token={token} />;
+  }
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />

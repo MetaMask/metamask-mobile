@@ -61,13 +61,19 @@ export interface UseMyProfileResult {
   refresh: () => Promise<void>;
 }
 
+interface UseMyProfileOptions {
+  enabled?: boolean;
+}
+
 /**
  * Owner profile seam.
  *
  * Identity comes from ProfileController. The in-memory store only overlays
  * the onboarding foxicon preset, which the profile API does not store.
  */
-export const useMyProfile = (): UseMyProfileResult => {
+export const useMyProfile = ({
+  enabled = true,
+}: UseMyProfileOptions = {}): UseMyProfileResult => {
   const { profileId: sessionProfileId, isLoading: isSessionLoading } =
     useSessionProfileId();
   const {
@@ -117,12 +123,12 @@ export const useMyProfile = (): UseMyProfileResult => {
   }, [fetchAndUpdateProfile, fetchAndUpdateXAccount, sessionProfileId]);
 
   useEffect(() => {
-    if (isSessionLoading || !sessionProfileId?.trim()) {
+    if (!enabled || isSessionLoading || !sessionProfileId?.trim()) {
       return;
     }
 
     refresh().catch(() => undefined);
-  }, [isSessionLoading, refresh, sessionProfileId]);
+  }, [enabled, isSessionLoading, refresh, sessionProfileId]);
 
   const mappedControllerProfile = controllerProfile
     ? profileControllerToMySocialProfile(controllerProfile, controllerXProfile)
@@ -133,10 +139,11 @@ export const useMyProfile = (): UseMyProfileResult => {
       ? withLocalAvatarPreset(mappedControllerProfile, profile)
       : null,
     isLoading:
-      isSessionLoading ||
-      isHydrating ||
-      (Boolean(trimmedSessionProfileId) &&
-        settledSessionProfileId !== trimmedSessionProfileId),
+      enabled &&
+      (isSessionLoading ||
+        isHydrating ||
+        (Boolean(trimmedSessionProfileId) &&
+          settledSessionProfileId !== trimmedSessionProfileId)),
     error,
     refresh,
   };

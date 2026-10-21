@@ -38,6 +38,7 @@ import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPos
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
 import SocialFeedSkeleton from '../../../UI/SocialFeed/components/SocialFeedSkeleton';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
@@ -138,6 +139,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
     posts,
@@ -273,6 +275,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
    */
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      livePrices?.requestVisibilityCheck();
       const pageHasNext = visibleAssetFeed
         ? visibleAssetFeed.hasNextPage
         : hasNextPage;
@@ -291,7 +294,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         }
       }
     },
-    [visibleAssetFeed, hasNextPage, loadMore],
+    [livePrices, visibleAssetFeed, hasNextPage, loadMore],
   );
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 

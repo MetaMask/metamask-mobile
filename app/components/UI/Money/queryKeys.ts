@@ -32,5 +32,4 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    * Interest earned by a Money Account position for a requested time window.
    */
   FETCH_INTEREST: `${MoneyAccountApiDataService.name}:fetchInterest`,
-  FETCH_RATE_HISTORY: `${MoneyAccountApiDataService.name}:fetchRateHistory`,
 } as const;

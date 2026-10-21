@@ -8,6 +8,9 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { strings } from '../../../../../locales/i18n';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -113,6 +116,8 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -140,9 +145,17 @@ const setupSelectorMock = (geolocation?: string) => {
   });
 };
 
+const mockTrackEvent = jest.fn();
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradable.mockReturnValue(true);
     mockIsStockToken.mockReturnValue(false);
@@ -617,6 +630,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -740,6 +754,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -756,6 +771,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -772,6 +788,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -792,6 +809,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
   });
@@ -1080,6 +1098,7 @@ describe('TokenDetailsStickyFooter', () => {
       const { getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
+          tdpVersion="v3"
           onSwapPress={onSwapPress}
           securityData={
             {
@@ -1096,8 +1115,13 @@ describe('TokenDetailsStickyFooter', () => {
       expect(onSwapPress).not.toHaveBeenCalled();
       expect(mockOnSwap).not.toHaveBeenCalled();
 
-      // Simulate user tapping "Proceed" inside the modal
+      // The security-warning sheet must carry tdp_version so the §10.4
+      // proceed-rate guardrail can split v2 vs v3; the param defaults to 'v2',
+      // so dropping it would silently mislabel V1.
       const navigateCall = mockNavigate.mock.calls[0];
+      expect(navigateCall[1].params.tdpVersion).toBe('v3');
+
+      // Simulate user tapping "Proceed" inside the modal
       const onProceed = navigateCall[1].params.onProceed;
       onProceed();
 
@@ -1197,6 +1221,7 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
         indicatorsActive: [],
+        tdp_version: 'v2',
       });
     });
 
@@ -1279,6 +1304,82 @@ describe('TokenDetailsStickyFooter', () => {
         expect.objectContaining({ ctaType: 'quick_sell' }),
       );
       expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('TOKEN_DETAILS_CTA_CLICKED on the buy_sell footer', () => {
+    const actionButtonEvents = () =>
+      mockTrackEvent.mock.calls
+        .map(([event]) => event)
+        .filter((event) => event?.name === 'Action Button Clicked');
+
+    it('fires the CTA event with tdp_version v3 for the V1 buy button', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1
+          tdpVersion="v3"
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-footer-quick-buy'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_buy',
+          tdp_version: 'v3',
+        }),
+      );
+      expect(actionButtonEvents()).toHaveLength(0);
+    });
+
+    it('fires the CTA event with tdp_version v3 for the V1 sell button', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1
+          tdpVersion="v3"
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-footer-quick-sell'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_sell',
+          tdp_version: 'v3',
+        }),
+      );
+      expect(actionButtonEvents()).toHaveLength(0);
+    });
+
+    it('fires the CTA event with tdp_version v2 on the legacy footer', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          isTokenDetailsV1={false}
+          tdpVersion="v2"
+          hasTokenBalance
+          quickBuyEntrypointLayout="buy_sell"
+          onOpenQuickBuy={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(getByTestId('token-details-footer-quick-sell'));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ctaType: 'quick_sell',
+          tdp_version: 'v2',
+        }),
+      );
+      expect(actionButtonEvents()).toHaveLength(0);
     });
   });
 });

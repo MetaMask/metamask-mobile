@@ -14,3 +14,18 @@ export const COST_TOLERANCE_MIN = 0;
 export const COST_TOLERANCE_MAX = 100;
 export const COST_TOLERANCE_STEP = 0.1;
 export const COST_TOLERANCE_MAX_DECIMALS = 2;
+
+export function parseLimitOrderCostTolerance(
+  value: string | null,
+): string | undefined {
+  if (!value || !/^\d+(?:\.\d{1,2})?$/.test(value)) {
+    return undefined;
+  }
+
+  const parsedValue = Number(value);
+  if (parsedValue <= COST_TOLERANCE_MIN || parsedValue >= COST_TOLERANCE_MAX) {
+    return undefined;
+  }
+
+  return String(parsedValue);
+}
