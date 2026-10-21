@@ -14,9 +14,14 @@ import {
   Animated,
   Image,
   Modal,
+  StyleSheet,
   View,
   useColorScheme,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from 'react-native';
+import { useSharedValue } from 'react-native-reanimated';
 import Video from 'react-native-video';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
@@ -91,6 +96,11 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTracking';
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
+import { useTokenDetailsGlassFooter } from '../../../TokenDetails/hooks/useTokenDetailsGlassFooter';
+import HeaderGlass, {
+  useHeaderGlassInset,
+} from '../../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
@@ -102,6 +112,7 @@ export function resetFeedbackCache() {
 }
 
 const LOADING_SKELETON_DELAY_MS = 150;
+const GLASS_FOOTER_CONTENT_SPACING = 16;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
 const SECTION_ANIMATION_DELAYS_MS = {
@@ -109,6 +120,13 @@ const SECTION_ANIMATION_DELAYS_MS = {
   closerLook: 130,
   whatsBeingSaid: 210,
 };
+
+const styles = StyleSheet.create({
+  content: {
+    isolation: 'isolate',
+  },
+});
+
 interface AnimatedSectionProps {
   children: React.ReactNode;
   delay?: number;
@@ -210,6 +228,28 @@ const MarketInsightsView: React.FC = () => {
     source: routeSource = 'unknown',
     useAmbientColor,
   } = route.params;
+
+  // Token insights follow the token details brand refresh: the header and the
+  // footer float over the article on the glass backdrop.
+  const isTokenDetailsBrandRefresh =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const isGlassHeader = !isPerps && isTokenDetailsBrandRefresh;
+  const { isRefreshed: isRefreshedFooter } = useTokenDetailsGlassFooter();
+  const isGlassFooter = !isPerps && isRefreshedFooter;
+  const headerScrollY = useSharedValue(0);
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, insets.top);
+  const [footerHeight, setFooterHeight] = useState(0);
+  const handleFooterLayout = useCallback(
+    (event: LayoutChangeEvent) =>
+      setFooterHeight(event.nativeEvent.layout.height),
+    [],
+  );
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) =>
+      headerScrollY.set(event.nativeEvent.contentOffset.y),
+    [headerScrollY],
+  );
 
   const isMarketInsightsEnabled = isPerps
     ? isPerpsInsightsEnabled
@@ -693,247 +733,282 @@ const MarketInsightsView: React.FC = () => {
     return null;
   }
 
+  // Refreshed, the footer floats over the article and pads its own bottom inset.
+  const tokenFooter = stickyFooterToken ? (
+    <TokenDetailsStickyFooter
+      token={stickyFooterToken}
+      skipBottomInset={!isGlassFooter}
+      isOverlay={isGlassFooter}
+      onLayout={isGlassFooter ? handleFooterLayout : undefined}
+      swapTestID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+      buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+      onSwapPress={handleStickySwapPress}
+      onBuyPress={handleStickyBuyPress}
+      onQuickBuyPress={onQuickBuyPress}
+      quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
+      useAmbientColor={useAmbientColor}
+      sourcePage="MarketInsightsView"
+    />
+  ) : null;
+
   return (
     <Box
       twClassName="flex-1 bg-default"
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      <Box twClassName={`pt-[${insets.top}px]`}>
-        <MarketInsightsViewHeader onBackPress={handleBackPress} />
-      </Box>
-
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('pb-4')}
-        showsVerticalScrollIndicator={false}
-        testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
+      <Box
+        twClassName="flex-1"
+        style={styles.content}
+        testID={MarketInsightsSelectorsIDs.CONTENT}
       >
-        <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          {showLastFrame && (
-            <Image
-              source={lastFrameImage}
-              style={tw.style('absolute w-full h-full')}
-              resizeMode="cover"
-            />
-          )}
-          {!videoEnded && (
-            <Video
-              source={backgroundVideo}
-              style={tw.style('w-full h-full')}
-              resizeMode="cover"
-              muted
-              paused={false}
-              controls={false}
-              disableFocus
-              ignoreSilentSwitch="obey"
-              mixWithOthers="mix"
-              onEnd={handleVideoEnd}
-              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-            />
-          )}
-        </Box>
-        <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
-          <Box twClassName="px-4 pt-4 pb-3">
-            <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
-          </Box>
-
-          <Box twClassName="px-4 pb-3">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {report.summary}
-            </Text>
-          </Box>
-        </AnimatedSection>
-
-        <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
-          {/* "A closer look" section */}
-          <Box twClassName="pb-6">
-            {report.trends.map((trend, index) => (
-              <MarketInsightsTrendItem
-                key={`trend-${index}`}
-                trend={trend}
-                onPress={() => handleTrendPress(trend)}
-                testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
-              />
-            ))}
-          </Box>
-        </AnimatedSection>
-
-        {!isPerps && Boolean(stickyFooterToken) && (
-          <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('market_insights.footer_disclaimer')}
-            </Text>
+        {isGlassHeader ? (
+          <HeaderGlass
+            onLayout={handleHeaderLayout}
+            topInset={insets.top}
+            scrollDistance={headerScrollY}
+          >
+            <MarketInsightsViewHeader onBackPress={handleBackPress} isGlass />
+          </HeaderGlass>
+        ) : (
+          <Box twClassName={`pt-[${insets.top}px]`}>
+            <MarketInsightsViewHeader onBackPress={handleBackPress} />
           </Box>
         )}
 
-        {/* "What's being said" section */}
-        {allTweets.length > 0 && (
-          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
-            <Box twClassName="h-4 border-t border-muted" />
-            <Box twClassName="pb-6">
-              <Box twClassName="px-4 py-4">
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('market_insights.whats_being_said')}
-                </Text>
-              </Box>
+        <ScrollView
+          style={tw.style('flex-1')}
+          contentContainerStyle={[
+            tw.style('pb-4'),
+            isGlassHeader && { paddingTop: headerInset },
+            isGlassFooter && {
+              paddingBottom: footerHeight + GLASS_FOOTER_CONTENT_SPACING,
+            },
+          ]}
+          onScroll={isGlassHeader ? handleScroll : undefined}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          testID={MarketInsightsSelectorsIDs.VIEW_SCROLL}
+        >
+          <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
+            {showLastFrame && (
+              <Image
+                source={lastFrameImage}
+                style={tw.style('absolute w-full h-full')}
+                resizeMode="cover"
+              />
+            )}
+            {!videoEnded && (
+              <Video
+                source={backgroundVideo}
+                style={tw.style('w-full h-full')}
+                resizeMode="cover"
+                muted
+                paused={false}
+                controls={false}
+                disableFocus
+                ignoreSilentSwitch="obey"
+                mixWithOthers="mix"
+                onEnd={handleVideoEnd}
+                testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+              />
+            )}
+          </Box>
+          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
+            <Box twClassName="px-4 pt-4 pb-3">
+              <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
+            </Box>
 
-              <Box twClassName="px-4" gap={3}>
-                {allTweets.map((tweet, index) => (
-                  <MarketInsightsTweetCard
-                    key={`tweet-${index}`}
-                    tweet={tweet}
-                    onPress={() => handleTweetPress(tweet.url)}
-                    testID={`${MarketInsightsSelectorsIDs.TWEET_CARD}-${index}`}
-                  />
-                ))}
-              </Box>
+            <Box twClassName="px-4 pb-3">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {report.summary}
+              </Text>
             </Box>
           </AnimatedSection>
-        )}
 
-        <Box
-          alignItems={BoxAlignItems.Center}
-          twClassName="border-t border-muted px-4 pt-4"
-          testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
-        >
+          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
+            {/* "A closer look" section */}
+            <Box twClassName="pb-6">
+              {report.trends.map((trend, index) => (
+                <MarketInsightsTrendItem
+                  key={`trend-${index}`}
+                  trend={trend}
+                  onPress={() => handleTrendPress(trend)}
+                  testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
+                />
+              ))}
+            </Box>
+          </AnimatedSection>
+
+          {!isPerps && Boolean(stickyFooterToken) && (
+            <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {strings('market_insights.footer_disclaimer')}
+              </Text>
+            </Box>
+          )}
+
+          {/* "What's being said" section */}
+          {allTweets.length > 0 && (
+            <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
+              <Box twClassName="h-4 border-t border-muted" />
+              <Box twClassName="pb-6">
+                <Box twClassName="px-4 py-4">
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('market_insights.whats_being_said')}
+                  </Text>
+                </Box>
+
+                <Box twClassName="px-4" gap={3}>
+                  {allTweets.map((tweet, index) => (
+                    <MarketInsightsTweetCard
+                      key={`tweet-${index}`}
+                      tweet={tweet}
+                      onPress={() => handleTweetPress(tweet.url)}
+                      testID={`${MarketInsightsSelectorsIDs.TWEET_CARD}-${index}`}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </AnimatedSection>
+          )}
+
           <Box
-            flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
+            twClassName="border-t border-muted px-4 pt-4"
+            testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
           >
-            <Pressable
-              onPress={handleThumbsUpPress}
-              style={({ pressed }) =>
-                tw.style(
-                  'h-12 w-12 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-              testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
             >
-              <Icon
-                name={
-                  feedbackGiven === 'up'
-                    ? IconName.ThumbUpFilled
-                    : IconName.ThumbUp
+              <Pressable
+                onPress={handleThumbsUpPress}
+                style={({ pressed }) =>
+                  tw.style(
+                    'h-12 w-12 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
                 }
-                size={IconSize.Lg}
-                color={
-                  feedbackGiven === 'up'
-                    ? IconColor.IconDefault
-                    : IconColor.IconAlternative
+                testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+              >
+                <Icon
+                  name={
+                    feedbackGiven === 'up'
+                      ? IconName.ThumbUpFilled
+                      : IconName.ThumbUp
+                  }
+                  size={IconSize.Lg}
+                  color={
+                    feedbackGiven === 'up'
+                      ? IconColor.IconDefault
+                      : IconColor.IconAlternative
+                  }
+                />
+              </Pressable>
+              <Pressable
+                onPress={handleThumbsDownPress}
+                style={({ pressed }) =>
+                  tw.style(
+                    'h-12 w-12 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
                 }
-              />
-            </Pressable>
-            <Pressable
-              onPress={handleThumbsDownPress}
-              style={({ pressed }) =>
-                tw.style(
-                  'h-12 w-12 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-              testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
-            >
-              <Icon
-                name={
-                  feedbackGiven === 'down'
-                    ? IconName.ThumbDownFilled
-                    : IconName.ThumbDown
-                }
-                size={IconSize.Lg}
-                color={
-                  feedbackGiven === 'down'
-                    ? IconColor.IconDefault
-                    : IconColor.IconAlternative
-                }
-              />
-            </Pressable>
-          </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="pt-1"
-          >
-            {strings('market_insights.helpful_prompt')}
-          </Text>
-          {isPerps && hasPerpsPosition && (
+                testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+              >
+                <Icon
+                  name={
+                    feedbackGiven === 'down'
+                      ? IconName.ThumbDownFilled
+                      : IconName.ThumbDown
+                  }
+                  size={IconSize.Lg}
+                  color={
+                    feedbackGiven === 'down'
+                      ? IconColor.IconDefault
+                      : IconColor.IconAlternative
+                  }
+                />
+              </Pressable>
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
-              twClassName="pt-3"
+              twClassName="pt-1"
             >
-              {strings('market_insights.footer_disclaimer')}
+              {strings('market_insights.helpful_prompt')}
             </Text>
-          )}
-        </Box>
-      </ScrollView>
-
-      {!(isPerps && hasPerpsPosition) &&
-        (isPerps ? (
-          // Mirror the market detail screen: hide the Long/Short action buttons
-          // when the market is at its open interest cap.
-          isAtOICap ? null : (
-            <Box
-              twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-            >
-              <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  twClassName="flex-1"
-                  onPress={() => handlePerpsDirectionPress('long')}
-                  testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </Button>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  twClassName="flex-1"
-                  onPress={() => handlePerpsDirectionPress('short')}
-                  testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </Button>
-              </Box>
-              <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('market_insights.footer_disclaimer')}
-                </Text>
-              </Box>
-            </Box>
-          )
-        ) : stickyFooterToken ? (
-          <Box
-            twClassName="bg-default"
-            style={{ paddingBottom: insets.bottom }}
-          >
-            <TokenDetailsStickyFooter
-              token={stickyFooterToken}
-              skipBottomInset
-              swapTestID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
-              buyTestID={MarketInsightsSelectorsIDs.BUY_BUTTON}
-              onSwapPress={handleStickySwapPress}
-              onBuyPress={handleStickyBuyPress}
-              onQuickBuyPress={onQuickBuyPress}
-              quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
-              useAmbientColor={useAmbientColor}
-              sourcePage="MarketInsightsView"
-            />
+            {isPerps && hasPerpsPosition && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="pt-3"
+              >
+                {strings('market_insights.footer_disclaimer')}
+              </Text>
+            )}
           </Box>
-        ) : null)}
+        </ScrollView>
+
+        {!(isPerps && hasPerpsPosition) &&
+          (isPerps ? (
+            // Mirror the market detail screen: hide the Long/Short action buttons
+            // when the market is at its open interest cap.
+            isAtOICap ? null : (
+              <Box
+                twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+              >
+                <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    twClassName="flex-1"
+                    onPress={() => handlePerpsDirectionPress('long')}
+                    testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
+                  >
+                    {strings('perps.market.long')}
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    twClassName="flex-1"
+                    onPress={() => handlePerpsDirectionPress('short')}
+                    testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
+                  >
+                    {strings('perps.market.short')}
+                  </Button>
+                </Box>
+                <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('market_insights.footer_disclaimer')}
+                  </Text>
+                </Box>
+              </Box>
+            )
+          ) : stickyFooterToken ? (
+            isGlassFooter ? (
+              tokenFooter
+            ) : (
+              <Box
+                twClassName="bg-default"
+                style={{ paddingBottom: insets.bottom }}
+              >
+                {tokenFooter}
+              </Box>
+            )
+          ) : null)}
+      </Box>
 
       {selectedTrend ? (
         <MarketInsightsTrendSourcesBottomSheet

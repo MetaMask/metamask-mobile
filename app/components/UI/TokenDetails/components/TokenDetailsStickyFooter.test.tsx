@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { ButtonVariant } from '@metamask/design-system-react-native';
+import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
 import { useSelector } from 'react-redux';
 import { GlassView } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
@@ -1414,15 +1415,15 @@ describe('TokenDetailsStickyFooter', () => {
         />,
       );
 
-    it('draws Sell as clear glass and keeps Buy filled on glass (iOS 26)', () => {
+    it('draws a red Sell and a green Buy, both filled on glass (iOS 26)', () => {
       setupSelectorMock(undefined, true);
       mockLiquidGlass.isGlassEnabled = true;
 
       const { getByTestId, UNSAFE_getAllByType } = renderBuySell();
 
       expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
-        'variant',
-        ButtonVariant.Tertiary,
+        'twClassName',
+        'bg-error-default',
       );
       expect(getByTestId('token-details-footer-quick-buy')).toHaveProp(
         'twClassName',
@@ -1437,14 +1438,42 @@ describe('TokenDetailsStickyFooter', () => {
       });
     });
 
-    it('blurs Sell and keeps Buy as the original on iOS before 26', () => {
+    it('gives Buy and Sell the same text colour: dark in dark mode, light in light mode', () => {
+      setupSelectorMock(undefined, true);
+      mockLiquidGlass.isGlassEnabled = true;
+
+      const { getByTestId } = renderBuySell();
+
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'textProps',
+        { color: TextColor.ErrorInverse },
+      );
+      expect(getByTestId('token-details-footer-quick-buy')).toHaveProp(
+        'textProps',
+        { color: TextColor.SuccessInverse },
+      );
+      expect(darkTheme.colors.error.inverse).toBe(
+        darkTheme.colors.success.inverse,
+      );
+      expect(lightTheme.colors.error.inverse).toBe(
+        lightTheme.colors.success.inverse,
+      );
+    });
+
+    it('draws a red Sell without glass on iOS before 26', () => {
       setupSelectorMock(undefined, true);
       mockLiquidGlass.isBlurEnabled = true;
 
-      const { getByTestId, UNSAFE_getAllByType, UNSAFE_queryAllByType } =
-        renderBuySell();
+      const { getByTestId, UNSAFE_queryAllByType } = renderBuySell();
 
-      expect(UNSAFE_getAllByType(BlurView)).toHaveLength(1);
+      expect(getByTestId('token-details-footer-quick-sell')).toHaveProp(
+        'twClassName',
+        'bg-error-default',
+      );
+      expect(getByTestId('token-details-footer-quick-sell')).not.toHaveStyle({
+        flex: 1,
+      });
+      expect(UNSAFE_queryAllByType(BlurView)).toHaveLength(0);
       expect(UNSAFE_queryAllByType(GlassView)).toHaveLength(0);
       expect(getByTestId(GLASS_FOOTER_FADE)).toBeOnTheScreen();
     });
@@ -1496,6 +1525,50 @@ describe('TokenDetailsStickyFooter', () => {
         ButtonVariant.Secondary,
       );
       expect(queryByTestId(GLASS_FOOTER_FADE)).toBeNull();
+    });
+
+    describe('Swap and Buy', () => {
+      const SWAP_GLASS = 'token-details-footer-swap-glass';
+      const BUY_GLASS = 'token-details-footer-buy-glass';
+      const renderSwapBuy = (balanceFiatUsd: number) =>
+        render(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            isTokenDetailsV1={false}
+            balanceFiatUsd={balanceFiatUsd}
+            quickBuyEntrypointLayout="swap_buy"
+            onOpenQuickBuy={jest.fn()}
+          />,
+        );
+
+      it('puts the unfilled Swap on glass beside the filled Buy (iOS 26)', () => {
+        setupSelectorMock(undefined, true);
+        mockLiquidGlass.isGlassEnabled = true;
+
+        const { getByTestId, queryByTestId } = renderSwapBuy(50);
+
+        expect(getByTestId(SWAP_GLASS)).toBeOnTheScreen();
+        expect(queryByTestId(BUY_GLASS)).toBeNull();
+      });
+
+      it('moves the glass to Buy when Swap is the filled one', () => {
+        setupSelectorMock(undefined, true);
+        mockLiquidGlass.isGlassEnabled = true;
+
+        const { getByTestId, queryByTestId } = renderSwapBuy(150);
+
+        expect(getByTestId(BUY_GLASS)).toBeOnTheScreen();
+        expect(queryByTestId(SWAP_GLASS)).toBeNull();
+      });
+
+      it('keeps Swap without glass with the flag off', () => {
+        mockLiquidGlass.isGlassEnabled = true;
+
+        const { queryByTestId } = renderSwapBuy(50);
+
+        expect(queryByTestId(SWAP_GLASS)).toBeNull();
+        expect(queryByTestId(BUY_GLASS)).toBeNull();
+      });
     });
   });
 });

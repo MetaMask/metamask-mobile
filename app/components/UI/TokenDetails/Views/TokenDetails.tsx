@@ -120,6 +120,10 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    content: {
+      flex: 1,
+      isolation: 'isolate',
+    },
   });
 };
 
@@ -728,83 +732,85 @@ const TokenDetails: React.FC<{
 
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        tdpVersion="v2"
-        onBackPress={handleBackPress}
-        onSharePress={handleShare}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsChainSupported &&
-          (currentPriceUsd ?? 0) > 0 &&
-          caip19AssetId
-            ? handlePriceAlertPress
-            : undefined
-        }
-        onCopyAddress={handleCopyAddress}
-        description={headerDescription}
-        isGlass={isGlassHeader}
-        onLayout={handleHeaderLayout}
-        scrollY={headerScrollY}
-      />
+      <View style={styles.content} testID={TokenDetailsTestIds.CONTENT}>
+        <TokenDetailsInlineHeader
+          token={token}
+          securityData={securityData}
+          tdpVersion="v2"
+          onBackPress={handleBackPress}
+          onSharePress={handleShare}
+          starButton={starButton}
+          onPriceAlertPress={
+            isPriceAlertsChainSupported &&
+            (currentPriceUsd ?? 0) > 0 &&
+            caip19AssetId
+              ? handlePriceAlertPress
+              : undefined
+          }
+          onCopyAddress={handleCopyAddress}
+          description={headerDescription}
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
+        />
 
-      {txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          bridgeArrivalTransactions={bridgeArrivalTxs}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
-          onScroll={handleMultichainScroll}
-          contentBottomInset={listBottomInset}
+        {txIsNonEvmAsset ? (
+          <MultichainTransactionsView
+            header={renderHeader()}
+            transactions={transactions}
+            navigation={navigation}
+            selectedAddress={selectedAddress}
+            chainId={token.chainId as SupportedCaipChainId}
+            bridgeArrivalTransactions={bridgeArrivalTxs}
+            enableRefresh
+            showDisclaimer
+            location={TransactionDetailLocation.AssetDetails}
+            onScroll={handleMultichainScroll}
+            contentBottomInset={listBottomInset}
+          />
+        ) : (
+          <Transactions
+            header={renderHeader()}
+            onScrollThroughContent={handleListScrollOffset}
+            assetSymbol={token.symbol}
+            navigation={navigation}
+            transactions={transactions}
+            submittedTransactions={submittedTxs}
+            confirmedTransactions={confirmedTxs}
+            selectedAddress={selectedAddress}
+            conversionRate={conversionRate}
+            currentCurrency={txCurrentCurrency}
+            networkType={token.chainId}
+            loading={!transactionsUpdated}
+            headerHeight={280}
+            tokenChainId={token.chainId}
+            skipScrollOnClick
+            hideEmptyState
+            location={TransactionDetailLocation.AssetDetails}
+            contentBottomInset={listBottomInset}
+          />
+        )}
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
+          isOverlay={isGlassFooter}
+          onLayout={handleFooterLayout}
         />
-      ) : (
-        <Transactions
-          header={renderHeader()}
-          onScrollThroughContent={handleListScrollOffset}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
-          contentBottomInset={listBottomInset}
-        />
-      )}
-      <TokenDetailsStickyFooter
-        token={token}
-        securityData={securityData}
-        balanceFiatUsd={balanceFiatUsd}
-        networkName={networkName}
-        currentTokenBalance={balance}
-        hasTokenBalance={hasBalanceValue}
-        moneyDepositCta={moneyDepositCta}
-        onStickyButtonsResolved={onStickyButtonsResolved}
-        sourcePage="TokenDetailsView"
-        useAmbientColor={useAmbientColor}
-        onSwapPress={onCtaClicked}
-        onBuyPress={onCtaClicked}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-        quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
-        onOpenQuickBuy={openQuickBuy}
-        isOverlay={isGlassFooter}
-        onLayout={handleFooterLayout}
-      />
+      </View>
 
       {shareUrl && (
         <ShareTokenBottomSheetController

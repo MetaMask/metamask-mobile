@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useTheme } from '../../../util/theme';
+import { HeaderGlassBackdrop } from '../HeaderGlass';
 
 export interface StickyFooterGlassProps {
   children: React.ReactNode;
@@ -27,8 +28,6 @@ export interface StickyFooterGlassProps {
 const FADE_HEIGHT = 32;
 const EDGE_OPACITIES = [0, 0.35, 0.7, 1];
 const EDGE_LOCATIONS = [0, 0.3, 0.7, 1];
-const OVERLAY_OPACITIES = [0, 0.55, 0.8, 0.95];
-const OVERLAY_LOCATIONS = [0, 0.3, 0.65, 1];
 
 const footerStyles = StyleSheet.create({
   overlay: {
@@ -44,16 +43,13 @@ const footerStyles = StyleSheet.create({
     bottom: '100%',
     height: FADE_HEIGHT,
   },
-  overlayFade: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: -FADE_HEIGHT,
-    bottom: 0,
-  },
 });
 
-/** A gradient footer container for content that scrolls behind sticky actions. */
+/**
+ * A footer without a fill, like the iOS 26 scroll edge. In flow it fades the
+ * content above into the page; as an overlay the content scrolls behind it,
+ * under the same blur and gradient as the glass headers.
+ */
 const StickyFooterGlass = ({
   children,
   isOverlay = false,
@@ -64,15 +60,14 @@ const StickyFooterGlass = ({
 }: StickyFooterGlassProps) => {
   const { colors } = useTheme();
   const { bottom } = useSafeAreaInsets();
-
-  const opacities = isOverlay ? OVERLAY_OPACITIES : EDGE_OPACITIES;
   const fadeColors = useMemo(
     () =>
-      opacities.map((opacity) =>
+      EDGE_OPACITIES.map((opacity) =>
         colorWithOpacity(colors.background.default, opacity),
       ),
-    [colors.background.default, opacities],
+    [colors.background.default],
   );
+  const fadeTestID = testID ? `${testID}-fade` : undefined;
 
   return (
     <View
@@ -85,13 +80,18 @@ const StickyFooterGlass = ({
       onLayout={onLayout}
       testID={testID}
     >
-      <LinearGradient
-        pointerEvents="none"
-        colors={fadeColors}
-        locations={isOverlay ? OVERLAY_LOCATIONS : EDGE_LOCATIONS}
-        style={isOverlay ? footerStyles.overlayFade : footerStyles.edgeFade}
-        testID={testID ? `${testID}-fade` : undefined}
-      />
+      {isOverlay ? (
+        // The header's backdrop, mirrored: content scrolls under it.
+        <HeaderGlassBackdrop edge="bottom" testID={fadeTestID} />
+      ) : (
+        <LinearGradient
+          pointerEvents="none"
+          colors={fadeColors}
+          locations={EDGE_LOCATIONS}
+          style={footerStyles.edgeFade}
+          testID={fadeTestID}
+        />
+      )}
       {children}
     </View>
   );

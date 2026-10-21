@@ -39,6 +39,7 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import ButtonGlass from '../../../../component-library/components-temp/ButtonGlass';
 import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
 import StickyFooterGlass from '../../../../component-library/components-temp/StickyFooterGlass';
+import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { useTokenDetailsGlassFooter } from '../hooks/useTokenDetailsGlassFooter';
 import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -216,6 +217,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const isLightMode = themeAppearance === AppThemeKey.light;
 
   const { isGlass, isBlur, isRefreshed } = useTokenDetailsGlassFooter();
+  // Red Sell beside the green Buy; both inverse texts are dark in dark mode, light in light.
+  const isSellFilled = isTokenDetailsV1 || isRefreshed;
   const glassContainerStyle = isRefreshed
     ? styles.glassButtonContainer
     : undefined;
@@ -227,6 +230,21 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       <CapsuleGlass twClassName="h-12 w-12 justify-center">
         {button}
       </CapsuleGlass>
+    ) : (
+      button
+    );
+  // ButtonGlass keeps Tertiary plain, so the unfilled Swap or Buy gets its glass here.
+  const withOutlineGlass = (
+    isFilled: boolean,
+    glassTestID: string,
+    button: React.ReactElement,
+  ) =>
+    isRefreshed && !isFilled ? (
+      <Box style={styles.glassButtonContainer}>
+        <CapsuleGlass twClassName="h-12" testID={glassTestID}>
+          {button}
+        </CapsuleGlass>
+      </Box>
     ) : (
       button
     );
@@ -553,7 +571,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       backgroundColor: isRefreshed ? 'transparent' : colors.background.default,
       paddingHorizontal: 16,
       paddingTop: 16,
-      paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
+      // Floating, the buttons sit as low as the floating tab bar does.
+      paddingBottom: skipBottomInset
+        ? 4
+        : isRefreshed
+          ? getTabBarFloatingBottomPadding(insets.bottom)
+          : insets.bottom + 6,
     }),
     [colors.background.default, insets.bottom, isRefreshed, skipBottomInset],
   );
@@ -644,112 +667,118 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         testID="bottomsheetfooter"
         style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
       >
-        {showSwapButton && !isBuySellLayout && (
-          <ButtonGlass
-            isGlass={isGlass}
-            isBlur={isBlur && !swapIsSuccess}
-            hasSolidFill={swapIsSuccess}
-            testID={swapTestID}
-            variant={
-              swapIsSuccess
-                ? ButtonVariant.Primary
-                : isRefreshed
-                  ? ButtonVariant.Tertiary
-                  : ButtonVariant.Secondary
-            }
-            containerStyle={glassContainerStyle}
-            style={iconButtonStyle}
-            twClassName={
-              swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
-            }
-            textProps={swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-            startIconName={IconName.SwapVertical}
-            startIconProps={
-              swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-            }
-            onPress={() => {
-              if (entrypointLayout === 'swap_buy') {
-                handleOpenQuickBuy('buy');
-                return;
+        {showSwapButton &&
+          !isBuySellLayout &&
+          withOutlineGlass(
+            swapIsSuccess,
+            'token-details-footer-swap-glass',
+            <ButtonGlass
+              isGlass={isGlass}
+              isBlur={isBlur && !swapIsSuccess}
+              hasSolidFill={swapIsSuccess}
+              testID={swapTestID}
+              variant={
+                swapIsSuccess
+                  ? ButtonVariant.Primary
+                  : isRefreshed
+                    ? ButtonVariant.Tertiary
+                    : ButtonVariant.Secondary
               }
-              trackStickyFooterTapped({
-                ctaType: 'swap',
-                balanceFiatUsd,
-                tokenAddress: token.address ?? '',
-                chainId: token.chainId ?? '',
-                indicatorsActive,
-                tdp_version: tdpVersion,
-              });
-              handleFooterAction(
-                onSwap,
-                strings('asset_overview.swap'),
-                onSwapPress,
-              );
-            }}
-          >
-            {strings('asset_overview.swap')}
-          </ButtonGlass>
-        )}
+              containerStyle={glassContainerStyle}
+              style={iconButtonStyle}
+              twClassName={
+                swapIsSuccess ? successBg : `bg-transparent ${successBorder}`
+              }
+              textProps={
+                swapIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps
+              }
+              startIconName={IconName.SwapVertical}
+              startIconProps={
+                swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
+              }
+              onPress={() => {
+                if (entrypointLayout === 'swap_buy') {
+                  handleOpenQuickBuy('buy');
+                  return;
+                }
+                trackStickyFooterTapped({
+                  ctaType: 'swap',
+                  balanceFiatUsd,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  indicatorsActive,
+                  tdp_version: tdpVersion,
+                });
+                handleFooterAction(
+                  onSwap,
+                  strings('asset_overview.swap'),
+                  onSwapPress,
+                );
+              }}
+            >
+              {strings('asset_overview.swap')}
+            </ButtonGlass>,
+          )}
         {moneyDepositButton}
-        {showBuyButton && !isBuySellLayout && (
-          <ButtonGlass
-            isGlass={isGlass}
-            isBlur={isBlur && !buyIsSuccess}
-            hasSolidFill={buyIsSuccess}
-            testID={buyTestID}
-            variant={
-              buyIsSuccess
-                ? ButtonVariant.Primary
-                : isRefreshed
-                  ? ButtonVariant.Tertiary
-                  : ButtonVariant.Secondary
-            }
-            containerStyle={glassContainerStyle}
-            style={iconButtonStyle}
-            twClassName={
-              buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
-            }
-            textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
-            startIconName={IconName.Bank}
-            startIconProps={
-              buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
-            }
-            onPress={() => {
-              trackStickyFooterTapped({
-                ctaType: 'buy',
-                balanceFiatUsd,
-                tokenAddress: token.address ?? '',
-                chainId: token.chainId ?? '',
-                indicatorsActive,
-                tdp_version: tdpVersion,
-              });
-              handleFooterAction(onBuy, buyButtonLabel, onBuyPress);
-            }}
-          >
-            {buyButtonLabel}
-          </ButtonGlass>
-        )}
+        {showBuyButton &&
+          !isBuySellLayout &&
+          withOutlineGlass(
+            buyIsSuccess,
+            'token-details-footer-buy-glass',
+            <ButtonGlass
+              isGlass={isGlass}
+              isBlur={isBlur && !buyIsSuccess}
+              hasSolidFill={buyIsSuccess}
+              testID={buyTestID}
+              variant={
+                buyIsSuccess
+                  ? ButtonVariant.Primary
+                  : isRefreshed
+                    ? ButtonVariant.Tertiary
+                    : ButtonVariant.Secondary
+              }
+              containerStyle={glassContainerStyle}
+              style={iconButtonStyle}
+              twClassName={
+                buyIsSuccess ? successBg : `bg-transparent ${successBorder}`
+              }
+              textProps={buyIsSuccess ? SUCCESS_TEXT_PROPS : secondaryTextProps}
+              startIconName={IconName.Bank}
+              startIconProps={
+                buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
+              }
+              onPress={() => {
+                trackStickyFooterTapped({
+                  ctaType: 'buy',
+                  balanceFiatUsd,
+                  tokenAddress: token.address ?? '',
+                  chainId: token.chainId ?? '',
+                  indicatorsActive,
+                  tdp_version: tdpVersion,
+                });
+                handleFooterAction(onBuy, buyButtonLabel, onBuyPress);
+              }}
+            >
+              {buyButtonLabel}
+            </ButtonGlass>,
+          )}
         {isBuySellLayout && hasTokenBalance && (
           <ButtonGlass
             isGlass={isGlass}
-            isBlur={isBlur && !isTokenDetailsV1}
-            hasSolidFill={isTokenDetailsV1}
+            hasSolidFill={isSellFilled}
+            isBlur={isBlur && !isSellFilled}
             testID="token-details-footer-quick-sell"
             variant={
-              isTokenDetailsV1
-                ? ButtonVariant.Primary
-                : isRefreshed
-                  ? ButtonVariant.Tertiary
-                  : ButtonVariant.Secondary
+              isSellFilled ? ButtonVariant.Primary : ButtonVariant.Secondary
             }
             containerStyle={glassContainerStyle}
             style={iconButtonStyle}
             twClassName={
-              isTokenDetailsV1
+              isSellFilled
                 ? 'bg-error-default'
                 : `bg-transparent ${successBorder}`
             }
-            textProps={isTokenDetailsV1 ? ERROR_TEXT_PROPS : secondaryTextProps}
+            textProps={isSellFilled ? ERROR_TEXT_PROPS : secondaryTextProps}
             onPress={() => handleOpenQuickBuy('sell')}
           >
             {strings('asset_overview.sell_button')}

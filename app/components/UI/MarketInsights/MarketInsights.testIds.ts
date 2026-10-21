@@ -6,6 +6,7 @@ export enum MarketInsightsSelectorsIDs {
   VIEW_SCROLL = 'market-insights-view-scroll',
   VIEW_SKELETON = 'market-insights-view-skeleton',
   VIEW_HEADER = 'market-insights-view-header',
+  CONTENT = 'market-insights-content',
   TREND_ITEM = 'market-insights-trend-item',
   TWEET_CARD = 'market-insights-tweet-card',
   SOURCES_FOOTER = 'market-insights-sources-footer',

@@ -1,6 +1,12 @@
 import React from 'react';
 import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import {
   TokenDetails as TokenDetailsRoute,
   TokenDetailsLegacyRouteWrapper as TokenDetails,
@@ -460,10 +466,19 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
 const mockAssetDetailsQuickBuy = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
-jest.mock('../components/AssetDetailsQuickBuy', () => ({
-  __esModule: true,
-  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
-}));
+jest.mock('../components/AssetDetailsQuickBuy', () => {
+  const ReactLib = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockAssetDetailsQuickBuy(props);
+      return ReactLib.createElement(View, {
+        testID: 'asset-details-quick-buy',
+      });
+    },
+  };
+});
 
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -1892,6 +1907,19 @@ describe('TokenDetails', () => {
       expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
         height: 120,
       });
+    });
+
+    it('renders the Quick Buy sheet above the glass header', () => {
+      withBrandRefresh();
+      const { getByTestId } = render(<TokenDetails />);
+
+      const content = getByTestId(TokenDetailsTestIds.CONTENT);
+
+      expect(content).toHaveStyle({ isolation: 'isolate' });
+      expect(
+        within(content).queryByTestId('asset-details-quick-buy'),
+      ).toBeNull();
+      expect(getByTestId('asset-details-quick-buy')).toBeOnTheScreen();
     });
 
     it('fades the header backdrop with the list scroll', () => {

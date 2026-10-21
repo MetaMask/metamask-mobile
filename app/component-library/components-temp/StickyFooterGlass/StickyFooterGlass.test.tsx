@@ -61,7 +61,12 @@ describe('StickyFooterGlass', () => {
       position: 'absolute',
       bottom: 0,
     });
-    expect(getByTestId('footer-fade')).toHaveStyle({ top: -32, bottom: 0 });
+    // The header backdrop, fading upwards from the bottom edge.
+    expect(getByTestId('footer-fade').props.startPoint).toEqual({
+      x: 0.5,
+      y: 1,
+    });
+    expect(getByTestId('footer-fade').props.endPoint).toEqual({ x: 0.5, y: 0 });
   });
 
   it('leaves the fade without a test ID when the footer has none', () => {

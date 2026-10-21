@@ -1,9 +1,10 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsView, { resetFeedbackCache } from './MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -245,44 +246,76 @@ jest.mock('../../../Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockPerpsTrack }),
 }));
 
+const mockStickyFooter = jest.fn();
 jest.mock('../../../TokenDetails/components/TokenDetailsStickyFooter', () => {
   const { View: MockView, Pressable: MockPressable } =
     jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      onSwapPress,
-      onBuyPress,
-      onQuickBuyPress,
-      swapTestID,
-      buyTestID,
-      quickBuyTestID,
-    }: {
+    default: (props: {
       onSwapPress?: () => void;
       onBuyPress?: () => void;
       onQuickBuyPress?: () => void;
       swapTestID?: string;
       buyTestID?: string;
       quickBuyTestID?: string;
-    }) => (
-      <MockView testID="token-details-sticky-footer">
-        {swapTestID && (
-          <MockPressable testID={swapTestID} onPress={onSwapPress} />
-        )}
-        {buyTestID && <MockPressable testID={buyTestID} onPress={onBuyPress} />}
-        {onQuickBuyPress && quickBuyTestID && (
-          <MockPressable testID={quickBuyTestID} onPress={onQuickBuyPress} />
-        )}
-      </MockView>
-    ),
+      isOverlay?: boolean;
+      skipBottomInset?: boolean;
+    }) => {
+      mockStickyFooter(props);
+      const {
+        onSwapPress,
+        onBuyPress,
+        onQuickBuyPress,
+        swapTestID,
+        buyTestID,
+        quickBuyTestID,
+      } = props;
+      return (
+        <MockView testID="token-details-sticky-footer">
+          {swapTestID && (
+            <MockPressable testID={swapTestID} onPress={onSwapPress} />
+          )}
+          {buyTestID && (
+            <MockPressable testID={buyTestID} onPress={onBuyPress} />
+          )}
+          {onQuickBuyPress && quickBuyTestID && (
+            <MockPressable testID={quickBuyTestID} onPress={onQuickBuyPress} />
+          )}
+        </MockView>
+      );
+    },
   };
 });
 
-const mockAssetDetailsQuickBuy = jest.fn((_props: unknown) => null);
-jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
-  __esModule: true,
-  default: (props: unknown) => mockAssetDetailsQuickBuy(props),
+let mockIsTokenDetailsBrandRefresh = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/tokenDetailsBrandRefresh',
+  () => ({
+    selectTokenDetailsBrandRefreshEnabled: () => mockIsTokenDetailsBrandRefresh,
+  }),
+);
+
+let mockIsRefreshedFooter = false;
+jest.mock('../../../TokenDetails/hooks/useTokenDetailsGlassFooter', () => ({
+  useTokenDetailsGlassFooter: () => ({
+    isGlass: mockIsRefreshedFooter,
+    isBlur: false,
+    isRefreshed: mockIsRefreshedFooter,
+  }),
 }));
+
+const mockAssetDetailsQuickBuy = jest.fn((_props: unknown) => null);
+jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => {
+  const { View: MockView } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: unknown) => {
+      mockAssetDetailsQuickBuy(props);
+      return <MockView testID="asset-details-quick-buy" />;
+    },
+  };
+});
 
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
@@ -330,6 +363,8 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     resetFeedbackCache();
     mockIsEligible = true;
+    mockIsTokenDetailsBrandRefresh = false;
+    mockIsRefreshedFooter = false;
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -1508,5 +1543,70 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+  });
+
+  describe('brand refresh', () => {
+    it('keeps the plain header and the in-flow footer with the flag off', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MarketInsightsView />,
+      );
+
+      expect(
+        getByTestId(MarketInsightsSelectorsIDs.VIEW_HEADER),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(mockStickyFooter).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isOverlay: false, skipBottomInset: true }),
+      );
+    });
+
+    it('floats the header on the glass backdrop with the flag on', () => {
+      mockIsTokenDetailsBrandRefresh = true;
+
+      const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        getByTestId(MarketInsightsSelectorsIDs.VIEW_HEADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Quick Buy sheet above the glass header', () => {
+      mockIsTokenDetailsBrandRefresh = true;
+
+      const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+      const content = getByTestId(MarketInsightsSelectorsIDs.CONTENT);
+
+      expect(content).toHaveStyle({ isolation: 'isolate' });
+      expect(
+        within(content).getByTestId(MarketInsightsSelectorsIDs.VIEW_HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        within(content).queryByTestId('asset-details-quick-buy'),
+      ).toBeNull();
+      expect(getByTestId('asset-details-quick-buy')).toBeOnTheScreen();
+    });
+
+    it('floats the footer over the article where the footer is refreshed', () => {
+      mockIsTokenDetailsBrandRefresh = true;
+      mockIsRefreshedFooter = true;
+
+      renderWithProvider(<MarketInsightsView />);
+
+      expect(mockStickyFooter).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isOverlay: true, skipBottomInset: false }),
+      );
+    });
+
+    it('keeps perps insights on the plain header', () => {
+      mockIsTokenDetailsBrandRefresh = true;
+      mockIsRefreshedFooter = true;
+      mockRouteParams.isPerps = true;
+
+      const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+    });
   });
 });

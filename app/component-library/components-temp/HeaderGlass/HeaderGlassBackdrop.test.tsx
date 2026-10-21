@@ -1,5 +1,5 @@
 import React from 'react';
-import { processColor } from 'react-native';
+import { processColor, StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { BlurView } from 'expo-blur';
 import { makeMutable } from 'react-native-reanimated';
@@ -71,6 +71,66 @@ describe('HeaderGlassBackdrop', () => {
     expect(UNSAFE_getByType(BlurView).props.tint).toBe(
       'systemUltraThinMaterialLight',
     );
+  });
+
+  describe('on the bottom edge', () => {
+    it('fades the gradient upwards with its tail above', () => {
+      const { getByTestId } = render(
+        <HeaderGlassBackdrop testID="backdrop" edge="bottom" />,
+      );
+
+      expect(getByTestId('backdrop').props.startPoint).toEqual({
+        x: 0.5,
+        y: 1,
+      });
+      expect(getByTestId('backdrop').props.endPoint).toEqual({ x: 0.5, y: 0 });
+      expect(getByTestId('backdrop').props.colors).toEqual(
+        backgroundAt([0.425, 0.35, 0.125, 0]),
+      );
+      expect(getByTestId('backdrop').parent?.parent?.parent).toHaveStyle({
+        top: -40,
+        bottom: 0,
+      });
+    });
+
+    it('fades a lighter blur upwards on iOS', () => {
+      mockLiquidGlass.isGlassEnabled = true;
+
+      const { getByTestId, UNSAFE_getByType } = render(
+        <HeaderGlassBackdrop testID="backdrop" edge="bottom" />,
+      );
+
+      expect(getByTestId('backdrop').props.startPoint).toEqual({
+        x: 0.5,
+        y: 1,
+      });
+      expect(getByTestId('backdrop').props.colors).toEqual(
+        backgroundAt([0.3, 0.175, 0]),
+      );
+      expect(UNSAFE_getByType(BlurView).props.intensity).toBe(5);
+    });
+
+    it('keeps the blur within the footer, without a tail above it', () => {
+      mockLiquidGlass.isGlassEnabled = true;
+
+      const { getByTestId } = render(
+        <HeaderGlassBackdrop testID="backdrop" edge="bottom" />,
+      );
+
+      // The nearest view above the tint that sets a height is the blur effect.
+      let effect = getByTestId('backdrop').parent;
+      while (effect && !StyleSheet.flatten(effect.props.style)?.height) {
+        effect = effect.parent;
+      }
+      let tail = effect?.parent;
+      while (tail && StyleSheet.flatten(tail.props.style)?.top === undefined) {
+        tail = tail.parent;
+      }
+      const tailStyle = StyleSheet.flatten(tail?.props.style);
+      expect(StyleSheet.flatten(effect?.props.style)?.height).toBe('90%');
+      expect(tailStyle?.top).toBeCloseTo(0);
+      expect(tailStyle?.bottom).toBe(0);
+    });
   });
 
   it('stays fully on without a scroll distance', () => {
