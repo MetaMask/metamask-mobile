@@ -673,52 +673,66 @@ describe('Transaction Pay Utils', () => {
     });
   });
 
+  const NON_EVM_PAY_TOKEN_MOCK: NonEvmPaymentToken = {
+    accountId: `${SolScope.Mainnet}:SoLAddress`,
+    assetId: `${SolScope.Mainnet}/slip44:501`,
+    balanceFiat: '0',
+    balanceHuman: '0',
+    balanceRaw: '0',
+    balanceUsd: '0',
+    chainId: SolScope.Mainnet,
+    decimals: 9,
+    symbol: 'SOL',
+    walletAccountId: 'solana-account-id',
+  };
+
+  const EVM_PAY_TOKEN_MOCK: TransactionPaymentToken = {
+    address: TOKEN_MOCK.address.toUpperCase() as Hex,
+    balanceFiat: '0',
+    balanceHuman: '0',
+    balanceRaw: '0',
+    balanceUsd: '0',
+    chainId: CHAIN_ID_MOCK,
+    decimals: 18,
+    symbol: 'NTV1',
+  };
+
   describe('isSelectedPayToken', () => {
     it('matches a non-EVM payment token by asset ID and wallet account', () => {
-      const payToken = {
-        assetId: `${SolScope.Mainnet}/slip44:501`,
-        chainId: SolScope.Mainnet,
-        walletAccountId: 'solana-account-id',
-      } as NonEvmPaymentToken;
       const token = {
         accountId: 'solana-account-id',
         assetId: `${SolScope.Mainnet}/slip44:501`,
       } as AssetType;
 
-      expect(isSelectedPayToken(token, payToken)).toBe(true);
+      expect(isSelectedPayToken(token, NON_EVM_PAY_TOKEN_MOCK)).toBe(true);
       expect(
-        isSelectedPayToken({ ...token, accountId: 'other' }, payToken),
+        isSelectedPayToken(
+          { ...token, accountId: 'other' },
+          NON_EVM_PAY_TOKEN_MOCK,
+        ),
       ).toBe(false);
     });
 
     it('matches an EVM payment token by address and chain', () => {
-      const payToken = {
-        address: TOKEN_MOCK.address.toUpperCase(),
-        chainId: CHAIN_ID_MOCK,
-      } as TransactionPaymentToken;
-
-      expect(isSelectedPayToken(TOKEN_MOCK, payToken)).toBe(true);
+      expect(isSelectedPayToken(TOKEN_MOCK, EVM_PAY_TOKEN_MOCK)).toBe(true);
       expect(isSelectedPayToken(TOKEN_MOCK, undefined)).toBe(false);
     });
   });
 
   describe('getPaymentTokenKey', () => {
-    it('returns the wallet account and asset ID for a non-EVM token', () => {
-      expect(
-        getPaymentTokenKey({
-          assetId: `${SolScope.Mainnet}/slip44:501`,
-          chainId: SolScope.Mainnet,
-          walletAccountId: 'solana-account-id',
-        } as NonEvmPaymentToken),
-      ).toBe(`solana-account-id:${SolScope.Mainnet}/slip44:501`);
+    it('returns the wallet account and asset ID key for a non-EVM token', () => {
+      expect(getPaymentTokenKey(NON_EVM_PAY_TOKEN_MOCK)).toBe(
+        `solana-account-id:${SolScope.Mainnet}/slip44:501`,
+      );
     });
 
-    it('returns the lowercase chain and address for an EVM token', () => {
+    it('returns the lowercase chain and address key for an EVM token', () => {
       expect(
         getPaymentTokenKey({
+          ...EVM_PAY_TOKEN_MOCK,
           address: '0xABC',
           chainId: '0xA',
-        } as TransactionPaymentToken),
+        }),
       ).toBe('0xa:0xabc');
       expect(getPaymentTokenKey(undefined)).toBe('');
     });
