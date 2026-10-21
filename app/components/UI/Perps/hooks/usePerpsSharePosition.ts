@@ -130,7 +130,8 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
       const shouldRetryNow = hasProfileLookupFailed && !isProfileLookupFetching;
       pendingShareRef.current = {
         request: { position, marketPrice },
-        hasRetried: shouldRetryNow,
+        hasRetried:
+          shouldRetryNow || Boolean(pendingShareRef.current?.hasRetried),
       };
       if (shouldRetryNow) {
         retryProfileLookup();

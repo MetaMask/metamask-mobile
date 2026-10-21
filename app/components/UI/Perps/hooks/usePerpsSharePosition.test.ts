@@ -293,6 +293,37 @@ describe('usePerpsSharePosition', () => {
     expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps a single retry when share is tapped again while the retry is in flight', async () => {
+    const firstLookup = createDeferred<{ profileId: string }>();
+    const retryLookup = createDeferred<{ profileId: string }>();
+    mockGetSessionProfile
+      .mockReturnValueOnce(firstLookup.promise)
+      .mockReturnValueOnce(retryLookup.promise);
+    const { result } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    await act(async () => {
+      firstLookup.reject(new Error('Network error'));
+    });
+    await waitFor(() => expect(mockGetSessionProfile).toHaveBeenCalledTimes(2));
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    await act(async () => {
+      retryLookup.reject(new Error('Network error'));
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(...pnlCardNavigation),
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
+  });
+
   it('retries a failed session lookup on share and recovers to the sheet', async () => {
     mockGetSessionProfile.mockRejectedValueOnce(new Error('Network error'));
     const { result } = renderWithGates({ hasSocialProfile: false });
