@@ -17,9 +17,11 @@ function idleHost(): IdleHost {
  * also waits for `requestIdleCallback` when the runtime provides it, so the
  * mount does not share the transition's last turn.
  *
- * A timeout always arms alongside the frame. Whichever path runs first wins;
- * the other is cancelled. `cancel` drops every handle and guarantees `task`
- * does not run.
+ * A timeout always arms immediately, before `requestAnimationFrame`, because
+ * a frame or idle callback may never run. Whichever path runs first wins;
+ * the other is cancelled. Callers pass a timeout long enough to cover the
+ * frame and, for the first stage, the idle wait. `cancel` drops every handle
+ * and guarantees `task` does not run.
  */
 export function scheduleDeferredWork(
   task: () => void,
