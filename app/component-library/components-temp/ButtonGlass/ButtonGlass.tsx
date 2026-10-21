@@ -21,6 +21,10 @@ export type ButtonGlassProps = ButtonBaseProps & {
   /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: the plain button. */
   variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
+  /** Optional prop to show the danger state of the button. */
+  isDanger?: boolean;
+  /** Optional prop to show the inverse state of the button, reserved for buttons on colored backgrounds. */
+  isInverse?: boolean;
 };
 
 /**
