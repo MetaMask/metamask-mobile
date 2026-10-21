@@ -116,6 +116,7 @@ const Complete = () => {
     <MarketingMoment
       title={strings('card.card_onboarding.complete.title')}
       description={strings('card.card_onboarding.complete.description')}
+      descriptionProps={{ twClassName: 'text-center px-4' }}
       artwork={
         <Image
           source={MM_CARD_ONBOARDING_SUCCESS}

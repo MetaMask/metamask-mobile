@@ -233,6 +233,11 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
+  default: { locale: 'en' },
+  I18nEvents: {
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+  },
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'card.card_onboarding.complete.title': 'Complete',
@@ -318,6 +323,9 @@ describe('Complete Component', () => {
       expect(
         getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
       ).toHaveTextContent('Your card setup is complete!');
+      expect(
+        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION).props.twClassName,
+      ).toBe('text-center px-4');
     });
   });
 

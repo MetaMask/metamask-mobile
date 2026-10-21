@@ -11167,7 +11167,7 @@
       },
       "complete": {
         "title": "You're in!",
-        "description": "Finish setting up your card so you can start spending your crypto.",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finish setup"
       },
       "account_exists": {
