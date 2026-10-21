@@ -80,8 +80,6 @@ export const useWalletHeaderNativeHeader = ({
     navigation.navigate(...createAccountSelectorNavDetails({}));
   }, [navigation, isSocialV1Enabled]);
 
-  // Social V1 collapses the native bar's picker to just the profile avatar; the
-  // named picker moves to the row pinned under the bar by `Wallet`.
   const socialV1AccountButton = useMemo(
     () =>
       isSocialV1Enabled ? (
@@ -96,12 +94,7 @@ export const useWalletHeaderNativeHeader = ({
           <WalletHeaderProfileAvatar />
         </ButtonBase>
       ) : null,
-    [
-      displayName,
-      handleAccountPickerPress,
-      isSocialV1Enabled,
-      touchAreaSlop,
-    ],
+    [displayName, handleAccountPickerPress, isSocialV1Enabled, touchAreaSlop],
   );
 
   const leftItems = useCallback(
