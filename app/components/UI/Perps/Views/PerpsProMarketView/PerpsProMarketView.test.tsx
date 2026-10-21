@@ -14,7 +14,6 @@ import {
 } from '@metamask/perps-controller/constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsProMarketView from './';
-import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
@@ -29,6 +28,27 @@ import { playSelection } from '../../../../../util/haptics';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../../../../util/haptics');
+
+const mockSetTitleSectionHeight = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    useHeaderStandardAnimated: () => {
+      const animated = actual.useHeaderStandardAnimated();
+
+      return {
+        ...animated,
+        setTitleSectionHeight: (height: number) => {
+          mockSetTitleSectionHeight(height);
+          animated.setTitleSectionHeight(height);
+        },
+      };
+    },
+  };
+});
 
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
@@ -1176,24 +1196,22 @@ describe('PerpsProMarketView', () => {
   });
 
   it('sets the header crossfade threshold from the measured summary height', () => {
-    const { getByTestId, UNSAFE_getByType } = renderView();
-    const summary = getByTestId(
-      PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY,
-    );
-    const priceSectionHeight =
-      UNSAFE_getByType(PerpsMarketHeader).props.priceSectionHeight;
+    mockSetTitleSectionHeight.mockClear();
+    const { getByTestId } = renderView();
+    const summary = getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY);
 
     fireEvent(summary, 'layout', {
       nativeEvent: { layout: { height: 0, width: 390, x: 0, y: 0 } },
     });
 
-    expect(priceSectionHeight.value).toBe(0);
+    expect(mockSetTitleSectionHeight).not.toHaveBeenCalled();
 
     fireEvent(summary, 'layout', {
       nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
     });
 
-    expect(priceSectionHeight.value).toBe(96);
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledTimes(1);
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(96);
   });
 
   it('uses the Figma shell heights', () => {
