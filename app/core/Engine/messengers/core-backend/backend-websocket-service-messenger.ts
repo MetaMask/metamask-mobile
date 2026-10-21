@@ -5,10 +5,7 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 
 export type BackendWebSocketServiceMessenger =
@@ -52,7 +49,7 @@ type BackendWebSocketServiceInitMessengerActions =
 export type BackendWebSocketServiceInitMessenger = Messenger<
   'BackendWebSocketServiceInit',
   BackendWebSocketServiceInitMessengerActions,
-  RemoteFeatureFlagControllerStateChangeEvent
+  never
 >;
 
 export function getBackendWebSocketServiceInitMessenger(
@@ -70,7 +67,7 @@ export function getBackendWebSocketServiceInitMessenger(
       'RemoteFeatureFlagController:getState',
       'AuthenticationController:getBearerToken',
     ],
-    events: ['RemoteFeatureFlagController:stateChange'],
+    events: [],
     messenger,
   });
   return messenger;
