@@ -63,7 +63,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
   }
 
   const positionRows = (
-    <Box twClassName="gap-1">
+    <Box twClassName="gap-1.5">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -71,7 +71,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
         twClassName="min-h-6"
       >
         <Text
-          variant={TextVariant.BodyMd}
+          variant={TextVariant.BodySm}
           color={TextColor.TextDefault}
           testID={`${testID}-label`}
         >
@@ -86,7 +86,7 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
           />
         ) : (
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             testID={`${testID}-value`}
           >
@@ -102,14 +102,14 @@ const TraderPositionPnl: React.FC<TraderPositionPnlProps> = ({
           testID={`${testID}-unrealized-pnl`}
         >
           <Text
-            variant={TextVariant.BodyXs}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             testID={`${testID}-unrealized-pnl-label`}
           >
             {strings('social_leaderboard.trader_position.unrealized_pnl')}
           </Text>
           <Text
-            variant={TextVariant.BodyXs}
+            variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={
               pnl.isProfit ? TextColor.SuccessDefault : TextColor.ErrorDefault
