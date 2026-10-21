@@ -4,6 +4,7 @@ import {
   DEFAULT_PROFILE_AVATAR_PRESET_ID,
   getProfileAvatarBackground,
   getProfileAvatarPreset,
+  isFoxiconAvatarUrl,
   parseFoxiconAvatarUrl,
   PROFILE_AVATAR_BACKGROUNDS,
   PROFILE_AVATAR_PRESETS,
@@ -42,6 +43,8 @@ describe('avatarPresets', () => {
     });
     expect(parseFoxiconAvatarUrl('https://example.com/a.png')).toBeNull();
     expect(parseFoxiconAvatarUrl('foxicon://retired/lime')).toBeNull();
+    expect(isFoxiconAvatarUrl('foxicon://retired/lime')).toBe(true);
+    expect(isFoxiconAvatarUrl('https://example.com/a.png')).toBe(false);
   });
 
   it('takes every backdrop color from the brand palette', () => {
