@@ -158,7 +158,6 @@ const MarketingMomentContent = ({
         {primaryAction || secondaryAction ? (
           <Animated.View
             entering={enterDown(ACTION_ENTER_STEP)}
-            style={tw.style('z-1')}
           >
             <Box
               flexDirection={BoxFlexDirection.Column}
