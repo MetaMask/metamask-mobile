@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
@@ -734,6 +735,32 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('returns the shared scroller to the top when the selected tab changes', () => {
+    const scrollTo = jest.fn();
+    const scrollToSpy = jest
+      .spyOn(ScrollView.prototype, 'scrollTo')
+      .mockImplementation(scrollTo);
+    const { getByTestId } = renderDashboard();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    );
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: false });
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+
+    scrollToSpy.mockRestore();
   });
 
   it('keeps inactive tab bodies mounted', () => {

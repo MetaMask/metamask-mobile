@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -142,6 +149,7 @@ const RewardsMoneyDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
   const hasTrackedDashboardViewed = useRef(false);
   const { createEventBuilder } = useAnalytics();
+  const panelScrollRef = useRef<ScrollView>(null);
   const showEarningsDot = hasClaimableEarnings(
     earningsSummaryEntry?.data?.claimable,
   );
@@ -157,6 +165,23 @@ const RewardsMoneyDashboard: React.FC = () => {
     pointerEvents: isActive ? ('auto' as const) : ('none' as const),
     style: tw.style(!isActive && 'hidden'),
   });
+  // The three panels share this scroller. A tab press returns to the top so a
+  // long Ways to earn page cannot leave Performance opened mid-list. Pressing
+  // the tab that is already selected leaves the offset alone. scrollY is reset
+  // with the list because a programmatic scroll does not always emit onScroll,
+  // and the collapsing title reads that shared value.
+  const selectTab = useCallback(
+    (index: number) => {
+      const nextTab = TAB_ORDER[index];
+      if (!nextTab || nextTab === activeTab) {
+        return;
+      }
+      panelScrollRef.current?.scrollTo({ y: 0, animated: false });
+      scrollY.value = 0;
+      setActiveTab(nextTab);
+    },
+    [activeTab, scrollY],
+  );
 
   useEffect(() => {
     if (
@@ -324,10 +349,11 @@ const RewardsMoneyDashboard: React.FC = () => {
               <TabsBar
                 tabs={tabs}
                 activeIndex={TAB_ORDER.indexOf(activeTab)}
-                onTabPress={(index) => setActiveTab(TAB_ORDER[index])}
+                onTabPress={selectTab}
               />
             </Box>
             <Animated.ScrollView
+              ref={panelScrollRef}
               showsVerticalScrollIndicator={false}
               style={tw.style('flex-1')}
               contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
