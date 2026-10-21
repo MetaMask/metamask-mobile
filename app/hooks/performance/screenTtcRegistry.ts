@@ -4,10 +4,12 @@ import { isE2EOrPerformanceTest } from '../../util/test/utils';
 
 export type ScreenTtcId = OnboardingScreenId | DeferredRenderProbeId;
 
+export type ScreenTtcContentState = 'empty' | 'filled' | 'error';
+
 export interface ScreenTtcRecord {
   screenId: ScreenTtcId;
   durationMs: number;
-  contentState: 'empty' | 'filled';
+  contentState: ScreenTtcContentState;
   /** Bumps on every successful record so Appium can wait for a fresh value. */
   generation: number;
 }
@@ -33,24 +35,31 @@ export function screenTtcTestId(screenId: ScreenTtcId): string {
 /**
  * Accessibility label format Appium parses:
  * `ttc:<screen_id>:<durationMs>:<generation>`
+ * A non-filled outcome appends `:<empty|error>` so a rep can be excluded.
  */
 export function formatScreenTtcAccessibilityLabel(
   record: ScreenTtcRecord,
 ): string {
-  return `ttc:${record.screenId}:${Math.round(record.durationMs)}:${record.generation}`;
+  const base = `ttc:${record.screenId}:${Math.round(record.durationMs)}:${record.generation}`;
+  return record.contentState === 'filled'
+    ? base
+    : `${base}:${record.contentState}`;
 }
 
 export function parseScreenTtcAccessibilityLabel(
   label: string,
 ): ScreenTtcRecord | null {
-  const match = /^ttc:([a-z0-9_]+):(\d+(?:\.\d+)?):(\d+)$/.exec(label.trim());
+  const match =
+    /^ttc:([a-z0-9_]+):(\d+(?:\.\d+)?):(\d+)(?::(empty|error|filled))?$/.exec(
+      label.trim(),
+    );
   if (!match) {
     return null;
   }
   return {
     screenId: match[1] as ScreenTtcId,
     durationMs: Number(match[2]),
-    contentState: 'filled',
+    contentState: (match[4] as ScreenTtcContentState | undefined) ?? 'filled',
     generation: Number(match[3]),
   };
 }
@@ -58,7 +67,7 @@ export function parseScreenTtcAccessibilityLabel(
 export function recordScreenTtc(
   screenId: ScreenTtcId,
   durationMs: number,
-  contentState: 'empty' | 'filled',
+  contentState: ScreenTtcContentState,
 ): void {
   if (!isScreenTtcProbeEnabled()) {
     return;

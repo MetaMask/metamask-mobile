@@ -1550,6 +1550,14 @@ ${createLimitOrderOverlayScript({
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
 
+                                // Perf probe only: first setData has drawn candles.
+                                // Absent unless the RN message sets probeDataRendered.
+                                if (shouldAutoscale && message.probeDataRendered && window.ReactNativeWebView) {
+                                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                                        type: 'DATA_RENDERED'
+                                    }));
+                                }
+
                                 // Price line is updated via ADD_AUXILIARY_LINES with mark price from React Native
                                 // Do NOT use candle close price here - it differs from header's mark price
                             }

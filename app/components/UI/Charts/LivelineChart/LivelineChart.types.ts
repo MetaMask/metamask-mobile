@@ -176,6 +176,11 @@ export interface LivelineChartProps {
   height?: number;
   /** Fired once the WebView has initialised and the chart is ready. */
   onChartReady?: () => void;
+  /**
+   * Fired after the first WebView render that has chart points.
+   * Performance probes only; production messages omit this.
+   */
+  onDataRendered?: () => void;
   /** Fired on WebView load errors or chart runtime errors. */
   onError?: (message: string) => void;
 }
@@ -194,6 +199,7 @@ type ChartPropsPayload = Omit<
   LivelineChartProps,
   | 'height'
   | 'onChartReady'
+  | 'onDataRendered'
   | 'onError'
   | 'onHover'
   | 'onWindowChange'
@@ -209,6 +215,7 @@ export type RNToWebViewMessage =
 /** Messages sent from WebView → React Native. */
 export type WebViewToRNMessage =
   | { type: 'CHART_READY' }
+  | { type: 'DATA_RENDERED' }
   | { type: 'ERROR'; payload: { message: string } }
   | { type: 'HOVER'; payload: HoverPoint | null }
   | { type: 'WINDOW_CHANGE'; payload: { secs: number } }
@@ -243,6 +250,8 @@ export const parseWebViewMessage = (
   switch (obj.type) {
     case 'CHART_READY':
       return { type: 'CHART_READY' };
+    case 'DATA_RENDERED':
+      return { type: 'DATA_RENDERED' };
     case 'ERROR': {
       const payload = obj.payload as { message?: string } | undefined;
       return {

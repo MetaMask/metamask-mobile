@@ -537,12 +537,22 @@ export const usePriceChartState = ({
     if (!isScreenTtcProbeEnabled() || !assetId || chartLoading) {
       return;
     }
-    if (ohlcvData.length > 0 || hasEmptyData || chartError) {
-      markDeferredRenderPoint(
-        DeferredRenderScreenIds.TOKEN_DETAILS,
-        DeferredRenderPoint.CHART_DATA_READY,
-      );
+    let contentState: 'filled' | 'empty' | 'error' | undefined;
+    if (chartError) {
+      contentState = 'error';
+    } else if (ohlcvData.length > 0) {
+      contentState = 'filled';
+    } else if (hasEmptyData) {
+      contentState = 'empty';
     }
+    if (!contentState) {
+      return;
+    }
+    markDeferredRenderPoint(
+      DeferredRenderScreenIds.TOKEN_DETAILS,
+      DeferredRenderPoint.CHART_DATA_READY,
+      contentState,
+    );
   }, [assetId, chartError, chartLoading, hasEmptyData, ohlcvData.length]);
 
   const maLabel = useMemo(() => {

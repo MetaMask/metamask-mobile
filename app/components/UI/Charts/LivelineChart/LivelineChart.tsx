@@ -17,6 +17,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { isScreenTtcProbeEnabled } from '../../../../hooks/performance/screenTtcRegistry';
 import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
 import { createLivelineChartTemplate } from './LivelineChartTemplate';
@@ -35,6 +36,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
     {
       height = DEFAULT_CHART_HEIGHT,
       onChartReady,
+      onDataRendered,
       onError,
       onHover,
       onWindowChange,
@@ -54,6 +56,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
     const hasFlushedRef = useRef(false);
     const callbacksRef = useRef({
       onChartReady,
+      onDataRendered,
       onError,
       onHover,
       onWindowChange,
@@ -63,6 +66,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
 
     callbacksRef.current = {
       onChartReady,
+      onDataRendered,
       onError,
       onHover,
       onWindowChange,
@@ -135,6 +139,7 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
     const chartPropsJson = JSON.stringify({
       ...chartProps,
       theme: theme.themeAppearance,
+      ...(isScreenTtcProbeEnabled() ? { probeDataRendered: true } : undefined),
     });
     const shouldShowNativeLoading = !isChartReady || chartProps.loading;
 
@@ -170,6 +175,9 @@ const LivelineChart = forwardRef<LivelineChartRef, LivelineChartProps>(
             setWebViewError(null);
             flushPendingMessages();
             callbacksRef.current.onChartReady?.();
+            break;
+          case 'DATA_RENDERED':
+            callbacksRef.current.onDataRendered?.();
             break;
           case 'ERROR':
             setWebViewError(message.payload.message);

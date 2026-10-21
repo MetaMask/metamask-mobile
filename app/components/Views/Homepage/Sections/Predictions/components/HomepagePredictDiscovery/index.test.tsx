@@ -257,6 +257,7 @@ describe('HomepagePredictDiscovery', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
           title: market.title,
           image: market.image,
+          series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
           transactionActiveAbTests,
         },
         { throughRoot: true },
@@ -278,6 +279,7 @@ describe('HomepagePredictDiscovery', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
           title: HOMEPAGE_PREDICT_SERIES_SLOT.series.title,
           image: undefined,
+          series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
         },
         { throughRoot: true },
       );

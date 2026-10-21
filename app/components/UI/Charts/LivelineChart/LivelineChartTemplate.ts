@@ -128,6 +128,7 @@ export const createLivelineChartTemplate = (
     var liveValue = 0;
     var inLiveMode = false;
     var lastPerfTs = 0;
+    var dataRenderedProbeSent = false;
 
     function mergeLivelineData(base, incoming) {
       var byTime = new Map();
@@ -165,6 +166,7 @@ export const createLivelineChartTemplate = (
       var rest = Object.assign({}, currentProps);
       delete rest.formatValue;
       delete rest.formatTime;
+      delete rest.probeDataRendered;
       var hideControls = !!rest.hideControls;
       delete rest.hideControls;
       document.body.classList.toggle('liveline-hide-controls', hideControls);
@@ -178,6 +180,18 @@ export const createLivelineChartTemplate = (
       if (formatValue) { props.formatValue = new Function('v', formatValue); }
       if (formatTime)  { props.formatTime  = new Function('t', formatTime);  }
       root.render(createElement(Liveline, props));
+    }
+
+    function maybeNotifyDataRendered() {
+      if (dataRenderedProbeSent || !currentProps || !currentProps.probeDataRendered) {
+        return;
+      }
+      var drawn = inLiveMode ? liveData : (currentProps.data || []);
+      if (!drawn.length) {
+        return;
+      }
+      dataRenderedProbeSent = true;
+      sendToRN('DATA_RENDERED');
     }
 
     function handleMessage(event) {
@@ -200,6 +214,7 @@ export const createLivelineChartTemplate = (
               currentProps = msg.payload;
             }
             render();
+            maybeNotifyDataRendered();
             break;
           case 'APPEND_POINT':
             if (!inLiveMode) {
@@ -218,6 +233,7 @@ export const createLivelineChartTemplate = (
             }
             var t0 = performance.now();
             render();
+            maybeNotifyDataRendered();
             var t1 = performance.now();
             if (t1 - t0 > 16 && t1 - lastPerfTs > 5000) {
               lastPerfTs = t1;

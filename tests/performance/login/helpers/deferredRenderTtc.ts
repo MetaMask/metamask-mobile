@@ -6,7 +6,10 @@ import {
 } from '../../../../app/hooks/performance/deferredRenderPerformanceIds';
 import type { PerformanceTracker } from '../../../reporters/PerformanceTracker';
 import type { PlatformThreshold } from '../../../framework/TimerHelper';
-import { addAppScreenTtcTimer } from '../../utils/readScreenTtc';
+import {
+  addAppScreenTtcTimer,
+  waitForAppScreenTtcRecord,
+} from '../../utils/readScreenTtc';
 
 /** Generous until a deferred-render baseline exists. Quality gates must not fail the run. */
 export const DEFERRED_RENDER_APP_TTC_THRESHOLD: PlatformThreshold = {
@@ -15,6 +18,24 @@ export const DEFERRED_RENDER_APP_TTC_THRESHOLD: PlatformThreshold = {
 };
 
 const PROBE_TIMEOUT_MS = 45_000;
+
+/**
+ * A non-filled chart dataset is not a render-versus-network sample.
+ * Throws before the chart-ready wait so an empty or error rep is excluded.
+ */
+export async function assertDeferredRenderChartDataFilled(
+  screenId: DeferredRenderScreenId,
+): Promise<void> {
+  const record = await waitForAppScreenTtcRecord(
+    deferredRenderProbeId(screenId, DeferredRenderPoint.CHART_DATA_READY),
+    { timeoutMs: PROBE_TIMEOUT_MS },
+  );
+  if (record.contentState !== 'filled') {
+    throw new Error(
+      `Excluding rep: ${screenId} chart_data_ready outcome is ${record.contentState}`,
+    );
+  }
+}
 
 const DEFERRED_RENDER_POINTS: readonly DeferredRenderPointId[] = [
   DeferredRenderPoint.NAV_START,

@@ -81,13 +81,13 @@ Local emulator and simulator projects live in `tests/playwright.config.ts`. Clou
 
 ### Available Projects
 
-| Project Name                        | Platform | Environment     | Test Scope            |
-| ----------------------------------- | -------- | --------------- | --------------------- |
-| `android`                           | Android  | Local Emulator  | Demo fixture spec     |
-| `ios`                               | iOS      | Local Simulator | Demo fixture spec     |
-| `testmu-android`                    | Android  | TestMu          | Login tests only      |
-| `testmu-android-onboarding`         | Android  | TestMu          | Onboarding tests      |
-| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding   |
+| Project Name                         | Platform | Environment     | Test Scope          |
+| ------------------------------------ | -------- | --------------- | ------------------- |
+| `android`                            | Android  | Local Emulator  | Demo fixture spec   |
+| `ios`                                | iOS      | Local Simulator | Demo fixture spec   |
+| `testmu-android`                     | Android  | TestMu          | Login tests only    |
+| `testmu-android-onboarding`          | Android  | TestMu          | Onboarding tests    |
+| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding |
 
 ### Configuration Details
 
@@ -214,18 +214,31 @@ Most existing tests are tagged with **both** `@Performance @System` — they mea
 
 These tags categorize tests by feature area and can be used with `--grep` for ad-hoc filtering:
 
-| Tag                        | Description                                                   |
-| -------------------------- | ------------------------------------------------------------- |
-| `@PerformanceAccountList`  | Account list rendering and dismissal performance              |
-| `@PerformanceNetworkList`  | Network list rendering and dismissal performance              |
-| `@PerformanceOnboarding`   | Onboarding flow performance (wallet creation, SRP import)     |
-| `@PerformanceLogin`        | Login and unlock performance                                  |
-| `@PerformanceSwaps`        | Swap flow performance                                         |
-| `@PerformanceLaunch`       | App launch performance (cold/warm start)                      |
-| `@PerformanceAssetLoading` | Asset and balance loading performance                         |
-| `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
-| `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
-| `@PerformanceRewards`      | Rewards tab time-to-content (onboarding or dashboard shell)   |
+| Tag                          | Description                                                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `@PerformanceAccountList`    | Account list rendering and dismissal performance                                                                |
+| `@PerformanceNetworkList`    | Network list rendering and dismissal performance                                                                |
+| `@PerformanceOnboarding`     | Onboarding flow performance (wallet creation, SRP import)                                                       |
+| `@PerformanceLogin`          | Login and unlock performance                                                                                    |
+| `@PerformanceSwaps`          | Swap flow performance                                                                                           |
+| `@PerformanceLaunch`         | App launch performance (cold/warm start)                                                                        |
+| `@PerformanceAssetLoading`   | Asset and balance loading performance                                                                           |
+| `@PerformancePredict`        | Predict market performance (market list, details, deposits)                                                     |
+| `@PerformancePreps`          | Perpetuals trading performance (positions, add funds, orders)                                                   |
+| `@PerformanceRewards`        | Rewards tab time-to-content (onboarding or dashboard shell)                                                     |
+| `@PerformanceDeferredRender` | Deferred chart render versus network on token details, perps market details, and predict crypto up/down details |
+
+### Deferred render points
+
+`@PerformanceDeferredRender` specs also carry `@Performance` and `@PerformanceLogin`. Each screen records four in-app points from `nav_start`. `chart_data_ready` is `filled`, `empty`, or `error`; specs throw `Excluding rep` when it is not `filled`. `chart_ready` is the first drawn chart data.
+
+Performance runs pin `perpsAdvancedChartEnabledV2` to the registry production default `{ enabled: true, minimumVersion: '8.3.0' }` with `RemoteFeatureFlagController.setFlagOverride` when `IS_PERFORMANCE_TEST` is already true. App version 8.18.0 meets 8.3.0, so `selectPerpsAdvancedChartEnabledFlag` stays enabled and both arms use AdvancedChart.
+
+| Screen                  | `nav_start`                                                             | `first_render`                             | `chart_data_ready`                                                            | `chart_ready`                                                                                                         |
+| ----------------------- | ----------------------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Token details           | Tap of the token row (`asset-ETH`)                                      | First layout of legacy token details       | OHLCV settled: points `filled`, explicit empty `empty`, request error `error` | AdvancedChart `onSkeletonHidden`, including line mode where that chart stays mounted                                  |
+| Perps market details    | Tap of the BTC market row                                               | First layout of lite market details        | Chart section `content` → `filled`, `empty` → `empty`, `error` → `error`      | Advanced path: `onSkeletonHidden` after data. TradingView fallback: WebView `DATA_RENDERED` after the first `setData` |
+| Predict up/down details | `navigateToMarketDetails` only when `series.slug` contains `up-or-down` | First layout of the up/down details screen | Hook settled: points `filled`, no points `empty`, connection error `error`    | Liveline `DATA_RENDERED` after the first `render()` that has points                                                   |
 
 ### Tagging Convention
 
@@ -655,11 +668,11 @@ ci_build_variant:rc release_version:7.58.0
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                                      | Content                                             |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
+| File Type | Location                                                                      | Content                                       |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                     |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                     |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                              |
 | Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario TestMu app profiling + API calls |
 
 ### HTML Report Contents

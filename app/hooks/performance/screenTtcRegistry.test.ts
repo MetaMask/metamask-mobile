@@ -59,6 +59,24 @@ describe('screenTtcRegistry', () => {
     });
   });
 
+  it('appends empty and error outcomes on the accessibility label', () => {
+    recordScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET, 10, 'empty');
+    const emptyRecord = getScreenTtc(OnboardingScreenIds.ONBOARDING_SHEET);
+    expect(emptyRecord).toBeDefined();
+    if (!emptyRecord) {
+      throw new Error('expected empty TTC record');
+    }
+    const emptyLabel = formatScreenTtcAccessibilityLabel(emptyRecord);
+    expect(emptyLabel).toBe('ttc:onboarding_sheet:10:1:empty');
+    expect(parseScreenTtcAccessibilityLabel(emptyLabel)?.contentState).toBe(
+      'empty',
+    );
+    expect(
+      parseScreenTtcAccessibilityLabel('ttc:onboarding_sheet:12:2:error')
+        ?.contentState,
+    ).toBe('error');
+  });
+
   it('returns null for malformed accessibility labels', () => {
     expect(parseScreenTtcAccessibilityLabel('not-a-ttc-label')).toBeNull();
     expect(parseScreenTtcAccessibilityLabel('ttc:bad')).toBeNull();
