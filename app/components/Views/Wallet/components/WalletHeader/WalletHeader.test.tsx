@@ -1,7 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
-import { makeMutable } from 'react-native-reanimated';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
@@ -332,15 +330,13 @@ describe('WalletHeader', () => {
       ).toHaveStyle({ paddingLeft: 12, paddingRight: 12 });
     });
 
-    it('uses the Social glass header with Profile and Rewards actions', () => {
+    it('uses the Social glass header with Profile, account and Rewards actions', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <WalletHeader
           {...interimProps}
           isSocialLayout
           handleProfilePress={jest.fn()}
           handleRewardsPress={jest.fn()}
-          scrollY={makeMutable(0)}
-          titleSectionHeight={makeMutable(120)}
         />,
       );
 
@@ -354,33 +350,35 @@ describe('WalletHeader', () => {
         getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON),
       ).toBeOnTheScreen();
-      const accountNameContainer = getByTestId(
-        WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_CONTAINER,
-        { includeHiddenElements: true },
-      );
-      const accountNameContainerStyle = StyleSheet.flatten(
-        accountNameContainer.props.style,
-      );
-      expect(accountNameContainerStyle).toEqual(
-        expect.objectContaining({ flexShrink: 1, minWidth: 0 }),
-      );
-      expect(accountNameContainerStyle).not.toHaveProperty('width');
-      expect(accountNameContainer).toHaveProp('pointerEvents', 'none');
-      expect(accountNameContainer).toHaveProp(
-        'accessibilityElementsHidden',
-        true,
-      );
-      expect(accountNameContainer).toHaveProp(
-        'importantForAccessibility',
-        'no-hide-descendants',
-      );
       expect(
-        queryByTestId(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+      ).toBeNull();
+      expect(
+        getByTestId(
           WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
         ),
-      ).toBeNull();
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the Social account name flexible beside the chevron', () => {
+      const { getByText } = renderWithProvider(
+        <WalletHeader
+          {...interimProps}
+          displayName="Test Main Account a really long name"
+          isSocialLayout
+          handleProfilePress={jest.fn()}
+          handleRewardsPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        getByText('Test Main Account a really long name'),
+      ).toBeOnTheScreen();
     });
   });
 

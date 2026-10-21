@@ -2451,9 +2451,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     enableSocialLayout();
 
     const { getByTestId } = renderWithNavigationProp();
-    fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
-    );
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
@@ -2461,15 +2459,13 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
   });
 
-  it('keeps the settings menu in the Social header', () => {
+  it('does not render the settings menu in the Social header', () => {
     enableSocialLayout();
 
-    const { getByTestId } = renderWithNavigationProp();
-    fireEvent.press(
-      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
+    const { queryByTestId } = renderWithNavigationProp();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   describe('Social V1 account picker row', () => {

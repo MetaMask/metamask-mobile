@@ -128,10 +128,12 @@ const WalletHeaderInterimActions = ({
         hitSlop={touchAreaSlop}
       />
       {secondaryAction}
-      <WalletHeaderMenuButton
-        handleHamburgerPress={handleHamburgerPress}
-        touchAreaSlop={touchAreaSlop}
-      />
+      {!isSocialLayout ? (
+        <WalletHeaderMenuButton
+          handleHamburgerPress={handleHamburgerPress}
+          touchAreaSlop={touchAreaSlop}
+        />
+      ) : null}
     </Box>
   );
 };

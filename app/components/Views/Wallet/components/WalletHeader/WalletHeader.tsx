@@ -1,15 +1,7 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef } from 'react';
 import { View, type ViewStyle } from 'react-native';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import Animated, {
-  useAnimatedReaction,
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-  type SharedValue,
-} from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
 import {
   BadgeStatus,
   BadgeStatusStatus,
@@ -26,8 +18,10 @@ import {
   ButtonIconSize,
   FontWeight,
   HeaderRoot,
+  Icon as MMDSIcon,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  IconSize as MMDSIconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -92,8 +86,6 @@ export interface WalletHeaderProps {
   /** Interim brand refresh: header actions use Liquid Glass where available. */
   isInterimLayout?: boolean;
   isSocialLayout?: boolean;
-  scrollY?: SharedValue<number>;
-  titleSectionHeight?: SharedValue<number>;
 }
 
 const WalletHeader = ({
@@ -115,40 +107,11 @@ const WalletHeader = ({
   headerAccountPickerStyle,
   isInterimLayout = false,
   isSocialLayout = false,
-  scrollY,
-  titleSectionHeight,
 }: WalletHeaderProps) => {
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
   const searchBarRef = useRef<View>(null);
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
-  const [isCompactTitleInteractive, setIsCompactTitleInteractive] =
-    useState(false);
-  const isCompactTitleVisible = useDerivedValue(() => {
-    const measuredHeight = titleSectionHeight?.value ?? 0;
-    return Boolean(
-      scrollY && measuredHeight > 0 && scrollY.value >= measuredHeight,
-    );
-  });
-  const compactTitleProgress = useDerivedValue(() =>
-    withTiming(isCompactTitleVisible.value ? 1 : 0, { duration: 200 }),
-  );
-  useAnimatedReaction(
-    () => isCompactTitleVisible.value,
-    (isVisible, wasVisible) => {
-      if (isVisible !== wasVisible) {
-        scheduleOnRN(setIsCompactTitleInteractive, isVisible);
-      }
-    },
-    [],
-  );
-  const compactTitleStyle = useAnimatedStyle(() => {
-    const progress = compactTitleProgress.value;
-    return {
-      opacity: progress,
-      transform: [{ translateY: (1 - progress) * 8 }],
-    };
-  });
 
   const measureSearchOrigin = useCallback(
     (callback: (origin?: SearchOrigin) => void) => {
@@ -269,13 +232,47 @@ const WalletHeader = ({
     </View>
   );
 
-  if (
-    isInterimLayout &&
-    isSocialLayout &&
-    !useSearchHeaderLayout &&
-    scrollY &&
-    titleSectionHeight
-  ) {
+  const socialAccountPicker = (
+    <View style={accountPickerContainerStyle}>
+      <CapsuleGlass
+        twClassName="mr-4 max-w-full self-start"
+        nonGlassClassName="px-1"
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
+      >
+        <ButtonAnimated
+          onPress={handleAccountSelectorPress}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={touchAreaSlop}
+          accessibilityRole="button"
+          accessibilityLabel={displayName}
+          style={tw.style('shrink')}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1 px-3"
+          >
+            <Text
+              variant={TextVariant.HeadingSm}
+              fontWeight={FontWeight.Regular}
+              numberOfLines={1}
+              twClassName="shrink"
+              testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
+            >
+              {displayName}
+            </Text>
+            <MMDSIcon
+              name={MMDSIconName.ArrowDown}
+              size={MMDSIconSize.Md}
+              color={MMDSIconColor.IconAlternative}
+            />
+          </Box>
+        </ButtonAnimated>
+      </CapsuleGlass>
+    </View>
+  );
+
+  if (isInterimLayout && isSocialLayout && !useSearchHeaderLayout) {
     const socialActions = (
       <CapsuleGlass
         twClassName="shrink-0 px-2"
@@ -314,35 +311,7 @@ const WalletHeader = ({
             hitSlop={touchAreaSlop}
           />
         </CapsuleGlass>
-        <Animated.View
-          testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_CONTAINER}
-          style={[tw.style('min-w-0 shrink'), compactTitleStyle]}
-          pointerEvents={isCompactTitleInteractive ? 'auto' : 'none'}
-          accessibilityElementsHidden={!isCompactTitleInteractive}
-          importantForAccessibility={
-            isCompactTitleInteractive ? 'auto' : 'no-hide-descendants'
-          }
-        >
-          <ButtonAnimated
-            onPress={handleAccountSelectorPress}
-            style={tw.style('shrink')}
-            accessibilityRole="button"
-            accessibilityLabel={displayName}
-            testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_BUTTON}
-          >
-            <CapsuleGlass twClassName="shrink px-3">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                numberOfLines={1}
-                twClassName="shrink"
-              >
-                {displayName}
-              </Text>
-            </CapsuleGlass>
-          </ButtonAnimated>
-        </Animated.View>
-        <Box twClassName="flex-1" />
+        {socialAccountPicker}
         {socialActions}
       </Box>
     );

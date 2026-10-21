@@ -103,7 +103,7 @@ describe('useHomeTabDefinitions', () => {
     expect(result.current.tabs[2].nativeIcon).toBeUndefined();
   });
 
-  it('orders Home, Social, Explore and Money when Social is enabled', () => {
+  it('orders Home, Explore, Money and Social when Social V1 is enabled', () => {
     const { result } = renderDefinitions({
       isMoneyAccountVisible: true,
       showSocialTab: true,
@@ -112,10 +112,10 @@ describe('useHomeTabDefinitions', () => {
 
     expect(result.current.tabs.map((tab) => tab.name)).toEqual([
       Routes.WALLET.HOME,
-      Routes.SOCIAL.TAB,
       Routes.TRENDING_VIEW,
       Routes.BROWSER.HOME,
       Routes.MONEY.ROOT,
+      Routes.SOCIAL.TAB,
     ]);
   });
 
@@ -126,7 +126,7 @@ describe('useHomeTabDefinitions', () => {
       showSocialTabNewBadge: true,
     });
 
-    const social = result.current.tabs[1];
+    const social = result.current.tabs[4];
 
     expect(social.showNewBadge).toBe(true);
   });

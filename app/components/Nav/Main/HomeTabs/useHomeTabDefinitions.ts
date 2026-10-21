@@ -165,10 +165,10 @@ export const useHomeTabDefinitions = ({
     if (isSocialV1Enabled) {
       return [
         home,
-        social,
         explore,
         browser,
         isMoneyAccountVisible ? money : activity,
+        social,
       ];
     }
 

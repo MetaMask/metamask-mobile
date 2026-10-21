@@ -1133,8 +1133,6 @@ const Wallet = ({
       headerAccountPickerStyle={styles.headerAccountPickerStyle}
       isInterimLayout={isInterimHeader}
       isSocialLayout={isSocialHeader}
-      scrollY={isSocialHeader ? homepageScrollY : undefined}
-      titleSectionHeight={isSocialHeader ? accountNameSectionBottom : undefined}
     />
   );
 
@@ -1278,7 +1276,8 @@ const Wallet = ({
   ) : null;
 
   const compactHeaderAccountName =
-    (isCompactHeader || isSocialHeader || isSearchHeaderEnabled) &&
+    !isSocialHeader &&
+    (isCompactHeader || isSearchHeaderEnabled) &&
     !inWalletHomePostOnboardingFlow ? (
       <ButtonAnimated
         onPress={
