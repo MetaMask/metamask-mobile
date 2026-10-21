@@ -90,4 +90,5 @@ export const TAB_BAR_FLOATING_TEST_IDS = {
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
   TRADE_BUTTON: 'tab-bar-floating-trade-button',
+  SOCIAL_NEW_BADGE: 'tab-bar-floating-social-new-badge',
 } as const;

@@ -1,5 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
+import type { SocialShellTab } from '../../../Views/SocialLeaderboard/shell/types';
 import type {
   AssetLoaderParams,
   AssetViewParams,
@@ -216,6 +217,7 @@ export type HomeTabsParamList = {
   WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
   BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   TradeWalletActions:
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
@@ -225,6 +227,14 @@ export type HomeTabsParamList = {
     | undefined;
   RewardsView: NavigatorScreenParams<RewardsHomeParamList> | undefined;
 };
+
+export interface SocialLeaderboardTabParams {
+  source?: string;
+  showNotificationsBanner?: boolean;
+  landingTab?: 'leaderboard' | 'feed';
+  landingFeedAudience?: 'all' | 'following';
+  initialTab?: SocialShellTab;
+}
 
 /**
  * Param list for `MainNavigator` (`ConnectedMain`).

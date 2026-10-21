@@ -21,6 +21,14 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
 
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'MID'),
+}));
+
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
+}));
+
 jest.mock('@react-navigation/native-stack', () => ({
   createNativeStackNavigator: jest.fn().mockReturnValue({
     Navigator: 'Navigator',
@@ -180,6 +188,7 @@ describe('MainNavigator', () => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+    mockSelectIsMoneyAccountVisible.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -2008,6 +2017,64 @@ describe('MainNavigator', () => {
       expect(tabs).toContain(Routes.REWARDS_VIEW);
       expect(tabs).toContain(Routes.MODAL.TRADE_WALLET_ACTIONS);
       expect(tabs).not.toContain(Routes.SOCIAL.TAB);
+    });
+
+    it('lets the Social V1 treatment own the refreshed navigation from the header control arm', () => {
+      mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+      const baseState = stateForArm('control', 'treatment');
+      const state = {
+        ...baseState,
+        engine: {
+          ...baseState.engine,
+          backgroundState: {
+            ...baseState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...baseState.engine.backgroundState.RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                ...baseState.engine.backgroundState.RemoteFeatureFlagController
+                  .remoteFeatureFlags,
+                aiSocialLeaderboardEnabled: {
+                  enabled: false,
+                  minimumVersion: '0.0.1',
+                },
+              },
+            },
+          },
+        },
+      };
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      const tabs = homeTabNames(container, state).filter(
+        (tab) => tab !== Routes.BROWSER.HOME,
+      );
+
+      expect(tabs).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ]);
+      expect(rootStackScreenNames(container)).toContain(
+        Routes.SOCIAL.ONBOARDING,
+      );
+      expect(
+        renderedTabBar(renderHomeTabs(container, state)).props.trailingAction,
+      ).toBe('trade');
+    });
+
+    it('keeps legacy Social users on the existing tab layout', () => {
+      mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+      const state = stateForArm('tradeFocused', 'control');
+      const container = renderWithProvider(<MainNavigator />, { state });
+
+      expect(homeTabNames(container, state)).toEqual([
+        Routes.WALLET.HOME,
+        Routes.TRENDING_VIEW,
+        Routes.BROWSER.HOME,
+        Routes.MONEY.ROOT,
+        Routes.SOCIAL.TAB,
+      ]);
+      expect(rootStackScreenNames(container)).not.toContain(Routes.SOCIAL.V1);
     });
 
     it.each([

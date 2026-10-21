@@ -41,7 +41,10 @@ export const useHomepageSearchPaste = ({
   const { variant } = useABTest(
     HOMEPAGE_SEARCH_AB_KEY,
     HOMEPAGE_SEARCH_VARIANTS,
-    HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+    {
+      ...HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS,
+      trackExposure: enabled,
+    },
   );
   const isSearchHeaderEnabled = variant.showHomepageSearchBar;
   const [clipboardContentAvailable, setClipboardContentAvailable] =
