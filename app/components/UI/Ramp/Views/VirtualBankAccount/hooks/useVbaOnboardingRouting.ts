@@ -29,9 +29,7 @@ import { VBA_KYC_VENDOR } from '../constants';
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
 
-type StackNavigationAction =
-  | ReturnType<typeof CommonActions.reset>
-  | ReturnType<typeof CommonActions.navigate>;
+type StackNavigationAction = ReturnType<typeof CommonActions.reset>;
 
 interface StackController {
   dispatch: (action: StackNavigationAction) => void;
@@ -120,9 +118,9 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Pushes the completed account on the same stack as onboarding, with the same
- * horizontal transition. The screen hides its back button, so this does not
- * replace the route underneath.
+ * Keeps the original caller under the completed account and removes onboarding
+ * from the root stack. Header and native-gesture back actions then return
+ * directly to the caller instead of revealing the onboarding loader.
  */
 const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
   let current: StackController | undefined =
@@ -131,7 +129,17 @@ const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
+      current.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            getCallerRoute(
+              state,
+            ) as PartialState<NavigationState>['routes'][number],
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
+      );
       return;
     }
 

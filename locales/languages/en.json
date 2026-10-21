@@ -1208,13 +1208,14 @@
       "button": "Try again"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Try again"
     },
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
+      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
       "copia_cola_label": "PIX Copia e Cola",
       "pix_key_label": "PIX key",
       "copy_label": "Copy {{field}}",

@@ -44,6 +44,7 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
+  predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
   moneyBrandRefresh = 'moneyBrandRefresh',

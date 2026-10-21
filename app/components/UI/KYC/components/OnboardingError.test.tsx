@@ -108,7 +108,7 @@ describe('VbaOnboardingError', () => {
   });
 
   it('hides the list when no items are provided', () => {
-    const { queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <VbaOnboardingError
         title="Couldn't continue"
         description="Something went wrong."
@@ -117,6 +117,10 @@ describe('VbaOnboardingError', () => {
     );
 
     expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+    expect(
+      getByTestId(VbaOnboardingErrorSelectorsIDs.CONTAINER).props
+        .contentContainerStyle,
+    ).toEqual(expect.objectContaining({ justifyContent: 'center' }));
   });
 
   it('calls the primary action when its button is pressed', async () => {

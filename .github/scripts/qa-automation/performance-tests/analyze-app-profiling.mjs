@@ -106,7 +106,7 @@ const KNOWN_PROJECTS = [
   'testmu-android',
 ];
 // The TestMu runner publishes profiles and raw results under a `testmu-he-`
-// prefix (performance-test-runner-testmu.yml).
+// prefix (performance-test-runner.yml).
 const HERMES_PROFILE_ARTIFACT_PATTERN = 'testmu-he-hermes-cpuprofiles-*';
 const RAW_RESULTS_ARTIFACT_PATTERN = 'testmu-he-*-test-results-*';
 const SKILL_ANALYZER_CANDIDATES = [
