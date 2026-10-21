@@ -323,7 +323,7 @@ const LiveView: React.FC<LiveViewProps> = ({
             ) : null
           }
           renderItem={renderPost}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.position?.positionId ?? item.id}
           testID={LiveViewSelectorsIDs.SCROLL_VIEW}
         />
       </Box>

@@ -23,11 +23,18 @@ const LIVE_FEED_SOURCE: SocialFeedSource = {
   scope: 'all',
 };
 
-type RealtimeRow = TraderFeedRow & {
-  realtimeEventId: string;
+export interface LiveFeedRow extends TraderFeedRow {
+  stableId: string;
+  sortTimestamp: number;
+  realtimeEventId?: string;
   feedItemId: string;
-  revision: number;
-};
+  revision?: number;
+}
+
+interface PendingEvent {
+  event: SocialFeedEvent;
+  animate: boolean;
+}
 
 const isCompleteTrade = (
   value: unknown,
@@ -63,6 +70,42 @@ export const mergeRealtimeFeedItem = (
   };
 };
 
+export const toLiveFeedRow = (row: TraderFeedRow): LiveFeedRow => ({
+  ...row,
+  stableId: row.item.id,
+  sortTimestamp: row.item.timestamp,
+  feedItemId: row.core.positionId,
+});
+
+export const applyRealtimeEventToRow = (
+  row: TraderFeedRow,
+  event: SocialFeedEvent,
+  previous: LiveFeedRow | undefined,
+  animate: boolean,
+): LiveFeedRow | null => {
+  const mergedCore = mergeRealtimeFeedItem(row.core, event);
+  const mappedItem = mapFeedItem(mergedCore);
+  if (!mappedItem) {
+    return null;
+  }
+
+  const stableId = previous?.stableId ?? row.item.id;
+
+  return {
+    item: {
+      ...mappedItem,
+      id: stableId,
+    },
+    core: mergedCore,
+    stableId,
+    sortTimestamp: previous?.sortTimestamp ?? row.item.timestamp,
+    realtimeEventId:
+      previous?.realtimeEventId ?? (animate ? event.eventId : undefined),
+    feedItemId: event.feedItemId,
+    revision: event.revision,
+  };
+};
+
 export interface UseLiveFeedResult {
   posts: SocialV1FeedPost[];
   isLoading: boolean;
@@ -89,8 +132,8 @@ export const useLiveFeed = ({
 }: UseLiveFeedOptions = {}): UseLiveFeedResult => {
   const isFocused = useIsFocused();
   const realtimeService = Engine.context.SocialRealtimeService;
-  const [realtimeRows, setRealtimeRows] = useState<RealtimeRow[]>([]);
-  const pendingEvents = useRef(new Map<string, SocialFeedEvent>());
+  const [realtimeRows, setRealtimeRows] = useState<LiveFeedRow[]>([]);
+  const pendingEvents = useRef(new Map<string, PendingEvent>());
 
   const feed = useSocialFeed(LIVE_FEED_SOURCE, {
     enabled: enabled && isFocused,
@@ -106,50 +149,49 @@ export const useLiveFeed = ({
   nearTopRef.current = nearTop;
 
   const [pendingNewCount, setPendingNewCount] = useState(0);
-  const queuePendingEvent = useCallback((event: SocialFeedEvent) => {
-    const previous = pendingEvents.current.get(event.feedItemId);
-    if (previous && previous.revision >= event.revision) {
-      return;
-    }
-    pendingEvents.current.set(event.feedItemId, event);
-    while (pendingEvents.current.size > LIVE_FEED_BUFFER_SIZE) {
-      const oldest = pendingEvents.current.keys().next().value;
-      if (oldest === undefined) {
-        break;
-      }
-      pendingEvents.current.delete(oldest);
-    }
-    setPendingNewCount(pendingEvents.current.size);
-  }, []);
-
-  const applyEvent = useCallback(
-    (event: SocialFeedEvent, row: TraderFeedRow) => {
-      const item = mapFeedItem(mergeRealtimeFeedItem(row.core, event));
-      if (!item) {
+  const queuePendingEvent = useCallback(
+    (event: SocialFeedEvent, animate: boolean) => {
+      const previous = pendingEvents.current.get(event.feedItemId);
+      if (previous && previous.event.revision >= event.revision) {
         return;
       }
+      pendingEvents.current.set(event.feedItemId, {
+        event,
+        animate: previous?.animate || animate,
+      });
+      while (pendingEvents.current.size > LIVE_FEED_BUFFER_SIZE) {
+        const oldest = pendingEvents.current.keys().next().value;
+        if (oldest === undefined) {
+          break;
+        }
+        pendingEvents.current.delete(oldest);
+      }
+      setPendingNewCount(pendingEvents.current.size);
+    },
+    [],
+  );
 
+  const applyEvent = useCallback(
+    (event: SocialFeedEvent, row: TraderFeedRow, animate: boolean) => {
       setRealtimeRows((existing) => {
         const previous = existing.find(
           (candidate) => candidate.feedItemId === event.feedItemId,
         );
-        if (previous && previous.revision >= event.revision) {
+        if (previous && previous.revision !== undefined) {
+          if (previous.revision >= event.revision) {
+            return existing;
+          }
+        }
+
+        const next = applyRealtimeEventToRow(row, event, previous, animate);
+        if (!next) {
           return existing;
         }
 
-        const next: RealtimeRow = {
-          item,
-          core: mergeRealtimeFeedItem(row.core, event),
-          realtimeEventId: event.eventId,
-          feedItemId: event.feedItemId,
-          revision: event.revision,
-        };
         return [
           next,
           ...existing.filter(
-            (candidate) =>
-              candidate.feedItemId !== event.feedItemId &&
-              candidate.item.id !== item.id,
+            (candidate) => candidate.feedItemId !== event.feedItemId,
           ),
         ].slice(0, LIVE_FEED_BUFFER_SIZE);
       });
@@ -163,20 +205,20 @@ export const useLiveFeed = ({
         return;
       }
 
-      if (pausedRef.current || !nearTopRef.current) {
-        queuePendingEvent(event);
-        return;
-      }
-
       const row = rowsRef.current.find(
         (candidate) => candidate.core.positionId === event.feedItemId,
       );
-      if (row) {
-        applyEvent(event, row);
+
+      if (pausedRef.current || !nearTopRef.current) {
+        queuePendingEvent(event, !row);
         return;
       }
 
-      queuePendingEvent(event);
+      if (row) {
+        applyEvent(event, row, false);
+        return;
+      }
+      queuePendingEvent(event, true);
       refresh().catch(() => undefined);
     },
     [applyEvent, queuePendingEvent, refresh],
@@ -210,14 +252,14 @@ export const useLiveFeed = ({
     ) {
       return;
     }
-    for (const [feedItemId, event] of pendingEvents.current) {
+    for (const [feedItemId, pending] of pendingEvents.current) {
       const row = feed.rows.find(
         (candidate) => candidate.core.positionId === feedItemId,
       );
       if (!row) {
         continue;
       }
-      applyEvent(event, row);
+      applyEvent(pending.event, row, pending.animate);
       pendingEvents.current.delete(feedItemId);
     }
     setPendingNewCount(pendingEvents.current.size);
@@ -225,11 +267,14 @@ export const useLiveFeed = ({
 
   const rows = useMemo(() => {
     const byPositionId = new Map(
-      feed.rows.map((row) => [row.core.positionId, row]),
+      feed.rows.map((row) => {
+        const liveRow = toLiveFeedRow(row);
+        return [liveRow.core.positionId, liveRow] as const;
+      }),
     );
     realtimeRows.forEach((row) => byPositionId.set(row.core.positionId, row));
     return [...byPositionId.values()]
-      .sort((a, b) => b.item.timestamp - a.item.timestamp)
+      .sort((a, b) => b.sortTimestamp - a.sortTimestamp)
       .slice(0, LIVE_FEED_BUFFER_SIZE);
   }, [feed.rows, realtimeRows]);
 
@@ -239,7 +284,13 @@ export const useLiveFeed = ({
   );
   const realtimeEventIds = useMemo(
     () =>
-      new Map(realtimeRows.map((row) => [row.item.id, row.realtimeEventId])),
+      new Map(
+        realtimeRows.flatMap((row) =>
+          row.realtimeEventId
+            ? [[row.stableId, row.realtimeEventId] as const]
+            : [],
+        ),
+      ),
     [realtimeRows],
   );
 
