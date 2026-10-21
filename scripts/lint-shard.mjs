@@ -25,11 +25,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const require = createRequire(import.meta.url);
-const eslintRoot = path.dirname(require.resolve('eslint/package.json'));
-const { FileEnumerator } = require(
-  path.join(eslintRoot, 'lib/cli-engine/file-enumerator.js'),
-);
-const { ESLint } = require('eslint');
+
+let eslintApis;
+
+/**
+ * ESLint loads on first enumeration or lint. --help, -h, and --self-test
+ * return before this, so they run without node_modules present.
+ */
+function loadEslintApis() {
+  if (!eslintApis) {
+    const eslintRoot = path.dirname(require.resolve('eslint/package.json'));
+    eslintApis = {
+      FileEnumerator: require(
+        path.join(eslintRoot, 'lib/cli-engine/file-enumerator.js'),
+      ).FileEnumerator,
+      ESLint: require('eslint').ESLint,
+    };
+  }
+  return eslintApis;
+}
 
 const LINT_PATTERNS = ['**/*.{js,ts,tsx}'];
 
@@ -38,6 +52,7 @@ const LINT_PATTERNS = ['**/*.{js,ts,tsx}'];
  * @returns {string[]} Absolute paths ESLint would lint for LINT_PATTERNS.
  */
 export function listLintFiles(cwd) {
+  const { FileEnumerator } = loadEslintApis();
   const enumerator = new FileEnumerator({
     cwd,
     // null matches the CLI: the glob selects extensions, not --ext.
@@ -178,6 +193,7 @@ function parseArgs(argv) {
 }
 
 async function lintPaths(cwd, files) {
+  const { ESLint } = loadEslintApis();
   const eslint = new ESLint({
     cwd,
     cache: true,
@@ -196,15 +212,16 @@ async function lintPaths(cwd, files) {
 
 /**
  * Yarn binary for the messenger check.
- * `yarn <script>` sets npm_execpath to the running Yarn. A direct node
- * invocation uses yarnPath from .yarnrc.yml, so a Yarn bump does not require
- * editing this file.
+ * Trust npm_execpath only when its basename matches /yarn/i. Yarn sets that
+ * variable to its own binary. npm and node set it to their binaries, and
+ * spawning those for messenger-action-types:check fails. Any other value
+ * uses yarnPath from .yarnrc.yml, so a Yarn bump needs no edit here.
  * @param {string} cwd
  * @returns {string}
  */
 function resolveYarnBinary(cwd) {
   const fromEnv = process.env.npm_execpath;
-  if (fromEnv) {
+  if (fromEnv && /yarn/i.test(path.basename(fromEnv))) {
     return fromEnv;
   }
   const yarnrcPath = path.join(cwd, '.yarnrc.yml');
