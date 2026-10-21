@@ -83,6 +83,10 @@ export const getVisiblePendingNewCount = (
   nearTop: boolean,
 ): number => (paused || !nearTop ? pendingNewCount : 0);
 
+export const shouldDeferPendingNewRow = (
+  pending: Pick<PendingEvent, 'animate'> | undefined,
+): boolean => pending?.animate === true;
+
 export const applyRealtimeEventToRow = (
   row: TraderFeedRow,
   event: SocialFeedEvent,
@@ -272,17 +276,23 @@ export const useLiveFeed = ({
   }, [applyEvent, feed.rows, nearTop, paused]);
 
   const rows = useMemo(() => {
-    const byPositionId = new Map(
-      feed.rows.map((row) => {
-        const liveRow = toLiveFeedRow(row);
-        return [liveRow.core.positionId, liveRow] as const;
-      }),
-    );
+    const byPositionId = new Map<string, LiveFeedRow>();
+    feed.rows.forEach((row) => {
+      if (
+        pendingNewCount > 0 &&
+        shouldDeferPendingNewRow(pendingEvents.current.get(row.core.positionId))
+      ) {
+        return;
+      }
+
+      const liveRow = toLiveFeedRow(row);
+      byPositionId.set(liveRow.core.positionId, liveRow);
+    });
     realtimeRows.forEach((row) => byPositionId.set(row.core.positionId, row));
     return [...byPositionId.values()]
       .sort((a, b) => b.sortTimestamp - a.sortTimestamp)
       .slice(0, LIVE_FEED_BUFFER_SIZE);
-  }, [feed.rows, realtimeRows]);
+  }, [feed.rows, pendingNewCount, realtimeRows]);
 
   const posts = useMemo(
     () => toSocialFeedPosts(rows, feed.dataUpdatedAt ?? Date.now()),

@@ -8,6 +8,7 @@ import {
   applyRealtimeEventToRow,
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
+  shouldDeferPendingNewRow,
   toLiveFeedRow,
 } from './useLiveFeed';
 
@@ -116,5 +117,11 @@ describe('mergeRealtimeFeedItem', () => {
     expect(getVisiblePendingNewCount(1, false, true)).toBe(0);
     expect(getVisiblePendingNewCount(1, true, true)).toBe(1);
     expect(getVisiblePendingNewCount(1, false, false)).toBe(1);
+  });
+
+  it('defers the HTTP row while a new realtime item is pending', () => {
+    expect(shouldDeferPendingNewRow({ animate: true })).toBe(true);
+    expect(shouldDeferPendingNewRow({ animate: false })).toBe(false);
+    expect(shouldDeferPendingNewRow(undefined)).toBe(false);
   });
 });
