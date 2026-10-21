@@ -35,12 +35,8 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';

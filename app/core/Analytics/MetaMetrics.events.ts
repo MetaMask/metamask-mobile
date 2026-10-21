@@ -444,6 +444,9 @@ enum EVENT_NAME {
   EDIT_SPEND_LIMIT_OPENED = 'Edit Spend Limit Opened',
   TOKEN_IMPORTED = 'Custom Token Imported',
 
+  // Limit/Recurring Swaps
+  ADVANCED_ORDER_PAGE_VIEWED = 'Advanced Order Page Viewed',
+
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
@@ -1832,8 +1835,13 @@ const events = {
   SECURITY_PAGE_CTA_CLICKED: generateOpt(EVENT_NAME.SECURITY_PAGE_CTA_CLICKED),
   SECURITY_PAGE_DISMISSED: generateOpt(EVENT_NAME.SECURITY_PAGE_DISMISSED),
 
+  // Limit/Recurring Swaps
+  ADVANCED_ORDER_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ADVANCED_ORDER_PAGE_VIEWED,
+  ),
+
   // Bridge
-  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED),
   SWAPBRIDGE_STATUS_MODAL_VIEWED: generateOpt(
     EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_VIEWED,
   ),

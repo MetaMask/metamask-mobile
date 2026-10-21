@@ -45,7 +45,6 @@ import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOpt
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
-import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
 import LimitOrderDetails from '../../../components/LimitOrderDetails';
