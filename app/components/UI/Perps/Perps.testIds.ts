@@ -498,7 +498,6 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   SOCIAL_TABS: 'perps-market-details-social-tabs',
   FEED_TAB_CONTENT: 'perps-market-details-feed-tab-content',
   TOP_TRADERS_TAB_CONTENT: 'perps-market-details-top-traders-tab-content',
-  LIVE_TRADES_TAB_CONTENT: 'perps-market-details-live-trades-tab-content',
   ABOUT_SECTION: 'perps-market-details-about-section',
   ABOUT_DESCRIPTION: 'perps-market-details-about-description',
   ABOUT_READ_MORE: 'perps-market-details-about-read-more',

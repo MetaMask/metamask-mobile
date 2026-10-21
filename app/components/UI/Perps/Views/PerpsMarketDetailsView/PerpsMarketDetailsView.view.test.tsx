@@ -1413,7 +1413,7 @@ describe('PerpsMarketDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the Social Live trades component on Live trades and keeps the page scrollable', async () => {
+    it('does not offer Live trades, so no fixture trades reach the market page', async () => {
       setupLeaderboardApiMock({ tokenFeedItems: [ethPost] });
 
       renderPerpsMarketDetailsView({
@@ -1421,16 +1421,17 @@ describe('PerpsMarketDetailsView', () => {
         socialEnabled: true,
       });
 
-      fireEvent.press(
-        await screen.findByTestId(
-          getPerpsMarketDetailsTabSelector('live_trades'),
-        ),
-      );
-
       expect(
-        await screen.findByTestId(LiveTradesViewSelectorsIDs.CONTAINER),
+        await screen.findByTestId(
+          getPerpsMarketDetailsTabSelector('top_traders'),
+        ),
       ).toBeOnTheScreen();
-      expect(screen.queryByTestId(statsSectionTestId)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(getPerpsMarketDetailsTabSelector('live_trades')),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(LiveTradesViewSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('shows the empty message on Top traders when there are no traders', async () => {
@@ -1449,6 +1450,9 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(
         await screen.findByText(strings('perps.market.top_traders_empty')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.market.top_traders_scope')),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SEE_MORE),

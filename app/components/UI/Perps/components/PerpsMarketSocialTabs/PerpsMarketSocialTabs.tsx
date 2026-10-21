@@ -1,10 +1,14 @@
 import React, { useCallback, useMemo, useState } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   FilterButton,
   FilterButtonGroup,
   SectionDivider,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
@@ -22,11 +26,10 @@ import {
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
 } from '../../Perps.testIds';
-import LiveTradesView from '../../../../Views/SocialLeaderboard/LiveTradesView';
 import PerpsSocialTrending from '../PerpsSocialFeedSection/PerpsSocialTrending';
 import PerpsSocialTopTraders from '../PerpsSocialFeedSection/PerpsSocialTopTraders';
 
-const TABS = ['overview', 'feed', 'live_trades', 'top_traders'] as const;
+const TABS = ['overview', 'feed', 'top_traders'] as const;
 const FEED_POST_COUNT = 5;
 const TOP_TRADERS_LIMIT = 10;
 const TOP_TRADERS_TIMEFRAMES = ['7d', '30d'] as const;
@@ -38,11 +41,15 @@ interface PerpsMarketSocialTabsProps {
   /** Raw market symbol (`BTC`, `xyz:NVDA`); the social perp feed keys on it exactly. */
   symbol: string;
   overview: React.ReactNode;
+  onOverviewLayout?: (event: LayoutChangeEvent) => void;
+  onOverviewVisibilityChange?: (isVisible: boolean) => void;
 }
 
 const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   symbol,
   overview,
+  onOverviewLayout,
+  onOverviewVisibilityChange,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
@@ -66,6 +73,7 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
         return;
       }
       setActiveIndex(index);
+      onOverviewVisibilityChange?.(TABS[index] === 'overview');
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
@@ -75,7 +83,7 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
         [PERPS_EVENT_PROPERTY.ASSET]: symbol,
       });
     },
-    [activeIndex, symbol, track],
+    [activeIndex, onOverviewVisibilityChange, symbol, track],
   );
 
   const handleOpenSocial = useCallback(() => {
@@ -94,7 +102,9 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
         testID={PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS}
       />
       {activeTab === 'overview' ? (
-        <Box twClassName="pt-3">{overview}</Box>
+        <Box twClassName="pt-3" onLayout={onOverviewLayout}>
+          {overview}
+        </Box>
       ) : null}
       {activeTab === 'feed' ? (
         <Box
@@ -107,13 +117,6 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
             source={SOURCE}
             onSeeMorePress={handleOpenSocial}
           />
-        </Box>
-      ) : null}
-      {activeTab === 'live_trades' ? (
-        <Box
-          testID={PerpsMarketDetailsViewSelectorsIDs.LIVE_TRADES_TAB_CONTENT}
-        >
-          <LiveTradesView />
         </Box>
       ) : null}
       {activeTab === 'top_traders' ? (
@@ -140,6 +143,13 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
               ))}
             </FilterButtonGroup>
           </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="px-4 pb-3"
+          >
+            {strings('perps.market.top_traders_scope')}
+          </Text>
           <PerpsSocialTopTraders
             limit={TOP_TRADERS_LIMIT}
             timeframe={timeframe}

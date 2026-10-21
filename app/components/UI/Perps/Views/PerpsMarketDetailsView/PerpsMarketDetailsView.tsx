@@ -385,6 +385,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const {
     hasDescription: hasAboutDescription,
     handleAboutLayout,
+    handleAboutContainerLayout,
+    setAboutTrackingEnabled,
     handleAboutScroll,
   } = usePerpsMarketAboutTracking({
     symbol: market?.symbol,
@@ -2199,6 +2201,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               <PerpsHomeSectionList sections={positionSections} />
               <PerpsMarketSocialTabs
                 symbol={market.symbol}
+                onOverviewLayout={handleAboutContainerLayout}
+                onOverviewVisibilityChange={setAboutTrackingEnabled}
                 overview={
                   <PerpsHomeSectionList
                     sections={[

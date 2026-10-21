@@ -2966,14 +2966,14 @@
       "tabs": {
         "overview": "Overview",
         "feed": "Feed",
-        "live_trades": "Live trades",
         "top_traders": "Top traders"
       },
       "top_traders_timeframe": {
         "7d": "This week",
         "30d": "This month"
       },
-      "top_traders_empty": "No traders for this market yet",
+      "top_traders_scope": "Ranked across all Perps markets",
+      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
