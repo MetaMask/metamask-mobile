@@ -171,7 +171,7 @@ const MoneyBalanceSummary = ({
           testID: MoneyBalanceSummaryTestIds.AMOUNT,
         }}
         bottomLabel={apyLabel}
-        bottomLabelWrapperProps={{ marginTop: 1 }}
+        bottomLabelWrapperProps={{ twClassName: 'mt-1' }}
       />
     );
   }
