@@ -114,19 +114,6 @@ const SERVICE_NAME = 'RewardsDataService';
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
-// Temporary development-only response for demonstrating the trading-fee grant
-// UI before GET /trading-fee-grants is available.
-const MOCK_TRADING_FEE_GRANT_RESPONSE: TradingFeeGrantResponseDto = {
-  grant: {
-    programId: 'perps-builder-fee-experiment',
-    hyperliquid: {
-      builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
-      builderFeeBips: '2.5',
-    },
-    expiresAt: '2026-12-01T00:00:00.000Z',
-  },
-};
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

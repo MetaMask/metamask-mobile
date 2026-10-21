@@ -5,7 +5,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 
 interface PerpsFeeDiscountLabelProps {
@@ -22,7 +22,7 @@ const PerpsFeeDiscountLabel = ({
   }
 
   if (feeDiscountKind === 'vip') {
-    return <RewardsVipBadge />;
+    return <MembershipVipBadge />;
   }
 
   return (
