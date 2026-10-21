@@ -198,9 +198,10 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'NAVIGATE',
+        type: 'RESET',
         payload: expect.objectContaining({
-          name: Routes.RAMP.VBA_DETAILS,
+          index: 1,
+          routes: [callerRoute, { name: Routes.RAMP.VBA_DETAILS }],
         }),
       }),
     );
@@ -460,7 +461,7 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
-  it('pushes the completed account on the same stack as onboarding', () => {
+  it('keeps the caller under the completed account', () => {
     const onboardingDispatch = jest.fn();
     const parentDispatch = jest.fn();
     const onboardingNavigation = {
@@ -493,9 +494,13 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(parentDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'NAVIGATE',
+        type: 'RESET',
         payload: expect.objectContaining({
-          name: Routes.RAMP.VBA_DETAILS,
+          index: 1,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
         }),
       }),
     );

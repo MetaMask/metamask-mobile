@@ -75,6 +75,14 @@ describe('useMyProfile', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('does not hydrate the controller profile when disabled', () => {
+    const { result } = renderHook(() => useMyProfile({ enabled: false }));
+
+    expect(mockFetchAndUpdateProfile).not.toHaveBeenCalled();
+    expect(result.current.profile?.handle).toBe('alice');
+    expect(result.current.isLoading).toBe(false);
+  });
+
   it('treats a missing profile as empty instead of an error', async () => {
     mockFetchAndUpdateProfile.mockRejectedValue(
       new Error('GET_PROFILE_FAILED: 404'),

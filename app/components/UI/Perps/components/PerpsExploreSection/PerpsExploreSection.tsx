@@ -49,7 +49,12 @@ import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import PerpsMarketList from '../PerpsMarketList';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
+import PerpsWatchlistMarkets from '../PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import { filterMarketsByCategory } from '../../utils/marketCategoryMapping';
+import {
+  getSuggestedWatchlistMarkets,
+  SUGGESTED_WATCHLIST_LIMIT,
+} from '../../utils/marketUtils';
 import { isRecentlyListed } from '../../utils/time';
 import { buildExploreTabs } from './buildExploreTabs';
 import {
@@ -159,6 +164,15 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
     () => markets.filter((market) => watchlistSymbols.includes(market.symbol)),
     [markets, watchlistSymbols],
   );
+
+  // Same suggested rows as the market-list watchlist, until the watchlist
+  // reaches the preview size. A full preview shows only saved markets.
+  const suggestedMarkets = useMemo(() => {
+    if (watchlistSymbols.length >= SUGGESTED_WATCHLIST_LIMIT) {
+      return [];
+    }
+    return getSuggestedWatchlistMarkets(markets, watchlistSymbols);
+  }, [markets, watchlistSymbols]);
 
   // Stay on the skeleton until markets (and therefore the watchlist derived
   // from them) have loaded, so the default never paints Crypto and then
@@ -351,19 +365,33 @@ const PerpsExploreSection: React.FC<PerpsExploreSectionProps> = ({
         <PerpsRowSkeleton count={EXPLORE_MARKET_LIMIT} />
       ) : (
         <>
-          <PerpsMarketList
-            markets={visibleMarkets}
-            onMarketPress={handleMarketPress}
-            sortBy={MARKET_SORTING_CONFIG.SortFields.Volume}
-            showBadge={false}
-            emptyMessage={
-              activeTab === EXPLORE_WATCHLIST_TAB_ID
-                ? strings('perps.no_favorites_found')
-                : undefined
-            }
-            filterKey={activeTab}
-            testID={`${TEST_ID}-list`}
-          />
+          {activeTab === EXPLORE_WATCHLIST_TAB_ID &&
+          (visibleMarkets.length > 0 || suggestedMarkets.length > 0) ? (
+            <PerpsWatchlistMarkets
+              markets={visibleMarkets}
+              suggestedMarkets={suggestedMarkets}
+              showHeader={false}
+              showLeadingDivider={false}
+              enableShowMore={false}
+              onMarketPress={handleMarketPress}
+              displayMetric={MARKET_SORTING_CONFIG.SortFields.Volume}
+              testID={`${TEST_ID}-watchlist`}
+            />
+          ) : (
+            <PerpsMarketList
+              markets={visibleMarkets}
+              onMarketPress={handleMarketPress}
+              sortBy={MARKET_SORTING_CONFIG.SortFields.Volume}
+              showBadge={false}
+              emptyMessage={
+                activeTab === EXPLORE_WATCHLIST_TAB_ID
+                  ? strings('perps.no_favorites_found')
+                  : undefined
+              }
+              filterKey={activeTab}
+              testID={`${TEST_ID}-list`}
+            />
+          )}
           <Box accessible={false} twClassName="px-4 pt-3">
             <Button
               variant={ButtonVariant.Secondary}

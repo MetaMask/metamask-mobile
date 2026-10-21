@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import type { Position } from '@metamask/perps-controller';
+import { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
 import {
   getAdjustMarginOptions,
   getRedesignedConfirmationsHeaderOptions,
@@ -74,6 +75,23 @@ describe('getRedesignedConfirmationsHeaderOptions', () => {
         contentStyle: { backgroundColor: 'transparent' },
       }),
     );
+  });
+
+  it('covers the adjust-margin sheet with the screen background', () => {
+    const screenBackground = 'screen-background';
+    const options = getRedesignedConfirmationsHeaderOptions(
+      { launchedFrom: ConfirmationLaunchSource.PerpsAdjustMargin },
+      screenBackground,
+    );
+
+    expect(options.presentation).toBe('fullScreenModal');
+    expect(options.headerTransparent).toBe(false);
+    expect(options.scrollEdgeEffects).toEqual({ top: 'hidden' });
+    expect(options.headerShown).toBe(true);
+    expect(options.contentStyle).toEqual({
+      backgroundColor: screenBackground,
+    });
+    expect(options.headerStyle).toEqual({ backgroundColor: screenBackground });
   });
 
   it('defaults to showing perps header when no params provided', () => {

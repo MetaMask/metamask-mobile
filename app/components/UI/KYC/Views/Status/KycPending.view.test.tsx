@@ -103,16 +103,6 @@ const OnboardingNavigator = () => (
   </OnboardingStack.Navigator>
 );
 
-const RampNavigator = () => (
-  <RampStack.Navigator screenOptions={{ headerShown: false }}>
-    <RampStack.Screen
-      name={Routes.RAMP.VBA_ONBOARDING}
-      component={OnboardingNavigator}
-    />
-    <RampStack.Screen name={Routes.RAMP.VBA_DETAILS} component={detailsProbe} />
-  </RampStack.Navigator>
-);
-
 const MoneyHomeNavigator = () => (
   <MoneyHomeStack.Navigator screenOptions={{ headerShown: false }}>
     <MoneyHomeStack.Screen
@@ -129,6 +119,20 @@ const MoneyRootNavigator = () => (
       component={MoneyHomeNavigator}
     />
   </MoneyRootStack.Navigator>
+);
+
+const RampNavigator = () => (
+  <RampStack.Navigator
+    initialRouteName={Routes.RAMP.VBA_ONBOARDING}
+    screenOptions={{ headerShown: false }}
+  >
+    <RampStack.Screen name={Routes.HOME_TABS} component={MoneyRootNavigator} />
+    <RampStack.Screen
+      name={Routes.RAMP.VBA_ONBOARDING}
+      component={OnboardingNavigator}
+    />
+    <RampStack.Screen name={Routes.RAMP.VBA_DETAILS} component={detailsProbe} />
+  </RampStack.Navigator>
 );
 
 const PendingWithHistory = () => (
