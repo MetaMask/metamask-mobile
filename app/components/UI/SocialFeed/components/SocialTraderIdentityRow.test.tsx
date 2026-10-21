@@ -22,7 +22,7 @@ jest.mock('./TraderAvatar', () => {
   };
 });
 
-const dolphinAuthor = (): SocialV1FeedAuthor => ({
+const authorWithStats = (): SocialV1FeedAuthor => ({
   id: 'profile-alice',
   username: 'cented',
   address: '0x1111111111111111111111111111111111111111',
@@ -47,11 +47,11 @@ describe('SocialTraderIdentityRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the handle, invented verified badge, cohort, and 30-day P&L', () => {
+  it('renders the handle, invented verified badge, and 30-day P&L', () => {
     renderWithProvider(
       <SocialFeedSurfaceProvider showMockedFields>
         <SocialTraderIdentityRow
-          author={dolphinAuthor()}
+          author={authorWithStats()}
           handle="cented"
           imageUrl={null}
           timestampMs={Date.now()}
@@ -68,9 +68,7 @@ describe('SocialTraderIdentityRow', () => {
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
     ).toBeOnTheScreen();
     expect(screen.getByText('*')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.COHORT),
-    ).toHaveTextContent('🐬');
+    expect(screen.queryByText('🐬')).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toHaveTextContent('$50K P&L (30d)');
@@ -79,7 +77,7 @@ describe('SocialTraderIdentityRow', () => {
   it('omits the invented verified badge when the surface has not opted in', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
-        author={dolphinAuthor()}
+        author={authorWithStats()}
         handle="cented"
         imageUrl={null}
         timestampMs={Date.now()}
@@ -97,7 +95,7 @@ describe('SocialTraderIdentityRow', () => {
     ).toHaveTextContent('cented');
   });
 
-  it('omits the stat line and cohort when the trader has no stats', () => {
+  it('omits the stat line when the trader has no stats', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
         author={authorWithoutStats()}
@@ -111,15 +109,12 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.COHORT),
-    ).toBeNull();
   });
 
   it('calls onMorePress from the overflow button', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
-        author={dolphinAuthor()}
+        author={authorWithStats()}
         handle="cented"
         timestampMs={Date.now()}
         recyclingKey="row-3"
@@ -139,7 +134,7 @@ describe('SocialTraderIdentityRow', () => {
 
     renderWithProvider(
       <SocialTraderIdentityRow
-        author={dolphinAuthor()}
+        author={authorWithStats()}
         handle="cented"
         timestampMs={Date.now()}
         recyclingKey="row-4"
@@ -157,7 +152,7 @@ describe('SocialTraderIdentityRow', () => {
   it('passes the profile id to the avatar', () => {
     renderWithProvider(
       <SocialTraderIdentityRow
-        author={dolphinAuthor()}
+        author={authorWithStats()}
         handle="cented"
         imageUrl={null}
         timestampMs={Date.now()}

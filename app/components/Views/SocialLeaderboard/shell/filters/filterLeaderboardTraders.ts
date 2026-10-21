@@ -1,24 +1,21 @@
-import { matchesShellTraderCohort } from './matchShellFilters';
+import { matchesShellFollowing } from './matchShellFilters';
 import type { SocialShellFilters } from './types';
 
-interface LeaderboardCohortTrader {
+interface LeaderboardFollowingTrader {
   isFollowing: boolean;
-  pnl30d?: number | null;
 }
 
 /**
- * Client-side Leaderboard cohort filter on the loaded page. Type and
- * timeframe already drive `useTopTraders`. Verified is a no-op leftover —
- * that chip is hidden until a real verified field exists.
+ * Client-side Leaderboard following filter on the loaded page. Type and
+ * timeframe already drive `useTopTraders`.
  */
-export const filterLeaderboardTraders = <T extends LeaderboardCohortTrader>(
+export const filterLeaderboardTraders = <T extends LeaderboardFollowingTrader>(
   traders: readonly T[],
   filters: SocialShellFilters,
 ): T[] =>
   traders.filter((trader) =>
-    matchesShellTraderCohort({
-      traderCohort: filters.traderCohort,
-      pnl30d: trader.pnl30d,
+    matchesShellFollowing({
+      following: filters.following,
       isFollowing: trader.isFollowing,
     }),
   );

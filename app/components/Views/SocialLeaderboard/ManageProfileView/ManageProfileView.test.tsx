@@ -59,7 +59,6 @@ const profile: UseMyProfileResult['profile'] = {
   handle: 'giga-whale.metamask',
   bio: 'Trading in the open.',
   imageUrl: null,
-  rankingTag: 'whale',
   xHandle: 'giga-whale',
   connectedToX: true,
   followerCount: 0,

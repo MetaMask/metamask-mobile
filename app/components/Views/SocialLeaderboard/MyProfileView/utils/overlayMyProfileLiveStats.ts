@@ -173,10 +173,7 @@ export const overlayMyProfileLiveStats = (
     : localSheet;
 
   return {
-    rankingTag: (live?.rankingTag ?? localWithMocks.rankingTag) as
-      | ProfileRankingTag
-      | null
-      | undefined,
+    rankingTag: live?.rankingTag as ProfileRankingTag | null | undefined,
     followerCount: live
       ? live.followerCount
       : (localWithMocks.followerCount ?? 0),

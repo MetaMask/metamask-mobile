@@ -11,7 +11,7 @@ const minutesAgoSec = (minutes: number) =>
 
 /**
  * Static Live trades fixtures until the websocket stream lands. Rows mirror
- * the V1 compact-card screenshots so cohort / asset / market-cap filters
+ * the V1 compact-card screenshots so following / asset / market-cap filters
  * are exercisable.
  */
 export const MOCK_LIVE_TRADES_CORE = [

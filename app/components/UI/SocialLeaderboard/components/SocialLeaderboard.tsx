@@ -17,7 +17,7 @@ import {
 } from '../../../Views/SocialLeaderboard/analytics';
 import { useFollowWithNotificationSetup } from '../../../Views/SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 import { navigateToSocialV1Profile } from '../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
-import { matchesShellTraderCohort } from '../../../Views/SocialLeaderboard/shell/filters/matchShellFilters';
+import { matchesShellFollowing } from '../../../Views/SocialLeaderboard/shell/filters/matchShellFilters';
 import {
   SOCIAL_V1_TRADER_ROW_HEIGHT,
   SocialV1TraderRow,
@@ -105,7 +105,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const canAnimate = getHardwareTier() !== 'LOW';
   const isOffline = networkTier === 'NONE';
 
-  const { timeframe, ranking, cohort } = filters;
+  const { timeframe, ranking, following } = filters;
   const sort = toLeaderboardSort(ranking);
   const assetClass = getLeaderboardAssetClass(source);
 
@@ -155,14 +155,13 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     () =>
       rowsWithoutViewer
         .filter((trader) =>
-          matchesShellTraderCohort({
-            traderCohort: cohort,
-            pnl30d: trader.pnl30d,
+          matchesShellFollowing({
+            following,
             isFollowing: trader.isFollowing,
           }),
         )
         .slice(0, limit),
-    [cohort, limit, rowsWithoutViewer],
+    [following, limit, rowsWithoutViewer],
   );
 
   const skeletonKeys = useMemo(() => {

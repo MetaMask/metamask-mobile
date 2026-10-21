@@ -59,14 +59,14 @@ describe('useSocialShellFilters', () => {
       result.current.openSheet('liveTrades');
     });
     act(() => {
-      result.current.updateDraft({ traderCohort: 'whale' });
+      result.current.updateDraft({ following: 'following' });
     });
     act(() => {
       result.current.closeSheet();
     });
 
     expect(result.current.openTab).toBeNull();
-    expect(result.current.applied.liveTrades.traderCohort).toBe('all');
+    expect(result.current.applied.liveTrades.following).toBe('all');
     expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
   });
 

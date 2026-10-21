@@ -58,43 +58,19 @@ describe('filterLiveTrades', () => {
     marketCapUsd: null,
     side: undefined,
   });
-  const shrimp = row({
-    id: 'shrimp',
-    traderId: 'shrimp-trader',
-    author: {
-      id: 'shrimp-trader',
-      username: 'shrimp',
-      winRatePercent: 40,
-      pnl30d: 2_500,
-    },
-  });
-  const whale = row({
-    id: 'whale',
-    traderId: 'whale-trader',
-    author: {
-      id: 'whale-trader',
-      username: 'whale',
-      winRatePercent: 80,
-      pnl30d: 220_000,
-    },
-  });
 
-  const all = [spot, perp, shrimp, whale];
+  const all = [spot, perp];
 
   it('returns every row for default filters', () => {
     const result = filterLiveTrades(all, DEFAULT_FILTERS);
 
-    expect(result).toHaveLength(4);
+    expect(result).toHaveLength(2);
   });
 
   it('keeps only spot rows for the tokens asset chip', () => {
     const result = filterLiveTrades(all, filters({ type: 'tokens' }));
 
-    expect(result.map((item) => item.id)).toStrictEqual([
-      'spot',
-      'shrimp',
-      'whale',
-    ]);
+    expect(result.map((item) => item.id)).toStrictEqual(['spot']);
   });
 
   it('keeps only perp rows for the perps asset chip', () => {
@@ -103,26 +79,12 @@ describe('filterLiveTrades', () => {
     expect(result.map((item) => item.id)).toStrictEqual(['perp']);
   });
 
-  it('keeps followed traders for the following cohort', () => {
-    const result = filterLiveTrades(
-      all,
-      filters({ traderCohort: 'following' }),
-      ['spot-trader'],
-    );
+  it('keeps followed traders when following is selected', () => {
+    const result = filterLiveTrades(all, filters({ following: 'following' }), [
+      'spot-trader',
+    ]);
 
     expect(result.map((item) => item.id)).toStrictEqual(['spot']);
-  });
-
-  it('keeps shrimp-band traders from 30-day P&L', () => {
-    const result = filterLiveTrades(all, filters({ traderCohort: 'shrimp' }));
-
-    expect(result.map((item) => item.id)).toStrictEqual(['shrimp']);
-  });
-
-  it('keeps whale-band traders from 30-day P&L', () => {
-    const result = filterLiveTrades(all, filters({ traderCohort: 'whale' }));
-
-    expect(result.map((item) => item.id)).toStrictEqual(['whale']);
   });
 
   it('drops spot rows whose market cap is outside the slider', () => {
@@ -152,6 +114,6 @@ describe('filterLiveTrades', () => {
       }),
     );
 
-    expect(result).toHaveLength(4);
+    expect(result).toHaveLength(2);
   });
 });

@@ -75,7 +75,7 @@ describe('LeaderboardShellTabPage', () => {
         source: { kind: 'all', assetClass: 'all' },
         location: 'social_leaderboard',
         showViewerRow: true,
-        filters: { timeframe: '7d', ranking: 'pnl', cohort: 'all' },
+        filters: { timeframe: '7d', ranking: 'pnl', following: 'all' },
       }),
     );
     expect(
@@ -91,7 +91,7 @@ describe('LeaderboardShellTabPage', () => {
           ...DEFAULT_FILTERS,
           type: 'perps',
           timeframe: '30d',
-          traderCohort: 'whale',
+          following: 'following',
         }}
       />,
     );
@@ -99,7 +99,7 @@ describe('LeaderboardShellTabPage', () => {
     expect(lastLeaderboardProps()).toEqual(
       expect.objectContaining({
         source: { kind: 'all', assetClass: 'perps' },
-        filters: { timeframe: '30d', ranking: 'pnl', cohort: 'whale' },
+        filters: { timeframe: '30d', ranking: 'pnl', following: 'following' },
       }),
     );
   });

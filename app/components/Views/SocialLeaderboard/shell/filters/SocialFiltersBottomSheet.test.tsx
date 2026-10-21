@@ -285,7 +285,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
-  it('shows the Following cohort chip on Live trades and Leaderboard but not Following', () => {
+  it('shows the Following chip on Live trades and Leaderboard but not Following', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -296,7 +296,9 @@ describe('SocialFiltersBottomSheet', () => {
         onClose={jest.fn()}
       />,
     );
-    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+    expect(
+      screen.queryByTestId('social-filters-following-following'),
+    ).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -309,7 +311,7 @@ describe('SocialFiltersBottomSheet', () => {
       />,
     );
     expect(
-      screen.getByTestId('social-filters-cohort-following'),
+      screen.getByTestId('social-filters-following-following'),
     ).toBeOnTheScreen();
 
     rerender(
@@ -323,9 +325,11 @@ describe('SocialFiltersBottomSheet', () => {
       />,
     );
     expect(
-      screen.getByTestId('social-filters-cohort-following'),
+      screen.getByTestId('social-filters-following-following'),
     ).toBeOnTheScreen();
-    expect(screen.queryByTestId('social-filters-cohort-verified')).toBeNull();
+    expect(
+      screen.queryByTestId('social-filters-following-verified'),
+    ).toBeNull();
   });
 
   it('sizes Reset by its label and lets Apply take the remaining width', () => {
@@ -491,20 +495,5 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.queryByTestId('social-filters-verification-verified'),
     ).toBeNull();
-  });
-
-  it('omits KOL from Traders chips', () => {
-    render(
-      <SocialFiltersBottomSheet
-        tab="leaderboard"
-        draft={baseDraft}
-        onChange={jest.fn()}
-        onApply={jest.fn()}
-        onReset={jest.fn()}
-        onClose={jest.fn()}
-      />,
-    );
-
-    expect(screen.queryByTestId('social-filters-cohort-kol')).toBeNull();
   });
 });

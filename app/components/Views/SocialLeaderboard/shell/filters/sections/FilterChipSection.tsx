@@ -15,7 +15,7 @@ import { strings } from '../../../../../../../locales/i18n';
 export interface FilterChipOption<T extends string> {
   id: T;
   labelKey: string;
-  /** Optional emoji prefix rendered before the label (e.g. cohort icons). */
+  /** Optional emoji prefix rendered before the label. */
   leadingEmoji?: string;
 }
 

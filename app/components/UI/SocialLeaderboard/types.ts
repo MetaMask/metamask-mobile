@@ -7,7 +7,7 @@ import type {
   SocialTimeframe,
   V1LeaderboardRanking,
 } from '../../Views/SocialLeaderboard/components/Filters';
-import type { SocialTraderCohort } from '../../Views/SocialLeaderboard/shell/filters/types';
+import type { SocialFilterFollowing } from '../../Views/SocialLeaderboard/shell/filters/types';
 
 /**
  * A ranked trader with its display metric precomputed, so the value stays
@@ -21,14 +21,14 @@ export interface SocialLeaderboardFilters {
   timeframe: SocialTimeframe;
   /** What the list is ordered by. */
   ranking: V1LeaderboardRanking;
-  /** Client-side cohort filter over the loaded page. */
-  cohort: SocialTraderCohort;
+  /** Client-side following filter over the loaded page. */
+  following: SocialFilterFollowing;
 }
 
 export const DEFAULT_SOCIAL_LEADERBOARD_FILTERS: SocialLeaderboardFilters = {
   timeframe: '7d',
   ranking: 'pnl',
-  cohort: 'all',
+  following: 'all',
 };
 
 /**

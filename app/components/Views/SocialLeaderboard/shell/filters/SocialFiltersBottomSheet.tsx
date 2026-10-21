@@ -13,11 +13,8 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
-  COHORT_LABEL_KEY,
-  COHORT_LEADING_EMOJI,
-  COHORT_OPTIONS_FOLLOWING,
-  COHORT_OPTIONS_LEADERBOARD,
-  COHORT_OPTIONS_LIVE_TRADES,
+  FOLLOWING_LABEL_KEY,
+  FOLLOWING_OPTIONS,
   MARKET_CAP_RANGE,
   TIMEFRAME_LABEL_KEY,
   TIMEFRAME_OPTIONS,
@@ -38,8 +35,8 @@ import type {
   SocialFilterType,
   SocialFilterVerification,
   SocialRangeFilter,
+  SocialFilterFollowing,
   SocialShellFilters,
-  SocialTraderCohort,
 } from './types';
 import type { SocialShellTab } from '../types';
 
@@ -80,16 +77,6 @@ const formatMarketCapLabel = (value: SocialRangeFilter) =>
 const formatVolume24hLabel = (value: SocialRangeFilter) =>
   `$${value.min}M - $${value.max}M`;
 
-const cohortOptionsForTab = (tab: SocialShellTab): SocialTraderCohort[] => {
-  if (tab === 'leaderboard') {
-    return COHORT_OPTIONS_LEADERBOARD;
-  }
-  if (tab === 'liveTrades') {
-    return COHORT_OPTIONS_LIVE_TRADES;
-  }
-  return COHORT_OPTIONS_FOLLOWING;
-};
-
 /**
  * Unified Filters bottom sheet for the Social Bundle V1 shell.
  */
@@ -105,6 +92,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 
   const showTimeframe = tab === 'leaderboard';
   const showMarketCap = tab !== 'leaderboard';
+  const showFollowing = tab !== 'following';
   // TODO: show 24h volume once the feed / live payload (or API) carries token
   // 24h volume so the slider can filter rather than sit as chrome.
   const showVolume24h = false;
@@ -116,14 +104,13 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
     tab === 'leaderboard'
       ? 'social_leaderboard.shell.filters.section.asset_type'
       : 'social_leaderboard.shell.filters.section.type';
-  const cohortOptions = cohortOptionsForTab(tab);
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),
     [onChange],
   );
-  const handleCohortChange = useCallback(
-    (next: string) => onChange({ traderCohort: next as SocialTraderCohort }),
+  const handleFollowingChange = useCallback(
+    (next: string) => onChange({ following: next as SocialFilterFollowing }),
     [onChange],
   );
   const handleVerificationChange = useCallback(
@@ -152,14 +139,13 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
       })),
     [typeOptions],
   );
-  const cohortOptionObjects = useMemo(
+  const followingOptionObjects = useMemo(
     () =>
-      cohortOptions.map((id) => ({
+      FOLLOWING_OPTIONS.map((id) => ({
         id,
-        labelKey: COHORT_LABEL_KEY[id],
-        leadingEmoji: COHORT_LEADING_EMOJI[id],
+        labelKey: FOLLOWING_LABEL_KEY[id],
       })),
-    [cohortOptions],
+    [],
   );
   const verificationOptionObjects = useMemo(
     () =>
@@ -253,13 +239,15 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                     />
                   ) : null}
 
-                  <FilterChipSection<SocialTraderCohort>
-                    titleKey="social_leaderboard.shell.filters.section.trader_cohort"
-                    options={cohortOptionObjects}
-                    value={draft.traderCohort}
-                    onChange={handleCohortChange}
-                    testID="social-filters-cohort"
-                  />
+                  {showFollowing ? (
+                    <FilterChipSection<SocialFilterFollowing>
+                      titleKey="social_leaderboard.shell.filters.section.trader_cohort"
+                      options={followingOptionObjects}
+                      value={draft.following}
+                      onChange={handleFollowingChange}
+                      testID="social-filters-following"
+                    />
+                  ) : null}
 
                   {showTimeframe ? (
                     <FilterChipSection<SocialFilterTimeframe>

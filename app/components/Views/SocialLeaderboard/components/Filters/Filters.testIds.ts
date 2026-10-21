@@ -20,12 +20,6 @@ export const FilterOptionSheetSelectorsIDs = {
   CLOSE_BUTTON: 'filter-option-sheet-close-button',
 } as const;
 
-export const CohortFilterSelectorsIDs = {
-  SELECTOR: 'cohort-filter-selector',
-  SHEET: 'cohort-filter-sheet',
-  BACKDROP: 'cohort-filter-backdrop',
-} as const;
-
 export const RankingFilterSelectorsIDs = {
   SELECTOR: 'ranking-filter-selector',
   SHEET: 'ranking-filter-sheet',
@@ -46,9 +40,6 @@ export const getTimeframeFilterOptionTestId = (timeframe: string) =>
 
 export const getSortFilterOptionTestId = (sort: string) =>
   `sort-filter-option-${sort}`;
-
-export const getCohortFilterOptionTestId = (cohort: string) =>
-  `cohort-filter-option-${cohort}`;
 
 export const getRankingFilterOptionTestId = (ranking: string) =>
   `ranking-filter-option-${ranking}`;

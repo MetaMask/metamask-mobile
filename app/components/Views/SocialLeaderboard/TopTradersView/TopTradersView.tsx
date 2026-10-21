@@ -208,7 +208,7 @@ export interface TopTradersViewProps {
    */
   pinnedTypeFilter?: SocialTypeFilter;
   /**
-   * Social V1 leaderboard chrome: All types by default, trader-cohort chip,
+   * Social V1 leaderboard chrome: All types by default, following filter,
    * Profit/Volume ranking, and a single horizontal chip row.
    */
   useV1Filters?: boolean;
@@ -227,8 +227,7 @@ export interface TopTradersViewProps {
   revealPreviousOrder?: boolean;
   /**
    * Applied Custom filters from the V1 shell. Type and timeframe drive
-   * `useTopTraders`; shrimp / dolphin / whale / following filter the loaded
-   * page client-side. Verified is hidden until a real field exists.
+   * `useTopTraders`; following filters the loaded page client-side.
    */
   v1AppliedFilters?: SocialShellFilters;
   onOpenCustomFilters?: () => void;
@@ -428,7 +427,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     [isViewerTrader, traders, useV1Filters],
   );
 
-  const cohortFilteredTraders = useMemo(
+  const filteredTraders = useMemo(
     () =>
       useV1Filters && v1AppliedFilters
         ? filterLeaderboardTraders(traders, v1AppliedFilters)
@@ -439,11 +438,9 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const listTraders = useMemo(
     () =>
       useV1Filters && matchedViewer
-        ? cohortFilteredTraders.filter(
-            (trader) => trader.id !== matchedViewer.id,
-          )
-        : cohortFilteredTraders,
-    [cohortFilteredTraders, matchedViewer, useV1Filters],
+        ? filteredTraders.filter((trader) => trader.id !== matchedViewer.id)
+        : filteredTraders,
+    [filteredTraders, matchedViewer, useV1Filters],
   );
 
   const viewerRow = useMemo(() => {

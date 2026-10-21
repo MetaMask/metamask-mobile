@@ -5,7 +5,7 @@ import type {
   SocialFilterVerification,
   SocialRangeFilter,
   SocialShellFilters,
-  SocialTraderCohort,
+  SocialFilterFollowing,
 } from './types';
 import type { SocialShellTab } from '../types';
 import {
@@ -13,7 +13,6 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
-import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   SocialTimeframe,
   SocialTypeFilter,
@@ -39,7 +38,7 @@ export const VOLUME_24H_RANGE: SocialRangeFilter = {
 
 export const DEFAULT_FILTERS: SocialShellFilters = {
   type: 'all',
-  traderCohort: 'all',
+  following: 'all',
   verification: 'all',
   timeframe: '7d',
   network: 'all',
@@ -73,52 +72,12 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   predictions: 'social_leaderboard.shell.filters.type.predictions',
 };
 
-export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = [
-  'all',
-  'shrimp',
-  'dolphin',
-  'whale',
-];
+export const FOLLOWING_OPTIONS: SocialFilterFollowing[] = ['all', 'following'];
 
-export const COHORT_OPTIONS_LIVE_TRADES: SocialTraderCohort[] = [
-  'all',
-  'following',
-  'shrimp',
-  'dolphin',
-  'whale',
-];
-
-export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
-  'all',
-  'following',
-  'shrimp',
-  'dolphin',
-  'whale',
-  // TODO: add `verified` once the leaderboard payload has a real verified field
-  // (the row badge is mocked today).
-];
-
-/** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
-export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE_TRADES;
-
-/** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
-export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
-
-export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
+export const FOLLOWING_LABEL_KEY: Record<SocialFilterFollowing, string> = {
   all: 'social_leaderboard.shell.filters.trader_cohort.all',
   following: 'social_leaderboard.shell.filters.trader_cohort.following',
-  shrimp: 'social_leaderboard.shell.filters.trader_cohort.shrimp',
-  dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
-  whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
-  verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
 };
-
-export const COHORT_LEADING_EMOJI: Partial<Record<SocialTraderCohort, string>> =
-  {
-    shrimp: LEADERBOARD_COHORT_LEADING_EMOJI.shrimp,
-    dolphin: LEADERBOARD_COHORT_LEADING_EMOJI.dolphin,
-    whale: LEADERBOARD_COHORT_LEADING_EMOJI.whale,
-  };
 
 export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [
   'all',

@@ -25,9 +25,9 @@ const tabFiltersEqual = (
   a: SocialShellFilters,
   b: SocialShellFilters,
 ): boolean => {
-  const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
-  const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
-  if (a.type !== b.type || cohortA !== cohortB) {
+  const followingA = tab === 'following' ? 'all' : a.following;
+  const followingB = tab === 'following' ? 'all' : b.following;
+  if (a.type !== b.type || followingA !== followingB) {
     return false;
   }
   if (tab === 'leaderboard') {

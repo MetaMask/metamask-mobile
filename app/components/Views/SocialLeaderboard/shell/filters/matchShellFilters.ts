@@ -1,6 +1,5 @@
-import { resolveTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
 import { MARKET_CAP_RANGE } from './filterDefaults';
-import type { SocialShellFilters, SocialTraderCohort } from './types';
+import type { SocialFilterFollowing, SocialShellFilters } from './types';
 
 /** Slider bounds are USD billions; feed / trade market cap is USD. */
 const BILLIONS = 1_000_000_000;
@@ -24,23 +23,13 @@ export const matchesShellAssetType = (
   return true;
 };
 
-export const matchesShellTraderCohort = ({
-  traderCohort,
-  pnl30d,
+export const matchesShellFollowing = ({
+  following,
   isFollowing = false,
 }: {
-  traderCohort: SocialTraderCohort;
-  pnl30d: number | null | undefined;
+  following: SocialFilterFollowing;
   isFollowing?: boolean;
-}): boolean => {
-  if (traderCohort === 'all' || traderCohort === 'verified') {
-    return true;
-  }
-  if (traderCohort === 'following') {
-    return isFollowing;
-  }
-  return resolveTraderCohort(pnl30d) === traderCohort;
-};
+}): boolean => following === 'all' || isFollowing;
 
 export const matchesShellMarketCap = (
   marketCapUsd: number | null | undefined,
