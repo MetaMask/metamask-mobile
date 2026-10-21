@@ -4,6 +4,7 @@ import {
   useTransactionPayPrimaryRequiredToken,
   useTransactionPayQuoteError,
   useTransactionPayQuotesLastUpdated,
+  useSolanaPayQuote,
   useTransactionPayQuotesRaw,
 } from '../pay/useTransactionPayData';
 
@@ -71,7 +72,8 @@ export function useCustomAmountStage({
   const quotesLastUpdated = useTransactionPayQuotesLastUpdated();
   const quotes = useTransactionPayQuotesRaw();
   const quoteError = useTransactionPayQuoteError();
-  const hasQuotes = Boolean(quotes?.length);
+  const solanaQuote = useSolanaPayQuote();
+  const hasQuotes = Boolean(quotes?.length) || Boolean(solanaQuote);
   const requiredToken = useTransactionPayPrimaryRequiredToken();
   const hasAmount = Boolean(
     requiredToken?.amountRaw && requiredToken.amountRaw !== '0',
@@ -80,6 +82,7 @@ export function useCustomAmountStage({
   // Quote timestamp when Loading began, so we only leave on a genuinely newer
   // quote, not a stale one predating the amount update.
   const loadingBaselineRef = useRef<number | undefined>(undefined);
+  const solanaQuoteBaselineRef = useRef(solanaQuote);
   const wasLoadingRef = useRef(false);
   // Quote error present when this Loading cycle armed. A leftover error from
   // the previous amount must not count as this fetch settling.
@@ -113,6 +116,7 @@ export function useCustomAmountStage({
 
       wasLoadingRef.current = true;
       loadingBaselineRef.current = quotesLastUpdated;
+      solanaQuoteBaselineRef.current = solanaQuote;
       lastCommittedFiatRef.current = amountFiat;
       quoteErrorAtArmRef.current = quoteError;
 
@@ -143,10 +147,11 @@ export function useCustomAmountStage({
     // Newer than the baseline, gated on `hasQuotes` so an empty pre-fetch bump
     // (advances the timestamp but carries no quotes) never counts.
     const hasFreshQuote =
-      hasQuotes &&
-      quotesLastUpdated !== undefined &&
-      (loadingBaselineRef.current === undefined ||
-        quotesLastUpdated > loadingBaselineRef.current);
+      (Boolean(quotes?.length) &&
+        quotesLastUpdated !== undefined &&
+        (loadingBaselineRef.current === undefined ||
+          quotesLastUpdated > loadingBaselineRef.current)) ||
+      (Boolean(solanaQuote) && solanaQuote !== solanaQuoteBaselineRef.current);
 
     if (hasAmount && (hasFreshQuote || isQuotesLoading)) {
       setStage(null);
@@ -160,7 +165,9 @@ export function useCustomAmountStage({
     hasQuotes,
     isQuotesLoading,
     quoteError,
+    quotes,
     quotesLastUpdated,
+    solanaQuote,
   ]);
 
   const isAwaitingPrefillResult =

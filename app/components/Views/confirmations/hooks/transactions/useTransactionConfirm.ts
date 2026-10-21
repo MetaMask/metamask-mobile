@@ -30,6 +30,7 @@ import { navigateToActivityAfterConfirmation } from '../../../../../util/navigat
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 import { useTransactionPayingAccount } from './useTransactionPayingAccount';
+import { useTransactionPaySource } from '../pay/useTransactionPaySource';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -48,6 +49,7 @@ export function useTransactionConfirm() {
     useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
   const payingAccount = useTransactionPayingAccount();
+  const { isSolana } = useTransactionPaySource();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
     transactionMetadata ?? {};
@@ -75,8 +77,9 @@ export function useTransactionConfirm() {
   const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
 
   const waitForResult =
-    isPayerHardwareWallet ||
-    (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
+    !isSolana &&
+    (isPayerHardwareWallet ||
+      (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken));
 
   const handleSmartTransaction = useCallback(
     (updatedMetadata: TransactionMeta) => {

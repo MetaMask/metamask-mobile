@@ -19,6 +19,7 @@ import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccount
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
+import { useTransactionPaySource } from './useTransactionPaySource';
 
 const PERPS_TOKEN_DECIMALS = 8;
 
@@ -144,6 +145,19 @@ function usePredictBalance(): TransactionPayBalance {
 function useTokenBalance(): TransactionPayBalance {
   const { balanceRaw: walletBalanceRaw, balanceUsd: walletBalanceUsd } =
     usePayTokenAccountBalance();
+  const { isSolana, solanaAsset } = useTransactionPaySource();
+
+  if (isSolana && solanaAsset) {
+    const balanceRaw = new BigNumber(solanaAsset.balance)
+      .shiftedBy(solanaAsset.decimals)
+      .integerValue(BigNumber.ROUND_DOWN)
+      .toString(10);
+
+    return {
+      balanceRaw,
+      balanceUsd: new BigNumber(solanaAsset.fiat?.balance ?? 0).toNumber(),
+    };
+  }
 
   return {
     balanceRaw: walletBalanceRaw ?? '0',

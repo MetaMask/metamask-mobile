@@ -3,11 +3,17 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { PaymentType } from '@consensys/on-ramp-sdk';
+import type { Hex } from '@metamask/utils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import {
+  isSolanaPayAsset,
+  useTransactionPaySource,
+} from '../../../hooks/pay/useTransactionPaySource';
+import { useSolanaPayPresentation } from '../../../hooks/pay/useSolanaPayPresentation';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
@@ -70,6 +76,7 @@ function PayWithRowComponent({
     useTransactionPaySelectedFiatPaymentMethod();
   const { payWithOption } = useParams<ConfirmationParams>({});
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
+  const { isSolana } = useTransactionPaySource();
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {
@@ -77,7 +84,7 @@ function PayWithRowComponent({
   }
 
   // Explicit selection via controller — always honor it.
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
+  if (paymentOverride === PaymentOverride.MoneyAccount && !isSolana) {
     return <PayWithRowMoneyAccount />;
   }
 
@@ -86,6 +93,7 @@ function PayWithRowComponent({
   // token is what the row should show.
   if (
     isDefaultMoneyAccount &&
+    !isSolana &&
     !payToken &&
     !selectedFiatPaymentMethod &&
     !isResultReady
@@ -146,7 +154,9 @@ function PayWithRowLayout({
 
 function PayWithRowInteractive() {
   const navigation = useNavigation<AppNavigationProp>();
-  const { payToken } = useTransactionPayToken();
+  const { styles } = useStyles(styleSheet, {});
+  const { paySource } = useTransactionPaySource();
+  const solanaPay = useSolanaPayPresentation();
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountNoFundsAlert = useAccountNoFundsAlert();
@@ -196,18 +206,21 @@ function PayWithRowInteractive() {
       return null;
     }
     if (isWithdraw) {
-      return payToken ?? defaultWithdrawToken ?? null;
+      return paySource ?? defaultWithdrawToken ?? null;
     }
-    return payToken ?? null;
-  }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
+    return paySource ?? null;
+  }, [hasAccountNoFunds, isWithdraw, paySource, defaultWithdrawToken]);
 
-  const balanceUsdFormatted = useMemo(
-    () =>
-      formatFiat(
-        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
-      ),
-    [formatFiat, accountBalanceUsd],
-  );
+  const balanceUsdFormatted = useMemo(() => {
+    const balanceUsd =
+      paySource && isSolanaPayAsset(paySource) && 'fiat' in paySource
+        ? paySource.fiat?.balance
+        : accountBalanceUsd;
+
+    return formatFiat(
+      new BigNumber(balanceUsd ?? 0).decimalPlaces(2, BigNumber.ROUND_DOWN),
+    );
+  }, [formatFiat, accountBalanceUsd, paySource]);
 
   if (selectedFiatPaymentMethod) {
     return (
@@ -246,19 +259,25 @@ function PayWithRowInteractive() {
       showArrow={Boolean(from)}
       onPress={handleClick}
     >
-      <TokenIcon
-        address={displayToken.address}
-        chainId={displayToken.chainId}
-        symbol={displayToken.symbol}
-        variant={TokenIconVariant.Row}
-      />
+      {isSolanaPayAsset(displayToken) && 'image' in displayToken ? (
+        <Image source={{ uri: displayToken.image }} style={styles.moneyIcon} />
+      ) : (
+        <TokenIcon
+          address={displayToken.address as Hex}
+          chainId={displayToken.chainId as Hex}
+          symbol={displayToken.symbol}
+          variant={TokenIconVariant.Row}
+        />
+      )}
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={isDisabled ? TextColor.TextMuted : TextColor.TextDefault}
         testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
       >
-        {displayToken.symbol}
+        {solanaPay
+          ? `${solanaPay.sourceAmountFormatted} ${solanaPay.sourceSymbol}`
+          : displayToken.symbol}
         {!isWithdraw && (
           <Text
             color={TextColor.TextAlternative}
