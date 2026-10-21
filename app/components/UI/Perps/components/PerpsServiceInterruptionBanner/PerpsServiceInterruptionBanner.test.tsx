@@ -8,6 +8,7 @@ import PerpsServiceInterruptionBanner, {
   SERVICE_INTERRUPTION_LINK_PLACEHOLDERS,
 } from './PerpsServiceInterruptionBanner';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import {
   SERVICE_INTERRUPTION_CONFIG,
   SUPPORT_CONFIG,
@@ -132,9 +133,10 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
 
+    expect(SERVICE_INTERRUPTION_CONFIG.SupportUrl).toBe(METAMASK_SUPPORT_URL);
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
-      SERVICE_INTERRUPTION_CONFIG.SupportUrl,
+      METAMASK_SUPPORT_URL,
     );
   });
 
@@ -146,12 +148,12 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
     const [open] = mockOpenSupportWithConsent.mock.calls[0];
-    open(SERVICE_INTERRUPTION_CONFIG.SupportUrl);
+    open(METAMASK_SUPPORT_URL);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: SERVICE_INTERRUPTION_CONFIG.SupportUrl,
+        url: METAMASK_SUPPORT_URL,
         title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });

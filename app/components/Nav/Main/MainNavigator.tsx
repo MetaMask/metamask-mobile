@@ -1228,7 +1228,6 @@ const MainNavigator = () => {
         options={{
           ...slideFromRightNativeOptions,
           headerShown: false,
-          gestureEnabled: false,
         }}
       />
       <NativeStack.Screen

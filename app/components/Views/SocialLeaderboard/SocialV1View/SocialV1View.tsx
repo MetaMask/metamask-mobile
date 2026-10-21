@@ -75,6 +75,8 @@ import {
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
@@ -136,6 +138,9 @@ const PAGE_TEST_IDS: Record<
 // still transient so it never becomes permanent chrome.
 const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
+/** Lets the pager finish sliding before live prices re-measure visible cards. */
+const TAB_CHANGE_VISIBILITY_DELAY_MS = 400;
+
 const getTabAnalyticsValue = (tab: SocialShellTab) => {
   switch (tab) {
     case 'trending':
@@ -155,8 +160,9 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
  */
-const SocialV1View: React.FC = () => {
+const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
+  const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
     useRoute<
@@ -478,8 +484,16 @@ const SocialV1View: React.FC = () => {
       syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
+      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activeIndex, activeIndexSv, tabOrder, syncIncomingPageScroll, track],
+    [
+      activeIndex,
+      activeIndexSv,
+      livePrices,
+      tabOrder,
+      syncIncomingPageScroll,
+      track,
+    ],
   );
 
   const handleTabPress = useCallback(
@@ -731,5 +745,11 @@ const SocialV1View: React.FC = () => {
     </SocialEntryOptionsProvider>
   );
 };
+
+const SocialV1View: React.FC = () => (
+  <SocialLivePricesProvider>
+    <SocialV1ViewContent />
+  </SocialLivePricesProvider>
+);
 
 export default SocialV1View;

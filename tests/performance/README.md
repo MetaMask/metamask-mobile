@@ -1,10 +1,10 @@
 # Performance Tests
 
-This directory contains Playwright-based performance tests for MetaMask Mobile, measuring real user flows on real devices and BrowserStack cloud infrastructure.
+This directory contains Playwright-based performance tests for MetaMask Mobile, measuring real user flows on real devices and TestMu cloud infrastructure.
 
 ## Overview
 
-The performance test suite measures metrics for critical user flows in MetaMask Mobile, including onboarding, login, account management, swap flow, send flow, perps, and more. Tests are organized to run on both local devices/simulators and BrowserStack cloud infrastructure.
+The performance test suite measures metrics for critical user flows in MetaMask Mobile, including onboarding, login, account management, swap flow, send flow, perps, and more. Tests run on local devices and simulators, and on TestMu cloud devices in CI.
 
 The performance framework lives under the `tests/` directory alongside the rest of the E2E testing infrastructure, with shared utilities in `tests/framework/` and reporters in `tests/reporters/`.
 
@@ -77,18 +77,17 @@ tests/
 
 ## Configuration
 
-The test suite is configured in `tests/playwright.config.ts`, which defines multiple projects for different testing environments.
+Local emulator and simulator projects live in `tests/playwright.config.ts`. Cloud performance projects live in `tests/playwright.testmu.config.ts`.
 
 ### Available Projects
 
-| Project Name           | Platform | Environment     | Test Scope            |
-| ---------------------- | -------- | --------------- | --------------------- |
-| `android`              | Android  | Local Emulator  | All performance tests |
-| `ios`                  | iOS      | Local Simulator | All performance tests |
-| `browserstack-android` | Android  | BrowserStack    | Login tests only      |
-| `browserstack-ios`     | iOS      | BrowserStack    | Login tests only      |
-| `android-onboarding`   | Android  | BrowserStack    | Onboarding tests only |
-| `ios-onboarding`       | iOS      | BrowserStack    | Onboarding tests only |
+| Project Name                         | Platform | Environment     | Test Scope          |
+| ------------------------------------ | -------- | --------------- | ------------------- |
+| `android`                            | Android  | Local Emulator  | Demo fixture spec   |
+| `ios`                                | iOS      | Local Simulator | Demo fixture spec   |
+| `testmu-android`                     | Android  | TestMu          | Login tests only    |
+| `testmu-android-onboarding`          | Android  | TestMu          | Onboarding tests    |
+| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding |
 
 ### Configuration Details
 
@@ -137,13 +136,13 @@ Performance E2E never runs on push. Coverage comes from PR selection on `main` p
 
 Workflow layout:
 
-- [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on BrowserStack, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
+- [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on TestMu HyperExecute, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
 - `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
 
 For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
 
-`build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to BrowserStack. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.
+`build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to TestMu. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.
 
 ## Running Tests
 
@@ -154,11 +153,9 @@ For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`so
 yarn run-playwright:android          # Run on local Android emulator
 yarn run-playwright:ios              # Run on local iOS simulator
 
-# BrowserStack Tests
-yarn run-playwright:android-bs       # Run login tests on BrowserStack Android
-yarn run-playwright:ios-bs           # Run login tests on BrowserStack iOS
-yarn run-playwright:android-onboarding-bs  # Run onboarding tests on BrowserStack Android
-yarn run-playwright:ios-onboarding-bs      # Run onboarding tests on BrowserStack iOS
+# TestMu cloud tests
+yarn run-playwright:android-testmu              # Run login tests on TestMu Android
+yarn run-playwright:android-onboarding-testmu   # Run onboarding tests on TestMu Android
 
 ```
 
@@ -168,7 +165,7 @@ yarn run-playwright:ios-onboarding-bs      # Run onboarding tests on BrowserStac
 
 ```bash
 # Run specific project
-npx playwright test --project browserstack-android --config tests/playwright.config.ts
+npx playwright test --project testmu-android --config tests/playwright.testmu.config.ts
 
 # Run a single test file
 npx playwright test tests/performance/login/asset-balances.spec.ts --project android --config tests/playwright.config.ts
@@ -376,7 +373,7 @@ The `PerformanceTracker` is provided as a fixture and handles:
 - Collecting timers from the test
 - Automatically attaching metrics to test results on teardown
 - Storing session data for video retrieval
-- BrowserStack video URL resolution
+- TestMu video URL resolution
 
 ```typescript
 import { test as perfTest } from '../../framework/fixtures/playwright';
@@ -553,24 +550,24 @@ await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 
 Create a `.e2e.env` file in the project root:
 
-### BrowserStack Configuration
+### TestMu Configuration
 
 ```bash
-# BrowserStack Credentials (required for BrowserStack tests)
-BROWSERSTACK_USERNAME=your_username
-BROWSERSTACK_ACCESS_KEY=your_access_key
+# TestMu AI credentials (required for cloud performance tests)
+LT_USERNAME=your_username
+LT_ACCESS_KEY=your_access_key
 
-# Device Configuration (optional, defaults provided in config)
-BROWSERSTACK_DEVICE="Samsung Galaxy S25 Ultra"
-BROWSERSTACK_OS_VERSION="15.0"
+# Device configuration (optional, defaults provided in playwright.testmu.config.ts)
+TESTMU_DEVICE="Pixel 8 Pro"
+TESTMU_OS_VERSION="14"
 
-# App URLs (required for BrowserStack tests)
-BROWSERSTACK_ANDROID_APP_URL=bs://your-android-app-id
-BROWSERSTACK_IOS_APP_URL=bs://your-ios-app-id
+# App URLs (required for local TestMu runs)
+TESTMU_ANDROID_APP_URL=lt://your-android-app-id
 
-# Clean Apps for Onboarding Tests
-BROWSERSTACK_ANDROID_CLEAN_APP_URL=bs://your-clean-android-app-id
-BROWSERSTACK_IOS_CLEAN_APP_URL=bs://your-clean-ios-app-id
+# Clean apps for onboarding tests
+TESTMU_ANDROID_ONBOARDING_PERF_APP_URL=lt://your-onboarding-android-app-id
+TESTMU_ANDROID_CLEAN_APP_URL=lt://your-clean-android-app-id
+TESTMU_ANDROID_SEEDLESS_PERF_APP_URL=lt://your-seedless-android-app-id
 ```
 
 ### Test Configuration
@@ -581,8 +578,8 @@ TEST_SRP_1="your test recovery phrase 1"
 TEST_SRP_2="your test recovery phrase 2"
 TEST_SRP_3="your test recovery phrase 3"
 TEST_SRP_4='your test recovery phrase 4" // user for Perps
-BROWSERSTACK_USERNAME='YOUR_BS_USERNAME'
-BROWSERSTACK_ACCESS_KEY='YOUR_BS_ACCESS_KEY'
+LT_USERNAME='YOUR_TESTMU_USERNAME'
+LT_ACCESS_KEY='YOUR_TESTMU_ACCESS_KEY'
 E2E_PASSWORD='WALLET_PASSWORD' // 1Password
 
 # Test Passwords (can be found in 1Password)
@@ -597,15 +594,16 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # or rc. E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately in
 # performance-test-runner for the flags API. See "CI Triggers".
 #
-# Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
+# Android performance dual builds (main-e2e-bs-*) follow the same fingerprint
 # procedure as main-e2e Android (build-android-e2e.yml), via find-reusable-build in
-# build-android-upload-to-browserstack.yml:
+# build-android-upload-to-testmu.yml. Performance runs upload the staged
+# APKs to TestMu only:
 #   - miss → fresh dual Gradle builds
 #   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
 #   - hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
 #     then upload (fingerprint ignores JS-only changes, so repack avoids stale JS)
-# Separate from Appium smoke main-e2e APKs and from reuse_main_builds BrowserStack
-# custom_id resolution on main (test-only fast path that skips the dual-build job).
+# Separate from Appium smoke main-e2e APKs. reuse_main_builds is the test-only
+# fast path that reuses the latest main APKs.
 ```
 
 ### Sentry Performance Instrumentation (Optional)
@@ -657,12 +655,12 @@ ci_build_variant:rc release_version:7.58.0
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                                      | Content                                             |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
-| Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario BrowserStack app profiling + API calls |
+| File Type | Location                                                                      | Content                                       |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                     |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                     |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                              |
+| Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario TestMu app profiling + API calls |
 
 ### HTML Report Contents
 
@@ -670,7 +668,7 @@ After each test, the custom reporter generates:
 - Step-by-step timing breakdown
 - Quality gates validation results
 - Threshold comparison table
-- Video link (when available from BrowserStack)
+- Video link (when available from TestMu)
 
 ### Playwright HTML Report
 
@@ -738,7 +736,7 @@ override on the manual command also changes where baselines are looked up.
 
 ### Weekly app profiling report (Cursor Automation)
 
-For a weekly rollup of BrowserStack app-profiling averages across merged PRs
+For a weekly rollup of TestMu app-profiling averages across merged PRs
 that ran performance tests:
 
 ```bash
@@ -750,7 +748,7 @@ Outputs:
 | File             | Description                                                                   |
 | ---------------- | ----------------------------------------------------------------------------- |
 | `report.json`    | Scenario averages, peak-sample recording URLs, failing PRs, data-driven leads |
-| `slack.md`       | Slack-ready markdown (leads include BrowserStack recording links for peaks)   |
+| `slack.md`       | Slack-ready markdown (leads include TestMu recording links for peaks)         |
 | `ai-briefing.md` | Briefing for an AI pass (investigation insights + peak recordings)            |
 
 Recommended automation: schedule the prompt in
@@ -767,7 +765,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 - **Platform Breakdown**: Android/iOS device-by-device results
 - **Interactive Test Table**: Filterable by status (All/Passed/Failed)
 - **Step Details**: Expandable timing breakdown per test
-- **Video Links**: Direct links to BrowserStack recordings
+- **Video Links**: Direct links to TestMu recordings
 
 ## Best Practices
 
@@ -878,18 +876,18 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
 - Increase timeout in `tests/playwright.config.ts`
 - Check device/emulator resources
-- Verify network connectivity for BrowserStack
+- Verify network connectivity for TestMu
 
 **Element not found**
 
 - Verify the page object selector is up to date in `tests/page-objects/`
 - Ensure the correct view is imported from `tests/page-objects/`
 
-**BrowserStack connection issues**
+**TestMu connection issues**
 
-- Verify credentials in `.e2e.env`
-- Check app URLs are valid
-- Ensure account has available sessions
+- Verify `LT_USERNAME` and `LT_ACCESS_KEY` in `.e2e.env`
+- Check app URLs are valid `lt://` links
+- Ensure the account has available sessions
 
 **Quality gates failing unexpectedly**
 
@@ -899,9 +897,9 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
 **Video URL not available**
 
-- BrowserStack needs time to process recordings
+- TestMu needs time to process recordings
 - Check session ID is being stored correctly
-- Verify BrowserStack credentials
+- Verify TestMu credentials
 
 ### Debugging Tips
 
@@ -923,7 +921,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 
 3. **Enable Webdrverio Logs**:
    Set `WDIO_LOG_LEVEL=debug` to your run command.
-   Example: WDIO_LOG_LEVEL=debug yarn playwright test --project browserstack-android
+   Example: WDIO_LOG_LEVEL=debug yarn run-playwright:android-testmu
 
 ## Additional Resources
 
