@@ -1,15 +1,18 @@
+import type { DeferredRenderProbeId } from './deferredRenderPerformanceIds';
 import type { OnboardingScreenId } from './onboardingPerformanceIds';
 import { isE2EOrPerformanceTest } from '../../util/test/utils';
 
+export type ScreenTtcId = OnboardingScreenId | DeferredRenderProbeId;
+
 export interface ScreenTtcRecord {
-  screenId: OnboardingScreenId;
+  screenId: ScreenTtcId;
   durationMs: number;
   contentState: 'empty' | 'filled';
   /** Bumps on every successful record so Appium can wait for a fresh value. */
   generation: number;
 }
 
-const records = new Map<OnboardingScreenId, ScreenTtcRecord>();
+const records = new Map<ScreenTtcId, ScreenTtcRecord>();
 const listeners = new Set<() => void>();
 
 let generationCounter = 0;
@@ -23,7 +26,7 @@ export function isScreenTtcProbeEnabled(): boolean {
   return isE2EOrPerformanceTest;
 }
 
-export function screenTtcTestId(screenId: OnboardingScreenId): string {
+export function screenTtcTestId(screenId: ScreenTtcId): string {
   return `perf-ttc-${screenId}`;
 }
 
@@ -45,7 +48,7 @@ export function parseScreenTtcAccessibilityLabel(
     return null;
   }
   return {
-    screenId: match[1] as OnboardingScreenId,
+    screenId: match[1] as ScreenTtcId,
     durationMs: Number(match[2]),
     contentState: 'filled',
     generation: Number(match[3]),
@@ -53,7 +56,7 @@ export function parseScreenTtcAccessibilityLabel(
 }
 
 export function recordScreenTtc(
-  screenId: OnboardingScreenId,
+  screenId: ScreenTtcId,
   durationMs: number,
   contentState: 'empty' | 'filled',
 ): void {
@@ -72,7 +75,7 @@ export function recordScreenTtc(
 }
 
 export function getScreenTtc(
-  screenId: OnboardingScreenId,
+  screenId: ScreenTtcId,
 ): ScreenTtcRecord | undefined {
   return records.get(screenId);
 }

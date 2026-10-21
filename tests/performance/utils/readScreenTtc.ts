@@ -5,8 +5,8 @@ import { withImplicitWait } from '../../framework/AppiumUtilities';
 import {
   parseScreenTtcAccessibilityLabel,
   screenTtcTestId,
+  type ScreenTtcId,
 } from '../../../app/hooks/performance/screenTtcRegistry';
-import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
 import TimerHelper, {
   type PlatformThreshold,
 } from '../../framework/TimerHelper';
@@ -59,9 +59,7 @@ async function labelFromElement(el: AppiumElement): Promise<string> {
  * package-qualified (`io.metamask…:id/perf-ttc-…`), and content-desc may be
  * easier to match than resource-id for accessibility Views.
  */
-async function findProbeElement(
-  screenId: OnboardingScreenId,
-): Promise<AppiumElement> {
+async function findProbeElement(screenId: ScreenTtcId): Promise<AppiumElement> {
   const testId = screenTtcTestId(screenId);
   const errors: string[] = [];
 
@@ -103,7 +101,7 @@ async function findProbeElement(
   );
 }
 
-async function readProbeLabel(screenId: OnboardingScreenId): Promise<string> {
+async function readProbeLabel(screenId: ScreenTtcId): Promise<string> {
   const el = await findProbeElement(screenId);
   return labelFromElement(el);
 }
@@ -117,7 +115,7 @@ async function readProbeLabel(screenId: OnboardingScreenId): Promise<string> {
  * block for DEFAULT_IMPLICIT_WAIT_MS (~3.5s) before the deadline is checked.
  */
 export async function waitForAppScreenTtc(
-  screenId: OnboardingScreenId,
+  screenId: ScreenTtcId,
   options?: { timeoutMs?: number; minGeneration?: number },
 ): Promise<number> {
   const timeoutMs = options?.timeoutMs ?? DEFAULT_REQUIRED_TIMEOUT_MS;
@@ -159,7 +157,7 @@ export async function waitForAppScreenTtc(
  */
 export async function addAppScreenTtcTimer(options: {
   performanceTracker: PerformanceTracker;
-  screenId: OnboardingScreenId;
+  screenId: ScreenTtcId;
   platform: 'ios' | 'android';
   threshold?: PlatformThreshold;
   minGeneration?: number;

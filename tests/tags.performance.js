@@ -45,6 +45,7 @@ export const PerformancePredict = '@PerformancePredict';
 export const PerformancePreps = '@PerformancePreps';
 export const PerformanceMoney = '@PerformanceMoney';
 export const PerformanceRewards = '@PerformanceRewards';
+export const PerformanceDeferredRender = '@PerformanceDeferredRender';
 
 export const performanceTags = {
   performanceAccountList: {
@@ -96,5 +97,10 @@ export const performanceTags = {
     tag: '@PerformanceRewards:',
     description:
       'Rewards tab performance - covers time-to-content for onboarding or enrolled dashboard after tapping the Rewards tab',
+  },
+  performanceDeferredRender: {
+    tag: '@PerformanceDeferredRender:',
+    description:
+      'Deferred chart render versus network - token details, perps market details, and predict crypto up/down details',
   },
 };

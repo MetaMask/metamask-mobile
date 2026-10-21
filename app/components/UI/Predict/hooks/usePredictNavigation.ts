@@ -2,6 +2,8 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
+import { DeferredRenderScreenIds } from '../../../../hooks/performance/deferredRenderPerformanceIds';
+import { markDeferredRenderNavStart } from '../../../../hooks/performance/deferredRenderTtc';
 import {
   PredictBuyPreviewParams,
   PredictMarketDetailsParams,
@@ -46,6 +48,9 @@ export const usePredictNavigation = () => {
       params: PredictMarketDetailsParams,
       options?: NavigateToMarketDetailsOptions,
     ) => {
+      markDeferredRenderNavStart(
+        DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
+      );
       if (options?.replace) {
         navigation.dispatch(
           StackActions.replace(Routes.PREDICT.MARKET_DETAILS, params),

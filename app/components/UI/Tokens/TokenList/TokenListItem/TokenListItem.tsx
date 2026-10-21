@@ -9,6 +9,8 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
+import { DeferredRenderScreenIds } from '../../../../../hooks/performance/deferredRenderPerformanceIds';
+import { markDeferredRenderNavStart } from '../../../../../hooks/performance/deferredRenderTtc';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
@@ -346,6 +348,7 @@ export const TokenListItem = React.memo(
 
     const onItemPress = useCallback(
       (token: TokenI) => {
+        markDeferredRenderNavStart(DeferredRenderScreenIds.TOKEN_DETAILS);
         trace({ name: TraceName.AssetDetails });
 
         let securityData: TokenSecurityData | undefined;

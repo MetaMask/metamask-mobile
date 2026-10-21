@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PixelRatio } from 'react-native';
 import {
   Box,
@@ -14,6 +14,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { LivelineChart } from '../../../Charts/LivelineChart';
+import {
+  DeferredRenderPoint,
+  DeferredRenderScreenIds,
+} from '../../../../../hooks/performance/deferredRenderPerformanceIds';
+import { markDeferredRenderPoint } from '../../../../../hooks/performance/deferredRenderTtc';
+import { isScreenTtcProbeEnabled } from '../../../../../hooks/performance/screenTtcRegistry';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
@@ -81,6 +87,39 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     chartHeight,
     PixelRatio.getFontScale(),
   );
+  const livelineReadyRef = useRef(false);
+  const loadingRef = useRef(loading);
+  const connectionErrorRef = useRef(Boolean(connectionError));
+  const hasChartDataRef = useRef(data.length > 0);
+  loadingRef.current = loading;
+  connectionErrorRef.current = Boolean(connectionError);
+  hasChartDataRef.current = data.length > 0;
+
+  const markChartReadyIfLoaded = useCallback(() => {
+    if (!isScreenTtcProbeEnabled()) {
+      return;
+    }
+    if (
+      !livelineReadyRef.current ||
+      loadingRef.current ||
+      connectionErrorRef.current ||
+      !hasChartDataRef.current
+    ) {
+      return;
+    }
+    markDeferredRenderPoint(
+      DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
+      DeferredRenderPoint.CHART_READY,
+    );
+  }, []);
+
+  const handleLivelineChartReady = useCallback(() => {
+    if (!isScreenTtcProbeEnabled()) {
+      return;
+    }
+    livelineReadyRef.current = true;
+    markChartReadyIfLoaded();
+  }, [markChartReadyIfLoaded]);
 
   useEffect(() => {
     if (connectionError || data.length === 0) {
@@ -89,6 +128,19 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
       onCurrentPriceChange?.(value);
     }
   }, [connectionError, data.length, onCurrentPriceChange, value]);
+
+  useEffect(() => {
+    if (!isScreenTtcProbeEnabled()) {
+      return;
+    }
+    if (!loading && (data.length > 0 || connectionError)) {
+      markDeferredRenderPoint(
+        DeferredRenderScreenIds.PREDICT_UPDOWN_DETAILS,
+        DeferredRenderPoint.CHART_DATA_READY,
+      );
+    }
+    markChartReadyIfLoaded();
+  }, [connectionError, data.length, loading, markChartReadyIfLoaded]);
 
   return (
     <Box
@@ -154,6 +206,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
              */
             formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
             formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
+            onChartReady={handleLivelineChartReady}
           />
         ))}
     </Box>
