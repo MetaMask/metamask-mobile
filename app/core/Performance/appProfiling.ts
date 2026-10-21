@@ -16,6 +16,11 @@
  * profiling session cannot outlive the process that opened it, so a process
  * that never armed itself never dumps.
  *
+ * Launch specs keep that startup window. Feature specs open
+ * `metamask://e2e/profiler/arm` when they enter the team-specific flow, which
+ * drops the setup samples without writing a segment. See
+ * `armMeasuredAppProfiling`.
+ *
  * Dumping must be immediate (no `setTimeout` grace): on Android, RN pauses JS
  * timers in `JavaTimerManager.onHostPause`, which is the same pause that emits
  * `AppState` `'background'`. A deferred dump therefore never fires while the
@@ -27,6 +32,11 @@ import { AppState, Platform, type NativeEventSubscription } from 'react-native';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 import Logger from '../../util/Logger';
 import { getHermesProfilerModule } from './hermesProfilerModule';
+import {
+  isProfilerArmDeeplink,
+  parseProfilerArmDeeplink,
+  type ProfilerArmRequest,
+} from './profilerArmDeeplink';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
@@ -35,6 +45,13 @@ let isRecording = false;
 let lastProfilePath: string | null = null;
 let lastError: string | null = null;
 let appStateSubscription: NativeEventSubscription | null = null;
+// Set when a spec is about to kill the process and profile the next one.
+// Background dumps must not write the setup trace we are throwing away.
+let suppressDump = false;
+// Held while the measured window is being armed so a lifecycle dump cannot
+// land a segment between discard and the arm marker.
+let armInProgress = false;
+const handledArmNonces = new Set<string>();
 
 /**
  * Starts a Hermes CPU profiling session.
@@ -150,10 +167,120 @@ export async function stopAppProfiling(
  * should not stop the following segments from being recorded.
  */
 function dumpAndRearm(enabled: boolean): void {
+  if (suppressDump || armInProgress) {
+    return;
+  }
+
   stopAppProfiling(enabled)
     .catch(() => undefined)
     .then(() => startAppProfiling(enabled))
     .catch(() => undefined);
+}
+
+/**
+ * Drops samples collected before the measured flow without writing a segment.
+ * The sampler stays enabled so the next samples are the team-specific work.
+ */
+async function discardProfilingSamples(enabled: boolean): Promise<void> {
+  const profiler = getHermesProfilerModule();
+
+  if (Platform.OS === 'android' && profiler) {
+    const discarded = await profiler.discardProfilingSamples();
+    if (!discarded) {
+      throw new Error('discardProfilingSamples returned false');
+    }
+    return;
+  }
+
+  // iOS collection is not implemented. Stop writes a cache file nobody pulls,
+  // then start opens a fresh session for the measured window.
+  await stopAppProfiling(enabled);
+  await startAppProfiling(enabled);
+}
+
+async function writeArmMarker(nonce: string): Promise<void> {
+  const profiler = getHermesProfilerModule();
+  if (!profiler) {
+    throw new Error(
+      'MetaMaskHermesProfiler is not registered; cannot confirm profiling arm',
+    );
+  }
+
+  const marked = await profiler.markProfilingArmed(nonce);
+  if (!marked) {
+    throw new Error('markProfilingArmed returned false');
+  }
+}
+
+/**
+ * Starts the measured profiling window.
+ *
+ * `now` clears samples taken since process start (login, onboarding setup)
+ * and keeps the sampler running. `next-process` stops this process from
+ * dumping so a spec can kill the app and let the relaunched process record
+ * from JS startup.
+ *
+ * The same nonce is ignored after the first call. Branch and Linking can
+ * both deliver the deeplink, and a second arm would wipe the measured window.
+ */
+export async function armMeasuredAppProfiling(
+  request: ProfilerArmRequest,
+  enabled: boolean = isPerformanceProfilingEnabled,
+): Promise<void> {
+  if (!enabled) {
+    return;
+  }
+
+  if (handledArmNonces.has(request.nonce)) {
+    return;
+  }
+  handledArmNonces.add(request.nonce);
+
+  armInProgress = true;
+  try {
+    if (request.scope === 'next-process') {
+      suppressDump = true;
+      isRecording = false;
+      await writeArmMarker(request.nonce);
+      return;
+    }
+
+    if (isRecording) {
+      await discardProfilingSamples(enabled);
+    } else {
+      const started = await startAppProfiling(enabled);
+      if (!started) {
+        throw new Error('startAppProfiling did not start the measured window');
+      }
+    }
+
+    await writeArmMarker(request.nonce);
+  } finally {
+    armInProgress = false;
+  }
+}
+
+/**
+ * Swallows the profiler arm deeplink so it never reaches the unsupported-link
+ * UI. Returns true when `uri` is that deeplink, including when the query is
+ * missing a nonce (nothing is armed, and the URL is still consumed).
+ */
+export function armMeasuredAppProfilingFromUri(uri: string): boolean {
+  if (!isProfilerArmDeeplink(uri)) {
+    return false;
+  }
+
+  const request = parseProfilerArmDeeplink(uri);
+  if (request) {
+    armMeasuredAppProfiling(request).catch((error: unknown) => {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Failed to arm measured Hermes profiling',
+      );
+    });
+  }
+
+  return true;
 }
 
 /**
@@ -218,6 +345,9 @@ export function __resetAppProfilingForTests(): void {
   isRecording = false;
   lastProfilePath = null;
   lastError = null;
+  suppressDump = false;
+  armInProgress = false;
+  handledArmNonces.clear();
   appStateSubscription?.remove();
   appStateSubscription = null;
 }

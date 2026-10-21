@@ -9,6 +9,7 @@ import {
   Performance,
   PerformanceAssetLoading,
 } from '../../tags.performance.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario: Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${Performance} ${PerformanceAssetLoading}`, () => {
@@ -17,6 +18,7 @@ test.describe(`${Performance} ${PerformanceAssetLoading}`, () => {
     { tag: '@assets-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
 
       const balanceStableTimer = new TimerHelper(
         'Time since the user navigates to wallet tab until the balance stabilizes',

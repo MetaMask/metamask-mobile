@@ -12,20 +12,36 @@
  * that drew edge-to-edge put them under the status bar, where Android reports
  * them as not visible to the user and Appium drops them from the accessibility
  * tree entirely.
+ *
+ * Feature specs call `enableHermesAppProfiling` at the team-specific entry
+ * (the asset row, the Perps header, the Money tab, and the same kind of
+ * boundary in every other scenario). That opens `metamask://e2e/profiler/arm`,
+ * which the app handles before the unsupported-link UI and uses to drop the
+ * setup samples. Launch specs that measure the next process pass
+ * `scope: 'next-process'` immediately before `terminateApp`.
  */
 
 /* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs/promises';
 import path from 'path';
 import type { TestInfo } from '@playwright/test';
+import {
+  buildProfilerArmDeeplink,
+  type ProfilerArmScope,
+} from '../../../app/core/Performance/profilerArmDeeplink.ts';
 import AppiumGestures from '../../framework/AppiumGestures.ts';
-import { getDriver } from '../../framework/AppiumUtilities.ts';
+import {
+  executeMobileDeepLink,
+  getDriver,
+} from '../../framework/AppiumUtilities.ts';
 import { createLogger } from '../../framework/logger.ts';
 
 const logger = createLogger({ name: 'Performance - AppProfiling' });
 
 const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
 const SEGMENT_FILE_PREFIX = 'metamask-performance.segment-';
+// Must match HermesProfilerModule.ARMED_FILE_NAME.
+const ARMED_FILE_NAME = 'metamask-performance.armed';
 // The dump is written before the app is allowed to settle in the background,
 // so this only has to cover writing and transferring a multi-megabyte trace.
 // Keep this short on TestMu: a missing path makes `pullFile` fail, and
@@ -36,6 +52,8 @@ const SEGMENT_WAIT_TIMEOUT_MS = 12_000;
 // WDIO retries, so a longer interval mainly avoids stacking another chain
 // immediately after the previous one finishes.
 const SEGMENT_POLL_INTERVAL_MS = 2_500;
+const ARM_MARKER_TIMEOUT_MS = 12_000;
+const ARM_MARKER_POLL_INTERVAL_MS = 750;
 
 /**
  * Hermes `.cpuprofile` harvest is opt-in. PR performance runs skip it (profiles
@@ -67,6 +85,12 @@ type PullFileDriver = WebdriverIO.Browser & {
  * because leftovers survive whenever `fullReset` is off.
  */
 let collectedSegmentCount = 0;
+// Artifact names use this counter so the first segment a test keeps is the
+// plain `.cpuprofile`, even when setup segments on the device were skipped.
+let reportedSegmentCount = 0;
+// `next-process` arms consume the terminate-hook collection. The relaunched
+// process is what the final collection should save.
+let collectionsToSkip = 0;
 
 function deviceProfileDirectory(appiumDriver: WebdriverIO.Browser): string {
   const capabilities = (appiumDriver.capabilities ?? {}) as Record<
@@ -192,6 +216,7 @@ export async function resetAppProfilingSegments(
   // (and its noisy WARN log) on every fresh TestMu device.
   if (capabilities['appium:fullReset'] === true) {
     collectedSegmentCount = 0;
+    reportedSegmentCount = 0;
     return;
   }
 
@@ -208,10 +233,12 @@ export async function resetAppProfilingSegments(
       `Could not probe existing segments at fixture start; leftover segments may be misattributed: ${String(error)}`,
     );
     collectedSegmentCount = 0;
+    reportedSegmentCount = 0;
     return;
   }
   // Segments are contiguous from 1, so size equals the highest index.
   collectedSegmentCount = existing.size;
+  reportedSegmentCount = 0;
   if (collectedSegmentCount > 0) {
     logger.info(
       `Hermes profile baseline on device is segment-${collectedSegmentCount}; new segments start at ${collectedSegmentCount + 1}`,
@@ -236,13 +263,10 @@ function profileArtifactName(testInfo: TestInfo, segmentIndex: number): string {
   return `${base}${retryPart}${segmentPart}.cpuprofile`;
 }
 
-async function saveSegment(
-  testInfo: TestInfo,
-  buffer: Buffer,
-  segmentIndex: number,
-): Promise<void> {
+async function saveSegment(testInfo: TestInfo, buffer: Buffer): Promise<void> {
+  reportedSegmentCount += 1;
   await fs.mkdir(PROFILE_OUTPUT_DIRECTORY, { recursive: true });
-  const fileName = profileArtifactName(testInfo, segmentIndex);
+  const fileName = profileArtifactName(testInfo, reportedSegmentCount);
   const outputPath = path.join(PROFILE_OUTPUT_DIRECTORY, fileName);
   await fs.writeFile(outputPath, buffer);
 
@@ -254,6 +278,133 @@ async function saveSegment(
   logger.info(
     `Hermes cpuprofile saved (${buffer.length} bytes): ${outputPath}`,
   );
+}
+
+function createArmNonce(): string {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function pullTextFile(
+  appiumDriver: PullFileDriver,
+  remotePath: string,
+): Promise<string | null> {
+  let base64Contents: string;
+  try {
+    base64Contents = await appiumDriver.pullFile(remotePath);
+  } catch {
+    return null;
+  }
+
+  const text = Buffer.from(base64Contents, 'base64').toString('utf8').trim();
+  return text.length > 0 ? text : null;
+}
+
+function sessionPlatform(appiumDriver: WebdriverIO.Browser): string {
+  const capabilities = (appiumDriver.capabilities ?? {}) as Record<
+    string,
+    unknown
+  >;
+  const platformName =
+    capabilities.platformName ?? capabilities['appium:platformName'];
+  return typeof platformName === 'string' ? platformName.toLowerCase() : '';
+}
+
+/**
+ * Opens the measured Hermes window in the running app.
+ *
+ * No-ops unless `COLLECT_HERMES_CPUPROFILES=true`. iOS collection is not
+ * implemented, so iOS also no-ops rather than opening a deeplink that can
+ * race the next tap.
+ *
+ * `scope: 'now'` (default) drops samples already in memory and keeps
+ * profiling. Call it immediately before the team-specific action, while the
+ * app is in the foreground, and outside `TimerHelper.measure`.
+ *
+ * `scope: 'next-process'` tells this process not to dump, then skips the
+ * collection `terminateApp` runs. The relaunched process profiles from JS
+ * startup. Call it immediately before `terminateApp`.
+ */
+export async function enableHermesAppProfiling(
+  options: {
+    scope?: ProfilerArmScope;
+    markerTimeoutMs?: number;
+    markerPollIntervalMs?: number;
+  } = {},
+): Promise<void> {
+  if (!isHermesCpuProfileCollectionEnabled()) {
+    return;
+  }
+
+  const appiumDriver = getDriver();
+  const platform = sessionPlatform(appiumDriver);
+  if (platform === 'ios') {
+    logger.info(
+      'Skipping Hermes profiling arm on iOS (app-scoped export is Android-only)',
+    );
+    return;
+  }
+  if (platform !== 'android') {
+    throw new Error(
+      `Cannot arm Hermes profiling without an Android session (platform "${platform}")`,
+    );
+  }
+
+  const scope = options.scope ?? 'now';
+  const nonce = createArmNonce();
+  const url = buildProfilerArmDeeplink({ nonce, scope });
+  const timeoutMs = options.markerTimeoutMs ?? ARM_MARKER_TIMEOUT_MS;
+  const pollIntervalMs =
+    options.markerPollIntervalMs ?? ARM_MARKER_POLL_INTERVAL_MS;
+
+  await executeMobileDeepLink(url);
+
+  const remotePath = `${deviceProfileDirectory(appiumDriver)}/${ARMED_FILE_NAME}`;
+  const deadline = Date.now() + timeoutMs;
+  let lastMarker = '';
+
+  for (;;) {
+    const marker = await pullTextFile(
+      appiumDriver as PullFileDriver,
+      remotePath,
+    );
+    if (marker) {
+      const [armedNonce, highestRaw] = marker.split('\n');
+      lastMarker = armedNonce ?? '';
+      if (armedNonce === nonce) {
+        const highest = Number(highestRaw);
+        if (Number.isInteger(highest) && highest >= 0) {
+          collectedSegmentCount = Math.max(collectedSegmentCount, highest);
+        }
+        if (scope === 'next-process') {
+          collectionsToSkip += 1;
+        }
+        logger.info(
+          `Hermes profiling armed (${scope}) at device segment ${collectedSegmentCount}`,
+        );
+        return;
+      }
+    }
+
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0 || pollIntervalMs <= 0) {
+      throw new Error(
+        `Hermes profiling was not armed within ${timeoutMs}ms (expected nonce ${nonce}, last marker ${lastMarker || 'missing'})`,
+      );
+    }
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, Math.min(pollIntervalMs, remainingMs));
+    });
+  }
+}
+
+/**
+ * Test-only reset for the collector counters.
+ * @internal
+ */
+export function __resetAppProfilingCollectorForTests(): void {
+  collectedSegmentCount = 0;
+  reportedSegmentCount = 0;
+  collectionsToSkip = 0;
 }
 
 /**
@@ -276,6 +427,14 @@ export async function collectAppProfiling(
   options: { segmentWaitTimeoutMs?: number } = {},
 ): Promise<number> {
   if (!isHermesCpuProfileCollectionEnabled()) {
+    return 0;
+  }
+
+  if (collectionsToSkip > 0) {
+    collectionsToSkip -= 1;
+    logger.info(
+      `Skipping Hermes collection for "${testInfo.title}" until the next app process`,
+    );
     return 0;
   }
 
@@ -327,7 +486,7 @@ export async function collectAppProfiling(
       break;
     }
     collectedSegmentCount = nextIndex;
-    await saveSegment(testInfo, existing, collectedSegmentCount);
+    await saveSegment(testInfo, existing);
     collected += 1;
   }
 
@@ -348,7 +507,7 @@ export async function collectAppProfiling(
   // Pin the counter to the device index before saving so a broken catch-up
   // path cannot renumber the triggered segment.
   collectedSegmentCount = triggeredIndex;
-  await saveSegment(testInfo, buffer, collectedSegmentCount);
+  await saveSegment(testInfo, buffer);
   collected += 1;
 
   // Further segments (unexpected extras) are single-shot — only the one we
@@ -359,7 +518,7 @@ export async function collectAppProfiling(
   );
   while (buffer && collectedSegmentCount < MAX_SEGMENTS_PER_TEST) {
     collectedSegmentCount += 1;
-    await saveSegment(testInfo, buffer, collectedSegmentCount);
+    await saveSegment(testInfo, buffer);
     collected += 1;
     buffer = await pullSegment(
       appiumDriver,

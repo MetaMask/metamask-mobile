@@ -10,6 +10,7 @@ import {
   PerformanceLogin,
   PerformanceRewards,
 } from '../../tags.performance.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -56,6 +57,7 @@ perfTest.describe(
         );
 
         await ToastModal.waitForToastToDismiss();
+        await enableHermesAppProfiling();
         await TabBarComponent.tapRewards();
 
         await rewardsContentTimer.measure(async () => {

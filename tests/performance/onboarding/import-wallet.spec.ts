@@ -18,6 +18,7 @@ import {
   dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
@@ -53,6 +54,7 @@ test.describe(`${Performance} ${PerformanceOnboarding}`, () => {
       );
       const walletTokenLoadTimeoutMs = 60_000;
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapHaveAnExistingWallet();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

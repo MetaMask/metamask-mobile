@@ -23,6 +23,7 @@ import {
   trackTimer,
 } from './helpers/captureOnboardingTtc';
 import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -70,6 +71,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
       const password = getPasswordForScenario('onboarding') ?? '';
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapCreateNewWalletButton();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

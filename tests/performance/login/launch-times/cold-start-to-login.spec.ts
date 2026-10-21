@@ -9,6 +9,7 @@ import {
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Cold Start to Login Screen Performance Test
@@ -35,6 +36,7 @@ perfTest.describe(
         await loginToAppPlaywright();
 
         await WalletView.waitForBalanceToStabilize();
+        await enableHermesAppProfiling({ scope: 'next-process' });
         await AppiumGestures.terminateApp(currentDeviceDetails);
 
         const timer1 = new TimerHelper(

@@ -1,6 +1,8 @@
 import { AppState, Platform, type AppStateStatus } from 'react-native';
 import {
   __resetAppProfilingForTests,
+  armMeasuredAppProfiling,
+  armMeasuredAppProfilingFromUri,
   getLastAppProfilePath,
   getLastAppProfilingError,
   initializeAppProfiling,
@@ -38,6 +40,8 @@ const mockGetHermesProfilerModule = jest.mocked(getHermesProfilerModule);
 function mockNativeModule(overrides?: {
   startProfiling?: jest.Mock;
   stopProfilingToAppStorage?: jest.Mock;
+  discardProfilingSamples?: jest.Mock;
+  markProfilingArmed?: jest.Mock;
 }) {
   const nativeModule = {
     startProfiling:
@@ -45,6 +49,10 @@ function mockNativeModule(overrides?: {
     stopProfilingToAppStorage:
       overrides?.stopProfilingToAppStorage ??
       jest.fn().mockResolvedValue(ANDROID_PROFILE_PATH),
+    discardProfilingSamples:
+      overrides?.discardProfilingSamples ?? jest.fn().mockResolvedValue(true),
+    markProfilingArmed:
+      overrides?.markProfilingArmed ?? jest.fn().mockResolvedValue(true),
   };
   mockGetHermesProfilerModule.mockReturnValue(nativeModule);
   return nativeModule;
@@ -338,6 +346,27 @@ describe('appProfiling', () => {
       expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
     });
 
+    it('does not dump while a next-process arm is suppressing the setup trace', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+      const getListener = captureAppStateListener();
+
+      initializeAppProfiling(true);
+      await flushPromises();
+
+      await armMeasuredAppProfiling(
+        { nonce: 'next', scope: 'next-process' },
+        true,
+      );
+      getListener()('background');
+      await flushPromises();
+
+      expect(nativeModule.discardProfilingSamples).not.toHaveBeenCalled();
+      expect(nativeModule.markProfilingArmed).toHaveBeenCalledWith('next');
+      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
+      expect(isAppProfilingRecording()).toBe(false);
+    });
+
     it('registers a single listener even if called twice', async () => {
       (Platform as { OS: typeof Platform.OS }).OS = 'android';
       mockNativeModule();
@@ -349,6 +378,79 @@ describe('appProfiling', () => {
 
       expect(getListener()).toBeDefined();
       expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('armMeasuredAppProfiling', () => {
+    it('does nothing when profiling is disabled', async () => {
+      const nativeModule = mockNativeModule();
+
+      await armMeasuredAppProfiling({ nonce: 'n', scope: 'now' }, false);
+
+      expect(nativeModule.discardProfilingSamples).not.toHaveBeenCalled();
+      expect(nativeModule.markProfilingArmed).not.toHaveBeenCalled();
+    });
+
+    it('discards the setup buffer and marks the measured window', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+
+      await startAppProfiling(true);
+      await armMeasuredAppProfiling({ nonce: 'team', scope: 'now' }, true);
+
+      expect(nativeModule.discardProfilingSamples).toHaveBeenCalledTimes(1);
+      expect(nativeModule.markProfilingArmed).toHaveBeenCalledWith('team');
+      expect(nativeModule.stopProfilingToAppStorage).not.toHaveBeenCalled();
+      expect(isAppProfilingRecording()).toBe(true);
+    });
+
+    it('ignores a second delivery of the same nonce', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+
+      await startAppProfiling(true);
+      await armMeasuredAppProfiling({ nonce: 'team', scope: 'now' }, true);
+      await armMeasuredAppProfiling({ nonce: 'team', scope: 'now' }, true);
+
+      expect(nativeModule.discardProfilingSamples).toHaveBeenCalledTimes(1);
+      expect(nativeModule.markProfilingArmed).toHaveBeenCalledTimes(1);
+    });
+
+    it('starts profiling when the process was not already recording', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+
+      await armMeasuredAppProfiling({ nonce: 'team', scope: 'now' }, true);
+
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+      expect(nativeModule.discardProfilingSamples).not.toHaveBeenCalled();
+      expect(nativeModule.markProfilingArmed).toHaveBeenCalledWith('team');
+      expect(isAppProfilingRecording()).toBe(true);
+    });
+  });
+
+  describe('armMeasuredAppProfilingFromUri', () => {
+    it('returns false for unrelated URLs', () => {
+      expect(armMeasuredAppProfilingFromUri('metamask://home')).toBe(false);
+    });
+
+    it('consumes an arm URL even when the nonce is missing', () => {
+      expect(
+        armMeasuredAppProfilingFromUri('metamask://e2e/profiler/arm'),
+      ).toBe(true);
+    });
+
+    it('consumes a well-formed arm URL without opening another flow', () => {
+      const nativeModule = mockNativeModule();
+
+      expect(
+        armMeasuredAppProfilingFromUri(
+          'metamask://e2e/profiler/arm?nonce=from-url&scope=now',
+        ),
+      ).toBe(true);
+      // IS_PERFORMANCE_TEST is false in unit tests, so consuming the URL does
+      // not start a session. The enabled path is covered above.
+      expect(nativeModule.markProfilingArmed).not.toHaveBeenCalled();
     });
   });
 });

@@ -8,6 +8,7 @@ import TransactionPayConfirmation from '../../../page-objects/Confirmation/Trans
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Predict Deposit Performance Test
@@ -39,6 +40,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
 
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

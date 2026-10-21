@@ -7,6 +7,7 @@ import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AppiumAssertions from '../../framework/AppiumAssertions';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 5: Perps add funds */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -33,6 +34,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
 
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPerpsSection();
       // Open Perps Main Screen
       await selectPerpsMainScreenTimer.measure(async () => {

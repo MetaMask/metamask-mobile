@@ -14,6 +14,7 @@ import {
 } from '../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../Performance/DeeplinkPerformance';
+import { armMeasuredAppProfilingFromUri } from '../../Performance/appProfiling';
 import Engine from '../../Engine';
 
 /**
@@ -72,6 +73,12 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       }
       lastHandledDeeplinkUri = uri;
       lastHandledDeeplinkAt = now;
+
+      // Performance specs arm Hermes here. Consumed before attribution and
+      // before checkForDeeplink so the URL cannot open the unsupported-link UI.
+      if (armMeasuredAppProfilingFromUri(uri)) {
+        return;
+      }
 
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
       // Start the Navigated clock only if the wallet is already unlocked.

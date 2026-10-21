@@ -23,6 +23,7 @@ import {
   trackTimer,
 } from './helpers/captureOnboardingTtc';
 import type { OnboardingScreenId } from '../../../app/hooks/performance/onboardingPerformanceIds';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -104,6 +105,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         );
       }
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapCreateNewWalletButton();
       await timer1.measure(async () => {
         await assertTelegramLoginReady();

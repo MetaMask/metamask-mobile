@@ -13,6 +13,7 @@ import {
 import TimerHelper from '../../../framework/TimerHelper';
 
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
@@ -21,6 +22,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
+      await enableHermesAppProfiling({ scope: 'next-process' });
       await AppiumGestures.terminateApp(currentDeviceDetails);
       await AppiumGestures.activateApp(currentDeviceDetails);
 
