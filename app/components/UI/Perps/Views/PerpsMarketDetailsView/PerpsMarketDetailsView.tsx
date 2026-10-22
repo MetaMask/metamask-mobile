@@ -57,7 +57,6 @@ import {
 } from '@metamask/perps-controller/constants';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
@@ -73,6 +72,7 @@ import {
   CandlePeriodSelector,
 } from '../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
+import PerpsChartSkeleton from '../../components/PerpsChartSkeleton';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
@@ -1948,9 +1948,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   let detailChartContent: React.ReactNode = (
-    <Skeleton
+    <PerpsChartSkeleton
       height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-      width="100%"
       testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
     />
   );
