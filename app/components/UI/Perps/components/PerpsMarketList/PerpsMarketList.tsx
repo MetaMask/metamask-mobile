@@ -69,7 +69,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   // active category, and — via scrollResetKey — search toggling on/off) so the
   // list header (e.g. the Recently Viewed rail, which sits above the first row)
   // scrolls back into view rather than leaving the user mid-list. Skips the
-  // first render.
+  // first render. With a sticky header (Explore) it instead resets to just
+  // below the list header, and only if the user has scrolled past it.
   //
   // offset 0 targets the very top (above the header); scrollToIndex would only
   // reach the first row and push the header off-screen. This is reliable
@@ -85,8 +86,25 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     }
     // Ref is null when the new filter has no rows and no list header (empty
     // state rendered instead), so this safely no-ops in that case.
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [scrollResetToken]);
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+
+    if (hasStickyHeader) {
+      // The sticky row starts where the list header ends. If the user has
+      // scrolled past the header, reset to that point so the first rows show
+      // under the pinned header without re-revealing the list header (e.g. the
+      // Explore top traders). If the header is still visible, don't scroll.
+      const headerHeight = list.getFirstItemOffset();
+      if (list.getAbsoluteLastScrollOffset() > headerHeight) {
+        list.scrollToOffset({ offset: headerHeight, animated: true });
+      }
+      return;
+    }
+
+    list.scrollToOffset({ offset: 0, animated: true });
+  }, [scrollResetToken, hasStickyHeader]);
 
   const listData = useMemo<MarketListRow[]>(() => {
     const rows: MarketListRow[] = hasStickyHeader ? [STICKY_HEADER_ROW] : [];
