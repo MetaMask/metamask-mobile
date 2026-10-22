@@ -24,12 +24,6 @@ import {
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import MarketingMoment from '../../../MarketingMoment';
-import { getHardwareTier } from '../../../../../util/deviceCapability';
-import type {
-  HardwareTier,
-  NetworkTier,
-} from '../../../../../util/deviceCapability/types';
-import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 
 const GRADIENT_COLORS = [brandColor.indigo900, brandColor.purple800];
 
@@ -45,24 +39,6 @@ interface StatusBarNavigation {
   getParent: () => StatusBarNavigation | undefined;
 }
 
-/**
- * Low-memory hardware uses the static card image. The Rive file is bundled,
- * so network tier does not fetch or skip it. Unknown hardware keeps Rive.
- */
-export function shouldUseStaticCardArtwork(
-  hardwareTier: HardwareTier | null,
-  networkTier: NetworkTier | null,
-): boolean {
-  const networkDoesNotGateArtwork =
-    networkTier === 'NONE' ||
-    networkTier === 'SLOW_CELLULAR' ||
-    networkTier === 'FAST_CELLULAR' ||
-    networkTier === 'WIFI' ||
-    networkTier === null;
-
-  return hardwareTier === 'LOW' && networkDoesNotGateArtwork;
-}
-
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
@@ -72,12 +48,8 @@ const CardWelcome = () => {
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const tw = useTailwind();
-  const hardwareTier = getHardwareTier();
-  const networkTier = useNetworkTier();
   const animationState = useCardEducationAnimationState();
-  const shouldAnimateCards =
-    animationState === 'animate' &&
-    !shouldUseStaticCardArtwork(hardwareTier, networkTier);
+  const shouldAnimateCards = animationState === 'animate';
 
   useEffect(() => {
     trackEvent(
