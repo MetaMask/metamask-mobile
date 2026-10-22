@@ -25,6 +25,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   AVATAR_STEP: 'social-profile-onboarding-avatar-step',
   AVATAR_PREVIEW: 'social-profile-onboarding-avatar-preview',
   AVATAR_PREVIEW_ART: 'social-profile-onboarding-avatar-preview-art',
+  AVATAR_PREVIEW_FLICKER: 'social-profile-onboarding-avatar-preview-flicker',
   AVATAR_OPTION: 'social-profile-onboarding-avatar-option',
   AVATAR_BACKGROUND_CAROUSEL:
     'social-profile-onboarding-avatar-background-carousel',
