@@ -33,6 +33,7 @@ import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
 import type { SocialV1FeedPost } from '../../SocialFeed/types';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -355,6 +356,11 @@ jest.mock('../components/TokenDetailsInlineHeader', () => {
 
 const mockActionsSectionProps: Record<string, unknown>[] = [];
 
+const mockUseIsGlassSurfaceEnabled = jest.fn(() => false);
+jest.mock('../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockUseIsGlassSurfaceEnabled(),
+}));
+
 // Actions row is covered by TokenDetailsActionsSection.test.tsx.
 jest.mock('../components/sections/TokenDetailsActionsSection', () => {
   const { View } = jest.requireActual('react-native');
@@ -489,6 +495,7 @@ describe('TokenDetailsV1', () => {
     mockStickyFooterProps.length = 0;
     mockInlineHeaderProps.length = 0;
     mockActionsSectionProps.length = 0;
+    mockUseIsGlassSurfaceEnabled.mockReturnValue(false);
   });
 
   it('renders the meme-TDP body with the token symbol in the header', () => {
@@ -1700,5 +1707,47 @@ describe('TokenDetailsV1', () => {
     fireEvent.press(getByTestId(TokenExplainerSheetSelectors.GOT_IT_BUTTON));
 
     expect(queryByTestId(TokenExplainerSheetSelectors.SHEET)).toBeNull();
+  });
+
+  describe('brand refresh', () => {
+    it('keeps the header and action tiles plain with the flag off', () => {
+      render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(mockInlineHeaderProps.at(-1)).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+      expect(mockActionsSectionProps.at(-1)).toEqual(
+        expect.objectContaining({ isGlass: false }),
+      );
+    });
+
+    it('puts the header buttons and action tiles on glass, keeping the header in place for the sticky tabs', () => {
+      const { useSelector } = jest.requireMock('react-redux') as {
+        useSelector: jest.Mock;
+      };
+      useSelector.mockImplementation((selector: unknown) =>
+        selector === selectTokenDetailsBrandRefreshEnabled ? true : undefined,
+      );
+      mockUseIsGlassSurfaceEnabled.mockReturnValue(true);
+
+      render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      expect(mockInlineHeaderProps.at(-1)).toEqual(
+        expect.objectContaining({ isGlass: true, isFloating: false }),
+      );
+      expect(mockActionsSectionProps.at(-1)).toEqual(
+        expect.objectContaining({ isGlass: true }),
+      );
+    });
   });
 });

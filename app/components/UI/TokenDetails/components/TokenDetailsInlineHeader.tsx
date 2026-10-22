@@ -53,6 +53,7 @@ export const TokenDetailsInlineHeader = ({
   description,
   tdpVersion,
   isGlass = false,
+  isFloating = true,
   onLayout,
   scrollY,
 }: {
@@ -81,6 +82,11 @@ export const TokenDetailsInlineHeader = ({
    * capsules, as on the brand refresh.
    */
   isGlass?: boolean;
+  /**
+   * With `isGlass`, floats over the page. Off, the header keeps its place and
+   * only its buttons turn to glass, e.g. above a sticky row that docks under it.
+   */
+  isFloating?: boolean;
   /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
   onLayout?: (event: LayoutChangeEvent) => void;
   /** The page's scroll offset, which fades the glass backdrop in. */
@@ -248,12 +254,13 @@ export const TokenDetailsInlineHeader = ({
   return (
     <HeaderSubpageGlass
       isGlass={isGlass}
+      isFloating={isFloating}
       onLayout={onLayout}
       scrollY={scrollY}
       includesTopInset
       // The glass backdrop replaces the solid background.
       twClassName={
-        isGlass
+        isGlass && isFloating
           ? 'min-h-14 h-auto justify-center'
           : 'min-h-14 h-auto bg-default justify-center'
       }

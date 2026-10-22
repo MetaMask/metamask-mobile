@@ -80,6 +80,8 @@ import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import { useTokenHolders } from '../components/tabs/holders/useTokenHolders';
 import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
+import { useIsGlassSurfaceEnabled } from '../../../hooks/useIsGlassSurfaceEnabled';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import TokenDetailsV1TabBar, {
   HIDDEN_TAB_PAGE_STYLE,
   useTokenDetailsV1ScrollStabilization,
@@ -450,6 +452,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  // The header stays in place, so the sticky tab bar still docks under it.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const isGlassSurface = useIsGlassSurfaceEnabled(
+    selectTokenDetailsBrandRefreshEnabled,
+  );
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
   );
@@ -731,6 +739,8 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             isPriceAlertsSupported ? handlePriceAlertPress : undefined
           }
           description={headerDescription}
+          isGlass={isGlassHeader}
+          isFloating={false}
           titleEndAccessory={
             formatTokenAge(launchedAt) != null ? (
               <TokenAgeChip
@@ -801,6 +811,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                 networkName={networkConfigurationByChainId?.name}
                 severity={securityData?.resultType}
                 tdpVersion="v3"
+                isGlass={isGlassSurface}
               />
 
               <TokenDetailsV1TabBar
