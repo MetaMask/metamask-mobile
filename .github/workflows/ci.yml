@@ -105,9 +105,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
-        # Impact: it can fake the clean-working-tree check.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -122,9 +122,9 @@ jobs:
         id: restore-metamask
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v6
-        # zizmor: ignore[cache-poisoning] The Foundry binaries restored from this cache are not
-        # verified, so a tampered cache can run code here with a read-only token and no secrets. Only
-        # this job uses this key. Impact: it can fake the clean-working-tree check.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # clean-working-tree check.
         with:
           path: .metamask
           key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
@@ -187,10 +187,10 @@ jobs:
           ref: main
           fetch-depth: 1
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with statuses: write and no secrets.
-        # Impact: forged commit statuses (they can look like passing checks), including a fingerprint
-        # that makes E2E tests reuse a stale native build. Merging still needs an approving review.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
+        # this repo, including passing required checks and the build-source-hash that picks which
+        # native build E2E tests and RC repacks reuse.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -246,9 +246,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
-        # Impact: it can fake the duplicate-dependency check.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the
+        # duplicate-dependency check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -308,9 +308,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
-        # Impact: it can fake the git-dependency check.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the result of the git-dependency
+        # safety check.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -393,9 +393,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
-        # Impact: it can fake the result of this job's script.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the results of the lint, type,
+        # format, depcheck and other script checks.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -542,10 +542,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with a read-only token and id-token:
-        # write. Impact: it can read the private MetaMask/ai-analyzer repo through the token exchange
-        # this job uses, and fake the contract test results.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and id-token: write), no secrets, and the contract test results. The token
+        # exchange grants any ci.yml job contents: read on MetaMask/ai-analyzer and contents: write on
+        # MetaMask/mobile_bundlesize_stats.
         with:
           node-version-file: '.nvmrc'
           cache: yarn
@@ -618,9 +618,9 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with a read-only token and no secrets.
-        # Impact: it can hide or invent advisories, which only decide whether the escalation job runs.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents, metadata and packages: read), no secrets, and the has-advisories output that
+        # decides if dependency-audit-escalation runs.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
@@ -727,10 +727,11 @@ jobs:
             node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with statuses: write and no secrets.
-        # Impact: forged commit statuses (they can look like passing checks) and a fake bundle size
-        # recorded from main. Merging still needs an approving review.
+        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the job's GITHUB_TOKEN
+        # (contents: read and statuses: write) and no secrets. The token can post any commit status in
+        # this repo, including passing required checks, the build-source-hash that picks which native
+        # build E2E tests and RC repacks reuse, and the ci/ios-js-bundle-size baseline that later PRs
+        # compare against.
         with:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}

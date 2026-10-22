@@ -92,6 +92,10 @@ concurrency:
 permissions:
   contents: read
 
+# RC builds are signed with the RC signer and shipped to testers, so nothing on this path,
+# including the build.yml and build-rc-repack.yml calls, may restore a cache.
+cache-mode: none
+
 jobs:
   validate-and-find-pr:
     name: Validate branch and find PR
@@ -233,13 +237,9 @@ jobs:
       - name: Setup Node.js
         if: env.REPACK_ENABLED == 'true'
         uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with statuses: write and no secrets.
-        # Impact: forged commit statuses, or a fingerprint that makes this RC reuse native artifacts
-        # from an earlier RC run. Production builds rebuild from source without caches.
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          package-manager-cache: false
 
       # fingerprint.config.js shells out to expo-modules-autolinking, so a full install
       # is required before the hash can be computed.
@@ -507,8 +507,8 @@ jobs:
       build_attribution: official
     secrets: inherit
 
-  # TODO: In a follow-up PR, move AI test plan generation into its own workflow that installs
-  # without the Yarn cache, so the AI keys and the write token no longer share a job.
+  # TODO: In a follow-up PR, move AI test plan generation into its own workflow, so the AI keys
+  # and the write token no longer share a job.
   post-rc-build-comment:
     name: Post RC Build Comment with Test Plan
     runs-on: ubuntu-latest
@@ -535,14 +535,9 @@ jobs:
           ref: ${{ needs.validate-and-find-pr.outputs.branch-name }}
           fetch-depth: 0
       - uses: actions/setup-node@v6
-        # zizmor: ignore[cache-poisoning] Yarn does not verify the native binaries it restores from
-        # this cache, so a tampered cache can run code here with the E2E Claude, OpenAI and Gemini API
-        # keys and a contents and pull-requests: write token. Impact: those keys leak, and the token
-        # can push to branches without rulesets, create tags and releases, and edit PRs. Main and
-        # release branches only change through approved PRs.
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
+          package-manager-cache: false
       - name: Install dependencies
         run: yarn install --immutable
 
