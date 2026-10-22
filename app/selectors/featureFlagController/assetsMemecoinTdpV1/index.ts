@@ -140,7 +140,8 @@ export const selectMemecoinTdpV1TokenApiBaseUrl = createSelector(
 
 /**
  * Price API host the V1 page's spot-prices, historical-prices and OHLCV
- * requests use.
+ * requests use, including the `/latest` candle the chart polls when its
+ * WebSocket goes quiet.
  *
  * Exists for the same reason as {@link selectMemecoinTdpV1TokenApiBaseUrl}: a
  * token new enough to be worth opening the V1 page for is often absent from
@@ -151,11 +152,15 @@ export const selectMemecoinTdpV1TokenApiBaseUrl = createSelector(
  * — because callers append their own `/v3/...` path.
  *
  * Reaching the callers is the job of `PriceApiHostProvider`, which wraps only
- * the V1 page. Three requests deliberately ignore this and stay on prod: the
- * headline price, which goes through a utility Bridge and swaps also use; the
- * chart's scroll-back pagination, which the WebView's CSP pins to prod; and
- * the `/latest` candle, whose WebSocket is hosted outside the price API and so
- * could not follow this anyway.
+ * the V1 page. Two requests deliberately ignore this and stay on prod: the
+ * headline price, which goes through a utility Bridge and swaps also use, and
+ * the chart's scroll-back pagination, which the WebView's CSP pins to prod.
+ *
+ * The OHLCV WebSocket is a third exception, but not one this could fix: its
+ * gateway comes from `MM_BACKEND_WEBSOCKET_URL` at build time, so on a build
+ * pointed at prod the live stream stays there while `/latest` follows this.
+ * That is the intended split — `/latest` is the fallback that has to return
+ * data when the stream has none for the asset.
  */
 export const selectMemecoinTdpV1PriceApiBaseUrl = createSelector(
   selectAssetsMemecoinTdpV1Config,

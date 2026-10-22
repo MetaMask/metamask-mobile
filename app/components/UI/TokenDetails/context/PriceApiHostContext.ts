@@ -17,7 +17,7 @@ export const PriceApiHostContext = createContext<string>(PRICE_API_BASE_URL);
  * fetch time, so the host is part of the cache key and a change cannot serve
  * one environment's response under another's.
  *
- * Deliberately split from the provider: the three hooks that read this are
+ * Deliberately split from the provider: the four hooks that read this are
  * shared with Social Leaderboard, Bridge and the legacy page, and importing
  * the provider would drag the feature-flag selector graph into all of them.
  * This module depends on nothing but the constant.

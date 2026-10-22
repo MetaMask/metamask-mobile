@@ -10,11 +10,12 @@ export interface PriceApiHostProviderProps {
 /**
  * Supplies the Price API host to the subtree it wraps.
  *
- * A provider rather than a prop because the host has to reach three requests
+ * A provider rather than a prop because the host has to reach four requests
  * sitting at the bottom of unrelated call chains — market data, historical
- * prices, and the OHLCV chart — two of which are reached through components
- * the legacy page shares. Threading it would have put a permanent-looking
- * prop on `Price.Provider` for something meant to be deleted.
+ * prices, the OHLCV chart, and the `/latest` candle — three of which are
+ * reached through components the legacy page shares. Threading it would have
+ * put a permanent-looking prop on `Price.Provider` for something meant to be
+ * deleted.
  *
  * Wrap only the branch that renders the V1 page. Scope is the whole mechanism:
  * being outside this provider is what keeps the legacy page on prod, so there
