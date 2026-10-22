@@ -463,7 +463,7 @@
     "@metamask/slip44": "^4.2.0",
     "@metamask/smart-transactions-controller": "^27.1.0",
     "@metamask/snap-account-service": "^4.0.0",
-    "@metamask/snaps-controllers": "^21.1.2",
+    "@metamask/snaps-controllers": "^22.0.0",
     "@metamask/snaps-execution-environments": "^11.3.2",
     "@metamask/snaps-rpc-methods": "^17.2.0",
     "@metamask/snaps-sdk": "^12.1.0",
