@@ -17,8 +17,11 @@ export interface ChartScale {
   indexAtX: (x: number) => number;
 }
 
-/** Headroom above and below the data range, as a share of the range. */
-const RANGE_PADDING_RATIO = 0.08;
+/**
+ * No extra domain padding. The chart insets are the 24px gap above the line
+ * and above the date labels.
+ */
+const RANGE_PADDING_RATIO = 0;
 
 /**
  * Linear index → x and value → y mapping. The y domain covers the line and
