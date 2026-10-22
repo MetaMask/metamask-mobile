@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Ödeme oluşturulamadı. Tekrar deneyin."
     },
     "order_completed": {
-      "title": "KART SİPARİŞİNİZ\nVERİLDİ",
+      "title": "Kart siparişiniz verildi",
       "subtitle": "4 ila 6 hafta içinde ulaşacaktır.",
       "description": "mUSD iadesi kazanmaya başlamak için sanal kartınızın kurulumunu yapın ve dijital cüzdanınıza ekleyin.",
       "set_up_card_button": "Kart kurulumunu yap",
@@ -11029,7 +11029,7 @@
       "try_again": "Tekrar dene"
     },
     "card_onboarding": {
-      "title": "Harca\nve Kazan",
+      "title": "Harca ve kazan",
       "description": "MetaMask Card kriptonuzu\nharcamanın ve %3'e varan mUSD iadesi\nkazanmanın hızlı ve kolay yoludur.",
       "apply_now_button": "Şimdi kur",
       "login_button": "Giriş yap",

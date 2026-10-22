@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Die Zahlung konnte nicht erstellt werden. Versuchen Sie es erneut."
     },
     "order_completed": {
-      "title": "IHRE KARTE\nWURDE BESTELLT",
+      "title": "Ihre Karte wurde bestellt",
       "subtitle": "Sie sollte in 4 bis 6 Wochen eintreffen.",
       "description": "Richten Sie Ihre virtuelle Karte ein und fügen Sie sie Ihrer digitalen Wallet hinzu, um mUSD zurückzuerhalten.",
       "set_up_card_button": "Karte einrichten",
@@ -11029,7 +11029,7 @@
       "try_again": "Erneut versuchen"
     },
     "card_onboarding": {
-      "title": "Ausgeben\nund verdienen",
+      "title": "Ausgeben und verdienen",
       "description": "Die MetaMask-Karte ist der schnelle und\neinfache Weg, Ihre Kryptowährung auszugeben und\nbis zu 3 % mUSD zurückzuerhalten.",
       "apply_now_button": "Jetzt einrichten",
       "login_button": "Anmelden",
