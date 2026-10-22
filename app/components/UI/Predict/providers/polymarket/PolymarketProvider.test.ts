@@ -1741,7 +1741,7 @@ describe('PolymarketProvider', () => {
   it('resolves a sell market version from Gamma when building the preview', async () => {
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
       marketId: 'market-1',
@@ -1763,6 +1763,7 @@ describe('PolymarketProvider', () => {
   });
 
   it('previews the maximum fully fillable buy through the provider', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v1MarketEvent as never);
     const provider = createProvider();
 
     const preview = await provider.previewMaxBuyOrder({
@@ -1777,6 +1778,7 @@ describe('PolymarketProvider', () => {
       expect.objectContaining({
         maxAmountSpent: basePreview.maxAmountSpent,
         feeRateBps: '0',
+        outcomeVersion: 'v1',
       }),
     );
     expect(mockPreviewMaxBuyOrder).toHaveBeenCalledWith(
@@ -1790,11 +1792,11 @@ describe('PolymarketProvider', () => {
   it('submits orders through the protocol CLOB v2 relayer path', async () => {
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -1835,12 +1837,12 @@ describe('PolymarketProvider', () => {
       '0x4444444444444444444444444444444444444444444444444444444444444444';
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         feePolicy: {
           discountType: DiscountType.SUBSCRIPTION,
           builderCode: membershipBuilderCode,
@@ -1998,12 +2000,12 @@ describe('PolymarketProvider', () => {
   it('resolves the sell market version from Gamma once per market', async () => {
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
     const callsAfterFirstPreview =
       mockGetMarketDetailsFromGammaApi.mock.calls.length;
 
     await provider.previewOrder({
-      ...basePreview,
+      ...preview,
       size: 10,
       side: Side.SELL,
       signer,
@@ -2039,11 +2041,11 @@ describe('PolymarketProvider', () => {
   it('answers a sell preview from the cache warmed by a buy on the same market', async () => {
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
     const callsAfterBuy = mockGetMarketDetailsFromGammaApi.mock.calls.length;
 
     await provider.previewOrder({
-      ...basePreview,
+      ...preview,
       size: 10,
       side: Side.SELL,
       signer,
@@ -2165,16 +2167,72 @@ describe('PolymarketProvider', () => {
     );
   });
 
-  it('fails an order when no market version is cached for its outcome token', async () => {
+  it.each([
+    ['v1', v1MarketEvent],
+    ['v2', v2MarketEvent],
+  ])(
+    'stamps the %s market version on the order preview',
+    async (version, event) => {
+      const provider = createProvider();
+
+      const preview = await previewWithWarmVersionCache(provider, event);
+
+      expect(preview.outcomeVersion).toBe(version);
+    },
+  );
+
+  it('routes a max-buy preview through the positions path on a cold version cache', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v2MarketEvent as never);
+    const provider = createProvider();
+
+    const preview = await provider.previewMaxBuyOrder({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: '123',
+      availableBalance: 100,
+      signer,
+    });
+    const result = await provider.placeOrder({
+      signer,
+      preview: preview as OrderPreview,
+    });
+
+    expect(preview?.outcomeVersion).toBe('v2');
+    expect(result.success).toBe(true);
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: positionsTradeProtocol,
+      }),
+    );
+  });
+
+  it('routes from the preview version, not the version cache', async () => {
+    const provider = createProvider();
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, outcomeVersion: 'v2' },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: positionsTradeProtocol,
+      }),
+    );
+  });
+
+  it('fails an order whose preview carries no market version', async () => {
     const provider = createProvider();
 
     const result = await provider.placeOrder({ signer, preview: basePreview });
 
-    // Unreachable after previewOrder — a cold cache at order time is a
-    // programming error, and a loud failure beats silently routing an
+    // Every provider preview carries its version — a preview without one is
+    // a programming error, and a loud failure beats silently routing an
     // unknown version down the CTF path.
     expect(result.success).toBe(false);
-    expect(result.error).toContain('No market version cached');
+    expect(result.error).toContain('No market version on the preview');
     expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
   });
 
@@ -2200,12 +2258,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         fees: {
           metamaskFee: 0.05,
           providerFee: 0.05,
@@ -2251,11 +2309,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -2281,11 +2339,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(false);
@@ -2299,11 +2357,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(false);
@@ -2318,11 +2376,11 @@ describe('PolymarketProvider', () => {
   it('builds v1 Safe trade allowances with the CTF protocol', async () => {
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     await provider.placeOrder({
       signer,
-      preview: { ...basePreview, side: Side.SELL },
+      preview: { ...preview, side: Side.SELL },
     });
 
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith({
@@ -2357,11 +2415,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, side: Side.SELL },
+      preview: { ...preview, side: Side.SELL },
     });
 
     expect(result.success).toBe(true);
@@ -2389,7 +2447,7 @@ describe('PolymarketProvider', () => {
     'maps relayer rejections to Predict error codes for %s orders',
     async (_version, event) => {
       const provider = createProvider();
-      await previewWithWarmVersionCache(provider, event);
+      const preview = await previewWithWarmVersionCache(provider, event);
 
       mockSubmitProtocolClobOrder.mockResolvedValueOnce({
         success: false,
@@ -2397,7 +2455,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const buyResult = await provider.placeOrder({
         signer,
-        preview: basePreview,
+        preview,
       });
 
       mockSubmitProtocolClobOrder.mockResolvedValueOnce({
@@ -2406,7 +2464,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const sellResult = await provider.placeOrder({
         signer,
-        preview: { ...basePreview, side: Side.SELL },
+        preview: { ...preview, side: Side.SELL },
       });
 
       mockSubmitProtocolClobOrder.mockResolvedValueOnce({
@@ -2415,7 +2473,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const regionResult = await provider.placeOrder({
         signer,
-        preview: basePreview,
+        preview,
       });
 
       expect(buyResult.error).toBe(
@@ -2444,12 +2502,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         fees: {
           metamaskFee: 0.05,
           providerFee: 0.05,
@@ -2524,11 +2582,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -2579,11 +2637,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, side: Side.SELL },
+      preview: { ...preview, side: Side.SELL },
     });
 
     expect(result.success).toBe(true);
@@ -2607,11 +2665,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -2643,11 +2701,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: { ...basePreview, side: Side.SELL },
+      preview: { ...preview, side: Side.SELL },
     });
 
     expect(result.success).toBe(true);
@@ -2694,11 +2752,11 @@ describe('PolymarketProvider', () => {
 
     const provider = createProvider();
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -2744,12 +2802,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         fees: {
           metamaskFee: 0.05,
           providerFee: 0.05,
@@ -2794,12 +2852,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
-    await previewWithWarmVersionCache(provider, v1MarketEvent);
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         fees: {
           metamaskFee: 0,
           providerFee,

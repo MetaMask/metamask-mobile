@@ -384,8 +384,8 @@ export type PredictOutcome = {
   resolutionStatus?: string;
   /**
    * Gamma market version for this outcome's market, as reported by Gamma.
-   * Informational only: order routing reads the provider's version cache,
-   * keyed by outcome token id, not this field.
+   * Informational only: order routing reads `OrderPreview.outcomeVersion`,
+   * which the provider resolves when it builds the preview.
    */
   version?: string;
 };
@@ -823,6 +823,12 @@ export interface OrderPreview {
   // so we can perform optimistic updates
   positionId?: string;
   orderType?: PredictOrderType;
+  /**
+   * Gamma market version of the traded outcome's market, resolved when the
+   * provider builds the preview. Routes the order: "v2" uses the positions
+   * protocol; any other value uses the CTF path.
+   */
+  outcomeVersion?: string;
 }
 
 export type OrderResult = Result<{

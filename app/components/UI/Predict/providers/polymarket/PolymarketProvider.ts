@@ -572,12 +572,14 @@ export class PolymarketProvider implements PredictProvider {
 
   #decorateOrderPreview({
     preview,
+    outcomeVersion,
     feeCollection,
     fakOrdersEnabled,
     signer,
     feePolicy,
   }: {
     preview: OrderPreview;
+    outcomeVersion: string;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     signer: Signer;
@@ -593,6 +595,7 @@ export class PolymarketProvider implements PredictProvider {
 
     const decoratedPreview: OrderPreview = {
       ...preview,
+      outcomeVersion,
       feeRateBps: getPreviewFeeRateBpsForProtocol(),
       orderType,
       ...(feePolicy ? { feePolicy } : {}),
@@ -1017,27 +1020,24 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   /**
-   * Chooses the trade protocol for an order from the cached Gamma market
-   * version of its outcome token — no resolution happens at order time.
-   * Every preview ensures its version was resolved when it was built (see
-   * previewOrder), so a cache miss here is a programming error.
+   * Chooses the trade protocol for an order from the Gamma market version
+   * stamped on its preview — no resolution happens at order time. Every
+   * provider preview carries the version (see previewOrder and
+   * previewMaxBuyOrder), so a preview without one is a programming error.
    */
-  async #resolveTradeProtocol({
+  #resolveTradeProtocol({
     preview,
   }: {
     preview: OrderPreview;
-  }): Promise<PolymarketTradeProtocol> {
-    const cached = this.#marketVersionsByOutcomeTokenId.get(
-      preview.outcomeTokenId,
-    );
-    if (!cached) {
-      // Unreachable after previewOrder — a loud failure beats silently
-      // routing an unknown version down the CTF path.
+  }): PolymarketTradeProtocol {
+    if (preview.outcomeVersion === undefined) {
+      // A loud failure beats silently routing an unknown version down the
+      // CTF path.
       throw new Error(
-        `No market version cached for outcome token ${preview.outcomeTokenId}`,
+        `No market version on the preview for outcome token ${preview.outcomeTokenId}`,
       );
     }
-    return getPolymarketProtocolForMarketVersion(await cached);
+    return getPolymarketProtocolForMarketVersion(preview.outcomeVersion);
   }
 
   public async getMarketDetails({
@@ -2446,9 +2446,9 @@ export class PolymarketProvider implements PredictProvider {
     },
   ): Promise<OrderPreview> {
     // Fail fast on an unresolvable market version — before the CLOB round
-    // trip — so routing always reads a warm cache. Market fetches usually
-    // covered this; a sell's market may need one Gamma read (cached).
-    await this.#ensureOutcomeVersion({
+    // trip. Market fetches usually covered this; a sell's market may need
+    // one Gamma read (cached).
+    const outcomeVersion = await this.#ensureOutcomeVersion({
       marketId: params.marketId,
       outcomeTokenId: params.outcomeTokenId,
     });
@@ -2461,6 +2461,7 @@ export class PolymarketProvider implements PredictProvider {
 
     return this.#decorateOrderPreview({
       preview: basePreview,
+      outcomeVersion,
       feeCollection,
       fakOrdersEnabled,
       signer: params.signer,
@@ -2474,6 +2475,10 @@ export class PolymarketProvider implements PredictProvider {
     },
   ): Promise<OrderPreview | null> {
     const { signer, ...previewParams } = params;
+    const outcomeVersion = await this.#ensureOutcomeVersion({
+      marketId: params.marketId,
+      outcomeTokenId: params.outcomeTokenId,
+    });
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewMaxBuyOrder({
       ...previewParams,
@@ -2486,6 +2491,7 @@ export class PolymarketProvider implements PredictProvider {
 
     return this.#decorateOrderPreview({
       preview: basePreview,
+      outcomeVersion,
       feeCollection,
       fakOrdersEnabled,
       signer,
@@ -2548,7 +2554,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const protocol = await this.#resolveTradeProtocol({ preview });
+      const protocol = this.#resolveTradeProtocol({ preview });
       const orderResponse = await this.#submitTradeOrder({
         signer,
         preview,
