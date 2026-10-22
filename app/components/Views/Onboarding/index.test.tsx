@@ -3545,7 +3545,7 @@ describe('Onboarding', () => {
       });
 
       return {
-        googleLogin: () =>
+        googleLogin: (_createWallet?: boolean) =>
           fireEvent.press(
             getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
           ),

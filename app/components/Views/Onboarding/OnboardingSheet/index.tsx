@@ -119,9 +119,6 @@ const OnboardingSheet = ({
   const isDark = themeAppearance === AppThemeKey.dark;
   const socialButtonSpinnerProps = {
     color: IconColor.IconInverse,
-    spinnerIconProps: {
-      style: { color: colors.background.default },
-    },
   };
 
   return (
