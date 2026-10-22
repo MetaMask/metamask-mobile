@@ -283,6 +283,22 @@ describe('SocialFeedPostShell', () => {
     ).toBeNull();
   });
 
+  it('marks a pending post as posting', () => {
+    renderShell(basePost({ isPending: true }));
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.PENDING}-post-1`),
+    ).toHaveTextContent('Posting...');
+  });
+
+  it('shows no posting label once the post is confirmed', () => {
+    renderShell(basePost());
+
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.PENDING}-post-1`),
+    ).toBeNull();
+  });
+
   it('renders an attached gif preview', () => {
     renderShell(basePost({ gifUri: 'https://media.test/cat.gif' }));
 
