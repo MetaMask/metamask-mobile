@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Không thể tạo thanh toán. Hãy thử lại."
     },
     "order_completed": {
-      "title": "THẺ CỦA BẠN\nĐÃ ĐƯỢC ĐẶT",
+      "title": "Thẻ của bạn đã được đặt",
       "subtitle": "Thẻ sẽ được gửi đến trong vòng 4 đến 6 tuần.",
       "description": "Thiết lập thẻ ảo và thêm vào ví kỹ thuật số để bắt đầu nhận hoàn tiền bằng mUSD.",
       "set_up_card_button": "Thiết lập thẻ",

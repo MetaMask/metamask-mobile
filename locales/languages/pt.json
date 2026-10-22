@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Falha ao criar o pagamento. Tente novamente."
     },
     "order_completed": {
-      "title": "SEU CARTÃO\nFOI SOLICITADO",
+      "title": "Seu cartão foi solicitado",
       "subtitle": "Ele deverá chegar em 4 a 6 semanas.",
       "description": "Configure seu cartão virtual e adicione-o à sua carteira digital para começar a ganhar cashback em mUSD.",
       "set_up_card_button": "Configurar cartão",

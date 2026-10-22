@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Gagal membuat pembayaran. Coba lagi."
     },
     "order_completed": {
-      "title": "KARTU ANDA\nSUDAH DIPESAN",
+      "title": "Kartu Anda sudah dipesan",
       "subtitle": "Kartu akan tiba dalam waktu 4 sampai 6 minggu.",
       "description": "Atur kartu virtual Anda dan tambahkan ke dompet digital untuk mulai mendapatkan pengembalian mUSD.",
       "set_up_card_button": "Atur kartu",

@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Die Zahlung konnte nicht erstellt werden. Versuchen Sie es erneut."
     },
     "order_completed": {
-      "title": "IHRE KARTE\nWURDE BESTELLT",
+      "title": "Ihre Karte wurde bestellt",
       "subtitle": "Sie sollte in 4 bis 6 Wochen eintreffen.",
       "description": "Richten Sie Ihre virtuelle Karte ein und fügen Sie sie Ihrer digitalen Wallet hinzu, um mUSD zurückzuerhalten.",
       "set_up_card_button": "Karte einrichten",

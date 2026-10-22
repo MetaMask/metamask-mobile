@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Error al crear el pago. Inténtalo de nuevo."
     },
     "order_completed": {
-      "title": "TU TARJETA\nHA SIDO SOLICITADA",
+      "title": "Tu tarjeta ha sido solicitada",
       "subtitle": "Debería llegar en un plazo de 4 a 6 semanas.",
       "description": "Configura tu tarjeta virtual y añádela a tu billetera digital para comenzar a ganar cashback en mUSD.",
       "set_up_card_button": "Configurar tarjeta",
