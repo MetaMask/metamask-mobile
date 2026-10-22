@@ -11801,6 +11801,11 @@
       "error_fetching_title": "奖励加载失败",
       "error_fetching_description": "请检查连接后重试。"
     },
+    "referral_details_error": {
+      "error_fetching_title": "推荐详情加载失败",
+      "error_fetching_description": "请检查连接后重试。",
+      "retry_button": "重试"
+    },
     "active_activity_error": {
       "error_fetching_title": "活动加载失败",
       "error_fetching_description": "请检查连接后重试。",

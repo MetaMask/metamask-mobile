@@ -11801,6 +11801,11 @@
       "error_fetching_title": "No se pudieron cargar las recompensas",
       "error_fetching_description": "Comprueba tu conexión y vuelve a intentarlo."
     },
+    "referral_details_error": {
+      "error_fetching_title": "No se pudieron cargar los detalles de recomendación",
+      "error_fetching_description": "Comprueba tu conexión y vuelve a intentarlo.",
+      "retry_button": "Reintentar"
+    },
     "active_activity_error": {
       "error_fetching_title": "No se pudo cargar la actividad",
       "error_fetching_description": "Comprueba tu conexión y vuelve a intentarlo.",

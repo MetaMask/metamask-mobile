@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Reward tidak dapat dimuat",
       "error_fetching_description": "Periksa koneksi Anda dan coba lagi."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Detail referensi tidak dapat dimuat",
+      "error_fetching_description": "Periksa koneksi Anda dan coba lagi.",
+      "retry_button": "Coba lagi"
+    },
     "active_activity_error": {
       "error_fetching_title": "Aktivitas tidak dapat dimuat",
       "error_fetching_description": "Periksa koneksi Anda dan coba lagi.",
