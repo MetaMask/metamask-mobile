@@ -144,7 +144,6 @@ export function getTransactionControllerInitMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountsController:getSelectedAccount',
-      'AccountTrackerController:getState',
       'ApprovalController:addRequest',
       'ApprovalController:endFlow',
       'ApprovalController:startFlow',
@@ -203,10 +202,6 @@ export function getTransactionControllerInitMessenger(
       'RampsController:getQuotes',
       // @ts-expect-error See above
       'RampsController:getState',
-      // @ts-expect-error See above
-      'TokenBalancesController:getState',
-      // @ts-expect-error See above
-      'TokenRatesController:getState',
       // @ts-expect-error See above
       'TokensController:getState',
     ],

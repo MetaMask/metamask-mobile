@@ -5,7 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 
 /** Scroll distance at which the header subtitle swaps from the contract
  * address to the live price. */

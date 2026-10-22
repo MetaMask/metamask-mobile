@@ -1,4 +1,5 @@
 import React from 'react';
+import { brandColor } from '@metamask/design-tokens';
 import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import {
@@ -66,8 +67,24 @@ describe('SocialFeedPostingBanner', () => {
 
     expect(
       screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.AVATAR),
-    ).toBeOnTheScreen();
+    ).toHaveProp('source', { uri: 'https://cdn.test/avatar.png' });
     expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+  });
+
+  it('renders the chosen fox preset when the profile has no photo', () => {
+    renderWithProvider(
+      <SocialFeedPostingBanner
+        authorHandle="wen-cat"
+        avatarPresetId="zombie"
+        avatarBackgroundId="background7"
+        startedAtMs={1_000_000}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.AVATAR),
+    ).toHaveStyle({ backgroundColor: brandColor.lime100 });
+    expect(screen.UNSAFE_getByProps({ name: 'zombie' })).toBeTruthy();
   });
 
   it('starts the countdown when it mounts before the clock is set', () => {

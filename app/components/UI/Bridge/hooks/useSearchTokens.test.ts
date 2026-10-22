@@ -14,6 +14,8 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceContext,
+  type TraceRequest,
 } from '../../../../util/trace';
 
 global.fetch = jest.fn();
@@ -38,7 +40,9 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
-const mockTrace = jest.mocked(trace);
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = jest.mocked(endTrace);
 
 describe('useSearchTokens', () => {
@@ -111,6 +115,9 @@ describe('useSearchTokens', () => {
           query_length_bucket: '6-10',
         },
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
       const traceId = mockTrace.mock.calls[0][0].id;
       expect(mockEndTrace).toHaveBeenCalledWith({

@@ -1,4 +1,9 @@
 import { trackEvent, buildAndTrackEvent } from './analytics';
+import NavigationService from '../../NavigationService';
+import {
+  recordFocusedRoute,
+  resetNavigationAnalyticsAttributionForTests,
+} from '../../../util/analytics/navigationAnalyticsAttribution';
 import Logger from '../../../util/Logger';
 import type { ControllerMessenger } from '../types';
 import {
@@ -42,6 +47,7 @@ describe('trackEvent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNavigationAnalyticsAttributionForTests();
 
     mockCall = jest.fn();
     mockInitMessenger = {
@@ -84,6 +90,35 @@ describe('trackEvent', () => {
         'AnalyticsController:trackEvent',
         event,
       );
+    });
+
+    it('leaves previous_screen unset when Engine tracks Home Viewed', () => {
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      recordFocusedRoute({ name: 'SettingsView', key: 'settings' });
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'settings',
+          name: 'SettingsView',
+          params: {},
+        });
+      const event = {
+        name: 'Home Viewed',
+        properties: { screen: 'settings' },
+        sensitiveProperties: {},
+      } as unknown as AnalyticsTrackingEvent;
+
+      try {
+        trackEvent(mockInitMessenger, event);
+
+        expect(mockCall).toHaveBeenCalledWith(
+          'AnalyticsController:trackEvent',
+          event,
+        );
+        expect(event.properties).toEqual({ screen: 'settings' });
+      } finally {
+        getCurrentRoute.mockRestore();
+      }
     });
 
     it('enriches allowlisted events before calling the analytics controller', () => {

@@ -4,6 +4,7 @@
 
 import {
   formatDateRemaining,
+  formatDuration,
   formatRewardsDate,
   formatRewardsDateLabel,
   formatRewardsTimeOnly,
@@ -16,6 +17,7 @@ import {
   resolveTemplate,
   validateEmail,
   formatPercentChange,
+  formatMusdBaseUnits,
   isPercentChangeNonNegative,
   getChainHex,
   getAssetReference,
@@ -150,6 +152,49 @@ describe('formatUtils', () => {
       const date = new Date('2025-04-23T14:30:00Z');
       const result = formatRewardsTimeOnly(date, 'fr-FR');
       expect(result).toMatch(/\d{1,2}:\d{2}/);
+    });
+  });
+
+  describe('formatDuration', () => {
+    const now = Date.parse('2026-10-01T00:00:00.000Z');
+    const templates = {
+      day: '{count} day',
+      days: '{count} days',
+      hour: '{count} hour',
+      hours: '{count} hours',
+    };
+
+    it('uses whole days when at least a day remains', () => {
+      expect(formatDuration('2026-10-03T12:00:00.000Z', templates, now)).toBe(
+        '2 days',
+      );
+    });
+
+    it('uses hours below a day and keeps at least one hour', () => {
+      expect(formatDuration('2026-10-01T05:00:00.000Z', templates, now)).toBe(
+        '5 hours',
+      );
+      expect(formatDuration('2026-10-01T00:20:00.000Z', templates, now)).toBe(
+        '1 hour',
+      );
+    });
+
+    it('returns null for a missing, invalid, or past end', () => {
+      expect(formatDuration(null, templates, now)).toBeNull();
+      expect(formatDuration('not-a-date', templates, now)).toBeNull();
+      expect(
+        formatDuration('2026-09-01T00:00:00.000Z', templates, now),
+      ).toBeNull();
+    });
+
+    it('returns null when the unit template has no count placeholder', () => {
+      expect(
+        formatDuration(
+          '2026-10-03T12:00:00.000Z',
+          { ...templates, days: 'days' },
+          now,
+        ),
+      ).toBeNull();
     });
   });
 
@@ -1410,6 +1455,32 @@ describe('formatUtils', () => {
 
     it('returns empty string for non-numeric string', () => {
       expect(formatPercentChange('—')).toBe('');
+    });
+  });
+
+  describe('formatMusdBaseUnits', () => {
+    it('shifts base units to USD at 6 decimals', () => {
+      expect(formatMusdBaseUnits('41750000')).toBe('$41.75');
+    });
+
+    it('formats zero as an amount rather than nothing', () => {
+      expect(formatMusdBaseUnits('0')).toBe('$0.00');
+    });
+
+    it('keeps precision on a total larger than a JSON number holds exactly', () => {
+      expect(formatMusdBaseUnits('90071992547409910')).toBe(
+        '$90,071,992,547.41',
+      );
+    });
+
+    it('returns null for a missing amount', () => {
+      expect(formatMusdBaseUnits(null)).toBeNull();
+      expect(formatMusdBaseUnits(undefined)).toBeNull();
+      expect(formatMusdBaseUnits('')).toBeNull();
+    });
+
+    it('returns null for an unparseable amount', () => {
+      expect(formatMusdBaseUnits('not-a-number')).toBeNull();
     });
   });
 
