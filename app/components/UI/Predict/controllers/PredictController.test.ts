@@ -7954,7 +7954,7 @@ describe('PredictController', () => {
     const createV2PayoutTransferLog = (valueRaw: bigint) => {
       const transferEvent = transferInterface.getEvent('Transfer');
       const encodedLog = transferInterface.encodeEventLog(transferEvent, [
-        MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
+        '0x0000000000000000000000000000000000000000',
         accountAddress,
         valueRaw,
       ]);
@@ -8280,7 +8280,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sums v2 router payouts with CTF payouts in the confirmed claim receipt', () => {
+    it('sums v2 minted payouts with CTF payouts in the confirmed claim receipt', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
         const claimablePositions = [
@@ -8331,7 +8331,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('uses v2 router transfer logs for confirmed claims without CTF redemptions', () => {
+    it('uses v2 mint transfer logs for confirmed claims without CTF redemptions', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
         const claimablePositions = [
@@ -8379,7 +8379,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('ignores collateral transfers not sourced by the v2 router or position manager', () => {
+    it('ignores collateral transfers not sourced by the zero address', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
         const claimablePositions = [

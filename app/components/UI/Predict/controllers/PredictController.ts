@@ -70,7 +70,6 @@ import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchW
 import {
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
-  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
   USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
@@ -361,17 +360,7 @@ const TRANSFER_EVENT_INTERFACE = new Interface([
   'event Transfer(address indexed from, address indexed to, uint256 value)',
 ]);
 
-/**
- * Contracts that pay out claim collateral for Positions-protocol (v2)
- * markets. Their redeem flow emits no CTF `PayoutRedemption`, so the payout
- * is read from ERC20 `Transfer` logs sourced by these contracts.
- */
-const V2_CLAIM_PAYOUT_SOURCES = new Set(
-  [
-    MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
-    MATIC_POSITIONS_PROTOCOL_CONTRACTS.positionManager,
-  ].map((address) => address.toLowerCase()),
-);
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
   MATIC_CONTRACTS_V2.collateral.toLowerCase(),
@@ -4271,11 +4260,11 @@ export class PredictController extends BaseController<
         logAddress &&
         PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(logAddress)
       ) {
-        // Positions-protocol (v2) claims pay out through the Router or
-        // PositionManager with no CTF event, so the payout is read from the
-        // collateral ERC20 `Transfer` logs those contracts source. The token
-        // filter keeps ERC721-shaped `Transfer` events (identical signature)
-        // from other contracts out of the sum.
+        // Positions-protocol (v2) redemption mints collateral and emits no
+        // CTF event, so read the payout from collateral ERC20 `Transfer`
+        // logs sourced by the zero address. The token filter keeps
+        // ERC721-shaped `Transfer` events (identical signature) from other
+        // contracts out of the sum.
         try {
           const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
             topics,
@@ -4284,11 +4273,7 @@ export class PredictController extends BaseController<
           const from = parsedLog.args.from?.toString()?.toLowerCase();
           const value = parsedLog.args.value?.toString();
 
-          if (
-            !from ||
-            value === undefined ||
-            !V2_CLAIM_PAYOUT_SOURCES.has(from)
-          ) {
+          if (!from || value === undefined || from !== ZERO_ADDRESS) {
             continue;
           }
 
