@@ -482,7 +482,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow')}
+          contentContainerStyle={tw.style('flex-grow pt-[12px]')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}
@@ -503,6 +503,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               onOpenFilters={onOpenFilters}
               isFilterActive={isFilterActive}
               filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
+              twClassName="px-4 pb-4"
             >
               <FeedSortFilterSelector
                 value={feedSort}
@@ -511,11 +512,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             </SocialTabFilterBar>
           ) : null}
           {hasBeenActive ? (
-            // No top padding: `SocialV1View` already offsets the pager from the
-            // tabs bar by 16, and adding another 16 here is what made the space
-            // above the carousel twice the `gap-4` below it. The carousel bleeds
-            // to both screen edges, so the horizontal padding sits on the posts
-            // rather than on the page.
+            // The 12px gap under the tabs lives on the scroll content, so it
+            // scrolls away and the feed still clips at the tab underline.
+            // The carousel bleeds to both screen edges, so the horizontal
+            // padding sits on the posts.
             <Box twClassName="pb-8 gap-6">
               {showHotTokens ? (
                 <HotTokensCarousel
