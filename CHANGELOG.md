@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.18.0]
 
+### Uncategorized
+
+- Validated quote reserve requirements for native and non-native swap and bridge quotes (#37887)
+- Pointed the Perps outage banner contact support link at the MetaMask help center (#37900)
+
 ### Added
 
+- Added suggested markets to the Perps Explore watchlist when fewer than five markets are saved (#37794)
 - Added a Holders tab to token details for token-specific holder lists; the tab remains empty until holder data is available (#37664, #37789)
 - Added token-specific Social feeds and position sharing to token details (#37516)
 - Added a Performance tab to the Rewards Money dashboard for referral progress and trading rebates (#36843)
@@ -66,6 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Changed bump @metamask/stellar-wallet-snap to ^1.3.0 (#37852)
 - Improved social profile avatar onboarding motion and added a blink when the selected avatar changes (#38043)
 - Moved the linked-account change note above the Continue button during social profile onboarding (#38048)
 - Updated large number displays to 48px across wallet balances and token prices, batch sells, Money, Perps, Predict, ramp orders, rewards, and transaction details (#37831, #37832, #37833, #37834, #37835, #37836, #37837, #37839)
@@ -149,6 +156,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed the Perps Trade sheet so the pay-with row shows the available balance (#38013)
+- Fixed the keyboard not opening on the Transak OTP code screen on Android (#37941)
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#37891)
+- Hid the “Back to account” escape hatch unavailable (#37934)
+- Fixed tapping a transaction toast opening an outdated details modal instead of the Activity details screen (#37846)
 - Updated the Perps outage banner FAQ link to open the troubleshooting article (#38045)
 - Validated reserve requirements for native and non-native swap and bridge quotes (#37821, #37887)
 - Fixed the Perps outage banner contact support link to open the MetaMask Help Center (#37879, #37900)
