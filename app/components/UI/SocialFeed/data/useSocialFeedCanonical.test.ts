@@ -165,6 +165,10 @@ describe('useSocialFeedCanonical helpers', () => {
     expect(getVisiblePendingNewCount(1, false, false)).toBe(1);
   });
 
+  it('hides pending count while queued posts are being revealed', () => {
+    expect(getVisiblePendingNewCount(6, true, true, true)).toBe(0);
+  });
+
   it('defers the HTTP row while a new realtime item is pending', () => {
     expect(shouldDeferPendingNewRow({ animate: true })).toBe(true);
     expect(shouldDeferPendingNewRow({ animate: false })).toBe(false);

@@ -19,9 +19,12 @@ import React, {
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import Animated, {
   type ScrollHandlerProcessed,
+  FadeIn,
+  FadeOut,
   useAnimatedScrollHandler,
   useComposedEventHandler,
   ZoomIn,
+  ZoomOut,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
@@ -70,7 +73,19 @@ const LIVE_FEED_INITIAL_RENDER_COUNT = 6;
 const LIVE_FEED_MAX_RENDER_PER_BATCH = 6;
 const LIVE_FEED_WINDOW_SIZE = 5;
 const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 4;
-const PENDING_POSTS_ENTRY = ZoomIn.springify()
+const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
+const PENDING_POSTS_ZOOM_OUT = ZoomOut.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
+const PENDING_POSTS_FADE_IN = FadeIn.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
+const PENDING_POSTS_FADE_OUT = FadeOut.springify()
   .damping(14)
   .stiffness(560)
   .mass(0.4);
@@ -241,16 +256,19 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
       : 'social_leaderboard.feed.live_stream.paused',
   );
 
-  const handleStreamToggle = useCallback(() => {
-    setStreamState((prev) => (prev === 'live' ? 'paused' : 'live'));
-  }, []);
-
   const handleRevealPending = useCallback(async () => {
     setNearTop(true);
     revealPending();
     await refresh();
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [refresh, revealPending]);
+
+  const handleStreamToggle = useCallback(() => {
+    if (streamState === 'paused') {
+      handleRevealPending();
+    }
+    setStreamState((prev) => (prev === 'live' ? 'paused' : 'live'));
+  }, [handleRevealPending, streamState]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -360,14 +378,22 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
           ListHeaderComponent={
             <>
               {pendingNewCount > 0 ? (
-                <Box alignItems={BoxAlignItems.Center} twClassName="py-2">
-                  <Animated.View entering={PENDING_POSTS_ENTRY}>
-                    <PendingPostsButton
-                      pendingNewCount={pendingNewCount}
-                      onPress={handleRevealPending}
-                    />
+                <Animated.View
+                  entering={PENDING_POSTS_FADE_IN}
+                  exiting={PENDING_POSTS_FADE_OUT}
+                >
+                  <Animated.View
+                    entering={PENDING_POSTS_ZOOM_IN}
+                    exiting={PENDING_POSTS_ZOOM_OUT}
+                  >
+                    <Box alignItems={BoxAlignItems.Center} twClassName="py-2">
+                      <PendingPostsButton
+                        pendingNewCount={pendingNewCount}
+                        onPress={handleRevealPending}
+                      />
+                    </Box>
                   </Animated.View>
-                </Box>
+                </Animated.View>
               ) : null}
               <SocialTabFilterBar
                 onOpenFilters={onOpenFilters}
@@ -423,9 +449,15 @@ const LiveView: React.FC<LiveViewProps> = ({
   const { profile: myProfile } = useMyProfile();
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
 
-  const handleStreamToggle = useCallback(() => {
-    setStreamState((previous) => (previous === 'live' ? 'paused' : 'live'));
-  }, []);
+  const handleStreamToggle = useCallback(
+    (onRevealPending: () => void) => {
+      if (streamState === 'paused') {
+        onRevealPending();
+      }
+      setStreamState((previous) => (previous === 'live' ? 'paused' : 'live'));
+    },
+    [streamState],
+  );
 
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
@@ -485,7 +517,7 @@ const LiveView: React.FC<LiveViewProps> = ({
             isSelected
             variant={FilterButtonVariant.Secondary}
             size={FilterButtonSize.Sm}
-            onPress={handleStreamToggle}
+            onPress={() => handleStreamToggle(onRevealPending)}
             testID={LiveViewSelectorsIDs.STREAM_BUTTON}
             accessibilityLabel={streamLabel}
             textProps={isLive ? undefined : { twClassName: 'text-muted' }}
@@ -494,12 +526,20 @@ const LiveView: React.FC<LiveViewProps> = ({
             {streamLabel}
           </FilterButton>
           {pendingNewCount > 0 ? (
-            <Animated.View entering={PENDING_POSTS_ENTRY}>
-              <PendingPostsButton
-                pendingNewCount={pendingNewCount}
-                onPress={onRevealPending}
-                textColor={TextColor.SuccessDefault}
-              />
+            <Animated.View
+              entering={PENDING_POSTS_FADE_IN}
+              exiting={PENDING_POSTS_FADE_OUT}
+            >
+              <Animated.View
+                entering={PENDING_POSTS_ZOOM_IN}
+                exiting={PENDING_POSTS_ZOOM_OUT}
+              >
+                <PendingPostsButton
+                  pendingNewCount={pendingNewCount}
+                  onPress={onRevealPending}
+                  textColor={TextColor.SuccessDefault}
+                />
+              </Animated.View>
             </Animated.View>
           ) : null}
         </Box>

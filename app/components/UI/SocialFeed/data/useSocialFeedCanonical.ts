@@ -98,7 +98,14 @@ export const getVisiblePendingNewCount = (
   pendingNewCount: number,
   paused: boolean,
   nearTop: boolean,
-): number => (paused || !nearTop ? pendingNewCount : 0);
+  pendingRevealRequested = false,
+): number => {
+  if (pendingRevealRequested) {
+    return 0;
+  }
+
+  return paused || !nearTop ? pendingNewCount : 0;
+};
 
 export const shouldDeferPendingNewRow = (
   pending: Pick<PendingRealtimeEvent, 'animate'> | undefined,
@@ -353,21 +360,34 @@ export const useSocialFeedCanonical = ({
       return undefined;
     }
 
+    const revealImmediately = pendingRevealRequested;
     const batch = Array.from(pendingEvents.current.entries()).slice(
       0,
-      SOCIAL_FEED_REVEAL_BATCH_SIZE,
+      revealImmediately
+        ? pendingEvents.current.size
+        : SOCIAL_FEED_REVEAL_BATCH_SIZE,
     );
-    for (const [feedItemId, pending] of batch) {
+    const animatedRevealIndex = revealImmediately
+      ? batch.reduce(
+          (lastIndex, [, pending], index) =>
+            pending.animate ? index : lastIndex,
+          -1,
+        )
+      : -1;
+    batch.forEach(([feedItemId, pending], index) => {
       const row = feed.rows.find(
         (candidate) => candidate.core.positionId === feedItemId,
       );
-      applyEvent(pending.event, row, pending.animate);
+      const animate = revealImmediately
+        ? index === animatedRevealIndex
+        : pending.animate;
+      applyEvent(pending.event, row, animate);
       pendingEvents.current.delete(feedItemId);
-    }
+    });
     setPendingNewCount(pendingEvents.current.size);
 
-    if (pendingEvents.current.size === 0) {
-      if (pendingRevealRequested) {
+    if (pendingEvents.current.size === 0 || revealImmediately) {
+      if (revealImmediately) {
         setPendingRevealRequested(false);
       }
       return undefined;
@@ -446,6 +466,7 @@ export const useSocialFeedCanonical = ({
     pendingNewCount,
     paused,
     nearTop,
+    pendingRevealRequested,
   );
   // A played entrance only matters while its row stays in the realtime buffer.
   useEffect(() => {

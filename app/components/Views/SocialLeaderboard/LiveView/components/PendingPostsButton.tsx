@@ -16,7 +16,7 @@ export interface PendingPostsButtonProps {
 }
 
 export const getPendingPostsLabel = (pendingNewCount: number): string =>
-  pendingNewCount > 60
+  pendingNewCount >= 60
     ? '60+ new posts'
     : `${pendingNewCount} new post${pendingNewCount === 1 ? '' : 's'}`;
 
