@@ -369,11 +369,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       endTrace(params: {
         name: PerpsTraceName;
         id: string;
+        status?: 'ok' | 'error';
         data?: Record<string, PerpsTraceValue>;
       }): void {
         endTrace({
           name: toTraceName(params.name),
           id: params.id,
+          status: params.status,
           data: params.data,
         });
         traceNamesById.delete(params.id);

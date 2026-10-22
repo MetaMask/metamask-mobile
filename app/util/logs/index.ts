@@ -83,13 +83,14 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
 
   delete fullState.engine.backgroundState.NftController;
   delete fullState.engine.backgroundState.TokensController;
-  delete fullState.engine.backgroundState.TokenDetectionController;
+  delete fullState.engine.backgroundState.AssetsController;
   delete fullState.engine.backgroundState.NftDetectionController;
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
+  delete fullState.engine.backgroundState.AuthenticationController;
 
   const cardControllerState = fullState.engine.backgroundState.CardController;
   if (cardControllerState) {

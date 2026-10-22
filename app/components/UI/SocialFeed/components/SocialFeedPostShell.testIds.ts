@@ -7,10 +7,10 @@ export const SocialFeedPostShellSelectorsIDs = {
   TOTAL: 'social-v1-feed-post-reaction-total',
   CHIP: 'social-v1-feed-post-reaction-chip',
   VERIFIED_BADGE: 'social-v1-feed-post-verified',
-  COHORT: 'social-v1-feed-post-cohort',
   TRADER_STAT: 'social-v1-feed-post-trader-stat',
   MORE: 'social-v1-feed-post-more',
   TIMESTAMP: 'social-v1-feed-post-timestamp',
+  MOCK_MARKER: 'social-v1-feed-post-mock-marker',
   IDENTITY_PRESS: 'social-v1-feed-post-trader',
   POSITION_PRESS: 'social-v1-feed-post-position',
 } as const;

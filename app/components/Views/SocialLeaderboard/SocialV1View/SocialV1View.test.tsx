@@ -27,6 +27,7 @@ const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
+const mockMarkSocialTabVisited = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -41,6 +42,10 @@ jest.mock('../MyProfileView/hooks', () => ({
 
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+}));
+
+jest.mock('../utils/socialTabVisit', () => ({
+  markSocialTabVisited: () => mockMarkSocialTabVisited(),
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
@@ -305,6 +310,20 @@ describe('SocialV1View', () => {
       expect.anything(),
       expect.objectContaining({ experimentName: 'Social V1' }),
     );
+  });
+
+  it('marks Social as visited when the v1 home opens', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the account mask icon when no profile exists', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeOnTheScreen();
   });
 
   it('opens My Profile from the avatar', () => {
@@ -651,6 +670,9 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeNull();
   });
 
   describe('notifications nudge banner', () => {

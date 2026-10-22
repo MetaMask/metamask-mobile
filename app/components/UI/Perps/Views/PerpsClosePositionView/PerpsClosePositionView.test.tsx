@@ -73,6 +73,10 @@ jest.mock('../../hooks', () => ({
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
 }));
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
   usePerpsCloseInFlight: jest.fn(() => false),

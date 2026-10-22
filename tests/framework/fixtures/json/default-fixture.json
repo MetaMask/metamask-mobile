@@ -88,20 +88,6 @@
     "cronjobController": {},
     "engine": {
       "backgroundState": {
-        "AccountTrackerController": {
-          "accountsByChainId": {
-            "1": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            },
-            "64": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            }
-          }
-        },
         "AccountTreeController": {
           "accountTree": {
             "wallets": {}
@@ -160,6 +146,10 @@
           "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardLinkApiBlocked": false,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -168,7 +158,11 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null
+          "signInLink": null,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],
@@ -198,16 +192,6 @@
         "CronJobController": {
           "events": {},
           "jobs": {}
-        },
-        "CurrencyRateController": {
-          "currencyRates": {
-            "ETH": {
-              "conversionDate": 1684232383.997,
-              "conversionRate": 1815.41,
-              "usdConversionRate": 1815.41
-            }
-          },
-          "currentCurrency": "usd"
         },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
@@ -259,13 +243,6 @@
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
-        },
-        "MultichainAssetsController": {
-          "accountsAssets": {},
-          "assetsMetadata": {}
-        },
-        "MultichainAssetsRatesController": {
-          "conversionRates": {}
         },
         "MultichainNetworkController": {
           "isEvmSelected": true,
@@ -755,12 +732,6 @@
           "subscriptions": [],
           "trialedProducts": []
         },
-        "TokenBalancesController": {
-          "tokenBalances": {}
-        },
-        "TokenRatesController": {
-          "marketData": {}
-        },
         "TokensController": {
           "allDetectedTokens": {},
           "allIgnoredTokens": {},
@@ -985,6 +956,10 @@
       "vipRefereeSplashAccepted": {},
       "vipSplashAccepted": {},
       "vipTransactions": {}
+    },
+    "rewardsMoney": {
+      "earningsSummary": {},
+      "referralMe": {}
     },
     "rpcEvents": {
       "signingEvent": {

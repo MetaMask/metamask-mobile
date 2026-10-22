@@ -82,12 +82,16 @@ jest.mock('../TokenDetailsActions', () => {
   };
 });
 
+const capturedUseTokenActionsParams: Record<string, unknown>[] = [];
 jest.mock('../../hooks/useTokenActions', () => ({
-  useTokenActions: () => ({
-    onBuy: mockOnBuy,
-    onSend: mockOnSend,
-    onReceive: mockOnReceive,
-  }),
+  useTokenActions: (params: Record<string, unknown>) => {
+    capturedUseTokenActionsParams.push(params);
+    return {
+      onBuy: mockOnBuy,
+      onSend: mockOnSend,
+      onReceive: mockOnReceive,
+    };
+  },
 }));
 
 jest.mock('../../../Ramp/hooks/useTokenBuyability', () => ({
@@ -262,6 +266,7 @@ describe('TokenDetailsActionsSection', () => {
     jest.clearAllMocks();
     capturedTokenDetailsActionsProps.length = 0;
     capturedPerpsActionsParams.length = 0;
+    capturedUseTokenActionsParams.length = 0;
     mockIsEligible = true;
     mockHasPerpsMarket = true;
     mockIsPerpsLoading = false;
@@ -385,6 +390,20 @@ describe('TokenDetailsActionsSection', () => {
     expect(props.onReceive).toBe(injectedOnReceive);
     expect(props.hasBalance).toBe(false);
     expect(props.onActionTapped).toBe(injectedTracker);
+  });
+
+  it('forwards tdpVersion to the fallback useTokenActions (V1 => v3)', () => {
+    render(<TokenDetailsActionsSection token={baseToken} tdpVersion="v3" />);
+
+    expect(capturedUseTokenActionsParams[0]).toEqual(
+      expect.objectContaining({ token: baseToken, tdpVersion: 'v3' }),
+    );
+  });
+
+  it('passes no tdpVersion to useTokenActions when the prop is omitted', () => {
+    render(<TokenDetailsActionsSection token={baseToken} />);
+
+    expect(capturedUseTokenActionsParams[0].tdpVersion).toBeUndefined();
   });
 
   it('reports the effective perps market resolution through the callback', () => {
