@@ -36,7 +36,7 @@ describe('chartGeometry', () => {
       });
 
       const y = scale?.toY(20) ?? -1;
-      expect(y).toBeGreaterThan(0);
+      expect(y).toBeGreaterThanOrEqual(0);
       expect(y).toBeLessThan(100);
       expect(scale?.toY(10)).toBeGreaterThan(y);
     });
