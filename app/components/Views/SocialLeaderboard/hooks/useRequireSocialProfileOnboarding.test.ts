@@ -1,46 +1,40 @@
 import { renderHook } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
-import type { UseMyProfileResult } from '../MyProfileView/hooks';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
 import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
 
 const mockNavigate = jest.fn();
-const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../MyProfileView/hooks', () => ({
-  useMyProfile: () => mockUseMyProfile(),
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
-const linkedProfile: UseMyProfileResult['profile'] = {
-  profileId: 'current-user',
-  displayName: 'Giga Whale',
-  handle: 'giga-whale',
-  shareUrl: 'https://metamask.io/social/giga-whale',
-  linkedAccountAddress: '0x1111111111111111111111111111111111111111',
+const LINKED_ADDRESS = '0x1111111111111111111111111111111111111111';
+
+const mockLinkedAddress = (linkedAddress: string | null) => {
+  jest
+    .mocked(useSelector)
+    .mockImplementation((selector: unknown) =>
+      selector === selectProfileControllerLinkedEvmAddress
+        ? linkedAddress
+        : undefined,
+    );
 };
 
 describe('useRequireSocialProfileOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMyProfile.mockReturnValue({
-      profile: linkedProfile,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
+    mockLinkedAddress(LINKED_ADDRESS);
   });
 
   it('returns false and navigates to onboarding when no linked wallet exists', () => {
-    mockUseMyProfile.mockReturnValue({
-      profile: null,
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
-
+    mockLinkedAddress(null);
     const { result } = renderHook(() => useRequireSocialProfileOnboarding());
 
     const canContinue = result.current.ensureSocialProfileOnboarding();
@@ -50,16 +44,7 @@ describe('useRequireSocialProfileOnboarding', () => {
   });
 
   it('returns false and navigates to onboarding when the linked wallet is blank', () => {
-    mockUseMyProfile.mockReturnValue({
-      profile: {
-        ...linkedProfile,
-        linkedAccountAddress: '  ',
-      },
-      isLoading: false,
-      error: null,
-      refresh: jest.fn(),
-    });
-
+    mockLinkedAddress('  ');
     const { result } = renderHook(() => useRequireSocialProfileOnboarding());
 
     const canContinue = result.current.ensureSocialProfileOnboarding();
