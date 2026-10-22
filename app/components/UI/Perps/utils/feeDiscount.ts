@@ -1,4 +1,8 @@
-import type { PerpsFeeSource } from '@metamask/perps-controller';
+import {
+  BUILDER_FEE_CONFIG,
+  type FeeCalculationResult,
+  type PerpsFeeSource,
+} from '@metamask/perps-controller';
 
 export type PerpsFeeDiscountKind =
   | 'vip'
@@ -19,6 +23,32 @@ export interface PerpsFeeDiscount {
 
 /** Hundredths match the fees tooltip, which prints this number with toString(). */
 const FEE_DISCOUNT_PERCENTAGE_SCALE = 100;
+
+/**
+ * Original MetaMask rate for presentation.
+ *
+ * Prefer the controller's undiscounted rate. Quotes that only carry an
+ * attributed source still compare against the default builder fee, while a
+ * bare lower rate with no source is not presented as a discount.
+ */
+export function getPresentedOriginalMetamaskFeeRate(
+  fees: FeeCalculationResult,
+): number {
+  if (fees.undiscountedMetamaskFeeRate !== undefined) {
+    return fees.undiscountedMetamaskFeeRate;
+  }
+
+  const currentRate = fees.metamaskFeeRate ?? 0;
+  if (
+    fees.feeSource !== undefined &&
+    fees.feeSource !== 'default' &&
+    fees.chargesMetamaskBuilderFee !== false
+  ) {
+    return BUILDER_FEE_CONFIG.MaxFeeDecimal;
+  }
+
+  return currentRate;
+}
 
 /**
  * Percent reduction from an original fee amount or rate to the current one.

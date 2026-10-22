@@ -1,4 +1,5 @@
 import {
+  getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
   getPerpsFeeDiscountPercentage,
   type PerpsFeeDiscountKind,
@@ -6,7 +7,6 @@ import {
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  BUILDER_FEE_CONFIG,
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
@@ -19,31 +19,6 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
-
-/**
- * Original MetaMask rate for presentation.
- *
- * Controller 20 reports `undiscountedMetamaskFeeRate`. Quotes that only carry
- * an attributed source still compare against the default builder fee. A bare
- * lower rate with no source is not a discount.
- */
-const presentedOriginalMetamaskRate = (fees: FeeCalculationResult): number => {
-  if (fees.undiscountedMetamaskFeeRate !== undefined) {
-    return fees.undiscountedMetamaskFeeRate;
-  }
-
-  const currentRate = fees.metamaskFeeRate ?? 0;
-  const sourceName = fees.feeSource as string | undefined;
-  if (
-    sourceName !== undefined &&
-    sourceName !== 'default' &&
-    fees.chargesMetamaskBuilderFee !== false
-  ) {
-    return BUILDER_FEE_CONFIG.MaxFeeDecimal;
-  }
-
-  return currentRate;
-};
 
 /**
  * Aggregated calculations result for closing all positions
@@ -490,15 +465,20 @@ export function usePerpsCloseAllCalculations({
         ? perPositionResults[0].points.pointsEstimate
         : undefined;
     const completeFeeResults = perPositionResults.filter(hasCompleteFeeRates);
-    const originalTotalFees = completeFeeResults.reduce(
-      (sum, { fees, notionalUsd }) => {
-        const originalMetamaskFeeRate = presentedOriginalMetamaskRate(fees);
-        return (
-          sum + notionalUsd * (fees.protocolFeeRate + originalMetamaskFeeRate)
-        );
-      },
-      0,
-    );
+    const hasCompleteFeeSet =
+      completeFeeResults.length === perPositionResults.length;
+    if (!hasCompleteFeeSet) {
+      feeSource = undefined;
+    }
+    const originalTotalFees = hasCompleteFeeSet
+      ? completeFeeResults.reduce((sum, { fees, notionalUsd }) => {
+          const originalMetamaskFeeRate =
+            getPresentedOriginalMetamaskFeeRate(fees);
+          return (
+            sum + notionalUsd * (fees.protocolFeeRate + originalMetamaskFeeRate)
+          );
+        }, 0)
+      : undefined;
 
     // Weight rates by position notional so fully waived builder fees are retained.
     let weightedMetamaskFeeRate = 0;
@@ -528,7 +508,7 @@ export function usePerpsCloseAllCalculations({
 
     const originalBuilderTotal = completeFeeResults.reduce(
       (sum, { fees, notionalUsd }) =>
-        sum + notionalUsd * presentedOriginalMetamaskRate(fees),
+        sum + notionalUsd * getPresentedOriginalMetamaskFeeRate(fees),
       0,
     );
     const currentBuilderTotal = completeFeeResults.reduce(
@@ -536,7 +516,9 @@ export function usePerpsCloseAllCalculations({
       0,
     );
     const avgOriginalMetamaskFeeRate =
-      totalWeight > 0 ? originalBuilderTotal / totalWeight : undefined;
+      hasCompleteFeeSet && totalWeight > 0
+        ? originalBuilderTotal / totalWeight
+        : undefined;
     const rateDerivedDiscountPercentage = getPerpsFeeDiscountPercentage(
       originalBuilderTotal,
       currentBuilderTotal,
@@ -545,12 +527,13 @@ export function usePerpsCloseAllCalculations({
       weightedDiscountWeight > 0
         ? Math.round(weightedFeeDiscountBips / weightedDiscountWeight)
         : undefined;
-    const avgFeeDiscountPercentage =
-      avgFeeDiscountBips !== undefined
+    const avgFeeDiscountPercentage = hasCompleteFeeSet
+      ? avgFeeDiscountBips !== undefined
         ? avgFeeDiscountBips > 0
           ? avgFeeDiscountBips / 100
           : undefined
-        : rateDerivedDiscountPercentage;
+        : rateDerivedDiscountPercentage
+      : undefined;
 
     const feeDiscountKind =
       avgFeeDiscountPercentage === undefined

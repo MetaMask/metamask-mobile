@@ -529,7 +529,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.totalFees).toBe(0);
     });
 
-    it('keeps the original fee total for successful positions when another calculation fails', async () => {
+    it('omits aggregate discount attribution when one fee calculation fails', async () => {
       // Arrange
       const positions = [
         createMockPosition({ symbol: 'BTC' }),
@@ -566,11 +566,15 @@ describe('usePerpsCloseAllCalculations', () => {
         expect(result.current.hasError).toBe(true);
       });
       expect(result.current.totalFees).toBeCloseTo(17.85, 6);
-      expect(result.current.originalTotalFees).toBeCloseTo(36.975, 6);
-      expect(result.current.avgFeeDiscountPercentage).toBe(75);
+      expect(result.current.originalTotalFees).toBeUndefined();
+      expect(result.current.avgOriginalMetamaskFeeRate).toBeUndefined();
+      expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
+      expect(result.current.feeSource).toBeUndefined();
+      expect(result.current.feeDiscountKind).toBeUndefined();
     });
 
-    it('excludes incomplete fee quotes from aggregate discount presentation', async () => {
+    it('omits aggregate discount attribution when one fee quote is incomplete', async () => {
+      // Arrange
       const positions = [
         createMockPosition({ symbol: 'BTC' }),
         createMockPosition({ symbol: 'ETH' }),
@@ -600,15 +604,19 @@ describe('usePerpsCloseAllCalculations', () => {
           protocolFeeRate: undefined,
         });
 
+      // Act
       const { result } = renderHook(() =>
         usePerpsCloseAllCalculations({ positions, priceData }),
       );
 
+      // Assert
       await waitFor(() => expect(result.current.isLoading).toBe(false));
       expect(result.current.totalFees).toBeCloseTo(17.85, 6);
-      expect(result.current.originalTotalFees).toBeCloseTo(36.975, 6);
-      expect(result.current.avgFeeDiscountPercentage).toBe(75);
-      expect(result.current.feeDiscountKind).toBe('promotional');
+      expect(result.current.originalTotalFees).toBeUndefined();
+      expect(result.current.avgOriginalMetamaskFeeRate).toBeUndefined();
+      expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
+      expect(result.current.feeSource).toBeUndefined();
+      expect(result.current.feeDiscountKind).toBeUndefined();
     });
   });
 

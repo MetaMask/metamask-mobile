@@ -1,7 +1,69 @@
 import {
+  BUILDER_FEE_CONFIG,
+  type FeeCalculationResult,
+} from '@metamask/perps-controller';
+import {
+  getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
   getPerpsFeeDiscountPercentage,
 } from './feeDiscount';
+
+const createFeeCalculationResult = (
+  overrides: Partial<FeeCalculationResult> = {},
+): FeeCalculationResult => ({
+  feeRate: 0.0007,
+  feeAmount: 0.7,
+  protocolFeeRate: 0.00045,
+  protocolFeeAmount: 0.45,
+  metamaskFeeRate: 0.00025,
+  metamaskFeeAmount: 0.25,
+  ...overrides,
+});
+
+describe('getPresentedOriginalMetamaskFeeRate', () => {
+  it('uses the controller-provided undiscounted rate', () => {
+    const fees = createFeeCalculationResult({
+      feeSource: 'grant',
+      metamaskFeeRate: 0.00025,
+      undiscountedMetamaskFeeRate: 0.0008,
+    });
+
+    const originalRate = getPresentedOriginalMetamaskFeeRate(fees);
+
+    expect(originalRate).toBe(0.0008);
+  });
+
+  it('uses the default builder fee for an attributed builder fee', () => {
+    const fees = createFeeCalculationResult({
+      feeSource: 'grant',
+      metamaskFeeRate: 0.00025,
+      chargesMetamaskBuilderFee: true,
+    });
+
+    const originalRate = getPresentedOriginalMetamaskFeeRate(fees);
+
+    expect(originalRate).toBe(BUILDER_FEE_CONFIG.MaxFeeDecimal);
+  });
+
+  it.each([
+    { feeSource: undefined, chargesMetamaskBuilderFee: true },
+    { feeSource: 'default' as const, chargesMetamaskBuilderFee: true },
+    { feeSource: 'grant' as const, chargesMetamaskBuilderFee: false },
+  ])(
+    'preserves the current rate without an attributed builder fee',
+    ({ feeSource, chargesMetamaskBuilderFee }) => {
+      const fees = createFeeCalculationResult({
+        feeSource,
+        chargesMetamaskBuilderFee,
+        metamaskFeeRate: 0.00025,
+      });
+
+      const originalRate = getPresentedOriginalMetamaskFeeRate(fees);
+
+      expect(originalRate).toBe(0.00025);
+    },
+  );
+});
 
 describe('getPerpsFeeDiscount', () => {
   it.each([

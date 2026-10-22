@@ -1,4 +1,5 @@
 import {
+  getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
   type PerpsFeeDiscountKind,
 } from '../utils/feeDiscount';
@@ -16,11 +17,9 @@ import {
   EstimatedPointsDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
-  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
-  type FeeCalculationResult,
   type PerpsFeeSource,
   type OrderType,
   type PerpsFeeSource,
@@ -28,32 +27,6 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
-
-/**
- * Original MetaMask rate for presentation.
- *
- * Controller 20 reports `undiscountedMetamaskFeeRate` and
- * `metamaskFeeDiscountBips`. Quotes that only carry an attributed source
- * (rewards, grant, subscription) still compare against the default builder fee.
- * A bare lower rate with no source is not a discount.
- */
-const presentedOriginalMetamaskRate = (fees: FeeCalculationResult): number => {
-  if (fees.undiscountedMetamaskFeeRate !== undefined) {
-    return fees.undiscountedMetamaskFeeRate;
-  }
-
-  const currentRate = fees.metamaskFeeRate ?? 0;
-  const sourceName = fees.feeSource as string | undefined;
-  if (
-    sourceName !== undefined &&
-    sourceName !== 'default' &&
-    fees.chargesMetamaskBuilderFee !== false
-  ) {
-    return BUILDER_FEE_CONFIG.MaxFeeDecimal;
-  }
-
-  return currentRate;
-};
 
 // Enhanced cache for points calculation - stores everything needed to calculate locally
 let pointsCalculationCache: {
@@ -493,7 +466,8 @@ export function usePerpsOrderFees({
         // the attributed source.
         const source = coreFeesResult.feeSource;
         const resolvedMetamaskRate = coreFeesResult.metamaskFeeRate;
-        const originalRate = presentedOriginalMetamaskRate(coreFeesResult);
+        const originalRate =
+          getPresentedOriginalMetamaskFeeRate(coreFeesResult);
         const derivedDiscount = getPerpsFeeDiscount({
           feeSource: source,
           currentFeeRate: resolvedMetamaskRate,
