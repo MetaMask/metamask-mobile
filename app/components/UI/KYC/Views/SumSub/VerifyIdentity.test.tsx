@@ -98,16 +98,11 @@ const openTermsSheet = (
 ) =>
   fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
 
-const setBiometricConsent = (
+const toggleBiometricConsent = (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
-  value: boolean,
 ) =>
-  fireEvent(
-    within(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SWITCH),
-    ).getByRole('switch'),
-    'valueChange',
-    value,
+  fireEvent.press(
+    getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX),
   );
 
 describe('VbaVerifyIdentity', () => {
@@ -140,15 +135,43 @@ describe('VbaVerifyIdentity', () => {
     expect(getByText('Answer a few questions')).toBeOnTheScreen();
     expect(
       getByText(
-        "Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
+        "By tapping Agree & Continue, you agree to MetaMask's Terms and Conditions and Privacy Policy. Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
       ),
     ).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.POWERED_BY),
     ).toBeOnTheScreen();
+    expect(getByText('Agree & Continue')).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeEnabled();
+  });
+
+  it('opens the MetaMask Terms and Privacy Policy from the footer links', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen();
+
+    const termsLink = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK,
+    );
+    const privacyLink = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK,
+    );
+    expect(termsLink).toHaveTextContent('Terms and Conditions');
+    expect(privacyLink).toHaveTextContent('Privacy Policy');
+
+    fireEvent.press(termsLink);
+    fireEvent.press(privacyLink);
+
+    expect(openUrlSpy.mock.calls).toEqual([
+      [METAMASK_TERMS_URL],
+      [METAMASK_PRIVACY_POLICY_URL],
+    ]);
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('returns to Money home when the header back button is pressed', () => {
@@ -213,7 +236,7 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the data and privacy sheet with every provider document on continue', () => {
+  it('opens the data and privacy sheet with the provider documents only on continue', () => {
     const { getByTestId, getByText } = renderScreen();
 
     openTermsSheet(getByTestId);
@@ -224,29 +247,26 @@ describe('VbaVerifyIdentity', () => {
     expect(getByText('Data and privacy')).toBeOnTheScreen();
     expect(
       getByText(
-        'To verify your identity, your information will be shared securely with the providers below. Review their policies and terms before continuing.',
+        'Your information is shared securely with these providers to verify your identity.',
       ),
     ).toBeOnTheScreen();
-    expect(getByText('MetaMask Privacy Policy')).toBeOnTheScreen();
-    expect(getByText('MetaMask Terms and Conditions')).toBeOnTheScreen();
     expect(getByText('idOS Privacy Policy')).toBeOnTheScreen();
     expect(getByText('Sumsub Terms and Conditions')).toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
+      ).queryByText(/MetaMask/),
+    ).not.toBeOnTheScreen();
     expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
-  it('opens MetaMask and catalog document URLs from the sheet', () => {
+  it('opens the catalog document URLs from the sheet', () => {
     const openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
     const { getByTestId } = renderScreen();
     openTermsSheet(getByTestId);
 
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK),
-    );
-    fireEvent.press(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK),
-    );
     fireEvent.press(
       getByTestId(
         `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:idos-privacy`,
@@ -259,22 +279,19 @@ describe('VbaVerifyIdentity', () => {
     );
 
     expect(openUrlSpy.mock.calls).toEqual([
-      [METAMASK_PRIVACY_POLICY_URL],
-      [METAMASK_TERMS_URL],
       ['https://idos.example/privacy'],
       ['https://sumsub.example/terms'],
     ]);
   });
 
-  it('shows the biometric consent switch off and Agree disabled when the sheet opens', () => {
+  it('shows the biometric consent checkbox unticked and Agree disabled when the sheet opens', () => {
     const { getByTestId, getByText } = renderScreen();
     openTermsSheet(getByTestId);
 
     expect(
-      within(
-        getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SWITCH),
-      ).getByRole('switch').props.value,
-    ).toBe(false);
+      getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX)
+        .props.accessibilityState,
+    ).toEqual(expect.objectContaining({ checked: false }));
     expect(
       getByText(/I explicitly consent to idOS Association processing/),
     ).toBeOnTheScreen();
@@ -288,16 +305,16 @@ describe('VbaVerifyIdentity', () => {
     expect(mockOnSuccess).not.toHaveBeenCalled();
   });
 
-  it('enables Agree only while the biometric consent switch is on', () => {
+  it('enables Agree only while the biometric consent checkbox is ticked', () => {
     const { getByTestId } = renderScreen();
     openTermsSheet(getByTestId);
 
-    setBiometricConsent(getByTestId, true);
+    toggleBiometricConsent(getByTestId);
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
     ).toBeEnabled();
 
-    setBiometricConsent(getByTestId, false);
+    toggleBiometricConsent(getByTestId);
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
     ).toBeDisabled();
@@ -320,7 +337,7 @@ describe('VbaVerifyIdentity', () => {
   it('closes the sheet and advances when the user consents and agrees', () => {
     const { getByTestId, queryByTestId } = renderScreen();
     openTermsSheet(getByTestId);
-    setBiometricConsent(getByTestId, true);
+    toggleBiometricConsent(getByTestId);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON));
 

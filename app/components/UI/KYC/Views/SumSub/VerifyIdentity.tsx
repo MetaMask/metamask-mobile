@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -34,6 +34,10 @@ import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import {
+  METAMASK_PRIVACY_POLICY_URL,
+  METAMASK_TERMS_URL,
+} from '../../../Ramp/Views/VirtualBankAccount/constants';
 
 const VERIFICATION_STEPS = [
   {
@@ -63,9 +67,10 @@ interface VbaVerifyIdentityProps {
 }
 
 /**
- * Provider terms step of identity verification. Continue opens the
- * "Data and privacy" sheet with the MetaMask, idOS, and SumSub documents;
- * agreeing there calls `onSuccess`.
+ * Provider terms step of identity verification. The footer links MetaMask's
+ * Terms and Conditions and Privacy Policy, which the user accepts with
+ * Agree & Continue. That opens the "Data and privacy" sheet with the idOS and
+ * SumSub documents; agreeing there calls `onSuccess`.
  */
 const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -85,6 +90,14 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
 
   const openTermsSheet = useCallback(() => setIsTermsSheetOpen(true), []);
   const closeTermsSheet = useCallback(() => setIsTermsSheetOpen(false), []);
+  const openMetaMaskTerms = useCallback(
+    () => Linking.openURL(METAMASK_TERMS_URL),
+    [],
+  );
+  const openMetaMaskPrivacyPolicy = useCallback(
+    () => Linking.openURL(METAMASK_PRIVACY_POLICY_URL),
+    [],
+  );
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -165,7 +178,31 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {strings('virtual_bank_account.verify_identity.footer')}
+            {strings(
+              'virtual_bank_account.verify_identity.footer_agreement_start',
+            )}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={openMetaMaskTerms}
+              testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
+            >
+              {strings('virtual_bank_account.verify_identity.footer_terms')}
+            </TextButton>
+            {strings('virtual_bank_account.verify_identity.footer_and')}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={openMetaMaskPrivacyPolicy}
+              testID={
+                VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK
+              }
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.footer_privacy_policy',
+              )}
+            </TextButton>
+            {strings(
+              'virtual_bank_account.verify_identity.footer_agreement_end',
+            )}
           </Text>
           <Button
             variant={ButtonVariant.Primary}
@@ -176,7 +213,9 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
             onPress={openTermsSheet}
             testID={VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
           >
-            {strings('virtual_bank_account.verify_identity.button')}
+            {strings(
+              'virtual_bank_account.verify_identity.agree_and_continue_button',
+            )}
           </Button>
         </Box>
         <Box

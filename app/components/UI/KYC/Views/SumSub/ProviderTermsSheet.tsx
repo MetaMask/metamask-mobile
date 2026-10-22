@@ -1,20 +1,16 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Linking } from 'react-native';
+import { Linking, type GestureResponderEvent } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonSize,
+  Checkbox,
   ContentVariant,
   FontWeight,
   Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
-  Switch,
   Text,
   TextButton,
   TextColor,
@@ -22,13 +18,14 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  IDOS_PRIVACY_NOTICE_URL,
-  METAMASK_PRIVACY_POLICY_URL,
-  METAMASK_TERMS_URL,
-} from '../../../Ramp/Views/VirtualBankAccount/constants';
+import { IDOS_PRIVACY_NOTICE_URL } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+
+/** Opens in the system browser; a failed open is ignored so the user can retry. */
+const openExternalUrl = (url: string) => {
+  Linking.openURL(url).catch(() => undefined);
+};
 
 interface TermsLink {
   id: string;
@@ -38,22 +35,19 @@ interface TermsLink {
 }
 
 const TermsLinkRow = ({ link }: { link: TermsLink }) => {
-  const openLink = useCallback(() => Linking.openURL(link.url), [link.url]);
+  const openLink = useCallback(() => openExternalUrl(link.url), [link.url]);
 
   return (
     <ListItem
       isInteractive
       variant={ContentVariant.OneLine}
       title={link.title}
-      endAccessory={
-        <Icon
-          name={IconName.Arrow2UpRight}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-        />
-      }
+      endAccessory={<Icon name={IconName.Arrow2UpRight} />}
       onPress={openLink}
       accessibilityRole="link"
+      accessibilityHint={strings(
+        'virtual_bank_account.verify_identity.opens_in_browser_hint',
+      )}
       testID={link.testID}
     />
   );
@@ -81,38 +75,24 @@ const VbaProviderTermsSheet = ({
   const sheetRef = useRef<BottomSheetRef>(null);
   const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
 
-  const openIdosPrivacyNotice = useCallback(
-    () => Linking.openURL(IDOS_PRIVACY_NOTICE_URL),
-    [],
-  );
+  // Stop the press reaching the Checkbox so opening the notice doesn't tick it.
+  const openIdosPrivacyNotice = useCallback((event?: GestureResponderEvent) => {
+    event?.stopPropagation?.();
+    openExternalUrl(IDOS_PRIVACY_NOTICE_URL);
+  }, []);
 
   const handleAgree = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onAgree);
   }, [onAgree]);
 
   const links = useMemo<TermsLink[]>(
-    () => [
-      {
-        id: 'metamask-privacy-policy',
-        title: strings(
-          'virtual_bank_account.verify_identity.metamask_privacy_policy',
-        ),
-        url: METAMASK_PRIVACY_POLICY_URL,
-        testID: VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK,
-      },
-      {
-        id: 'metamask-terms',
-        title: strings('virtual_bank_account.verify_identity.metamask_terms'),
-        url: METAMASK_TERMS_URL,
-        testID: VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK,
-      },
-      ...disclaimers.map((disclaimer) => ({
+    () =>
+      disclaimers.map((disclaimer) => ({
         id: disclaimer.id,
         title: disclaimer.title,
         url: disclaimer.url,
         testID: `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
       })),
-    ],
     [disclaimers],
   );
 
@@ -124,9 +104,18 @@ const VbaProviderTermsSheet = ({
       testID={VbaVerifyIdentitySelectorsIDs.TERMS_SHEET}
     >
       <Box twClassName="gap-2.5 py-6">
-        <Box twClassName="p-4">
+        <Box twClassName="gap-2 p-4">
           <Text variant={TextVariant.HeadingLg}>
             {strings('virtual_bank_account.verify_identity.terms_sheet_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+          >
+            {strings(
+              'virtual_bank_account.verify_identity.terms_sheet_description',
+            )}
           </Text>
         </Box>
         <Box>
@@ -134,51 +123,42 @@ const VbaProviderTermsSheet = ({
             <TermsLinkRow key={link.id} link={link} />
           ))}
         </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Start}
-          twClassName="gap-4 px-4"
-        >
-          <Box twClassName="flex-1 gap-2">
-            <Text variant={TextVariant.BodyMd}>
-              {strings(
-                'virtual_bank_account.verify_identity.biometric_consent_label',
-              )}
-              <TextButton
-                variant={TextVariant.BodyMd}
-                onPress={openIdosPrivacyNotice}
-                accessibilityRole="link"
-                testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK}
-              >
-                {strings(
-                  'virtual_bank_account.verify_identity.biometric_consent_link',
-                )}
-              </TextButton>
-              {strings(
-                'virtual_bank_account.verify_identity.biometric_consent_label_end',
-              )}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.TextAlternative}
-            >
-              {strings(
-                'virtual_bank_account.verify_identity.terms_sheet_description',
-              )}
-            </Text>
-          </Box>
-          <Switch
-            isOn={hasBiometricConsent}
-            onValueChange={setHasBiometricConsent}
-            accessibilityHint={`${strings(
+        <Box twClassName="px-4">
+          <Checkbox
+            isSelected={hasBiometricConsent}
+            onChange={setHasBiometricConsent}
+            accessibilityLabel={`${strings(
               'virtual_bank_account.verify_identity.biometric_consent_label',
             )}${strings(
               'virtual_bank_account.verify_identity.biometric_consent_link',
             )}${strings(
               'virtual_bank_account.verify_identity.biometric_consent_label_end',
             )}`}
-            testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SWITCH}
+            testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_CHECKBOX}
+            label={
+              <Box twClassName="ml-3 flex-1">
+                <Text variant={TextVariant.BodyMd}>
+                  {strings(
+                    'virtual_bank_account.verify_identity.biometric_consent_label',
+                  )}
+                  <TextButton
+                    variant={TextVariant.BodyMd}
+                    onPress={openIdosPrivacyNotice}
+                    accessibilityRole="link"
+                    testID={
+                      VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK
+                    }
+                  >
+                    {strings(
+                      'virtual_bank_account.verify_identity.biometric_consent_link',
+                    )}
+                  </TextButton>
+                  {strings(
+                    'virtual_bank_account.verify_identity.biometric_consent_label_end',
+                  )}
+                </Text>
+              </Box>
+            }
           />
         </Box>
       </Box>
