@@ -9153,7 +9153,7 @@
         "failed": "Nabigong palitan ang mUSD"
       },
       "education": {
-        "heading": "MAKAKUHA NG {{percentage}}% SA\nMGA STABLECOIN",
+        "heading": "Makakuha ng {{percentage}}% sa mga stablecoin",
         "description": "I-convert ang mga stablecoin mo sa mUSD at kumita ng {{percentage}}% taunang bonus.",
         "terms_apply": "Nalalapat ang mga tuntunin.",
         "primary_button": "Magsimula",

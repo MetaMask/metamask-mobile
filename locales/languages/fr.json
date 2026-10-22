@@ -9153,7 +9153,7 @@
         "failed": "Échec de la conversion en mUSD"
       },
       "education": {
-        "heading": "OBTENEZ {{percentage}} % SUR LES\nSTABLECOINS",
+        "heading": "Obtenez {{percentage}} % sur les stablecoins",
         "description": "Convertissez vos stablecoins en mUSD et gagnez un bonus annualisé de {{percentage}} %.",
         "terms_apply": "Des conditions s’appliquent.",
         "primary_button": "Commencer",

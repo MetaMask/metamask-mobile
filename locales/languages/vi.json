@@ -9153,7 +9153,7 @@
         "failed": "Chuyển đổi mUSD thất bại"
       },
       "education": {
-        "heading": "NHẬN {{percentage}}%\nĐỒNG ỔN ĐỊNH",
+        "heading": "Nhận {{percentage}}% đồng ổn định",
         "description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm {{percentage}}%.",
         "terms_apply": "Áp dụng điều khoản.",
         "primary_button": "Bắt đầu",

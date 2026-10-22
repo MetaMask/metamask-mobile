@@ -92,6 +92,14 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;

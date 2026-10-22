@@ -9153,7 +9153,7 @@
         "failed": "Η μετατροπή σε mUSD απέτυχε"
       },
       "education": {
-        "heading": "ΚΕΡΔΙΣΤΕ {{percentage}}% ΣΤΑ\nSTABLECOINS",
+        "heading": "Κερδίστε {{percentage}}% στα stablecoins",
         "description": "Μετατρέψτε τα stablecoins σας σε mUSD και κερδίστε {{percentage}}% ως ετήσιο μπόνους.",
         "terms_apply": "Ισχύουν όροι.",
         "primary_button": "Ξεκινήστε",
