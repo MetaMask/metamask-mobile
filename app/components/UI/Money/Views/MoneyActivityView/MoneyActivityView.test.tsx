@@ -75,6 +75,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableCardActivityEnrichmentFlag: jest.fn(() => false),
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => false),
   selectMoneyVbaPendingActivityEnabled: jest.fn(() => true),
+  selectMoneyVbaCompletedActivityEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../selectors/eligibility', () => ({
@@ -110,6 +111,13 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
+  useMoneyVbaTransfers: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
