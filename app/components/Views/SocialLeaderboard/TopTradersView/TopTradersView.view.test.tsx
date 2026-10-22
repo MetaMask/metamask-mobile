@@ -19,6 +19,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import { PERP_CHAINS, SPOT_CHAINS } from '../../shared/top-traders-constants';
 import {
@@ -365,6 +366,12 @@ describeForPlatforms('TopTradersView', () => {
   // -------------------------------------------------------------------------
 
   it('calls Engine to update mute state when the mute chip of a followed trader is pressed', async () => {
+    const updateNotificationPreferences = jest.mocked(
+      Engine.context.NotificationServicesController
+        .updateNotificationPreferences,
+    );
+    // The Engine mock shares this jest.fn across tests, so drop earlier calls.
+    updateNotificationPreferences.mockClear();
     renderTopTradersView({
       presetOptions: { followingProfileIds: ['trader-1'] },
     });
@@ -378,11 +385,13 @@ describeForPlatforms('TopTradersView', () => {
       );
     });
 
-    // Muting writes through to the AUS putNotificationPreferences action.
-    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
-      'AuthenticatedUserStorageService:putNotificationPreferences',
-      expect.anything(),
-      expect.anything(),
+    // Muting writes the preferences through NotificationServicesController.
+    expect(updateNotificationPreferences).toHaveBeenCalledWith(
+      expect.objectContaining({
+        socialAI: expect.objectContaining({
+          mutedTraderProfileIds: expect.arrayContaining([alpha.profileId]),
+        }),
+      }),
     );
   });
 

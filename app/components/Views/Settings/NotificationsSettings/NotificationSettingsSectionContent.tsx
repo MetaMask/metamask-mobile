@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
@@ -23,6 +24,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import Logger from '../../../../util/Logger';
 import { useOptimisticToggleValue } from './hooks/useOptimisticToggleValue';
+import Engine from '../../../../core/Engine';
+import { selectDataCollectionForMarketingEnabled } from '../../../../selectors/engagement';
+import MarketingConsentSheet from '../../../UI/MarketingConsentSheet/MarketingConsentSheet';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+
+export const MARKETING_CONSENT_SHEET_TEST_ID = 'marketing-consent-opt-in-sheet';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -205,6 +212,33 @@ const MarketingSectionContent = ({
   </View>
 );
 
+const MarketingConsentOptInDescription = () => (
+  <>
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {strings('marketing_consent_sheet.opt_in_description')}
+    </Text>
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {strings('marketing_consent_sheet.opt_in_turn_off_hint_prefix')}
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        fontWeight={FontWeight.Bold}
+      >
+        {strings('app_settings.title')}
+      </Text>
+      {' > '}
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        fontWeight={FontWeight.Bold}
+      >
+        {strings('app_settings.security_title')}
+      </Text>
+      {strings('marketing_consent_sheet.opt_in_turn_off_hint_suffix')}
+    </Text>
+  </>
+);
+
 const SECTION_DEFINITIONS: Record<
   NotificationPreferenceSection,
   SectionDefinition
@@ -241,7 +275,7 @@ export const NotificationSettingsSectionContent = ({
 }: NotificationSettingsSectionContentProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { preferences, updateSectionChannel } =
     useNotificationStoragePreferences();
   const sectionPrefs = preferences?.[type];
@@ -306,15 +340,63 @@ export const NotificationSettingsSectionContent = ({
     [updateSectionChannel, type, trackChannelUpdate],
   );
 
+  // Marketing ("Updates and rewards") notifications need marketing consent,
+  // so turning one on without it asks for consent first.
+  const hasMarketingConsent = useSelector(
+    selectDataCollectionForMarketingEnabled,
+  );
+  const requiresMarketingConsent = type === 'marketing' && !hasMarketingConsent;
+  const [pendingMarketingChannel, setPendingMarketingChannel] =
+    useState<NotificationChannel | null>(null);
+  const isChannelToggleAllowed = useCallback(
+    (nextValue: boolean) => !(nextValue && requiresMarketingConsent),
+    [requiresMarketingConsent],
+  );
+
   const push = useOptimisticToggleValue({
     remoteValue: sectionPrefs?.pushNotificationsEnabled ?? false,
     onPersist: persistPush,
+    isToggleEnabled: isChannelToggleAllowed,
+    onToggleBlocked: () => setPendingMarketingChannel(NotificationChannel.PUSH),
   });
 
   const inApp = useOptimisticToggleValue({
     remoteValue: sectionPrefs?.inAppNotificationsEnabled ?? false,
     onPersist: persistInApp,
+    isToggleEnabled: isChannelToggleAllowed,
+    onToggleBlocked: () =>
+      setPendingMarketingChannel(NotificationChannel.IN_APP),
   });
+
+  // Saves consent to AUS first, then turns on only the channel the user tapped.
+  const confirmMarketingConsent = useCallback(async () => {
+    await Engine.controllerMessenger.call(
+      'MarketingConsentController:setMarketingConsent',
+      true,
+    );
+    identify({ [UserProfileProperty.HAS_MARKETING_CONSENT]: true });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+          updated_after_onboarding: true,
+          location: 'notification_settings',
+        })
+        .build(),
+    );
+    await (
+      pendingMarketingChannel === NotificationChannel.PUSH
+        ? persistPush
+        : persistInApp
+    )(true);
+  }, [
+    createEventBuilder,
+    identify,
+    pendingMarketingChannel,
+    persistInApp,
+    persistPush,
+    trackEvent,
+  ]);
 
   // Wallet-activity has no channel toggles: its per-account subscriptions in
   // the Trigger API are the whole settings surface. Every other section keeps
@@ -430,15 +512,27 @@ export const NotificationSettingsSectionContent = ({
   const SectionContent = sectionDefinition.Content;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      testID={NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW}
-    >
-      {listHeader}
-      {SectionContent ? (
-        <SectionContent styles={styles} disabled={isSectionContentDisabled} />
+    <>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        testID={NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW}
+      >
+        {listHeader}
+        {SectionContent ? (
+          <SectionContent styles={styles} disabled={isSectionContentDisabled} />
+        ) : null}
+      </ScrollView>
+      {pendingMarketingChannel ? (
+        <MarketingConsentSheet
+          title={strings('marketing_consent_sheet.opt_in_title')}
+          description={<MarketingConsentOptInDescription />}
+          confirmLabel={strings('marketing_consent_sheet.opt_in_confirm')}
+          onConfirm={confirmMarketingConsent}
+          onDismiss={() => setPendingMarketingChannel(null)}
+          testID={MARKETING_CONSENT_SHEET_TEST_ID}
+        />
       ) : null}
-    </ScrollView>
+    </>
   );
 };

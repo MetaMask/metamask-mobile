@@ -1,6 +1,8 @@
 import EventEmitter2 from 'eventemitter2';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import type {
   MarkAsReadNotificationsParam,
+  NotificationPreferencesUpdate,
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
@@ -9,11 +11,8 @@ import { markBrazePushRegistrationDesired } from '../../../core/Braze/pushRegist
 import Logger from '../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
-const CLIENT_TYPE = 'mobile' as const;
 const GET_NOTIFICATION_PREFERENCES_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;
-const PUT_NOTIFICATION_PREFERENCES_ACTION =
-  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
 const previewTokenEventEmitter = new EventEmitter2();
 const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
@@ -85,10 +84,40 @@ export const hasNotificationPreferences = async () => {
   return preferences != null;
 };
 
+const hasMarketingConsent = () =>
+  Engine.context.AnalyticsController.state.optedInToMarketing === true;
+
+/**
+ * Saves a change to notification preferences through
+ * NotificationServicesController, which merges it over the stored
+ * preferences and rejects turning a marketing ("Updates and rewards")
+ * channel on without marketing consent. Fields left out keep their stored
+ * value.
+ *
+ * @param update - The sections and fields to change.
+ * @returns The saved preferences.
+ */
+export const updateNotificationPreferences = async (
+  update: NotificationPreferencesUpdate,
+): Promise<NotificationPreferences> =>
+  Engine.context.NotificationServicesController.updateNotificationPreferences(
+    update,
+  );
+
+/**
+ * Turns the marketing ("Updates and rewards") notification channels on or
+ * off. They only turn on once the user consented to marketing.
+ *
+ * @param isEnabled - Whether to turn the marketing channels on.
+ */
 export const setMarketingNotificationPreferencesEnabled = async (
   isEnabled: boolean,
 ) => {
   assertIsFeatureEnabled();
+  if (isEnabled && !hasMarketingConsent()) {
+    return;
+  }
+
   const preferences = await Engine.controllerMessenger.call(
     GET_NOTIFICATION_PREFERENCES_ACTION,
   );
@@ -97,18 +126,12 @@ export const setMarketingNotificationPreferencesEnabled = async (
     return;
   }
 
-  await Engine.controllerMessenger.call(
-    PUT_NOTIFICATION_PREFERENCES_ACTION,
-    {
-      ...preferences,
-      marketing: {
-        ...preferences.marketing,
-        inAppNotificationsEnabled: isEnabled,
-        pushNotificationsEnabled: isEnabled,
-      },
+  await updateNotificationPreferences({
+    marketing: {
+      inAppNotificationsEnabled: isEnabled,
+      pushNotificationsEnabled: isEnabled,
     },
-    CLIENT_TYPE,
-  );
+  });
 };
 
 /**

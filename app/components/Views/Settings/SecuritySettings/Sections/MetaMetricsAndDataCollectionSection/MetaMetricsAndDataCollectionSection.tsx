@@ -25,12 +25,9 @@ import generateDeviceAnalyticsMetaData, {
 } from '../../../../../../util/metrics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { setDataCollectionForMarketing } from '../../../../../../actions/security';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
@@ -39,6 +36,12 @@ import { selectOnboardingAccountType } from '../../../../../../selectors/onboard
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
+import Engine from '../../../../../../core/Engine';
+import { selectIsSignedIn } from '../../../../../../selectors/identity';
+import MarketingConsentSheet from '../../../../../UI/MarketingConsentSheet/MarketingConsentSheet';
+
+export const MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID =
+  'marketing-consent-opt-out-sheet';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
@@ -60,11 +63,13 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  const [isOptOutSheetVisible, setIsOptOutSheetVisible] = useState(false);
+  const [isCheckingOptOut, setIsCheckingOptOut] = useState(false);
+  const isSignedIn = useSelector(selectIsSignedIn);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
     selectMarketingConsent,
   );
-  const navigation = useNavigation<AppNavigationProp>();
   const { autoSignIn } = useAutoSignIn();
 
   const isBasicFunctionalityEnabled = useSelector(
@@ -176,11 +181,49 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     );
   };
 
-  const toggleDataCollectionForMarketing = (value: boolean) => {
+  // The "Updates and rewards" channels live in AUS, so only a signed-in user
+  // can have them on.
+  const hasMarketingNotificationsOn = async () => {
+    if (!isSignedIn) {
+      return false;
+    }
+    try {
+      const preferences = await Engine.controllerMessenger.call(
+        'AuthenticatedUserStorageService:getNotificationPreferences',
+      );
+      return Boolean(
+        preferences?.marketing.pushNotificationsEnabled ||
+          preferences?.marketing.inAppNotificationsEnabled,
+      );
+    } catch {
+      // Unknown: the opt-out turns the channels off in AUS anyway.
+      return false;
+    }
+  };
+
+  // Confirming saves the opt-out to AUS, which also turns the "Updates and
+  // rewards" channels off. A failed save keeps the sheet open.
+  const confirmMarketingOptOut = async () => {
+    await Engine.controllerMessenger.call(
+      'MarketingConsentController:setMarketingConsent',
+      false,
+    );
+    if (analyticsEnabled) {
+      addMarketingConsentToTraits(false);
+    }
+  };
+
+  const toggleDataCollectionForMarketing = async (value: boolean) => {
     if (!value) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.DATA_COLLECTION,
-      });
+      // Disable the switch while the channels are read, so a second tap can't
+      // open the sheet or save the opt-out twice.
+      setIsCheckingOptOut(true);
+      const channelsOn = await hasMarketingNotificationsOn();
+      setIsCheckingOptOut(false);
+      if (channelsOn) {
+        setIsOptOutSheetVisible(true);
+        return;
+      }
     }
 
     if (analyticsEnabled) {
@@ -254,7 +297,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         </Text>
         <View style={styles.switchElement}>
           <Switch
-            disabled={!isBasicFunctionalityEnabled}
+            disabled={!isBasicFunctionalityEnabled || isCheckingOptOut}
             value={isDataCollectionForMarketingEnabled === true}
             onValueChange={toggleDataCollectionForMarketing}
             trackColor={{
@@ -283,6 +326,23 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     <>
       {renderMetaMetricsSection()}
       {!hideMarketingSection && renderDataCollectionSection()}
+      {isOptOutSheetVisible ? (
+        <MarketingConsentSheet
+          title={strings('marketing_consent_sheet.opt_out_title')}
+          description={
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('marketing_consent_sheet.opt_out_description')}
+            </Text>
+          }
+          confirmLabel={strings('marketing_consent_sheet.opt_out_confirm')}
+          onConfirm={confirmMarketingOptOut}
+          onDismiss={() => setIsOptOutSheetVisible(false)}
+          testID={MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID}
+        />
+      ) : null}
     </>
   );
 };

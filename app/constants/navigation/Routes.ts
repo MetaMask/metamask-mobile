@@ -264,7 +264,6 @@ const Routes = {
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     SDK_CONNECT_V2_OTP: 'SDKConnectV2Otp',
-    DATA_COLLECTION: 'DataCollection',
     EXPERIENCE_ENHANCER: 'ExperienceEnhancer',
     SDK_MANAGE_CONNECTIONS: 'SDKManageConnections',
     SDK_DISCONNECT: 'SDKDisconnect',

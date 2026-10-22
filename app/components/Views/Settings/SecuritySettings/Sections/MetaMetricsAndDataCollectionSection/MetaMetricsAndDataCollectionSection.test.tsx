@@ -4,7 +4,9 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { analyticsControllerWithMarketingConsent } from '../../../../../../util/test/marketingConsentState';
 
-import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
+import MetaMetricsAndDataCollectionSection, {
+  MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID,
+} from './MetaMetricsAndDataCollectionSection';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 
 const MetaMetricsScreenWithParams = ({
@@ -12,9 +14,8 @@ const MetaMetricsScreenWithParams = ({
 }: {
   route?: { params?: Record<string, unknown> };
 }) => <MetaMetricsAndDataCollectionSection {...(route?.params || {})} />;
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
@@ -32,17 +33,12 @@ Alert.alert = mockAlert;
 const mockLinking = jest.fn();
 Linking.openURL = mockLinking;
 
-const mockNavigate = jest.fn();
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-    }),
-  };
-});
+const mockMessengerCall = jest.fn();
+jest.mock('../../../../../../core/Engine', () => ({
+  controllerMessenger: {
+    call: (...args: unknown[]) => mockMessengerCall(...args),
+  },
+}));
 
 // Mock analytics module
 jest.mock('../../../../../../util/analytics/analytics', () => ({
@@ -682,10 +678,10 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
       });
 
-      it('keeps MetaMetrics switch on and display modal when turned off', async () => {
+      it('keeps MetaMetrics switch on and adds traits when turned off', async () => {
         mockMetrics.isEnabled.mockReturnValueOnce(true);
 
-        const { findByTestId, store } = renderScreen(
+        const { findByTestId, queryByTestId, store } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
           { state: initialStateMarketingTrue },
@@ -730,14 +726,215 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               }),
             }),
           );
-          expect(mockNavigate).toHaveBeenCalledWith(
-            Routes.MODAL.ROOT_MODAL_FLOW,
-            {
-              screen: Routes.SHEET.DATA_COLLECTION,
+        });
+        expect(
+          queryByTestId(MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    describe('opt-out sheet', () => {
+      const GET_NOTIFICATION_PREFERENCES_ACTION =
+        'AuthenticatedUserStorageService:getNotificationPreferences';
+      const SET_MARKETING_CONSENT_ACTION =
+        'MarketingConsentController:setMarketingConsent';
+
+      const buildState = (isSignedIn: boolean) => ({
+        ...initialStateMarketingTrue,
+        engine: {
+          backgroundState: {
+            ...initialStateMarketingTrue.engine.backgroundState,
+            AuthenticationController: {
+              ...backgroundState.AuthenticationController,
+              isSignedIn,
             },
+          },
+        },
+      });
+
+      const arrangeNotificationPreferences = (
+        marketing: {
+          pushNotificationsEnabled: boolean;
+          inAppNotificationsEnabled: boolean;
+        } | null,
+      ) => {
+        mockMessengerCall.mockImplementation(async (action: string) => {
+          if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+            return marketing ? { marketing } : null;
+          }
+          return undefined;
+        });
+      };
+
+      const turnMarketingOff = async (isSignedIn: boolean) => {
+        const utils = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: buildState(isSignedIn) },
+        );
+        const marketingSwitch = await utils.findByTestId(
+          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+        );
+
+        fireEvent(marketingSwitch, 'valueChange', false);
+
+        return utils;
+      };
+
+      it('opens the opt-out sheet without saving when a marketing notification channel is on', async () => {
+        arrangeNotificationPreferences({
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+        });
+
+        const { findByTestId, store } = await turnMarketingOff(true);
+
+        expect(
+          await findByTestId(MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID),
+        ).toBeOnTheScreen();
+        expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+        expect(mockMessengerCall).not.toHaveBeenCalledWith(
+          SET_MARKETING_CONSENT_ACTION,
+          expect.anything(),
+        );
+        expect(mockAnalytics.identify).not.toHaveBeenCalled();
+      });
+
+      it('disables the switch while the notification channels are read', async () => {
+        let resolvePreferences: (value: unknown) => void = () => undefined;
+        mockMessengerCall.mockImplementation((action: string) =>
+          action === GET_NOTIFICATION_PREFERENCES_ACTION
+            ? new Promise((resolve) => {
+                resolvePreferences = resolve;
+              })
+            : Promise.resolve(undefined),
+        );
+
+        const { getByTestId } = await turnMarketingOff(true);
+        const marketingSwitch = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+        );
+
+        expect(marketingSwitch).toHaveProp('disabled', true);
+
+        await act(async () => {
+          resolvePreferences(null);
+        });
+
+        expect(marketingSwitch).toHaveProp('disabled', false);
+      });
+
+      it('saves the opt-out and adds traits when the opt-out sheet is confirmed', async () => {
+        mockMetrics.isEnabled.mockReturnValue(true);
+        arrangeNotificationPreferences({
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: true,
+        });
+        const { findByTestId, queryByTestId } = await turnMarketingOff(true);
+
+        fireEvent.press(
+          await findByTestId(
+            `${MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID}-confirm`,
+          ),
+        );
+
+        await waitFor(() => {
+          expect(mockMessengerCall).toHaveBeenCalledWith(
+            SET_MARKETING_CONSENT_ACTION,
+            false,
           );
+          expect(mockAnalytics.identify).toHaveBeenCalledWith({
+            has_marketing_consent: false,
+          });
+          expect(
+            queryByTestId(MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID),
+          ).not.toBeOnTheScreen();
         });
       });
+
+      it('keeps the opt-out sheet open with an error when saving the opt-out fails', async () => {
+        mockMessengerCall.mockImplementation(async (action: string) => {
+          if (action === GET_NOTIFICATION_PREFERENCES_ACTION) {
+            return {
+              marketing: {
+                pushNotificationsEnabled: true,
+                inAppNotificationsEnabled: true,
+              },
+            };
+          }
+          throw new Error('AUS error');
+        });
+        const { findByTestId, getByTestId } = await turnMarketingOff(true);
+
+        fireEvent.press(
+          await findByTestId(
+            `${MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID}-confirm`,
+          ),
+        );
+
+        expect(
+          await findByTestId(
+            `${MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID}-error`,
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID),
+        ).toBeOnTheScreen();
+        expect(mockAnalytics.identify).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        {
+          scenario: 'signed in with no marketing notification channel on',
+          isSignedIn: true,
+          arrange: () =>
+            arrangeNotificationPreferences({
+              pushNotificationsEnabled: false,
+              inAppNotificationsEnabled: false,
+            }),
+        },
+        {
+          scenario: 'signed in without stored notification preferences',
+          isSignedIn: true,
+          arrange: () => arrangeNotificationPreferences(null),
+        },
+        {
+          scenario: 'signed in and reading notification preferences fails',
+          isSignedIn: true,
+          arrange: () =>
+            mockMessengerCall.mockRejectedValue(new Error('AUS error')),
+        },
+        {
+          scenario: 'signed out',
+          isSignedIn: false,
+          arrange: () =>
+            arrangeNotificationPreferences({
+              pushNotificationsEnabled: true,
+              inAppNotificationsEnabled: true,
+            }),
+        },
+      ])(
+        'turns marketing off without the opt-out sheet when $scenario',
+        async ({ isSignedIn, arrange }) => {
+          arrange();
+
+          const { queryByTestId, store } = await turnMarketingOff(isSignedIn);
+
+          await waitFor(() => {
+            expect(store.getState().security.dataCollectionForMarketing).toBe(
+              false,
+            );
+          });
+          expect(
+            queryByTestId(MARKETING_CONSENT_OPT_OUT_SHEET_TEST_ID),
+          ).not.toBeOnTheScreen();
+          if (!isSignedIn) {
+            expect(mockMessengerCall).not.toHaveBeenCalledWith(
+              GET_NOTIFICATION_PREFERENCES_ACTION,
+            );
+          }
+        },
+      );
     });
   });
 });

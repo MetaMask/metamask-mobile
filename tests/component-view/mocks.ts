@@ -312,6 +312,14 @@ jest.mock('../../app/core/Engine', () => {
         checkAccountsPresence: jest
           .fn()
           .mockResolvedValue({} as Record<string, boolean>),
+        updateNotificationPreferences: jest.fn().mockResolvedValue(undefined),
+      },
+      // Read by the notification preference write helper to gate marketing
+      // channels on marketing consent.
+      AnalyticsController: {
+        state: {
+          optedInToMarketing: false,
+        },
       },
       NotificationServicesPushController: {
         state: { isPushEnabled: true, fcmToken: 'mock-fcm-token' },

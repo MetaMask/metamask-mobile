@@ -4990,9 +4990,17 @@
     "hint_text_sign": "Scan your hardware wallet to confirm the transaction",
     "select_accounts": "Select an account"
   },
-  "data_collection_modal": {
-    "accept": "OK",
-    "content": "You turned off data collection for our marketing purposes. This only applies to this device. If you use MetaMask on other devices, make sure to opt out there as well."
+  "marketing_consent_sheet": {
+    "opt_in_title": "Get personalized marketing updates",
+    "opt_in_description": "To send you relevant updates and rewards, we’ll collect data on how you interact with our marketing communications.",
+    "opt_in_turn_off_hint_prefix": "You can turn this off anytime in ",
+    "opt_in_turn_off_hint_suffix": ".",
+    "opt_in_confirm": "Turn on",
+    "opt_out_title": "Turn off personalized updates",
+    "opt_out_description": "We’ll stop collecting data on how you interact with our marketing communications. You’ll also stop receiving updates and rewards notifications.",
+    "opt_out_confirm": "Turn off",
+    "cancel": "Cancel",
+    "error": "Something went wrong. Try again."
   },
   "account_selector": {
     "prev": "Prev",

@@ -1,4 +1,5 @@
 import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
+import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import {
   enableNotifications,
   disableNotifications,
@@ -12,6 +13,7 @@ import {
   disablePushNotifications,
   hasNotificationPreferences,
   setMarketingNotificationPreferencesEnabled,
+  updateNotificationPreferences,
   type setContentPreviewToken as setContentPreviewTokenFn,
   type getContentPreviewToken as getContentPreviewTokenFn,
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
@@ -38,6 +40,12 @@ jest.mock('../../../core/Engine', () => ({
       markMetamaskNotificationsAsRead: jest.fn(),
       enablePushNotifications: jest.fn(),
       disablePushNotifications: jest.fn(),
+      updateNotificationPreferences: jest.fn(),
+    },
+    AnalyticsController: {
+      state: {
+        optedInToMarketing: false,
+      },
     },
     NotificationServicesPushController: {
       state: {
@@ -63,6 +71,7 @@ beforeEach(() => {
   jest.resetAllMocks();
   jest.mocked(unregisterBrazePush).mockResolvedValue(true);
   Engine.context.NotificationServicesPushController.state.fcmToken = '';
+  Engine.context.AnalyticsController.state.optedInToMarketing = false;
 });
 
 describe('helpers - enableNotificationServices()', () => {
@@ -130,50 +139,113 @@ describe('helpers - hasNotificationPreferences()', () => {
   });
 });
 
+const createNotificationPreferences = (
+  marketingEnabled: boolean,
+): NotificationPreferences => ({
+  walletActivity: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    accounts: [],
+  },
+  marketing: {
+    inAppNotificationsEnabled: marketingEnabled,
+    pushNotificationsEnabled: marketingEnabled,
+  },
+  perps: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  priceAlerts: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  socialAI: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    txAmountLimit: 500,
+    mutedTraderProfileIds: [],
+  },
+});
+
+describe('helpers - updateNotificationPreferences()', () => {
+  it('passes the update to notification services and returns the saved preferences', async () => {
+    const saved = createNotificationPreferences(false);
+    const update = { perps: { pushNotificationsEnabled: false } };
+    jest
+      .mocked(
+        Engine.context.NotificationServicesController
+          .updateNotificationPreferences,
+      )
+      .mockResolvedValue(saved);
+
+    expect(await updateNotificationPreferences(update)).toBe(saved);
+    expect(
+      Engine.context.NotificationServicesController
+        .updateNotificationPreferences,
+    ).toHaveBeenCalledWith(update);
+  });
+});
+
 describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
-  it('updates marketing notification preferences when AUS preferences exist', async () => {
-    const preferences = {
-      walletActivity: {
-        inAppNotificationsEnabled: true,
-        pushNotificationsEnabled: true,
-        accounts: [],
-      },
-      marketing: {
-        inAppNotificationsEnabled: false,
-        pushNotificationsEnabled: false,
-      },
-      perps: {
-        inAppNotificationsEnabled: true,
-        pushNotificationsEnabled: true,
-      },
-      socialAI: {
-        inAppNotificationsEnabled: true,
-        pushNotificationsEnabled: true,
-        txAmountLimit: 500,
-        mutedTraderProfileIds: [],
-      },
-    };
+  it('turns marketing channels on through notification services when the user consented to marketing', async () => {
+    Engine.context.AnalyticsController.state.optedInToMarketing = true;
+    const preferences = createNotificationPreferences(false);
     jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(preferences);
 
     await setMarketingNotificationPreferencesEnabled(true);
 
+    expect(Engine.controllerMessenger.call).toHaveBeenCalledTimes(1);
     expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
       'AuthenticatedUserStorageService:getNotificationPreferences',
     );
-    expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
-      'AuthenticatedUserStorageService:putNotificationPreferences',
-      {
-        ...preferences,
-        marketing: {
-          inAppNotificationsEnabled: true,
-          pushNotificationsEnabled: true,
-        },
+    expect(
+      Engine.context.NotificationServicesController
+        .updateNotificationPreferences,
+    ).toHaveBeenCalledWith({
+      marketing: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
       },
-      'mobile',
-    );
+    });
+  });
+
+  it('does not read or write preferences when turning marketing channels on without marketing consent', async () => {
+    jest
+      .mocked(Engine.controllerMessenger.call)
+      .mockResolvedValue(createNotificationPreferences(false));
+
+    await setMarketingNotificationPreferencesEnabled(true);
+
+    expect(Engine.controllerMessenger.call).not.toHaveBeenCalled();
+    expect(
+      Engine.context.NotificationServicesController
+        .updateNotificationPreferences,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('turns marketing channels off', async () => {
+    const preferences = createNotificationPreferences(true);
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(preferences);
+
+    await setMarketingNotificationPreferencesEnabled(false);
+
+    expect(
+      Engine.context.NotificationServicesController
+        .updateNotificationPreferences,
+    ).toHaveBeenCalledWith({
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
+    });
   });
 
   it('does not persist when AUS preferences are missing', async () => {
+    Engine.context.AnalyticsController.state.optedInToMarketing = true;
     jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(null);
 
     await setMarketingNotificationPreferencesEnabled(true);
@@ -182,6 +254,10 @@ describe('helpers - setMarketingNotificationPreferencesEnabled()', () => {
     expect(Engine.controllerMessenger.call).toHaveBeenCalledWith(
       'AuthenticatedUserStorageService:getNotificationPreferences',
     );
+    expect(
+      Engine.context.NotificationServicesController
+        .updateNotificationPreferences,
+    ).not.toHaveBeenCalled();
   });
 });
 
