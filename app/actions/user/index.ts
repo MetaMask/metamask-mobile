@@ -26,7 +26,6 @@ import {
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
-  type SetMoneyPremiumUpgradeSeenSubscriptionIdAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetTokenOverviewChartTypeAction,
@@ -239,21 +238,6 @@ export function setMoneyOnboardingSeen(
   return {
     type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
     payload: { seen },
-  };
-}
-
-/**
- * Records that the Money home upgrade pill was shown for this Plus
- * subscription id. Pass `null` to clear (developer options / QA reset).
- *
- * @param subscriptionId - Plus subscription id, or null to reset.
- */
-export function setMoneyPremiumUpgradeSeenSubscriptionId(
-  subscriptionId: string | null,
-): SetMoneyPremiumUpgradeSeenSubscriptionIdAction {
-  return {
-    type: UserActionType.SET_MONEY_PREMIUM_UPGRADE_SEEN_SUBSCRIPTION_ID,
-    payload: { subscriptionId },
   };
 }
 

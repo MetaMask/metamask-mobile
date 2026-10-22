@@ -19,6 +19,7 @@ import DottedUnderline from '../../../DottedUnderline';
 import TextShimmer from '../TextShimmer';
 import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
 import { useTheme } from '../../../../../util/theme';
@@ -54,10 +55,12 @@ interface MoneyBalanceSummaryProps {
    */
   isPremium?: boolean;
   /**
-   * When true, shows the one-time "Upgrading to Premium APY" pill under the
-   * APY row. Only Money home should pass this.
+   * In-flight vault migration pill under the APY row. Only Money home should
+   * pass this.
    */
-  showUpgradePill?: boolean;
+  pendingVaultTransition?:
+    | typeof MoneyVaultStatus.Upgrading
+    | typeof MoneyVaultStatus.Downgrading;
 }
 
 const MoneyBalanceSummary = ({
@@ -68,7 +71,7 @@ const MoneyBalanceSummary = ({
   onBalancePress,
   showTitle = false,
   isPremium = false,
-  showUpgradePill = false,
+  pendingVaultTransition,
 }: MoneyBalanceSummaryProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -118,7 +121,7 @@ const MoneyBalanceSummary = ({
           </Tag>
         ) : null}
       </Box>
-      {showUpgradePill ? (
+      {pendingVaultTransition ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -131,7 +134,11 @@ const MoneyBalanceSummary = ({
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {strings('money.apy_upgrading_pill')}
+            {strings(
+              pendingVaultTransition === MoneyVaultStatus.Upgrading
+                ? 'money.apy_upgrading_pill'
+                : 'money.apy_downgrading_pill',
+            )}
           </Text>
         </Box>
       ) : null}

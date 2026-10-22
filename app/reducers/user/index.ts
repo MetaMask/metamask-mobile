@@ -31,7 +31,6 @@ export const userInitialState: UserState = {
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
   moneyOnboardingSeen: false,
-  moneyPremiumUpgradeSeenSubscriptionId: null,
   moneyEarnBannerDismissedTokens: {},
   tokenOverviewChartType: ChartType.Line,
   tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
@@ -168,11 +167,6 @@ const userReducer = (
       return {
         ...state,
         moneyOnboardingSeen: action.payload.seen,
-      };
-    case UserActionType.SET_MONEY_PREMIUM_UPGRADE_SEEN_SUBSCRIPTION_ID:
-      return {
-        ...state,
-        moneyPremiumUpgradeSeenSubscriptionId: action.payload.subscriptionId,
       };
     case UserActionType.SET_MONEY_EARN_BANNER_DISMISSED:
       return {

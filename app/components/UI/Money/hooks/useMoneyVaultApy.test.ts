@@ -102,6 +102,7 @@ describe('useMoneyVaultApy', () => {
     expect(result.current.apyDecimal).toBe(0.05);
     expect(result.current.apyPercent).toBe(5);
     expect(result.current.apyPercentFormatted).toBe('5%');
+    expect(result.current.baseApyDecimal).toBe(0.05);
     expect(result.current.baseApyPercent).toBe(5);
     expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
       enabled: false,
@@ -210,6 +211,7 @@ describe('useMoneyVaultApy', () => {
     expect(result.current.apyDecimal).toBe(0.08);
     expect(result.current.apyPercent).toBe(8);
     expect(result.current.apyPercentFormatted).toBe('8%');
+    expect(result.current.baseApyDecimal).toBe(0.05);
     expect(result.current.baseApyPercent).toBe(5);
     expect(result.current.vaultApyQuery.isLoading).toBe(false);
   });

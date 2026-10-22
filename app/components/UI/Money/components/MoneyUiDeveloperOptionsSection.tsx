@@ -7,13 +7,11 @@ import { useTheme } from '../../../../util/theme';
 import {
   clearMoneyEarnBannerDismissedTokens,
   setMoneyOnboardingSeen,
-  setMoneyPremiumUpgradeSeenSubscriptionId,
   setOnboardingStepperStep,
 } from '../../../../actions/user';
 import {
   selectMoneyEarnBannerDismissedTokens,
   selectMoneyOnboardingSeen,
-  selectMoneyPremiumUpgradeSeenSubscriptionId,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { useStyles } from '../../../../component-library/hooks';
@@ -39,9 +37,6 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const premiumUpgradeSeenSubscriptionId = useSelector(
-    selectMoneyPremiumUpgradeSeenSubscriptionId,
-  );
   const isOnboardingEnabled = useSelector(
     selectMoneyOnboardingStepperAnimationEnabled,
   );
@@ -56,10 +51,6 @@ export const MoneyUiDeveloperOptionsSection = () => {
 
   const handleResetOnboardingSeenState = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(false));
-  }, [dispatch]);
-
-  const handleResetPremiumUpgradeSeenState = useCallback(() => {
-    dispatch(setMoneyPremiumUpgradeSeenSubscriptionId(null));
   }, [dispatch]);
 
   const handleResetOnboardingStepperStep = useCallback(() => {
@@ -108,26 +99,6 @@ export const MoneyUiDeveloperOptionsSection = () => {
           isFullWidth
         >
           {'Reset onboarding screen'}
-        </Button>
-      </Box>
-      <Box>
-        <Text
-          color={TextColor.TextAlternative}
-          variant={TextVariant.BodyMd}
-          style={styles.desc}
-        >
-          {`Premium upgrade pill seen for: ${
-            premiumUpgradeSeenSubscriptionId ?? 'none'
-          }`}
-        </Text>
-        <Button
-          variant={ButtonVariant.Secondary}
-          style={styles.accessory}
-          size={ButtonSize.Lg}
-          onPress={handleResetPremiumUpgradeSeenState}
-          isFullWidth
-        >
-          {'Reset premium upgrade pill'}
         </Button>
       </Box>
       <Box>

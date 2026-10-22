@@ -18,14 +18,15 @@ import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 
 type MoneyApyInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyApyInfoSheetParams {
   apy?: number;
   variant?: MoneyApyInfoSheetVariant;
-  /** When true, the opening paragraph uses the Premium APY copy. */
-  isPremium?: boolean;
+  /** Vault status that drives premium and migration copy. */
+  vaultStatus?: MoneyVaultStatus;
 }
 
 const MoneyApyInfoSheet = () => {
@@ -35,7 +36,7 @@ const MoneyApyInfoSheet = () => {
   const {
     apy,
     variant = 'default',
-    isPremium = false,
+    vaultStatus = MoneyVaultStatus.Base,
   } = useParams<MoneyApyInfoSheetParams>();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
@@ -52,6 +53,16 @@ const MoneyApyInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const isPremiumCopy =
+    vaultStatus === MoneyVaultStatus.Premium ||
+    vaultStatus === MoneyVaultStatus.Upgrading;
+  const migrationCopyKey =
+    vaultStatus === MoneyVaultStatus.Upgrading
+      ? 'money.apy_tooltip.migration_upgrading'
+      : vaultStatus === MoneyVaultStatus.Downgrading
+        ? 'money.apy_tooltip.migration_downgrading'
+        : undefined;
+
   const body =
     variant === 'deposit' ? (
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -61,12 +72,17 @@ const MoneyApyInfoSheet = () => {
       <>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings(
-            isPremium
+            isPremiumCopy
               ? 'money.apy_tooltip.paragraph_1_premium'
               : 'money.apy_tooltip.paragraph_1',
             { percentage: apy },
           )}
         </Text>
+        {migrationCopyKey ? (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings(migrationCopyKey)}
+          </Text>
+        ) : null}
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_2')}
         </Text>

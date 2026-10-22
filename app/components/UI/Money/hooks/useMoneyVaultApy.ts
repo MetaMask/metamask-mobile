@@ -3,10 +3,10 @@ import { useQuery } from '@metamask/react-data-query';
 import type { NormalizedVaultApyResponse } from '@metamask/money-account-balance-service';
 import type { VaultRateResponse } from '@metamask/money-account-api-data-service';
 import type { UseQueryResult } from '@tanstack/react-query';
-import BigNumber from 'bignumber.js';
 import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selectors/subscriptionController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
+import { parseApy, toApyPercent } from '../utils/apy';
 import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -23,6 +23,8 @@ export interface UseMoneyVaultApyResult {
   apyDecimal: number | undefined;
   apyPercent: number | undefined;
   apyPercentFormatted: string | undefined;
+  /** Base vault APY as a decimal (before entitlement override). */
+  baseApyDecimal: number | undefined;
   /** Base vault APY as a one-decimal percentage. */
   baseApyPercent: number | undefined;
 }
@@ -30,31 +32,6 @@ export interface UseMoneyVaultApyResult {
 export interface UseMoneyVaultApyOptions {
   enabled?: boolean;
 }
-
-const toApyPercent = (apyDecimal: number | undefined): number | undefined =>
-  apyDecimal !== undefined
-    ? new BigNumber(apyDecimal)
-        .multipliedBy(100)
-        .dp(1, BigNumber.ROUND_HALF_UP)
-        .toNumber()
-    : undefined;
-
-/**
- * Parses a decimal APY/rate string into a number.
- *
- * @param value - Decimal rate string from the Money API.
- * @returns The parsed number, or undefined when missing or not finite.
- */
-const parseApy = (value: string | null | undefined): number | undefined => {
-  if (value == null) {
-    return undefined;
-  }
-  const parsed = new BigNumber(value);
-  if (parsed.isNaN() || !parsed.isFinite()) {
-    return undefined;
-  }
-  return parsed.toNumber();
-};
 
 /**
  * Resolves the APY the Money surfaces should show.
@@ -113,6 +90,7 @@ const useMoneyVaultApy = ({
     apyDecimal,
     apyPercent,
     apyPercentFormatted,
+    baseApyDecimal,
     baseApyPercent,
   };
 };

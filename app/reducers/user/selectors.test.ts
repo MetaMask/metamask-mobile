@@ -9,7 +9,6 @@ import {
   selectMusdConversionEducationSeen,
   selectMusdConversionAssetDetailCtasSeen,
   selectMoneyOnboardingSeen,
-  selectMoneyPremiumUpgradeSeenSubscriptionId,
   selectMoneyEarnBannerDismissedTokens,
   selectTokenOverviewChartType,
   selectTokenOverviewChartInterval,
@@ -28,7 +27,6 @@ const mockState = {
     musdConversionEducationSeen: false,
     musdConversionAssetDetailCtasSeen: {} as Record<string, boolean>,
     moneyOnboardingSeen: false,
-    moneyPremiumUpgradeSeenSubscriptionId: null as string | null,
     moneyEarnBannerDismissedTokens: {} as Record<string, boolean>,
     tokenOverviewChartType: ChartType.Line as ChartType,
     tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
@@ -165,39 +163,6 @@ describe('user state selectors', () => {
       );
 
       expect(result.current).toBe(false);
-    });
-  });
-
-  describe('selectMoneyPremiumUpgradeSeenSubscriptionId', () => {
-    it('returns null when the upgrade pill has not been seen', () => {
-      mockState.user.moneyPremiumUpgradeSeenSubscriptionId = null;
-
-      const { result } = renderHook(() =>
-        useSelector(selectMoneyPremiumUpgradeSeenSubscriptionId),
-      );
-
-      expect(result.current).toBeNull();
-    });
-
-    it('returns the subscription id the upgrade pill was shown for', () => {
-      mockState.user.moneyPremiumUpgradeSeenSubscriptionId = 'sub-plus-1';
-
-      const { result } = renderHook(() =>
-        useSelector(selectMoneyPremiumUpgradeSeenSubscriptionId),
-      );
-
-      expect(result.current).toBe('sub-plus-1');
-    });
-
-    it('defaults to null when the field is not set', () => {
-      // @ts-expect-error - Testing undefined state
-      mockState.user.moneyPremiumUpgradeSeenSubscriptionId = undefined;
-
-      const { result } = renderHook(() =>
-        useSelector(selectMoneyPremiumUpgradeSeenSubscriptionId),
-      );
-
-      expect(result.current).toBeNull();
     });
   });
 

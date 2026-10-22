@@ -118,12 +118,12 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the upgrading pill when showUpgradePill is true', () => {
+  it('renders the upgrading pill when pendingVaultTransition is upgrading', () => {
     const { getByTestId } = render(
       <MoneyBalanceSummary
         apy={5}
         displayState={balanceState()}
-        showUpgradePill
+        pendingVaultTransition="upgrading"
       />,
     );
 
@@ -132,7 +132,21 @@ describe('MoneyBalanceSummary', () => {
     ).toHaveTextContent('Upgrading to Premium APY');
   });
 
-  it('hides the upgrading pill when showUpgradePill is false', () => {
+  it('renders the downgrading pill when pendingVaultTransition is downgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={7.1}
+        displayState={balanceState()}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+  });
+
+  it('hides the pending pill when pendingVaultTransition is omitted', () => {
     const { queryByTestId } = render(
       <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
     );

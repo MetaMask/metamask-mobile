@@ -5,7 +5,6 @@ import {
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetMoneyOnboardingSeenAction,
-  type SetMoneyPremiumUpgradeSeenSubscriptionIdAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
@@ -21,10 +20,6 @@ describe('user reducer', () => {
 
     it('has moneyOnboardingSeen as false', () => {
       expect(userInitialState.moneyOnboardingSeen).toBe(false);
-    });
-
-    it('has moneyPremiumUpgradeSeenSubscriptionId as null', () => {
-      expect(userInitialState.moneyPremiumUpgradeSeenSubscriptionId).toBeNull();
     });
 
     it('has onboardingStepperProgress as empty object', () => {
@@ -87,34 +82,6 @@ describe('user reducer', () => {
 
       expect(newState.moneyOnboardingSeen).toBe(true);
       expect(newState.userLoggedIn).toBe(true);
-    });
-  });
-
-  describe('SET_MONEY_PREMIUM_UPGRADE_SEEN_SUBSCRIPTION_ID', () => {
-    it('stores the subscription id the upgrade pill was shown for', () => {
-      const action: SetMoneyPremiumUpgradeSeenSubscriptionIdAction = {
-        type: UserActionType.SET_MONEY_PREMIUM_UPGRADE_SEEN_SUBSCRIPTION_ID,
-        payload: { subscriptionId: 'sub-plus-1' },
-      };
-
-      const newState = userReducer(userInitialState, action);
-
-      expect(newState.moneyPremiumUpgradeSeenSubscriptionId).toBe('sub-plus-1');
-    });
-
-    it('clears the seen subscription id when payload is null', () => {
-      const currentState = {
-        ...userInitialState,
-        moneyPremiumUpgradeSeenSubscriptionId: 'sub-plus-1',
-      };
-      const action: SetMoneyPremiumUpgradeSeenSubscriptionIdAction = {
-        type: UserActionType.SET_MONEY_PREMIUM_UPGRADE_SEEN_SUBSCRIPTION_ID,
-        payload: { subscriptionId: null },
-      };
-
-      const newState = userReducer(currentState, action);
-
-      expect(newState.moneyPremiumUpgradeSeenSubscriptionId).toBeNull();
     });
   });
 

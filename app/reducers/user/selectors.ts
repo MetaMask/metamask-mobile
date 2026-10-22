@@ -68,14 +68,6 @@ export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
 /**
- * Selects the Plus subscription id for which the Money home upgrade pill
- * was already shown. Null when it has never been shown.
- */
-export const selectMoneyPremiumUpgradeSeenSubscriptionId = (
-  state: RootState,
-): string | null => state.user?.moneyPremiumUpgradeSeenSubscriptionId ?? null;
-
-/**
  * Selects the moneyEarnBannerDismissedTokens state
  */
 export const selectMoneyEarnBannerDismissedTokens = (state: RootState) =>

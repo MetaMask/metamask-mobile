@@ -20,7 +20,7 @@ import {
   navigateWithDetails,
   useParams,
 } from '../../../../../util/navigation/navUtils';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import {
   Box,
@@ -70,14 +70,9 @@ import {
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
+import useMoneyVaultState from '../../hooks/useMoneyVaultState';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { setMoneyPremiumUpgradeSeenSubscriptionId } from '../../../../../actions/user';
-import { selectMoneyPremiumUpgradeSeenSubscriptionId } from '../../../../../reducers/user/selectors';
-import {
-  selectHasMoneyAccountPremiumApyEntitlement,
-  selectMoneyAccountPlusSubscription,
-} from '../../../../../selectors/subscriptionController';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
@@ -176,58 +171,19 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
   } = useMoneyAccountBalance();
-  const { vaultApyQuery, apyPercent, apyDecimal } = useMoneyVaultApy();
+  const {
+    status: vaultStatus,
+    apyPercent,
+    apyDecimal,
+    isLoading: isVaultApyLoading,
+  } = useMoneyVaultState();
   const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
     useMoneyAccountInterest();
-  const dispatch = useDispatch();
-  const isEntitled = useSelector(selectHasMoneyAccountPremiumApyEntitlement);
-  const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
-  const premiumUpgradeSeenSubscriptionId = useSelector(
-    selectMoneyPremiumUpgradeSeenSubscriptionId,
-  );
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
 
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
-
-  // One-time upgrade pill for the first Money home visit after the premiumApy
-  // entitlement turns on. Local state keeps it visible for the rest of that
-  // visit after the seen marker is written; it clears when the entitlement is
-  // lost or the subscription id changes to a different non-empty value
-  // (resubscribe).
-  const plusSubscriptionId = plusSubscription?.id;
-  const [showUpgradePill, setShowUpgradePill] = useState(false);
-  const previousPlusSubscriptionIdRef = useRef(plusSubscriptionId);
-
-  useEffect(() => {
-    const previousId = previousPlusSubscriptionIdRef.current;
-    previousPlusSubscriptionIdRef.current = plusSubscriptionId;
-    // Ignore transient undefined gaps while the subscription slice reloads.
-    if (previousId && plusSubscriptionId && previousId !== plusSubscriptionId) {
-      setShowUpgradePill(false);
-    }
-  }, [plusSubscriptionId]);
-
-  useEffect(() => {
-    if (!isEntitled) {
-      setShowUpgradePill(false);
-      return;
-    }
-    if (
-      !plusSubscriptionId ||
-      premiumUpgradeSeenSubscriptionId === plusSubscriptionId
-    ) {
-      return;
-    }
-    setShowUpgradePill(true);
-    dispatch(setMoneyPremiumUpgradeSeenSubscriptionId(plusSubscriptionId));
-  }, [
-    dispatch,
-    isEntitled,
-    plusSubscriptionId,
-    premiumUpgradeSeenSubscriptionId,
-  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -409,14 +365,14 @@ const MoneyHomeView = () => {
     last30DaysQuery.isInitialLoading ||
     sinceInceptionQuery.isInitialLoading ||
     (formattedLast30DaysInterest === undefined &&
-      (vaultApyQuery.isLoading || isBalanceLoading));
+      (isVaultApyLoading || isBalanceLoading));
 
   const hasEarningsContent = Boolean(last30DaysInterest);
   const earningsFailed =
     (last30DaysQuery.isError || sinceInceptionQuery.isError) &&
     !hasEarningsContent;
-  const apyReady = apyPercent !== undefined || !vaultApyQuery.isLoading;
-  const apyFailed = vaultApyQuery.isError && apyPercent === undefined;
+  const apyReady = apyPercent !== undefined || !isVaultApyLoading;
+  const apyFailed = !isVaultApyLoading && apyPercent === undefined;
 
   // Report each independently so the existing balance, activity, and combined
   // Money Home metrics retain their definitions. Optional sections are
@@ -707,9 +663,9 @@ const MoneyHomeView = () => {
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent, isPremium: isEntitled },
+      params: { apy: apyPercent, vaultStatus },
     });
-  }, [trackTooltipClicked, navigation, apyPercent, isEntitled]);
+  }, [trackTooltipClicked, navigation, apyPercent, vaultStatus]);
 
   const handleBalancePress = useCallback(() => {
     PreferencesController.setPrivacyMode(!privacyMode);
@@ -994,7 +950,7 @@ const MoneyHomeView = () => {
               componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
             })
           }
-          isLoading={vaultApyQuery.isLoading}
+          isLoading={isVaultApyLoading}
         />
       ),
     });
@@ -1146,8 +1102,13 @@ const MoneyHomeView = () => {
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
             showTitle={isPushed && !isNativeHeader}
-            isPremium={isEntitled}
-            showUpgradePill={showUpgradePill}
+            isPremium={vaultStatus === MoneyVaultStatus.Premium}
+            pendingVaultTransition={
+              vaultStatus === MoneyVaultStatus.Upgrading ||
+              vaultStatus === MoneyVaultStatus.Downgrading
+                ? vaultStatus
+                : undefined
+            }
           />
         </Box>
         <MoneyActionButtonRow

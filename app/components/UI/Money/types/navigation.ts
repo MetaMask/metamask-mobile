@@ -8,6 +8,7 @@ import type {
 } from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import type { MoneyAccountDepositIntent } from '../utils/moneyAccountDepositIntent';
+import type { MoneyVaultStatus } from '../utils/moneyVaultState';
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
@@ -84,7 +85,7 @@ export type MoneyModalsNavigationParamList = {
   MoneyApyInfoSheet: {
     apy?: number;
     variant?: 'default' | 'deposit';
-    isPremium?: boolean;
+    vaultStatus?: MoneyVaultStatus;
   };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
