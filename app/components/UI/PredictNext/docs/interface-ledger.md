@@ -60,6 +60,16 @@ All descriptors have Venue-qualified keys, semantic invalidation families, expli
 
 `portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
 
+## Predict User change (PRED-1381)
+
+Portfolio keys stay Venue-only, so the account cache is person-scoped by lifetime rather than by key: `PredictPortfolioService` follows the Predict User and clears cached account data when the person changes.
+
+The Predict User is the primary SRP's session `canonicalProfileId`, the value the backend derives from the bearer token. Locking, unlocking, switching wallet accounts, and adding a second SRP are not changes. A wallet reset, a sign-out, or a different canonical profile for the primary SRP is. While the wallet is locked the identity is unknowable, and the service keeps the last known one.
+
+On a change the service, in this order: cancels in-flight reads so a late response cannot land; marks every entry stale so the next read refetches; forgets its registered reads so a later invalidation cannot re-read them; and publishes `PredictPortfolioService:accountDataCleared` with no payload. The identity itself is compared in memory only and is never logged, traced, keyed, persisted, or published. Old entries stay in the service cache, unreachable, until it garbage-collects them.
+
+`usePredictAccountCachePurge`, mounted in `App.tsx`, drops the app's own copies of the portfolio queries on that event. Because the service clears first, a reverting cancel can only hydrate the queries this removes; the next read refetches as the new Predict User. No other domain's queries and no public market-data cache are touched.
+
 ## Order commit (write contract, PRED-1194)
 
 The implemented write contract is one authenticated route: `POST /v1/venues/{venueId}/orders/commit`, carrying the bearer token and a strict `{ previewId }` body — nothing else, so the client cannot alter Market, Outcome, spend, quantity, price, or fee at commit time. The backend derives every executable detail from the stored, expiring Order Preview.
@@ -70,6 +80,7 @@ The implemented write contract is one authenticated route: `POST /v1/venues/{ven
 - `reconciliation_required` means the submission outcome is ambiguous and the backend resolves it by looking up the stable `client_order_id` or the resulting Venue Order; the UI renders it as in-progress and the keep-checking affordance re-POSTs the same Commit. A verified venue absence re-arms exactly one submission; there is never a blind second Order.
 - Pre-operation failures (expired Preview, untradeable Market, insufficient Balance, unavailable venue) are canonical error codes and never create an operation; once an operation exists, every outcome — including rejection and zero Fill — is a receipt, never an error.
 - A terminal receipt invalidates the authoritative Balance, Positions, and Activity reads. Mobile persists nothing about the operation: after a screen closure or app restart the outcome surfaces through those authoritative reads (restart-observation persistence is descoped on PRED-1194).
+- A Predict User change abandons every in-flight Commit. The observation loop re-checks a private generation counter before each re-POST and after each response, callers reject with `UNAUTHENTICATED`, and an abandoned Commit never invalidates the account reads. The previous Predict User's `previewId` is never sent again.
 
 ## Order preview and commit (action contract, PRED-1195)
 
