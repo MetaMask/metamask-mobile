@@ -1625,6 +1625,7 @@ const Onboarding = () => {
   }, [storePna25Acknowledged]);
 
   const { errorToThrow, startFoxAnimation } = state;
+  const isOnboardingSheetOpen = sheetMode !== null;
 
   const onboardingCanvasColor =
     themeContext.themeAppearance === 'dark'
@@ -1654,50 +1655,64 @@ const Onboarding = () => {
         style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
-        <FastOnboarding
-          onPressContinueWithGoogle={onPressContinueWithGoogle}
-          onPressContinueWithApple={onPressContinueWithApple}
-          onPressImport={onPressImport}
-          onPressCreate={onPressCreate}
-        />
-        <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
-          <ScrollView
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('flex-1')}
-          >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="flex-1 py-4"
-            >
-              {renderContent()}
-            </Box>
-          </ScrollView>
-
-          <FadeOutOverlay />
-
-          {handleSimpleNotification()}
-        </SafeAreaView>
-
-        {!hasTestOverrides && (
-          <FoxAnimation
-            hasFooter={false}
-            trigger={startFoxAnimation}
-            fullBleedBottom
-          />
-        )}
-
         {/*
-          The loader overlays the landing content instead of replacing it so
-          FadeOutOverlay, the onboarding animations and the toast keep their
-          mounted state (and do not replay) when loading is unset after a
-          failed or cancelled OAuth attempt.
+          The sheet is inline on this screen, not a modal route. Hide the
+          landing content from assistive tech so VoiceOver and TalkBack stay
+          inside the sheet instead of the Create and Import buttons behind it.
         */}
-        {loading && (
-          <View style={styles.loaderOverlay}>
-            <OnboardingFoxLoader />
-          </View>
-        )}
+        <Box
+          twClassName="flex-1"
+          testID={OnboardingSelectorIDs.LANDING_CONTENT_ID}
+          accessibilityElementsHidden={isOnboardingSheetOpen}
+          importantForAccessibility={
+            isOnboardingSheetOpen ? 'no-hide-descendants' : 'auto'
+          }
+        >
+          <FastOnboarding
+            onPressContinueWithGoogle={onPressContinueWithGoogle}
+            onPressContinueWithApple={onPressContinueWithApple}
+            onPressImport={onPressImport}
+            onPressCreate={onPressCreate}
+          />
+          <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
+            <ScrollView
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('flex-1')}
+            >
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="flex-1 py-4"
+              >
+                {renderContent()}
+              </Box>
+            </ScrollView>
+
+            <FadeOutOverlay />
+
+            {handleSimpleNotification()}
+          </SafeAreaView>
+
+          {!hasTestOverrides && (
+            <FoxAnimation
+              hasFooter={false}
+              trigger={startFoxAnimation}
+              fullBleedBottom
+            />
+          )}
+
+          {/*
+            The loader overlays the landing content instead of replacing it so
+            FadeOutOverlay, the onboarding animations and the toast keep their
+            mounted state (and do not replay) when loading is unset after a
+            failed or cancelled OAuth attempt.
+          */}
+          {loading && (
+            <View style={styles.loaderOverlay}>
+              <OnboardingFoxLoader />
+            </View>
+          )}
+        </Box>
         {sheetMode !== null ? (
           <OnboardingSheet
             createWallet={sheetMode === 'create'}

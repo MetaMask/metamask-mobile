@@ -79,7 +79,7 @@ import Device from '../../../util/device';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet/OnboardingSheet.testIds';
-import { UserActionType } from '../../../actions/user';
+import { loadingUnset, UserActionType } from '../../../actions/user';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Authentication } from '../../../core';
@@ -87,6 +87,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import {
   getOAuthBackgroundAnalyticsProperties,
   isOAuthLifecycleInProgress,
@@ -340,6 +342,7 @@ const mockNav = {
   reset: jest.fn(),
   setOptions: jest.fn(),
   goBack: mockGoBack,
+  setParams: jest.fn(),
   isFocused: jest.fn(() => true),
   canGoBack: jest.fn(() => false),
   dispatch: jest.fn((action) => {
@@ -882,6 +885,132 @@ describe('Onboarding', () => {
           }),
         }),
       );
+    });
+
+    it('hides landing content from assistive technologies while the onboarding sheet is open', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+
+      const { getByTestId, UNSAFE_getByType } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const landingContent = getByTestId(
+        OnboardingSelectorIDs.LANDING_CONTENT_ID,
+      );
+      expect(landingContent).toHaveProp('accessibilityElementsHidden', false);
+      expect(landingContent).toHaveProp('importantForAccessibility', 'auto');
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      const hiddenLandingContent = getByTestId(
+        OnboardingSelectorIDs.LANDING_CONTENT_ID,
+        { includeHiddenElements: true },
+      );
+      expect(hiddenLandingContent).toHaveProp(
+        'accessibilityElementsHidden',
+        true,
+      );
+      expect(hiddenLandingContent).toHaveProp(
+        'importantForAccessibility',
+        'no-hide-descendants',
+      );
+
+      await act(async () => {
+        UNSAFE_getByType(BottomSheet).props.goBack();
+      });
+
+      expect(getByTestId(OnboardingSelectorIDs.LANDING_CONTENT_ID)).toHaveProp(
+        'accessibilityElementsHidden',
+        false,
+      );
+      expect(getByTestId(OnboardingSelectorIDs.LANDING_CONTENT_ID)).toHaveProp(
+        'importantForAccessibility',
+        'auto',
+      );
+    });
+
+    it('closes the onboarding sheet when the sheet goes back', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId, UNSAFE_getByType } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      expect(
+        getByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        UNSAFE_getByType(BottomSheet).props.goBack();
+      });
+
+      expect(queryByTestId(OnboardingSheetSelectorIDs.CONTAINER_ID)).toBeNull();
+    });
+
+    it('pops an unfocused onboarding screen on Android back while the sheet is open', async () => {
+      Platform.OS = 'android';
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      const hardwareBackHandlers: (() => boolean | null | undefined)[] = [];
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((event, handler) => {
+          if (event === 'hardwareBackPress') {
+            hardwareBackHandlers.push(
+              handler as () => boolean | null | undefined,
+            );
+          }
+          return { remove: jest.fn() };
+        });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      const onHardwareBackPress =
+        hardwareBackHandlers[hardwareBackHandlers.length - 1];
+
+      try {
+        (mockNav.isFocused as jest.Mock).mockReturnValue(true);
+
+        expect(onHardwareBackPress()).toBe(false);
+        expect(mockGoBack).not.toHaveBeenCalled();
+
+        (mockNav.isFocused as jest.Mock).mockReturnValue(false);
+        (mockNav.canGoBack as jest.Mock).mockReturnValue(true);
+
+        expect(onHardwareBackPress()).toBe(true);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+        (mockNav.canGoBack as jest.Mock).mockReturnValue(false);
+
+        expect(onHardwareBackPress()).toBe(true);
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      } finally {
+        (mockNav.isFocused as jest.Mock).mockReturnValue(true);
+        (mockNav.canGoBack as jest.Mock).mockReturnValue(false);
+      }
     });
   });
 
@@ -2827,6 +2956,152 @@ describe('Onboarding', () => {
           ),
         ).toBe(true);
       });
+    });
+
+    it('shows the full-screen loader for fast onboarding Google login and clears it after the success delay', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+      mockNetInfoFetch.mockResolvedValue({
+        isConnected: true,
+        isInternetReachable: true,
+      });
+      mockRoute.params = { onboardingType: 'google' };
+      jest.useFakeTimers();
+
+      try {
+        const { store } = renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          {
+            state: mockInitialState,
+          },
+        );
+
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith('Onboarding');
+        expect(store.getState().user.loadingSet).toBe(true);
+
+        await act(async () => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        expect(store.getState().user.loadingSet).toBe(false);
+      } finally {
+        jest.useRealTimers();
+        mockRoute.params = {};
+      }
+    });
+
+    it('shows the offline error sheet for fast onboarding Google login without starting OAuth', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      mockNetInfoFetch.mockResolvedValue({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+      mockRoute.params = { onboardingType: 'google' };
+
+      try {
+        renderScreen(
+          Onboarding,
+          { name: 'Onboarding' },
+          {
+            state: mockInitialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.MODAL.ROOT_MODAL_FLOW,
+            expect.objectContaining({
+              screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+              params: expect.objectContaining({
+                title: strings('error_sheet.no_internet_connection_title'),
+              }),
+            }),
+          );
+        });
+
+        expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalledWith('Onboarding');
+        expect(loadingUnset).toHaveBeenCalled();
+      } finally {
+        mockRoute.params = {};
+      }
+    });
+
+    it('starts Telegram login from the onboarding sheet when Telegram login is enabled', async () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
+      mockCreateLoginHandler.mockReturnValue('mockTelegramHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'telegram-user',
+      });
+      mockNetInfoFetch.mockResolvedValue({
+        isConnected: true,
+        isInternetReachable: true,
+      });
+
+      const stateWithTelegramLogin = {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...mockInitialState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                [FeatureFlagNames.telegramLoginEnabled]: true,
+              },
+            },
+          },
+        },
+      };
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: stateWithTelegramLogin,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(OnboardingSelectorIDs.NEW_WALLET_BUTTON));
+      });
+
+      await act(async () => {
+        await fireEvent.press(
+          getByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
+        );
+      });
+
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        AuthConnection.Telegram,
+        false,
+        { telegramLoginEnabled: true },
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockTelegramHandler',
+        false,
+        expect.anything(),
+      );
     });
   });
 

@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import OnboardingSheet, { OnboardingSheetProps } from '.';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
+import { AuthConnection } from '../../../../core/OAuthService/OAuthInterface';
+
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactNative = jest.requireActual('react-native');
@@ -78,5 +82,43 @@ describe('OnboardingSheet', () => {
     expect(
       queryByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
     ).toBeNull();
+  });
+
+  it('renders the dark Apple icon when the theme is dark', () => {
+    const { getByTestId, UNSAFE_getAllByType } = render(
+      <ThemeContext.Provider
+        value={{ ...mockTheme, themeAppearance: AppThemeKey.dark }}
+      >
+        <NavigationContainer>
+          <OnboardingSheet onDismiss={jest.fn()} />
+        </NavigationContainer>
+      </ThemeContext.Provider>,
+    );
+
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      UNSAFE_getAllByType(asComponentType('SvgMock')).some(
+        (icon) => icon.props.name === 'apple',
+      ),
+    ).toBe(true);
+  });
+
+  it('disables Telegram and Apple while Google login is loading', () => {
+    const { getByTestId } = renderSheet({
+      onPressContinueWithTelegram: jest.fn(),
+      loadingProvider: AuthConnection.Google,
+    });
+
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+    ).toBeDisabled();
   });
 });
