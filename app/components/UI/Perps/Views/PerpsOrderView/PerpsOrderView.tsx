@@ -1958,6 +1958,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             feeResults,
             marketPrice: assetData.price,
             inputMethod: inputMethodRef.current,
+            orderType: orderForm.type,
             source,
             sourceSection,
             currentMarketPosition,
@@ -1966,6 +1967,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             vipTier,
             hasCustomTokenSelected,
             payToken,
+            maxSlippageBps,
+            maxSlippageSource,
+            estimatedSlippageBps:
+              typeof estimatedSlippageBps === 'number'
+                ? estimatedSlippageBps
+                : undefined,
           }),
         });
 
@@ -2596,6 +2603,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feePercentage={feePercentage}
                 bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                feeSource={feeResults.feeSource}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2939,6 +2947,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ) : (
                 <PerpsFeesDisplay
                   feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                  feeSource={feeResults.feeSource}
                   fee={hasValidAmount ? feesToDisplay : undefined}
                   originalFee={
                     hasValidAmount ? undiscountedFeesToDisplay : undefined
@@ -3263,6 +3272,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   protocolFeeRate: feeResults.protocolFeeRate,
                   originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                   feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                  feeSource: feeResults.feeSource,
                   ...(hasCustomTokenSelected &&
                     depositFeeUsd > 0 && {
                       bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {

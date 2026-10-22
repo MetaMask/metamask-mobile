@@ -151,6 +151,8 @@ describe('MfaSettings', () => {
     ['Verify with passkey', 'qa.verifyPasskey'],
     ['Email and passkey, verify with passkey (Kalshi)', 'qa.kalshi'],
     ['Email or passkey, pick one', 'qa.emailAndPasskey'],
+    ['Enroll authenticator app', 'qa.enrollAuthenticatorApp'],
+    ['Verify with authenticator app', 'qa.verifyAuthenticatorApp'],
   ])('starts the "%s" QA preset', async (label, operation) => {
     const { getByText } = renderSettings();
 
@@ -273,5 +275,37 @@ describe('MfaSettings', () => {
       screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
     });
     expect(mockTurnOnMoneyMfa).not.toHaveBeenCalled();
+  });
+
+  it('offers to add an authenticator app', async () => {
+    const { getByTestId } = renderSettings();
+
+    expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toHaveTextContent(
+      /Authenticator app.*Add/,
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    });
+    expect(mockStartMfaFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: { kind: 'enroll', method: 'totp' },
+        reason: { operation: 'settings.addAuthenticatorApp' },
+      }),
+    );
+  });
+
+  it('opens an authenticator app that is set up', () => {
+    const { getByTestId } = renderSettings([
+      { type: 'totp', status: 'active' },
+    ]);
+
+    expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).not.toHaveTextContent(
+      /Add/,
+    );
+    fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.METHOD_DETAILS, {
+      method: 'totp',
+      index: 0,
+    });
   });
 });

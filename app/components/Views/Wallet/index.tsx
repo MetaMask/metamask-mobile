@@ -54,6 +54,7 @@ import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/feat
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
+import WalletHeaderAccountPickerRow from './components/WalletHeader/WalletHeaderAccountPickerRow';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { useWalletHeaderNativeHeader } from './components/WalletHeader/useWalletHeaderNativeHeader';
 import { NATIVE_HEADER_BAR_HEIGHT } from '../../hooks/useNativeHeader';
@@ -122,6 +123,8 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createAccountSelectorNavDetails } from '../AccountSelector';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
@@ -203,6 +206,9 @@ import { Carousel } from '../../UI/Carousel';
 import { useMoneyMfaHomePrompt } from '../../UI/Money/hooks/useMoneyMfaHomePrompt';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createProfileDrawerNavDetails } from '../SocialProfile/ProfileDrawer';
+import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
@@ -401,6 +407,7 @@ const Wallet = ({
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
@@ -756,8 +763,12 @@ const Wallet = ({
       balanceBreakdownVariantName,
     );
 
-  const { isCompactHeader, isInterimHeader, isHeaderSearchEnabled } =
-    useHomeNavBarConfig({ trackExposure: true });
+  const {
+    isCompactHeader,
+    isInterimHeader,
+    isSocialHeader,
+    isHeaderSearchEnabled,
+  } = useHomeNavBarConfig({ trackExposure: true });
   const isHomeGlass = useIsGlassSurfaceEnabled(
     selectHomeBrandRefreshSurfacesEnabled,
   );
@@ -885,25 +896,48 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
+    if (isSocialV1Enabled) {
+      navigation.navigate(...createProfileDrawerNavDetails({}));
+      return;
+    }
     navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
+  }, [navigation, isSocialV1Enabled]);
+
+  // Social V1 hides the account name in the header, so switching accounts moves
+  // to this row pinned under the header.
+  const handleHeaderAccountPickerPress = useCallback(() => {
+    navigation.navigate(...createAccountSelectorNavDetails({}));
+  }, [navigation]);
+
+  const handleAccountSelectorPress = useCallback(() => {
+    navigation.navigate(...createAccountSelectorNavDetails({}));
+  }, [navigation]);
+
+  const handleProfilePress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.DRAWER);
   }, [navigation]);
 
   const handleRewardsPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
 
-  const { isSearchHeaderEnabled, showPastePill, handlePastePress } =
-    useHomepageSearchPaste({
-      enabled: true,
-      onPaste: (initialQuery, searchOrigin) => {
-        navigation.navigate(Routes.EXPLORE_SEARCH, {
-          entryPoint: 'home',
-          initialQuery,
-          initialQuerySource: 'clipboard',
-          ...(searchOrigin ? { searchOrigin } : {}),
-        });
-      },
-    });
+  const {
+    isSearchHeaderEnabled: isHomepageSearchHeaderEnabled,
+    showPastePill,
+    handlePastePress,
+  } = useHomepageSearchPaste({
+    enabled: !isSocialHeader,
+    onPaste: (initialQuery, searchOrigin) => {
+      navigation.navigate(Routes.EXPLORE_SEARCH, {
+        entryPoint: 'home',
+        initialQuery,
+        initialQuerySource: 'clipboard',
+        ...(searchOrigin ? { searchOrigin } : {}),
+      });
+    },
+  });
+  const isSearchHeaderEnabled =
+    isHomepageSearchHeaderEnabled && !isSocialHeader;
 
   const handleSearchPress = useCallback(
     (
@@ -932,6 +966,7 @@ const Wallet = ({
     touchAreaSlop,
     isEnabled:
       isInterimHeader &&
+      !isSocialHeader &&
       !isSearchHeaderEnabled &&
       Boolean(selectedInternalAccount),
   });
@@ -1093,12 +1128,36 @@ const Wallet = ({
       handleActivityPress={handleActivityPress}
       handleCardPress={handleCardPress}
       handleHamburgerPress={handleHamburgerPress}
+      handleRewardsPress={handleRewardsPress}
+      handleProfilePress={handleProfilePress}
       touchAreaSlop={touchAreaSlop}
       headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
       headerAccountPickerStyle={styles.headerAccountPickerStyle}
       isInterimLayout={isInterimHeader}
+      isSocialLayout={isSocialHeader}
     />
   );
+
+  // On iOS 26 UIKit draws the header, so `WalletHeader` never renders and the
+  // screen pins the named picker under the bar itself. Everywhere else the JS
+  // header owns the row, which keeps it out of the layout math below. Compact is
+  // a scrolling nav-bar title, so it is out of scope.
+  const showHeaderAccountPickerRow =
+    isSocialV1Enabled &&
+    isNativeHeader &&
+    !isCompactHeader &&
+    Boolean(selectedInternalAccount);
+
+  // The native bar is a transparent overlay, so the row clears it itself.
+  const renderHeaderAccountPickerRow = () =>
+    showHeaderAccountPickerRow ? (
+      <WalletHeaderAccountPickerRow
+        displayName={displayName}
+        onPress={handleHeaderAccountPickerPress}
+        hitSlop={touchAreaSlop}
+        style={{ paddingTop: nativeHeaderInset }}
+      />
+    ) : null;
 
   const handleBannerError = useCallback(() => {
     // Log the error but don't block the UI
@@ -1219,10 +1278,13 @@ const Wallet = ({
   ) : null;
 
   const compactHeaderAccountName =
+    !isSocialHeader &&
     (isCompactHeader || isSearchHeaderEnabled) &&
     !inWalletHomePostOnboardingFlow ? (
       <ButtonAnimated
-        onPress={handleAccountHubPress}
+        onPress={
+          isSocialHeader ? handleAccountSelectorPress : handleAccountHubPress
+        }
         style={styles.compactHeaderAccountName}
         onLayout={handleAccountNameLayout}
         testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON}
@@ -1244,7 +1306,9 @@ const Wallet = ({
             {displayName}
           </CustomText>
           <MMDSIcon
-            name={MMDSIconName.ArrowRight}
+            name={
+              isSocialHeader ? MMDSIconName.ArrowDown : MMDSIconName.ArrowRight
+            }
             size={MMDSIconSize.Md}
             color={MMDSIconColor.IconAlternative}
           />
@@ -1351,6 +1415,7 @@ const Wallet = ({
               ) : isFloatingJsHeader ? null : (
                 renderWalletHeader()
               )}
+
               <View
                 ref={containerViewRef}
                 style={styles.wrapper}
@@ -1374,6 +1439,9 @@ const Wallet = ({
                   </HeaderGlass>
                 )}
                 {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+                {showHeaderAccountPickerRow
+                  ? renderHeaderAccountPickerRow()
+                  : null}
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >

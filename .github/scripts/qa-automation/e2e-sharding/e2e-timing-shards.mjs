@@ -134,22 +134,41 @@ function applyTiedSpecPlacement(shards, durations, placement, platform, totalSpl
   );
 }
 
+function addToLightestWorker(workerLoads, duration) {
+  const loads = workerLoads.length > 0 ? [...workerLoads] : [0];
+  let lightest = 0;
+  for (let index = 1; index < loads.length; index += 1) {
+    if (loads[index] < loads[lightest]) lightest = index;
+  }
+  loads[lightest] += duration;
+  return loads;
+}
+
 /**
- * LPT bin-pack: longest files first into the lightest shard.
+ * LPT bin-pack. With one worker, shard cost is the sum. With the CI device
+ * pool, shard cost is the makespan across those workers: the file goes to the
+ * shard whose wall-clock grows least.
+ *
  * @param {string[]} files
  * @param {Record<string, { android?: number, ios?: number }>} timings
  * @param {string} platform
  * @param {number} totalSplits
- * @returns {{ index: number, files: string[], totalDuration: number }[]}
+ * @param {number} [workers]
+ * @returns {{ index: number, files: string[], totalDuration: number, makespan: number }[]}
  */
-export function planShards(files, timings, platform, totalSplits) {
+export function planShards(files, timings, platform, totalSplits, workers = 1) {
   const platformKey = platform === 'ios' ? 'ios' : 'android';
+  const workerCount = Number.isInteger(workers) && workers > 0 ? workers : 1;
 
   const getValidDuration = (file) => {
-    const value = timings[timingLookupKey(file)]?.[platformKey];
-    return typeof value === 'number' && Number.isFinite(value) && value > 0
-      ? value
-      : undefined;
+    const keys = [timingLookupKey(file), baseSpecPath(file)];
+    for (const key of keys) {
+      const value = timings[key]?.[platformKey];
+      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        return value;
+      }
+    }
+    return undefined;
   };
 
   const knownDurations = files
@@ -169,15 +188,35 @@ export function planShards(files, timings, platform, totalSplits) {
     index: i + 1,
     files: [],
     totalDuration: 0,
+    makespan: 0,
+    workerLoads: Array.from({ length: workerCount }, () => 0),
   }));
 
   for (const { file, duration } of filesWithDuration) {
-    const lightest = shards.reduce(
-      (min, s) => (s.totalDuration < min.totalDuration ? s : min),
-      shards[0],
-    );
-    lightest.files.push(file);
-    lightest.totalDuration += duration;
+    let chosen = shards[0];
+    let chosenLoads = addToLightestWorker(chosen.workerLoads, duration);
+    let chosenMakespan = Math.max(...chosenLoads);
+
+    for (const shard of shards.slice(1)) {
+      const loads = addToLightestWorker(shard.workerLoads, duration);
+      const makespan = Math.max(...loads);
+      const better =
+        makespan < chosenMakespan ||
+        (makespan === chosenMakespan && shard.totalDuration < chosen.totalDuration) ||
+        (makespan === chosenMakespan &&
+          shard.totalDuration === chosen.totalDuration &&
+          shard.index < chosen.index);
+      if (better) {
+        chosen = shard;
+        chosenLoads = loads;
+        chosenMakespan = makespan;
+      }
+    }
+
+    chosen.files.push(file);
+    chosen.workerLoads = chosenLoads;
+    chosen.makespan = chosenMakespan;
+    chosen.totalDuration += duration;
   }
 
   const durations = new Map(
@@ -186,8 +225,28 @@ export function planShards(files, timings, platform, totalSplits) {
   for (const placement of TIED_SPEC_PLACEMENTS) {
     applyTiedSpecPlacement(shards, durations, placement, platform, totalSplits);
   }
+  recomputeShardLoads(shards, durations, workerCount);
 
   return shards;
+}
+
+/**
+ * @param {{ files: string[], workerLoads: number[], totalDuration: number, makespan: number }[]} shards
+ * @param {Map<string, number>} durations
+ * @param {number} workerCount
+ */
+function recomputeShardLoads(shards, durations, workerCount) {
+  for (const shard of shards) {
+    shard.workerLoads = Array.from({ length: workerCount }, () => 0);
+    shard.totalDuration = 0;
+    shard.makespan = 0;
+    for (const file of shard.files) {
+      const duration = durations.get(timingLookupKey(file)) ?? 0;
+      shard.workerLoads = addToLightestWorker(shard.workerLoads, duration);
+      shard.totalDuration += duration;
+      shard.makespan = Math.max(0, ...shard.workerLoads);
+    }
+  }
 }
 
 /**
@@ -196,10 +255,11 @@ export function planShards(files, timings, platform, totalSplits) {
  * @param {string} platform
  * @param {number} splitNumber 1-based
  * @param {number} totalSplits
+ * @param {number} [workers]
  * @returns {string[]}
  */
-export function binPackShards(files, timings, platform, splitNumber, totalSplits) {
-  const shards = planShards(files, timings, platform, totalSplits);
+export function binPackShards(files, timings, platform, splitNumber, totalSplits, workers = 1) {
+  const shards = planShards(files, timings, platform, totalSplits, workers);
   const thisShard = shards.find((s) => s.index === splitNumber);
   return thisShard ? thisShard.files : [];
 }

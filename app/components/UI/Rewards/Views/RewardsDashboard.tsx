@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
@@ -278,7 +279,11 @@ const RewardsDashboard: React.FC = () => {
     bySelectedAccountGroup: optInBySelectedAccountGroup,
     currentAccountGroupPartiallySupported,
     currentAccountGroupOptedInStatus,
+    refresh: refreshOptInSummary,
   } = useRewardOptinSummary();
+  const refreshOptInSummaryRef = useRef(refreshOptInSummary);
+  refreshOptInSummaryRef.current = refreshOptInSummary;
+  const skipNextOptInFocusRefresh = useRef(true);
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
@@ -310,10 +315,28 @@ const RewardsDashboard: React.FC = () => {
   // The saga is idempotent - it re-fetches opt-in status to skip already-linked accounts.
   useFocusEffect(
     useCallback(() => {
-      if (wasInterrupted && !isRunning) {
-        resumeBulkLink();
-      }
+      const handle = runAfterInteractions(() => {
+        if (wasInterrupted && !isRunning) {
+          resumeBulkLink();
+        }
+      });
+      return () => handle.cancel();
     }, [wasInterrupted, isRunning, resumeBulkLink]),
+  );
+
+  // The opt-in summary fetches on mount. Later visits no longer remount the
+  // tab, so refresh when it is focused again, after the shell has painted.
+  useFocusEffect(
+    useCallback(() => {
+      if (skipNextOptInFocusRefresh.current) {
+        skipNextOptInFocusRefresh.current = false;
+        return undefined;
+      }
+      const handle = runAfterInteractions(() => {
+        void refreshOptInSummaryRef.current();
+      });
+      return () => handle.cancel();
+    }, []),
   );
 
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
@@ -436,7 +459,7 @@ const RewardsDashboard: React.FC = () => {
       vipUnlockTimerRef.current = null;
     }
 
-    (async () => {
+    void (async () => {
       try {
         // The controller flips `subscription.features.vip.enabled` as a side
         // effect when the VIP dashboard fetch returns a non-null payload, so

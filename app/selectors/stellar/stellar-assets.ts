@@ -17,7 +17,7 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { createSelectorCreator, lruMemoize } from 'reselect';
 
-import { getAssetsBalance } from '../assets/assets-controller';
+import { getAssetsBalance, getAssetsInfo } from '../assets/assets-controller';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 import { RootState } from '../../reducers';
 
@@ -69,6 +69,13 @@ const TrustlineAssetInfoStruct = type({
   limit: ValidAmountStruct,
 });
 
+const DecimalPlacesStruct = refine(number(), 'decimal_places', (value) => {
+  if (!Number.isInteger(value) || value < 0) {
+    return 'Invalid decimal places';
+  }
+  return true;
+});
+
 /**
  * Native enrichment on AssetsController `assetsBalance` metadata for Stellar
  * XLM. Amounts are in base units (stroops); `decimal` is used to convert them
@@ -77,7 +84,6 @@ const TrustlineAssetInfoStruct = type({
 const NativeAssetInfoStruct = type({
   minimumReserveBalance: ValidAmountStruct,
   spendableBalance: ValidAmountStruct,
-  decimal: number(),
 });
 
 export type StellarNativeAssetId = Infer<typeof StellarNativeAssetIdStruct>;
@@ -183,6 +189,29 @@ function getAssetBalanceMetadata(
 }
 
 /**
+ * Reads `decimals` from AssetsController `assetsInfo` for an asset.
+ *
+ * @param assetsInfo - Shared asset metadata keyed by CAIP-19 asset id.
+ * @param assetId - CAIP-19 asset id.
+ * @returns Validated decimal places, or `undefined`.
+ */
+function getDecimalsFromAssetMetadata(
+  assetsInfo: AssetsControllerState['assetsInfo'],
+  assetId: string,
+): number | undefined {
+  const metadata = (assetsInfo as Record<string, unknown>)[assetId];
+  if (
+    !metadata ||
+    typeof metadata !== 'object' ||
+    !('decimals' in metadata) ||
+    !is(metadata.decimals, DecimalPlacesStruct)
+  ) {
+    return undefined;
+  }
+  return metadata.decimals;
+}
+
+/**
  * Converts a base-unit amount to display units.
  *
  * @param amount - Amount in base units (e.g. stroops).
@@ -248,9 +277,10 @@ function selectResolvedAccountIdForAsset(
  */
 export const getSpendableForAccount = createParameterizedSelector(
   selectAssetsBalance,
+  getAssetsInfo as (state: unknown) => AssetsControllerState['assetsInfo'],
   selectResolvedAccountIdForAsset,
   (_state: unknown, params: StellarAccountAssetParams) => params.assetId,
-  (assetsBalance, resolvedAccountId, assetId) => {
+  (assetsBalance, assetsInfo, resolvedAccountId, assetId) => {
     if (!isAssetSupportSpendableBalance(assetId) || !resolvedAccountId) {
       return undefined;
     }
@@ -258,21 +288,17 @@ export const getSpendableForAccount = createParameterizedSelector(
       assetId,
       getAssetBalanceMetadata(assetsBalance[resolvedAccountId]?.[assetId]),
     );
-    if (!nativeInfo) {
+    const decimals = getDecimalsFromAssetMetadata(assetsInfo, assetId);
+    if (!nativeInfo || decimals === undefined) {
       return undefined;
     }
-    // Align with Accounts API,
-    // it returns `minimumReserveBalance`, `spendableBalance` in smallest unit,
-    // and provide `decimal` for conversion to display units.
+
     return {
       minimumReserveBalance: normalizeAmount(
         nativeInfo.minimumReserveBalance,
-        nativeInfo.decimal,
+        decimals,
       ),
-      spendableBalance: normalizeAmount(
-        nativeInfo.spendableBalance,
-        nativeInfo.decimal,
-      ),
+      spendableBalance: normalizeAmount(nativeInfo.spendableBalance, decimals),
     } satisfies SpendableInfo;
   },
 );

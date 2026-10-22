@@ -12,6 +12,7 @@ import {
   RewardsMoneyDataServiceGetReferralFunnelAction,
   RewardsMoneyDataServiceGetReferralCodesAction,
   RewardsMoneyDataServiceValidateReferralCodeAction,
+  RewardsMoneyDataServiceRegisterRefereeAction,
   RewardsMoneyDataServiceGetEarningsSummaryAction,
   RewardsMoneyDataServiceGetEarningsLedgerAction,
   RewardsMoneyDataServiceGetClaimHistoryAction,
@@ -37,6 +38,7 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetReferralFunnelAction
   | RewardsMoneyDataServiceGetReferralCodesAction
   | RewardsMoneyDataServiceValidateReferralCodeAction
+  | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
@@ -82,6 +84,7 @@ export function getRewardsMoneyControllerMessenger(
       'RewardsMoneyDataService:getReferralFunnel',
       'RewardsMoneyDataService:getReferralCodes',
       'RewardsMoneyDataService:validateReferralCode',
+      'RewardsMoneyDataService:registerReferee',
       'RewardsMoneyDataService:getEarningsSummary',
       'RewardsMoneyDataService:getEarningsLedger',
       'RewardsMoneyDataService:getClaimHistory',

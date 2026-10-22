@@ -23,6 +23,7 @@ const HeaderStandardAnimatedGlass = ({
   isGlass = true,
   backdrop,
   fadeInDistance,
+  isFloating,
   onLayout,
   ...props
 }: HeaderStandardAnimatedGlassProps) => {
@@ -36,6 +37,7 @@ const HeaderStandardAnimatedGlass = ({
       backdrop={backdrop}
       scrollDistance={props.scrollY}
       fadeInDistance={fadeInDistance}
+      isFloating={isFloating}
     >
       <HeaderStandardAnimated
         {...props}

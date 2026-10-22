@@ -32,6 +32,13 @@ import { useMoneyMfa } from '../../../UI/Money/hooks/useMoneyMfa';
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
   passkey: MfaSettingsSelectorsIDs.PASSKEY_ROW,
   email_otp: MfaSettingsSelectorsIDs.EMAIL_ROW,
+  totp: MfaSettingsSelectorsIDs.TOTP_ROW,
+};
+
+const ADD_OPERATIONS: Record<MfaMethod, string> = {
+  passkey: 'settings.addPasskey',
+  email_otp: 'settings.addEmail',
+  totp: 'settings.addAuthenticatorApp',
 };
 
 /**
@@ -45,8 +52,8 @@ const MfaSettings = () => {
   const passkeyCount = getActivePasskeys(credentials).length;
   const { status: moneyMfaStatus, turnOn: turnOnMoneyMfa } = useMoneyMfa();
   const isMoneyMfaOn = moneyMfaStatus === 'enabled';
-  const hasEmail = getActiveCredentials(credentials).some(
-    ({ type }) => type === 'email_otp',
+  const activeTypes = new Set(
+    getActiveCredentials(credentials).map(({ type }) => type),
   );
 
   useEffect(() => {
@@ -58,10 +65,7 @@ const MfaSettings = () => {
   const add = (method: MfaMethod) => {
     enroll({
       method,
-      reason: {
-        operation:
-          method === 'passkey' ? 'settings.addPasskey' : 'settings.addEmail',
-      },
+      reason: { operation: ADD_OPERATIONS[method] },
     }).catch(() => undefined);
   };
 
@@ -80,7 +84,12 @@ const MfaSettings = () => {
     {
       method: 'email_otp',
       label: getMethodLabel('email_otp'),
-      isSetUp: hasEmail,
+      isSetUp: activeTypes.has('email_otp'),
+    },
+    {
+      method: 'totp',
+      label: getMethodLabel('totp'),
+      isSetUp: activeTypes.has('totp'),
     },
   ];
 

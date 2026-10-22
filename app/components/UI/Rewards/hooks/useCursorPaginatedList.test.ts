@@ -1,6 +1,24 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
+import { captureException } from '@sentry/react-native';
+import { RewardsMoneyHttpError } from '../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { useCursorPaginatedList } from './useCursorPaginatedList';
+
+jest.mock('@sentry/react-native', () => ({
+  captureException: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual('react');
+  return {
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        const cleanup = effect();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [effect]);
+    },
+  };
+});
 
 interface Item {
   id: string;
@@ -19,6 +37,17 @@ const PAGE_2 = {
 };
 
 describe('useCursorPaginatedList', () => {
+  beforeEach(() => {
+    jest
+      .spyOn(globalThis.crypto, 'getRandomValues')
+      .mockImplementation((array) => {
+        if (array instanceof Uint32Array) {
+          array[0] = 0;
+        }
+        return array;
+      });
+  });
+
   it('does not fetch when disabled', () => {
     const fetchPage = jest.fn();
 
@@ -26,6 +55,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: false,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -43,6 +73,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
         onFirstPage,
       }),
@@ -72,6 +103,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
         onFirstPage,
       }),
@@ -109,6 +141,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -131,6 +164,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: false,
         resetKey: 'key',
+        feature: 'rewards',
         cachedItems: cached,
         fetchPage: jest.fn(),
       }),
@@ -144,6 +178,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: false,
         resetKey: 'key',
+        feature: 'rewards',
         cachedItems: [],
         fetchPage: jest.fn(),
       }),
@@ -166,6 +201,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -204,6 +240,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -235,6 +272,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
         errorMessage: 'fallback',
       }),
@@ -246,6 +284,151 @@ describe('useCursorPaginatedList', () => {
 
     expect(result.current.items).toBeNull();
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('refetches a short busy failure once and does not arm again', async () => {
+    jest.useFakeTimers();
+    (captureException as jest.Mock).mockClear();
+    try {
+      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2);
+      const fetchPage = jest
+        .fn()
+        .mockRejectedValueOnce(busy)
+        .mockRejectedValueOnce(busy);
+
+      const { result } = renderHook(() =>
+        useCursorPaginatedList<Item>({
+          enabled: true,
+          resetKey: 'key',
+          feature: 'rewards',
+          fetchPage,
+        }),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('busy');
+      expect(fetchPage).toHaveBeenCalledTimes(1);
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+      expect(fetchPage).toHaveBeenLastCalledWith({
+        cursor: null,
+        isFirstPage: true,
+        forceFresh: true,
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(busy, {
+        tags: {
+          feature: 'rewards',
+          context: 'cursorPaginatedList.fetch_failed',
+        },
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('refetches a 30 second busy failure once and does not arm again', async () => {
+    jest.useFakeTimers();
+    (captureException as jest.Mock).mockClear();
+    try {
+      const busy = new RewardsMoneyHttpError('busy', 503, undefined, 30);
+      const fetchPage = jest
+        .fn()
+        .mockRejectedValueOnce(busy)
+        .mockRejectedValueOnce(busy);
+
+      const { result } = renderHook(() =>
+        useCursorPaginatedList<Item>({
+          enabled: true,
+          resetKey: 'key',
+          feature: 'rewards',
+          fetchPage,
+        }),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('busy');
+      expect(fetchPage).toHaveBeenCalledTimes(1);
+      expect(captureException).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(busy, {
+        tags: {
+          feature: 'rewards',
+          context: 'cursorPaginatedList.fetch_failed',
+        },
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not refetch a busy failure whose Retry-After is over 30 seconds', async () => {
+    jest.useFakeTimers();
+    (captureException as jest.Mock).mockClear();
+    try {
+      const fetchPage = jest
+        .fn()
+        .mockRejectedValue(
+          new RewardsMoneyHttpError('busy', 503, undefined, 31),
+        );
+
+      const { result } = renderHook(() =>
+        useCursorPaginatedList<Item>({
+          enabled: true,
+          resetKey: 'key',
+          feature: 'rewards',
+          fetchPage,
+        }),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('busy');
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+        tags: {
+          feature: 'rewards',
+          context: 'cursorPaginatedList.fetch_failed',
+        },
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(32_000);
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('hides cache while a first-page load is in flight', async () => {
@@ -262,6 +445,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         cachedItems: cached,
         fetchPage,
       }),
@@ -292,6 +476,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         cachedItems: cached,
         fetchPage,
       }),
@@ -325,6 +510,7 @@ describe('useCursorPaginatedList', () => {
       useCursorPaginatedList<Item>({
         enabled: true,
         resetKey: 'key',
+        feature: 'rewards',
         fetchPage,
       }),
     );
@@ -374,6 +560,7 @@ describe('useCursorPaginatedList', () => {
         useCursorPaginatedList<Item>({
           enabled: true,
           resetKey,
+          feature: 'rewards',
           fetchPage,
         }),
       { initialProps: { resetKey: 'a' } },
@@ -414,6 +601,7 @@ describe('useCursorPaginatedList', () => {
         useCursorPaginatedList<Item>({
           enabled: true,
           resetKey,
+          feature: 'rewards',
           fetchPage,
         }),
       { initialProps: { resetKey: 'a' } },
