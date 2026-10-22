@@ -23,7 +23,9 @@ jobs:
       security-events: write
     uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
     with:
-      scanner-ref: v2.1.1
+    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2
+    with:
+      scanner-ref: v2
       # ubuntu-latest cannot finish these detected languages, so they fail the
       # required check before any finding is reported. Swift needs macOS. C/C++
       # has no compiled source. Java looks for ./mvnw, which this repo does not
