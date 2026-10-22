@@ -37,7 +37,9 @@ deletions.
 
 ## Manual steps per PR
 
-- Add a `team-*` label. `check-pr-has-required-labels` blocks merge without one.
+- Check the `team-design-system` label landed. The automation applies it, but
+  if its label tool fails, add it yourself. `check-pr-has-required-labels`
+  blocks merge without a `team-*` label.
 - Mark the PR ready for review once CI is green. The automation opens drafts,
   per `docs/readme/ready-for-review.md`.
 - If a PR is closed or a reviewer says "keep this", leave the reason as a PR
@@ -388,6 +390,10 @@ Record what happened in Notes and stop.
     jest on affected directories (no snapshot changes).`
   - Screenshots: `N/A — no UI change`
   - Author checklist: check the items you actually assessed.
+- Add the `team-design-system` label to the PR right after opening it, using
+  the PR label tool. `check-pr-has-required-labels` blocks merge without a
+  `team-*` label. If labeling fails, say so in the final reply so a human can
+  add it.
 - Do not request specific reviewers. CODEOWNERS handles review routing.
 
 ## 9. Update Memories and report
@@ -397,7 +403,8 @@ Record what happened in Notes and stop.
   "Do not touch".
 - Keep `MEMORIES.md` under ~200 lines. Prune "Done" entries older than 60 days
   into a one-line count per owner set.
-- Final reply: PR link (or why none was opened), owner set, what was removed
+- Final reply: PR link (or why none was opened), whether the
+  `team-design-system` label was applied, owner set, what was removed
   (counts of files, symbols, and style keys), deleted line count, and roughly
   how many candidates of each kind remain for the current owner set.
 ````
