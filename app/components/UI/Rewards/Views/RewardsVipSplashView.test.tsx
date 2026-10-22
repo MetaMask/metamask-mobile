@@ -40,6 +40,11 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
+    useRoute: () => ({
+      key: 'RewardsVipSplashView',
+      name: 'RewardsVipSplashView',
+      params: undefined,
+    }),
   };
 });
 
@@ -55,10 +60,33 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(View, { testID }, children),
-    FontWeight: { Bold: 'bold', Medium: 'medium' },
+    FontFamily: { Hero: 'hero' },
+    FontWeight: { Regular: 'regular', Bold: 'bold', Medium: 'medium' },
     Text: ({ children, ...props }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, props, children),
-    TextVariant: { BodyMd: 'bodyMd' },
+    TextVariant: { BodyMd: 'bodyMd', DisplayMd: 'displayMd' },
+    TextColor: { TextAlternative: 'text-alternative' },
+    BoxFlexDirection: { Column: 'column' },
+    BoxAlignItems: { Center: 'center' },
+    BoxJustifyContent: { Center: 'center' },
+    ButtonSize: { Lg: 'lg' },
+    ButtonVariant: { Primary: 'primary', Tertiary: 'tertiary' },
+    Button: ({
+      children,
+      onPress,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+    }) => {
+      const { Pressable } = jest.requireActual('react-native');
+      return ReactActual.createElement(
+        Pressable,
+        { testID, onPress },
+        ReactActual.createElement(Text, null, children),
+      );
+    },
   };
 });
 
@@ -107,6 +135,11 @@ jest.mock('react-native-safe-area-context', () => {
 jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
 
 jest.mock('../../../../../locales/i18n', () => ({
+  default: { locale: 'en' },
+  I18nEvents: {
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+  },
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nVIP PROGRAM',
