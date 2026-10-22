@@ -71,9 +71,14 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
     default: ({
       scope,
       testID,
+      renderHeader,
     }: {
       scope: 'trending' | 'following' | 'all';
       testID?: string;
+      renderHeader?: (props: {
+        pendingNewCount: number;
+        onRevealPending: () => void;
+      }) => React.ReactNode;
     }) => {
       const { pendingPost, posts } = mockUseSocialV1Feed(
         scope === 'following' ? 'following' : 'trending',
@@ -81,6 +86,10 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
       return ReactActual.createElement(
         View,
         { testID },
+        renderHeader?.({
+          pendingNewCount: 0,
+          onRevealPending: jest.fn(),
+        }),
         pendingPost
           ? ReactActual.createElement(SocialFeedPostingBanner, {
               authorHandle: pendingPost.authorHandle,

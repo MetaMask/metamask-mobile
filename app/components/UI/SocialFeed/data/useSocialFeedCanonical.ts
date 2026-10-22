@@ -148,6 +148,7 @@ export interface UseSocialFeedCanonicalResult {
   refresh: () => Promise<void>;
   entrances: SocialFeedEntrances;
   pendingNewCount: number;
+  revealPending: () => void;
 }
 
 export interface UseSocialFeedCanonicalOptions {
@@ -191,6 +192,7 @@ export const useSocialFeedCanonical = ({
 
   const [pendingNewCount, setPendingNewCount] = useState(0);
   const [pendingDrainVersion, setPendingDrainVersion] = useState(0);
+  const [pendingRevealRequested, setPendingRevealRequested] = useState(false);
   const queuePendingEvent = useCallback(
     (event: SocialFeedEvent, animate: boolean) => {
       const previous = pendingEvents.current.get(event.feedItemId);
@@ -308,6 +310,10 @@ export const useSocialFeedCanonical = ({
     [applyEvent, queuePendingEvent, realtimeEnabled, scope],
   );
 
+  const revealPending = useCallback(() => {
+    setPendingRevealRequested(true);
+  }, []);
+
   useEffect(() => {
     if (!enabled || !isFocused || !realtimeEnabled || !realtimeService) {
       setRealtimeRows((existing) => (existing.length === 0 ? existing : []));
@@ -339,7 +345,11 @@ export const useSocialFeedCanonical = ({
   ]);
 
   useEffect(() => {
-    if (paused || !nearTop || pendingEvents.current.size === 0) {
+    if (
+      (!pendingRevealRequested && paused) ||
+      !nearTop ||
+      pendingEvents.current.size === 0
+    ) {
       return undefined;
     }
 
@@ -357,6 +367,9 @@ export const useSocialFeedCanonical = ({
     setPendingNewCount(pendingEvents.current.size);
 
     if (pendingEvents.current.size === 0) {
+      if (pendingRevealRequested) {
+        setPendingRevealRequested(false);
+      }
       return undefined;
     }
 
@@ -365,7 +378,14 @@ export const useSocialFeedCanonical = ({
       SOCIAL_FEED_REVEAL_INTERVAL_MS,
     );
     return () => clearTimeout(nextBatchTimer);
-  }, [applyEvent, feed.rows, nearTop, paused, pendingDrainVersion]);
+  }, [
+    applyEvent,
+    feed.rows,
+    nearTop,
+    paused,
+    pendingDrainVersion,
+    pendingRevealRequested,
+  ]);
 
   const rows = useMemo(() => {
     const byPositionId = new Map<string, SocialFeedRow>();
@@ -448,5 +468,6 @@ export const useSocialFeedCanonical = ({
     refresh: feed.refresh,
     entrances,
     pendingNewCount: visiblePendingNewCount,
+    revealPending,
   };
 };

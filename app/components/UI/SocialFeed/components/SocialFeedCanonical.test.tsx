@@ -1,5 +1,6 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { Text } from 'react-native';
 import SocialFeedCanonical from './SocialFeedCanonical';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
 import { useSocialFeedCanonical } from '../data/useSocialFeedCanonical';
@@ -82,6 +83,7 @@ const state = {
   error: null,
   refresh: jest.fn(),
   pendingNewCount: 0,
+  revealPending: jest.fn(),
 };
 
 describe('SocialFeedCanonical', () => {
@@ -126,6 +128,54 @@ describe('SocialFeedCanonical', () => {
     );
     expect(screen.getByTestId('canonical-content')).toBeOnTheScreen();
     expect(screen.getByText('post-1')).toBeOnTheScreen();
+  });
+
+  it('renders a host-owned header with the pending count', () => {
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      pendingNewCount: 13,
+      entrances: createSocialFeedEntrances(),
+    });
+    const renderHeader = jest.fn(
+      ({
+        pendingNewCount,
+      }: {
+        pendingNewCount: number;
+        onRevealPending: () => void;
+      }) => <Text>header {pendingNewCount}</Text>,
+    );
+
+    render(
+      <SocialFeedCanonical
+        scope="all"
+        scrollMode="virtualized"
+        renderHeader={renderHeader}
+      />,
+    );
+
+    expect(screen.getByText('header 13')).toBeOnTheScreen();
+    expect(renderHeader).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pendingNewCount: 13,
+        onRevealPending: expect.any(Function),
+      }),
+    );
+  });
+
+  it('reveals pending posts when the pending count is pressed', () => {
+    const revealPending = jest.fn();
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      pendingNewCount: 2,
+      revealPending,
+      entrances: createSocialFeedEntrances(),
+    });
+
+    render(<SocialFeedCanonical scope="all" scrollMode="virtualized" />);
+
+    fireEvent.press(screen.getByText('2 new posts'));
+
+    expect(revealPending).toHaveBeenCalledTimes(1);
   });
 
   it('plays a realtime row entrance until it is marked played', () => {

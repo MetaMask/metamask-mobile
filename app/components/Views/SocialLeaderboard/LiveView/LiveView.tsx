@@ -1,6 +1,7 @@
 import {
   Box,
   BoxAlignItems,
+  ButtonIconVariant,
   ButtonBase,
   ButtonBaseSize,
   FilterButton,
@@ -35,14 +36,16 @@ import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
 import SocialFeedPostShell, {
   type SocialFeedPostShellProps,
 } from '../../../UI/SocialFeed/components/SocialFeedPostShell';
-import SocialFeedCanonical from '../../../UI/SocialFeed/components/SocialFeedCanonical';
+import SocialFeedCanonical, {
+  type SocialFeedCanonicalHeaderProps,
+} from '../../../UI/SocialFeed/components/SocialFeedCanonical';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
-import LiveStreamStatusDot from './components/LiveStreamStatusDot';
+import LiveStreamControls from './components/LiveStreamControls';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 import FeedItemEntryAnimation, {
   createFeedItemEntryScheduler,
@@ -189,6 +192,7 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
     refresh,
     entrances,
     pendingNewCount,
+    revealPending,
   } = useSocialFeedCanonical({
     paused: streamState === 'paused',
     nearTop,
@@ -237,11 +241,11 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
   }, []);
 
   const handleRevealPending = useCallback(async () => {
-    setStreamState('live');
     setNearTop(true);
+    revealPending();
     await refresh();
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [refresh]);
+  }, [refresh, revealPending]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -374,8 +378,9 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
                   onPress={handleStreamToggle}
                   testID={LiveViewSelectorsIDs.STREAM_BUTTON}
                   accessibilityLabel={streamLabel}
+                  textProps={isLive ? undefined : { twClassName: 'text-muted' }}
                   startAccessory={
-                    <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
+                    <LiveStreamControls isLive={isLive} onPrimaryButton />
                   }
                 >
                   {streamLabel}
@@ -456,41 +461,60 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const isLive = streamState === 'live';
+  const streamLabel = strings(
+    isLive
+      ? 'social_leaderboard.feed.live_stream.live'
+      : 'social_leaderboard.feed.live_stream.paused',
+  );
 
-  return (
-    <Box twClassName="flex-1 bg-default">
+  const renderHeader = useCallback(
+    ({ pendingNewCount, onRevealPending }: SocialFeedCanonicalHeaderProps) => (
       <SocialTabFilterBar
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
+        filterButtonClassName="bg-background-muted-hover"
+        filterButtonVariant={ButtonIconVariant.Filled}
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
+        twClassName="px-4 py-4"
       >
-        <FilterButton
-          isSelected
-          variant={FilterButtonVariant.Primary}
-          size={FilterButtonSize.Md}
-          onPress={handleStreamToggle}
-          testID={LiveViewSelectorsIDs.STREAM_BUTTON}
-          accessibilityLabel={strings(
-            isLive
-              ? 'social_leaderboard.feed.live_stream.live'
-              : 'social_leaderboard.feed.live_stream.paused',
-          )}
-          startAccessory={
-            <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
-          }
-        >
-          {strings(
-            isLive
-              ? 'social_leaderboard.feed.live_stream.live'
-              : 'social_leaderboard.feed.live_stream.paused',
-          )}
-        </FilterButton>
+        <Box twClassName="flex-row items-center gap-2">
+          <FilterButton
+            isSelected
+            variant={FilterButtonVariant.Secondary}
+            size={FilterButtonSize.Sm}
+            onPress={handleStreamToggle}
+            testID={LiveViewSelectorsIDs.STREAM_BUTTON}
+            accessibilityLabel={streamLabel}
+            textProps={isLive ? undefined : { twClassName: 'text-muted' }}
+            startAccessory={<LiveStreamControls isLive={isLive} />}
+          >
+            {streamLabel}
+          </FilterButton>
+          {pendingNewCount > 0 ? (
+            <ButtonBase
+              size={ButtonBaseSize.Sm}
+              onPress={onRevealPending}
+              textProps={{ twClassName: 'text-success-default' }}
+            >
+              {pendingNewCount > 60
+                ? '60+ new posts'
+                : `${pendingNewCount} new post${pendingNewCount === 1 ? '' : 's'}`}
+            </ButtonBase>
+          ) : null}
+        </Box>
       </SocialTabFilterBar>
+    ),
+    [handleStreamToggle, isFilterActive, isLive, onOpenFilters, streamLabel],
+  );
+
+  return (
+    <Box twClassName="flex-1 bg-default">
       <SocialFeedCanonical
         scope="all"
         scrollMode="virtualized"
         realtime
         paused={streamState === 'paused'}
+        renderHeader={renderHeader}
         location="social_live"
         onScroll={onScroll}
         pageRef={pageRef}

@@ -65,12 +65,18 @@ export interface SocialFeedCanonicalFilters {
 
 export type SocialFeedCanonicalScrollHandler = ScrollHandlerProcessed;
 
+export interface SocialFeedCanonicalHeaderProps {
+  pendingNewCount: number;
+  onRevealPending: () => void;
+}
+
 export interface SocialFeedCanonicalProps {
   scope: SocialFeedCanonicalScope;
   scrollMode: 'content' | 'virtualized';
   realtime?: boolean;
   paused?: boolean;
   filters?: SocialFeedCanonicalFilters;
+  renderHeader?: (props: SocialFeedCanonicalHeaderProps) => React.ReactNode;
   location?: SocialSurfaceLocation;
   onScroll?: SocialFeedCanonicalScrollHandler;
   pageRef?: React.Ref<SocialFeedPageHandle>;
@@ -223,6 +229,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
   realtime = false,
   paused = false,
   location = 'social_feed_screen',
+  renderHeader,
   onScroll,
   pageRef,
   onAuthorPress,
@@ -248,6 +255,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
     refresh,
     entrances,
     pendingNewCount,
+    revealPending,
   } = useSocialFeedCanonical({
     nearTop,
     paused,
@@ -308,6 +316,13 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
     }
   }, [refresh]);
 
+  const handleRevealPending = useCallback(async () => {
+    setNearTop(true);
+    revealPending();
+    await refresh();
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [refresh, revealPending]);
+
   const renderItem = useCallback(
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => (
       <CanonicalRow
@@ -356,20 +371,17 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
   const pendingHeader =
     pendingNewCount > 0 ? (
       <Box alignItems={BoxAlignItems.Center} twClassName="py-2">
-        <ButtonBase
-          size={ButtonBaseSize.Sm}
-          onPress={async () => {
-            setNearTop(true);
-            await refresh();
-            listRef.current?.scrollToOffset({ offset: 0, animated: true });
-          }}
-        >
+        <ButtonBase size={ButtonBaseSize.Sm} onPress={handleRevealPending}>
           {pendingNewCount > 60
             ? '60+ new posts'
             : `${pendingNewCount} new post${pendingNewCount === 1 ? '' : 's'}`}
         </ButtonBase>
       </Box>
     ) : null;
+  const customHeader = renderHeader?.({
+    pendingNewCount,
+    onRevealPending: handleRevealPending,
+  });
 
   return (
     <SocialFeedSurfaceProvider location={location}>
@@ -396,10 +408,14 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
             }
             testID={scrollTestID}
             ListHeaderComponent={
-              <>
-                {pendingHeader}
-                {isLoading ? null : null}
-              </>
+              renderHeader ? (
+                customHeader
+              ) : (
+                <>
+                  {pendingHeader}
+                  {isLoading ? null : null}
+                </>
+              )
             }
             ListEmptyComponent={isLoading ? null : <SocialFeedEmpty />}
             ListFooterComponent={
@@ -416,7 +432,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
           />
         ) : (
           <Box twClassName="pb-8">
-            {pendingHeader}
+            {renderHeader ? customHeader : pendingHeader}
             {isLoading ? null : null}
             {visiblePosts.length > 0 ? renderContentRows : null}
             {!isLoading && visiblePosts.length === 0 ? (
