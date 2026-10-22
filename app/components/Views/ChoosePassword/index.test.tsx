@@ -1646,13 +1646,17 @@ describe('ChoosePassword', () => {
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
+      expect(getFormElements(component).checkbox).not.toBeChecked();
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(store.getActions()).toContainEqual(
-          setDataCollectionForMarketing(false),
-        );
+        expect(mockMetrics.identify).toHaveBeenCalled();
       });
+      expect(store.getActions()).not.toContainEqual(
+        expect.objectContaining({
+          type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
+        }),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1711,7 +1715,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('dispatches marketing opt-in=false when OAuth user does not check the checkbox', async () => {
+    it('does not dispatch a marketing decision when OAuth user leaves the unchecked checkbox untouched', async () => {
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -1730,19 +1734,21 @@ describe('ChoosePassword', () => {
         provider: 'apple',
       };
 
-      // Do NOT press the checkbox so isSelected = false → opt-in = false
+      // An untouched, unchecked box is not a consent decision
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
-        expect(store.getActions()).toContainEqual(
-          setDataCollectionForMarketing(false),
-        );
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });
+      expect(store.getActions()).not.toContainEqual(
+        expect.objectContaining({
+          type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
+        }),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
