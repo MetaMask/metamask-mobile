@@ -4693,13 +4693,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyVbaActivityDepositFromAddresses: {
-    name: 'moneyVbaActivityDepositFromAddresses',
+  moneyVbaCompletedActivityEnabled: {
+    name: 'moneyVbaCompletedActivityEnabled',
     type: FeatureFlagType.Remote,
-    inProd: true,
-    // Empty until Iron/QA payout EOAs are confirmed. Local QA can override via
-    // MM_MONEY_VBA_ACTIVITY_DEPOSIT_FROM_ADDRESSES without waiting on LD.
-    productionDefault: [] as string[],
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -8592,16 +8593,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyVbaActivityDepositFromAddresses: {
-    name: 'moneyVbaActivityDepositFromAddresses',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

@@ -49,6 +49,7 @@ export enum FeatureFlagNames {
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
   moneyBrandRefresh = 'moneyBrandRefresh',
   moneyVbaPendingActivityEnabled = 'moneyVbaPendingActivityEnabled',
+  moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
 }
 
@@ -78,6 +79,10 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
   [FeatureFlagNames.moneyVbaPendingActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
     enabled: false,
     minimumVersion: null,
   },

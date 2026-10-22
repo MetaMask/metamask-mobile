@@ -12,8 +12,8 @@ import {
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
   selectMoneyCardActivityCashbackMultisendContracts,
-  selectMoneyVbaActivityDepositFromAddresses,
   selectMoneyVbaPendingActivityEnabled,
+  selectMoneyVbaCompletedActivityEnabled,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
@@ -66,31 +66,39 @@ const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
   },
 });
 
-describe('selectMoneyVbaPendingActivityEnabled', () => {
-  const originalEnv = process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
+describe.each([
+  [
+    'selectMoneyVbaPendingActivityEnabled',
+    selectMoneyVbaPendingActivityEnabled,
+    'moneyVbaPendingActivityEnabled',
+    'MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED',
+  ],
+  [
+    'selectMoneyVbaCompletedActivityEnabled',
+    selectMoneyVbaCompletedActivityEnabled,
+    'moneyVbaCompletedActivityEnabled',
+    'MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED',
+  ],
+])('%s', (_name, selector, remoteKey, localKey) => {
   const originalProcessEnv = process.env;
 
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...process.env };
     delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
+    delete process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED;
   });
 
   afterEach(() => {
     process.env = originalProcessEnv;
-    if (originalEnv === undefined) {
-      delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
-    } else {
-      process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED = originalEnv;
-    }
   });
 
   it('returns true when the remote version-gated flag is enabled', () => {
     mockedValidate.mockReturnValue(true);
     expect(
-      selectMoneyVbaPendingActivityEnabled(
+      selector(
         createState({
-          moneyVbaPendingActivityEnabled: {
+          [remoteKey]: {
             enabled: true,
             minimumVersion: '1.0.0',
           },
@@ -101,11 +109,11 @@ describe('selectMoneyVbaPendingActivityEnabled', () => {
 
   it('returns false when the remote flag is disabled even if local override is enabled', () => {
     mockedValidate.mockReturnValue(false);
-    process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED = 'true';
+    process.env[localKey] = 'true';
     expect(
-      selectMoneyVbaPendingActivityEnabled(
+      selector(
         createState({
-          moneyVbaPendingActivityEnabled: {
+          [remoteKey]: {
             enabled: false,
             minimumVersion: '1.0.0',
           },
@@ -116,11 +124,11 @@ describe('selectMoneyVbaPendingActivityEnabled', () => {
 
   it('uses the local QA override when remote flag shape is invalid', () => {
     mockedValidate.mockReturnValue(undefined);
-    process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED = 'true';
+    process.env[localKey] = 'true';
     expect(
-      selectMoneyVbaPendingActivityEnabled(
+      selector(
         createState({
-          moneyVbaPendingActivityEnabled: { enabled: 'yes' },
+          [remoteKey]: { enabled: 'yes' },
         }) as never,
       ),
     ).toBe(true);
@@ -128,18 +136,16 @@ describe('selectMoneyVbaPendingActivityEnabled', () => {
 
   it('defaults off when remote flag is absent and local override is unset', () => {
     mockedValidate.mockReturnValue(undefined);
-    expect(selectMoneyVbaPendingActivityEnabled(createState() as never)).toBe(
-      false,
-    );
+    expect(selector(createState() as never)).toBe(false);
   });
 
   it('defaults off when the remote flag shape is invalid and local override is unset', () => {
     mockedValidate.mockReturnValue(undefined);
     expect(
-      selectMoneyVbaPendingActivityEnabled(
+      selector(
         createState({
-          moneyVbaPendingActivityEnabled: { enabled: 'true' },
-          _unique: 'pending-vba-invalid-default-off',
+          [remoteKey]: { enabled: 'true' },
+          _unique: `${String(remoteKey)}-invalid-default-off`,
         }) as never,
       ),
     ).toBe(false);
@@ -795,40 +801,6 @@ describe('selectMoneyCardActivityCashbackMultisendContracts', () => {
     expect(result).toEqual([
       ...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
     ]);
-  });
-});
-
-describe('selectMoneyVbaActivityDepositFromAddresses', () => {
-  it('returns normalized remote addresses when valid', () => {
-    const state = createState({
-      moneyVbaActivityDepositFromAddresses: [
-        '0x1111111111111111111111111111111111111111',
-        '0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-      ],
-    });
-
-    expect(selectMoneyVbaActivityDepositFromAddresses(state as never)).toEqual([
-      '0x1111111111111111111111111111111111111111',
-      '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    ]);
-  });
-
-  it('fails closed when the remote allowlist is malformed', () => {
-    const state = createState({
-      moneyVbaActivityDepositFromAddresses: [
-        '0x1111111111111111111111111111111111111111',
-        'not-an-address',
-      ],
-    });
-    expect(selectMoneyVbaActivityDepositFromAddresses(state as never)).toEqual(
-      [],
-    );
-  });
-
-  it('returns an empty allowlist when the remote flag is absent', () => {
-    expect(
-      selectMoneyVbaActivityDepositFromAddresses(createState({}) as never),
-    ).toEqual([]);
   });
 });
 

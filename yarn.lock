@@ -10995,6 +10995,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/money-account-api-data-service@npm:@metamask-previews/money-account-api-data-service@2.2.0-preview-39f4d11cc":
+  version: 2.2.0-preview-39f4d11cc
+  resolution: "@metamask-previews/money-account-api-data-service@npm:2.2.0-preview-39f4d11cc"
+  dependencies:
+    "@metamask/base-data-service": "npm:^2.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.0"
+    "@tanstack/query-core": "npm:^5.103.2"
+  checksum: 10/47381e8ec4456be81f522fa861b0b1c302345492234a3b0370620941c9112940d58f2f7501f5b7653127877f37aeb906c97bcff46aa17558990249792b9d0cfd
+  languageName: node
+  linkType: hard
+
 "@metamask/money-account-api-data-service@npm:^2.1.0":
   version: 2.1.0
   resolution: "@metamask/money-account-api-data-service@npm:2.1.0"
@@ -39319,7 +39333,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
-    "@metamask/money-account-api-data-service": "npm:^2.1.0"
+    "@metamask/money-account-api-data-service": "npm:@metamask-previews/money-account-api-data-service@2.2.0-preview-39f4d11cc"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^1.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
