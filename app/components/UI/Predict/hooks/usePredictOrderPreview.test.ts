@@ -25,6 +25,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -437,9 +438,6 @@ describe('usePredictOrderPreview', () => {
         new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL),
       );
 
-      const consoleLogSpy = jest
-        .spyOn(console, 'log')
-        .mockImplementation(() => undefined);
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
         .mockImplementation(() => undefined);
@@ -454,13 +452,19 @@ describe('usePredictOrderPreview', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.error).toBe('Failed to preview order');
+        expect(result.current.error).toBe(
+          'predict.error_messages.preview_no_order_match_sell',
+        );
       });
 
       expect(Logger.error).not.toHaveBeenCalled();
-      expect(consoleLogSpy).toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Predict order preview returned no-match',
+        expect.objectContaining({
+          tags: { feature: 'Predict', component: 'usePredictOrderPreview' },
+        }),
+      );
 
-      consoleLogSpy.mockRestore();
       consoleErrorSpy.mockRestore();
     });
   });
