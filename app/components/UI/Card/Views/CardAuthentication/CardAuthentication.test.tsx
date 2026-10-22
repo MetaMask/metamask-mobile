@@ -750,7 +750,7 @@ describe('CardAuthentication', () => {
       expect(screen.getByText('Email me a code')).toBeOnTheScreen();
       fireEvent.changeText(
         screen.getByTestId(CardAuthenticationSelectors.EMAIL_FIELD),
-        'user@example.com',
+        ' user@example.com ',
       );
       await act(async () => {
         fireEvent.press(

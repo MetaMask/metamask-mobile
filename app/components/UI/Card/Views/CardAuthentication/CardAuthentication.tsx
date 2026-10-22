@@ -477,7 +477,7 @@ const CardAuthentication = () => {
           isBaanxPasswordless
             ? {
                 type: 'email_code',
-                email,
+                email: email.trim(),
                 code: emailCode,
                 ...(otpCode ? { otpCode } : {}),
               }
