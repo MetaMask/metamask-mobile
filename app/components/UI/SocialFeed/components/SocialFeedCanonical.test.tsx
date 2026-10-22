@@ -201,7 +201,7 @@ describe('SocialFeedCanonical', () => {
       mockUseSocialFeedCanonical.mockReturnValue({
         ...state,
         posts: [],
-        error: new Error('request failed'),
+        error: 'request failed',
         entrances: createSocialFeedEntrances(),
       });
 

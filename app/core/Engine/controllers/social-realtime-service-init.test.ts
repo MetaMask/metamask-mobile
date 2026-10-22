@@ -14,6 +14,8 @@ describe('socialRealtimeServiceInit', () => {
     jest.clearAllMocks();
   });
 
+  const mockSocialRealtimeService = jest.mocked(SocialRealtimeService);
+
   const createInitRequest = () => {
     const controllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -25,12 +27,12 @@ describe('socialRealtimeServiceInit', () => {
   it('initializes the service for the all feed without a feature flag gate', () => {
     socialRealtimeServiceInit(createInitRequest());
 
-    expect(SocialRealtimeService).toHaveBeenCalledWith(
+    expect(mockSocialRealtimeService).toHaveBeenCalledWith(
       expect.objectContaining({
         scopes: ['all'],
       }),
     );
-    expect(SocialRealtimeService.mock.calls[0][0]).not.toHaveProperty(
+    expect(mockSocialRealtimeService.mock.calls[0][0]).not.toHaveProperty(
       'isEnabled',
     );
   });

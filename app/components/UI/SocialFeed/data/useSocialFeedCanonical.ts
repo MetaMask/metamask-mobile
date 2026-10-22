@@ -85,7 +85,7 @@ export const mergeRealtimeFeedItem = (
     eventId: event.eventId,
     revision: event.revision,
     occurredAt: event.occurredAt,
-  }) as CoreFeedItem;
+  }) as unknown as CoreFeedItem;
 
 export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
