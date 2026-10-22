@@ -2,7 +2,7 @@
 import React, { useContext } from 'react';
 import { Alert, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import type { Meta } from '@storybook/react-native';
+import type { Meta } from '@storybook/react';
 
 // External dependencies.
 import Button, { ButtonVariants } from '../Buttons/Button';

@@ -1,6 +1,6 @@
 // Third party dependencies
 import React from 'react';
-import { Meta, Story } from '@storybook/react-native';
+import type { Meta, StoryFn } from '@storybook/react';
 
 // Internal Dependencies
 import AvatarGroup from './AvatarGroup';
@@ -31,7 +31,7 @@ export default {
   component: AvatarGroup,
 } as Meta;
 
-const Template: Story<AvatarGroupProps> = (
+const Template: StoryFn<AvatarGroupProps> = (
   args: React.JSX.IntrinsicAttributes & AvatarGroupProps,
 ) => (
   <AvatarGroup
