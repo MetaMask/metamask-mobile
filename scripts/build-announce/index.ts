@@ -10,7 +10,7 @@ import {
   minimizeComment,
   getExistingRcComments,
   postComment,
-  generateTestPlan,
+  readTestPlan,
   parseBuildInfo,
   parseGitHubContext,
 } from './utils';
@@ -225,49 +225,24 @@ async function main(): Promise<void> {
 
   const octokit = new Octokit({ auth: token });
 
-  // Check if we have AI API keys for test plan generation
-  const hasAiKeys =
-    process.env.E2E_CLAUDE_API_KEY ||
-    process.env.E2E_OPENAI_API_KEY ||
-    process.env.E2E_GEMINI_API_KEY;
+  console.log('\n=== AI Test Plan ===\n');
+  const { testPlan, error: testPlanError } = readTestPlan(
+    process.env.TEST_PLAN_PATH || 'release-test-plan.json',
+    process.env.TEST_PLAN_STATUS,
+    buildInfo.semver,
+  );
 
-  let testPlan: TestPlanResult | null = null;
-  let testPlanError: string | undefined;
-
-  if (hasAiKeys) {
-    console.log('\n=== Generating AI Test Plan ===\n');
-
-    try {
-      testPlan = await generateTestPlan(
-        prNumber,
-        buildInfo.semver,
-        300000, // 5 minute timeout
-      );
-
-      if (testPlan) {
-        // Ensure version is set for JSON link in footer
-        if (!testPlan.version) {
-          testPlan.version = buildInfo.semver;
-        }
-
-        console.log(`\nTest plan generated successfully:`);
-        console.log(`  - Risk Score: ${testPlan.summary.releaseRiskScore}`);
-        console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
-        console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
-        console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
-      } else {
-        // generateTestPlan returns null on failure (doesn't throw)
-        testPlanError = 'Test plan generation failed - check logs for details';
-        console.log('Continuing with build links only...');
-      }
-    } catch (error) {
-      testPlan = null;
-      testPlanError = error instanceof Error ? error.message : String(error);
-      console.error(`\nTest plan generation failed: ${testPlanError}`);
-      console.log('Continuing with build links only...');
-    }
+  if (testPlan) {
+    console.log(`Test plan loaded:`);
+    console.log(`  - Risk Score: ${testPlan.summary.releaseRiskScore}`);
+    console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
+    console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
+    console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
+  } else if (testPlanError) {
+    console.error(`Test plan unavailable: ${testPlanError}`);
+    console.log('Continuing with build links only...');
   } else {
-    console.log('\nNo AI API keys found, skipping test plan generation');
+    console.log('Test plan generation was skipped (no AI API keys)');
   }
 
   // Extract environment values from build artifacts

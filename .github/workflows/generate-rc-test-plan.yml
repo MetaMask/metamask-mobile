@@ -1,0 +1,113 @@
+##############################################################################################
+#
+# Generate RC Test Plan (reusable)
+#
+# Generates the AI test plan for a release PR and uploads it as the `test-plan-<semver>`
+# artifact, which build-rc-auto.yml reads when it posts the RC build comment.
+#
+# Dependencies are installed without the Yarn cache, because this job holds the AI provider
+# keys. It only gets a read-only token; posting the comment happens in the caller.
+#
+# The `status` output is `success`, `failure`, or `skipped` when no AI provider key is set.
+# A failed generation does not fail the run, so the RC build comment is still posted, with a
+# test plan failure section.
+#
+##############################################################################################
+name: Generate RC Test Plan
+
+on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Release branch to check out (e.g. release/7.71.0)'
+        required: true
+        type: string
+      pr_number:
+        description: 'Release PR number to generate the test plan for'
+        required: true
+        type: string
+      semver:
+        description: 'Release version (e.g. 7.71.0), used in the test plan and artifact name'
+        required: true
+        type: string
+    secrets:
+      E2E_CLAUDE_API_KEY:
+        required: false
+      E2E_OPENAI_API_KEY:
+        required: false
+      E2E_GEMINI_API_KEY:
+        required: false
+    outputs:
+      status:
+        description: 'Outcome of the test plan generation step (success, failure or skipped)'
+        value: ${{ jobs.generate-test-plan.outputs.status }}
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  generate-test-plan:
+    name: Generate AI Test Plan
+    runs-on: ubuntu-latest
+    environment: release-ci
+    outputs:
+      status: ${{ steps.keys.outputs.available != 'true' && 'skipped' || steps.generate.outcome == 'success' && 'success' || 'failure' }}
+    env:
+      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
+      E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
+    steps:
+      - name: Check for AI provider keys
+        id: keys
+        run: |
+          if [[ -n "${E2E_CLAUDE_API_KEY}${E2E_OPENAI_API_KEY}${E2E_GEMINI_API_KEY}" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No AI API keys found, skipping test plan generation"
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v6
+        if: steps.keys.outputs.available == 'true'
+        with:
+          ref: ${{ inputs.source_branch }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: actions/setup-node@v6
+        if: steps.keys.outputs.available == 'true'
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+
+      - name: Install dependencies
+        if: steps.keys.outputs.available == 'true'
+        run: yarn install --immutable
+
+      - name: Generate test plan
+        id: generate
+        if: steps.keys.outputs.available == 'true'
+        continue-on-error: true
+        timeout-minutes: 5
+        run: >-
+          node -r esbuild-register tests/tools/e2e-ai-analyzer
+          --mode generate-test-plan
+          --pr "${PR_NUMBER}"
+          --auto-ff
+          -v "${SEMVER}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          SEMVER: ${{ inputs.semver }}
+          GENERATE_FILES: 'true'
+
+      - name: Upload test plan JSON artifact
+        if: steps.generate.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-plan-${{ inputs.semver }}
+          path: release-test-plan.json
+          compression-level: 0
+          if-no-files-found: ignore
+          retention-days: 90
