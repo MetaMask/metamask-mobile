@@ -498,6 +498,36 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps the flat search field with the brand refresh on where the OS cannot draw glass', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  exploreBrandRefresh: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      await findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the open-tabs button when no browser tabs are open', async () => {
     const { findByTestId, queryByTestId } =
       renderExploreSearchScreenWithRoutes();

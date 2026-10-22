@@ -43,7 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
     mainAmount: {
       textAlign: 'center',
       marginBottom: 16,
-      fontSize: 40,
     },
     subtitle: {
       textAlign: 'center',

@@ -9,22 +9,6 @@ on:
         type: string
         default: test
 
-      browserstack_app_url_android_onboarding:
-        description: 'BrowserStack Android Onboarding App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_ios_onboarding:
-        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_android_imported_wallet:
-        description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
-        required: false
-        type: string
-      browserstack_app_url_ios_imported_wallet:
-        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
-        required: false
-        type: string
       branch_name:
         description: 'Branch name used for build names and reports'
         required: true
@@ -34,7 +18,7 @@ on:
         required: true
         type: string
       build_variant:
-        description: 'BrowserStack build profile (e2e = standard E2E, exp = experimental, rc = release candidate)'
+        description: 'App build profile (e2e = standard E2E, exp = experimental, rc = release candidate)'
         required: false
         type: string
         default: 'e2e'
@@ -66,27 +50,10 @@ on:
         description: >-
           @expo/fingerprint hash from the caller (ci.yml native-build-fingerprint).
           When empty, this workflow computes and posts build-source-hash for
-          Android BrowserStack APK reuse.
+          Android performance APK reuse.
         required: false
         type: string
         default: ''
-      enable_testmu_hyperexecute:
-        description: >-
-          Run Android performance specs on TestMu HyperExecute. Pull requests
-          always use TestMu and skip BrowserStack, regardless of this flag.
-          Manual runs can set it to add a TestMu lane next to BrowserStack.
-          Scheduled runs use testmu_only instead.
-        required: false
-        type: boolean
-        default: false
-      testmu_only:
-        description: >-
-          Run only the TestMu HyperExecute lanes and skip BrowserStack, without
-          posting a PR comment. Used by the scheduled run; pull requests already
-          behave this way.
-        required: false
-        type: boolean
-        default: false
       testmu_app_url_android_onboarding:
         description: 'TestMu AI Android onboarding app URL (lt://...). Optional when APKs are uploaded from the build job.'
         required: false
@@ -94,6 +61,16 @@ on:
         default: ''
       testmu_app_url_android_imported_wallet:
         description: 'TestMu AI Android imported-wallet app URL (lt://...). Optional when APKs are uploaded from the build job.'
+        required: false
+        type: string
+        default: ''
+      testmu_project_name:
+        description: 'TestMu AI project name. Empty keeps the provider default.'
+        required: false
+        type: string
+        default: ''
+      testmu_build_name:
+        description: 'TestMu AI build name before the HyperExecute suffix. Empty uses the branch-based name.'
         required: false
         type: string
         default: ''
@@ -117,10 +94,7 @@ permissions:
   pull-requests: write
   statuses: write
 
-
 env:
-  BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-  BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
   MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
@@ -136,9 +110,6 @@ jobs:
     outputs:
       fingerprint: ${{ steps.resolve-fingerprint.outputs.fingerprint }}
       android_matrix: ${{ steps.read-matrix.outputs.android_matrix }}
-      ios_matrix: ${{ steps.read-matrix.outputs.ios_matrix }}
-      android_build_name: ${{ steps.set-build-names.outputs.android_build_name }}
-      ios_build_name: ${{ steps.set-build-names.outputs.ios_build_name }}
       run_tests: ${{ steps.select-tests.outputs.run_tests }}
       grep_pattern: ${{ steps.select-tests.outputs.grep_pattern }}
     steps:
@@ -209,36 +180,24 @@ jobs:
         run: |
           FILE="tests/performance/device-matrix.json"
 
-          # PRs use Android low-profile devices only. Scheduled/manual runs use
-          # the full matrix. iOS runs require manually supplied BrowserStack URLs.
+          # PRs use Android low-profile devices only. Scheduled and manual runs
+          # use the full Android matrix. Cloud performance runs are Android on
+          # TestMu HyperExecute.
           if [ -n "$PR_NUMBER" ]; then
             ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
-            IOS_MATRIX='[]'
             echo "PR mode: Android low category devices only (PR: $PR_NUMBER, branch: $BRANCH_NAME)"
           else
             ANDROID_MATRIX=$(jq ".android_devices" "$FILE")
-            IOS_MATRIX=$(jq ".ios_devices" "$FILE")
-            echo "Full mode: all devices (branch: $BRANCH_NAME)"
+            echo "Full mode: all Android devices (branch: $BRANCH_NAME)"
           fi
 
           {
             echo "android_matrix<<EOF"
             echo "$ANDROID_MATRIX"
             echo "EOF"
-            echo "ios_matrix<<EOF"
-            echo "$IOS_MATRIX"
-            echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android, $(echo "$IOS_MATRIX" | jq length) iOS"
-
-      - name: Set BrowserStack build names
-        id: set-build-names
-        env:
-          BRANCH_NAME: ${{ inputs.branch_name }}
-        run: |
-          echo "android_build_name=Android-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
-          echo "ios_build_name=iOS-Performance-$BRANCH_NAME-Branch" >> "$GITHUB_OUTPUT"
+          echo "Selected: $(echo "$ANDROID_MATRIX" | jq length) Android"
 
       # A fingerprint is only needed when tests will run and Android apps were
       # not supplied and latest-main reuse is not selected.
@@ -247,8 +206,8 @@ jobs:
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
           !inputs.reuse_main_builds &&
-          !inputs.browserstack_app_url_android_onboarding &&
-          !inputs.browserstack_app_url_android_imported_wallet &&
+          !inputs.testmu_app_url_android_onboarding &&
+          !inputs.testmu_app_url_android_imported_wallet &&
           inputs.source_fingerprint
         env:
           SOURCE_FINGERPRINT: ${{ inputs.source_fingerprint }}
@@ -260,8 +219,8 @@ jobs:
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
           !inputs.reuse_main_builds &&
-          !inputs.browserstack_app_url_android_onboarding &&
-          !inputs.browserstack_app_url_android_imported_wallet &&
+          !inputs.testmu_app_url_android_onboarding &&
+          !inputs.testmu_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
         uses: actions/setup-node@v6
         with:
@@ -272,8 +231,8 @@ jobs:
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
           !inputs.reuse_main_builds &&
-          !inputs.browserstack_app_url_android_onboarding &&
-          !inputs.browserstack_app_url_android_imported_wallet &&
+          !inputs.testmu_app_url_android_onboarding &&
+          !inputs.testmu_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
@@ -287,8 +246,8 @@ jobs:
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
           !inputs.reuse_main_builds &&
-          !inputs.browserstack_app_url_android_onboarding &&
-          !inputs.browserstack_app_url_android_imported_wallet &&
+          !inputs.testmu_app_url_android_onboarding &&
+          !inputs.testmu_app_url_android_imported_wallet &&
           !inputs.source_fingerprint
         uses: ./.github/actions/post-build-source-hash
         with:
@@ -301,8 +260,8 @@ jobs:
         if: >-
           steps.select-tests.outputs.run_tests == 'true' &&
           !inputs.reuse_main_builds &&
-          !inputs.browserstack_app_url_android_onboarding &&
-          !inputs.browserstack_app_url_android_imported_wallet
+          !inputs.testmu_app_url_android_onboarding &&
+          !inputs.testmu_app_url_android_imported_wallet
         env:
           PROVIDED: ${{ steps.provided.outputs.fingerprint }}
           COMPUTED: ${{ steps.computed.outputs.fingerprint }}
@@ -320,7 +279,6 @@ jobs:
   check-testmu-credentials:
     name: Resolve TestMu AI Credentials
     runs-on: ubuntu-latest
-    if: inputs.enable_testmu_hyperexecute == true || inputs.testmu_only == true || inputs.pr_number != ''
     outputs:
       testmu_ready: ${{ steps.resolve.outputs.testmu_ready }}
     steps:
@@ -331,57 +289,44 @@ jobs:
           # whose values match a secret, which previously left uploads unauthorized.
           LT_USERNAME: ${{ secrets.LT_USERNAME }}
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
-          # PR and scheduled runs only exist to run on TestMu, so a missing or
-          # rejected credential must fail the job instead of silently skipping it.
-          REQUIRE_TESTMU: ${{ inputs.pr_number != '' || inputs.testmu_only == true }}
         run: |
-          if [ -n "$LT_USERNAME" ] && [ -n "$LT_ACCESS_KEY" ]; then
-            http_code="$(curl -sS -o /dev/null -w '%{http_code}' -u "$LT_USERNAME:$LT_ACCESS_KEY" \
-              "https://manual-api.lambdatest.com/app/data?type=android&level=user&limit=1" || true)"
-            if [ "$http_code" != "200" ]; then
-              echo "TestMu AI credentials are set but the API rejected them (HTTP $http_code)"
-              if [ "$REQUIRE_TESTMU" = "true" ]; then
-                exit 1
-              fi
-              echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            echo "TestMu AI credentials are configured and valid"
-            echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
-          elif [ "$REQUIRE_TESTMU" = "true" ]; then
-            echo "PR and scheduled performance runs require LT_USERNAME and LT_ACCESS_KEY secrets"
+          if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
+            echo "Performance runs require LT_USERNAME and LT_ACCESS_KEY secrets"
             exit 1
-          else
-            echo "TestMu HyperExecute skipped: set LT_USERNAME and LT_ACCESS_KEY secrets"
-            echo "testmu_ready=false" >> "$GITHUB_OUTPUT"
           fi
+          http_code="$(curl -sS -o /dev/null -w '%{http_code}' -u "$LT_USERNAME:$LT_ACCESS_KEY" \
+            "https://manual-api.lambdatest.com/app/data?type=android&level=user&limit=1" || true)"
+          if [ "$http_code" != "200" ]; then
+            echo "TestMu AI credentials are set but the API rejected them (HTTP $http_code)"
+            exit 1
+          fi
+          echo "TestMu AI credentials are configured and valid"
+          echo "testmu_ready=true" >> "$GITHUB_OUTPUT"
 
   trigger-android-dual-versions:
-    name: ${{ (inputs.pr_number != '' || inputs.testmu_only == true) && 'Trigger Android Dual Versions and Upload to TestMu' || 'Trigger Android Dual Versions and Extract BrowserStack URLs' }}
-    uses: ./.github/workflows/build-android-upload-to-browserstack.yml
+    name: Trigger Android Dual Versions and Upload to TestMu
+    uses: ./.github/workflows/build-android-upload-to-testmu.yml
     needs: [prepare, check-testmu-credentials]
-    # All Android runs without explicit BrowserStack URLs go through this
-    # workflow. It selects fingerprint reuse for app changes and latest-main
-    # artifact reuse for test-only changes, with a fresh-build fallback.
+    # Android runs without explicit TestMu app URLs go through this workflow.
+    # It selects fingerprint reuse for app changes and latest-main artifact
+    # reuse for test-only changes, with a fresh-build fallback. APKs are
+    # uploaded to TestMu only.
     if: >-
       always() &&
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
-      (
-        needs.check-testmu-credentials.result == 'skipped' ||
-        needs.check-testmu-credentials.result == 'success'
-      ) &&
-      !inputs.browserstack_app_url_android_onboarding &&
-      !inputs.browserstack_app_url_android_imported_wallet
+      needs.check-testmu-credentials.result == 'success' &&
+      !inputs.testmu_app_url_android_onboarding &&
+      !inputs.testmu_app_url_android_imported_wallet
     with:
       branch_name: ${{ inputs.branch_name }}
       source_ref: ${{ inputs.source_ref }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.prepare.outputs.fingerprint }}
       reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
-      upload_to_browserstack: ${{ inputs.pr_number == '' && inputs.testmu_only != true }}
-      upload_to_testmu: ${{ (inputs.enable_testmu_hyperexecute == true || inputs.testmu_only == true || inputs.pr_number != '') && needs.check-testmu-credentials.outputs.testmu_ready == 'true' && inputs.testmu_app_url_android_onboarding == '' && inputs.testmu_app_url_android_imported_wallet == '' }}
+      upload_to_browserstack: false
+      upload_to_testmu: true
       # Coerce to a real boolean. On schedule/push, workflow_dispatch inputs are
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
@@ -389,122 +334,17 @@ jobs:
     secrets: inherit
 
   # =============================================================================
-  # ONBOARDING TESTS
+  # ONBOARDING AND IMPORTED WALLET TESTS (TestMu HyperExecute)
   # =============================================================================
-
-  run-android-onboarding-tests:
-    name: Performance Test Android (Onboarding)
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs: [prepare, trigger-android-dual-versions]
-    if: >-
-      always() && !failure() && !cancelled() &&
-      inputs.pr_number == '' && inputs.testmu_only != true &&
-      needs.prepare.outputs.run_tests == 'true' &&
-      (
-        needs.trigger-android-dual-versions.result == 'skipped' ||
-        needs.trigger-android-dual-versions.result == 'success'
-      ) &&
-      (
-        inputs.browserstack_app_url_android_onboarding != '' ||
-        needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != ''
-      )
-    with:
-      platform: android
-      build_type: onboarding
-      sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'e2e' }}
-      branch_name: ${{ inputs.branch_name }}
-      device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      # Prefer an explicitly supplied app; otherwise require the upload job.
-      browserstack_app_url: ${{ inputs.browserstack_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
-      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
-    secrets: inherit
-
-  run-ios-onboarding-tests:
-    name: Performance Test iOS (Onboarding)
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      - prepare
-    if: always() && !failure() && !cancelled() && inputs.pr_number == '' && inputs.testmu_only != true && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_onboarding != ''
-    with:
-      platform: ios
-      build_type: onboarding
-      sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'e2e' }}
-      branch_name: ${{ inputs.branch_name }}
-      device_matrix: ${{ needs.prepare.outputs.ios_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_ios_onboarding }}
-      app_version: Manual-Input
-      browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
-      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
-    secrets: inherit
-
-  # =============================================================================
-  # IMPORTED WALLET TESTS (Run in Parallel with Onboarding)
-  # =============================================================================
-
-  run-android-imported-wallet-tests:
-    name: Performance Test Android (Imported Wallet)
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs: [prepare, trigger-android-dual-versions]
-    if: >-
-      always() && !cancelled() &&
-      inputs.pr_number == '' && inputs.testmu_only != true &&
-      needs.prepare.outputs.run_tests == 'true' &&
-      (
-        needs.trigger-android-dual-versions.result == 'skipped' ||
-        needs.trigger-android-dual-versions.result == 'success'
-      ) &&
-      (
-        inputs.browserstack_app_url_android_imported_wallet != '' ||
-        needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != ''
-      )
-    with:
-      platform: android
-      build_type: imported-wallet
-      sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'e2e' }}
-      branch_name: ${{ inputs.branch_name }}
-      device_matrix: ${{ needs.prepare.outputs.android_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url }}
-      app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      browserstack_build_name: ${{ needs.prepare.outputs.android_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
-      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
-    secrets: inherit
-
-  run-ios-imported-wallet-tests:
-    name: Performance Test iOS (Imported Wallet)
-    uses: ./.github/workflows/performance-test-runner.yml
-    needs:
-      - prepare
-    if: always() && !cancelled() && inputs.pr_number == '' && inputs.testmu_only != true && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
-    with:
-      platform: ios
-      build_type: imported-wallet
-      sentry_target: ${{ inputs.sentry_target || 'test' }}
-      build_variant: ${{ inputs.build_variant || 'e2e' }}
-      branch_name: ${{ inputs.branch_name }}
-      device_matrix: ${{ needs.prepare.outputs.ios_matrix }}
-      browserstack_app_url: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
-      app_version: Manual-Input
-      browserstack_build_name: ${{ needs.prepare.outputs.ios_build_name }}
-      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
-      collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
-    secrets: inherit
 
   run-android-onboarding-tests-testmu:
     name: Performance Test Android TestMu HyperExecute (Onboarding)
-    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    uses: ./.github/workflows/performance-test-runner.yml
     needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
-      (inputs.enable_testmu_hyperexecute == true || inputs.testmu_only == true || inputs.pr_number != '') &&
+      needs.check-testmu-credentials.result == 'success' &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -523,7 +363,8 @@ jobs:
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
       testmu_app_url: ${{ inputs.testmu_app_url_android_onboarding || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
-      testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
+      testmu_project_name: ${{ inputs.testmu_project_name }}
+      testmu_build_name: ${{ inputs.testmu_build_name || format('TestMu-Android-Performance-{0}-Branch', inputs.branch_name) }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
@@ -531,12 +372,12 @@ jobs:
 
   run-android-imported-wallet-tests-testmu:
     name: Performance Test Android TestMu HyperExecute (Imported Wallet)
-    uses: ./.github/workflows/performance-test-runner-testmu.yml
+    uses: ./.github/workflows/performance-test-runner.yml
     needs: [prepare, check-testmu-credentials, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
-      (inputs.enable_testmu_hyperexecute == true || inputs.testmu_only == true || inputs.pr_number != '') &&
+      needs.check-testmu-credentials.result == 'success' &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -555,7 +396,8 @@ jobs:
       device_matrix: ${{ needs.prepare.outputs.android_matrix }}
       testmu_app_url: ${{ inputs.testmu_app_url_android_imported_wallet || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
-      testmu_build_name: TestMu-Android-Performance-${{ inputs.branch_name }}-Branch
+      testmu_project_name: ${{ inputs.testmu_project_name }}
+      testmu_build_name: ${{ inputs.testmu_build_name || format('TestMu-Android-Performance-{0}-Branch', inputs.branch_name) }}
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
@@ -567,10 +409,6 @@ jobs:
     needs:
       [
         prepare,
-        run-android-imported-wallet-tests,
-        run-android-onboarding-tests,
-        run-ios-imported-wallet-tests,
-        run-ios-onboarding-tests,
         run-android-onboarding-tests-testmu,
         run-android-imported-wallet-tests-testmu,
       ]
@@ -585,7 +423,7 @@ jobs:
           pattern: '*-test-results-*'
           path: ./test-results
           # Keep each artifact in its own directory. The directory name carries
-          # the testmu-he- prefix that separates TestMu from BrowserStack.
+          # the testmu-he- prefix used by the aggregator.
 
       - name: Run aggregation script
         env:
@@ -610,8 +448,9 @@ jobs:
     name: Post Performance Results to PR
     runs-on: ubuntu-latest
     needs: [aggregate-results]
-    # Only runs when triggered from a PR via workflow_call with a pr_number
-    if: always() && !cancelled() && needs.aggregate-results.result != 'skipped' && inputs.pr_number != ''
+    # Labeled PR runs pass pr_number. A run that never executed tests
+    # (skipped suite, cancelled before TestMu) must not replace the comment.
+    if: always() && !cancelled() && needs.aggregate-results.result == 'success' && inputs.pr_number != ''
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -634,11 +473,21 @@ jobs:
             aggregated-reports/summary.json \
             performance-pr-comment.md
 
-      - name: Delete previous performance / app-profiling comments
+      - name: Post PR comment when tests ran
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
         run: |
+          SUMMARY="aggregated-reports/summary.json"
+          TOTAL=0
+          if [ -f "$SUMMARY" ]; then
+            TOTAL=$(jq -r '.uniqueTests // .totalTests // 0' "$SUMMARY")
+          fi
+          if [ "$TOTAL" = "0" ] || [ "$TOTAL" = "null" ]; then
+            echo "No performance tests executed. Leaving the existing PR comment in place."
+            exit 0
+          fi
+
           ALL_COMMENT_IDS=$(gh api --paginate "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments?per_page=100" \
             --jq '.[] | select(.body | contains("<!-- perf-test-results -->") or contains("<!-- app-profiling-check -->")) | .id')
 
@@ -652,13 +501,8 @@ jobs:
             echo "Deleted previous performance / app-profiling comments"
           fi
 
-      - name: Post PR comment
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-        run: |
           MARKER="<!-- perf-test-results -->"
-          COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
+          COMMENT=$(cat performance-pr-comment.md)
           FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
           gh pr comment "${PR_NUMBER}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
           echo "Performance results posted to PR #${PR_NUMBER}"
@@ -676,10 +520,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
-        run-android-imported-wallet-tests,
-        run-android-onboarding-tests,
-        run-ios-imported-wallet-tests,
-        run-ios-onboarding-tests,
         run-android-onboarding-tests-testmu,
         run-android-imported-wallet-tests-testmu,
         aggregate-results,

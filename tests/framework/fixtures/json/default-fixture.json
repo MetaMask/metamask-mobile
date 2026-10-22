@@ -142,6 +142,10 @@
           "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardLinkApiBlocked": false,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -945,6 +949,10 @@
       "vipRefereeSplashAccepted": {},
       "vipSplashAccepted": {},
       "vipTransactions": {}
+    },
+    "rewardsMoney": {
+      "earningsSummary": {},
+      "referralMe": {}
     },
     "rpcEvents": {
       "signingEvent": {

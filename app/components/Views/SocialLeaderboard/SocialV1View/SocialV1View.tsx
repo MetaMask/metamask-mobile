@@ -75,6 +75,8 @@ import {
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
@@ -83,6 +85,7 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { markSocialTabVisited } from '../utils/socialTabVisit';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -91,6 +94,11 @@ import {
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 
 const LANDING_INDEX = 0;
+
+const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
+  const index = initialTab ? SOCIAL_V1_TAB_ORDER.indexOf(initialTab) : -1;
+  return index === -1 ? LANDING_INDEX : index;
+};
 
 const PAGE_TEST_IDS: Record<
   SocialShellTab,
@@ -127,6 +135,9 @@ const PAGE_TEST_IDS: Record<
 // still transient so it never becomes permanent chrome.
 const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
+/** Lets the pager finish sliding before live prices re-measure visible cards. */
+const TAB_CHANGE_VISIBILITY_DELAY_MS = 400;
+
 const getTabAnalyticsValue = (tab: SocialShellTab) => {
   switch (tab) {
     case 'trending':
@@ -146,8 +157,9 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
  */
-const SocialV1View: React.FC = () => {
+const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
+  const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
     useRoute<
@@ -164,13 +176,16 @@ const SocialV1View: React.FC = () => {
   const programmaticTabChangeRef = useRef(false);
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  useEffect(markSocialTabVisited, []);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
-  // The landing tab is the first one, so the surface always opens on index 0.
-  const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
+  const [landingIndex] = useState(() =>
+    getLandingIndex(route.params?.initialTab),
+  );
+  const [activeIndex, setActiveIndex] = useState(landingIndex);
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
@@ -208,7 +223,7 @@ const SocialV1View: React.FC = () => {
   const followingPageRef = useRef<SocialTabPageHandle>(null);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
-  const activeIndexSv = useSharedValue(LANDING_INDEX);
+  const activeIndexSv = useSharedValue(landingIndex);
   const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);
   const liveTradesIndexSv = useSharedValue(liveTradesIndex);
@@ -457,8 +472,16 @@ const SocialV1View: React.FC = () => {
       syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
+      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activeIndex, activeIndexSv, tabOrder, syncIncomingPageScroll, track],
+    [
+      activeIndex,
+      activeIndexSv,
+      livePrices,
+      tabOrder,
+      syncIncomingPageScroll,
+      track,
+    ],
   );
 
   const handleTabPress = useCallback(
@@ -614,7 +637,7 @@ const SocialV1View: React.FC = () => {
             <PagerView
               ref={pagerRef}
               style={tw.style('flex-1 mt-6')}
-              initialPage={LANDING_INDEX}
+              initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
             >
@@ -708,5 +731,11 @@ const SocialV1View: React.FC = () => {
     </SocialEntryOptionsProvider>
   );
 };
+
+const SocialV1View: React.FC = () => (
+  <SocialLivePricesProvider>
+    <SocialV1ViewContent />
+  </SocialLivePricesProvider>
+);
 
 export default SocialV1View;

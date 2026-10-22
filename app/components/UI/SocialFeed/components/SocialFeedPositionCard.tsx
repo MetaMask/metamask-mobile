@@ -1,10 +1,10 @@
 import React from 'react';
+import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
-import { useSocialFeedSurface } from '../SocialFeedSurface';
+import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
 import { formatFeedPostAge } from '../utils/formatters';
-import { mockedFieldLabel } from '../utils/mockedFieldLabel';
 import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
@@ -122,12 +122,19 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
   onCopyTrade,
 }) => {
-  const { showMockedFields } = useSocialFeedSurface();
-  const markPriceLabel = mockedFieldLabel(
-    'markPriceLabel' in item ? item.markPriceLabel : undefined,
-    'markPrice',
-    item.mockedFields,
-    showMockedFields,
+  const header = useLiveCardHeader(
+    item.id,
+    item.variant === 'perpsOpen' || item.variant === 'spotOpen'
+      ? item.live
+      : undefined,
+    {
+      priceLabel: 'markPriceLabel' in item ? item.markPriceLabel : undefined,
+      marketCapLabel:
+        item.variant === 'spotOpen' ? item.marketCapLabel : undefined,
+      pnlLabel: item.pnlLabel,
+      pnlValueLabel: item.pnlValueLabel,
+      isPnlPositive: item.isPnlPositive,
+    },
   );
 
   if (
@@ -135,8 +142,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     item.variant === 'spotOpen' ||
     item.variant === 'spotShare'
   ) {
-    const marketCapLabel =
-      item.variant === 'spotOpen' ? item.marketCapLabel : undefined;
+    const { marketCapLabel } = header;
     // Leverage is not a row: it rides in the side tag, next to the direction
     // it qualifies (`40x Short`).
     const stats: PositionCardStatRow[] = [
@@ -164,25 +170,30 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
 
     return (
       <PositionCardShell>
-        <PositionCardHeader
-          layout="open"
-          avatar={item.asset.avatar}
-          symbol={item.asset.symbol}
-          direction={item.variant === 'perpsOpen' ? item.direction : undefined}
-          leverageLabel={
-            item.variant === 'perpsOpen' ? item.leverageLabel : undefined
-          }
-          side={item.variant === 'perpsOpen' ? undefined : item.side}
-          subtitleLabel={
-            marketCapLabel
-              ? `${marketCapLabel} ${marketCapSuffix()}`
-              : markPriceLabel
-          }
-          valueLabel={item.valueLabel}
-          pnlLabel={item.pnlLabel}
-          pnlValueLabel={item.pnlValueLabel}
-          isPnlPositive={item.isPnlPositive}
-        />
+        <View ref={header.trackRef} collapsable={false}>
+          <PositionCardHeader
+            layout="open"
+            avatar={item.asset.avatar}
+            symbol={item.asset.symbol}
+            direction={
+              item.variant === 'perpsOpen' ? item.direction : undefined
+            }
+            leverageLabel={
+              item.variant === 'perpsOpen' ? item.leverageLabel : undefined
+            }
+            side={item.variant === 'perpsOpen' ? undefined : item.side}
+            subtitleLabel={
+              marketCapLabel
+                ? `${marketCapLabel} ${marketCapSuffix()}`
+                : header.priceLabel
+            }
+            valueLabel={item.valueLabel}
+            pnlLabel={header.pnlLabel}
+            pnlValueLabel={header.pnlValueLabel}
+            isPnlPositive={header.isPnlPositive}
+            live={header.live}
+          />
+        </View>
         <PositionCardStats rows={stats} cardId={item.id} />
         {showCopyTrade ? (
           <CopyTradeButton
