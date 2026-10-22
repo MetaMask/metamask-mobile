@@ -6,14 +6,12 @@ import {
   type TraceOperation,
   type TraceValue,
 } from '../../../../../util/trace';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError, isNetworkError } from '../../utils/predictErrorHandler';
+import { ensureError } from '../../utils/predictErrorHandler';
+import {
+  isNetworkError,
+  recordPredictNetworkError,
+} from '../../utils/predictNetworkError';
 import { type TraceableController, withTrace } from './withTrace';
-
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
-  __esModule: true,
-  default: { log: jest.fn() },
-}));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -29,7 +27,12 @@ jest.mock('../../../../../util/trace', () => ({
 jest.mock('../../utils/predictErrorHandler', () => ({
   __esModule: true,
   ensureError: jest.fn(),
+}));
+
+jest.mock('../../utils/predictNetworkError', () => ({
+  __esModule: true,
   isNetworkError: jest.fn(),
+  recordPredictNetworkError: jest.fn(),
 }));
 
 interface ControllerState {
@@ -76,7 +79,7 @@ describe('withTrace', () => {
   const mockEndTrace = jest.mocked(endTrace);
   const mockEnsureError = jest.mocked(ensureError);
   const mockIsNetworkError = jest.mocked(isNetworkError);
-  const mockDevLogger = jest.mocked(DevLogger);
+  const mockRecordPredictNetworkError = jest.mocked(recordPredictNetworkError);
   const mockLogger = jest.mocked(Logger);
 
   beforeEach(() => {
@@ -169,6 +172,7 @@ describe('withTrace', () => {
       wrappedError,
       controller.getErrorContext.mock.results[0].value,
     );
+    expect(mockRecordPredictNetworkError).not.toHaveBeenCalled();
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TRACE_NAME,
       id: 'getBalance-3000',
@@ -176,7 +180,7 @@ describe('withTrace', () => {
     });
   });
 
-  it('reports transient network errors to DevLogger instead of Sentry', async () => {
+  it('records transient network errors as breadcrumbs instead of Sentry errors', async () => {
     const controller = createController();
     const thrownError = new Error(
       'java.lang.RuntimeException: Cronet failed: net::ERR_NAME_NOT_RESOLVED',
@@ -195,6 +199,7 @@ describe('withTrace', () => {
           name: TRACE_NAME,
           op: TRACE_OPERATION,
         },
+        errorContext: { accountId: '0xabc' },
       },
       run,
     );
@@ -204,9 +209,13 @@ describe('withTrace', () => {
     expect(controller.state.lastError).toBe(thrownError.message);
     // ...but does NOT report to Sentry.
     expect(mockLogger.error).not.toHaveBeenCalled();
-    expect(mockDevLogger.log).toHaveBeenCalledWith(
-      'withTrace: network error in getPositions',
-      thrownError.message,
+    expect(mockIsNetworkError).toHaveBeenCalledWith(thrownError);
+    expect(controller.getErrorContext).toHaveBeenCalledWith('getPositions', {
+      accountId: '0xabc',
+    });
+    expect(mockRecordPredictNetworkError).toHaveBeenCalledWith(
+      thrownError,
+      controller.getErrorContext.mock.results[0].value,
     );
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TRACE_NAME,

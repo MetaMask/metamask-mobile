@@ -6,8 +6,11 @@ import {
   type TraceOperation,
   type TraceValue,
 } from '../../../../../util/trace';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError, isNetworkError } from '../../utils/predictErrorHandler';
+import { ensureError } from '../../utils/predictErrorHandler';
+import {
+  isNetworkError,
+  recordPredictNetworkError,
+} from '../../utils/predictNetworkError';
 
 /**
  * Minimal interface a controller must satisfy to use withTrace.
@@ -107,10 +110,13 @@ export async function withTrace<T>(
 
     // Transient connectivity failures (DNS errors, timeouts, offline,
     // geo/ISP blocking) are driven by the user's network conditions and are
-    // not actionable crashes. Log them as breadcrumbs instead of reporting
-    // them to Sentry to avoid polling-driven error noise.
+    // not actionable crashes. Record them as (throttled) Sentry breadcrumbs
+    // instead of reporting them as errors, same as logPredictError.
     if (isNetworkError(error)) {
-      DevLogger.log(`withTrace: network error in ${method}`, errorMessage);
+      recordPredictNetworkError(
+        error,
+        controller.getErrorContext(method, errorContext),
+      );
     } else {
       Logger.error(
         ensureError(error),
