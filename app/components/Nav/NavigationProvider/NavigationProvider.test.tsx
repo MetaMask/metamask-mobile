@@ -14,6 +14,7 @@ import {
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
+import { endNavigationInitializationAppStart } from '../../../util/sentry/navigationInitializationAppStart';
 import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
 import { AppThemeKey } from '../../../util/theme/models';
 
@@ -34,6 +35,10 @@ jest.mock('../../../util/sentry/utils', () => {
     getNavIntegration: jest.fn(() => mockIntegration),
   };
 });
+
+jest.mock('../../../util/sentry/navigationInitializationAppStart', () => ({
+  endNavigationInitializationAppStart: jest.fn(),
+}));
 
 jest.mock('../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../util/theme');
@@ -131,6 +136,16 @@ describe('NavigationProvider', () => {
     );
 
     expect(getByText(testMessage)).toBeOnTheScreen();
+  });
+
+  it('ends extended App Start when the navigation container is ready', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(endNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
   });
 
   it('dispatches navigation ready action when ready', () => {
