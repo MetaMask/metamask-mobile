@@ -573,7 +573,7 @@ const SocialV1ViewContent: React.FC = () => {
             </Pressable>
           }
           endAccessory={
-            <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
               <ButtonIcon
                 iconName={IconName.Gift}
                 iconProps={{ color: IconColor.IconDefault }}
@@ -583,6 +583,7 @@ const SocialV1ViewContent: React.FC = () => {
                   'wallet.rewards_accessibility_label',
                 )}
                 testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+                twClassName="bg-transparent"
               />
               <ButtonIcon
                 iconName={IconName.Edit}
@@ -590,6 +591,7 @@ const SocialV1ViewContent: React.FC = () => {
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+                twClassName="bg-transparent"
               />
             </SocialHeaderGlassSurface>
           }
