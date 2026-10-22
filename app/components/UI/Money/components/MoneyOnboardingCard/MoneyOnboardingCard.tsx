@@ -399,7 +399,7 @@ const MoneyOnboardingCard = ({ isGlass = false }: MoneyOnboardingCardProps) => {
   }
 
   return (
-    <Box twClassName="mx-4 mt-2">
+    <Box twClassName="mx-4 mt-2 mb-3">
       <StepperCard
         steps={steps}
         currentStep={effectiveCurrentStep}
