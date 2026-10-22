@@ -4,7 +4,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { LiveViewSelectorsIDs } from '../LiveView.testIds';
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
+  controlIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 14,
+    marginRight: 0,
+    width: 14,
+  },
   pauseIcon: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -13,15 +20,15 @@ const styles = StyleSheet.create({
   pauseBar: {
     borderWidth: 1.25,
     borderRadius: 1,
-    height: 15,
+    height: 12,
     width: 4,
   },
   pauseBarRight: {
     marginLeft: 3,
   },
   playIcon: {
-    fontSize: 18,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 16,
     includeFontPadding: false,
     textAlign: 'center',
     textAlignVertical: 'center',
@@ -51,8 +58,8 @@ const LiveStreamControls: React.FC<LiveStreamControlsProps> = ({
 
   return (
     <Box
+      style={styles.controlIcon}
       testID={LiveViewSelectorsIDs.STREAM_ACTION_ICON}
-      twClassName="h-4 w-4 items-center justify-center"
     >
       {isLive ? (
         <Text style={playIconStyle}>▷</Text>
