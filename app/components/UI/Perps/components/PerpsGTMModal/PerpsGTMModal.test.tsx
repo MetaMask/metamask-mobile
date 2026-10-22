@@ -14,20 +14,7 @@ import {
   PERPS_GTM_MODAL_ENGAGE,
   PERPS_GTM_WHATS_NEW_MODAL,
 } from '../../constants/perpsConfig';
-
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
-
-jest.mock('../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
-  strings: (key: string) => key,
-  I18nEvents: new (jest.requireActual('events').EventEmitter)(),
-}));
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../../../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
@@ -97,18 +84,29 @@ describe('PerpsGTMModal', () => {
   });
 
   it('renders all main elements', async () => {
-    const { getByText, getByTestId } = renderWithProvider(<PerpsGTMModal />, {
+    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
       state: initialState,
     });
 
     await waitFor(() => {
-      expect(getByText('perps.gtm_content.title')).toBeTruthy();
-      expect(getByText('perps.gtm_content.title_description')).toBeTruthy();
-      expect(getByText('perps.gtm_content.try_now')).toBeTruthy();
-      expect(getByText('perps.gtm_content.not_now')).toBeTruthy();
       expect(
         getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_TITLE),
+      ).toHaveTextContent(strings('perps.gtm_content.title'));
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_DESCRIPTION),
+      ).toHaveTextContent(strings('perps.gtm_content.title_description'));
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_IMAGE),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_TRY_NOW_BUTTON),
+      ).toHaveTextContent(strings('perps.gtm_content.try_now'));
+      expect(
+        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('perps.gtm_content.not_now'));
     });
   });
 
@@ -178,17 +176,5 @@ describe('PerpsGTMModal', () => {
         isFromGTMModal: true,
       },
     );
-  });
-
-  it('renders image', async () => {
-    const { getByTestId } = renderWithProvider(<PerpsGTMModal />, {
-      state: initialState,
-    });
-
-    await waitFor(() => {
-      expect(
-        getByTestId(PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL),
-      ).toBeTruthy();
-    });
   });
 });

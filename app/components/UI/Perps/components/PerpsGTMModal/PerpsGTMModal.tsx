@@ -4,7 +4,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import React from 'react';
 import { Image } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { FadeInDown } from 'react-native-reanimated';
 import { AnimationDuration } from '@metamask/design-tokens';
 import { BoxJustifyContent } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -74,8 +74,10 @@ const PerpsGTMModal = () => {
     <MarketingMoment
       testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_MODAL}
       title={strings('perps.gtm_content.title')}
+      titleProps={{ testID: PerpsGTMModalSelectorsIDs.PERPS_GTM_TITLE }}
       description={strings('perps.gtm_content.title_description')}
       descriptionProps={{
+        testID: PerpsGTMModalSelectorsIDs.PERPS_GTM_DESCRIPTION,
         twClassName: 'text-center px-4',
       }}
       artworkWrapperProps={{
@@ -97,6 +99,7 @@ const PerpsGTMModal = () => {
             aspectRatio: CHARACTER_ASPECT_RATIO,
           })}
           resizeMode="contain"
+          testID={PerpsGTMModalSelectorsIDs.PERPS_GTM_IMAGE}
         />
       }
       primaryAction={{
