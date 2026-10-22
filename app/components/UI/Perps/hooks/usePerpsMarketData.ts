@@ -7,7 +7,10 @@ import {
 } from '@metamask/perps-controller';
 import { MARKET_DATA_FETCH_RETRY_CONFIG } from '../constants/perpsConfig';
 import usePerpsToasts from './usePerpsToasts';
-import { usePerpsTrading } from './usePerpsTrading';
+import {
+  getPerpsMarketsFromProvider,
+  usePerpsTrading,
+} from './usePerpsTrading';
 
 export interface UsePerpsMarketDataParams {
   /** Asset symbol to fetch market data for */
@@ -127,7 +130,7 @@ export const usePerpsMarketData = (
 
         if (allowedMarket && useProviderMetadata) {
           try {
-            const providerMarkets = await getMarkets({
+            const providerMarkets = await getPerpsMarketsFromProvider({
               symbols: [asset],
               skipFilters: true,
             });

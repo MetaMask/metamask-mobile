@@ -71,6 +71,20 @@ import {
  */
 export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
 
+/**
+ * Reads venue-owned market metadata without passing through Core's Terminal
+ * market service.
+ *
+ * @param params - Provider market query.
+ * @returns Markets returned directly by the active provider.
+ */
+export async function getPerpsMarketsFromProvider(
+  params?: MobileGetMarketsParams,
+): Promise<MarketInfo[]> {
+  const provider = Engine.context.PerpsController.getActiveProvider();
+  return provider.getMarkets(params);
+}
+
 type MobileCancelOrderParams = CancelOrderParams & {
   skipCufConfirmationTrace?: boolean;
 };

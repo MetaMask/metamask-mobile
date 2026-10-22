@@ -20,7 +20,10 @@ import {
   type WithdrawParams,
   type WithdrawResult,
 } from '@metamask/perps-controller';
-import { usePerpsTrading } from './usePerpsTrading';
+import {
+  getPerpsMarketsFromProvider,
+  usePerpsTrading,
+} from './usePerpsTrading';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { PERPS_CUF_TAG } from '../constants/perpsCufTags';
 import {
@@ -72,6 +75,7 @@ jest.mock('../../../../core/Engine', () => ({
       editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
+      getActiveProvider: jest.fn(),
       getPositions: jest.fn(),
       getAccountState: jest.fn(),
       subscribeToPrices: jest.fn(),
@@ -465,6 +469,33 @@ describe('usePerpsTrading', () => {
         useTerminalApi: true,
         ...params,
       });
+      expect(response).toEqual(mockMarkets);
+    });
+
+    it('reads provider markets without the Terminal market service', async () => {
+      const mockMarkets: MarketInfo[] = [
+        {
+          name: 'Bitcoin Perpetual',
+          szDecimals: 4,
+          maxLeverage: 50,
+          marginTableId: 1,
+        },
+      ];
+      const getProviderMarkets = jest.fn().mockResolvedValue(mockMarkets);
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        getMarkets: getProviderMarkets,
+      });
+      const params = { symbols: ['BTC'], skipFilters: true };
+
+      const response = await getPerpsMarketsFromProvider(params);
+
+      expect(
+        Engine.context.PerpsController.getActiveProvider,
+      ).toHaveBeenCalledTimes(1);
+      expect(getProviderMarkets).toHaveBeenCalledWith(params);
+      expect(Engine.context.PerpsController.getMarkets).not.toHaveBeenCalled();
       expect(response).toEqual(mockMarkets);
     });
   });

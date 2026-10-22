@@ -1,6 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { usePerpsTrading } from './usePerpsTrading';
+import {
+  getPerpsMarketsFromProvider,
+  usePerpsTrading,
+} from './usePerpsTrading';
 import usePerpsToasts, { type PerpsToastOptionsConfig } from './usePerpsToasts';
 import { type MarketInfo, wait } from '@metamask/perps-controller';
 
@@ -40,6 +43,10 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('usePerpsMarketData', () => {
   const mockGetMarkets = jest.fn();
+  const mockGetMarketsFromProvider =
+    getPerpsMarketsFromProvider as jest.MockedFunction<
+      typeof getPerpsMarketsFromProvider
+    >;
   const mockMarketData: MarketInfo = {
     name: 'BTC',
     szDecimals: 6,
@@ -74,7 +81,8 @@ describe('usePerpsMarketData', () => {
   });
 
   it('reads provider metadata when venue restrictions are required', async () => {
-    mockGetMarkets.mockResolvedValue([
+    mockGetMarkets.mockResolvedValue([mockMarketData]);
+    mockGetMarketsFromProvider.mockResolvedValue([
       { ...mockMarketData, onlyIsolated: true },
     ]);
 
@@ -89,19 +97,21 @@ describe('usePerpsMarketData', () => {
       expect(result.current.isLoading).toBe(false);
     });
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
-    expect(mockGetMarkets).toHaveBeenCalledWith({
+    expect(mockGetMarketsFromProvider).toHaveBeenCalledWith({
       symbols: ['BTC'],
       skipFilters: true,
     });
-    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
+    expect(mockGetMarketsFromProvider).toHaveBeenCalledTimes(1);
     expect(result.current.marketData?.onlyIsolated).toBe(true);
     expect(result.current.isProviderMetadataAvailable).toBe(true);
   });
 
   it('keeps allowed market data but marks provider metadata unavailable when its read fails', async () => {
-    mockGetMarkets
-      .mockResolvedValueOnce([mockMarketData])
-      .mockRejectedValueOnce(new Error('Provider unavailable'));
+    mockGetMarkets.mockResolvedValue([mockMarketData]);
+    mockGetMarketsFromProvider.mockRejectedValue(
+      new Error('Provider unavailable'),
+    );
 
     const { result } = renderHook(() =>
       usePerpsMarketData({
@@ -156,7 +166,7 @@ describe('usePerpsMarketData', () => {
     expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 
-  it('should refetch data when calling refetch', async () => {
+  it('refetches market data when refetch is called', async () => {
     mockGetMarkets.mockResolvedValue([mockMarketData]);
 
     const { result } = renderHook(() => usePerpsMarketData('BTC'));
@@ -165,8 +175,9 @@ describe('usePerpsMarketData', () => {
       expect(mockGetMarkets).toHaveBeenCalledTimes(1);
     });
 
-    // Call refetch
-    result.current.refetch();
+    await act(async () => {
+      await result.current.refetch();
+    });
 
     await waitFor(() => {
       expect(mockGetMarkets).toHaveBeenCalledTimes(2);
