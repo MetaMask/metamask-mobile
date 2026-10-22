@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { shouldScrollMusdEducationTags } from './MusdEducationChecklistMarquee';
-import MusdEducationChecklistMarquee from './MusdEducationChecklistMarquee';
+import MusdEducationChecklistMarquee, {
+  shouldScrollMusdEducationTags,
+} from './MusdEducationChecklistMarquee';
 import type {
   HardwareTier,
   NetworkTier,
