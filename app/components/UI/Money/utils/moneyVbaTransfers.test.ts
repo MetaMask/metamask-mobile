@@ -22,8 +22,10 @@ const transfer = (overrides: Partial<VbaTransfer> = {}): VbaTransfer => ({
 });
 
 describe('mapMoneyVbaTransfers', () => {
-  it('maps confirmed mUSD settlement into the bank-transfer activity shape', () => {
-    expect(mapMoneyVbaTransfers([transfer()], WALLET)).toEqual([
+  it('maps confirmed mUSD settlement into the completed bank-transfer shape', () => {
+    const result = mapMoneyVbaTransfers([transfer()], WALLET);
+
+    expect(result.completed).toEqual([
       {
         kind: 'bank_transfer',
         hash: HASH,
@@ -38,11 +40,11 @@ describe('mapMoneyVbaTransfers', () => {
         receivedFrom: '0x1111111111111111111111111111111111111111',
       },
     ]);
+    expect(result.pending).toEqual([]);
+    expect(result.failed).toEqual([]);
   });
 
   it.each([
-    ['processing', transfer({ status: 'processing' })],
-    ['error', transfer({ status: 'error' })],
     [
       'wrong network',
       transfer({ transfer: { ...transfer().transfer, network: 'Ethereum' } }),
@@ -76,10 +78,47 @@ describe('mapMoneyVbaTransfers', () => {
     ],
     ['bad timestamp', transfer({ event_timestamp: 'bad' })],
   ])('ignores %s records', (_label, row) => {
-    expect(mapMoneyVbaTransfers([row], WALLET)).toEqual([]);
+    const result = mapMoneyVbaTransfers([row], WALLET);
+
+    expect(result.completed).toEqual([]);
+    expect(result.pending).toEqual([]);
+    expect(result.failed).toEqual([]);
   });
 
-  it('deduplicates by settlement hash and sorts newest first', () => {
+  it('maps processing and error transfers into pending and failed rows', () => {
+    const processing = transfer({
+      transfer_id: 'processing-1',
+      status: 'processing',
+      transfer: { ...transfer().transfer, transaction_hash: null },
+    });
+    const error = transfer({
+      transfer_id: 'error-1',
+      status: 'error',
+      event_timestamp: '2026-10-22T00:00:00.000Z',
+    });
+
+    const result = mapMoneyVbaTransfers([processing, error], WALLET);
+
+    expect(result.completed).toEqual([]);
+    expect(result.pending).toEqual([
+      {
+        id: 'processing-1',
+        autorampId: 'processing-1',
+        status: 'Pending',
+        time: Date.parse('2026-10-21T14:59:26.769Z'),
+        transactionHash: undefined,
+      },
+    ]);
+    expect(result.failed).toEqual([
+      expect.objectContaining({
+        id: 'error-1',
+        status: 'Failed',
+        transactionHash: HASH,
+      }),
+    ]);
+  });
+
+  it('deduplicates completed transfers by settlement hash and sorts newest first', () => {
     const older = transfer({
       event_id: 'old',
       event_timestamp: '2026-10-20T00:00:00.000Z',
@@ -96,10 +135,10 @@ describe('mapMoneyVbaTransfers', () => {
 
     const result = mapMoneyVbaTransfers([older, duplicate, newer], WALLET);
 
-    expect(result.map((item) => item.hash)).toEqual([
+    expect(result.completed.map((item) => item.hash)).toEqual([
       `0x${'b'.repeat(64)}`,
       HASH,
     ]);
-    expect(result).toHaveLength(2);
+    expect(result.completed).toHaveLength(2);
   });
 });

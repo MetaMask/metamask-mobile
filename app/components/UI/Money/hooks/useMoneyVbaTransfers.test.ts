@@ -2,7 +2,10 @@ import { useQuery } from '@metamask/react-data-query';
 import { useSelector } from 'react-redux';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
-import { selectMoneyVbaCompletedActivityEnabled } from '../selectors/featureFlags';
+import {
+  selectMoneyVbaCompletedActivityEnabled,
+  selectMoneyVbaPendingActivityEnabled,
+} from '../selectors/featureFlags';
 import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
 
 jest.mock('@metamask/react-data-query', () => ({ useQuery: jest.fn() }));
@@ -19,16 +22,24 @@ const mockUseSelector = jest.mocked(useSelector);
 const ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 
 function setup(
-  options: { address?: string | undefined; enabled?: boolean } = {},
+  options: {
+    address?: string | undefined;
+    completedEnabled?: boolean;
+    pendingEnabled?: boolean;
+  } = {},
 ) {
   const address = Object.hasOwn(options, 'address') ? options.address : ADDRESS;
-  const enabled = options.enabled ?? true;
+  const completedEnabled = options.completedEnabled ?? true;
+  const pendingEnabled = options.pendingEnabled ?? false;
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPrimaryMoneyAccount) {
       return address ? { address } : undefined;
     }
     if (selector === selectMoneyVbaCompletedActivityEnabled) {
-      return enabled;
+      return completedEnabled;
+    }
+    if (selector === selectMoneyVbaPendingActivityEnabled) {
+      return pendingEnabled;
     }
     return undefined;
   });
@@ -53,8 +64,17 @@ describe('useMoneyVbaTransfers', () => {
     });
   });
 
-  it('disables fetching when the completed activity gate is off', () => {
-    setup({ enabled: false });
+  it('fetches when only pending activity is enabled', () => {
+    setup({ completedEnabled: false, pendingEnabled: true });
+    useMoneyVbaTransfers();
+
+    expect(mockUseQuery.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('disables fetching when both activity gates are off', () => {
+    setup({ completedEnabled: false, pendingEnabled: false });
     useMoneyVbaTransfers();
 
     expect(mockUseQuery.mock.calls[0][0]).toEqual(

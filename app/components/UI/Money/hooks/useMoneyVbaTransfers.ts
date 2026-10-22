@@ -4,7 +4,10 @@ import type { VbaTransfersResponse } from '@metamask/money-account-api-data-serv
 import type { UseQueryResult } from '@tanstack/react-query';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
-import { selectMoneyVbaCompletedActivityEnabled } from '../selectors/featureFlags';
+import {
+  selectMoneyVbaCompletedActivityEnabled,
+  selectMoneyVbaPendingActivityEnabled,
+} from '../selectors/featureFlags';
 
 /**
  * Reads the current VBA transfers for the active Money Account wallet.
@@ -18,6 +21,9 @@ export function useMoneyVbaTransfers(): UseQueryResult<VbaTransfersResponse> {
   const completedActivityEnabled = useSelector(
     selectMoneyVbaCompletedActivityEnabled,
   );
+  const pendingActivityEnabled = useSelector(
+    selectMoneyVbaPendingActivityEnabled,
+  );
   const address = primaryMoneyAccount?.address;
   const normalizedAddress = address?.toLowerCase() ?? '';
 
@@ -26,6 +32,7 @@ export function useMoneyVbaTransfers(): UseQueryResult<VbaTransfersResponse> {
       MoneyAccountApiDataServiceQueryKeys.FETCH_VBA_TRANSFERS,
       { address: normalizedAddress },
     ],
-    enabled: completedActivityEnabled && Boolean(address),
+    enabled:
+      Boolean(address) && (completedActivityEnabled || pendingActivityEnabled),
   }) as UseQueryResult<VbaTransfersResponse>;
 }

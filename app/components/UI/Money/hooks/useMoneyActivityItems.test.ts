@@ -14,11 +14,13 @@ import {
   AUTO_FILL_MAX_PAGES,
 } from './useMoneyActivityItems';
 import { MoneyActivityFilter } from '../constants/moneyActivity';
-import type { AccountsApiActivity , NeobankBankTransferActivity } from '../types/moneyActivity';
+import type {
+  AccountsApiActivity,
+  NeobankBankTransferActivity,
+} from '../types/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
-import { useNeobankAutorampActivity } from './useNeobankAutorampActivity';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
@@ -33,7 +35,6 @@ import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
 jest.mock('./useMoneyVbaTransfers');
-jest.mock('./useNeobankAutorampActivity');
 jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));
@@ -50,7 +51,6 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 const mockUseMoneyVbaTransfers = jest.mocked(useMoneyVbaTransfers);
-const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
 const mockUseSelector = jest.mocked(useSelector);
@@ -472,10 +472,6 @@ describe('useMoneyActivityItems', () => {
       data: undefined,
       refetch: jest.fn(),
     } as never);
-    mockUseNeobankAutorampActivity.mockReturnValue({
-      activity: [],
-      refetch: jest.fn(),
-    });
     mockUseCardTransactionIndex.mockReturnValue(defaultIndexResult);
     mockUseCardCapabilities.mockReturnValue(null);
     mockEnrichmentFlags();
@@ -581,22 +577,125 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.isSettling).toBe(true);
   });
 
-  it('does not expose provider rows when pending VBA activity is disabled', () => {
-    mockEnrichmentFlags({ pendingActivity: false });
-    mockUseNeobankAutorampActivity.mockReturnValue({
-      activity: [
-        { id: 'pending', autorampId: 'ar-1', status: 'Pending', time: 300 },
-      ],
+  it('shows API pending/error rows without completed rows when only pending is enabled', () => {
+    mockEnrichmentFlags({ pendingActivity: true });
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          {
+            event_id: 'processing-event',
+            transfer_id: 'processing-id',
+            status: 'processing',
+            event_timestamp: '2026-10-22T12:00:00.000Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: null,
+            },
+          },
+          {
+            event_id: 'error-event',
+            transfer_id: 'error-id',
+            status: 'error',
+            event_timestamp: '2026-10-22T11:00:00.000Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: null,
+            },
+          },
+          {
+            event_id: 'confirmed-event',
+            transfer_id: 'confirmed-id',
+            status: 'confirmed',
+            event_timestamp: '2026-10-22T10:00:00.000Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: `0x${'c'.repeat(64)}`,
+            },
+          },
+        ],
+      },
       refetch: jest.fn(),
-    });
+    } as never);
 
     const { result } = renderHook(() => useMoneyActivityItems());
-    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
-    expect(result.current.buckets[MoneyActivityFilter.Deposits]).toEqual([]);
-    expect(mockUseNeobankAutorampActivity).toHaveBeenCalledWith(
-      '0xmoney',
-      false,
-    );
+    const all = result.current.buckets[MoneyActivityFilter.All];
+    const deposits = result.current.buckets[MoneyActivityFilter.Deposits];
+
+    expect(all.map((item) => [item.kind, item.id])).toEqual([
+      ['neobank', 'processing-id'],
+      ['neobank', 'error-id'],
+    ]);
+    expect(deposits.map((item) => item.id)).toEqual([
+      'processing-id',
+      'error-id',
+    ]);
+  });
+
+  it('shows completed rows without pending/error rows when only completed is enabled', () => {
+    mockEnrichmentFlags({ pendingActivity: false });
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectMoneyVbaCompletedActivityEnabled) return true;
+      if (selector === selectMoneyVbaPendingActivityEnabled) return false;
+      return false;
+    });
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          {
+            event_id: 'processing-event',
+            transfer_id: 'processing-id',
+            status: 'processing',
+            event_timestamp: '2026-10-22T12:00:00.000Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: null,
+            },
+          },
+          {
+            event_id: 'confirmed-event',
+            transfer_id: 'confirmed-id',
+            status: 'confirmed',
+            event_timestamp: '2026-10-22T10:00:00.000Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: `0x${'c'.repeat(64)}`,
+            },
+          },
+        ],
+      },
+      refetch: jest.fn(),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+    const all = result.current.buckets[MoneyActivityFilter.All];
+
+    expect(all.map((item) => item.kind)).toEqual(['accountsApi']);
+    expect(all[0].id).toBe(`0x${'c'.repeat(64)}`);
   });
 
   it('fetches more pages until the fill bucket reaches its count', () => {
@@ -959,21 +1058,42 @@ describe('useMoneyActivityItems', () => {
     );
   });
 
-  it('does not include Completed NeoBank deposits in activity buckets', () => {
-    const completedNeobank: NeobankBankTransferActivity = {
-      id: 'neo-done',
-      autorampId: 'ar-1',
-      status: 'Completed',
-      time: 1_000,
-      destinationAmount: '15',
-    };
-    mockUseNeobankAutorampActivity.mockReturnValue({
-      activity: [completedNeobank],
+  it('deduplicates API processing rows against local settlement hashes', () => {
+    const hash = `0x${'d'.repeat(64)}` as Hex;
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({
+        allTransactions: [onchainTx('local-settlement', 300, hash)],
+        deposits: [onchainTx('local-settlement', 300, hash)],
+      }),
+    );
+    mockEnrichmentFlags({ pendingActivity: true });
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          {
+            event_id: 'processing-event',
+            transfer_id: 'processing-id',
+            status: 'processing',
+            event_timestamp: '2026-10-22T12:00:00.000Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: hash,
+            },
+          },
+        ],
+      },
       refetch: jest.fn(),
-    });
+    } as never);
 
     const { result } = renderHook(() => useMoneyActivityItems());
-    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([]);
-    expect(result.current.buckets[MoneyActivityFilter.Deposits]).toEqual([]);
+
+    expect(result.current.buckets[MoneyActivityFilter.All]).toEqual([
+      expect.objectContaining({ kind: 'onchain', id: 'local-settlement' }),
+    ]);
   });
 });
