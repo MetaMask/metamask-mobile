@@ -1,4 +1,5 @@
 import React from 'react';
+import { InteractionManager } from 'react-native';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import RewardsDashboard from './RewardsDashboard';
@@ -17,6 +18,27 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+let runAfterInteractionsSpy: jest.SpyInstance;
+
+beforeAll(() => {
+  runAfterInteractionsSpy = jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((task) => {
+      if (typeof task === 'function') {
+        task();
+      }
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: () => Promise.resolve(),
+        cancel: jest.fn(),
+      } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+    });
+});
+
+afterAll(() => {
+  runAfterInteractionsSpy.mockRestore();
+});
 
 jest.mock('../../../../core/DeeplinkManager', () => ({
   handleDeeplink: jest.fn(),

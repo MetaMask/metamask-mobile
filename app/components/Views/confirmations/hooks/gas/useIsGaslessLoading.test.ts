@@ -1,4 +1,4 @@
-import { GasFeeToken } from '@metamask/transaction-controller';
+import { GasFeeToken, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import { useIsGaslessSupported } from './useIsGaslessSupported';
@@ -38,6 +38,7 @@ async function runHook({
   selectedGasFeeToken,
   rescueSend = false,
   transactionSponsored = true,
+  transactionType,
 }: {
   simulationEnabled: boolean;
   gaslessSupported: boolean;
@@ -49,6 +50,7 @@ async function runHook({
   selectedGasFeeToken?: Hex;
   rescueSend?: boolean;
   transactionSponsored?: boolean;
+  transactionType?: TransactionType;
 }) {
   mockIsMusdRescueSendTx.mockReturnValue(rescueSend);
   mockedUseIsGaslessSupported.mockReturnValue({
@@ -65,6 +67,7 @@ async function runHook({
     excludeNativeTokenForFee,
     selectedGasFeeToken,
     isGasFeeSponsored: transactionSponsored,
+    type: transactionType,
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockSelectUseTransactionSimulations.mockReturnValue(simulationEnabled);
   const { result } = renderHookWithProvider(useIsGaslessLoading);
@@ -171,6 +174,82 @@ describe('useIsGaslessLoading', () => {
       gaslessSupported: true,
       insufficientBalance: true,
       gasFeeTokens: [],
+      transactionSponsored: false,
+    });
+
+    expect(result.isGaslessLoading).toBe(true);
+  });
+
+  it('returns false for a sponsored transaction with an empty gas fee tokens array', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: true,
+      insufficientBalance: true,
+      gasFeeTokens: [],
+      transactionSponsored: true,
+    });
+
+    expect(result.isGaslessLoading).toBe(false);
+  });
+
+  it('returns false for a sponsored transaction with non-empty gas fee tokens', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: true,
+      insufficientBalance: true,
+      gasFeeTokens: [{ tokenAddress: '0x123' }] as unknown as GasFeeToken[],
+      transactionSponsored: true,
+    });
+
+    expect(result.isGaslessLoading).toBe(false);
+  });
+
+  it('keeps waiting for a sponsored transaction while gasless support is pending', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: false,
+      pending: true,
+      insufficientBalance: true,
+      gasFeeTokens: [],
+      transactionSponsored: true,
+    });
+
+    expect(result.isGaslessLoading).toBe(true);
+  });
+
+  it('does not block a sponsored transaction once gasless is finished and unsupported', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: false,
+      pending: false,
+      insufficientBalance: true,
+      gasFeeTokens: [],
+      transactionSponsored: true,
+    });
+
+    expect(result.isGaslessLoading).toBe(false);
+  });
+
+  it('keeps waiting for a sponsored transaction while gas fee tokens are undefined', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: true,
+      insufficientBalance: true,
+      gasFeeTokens: undefined,
+      transactionSponsored: true,
+    });
+
+    expect(result.isGaslessLoading).toBe(true);
+  });
+
+  it('keeps waiting for fee tokens for a revoke delegation transaction flagged as sponsored', async () => {
+    const result = await runHook({
+      simulationEnabled: true,
+      gaslessSupported: true,
+      insufficientBalance: true,
+      gasFeeTokens: [],
+      transactionSponsored: true,
+      transactionType: TransactionType.revokeDelegation,
     });
 
     expect(result.isGaslessLoading).toBe(true);

@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
+import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 export interface CursorPage<T> {
   results: T[];
@@ -27,6 +29,8 @@ export interface UseCursorPaginatedListParams<T> {
    */
   onFirstPage?: (items: T[]) => void;
   errorMessage?: string;
+  /** Sentry `feature` tag for a read this list cannot recover. */
+  feature: string;
 }
 
 export interface UseCursorPaginatedListResult<T> {
@@ -60,6 +64,7 @@ export const useCursorPaginatedList = <T>({
   fetchPage,
   onFirstPage,
   errorMessage = 'Failed to fetch',
+  feature,
 }: UseCursorPaginatedListParams<T>): UseCursorPaginatedListResult<T> => {
   const [items, setItems] = useState<T[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,8 +77,22 @@ export const useCursorPaginatedList = <T>({
   const isLoadingRef = useRef(false);
   const activeRequestRef = useRef<{ cancelled: boolean } | null>(null);
   const activePaginationRef = useRef<{ cancelled: boolean } | null>(null);
+  const { cancel: cancelBusyRefetch, arm: armBusyRefetch } =
+    useOneShotBusyRefetch();
 
   const cachedRows = nonEmpty(cachedItems);
+
+  // Declared before fetchList: the busy refetch calls the latest fetch, and
+  // that call sits inside the callback that creates it.
+  const fetchListRef = useRef<
+    (args: {
+      isFirstPage: boolean;
+      currentCursor?: string | null;
+      forceFresh?: boolean;
+      preserveItems?: boolean;
+      followUp?: boolean;
+    }) => Promise<{ cancelled: boolean }>
+  >(() => Promise.resolve({ cancelled: false }));
 
   const fetchList = useCallback(
     async ({
@@ -81,15 +100,18 @@ export const useCursorPaginatedList = <T>({
       currentCursor = null,
       forceFresh = false,
       preserveItems = false,
+      followUp = false,
     }: {
       isFirstPage: boolean;
       currentCursor?: string | null;
       forceFresh?: boolean;
       preserveItems?: boolean;
+      followUp?: boolean;
     }): Promise<{ cancelled: boolean }> => {
       if (!isFirstPage && isLoadingRef.current) {
         return { cancelled: false };
       }
+      cancelBusyRefetch();
       isLoadingRef.current = true;
 
       let request: { cancelled: boolean } | null = null;
@@ -144,7 +166,24 @@ export const useCursorPaginatedList = <T>({
         if (request?.cancelled) {
           return { cancelled: true };
         }
+        reportRewardsMoneyReadFailure(
+          err,
+          'cursorPaginatedList.fetch_failed',
+          followUp,
+          feature,
+        );
         setError(err instanceof Error ? err.message : errorMessage);
+        if (!followUp) {
+          armBusyRefetch(err, () => {
+            void fetchListRef.current({
+              isFirstPage,
+              currentCursor,
+              forceFresh: true,
+              preserveItems,
+              followUp: true,
+            });
+          });
+        }
       } finally {
         if (!request?.cancelled) {
           isLoadingRef.current = false;
@@ -157,12 +196,21 @@ export const useCursorPaginatedList = <T>({
       }
       return { cancelled: false };
     },
-    [enabled, fetchPage, onFirstPage, errorMessage],
+    [
+      armBusyRefetch,
+      cancelBusyRefetch,
+      enabled,
+      fetchPage,
+      onFirstPage,
+      errorMessage,
+      feature,
+    ],
   );
+  fetchListRef.current = fetchList;
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && !isLoading && hasMore && cursor) {
-      fetchList({ isFirstPage: false, currentCursor: cursor });
+      void fetchList({ isFirstPage: false, currentCursor: cursor });
     }
   }, [isLoadingMore, isLoading, hasMore, cursor, fetchList]);
 
@@ -211,9 +259,10 @@ export const useCursorPaginatedList = <T>({
     setHasMore(true);
     setIsLoadingMore(false);
     setIsRefreshing(false);
-    fetchList({ isFirstPage: true, preserveItems: false });
+    void fetchList({ isFirstPage: true, preserveItems: false });
 
     return () => {
+      cancelBusyRefetch();
       if (activeRequestRef.current) {
         activeRequestRef.current.cancelled = true;
       }

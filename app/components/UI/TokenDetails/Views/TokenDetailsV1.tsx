@@ -8,7 +8,6 @@ import React, {
   useImperativeHandle,
 } from 'react';
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   View,
@@ -23,8 +22,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -46,6 +43,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import Price from '../../AssetOverview/Price/Price';
 import {
@@ -68,10 +66,18 @@ import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
 import { EXPLAINER_KEYS_BY_ROW } from '../components/V1/SecurityTab/SecurityTab.constants';
 import type { SecurityRowKey } from '../components/V1/SecurityTab/SecurityTab.types';
 import StatBar from '../components/V1/StatBar/StatBar';
+import TokenAgeChip, {
+  TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID,
+} from '../components/V1/TokenAgeChip/TokenAgeChip';
 import TokenExplainerSheet from '../components/V1/TokenExplainerSheet/TokenExplainerSheet';
 import type { ExplainerCopy } from '../components/V1/TokenExplainerSheet/TokenExplainerSheet.types';
 import OverviewTab from '../components/tabs/OverviewTab';
+import {
+  TokenDetailsScrollProvider,
+  useTokenDetailsScroll,
+} from '../components/tokenDetailsScroll';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
+import { useTokenHolders } from '../components/tabs/holders/useTokenHolders';
 import TokenDetailsHoldersTab from '../components/tabs/HoldersTab';
 import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
 import TokenDetailsV1TabBar, {
@@ -83,21 +89,29 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
   TOKEN_DETAILS_V1_TABS,
+  TokenDetailsSource,
   type TokenDetailsRouteParams,
   type TokenDetailsVariant,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useElapsedMinutes } from '../hooks/useElapsedMinutes';
+import { useElapsedTime } from '../hooks/useElapsedTime';
 import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
+// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+import {
+  DEV_TOKEN_API_BASE_URL,
+  useTokenAssetDetails,
+} from '../queries/tokenAssetQuery';
+import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
-export const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = 'token-details-v1-age-chip';
+export { TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID } from '../components/V1/TokenAgeChip/TokenAgeChip';
 export const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID =
   'token-details-v1-scroll-view';
 export const TOKEN_DETAILS_V1_TAB_PANEL_TEST_ID_PREFIX =
@@ -112,12 +126,6 @@ export const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID =
  * tab content scroll under it.
  */
 export const TOKEN_DETAILS_TAB_BAR_STICKY_INDEX = 2;
-
-/**
- * TODO(ASSETS-4016): replace with the token's real age once the API platform
- * exposes it. Change locally to preview other labels ("5h", "3w", …).
- */
-const MOCK_TOKEN_AGE_LABEL = '3d';
 
 const AGE_EXPLAINER_COPY: ExplainerCopy = {
   title: 'token_details_v1.age.explainer.title',
@@ -169,6 +177,17 @@ const TokenDetailsV1TabPlaceholder = ({
   </Box>
 );
 
+/**
+ * Room kept at the end of the page for the sticky footer.
+ *
+ * The footer is a design-system `BottomSheetDialog`, positioned `absolute
+ * inset-0` rather than laid out, so it covers the end of the scroll instead
+ * of shortening it. Without this the last screenful of a tab sits under the
+ * footer, and a short tab -- a token with a handful of holders -- has no
+ * scroll range to lift it clear, so the page reads as unscrollable.
+ */
+const STICKY_FOOTER_RESERVED_HEIGHT = 190;
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -180,10 +199,57 @@ const styleSheet = (params: { theme: Theme }) => {
     scroll: {
       flex: 1,
     },
+    scrollContent: {
+      paddingBottom: STICKY_FOOTER_RESERVED_HEIGHT,
+    },
   });
 };
 
 export { resolveSwipeTargetTab } from '../components/TokenDetailsV1TabBar';
+
+/**
+ * Fires TOKEN_DETAILS_OPENED once per Token Details V1 open.
+ *
+ * Mirrors the legacy `useTokenDetailsOpenedTracking`, deduping by
+ * `chainId:address:symbol:source` so a re-render never re-fires. The V1 page
+ * previously fired only TOKEN_DETAILS_SHARED and never TOKEN_DETAILS_OPENED.
+ */
+const useTokenDetailsV1OpenedTracking = (
+  token: TokenDetailsRouteParams,
+  variant: TokenDetailsVariant,
+) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const source = token.source ?? TokenDetailsSource.Unknown;
+    const tokenTrackingKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}:${source}`;
+
+    if (lastTrackedTokenKeyRef.current === tokenTrackingKey) {
+      return;
+    }
+
+    const hasBalance =
+      token.balance !== undefined &&
+      token.balance !== null &&
+      token.balance !== '0' &&
+      token.balance !== '';
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_OPENED)
+        .addProperties({
+          ...getTdpAnalyticsBase(token, variant),
+          source,
+          token_symbol: token.symbol,
+          token_address: token.address,
+          token_name: token.name,
+          has_balance: hasBalance,
+        })
+        .build(),
+    );
+    lastTrackedTokenKeyRef.current = tokenTrackingKey;
+  }, [createEventBuilder, token, trackEvent, variant]);
+};
 
 interface TokenDetailsV1Props {
   token: TokenDetailsRouteParams;
@@ -200,11 +266,25 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
 
+  useTokenDetailsV1OpenedTracking(token, variant);
+
+  const analyticsBase = useMemo(
+    () => getTdpAnalyticsBase(token, variant),
+    [token, variant],
+  );
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const caip19AssetId = useTokenCaipAssetId(token);
+
+  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  const { asset: tokenAsset } = useTokenAssetDetails(
+    caip19AssetId,
+    DEV_TOKEN_API_BASE_URL,
+  );
+  const launchedAt = tokenAsset?.launchpadData?.launchedAt;
 
   const shareUrl = useMemo(
     () =>
@@ -264,12 +344,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     useTokenMarketData(caip19AssetId);
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
-  // Feeds both the stat bar and the Security tab. Ten of these figures appear
-  // on both, and deriving them once is what stops the two disagreeing.
   const tokenStats = useTokenStats({
     marketData,
     isMarketDataLoading,
     securityData,
+    launchpadData: tokenAsset?.launchpadData,
+    tokenApiHoldersCount: tokenAsset?.holders?.count,
     currentCurrency: selectedCurrency,
   });
 
@@ -348,11 +428,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   const { description: headerDescription, onScrollOffset } =
     useLivePriceHeaderDescription({ currentPrice, currentCurrency });
 
+  // The paginated tabs (Feed, Holders) have no scroll of their own, so they
+  // read this page's instead of measuring their own footer on a timer.
+  const pageScroll = useTokenDetailsScroll();
+  const { onScroll: onPageScroll } = pageScroll;
+
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       onScrollOffset(event.nativeEvent.contentOffset.y);
+      onPageScroll(event);
     },
-    [onScrollOffset],
+    [onPageScroll, onScrollOffset],
   );
 
   const {
@@ -364,6 +450,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isTechnicalIndicatorsEnabled = useSelector(
+    selectTokenDetailsTechnicalIndicatorsEnabled,
+  );
   const showSocialTabs = socialEnabled && Boolean(caip19AssetId);
 
   const [copyTrade, setCopyTrade] = useState<{
@@ -393,16 +482,40 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     [],
   );
   const closeCopyTrade = useCallback(() => setCopyTrade(null), []);
+  // Reads the same query the tab itself renders from: identical key, so
+  // react-query serves both from one fetch rather than requesting twice.
+  const {
+    rows: holderRows,
+    isLoading: isHoldersLoading,
+    error: holdersError,
+  } = useTokenHolders({
+    // `useTokenCaipAssetId` reports "no id" as null; the hook's absent case.
+    assetId: caip19AssetId ?? undefined,
+    enabled: showSocialTabs,
+  });
+  // A token nobody holds has no Holders tab. It stays through the first fetch
+  // so the tab bar does not shift under a thumb, and through an error so a
+  // network blip does not quietly remove the feature -- the tab keeps its own
+  // retry. Only a loaded, empty list hides it.
+  const showHoldersTab =
+    showSocialTabs &&
+    (isHoldersLoading || Boolean(holdersError) || holderRows.length > 0);
+
   const visibleTabs = useMemo(
     () =>
-      TOKEN_DETAILS_V1_TABS.filter(
-        (tab) => (tab !== 'feed' && tab !== 'holders') || showSocialTabs,
-      ),
-    [showSocialTabs],
+      TOKEN_DETAILS_V1_TABS.filter((tab) => {
+        if (tab === 'feed') {
+          return showSocialTabs;
+        }
+        if (tab === 'holders') {
+          return showHoldersTab;
+        }
+        return true;
+      }),
+    [showHoldersTab, showSocialTabs],
   );
-  // Feed is first, so it is the landing tab while social tabs are shown.
-  // An empty feed or an empty holders list still keeps its tab. Both tabs
-  // are omitted only when social is off or the token has no CAIP-19 id.
+  // Feed is first, so it is the landing tab while social tabs are shown. An
+  // empty feed still keeps its tab; an empty holders list does not.
   const landingTab = visibleTabs[0] ?? 'overview';
   const userPickedTabRef = useRef(false);
   const applyingLandingTabRef = useRef(false);
@@ -433,15 +546,23 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     }
   }, [activeTab, activateTab, landingTab, visibleTabs]);
 
-  /**
-   * Selecting the tab alone would leave the reader looking at the price hero
-   * while the thing they asked for sat a chart's height below the fold, so the
-   * verdict pill scrolls the page as well as switching tabs.
-   */
-  const handleSecurityPress = useCallback(() => {
-    activateTab('security');
-    scrollToTabBar();
-  }, [activateTab, scrollToTabBar]);
+  // Explicit tab taps emit exactly one TOKEN_DETAILS_TAB_VIEWED. Swipe-driven
+  // tab changes call `activateTab` internally and the pill routes through
+  // `handleSecurityPress` (its own event), so neither double-fires here.
+  const handleTabPress = useCallback(
+    (tab: TokenDetailsV1TabKey) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_TAB_VIEWED)
+          .addProperties({
+            ...analyticsBase,
+            tab_name: tab,
+          })
+          .build(),
+      );
+      activateTab(tab);
+    },
+    [activateTab, analyticsBase, createEventBuilder, trackEvent],
+  );
 
   const securityFacts = useSecurityFacts({
     securityData,
@@ -449,12 +570,38 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     error: securityDataError,
   });
 
-  // Gated on the tab because tabs stay mounted once visited, so an ungated
-  // clock would keep ticking behind Overview for a line nobody is looking at.
-  const securityFetchedMinutesAgo = useElapsedMinutes({
+  const securityFetchedMinutesAgo = useElapsedTime({
     since: securityDataUpdatedAt,
-    enabled: activeTab === 'security',
   });
+
+  /**
+   * The pill emits its own verdict event rather than TOKEN_DETAILS_TAB_VIEWED,
+   * so it calls `activateTab` directly instead of `handleTabPress`.
+   *
+   * Selecting the tab alone would leave the reader looking at the price hero
+   * while the thing they asked for sat a chart's height below the fold, so the
+   * verdict pill scrolls the page as well as switching tabs.
+   */
+  const handleSecurityPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SECURITY_PILL_CLICKED)
+        .addProperties({
+          ...analyticsBase,
+          // The exact verdict feeding the SecurityPill below.
+          verdict: securityFacts.verdict,
+        })
+        .build(),
+    );
+    activateTab('security');
+    scrollToTabBar();
+  }, [
+    activateTab,
+    analyticsBase,
+    createEventBuilder,
+    scrollToTabBar,
+    securityFacts.verdict,
+    trackEvent,
+  ]);
 
   /**
    * No payload rides along: the detail screen subscribes to the same query
@@ -462,11 +609,17 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
    * stays in step if that entry revalidates.
    */
   const handleOpenContractSecurity = useCallback(() => {
-    navigation.navigate(Routes.CONTRACT_SECURITY, { token });
-  }, [navigation, token]);
+    navigation.navigate(Routes.CONTRACT_SECURITY, {
+      token,
+      tdpVersion: analyticsBase.tdp_version,
+      tokenCategory: analyticsBase.token_category,
+    });
+  }, [navigation, token, analyticsBase]);
 
+  // `isActive` reaches the paginated tabs: every mounted tab sees the page's
+  // scroll, and a hidden one must not page itself in behind the active tab.
   const renderTabPage = useCallback(
-    (tab: TokenDetailsV1TabKey) => {
+    (tab: TokenDetailsV1TabKey, isActive: boolean) => {
       if (!mountedTabs.has(tab)) {
         return null;
       }
@@ -475,7 +628,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           <OverviewTab
             token={token}
             assetId={caip19AssetId}
-            currentCurrency={currentCurrency}
             securityData={securityData}
             marketData={marketData}
           />
@@ -497,12 +649,15 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         return (
           <TokenDetailsFeedTab
             assetId={caip19AssetId}
+            isActive={isActive}
             onCopyTrade={handleFeedCopyTrade}
           />
         );
       }
       if (tab === 'holders' && socialEnabled && caip19AssetId) {
-        return <TokenDetailsHoldersTab assetId={caip19AssetId} />;
+        return (
+          <TokenDetailsHoldersTab assetId={caip19AssetId} isActive={isActive} />
+        );
       }
       return <TokenDetailsV1TabPlaceholder tab={tab} />;
     },
@@ -510,7 +665,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       mountedTabs,
       token,
       caip19AssetId,
-      currentCurrency,
       securityData,
       marketData,
       securityFacts,
@@ -569,6 +723,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         <TokenDetailsInlineHeader
           token={token}
           securityData={securityData}
+          tdpVersion="v3"
           onBackPress={handleBackPress}
           onSharePress={shareUrl ? handleShare : undefined}
           starButton={starButton}
@@ -577,22 +732,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           }
           description={headerDescription}
           titleEndAccessory={
-            <Pressable
-              onPress={handleAgePress}
-              accessibilityRole="button"
-              accessibilityLabel={strings(
-                'token_details_v1.age.accessibility_label',
-                { age: MOCK_TOKEN_AGE_LABEL },
-              )}
-              testID={TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID}
-            >
-              <Tag
-                severity={TagSeverity.Neutral}
-                twClassName="self-center shrink-0"
-              >
-                {MOCK_TOKEN_AGE_LABEL}
-              </Tag>
-            </Pressable>
+            formatTokenAge(launchedAt) != null ? (
+              <TokenAgeChip
+                launchedAtSeconds={launchedAt}
+                onPress={handleAgePress}
+              />
+            ) : undefined
           }
         />
         {/* The tab bar is a direct ScrollView child registered in
@@ -603,10 +748,13 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
             <ScrollView
               ref={scrollViewRef}
               style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
               stickyHeaderIndices={[TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]}
               onScroll={onScrollViewScroll}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
+              onLayout={pageScroll.onLayout}
+              onContentSizeChange={pageScroll.onContentSizeChange}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
             >
               <Price.Provider
@@ -632,7 +780,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     onSecurityPress={handleSecurityPress}
                   />
                 </Box>
-                <Box twClassName="py-4">
+                {/* The interval bar above the chart adds 8px of its own top padding. */}
+                <Box
+                  twClassName={
+                    isTechnicalIndicatorsEnabled ? 'pt-4 pb-2' : 'py-4'
+                  }
+                >
                   <StatBar
                     variant={variant}
                     stats={tokenStats}
@@ -640,18 +793,19 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   />
                 </Box>
 
-                <Price.Chart />
+                <Price.Chart uniformSpacing />
               </Price.Provider>
 
               <TokenDetailsActionsSection
                 token={token}
                 networkName={networkConfigurationByChainId?.name}
                 severity={securityData?.resultType}
+                tdpVersion="v3"
               />
 
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
-                onTabPress={activateTab}
+                onTabPress={handleTabPress}
                 onLayout={handleTabBarLayout}
                 tabs={visibleTabs}
               />
@@ -661,20 +815,22 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                   collapsable={false}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
-                  {visibleTabs.map((tab) => {
-                    const isActive = tab === activeTab;
-                    return (
-                      <View
-                        key={tab}
-                        collapsable={false}
-                        style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
-                        pointerEvents={isActive ? 'auto' : 'none'}
-                        testID={`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-${tab}`}
-                      >
-                        {renderTabPage(tab)}
-                      </View>
-                    );
-                  })}
+                  <TokenDetailsScrollProvider value={pageScroll.value}>
+                    {visibleTabs.map((tab) => {
+                      const isActive = tab === activeTab;
+                      return (
+                        <View
+                          key={tab}
+                          collapsable={false}
+                          style={isActive ? undefined : HIDDEN_TAB_PAGE_STYLE}
+                          pointerEvents={isActive ? 'auto' : 'none'}
+                          testID={`${TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}-page-${tab}`}
+                        >
+                          {renderTabPage(tab, isActive)}
+                        </View>
+                      );
+                    })}
+                  </TokenDetailsScrollProvider>
                 </View>
               </GestureDetector>
             </ScrollView>

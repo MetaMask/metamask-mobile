@@ -8,7 +8,11 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
-import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
+// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+import {
+  DEV_TOKEN_API_BASE_URL,
+  useTokenAssetDetails,
+} from '../../queries/tokenAssetQuery';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -69,36 +73,37 @@ const OverviewSection = ({
 export interface OverviewTabProps {
   token: TokenDetailsRouteParams;
   assetId: CaipAssetType | null;
-  currentCurrency: string;
   securityData?: TokenSecurityData | null;
-  /**
-   * Market data already resolved by the screen, forwarded to the details list
-   * so it does not fetch the same figures a second time.
-   */
   marketData?: FungibleAssetPrice | null;
 }
 
 const OverviewTab = ({
   token,
   assetId,
-  currentCurrency,
   securityData,
   marketData,
 }: OverviewTabProps) => {
-  const { asset } = useTokenAssetDetails(assetId);
+  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  const { asset } = useTokenAssetDetails(assetId, DEV_TOKEN_API_BASE_URL);
   const assetDescription = asset?.launchpadData?.description?.trim();
   const tokenDescription = token.description?.trim();
   // Hide the block when neither source has text. A blank string is not a description.
   const description = assetDescription || tokenDescription || undefined;
 
   const performance = useTokenPerformance({
-    token,
-    assetId,
-    currentCurrency,
+    marketData: marketData ?? null,
+    assetMarketData: asset?.marketData ?? null,
   });
+  const hasPerformance = [
+    performance.fiveMinute,
+    performance.oneHour,
+    performance.fourHour,
+    performance.twentyFourHour,
+  ].some((value) => value !== null);
 
   const { balance, fiatBalance, tokenFormattedBalance } =
     useTokenBalance(token);
+  const hasBalanceSection = balance != null;
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
   const trackActionTapped = useTokenDetailsActionTracking({
@@ -123,12 +128,17 @@ const OverviewTab = ({
         </OverviewSection>
       ) : null}
 
-      <OverviewSection bordered={Boolean(description)} twClassName="px-4">
-        <PerformanceSection performance={performance} />
-      </OverviewSection>
+      {hasPerformance ? (
+        <OverviewSection bordered={Boolean(description)} twClassName="px-4">
+          <PerformanceSection performance={performance} />
+        </OverviewSection>
+      ) : null}
 
-      {balance != null ? (
-        <OverviewSection bordered testID={OVERVIEW_TAB_BALANCE_TEST_ID}>
+      {hasBalanceSection ? (
+        <OverviewSection
+          bordered={Boolean(description) || hasPerformance}
+          testID={OVERVIEW_TAB_BALANCE_TEST_ID}
+        >
           <Balance
             asset={token}
             mainBalance={fiatBalance ?? ''}
@@ -138,7 +148,7 @@ const OverviewTab = ({
       ) : null}
 
       <OverviewSection
-        bordered
+        bordered={Boolean(description) || hasPerformance || hasBalanceSection}
         testID={OVERVIEW_TAB_TOKEN_DETAILS_TEST_ID}
         twClassName="px-4"
       >

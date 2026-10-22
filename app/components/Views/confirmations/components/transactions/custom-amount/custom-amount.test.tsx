@@ -182,4 +182,45 @@ describe('CustomAmount', () => {
       },
     );
   });
+
+  describe('order entry decimal assistive behavior', () => {
+    it('displays "00" assistive text after cursor when decimal point is typed on whole number', () => {
+      const { getByText, getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10000." showCursor />,
+      );
+
+      expect(getByText('10000.')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-assistive')).toHaveTextContent('00');
+    });
+
+    it('displays single "0" assistive text when one decimal digit is typed', () => {
+      const { getByText, getByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.2" showCursor />,
+      );
+
+      expect(getByText('1.2')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
+      expect(getByTestId('custom-amount-assistive')).toHaveTextContent('0');
+    });
+
+    it('displays no assistive text when two decimal digits are typed', () => {
+      const { getByText, queryByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="1.25" showCursor />,
+      );
+
+      expect(getByText('1.25')).toBeOnTheScreen();
+      expect(queryByTestId('custom-amount-assistive')).toBeNull();
+    });
+
+    it('auto drops ".00" when not actively editing', () => {
+      const { getByText, queryByText, queryByTestId } = renderWithProvider(
+        <CustomAmount amountFiat="10000.00" showCursor={false} />,
+      );
+
+      expect(getByText('10000')).toBeOnTheScreen();
+      expect(queryByText('10000.00')).toBeNull();
+      expect(queryByTestId('custom-amount-assistive')).toBeNull();
+    });
+  });
 });
