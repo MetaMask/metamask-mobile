@@ -17,6 +17,19 @@ export const PORTFOLIO_PAGE_LIMIT = 20;
 /** Cursor-free page parameters, safe for cache keys. */
 export type PortfolioPageParams = Omit<FetchPortfolioPageParams, 'cursor'>;
 
+const BALANCE_ACTION = 'PredictPortfolioService:getBalance' as const;
+const POSITIONS_ACTION = 'PredictPortfolioService:getPositions' as const;
+const ACTIVITY_ACTION = 'PredictPortfolioService:getActivity' as const;
+
+/** The service action each portfolio read calls, which is also the first
+ * element of every portfolio query key. A shared cache uses these to select
+ * exactly the PredictNext portfolio queries and nothing else. */
+export const PORTFOLIO_QUERY_ACTION_NAMES: readonly string[] = [
+  BALANCE_ACTION,
+  POSITIONS_ACTION,
+  ACTIVITY_ACTION,
+];
+
 export type GetBalanceResult = PredictBalance;
 export type GetPositionsResult = PredictPositionsPage;
 export type GetActivityResult = PredictActivityPage;
@@ -27,8 +40,8 @@ export const portfolioQueries = {
   ): PredictQueryDescriptor<
     ['PredictPortfolioService:getBalance', PredictVenueId]
   > => ({
-    queryKey: ['PredictPortfolioService:getBalance', venueId],
-    family: ['PredictPortfolioService:getBalance', venueId],
+    queryKey: [BALANCE_ACTION, venueId],
+    family: [BALANCE_ACTION, venueId],
     staleTime: PORTFOLIO_BALANCE_STALE_TIME,
     scope: 'venue',
   }),
@@ -42,8 +55,8 @@ export const portfolioQueries = {
       PortfolioPageParams,
     ]
   > => ({
-    queryKey: ['PredictPortfolioService:getPositions', venueId, params],
-    family: ['PredictPortfolioService:getPositions', venueId],
+    queryKey: [POSITIONS_ACTION, venueId, params],
+    family: [POSITIONS_ACTION, venueId],
     staleTime: PORTFOLIO_POSITIONS_STALE_TIME,
     scope: 'venue',
   }),
@@ -53,8 +66,8 @@ export const portfolioQueries = {
   ): PredictQueryDescriptor<
     ['PredictPortfolioService:getActivity', PredictVenueId, PortfolioPageParams]
   > => ({
-    queryKey: ['PredictPortfolioService:getActivity', venueId, params],
-    family: ['PredictPortfolioService:getActivity', venueId],
+    queryKey: [ACTIVITY_ACTION, venueId, params],
+    family: [ACTIVITY_ACTION, venueId],
     staleTime: PORTFOLIO_ACTIVITY_STALE_TIME,
     scope: 'venue',
   }),

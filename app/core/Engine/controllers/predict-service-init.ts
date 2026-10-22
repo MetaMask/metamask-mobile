@@ -22,7 +22,10 @@ import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
 import type { PredictLiveDataServiceInitMessenger } from '../messengers/predict-live-data-service-messenger';
 import type { PredictMarketDataServiceInitMessenger } from '../messengers/predict-market-data-service-messenger';
 import type { PredictOrderServiceInitMessenger } from '../messengers/predict-order-service-messenger';
-import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict-portfolio-service-messenger';
+import {
+  getPredictPortfolioServicePredictUserIdentity,
+  type PredictPortfolioServiceInitMessenger,
+} from '../messengers/predict-portfolio-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
@@ -83,11 +86,18 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
         initMessenger.call('AuthenticationController:getBearerToken'),
     }),
   );
+  // The Predict User is the person the backend authorizes from the bearer
+  // token: the primary SRP's session profile. Cache identity follows it, so a
+  // reset, sign-out, or canonical profile change clears the account cache.
+  // The identity value itself stays in memory inside the service.
+  const predictUserIdentity =
+    getPredictPortfolioServicePredictUserIdentity(initMessenger);
   return {
     controller: new PredictPortfolioService({
       messenger: controllerMessenger,
       portfolio: adapter.portfolio,
       venueId: adapter.venueId,
+      predictUserIdentity,
     }),
   };
 };

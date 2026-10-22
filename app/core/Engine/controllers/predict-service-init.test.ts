@@ -28,11 +28,22 @@ import {
   type PredictEntityId,
   type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerState,
+  KeyringControllerStateChangeEvent,
+} from '@metamask/keyring-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getPredictLiveDataServiceMessenger,
   type PredictLiveDataServiceInitMessenger,
 } from '../messengers/predict-live-data-service-messenger';
+import {
+  getPredictPortfolioServiceInitMessenger,
+  type PredictPortfolioServiceInitMessenger,
+} from '../messengers/predict-portfolio-service-messenger';
 import type {
   MessengerClientInitRequest,
   RootExtendedMessenger,
@@ -80,7 +91,9 @@ describe('Predict service initialization', () => {
   it('registers authenticated portfolio actions on the Engine root messenger', async () => {
     const rootMessenger = new Messenger<
       MockAnyNamespace,
-      PredictPortfolioServiceActions,
+      | PredictPortfolioServiceActions
+      | AuthenticationController.AuthenticationControllerGetStateAction
+      | KeyringControllerGetStateAction,
       PredictPortfolioServiceEvents
     >({ namespace: MOCK_ANY_NAMESPACE });
     const controllerMessenger: PredictPortfolioServiceMessenger = new Messenger(
@@ -89,13 +102,31 @@ describe('Predict service initialization', () => {
         parent: rootMessenger,
       },
     );
-    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const call = jest.fn((action: string): unknown => {
+      if (action === 'AuthenticationController:getState') {
+        return {
+          isSignedIn: false,
+          srpSessionData: {},
+        } as AuthenticationControllerState;
+      }
+      if (action === 'KeyringController:getState') {
+        return {
+          isUnlocked: false,
+          keyrings: [],
+        } as unknown as KeyringControllerState;
+      }
+      return Promise.resolve('test-bearer-token');
+    });
     const request = {
       ...buildMessengerClientInitRequestMock(
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
-      initMessenger: { call } as never,
+      initMessenger: {
+        call,
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as never,
     };
     const { controller } = predictPortfolioServiceInit(request);
 
@@ -108,6 +139,110 @@ describe('Predict service initialization', () => {
     expect(call).toHaveBeenCalledWith(
       'AuthenticationController:getBearerToken',
     );
+    controller.destroy();
+  });
+
+  it('publishes accountDataCleared when the Predict User changes', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      | PredictPortfolioServiceActions
+      | AuthenticationController.AuthenticationControllerGetStateAction
+      | KeyringControllerGetStateAction,
+      | PredictPortfolioServiceEvents
+      | AuthenticationController.AuthenticationControllerStateChangeEvent
+      | KeyringControllerStateChangeEvent
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictPortfolioServiceMessenger = new Messenger(
+      {
+        namespace: 'PredictPortfolioService',
+        parent: rootMessenger,
+      },
+    );
+    const authenticationMessenger = new Messenger<
+      'AuthenticationController',
+      AuthenticationController.AuthenticationControllerGetStateAction,
+      AuthenticationController.AuthenticationControllerStateChangeEvent,
+      typeof rootMessenger
+    >({
+      namespace: 'AuthenticationController',
+      parent: rootMessenger,
+    });
+    const keyringMessenger = new Messenger<
+      'KeyringController',
+      KeyringControllerGetStateAction,
+      KeyringControllerStateChangeEvent,
+      typeof rootMessenger
+    >({
+      namespace: 'KeyringController',
+      parent: rootMessenger,
+    });
+    let authenticationState: AuthenticationControllerState = {
+      isSignedIn: true,
+      srpSessionData: {
+        'srp-primary': { profile: { canonicalProfileId: 'profile-a' } },
+      },
+    } as unknown as AuthenticationControllerState;
+    const keyringState = {
+      isUnlocked: true,
+      keyrings: [
+        { type: 'HD Key Tree', accounts: [], metadata: { id: 'srp-primary' } },
+      ],
+    } as unknown as KeyringControllerState;
+    authenticationMessenger.registerActionHandler(
+      'AuthenticationController:getState',
+      () => authenticationState,
+    );
+    keyringMessenger.registerActionHandler(
+      'KeyringController:getState',
+      () => keyringState,
+    );
+    const initMessenger = getPredictPortfolioServiceInitMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictPortfolioServiceInitMessenger
+      >[0],
+    );
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger,
+    } as unknown as MessengerClientInitRequest<
+      PredictPortfolioServiceMessenger,
+      PredictPortfolioServiceInitMessenger
+    >;
+    const { controller } = predictPortfolioServiceInit(request);
+    const cleared = jest.fn();
+    controllerMessenger.subscribe(
+      'PredictPortfolioService:accountDataCleared',
+      cleared,
+    );
+
+    // Locking keeps the last known Predict User, so it is not a change.
+    keyringMessenger.publish(
+      'KeyringController:stateChange',
+      {
+        isUnlocked: false,
+        keyrings: [],
+      } as unknown as KeyringControllerState,
+      [],
+    );
+    await Promise.resolve();
+    expect(cleared).not.toHaveBeenCalled();
+
+    authenticationState = {
+      isSignedIn: false,
+      srpSessionData: {},
+    } as unknown as AuthenticationControllerState;
+    authenticationMessenger.publish(
+      'AuthenticationController:stateChange',
+      authenticationState,
+      [],
+    );
+
+    // The purge runs through promising cache steps before it publishes.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(cleared).toHaveBeenCalledTimes(1);
     controller.destroy();
   });
 

@@ -15,6 +15,7 @@ import { PredictError, PredictErrorCode } from '../errors';
 import {
   portfolioQueries,
   portfolioQueryFamilies,
+  type GetBalanceResult,
 } from '../queries/portfolioQueries';
 import {
   KALSHI_VENUE_ID,
@@ -27,6 +28,10 @@ import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,
 } from './PredictPortfolioService';
+import type {
+  PredictUserIdentity,
+  PredictUserIdentitySource,
+} from './internal/predictUserIdentity';
 
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
@@ -45,7 +50,32 @@ const createPortfolio = (): jest.Mocked<VenuePortfolioAdapter> => ({
   fetchActivity: jest.fn(),
 });
 
-const createService = (portfolio: VenuePortfolioAdapter) => {
+/** A Predict User identity source a test drives directly. */
+const createIdentitySource = () => {
+  let identity: PredictUserIdentity = {
+    kind: 'identified',
+    canonicalProfileId: 'profile-a',
+  };
+  const listeners = new Set<() => void>();
+  const source: PredictUserIdentitySource = {
+    current: () => identity,
+    subscribe: (onChange) => {
+      listeners.add(onChange);
+      return () => listeners.delete(onChange);
+    },
+  };
+  /** Applies a new identity and notifies every subscriber. */
+  const emit = (next: PredictUserIdentity): void => {
+    identity = next;
+    listeners.forEach((listener) => listener());
+  };
+  return { source, emit, listenerCount: () => listeners.size };
+};
+
+const createService = (
+  portfolio: VenuePortfolioAdapter,
+  predictUserIdentity?: PredictUserIdentitySource,
+) => {
   const messenger: PredictPortfolioServiceMessenger = new Messenger({
     namespace: 'PredictPortfolioService',
   });
@@ -53,6 +83,7 @@ const createService = (portfolio: VenuePortfolioAdapter) => {
     messenger,
     portfolio,
     venueId: KALSHI_VENUE_ID,
+    ...(predictUserIdentity ? { predictUserIdentity } : {}),
     policyOptions: {
       backoff: new ConstantBackoff(0),
       maxConsecutiveFailures: 3,
@@ -251,6 +282,132 @@ describe('PredictPortfolioService', () => {
       { limit: 20, cursor: undefined },
       expect.objectContaining({ signal: expect.anything() }),
     );
+  });
+
+  describe('Predict User changes', () => {
+    const balance: GetBalanceResult = {
+      venueId: KALSHI_VENUE_ID,
+      currency: 'USD',
+      available: '100.00' as PredictAmount,
+    };
+
+    /** Settles the purge's chained promise steps; they span more microtasks
+     * than one `await` covers. */
+    const settlePurge = async (): Promise<void> => {
+      for (let tick = 0; tick < 20; tick += 1) {
+        await Promise.resolve();
+      }
+    };
+
+    /** Builds a service on a messenger the test keeps, so it can observe the
+     * `accountDataCleared` publication. */
+    const buildIdentityService = (
+      portfolio: VenuePortfolioAdapter,
+      identity: PredictUserIdentitySource,
+    ) => {
+      const messenger: PredictPortfolioServiceMessenger = new Messenger({
+        namespace: 'PredictPortfolioService',
+      });
+      const service = new PredictPortfolioService({
+        messenger,
+        portfolio,
+        venueId: KALSHI_VENUE_ID,
+        predictUserIdentity: identity,
+        policyOptions: {
+          backoff: new ConstantBackoff(0),
+          maxConsecutiveFailures: 3,
+        },
+      });
+      services.push(service);
+      const cleared = jest.fn();
+      messenger.subscribe(
+        'PredictPortfolioService:accountDataCleared',
+        cleared,
+      );
+      return { service, cleared };
+    };
+
+    it('marks cached reads stale and publishes that account data was cleared', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue(balance);
+      const identity = createIdentitySource();
+      const { service, cleared } = buildIdentityService(
+        portfolio,
+        identity.source,
+      );
+      await service.getBalance(KALSHI_VENUE_ID);
+
+      portfolio.fetchBalance.mockResolvedValue({
+        ...balance,
+        available: '5.00' as PredictAmount,
+      });
+      identity.emit({ kind: 'signed-out' });
+      await settlePurge();
+
+      expect(cleared).toHaveBeenCalledTimes(1);
+      // Marked stale, so the next read refetches instead of returning the
+      // previous Predict User's balance.
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+      await expect(service.getBalance(KALSHI_VENUE_ID)).resolves.toMatchObject({
+        available: '5.00',
+      });
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not refetch the cleared reads through a later invalidation', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue(balance);
+      const identity = createIdentitySource();
+      const { service } = buildIdentityService(portfolio, identity.source);
+      await service.getBalance(KALSHI_VENUE_ID);
+
+      identity.emit({ kind: 'identified', canonicalProfileId: 'profile-b' });
+      await settlePurge();
+      await service.invalidateQueries();
+
+      // The read registry was cleared: an invalidation cannot re-read the
+      // previous Predict User's entry.
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not clear account data for lock, unlock, or an unchanged identity', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue(balance);
+      const identity = createIdentitySource();
+      const { service, cleared } = buildIdentityService(
+        portfolio,
+        identity.source,
+      );
+      await service.getBalance(KALSHI_VENUE_ID);
+
+      identity.emit({ kind: 'unknown' });
+      identity.emit({ kind: 'identified', canonicalProfileId: 'profile-a' });
+      await settlePurge();
+
+      expect(cleared).not.toHaveBeenCalled();
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats the identity the service starts in as the baseline', async () => {
+      const portfolio = createPortfolio();
+      const identity = createIdentitySource();
+      const { cleared } = buildIdentityService(portfolio, identity.source);
+
+      identity.emit({ kind: 'identified', canonicalProfileId: 'profile-a' });
+      await Promise.resolve();
+
+      expect(cleared).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes from identity changes when destroyed', () => {
+      const portfolio = createPortfolio();
+      const identity = createIdentitySource();
+      const { service } = buildIdentityService(portfolio, identity.source);
+
+      expect(identity.listenerCount()).toBe(1);
+      service.destroy();
+      expect(identity.listenerCount()).toBe(0);
+    });
   });
 
   describe('invalidateQueries', () => {

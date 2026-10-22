@@ -32,6 +32,10 @@ import {
   type PortfolioPageParams,
 } from '../queries/portfolioQueries';
 import type { PredictReadOptions, PredictVenueId } from '../types';
+import {
+  PredictUserIdentityTracker,
+  type PredictUserIdentitySource,
+} from './internal/predictUserIdentity';
 import { isRetryablePredictError } from './servicePolicy';
 import { withPredictNextTrace } from './withPredictNextTrace';
 
@@ -105,9 +109,21 @@ export type PredictPortfolioServiceActions =
   | PredictPortfolioServiceGetActivityAction
   | DataServiceInvalidateQueriesAction<typeof PREDICT_PORTFOLIO_SERVICE_NAME>;
 
+/**
+ * Published after the Predict User changed and every cached account read was
+ * cleared. Carries no payload: the person behind the cache is never published.
+ * Consumers drop their own copies; the backend authorizes the next read as the
+ * new Predict User.
+ */
+export interface PredictPortfolioServiceAccountDataClearedEvent {
+  type: 'PredictPortfolioService:accountDataCleared';
+  payload: [];
+}
+
 export type PredictPortfolioServiceEvents =
   | DataServiceCacheUpdatedEvent<typeof PREDICT_PORTFOLIO_SERVICE_NAME>
-  | DataServiceGranularCacheUpdatedEvent<typeof PREDICT_PORTFOLIO_SERVICE_NAME>;
+  | DataServiceGranularCacheUpdatedEvent<typeof PREDICT_PORTFOLIO_SERVICE_NAME>
+  | PredictPortfolioServiceAccountDataClearedEvent;
 
 export type PredictPortfolioServiceMessenger = Messenger<
   typeof PREDICT_PORTFOLIO_SERVICE_NAME,
@@ -119,6 +135,12 @@ export interface PredictPortfolioServiceOptions {
   messenger: PredictPortfolioServiceMessenger;
   portfolio: VenuePortfolioAdapter;
   venueId: PredictVenueId;
+  /**
+   * Predict User identity source. When supplied, cached account data is
+   * cleared whenever the person changes. The Engine composition passes it;
+   * tests that only exercise reads may omit it.
+   */
+  predictUserIdentity?: PredictUserIdentitySource;
   policyOptions?: Pick<
     CreateServicePolicyOptions,
     'backoff' | 'circuitBreakDuration' | 'maxConsecutiveFailures'
@@ -142,11 +164,15 @@ export class PredictPortfolioService extends BaseDataService<
   /** Reads this service has cached, by query hash, for invalidation
    * refreshes. */
   readonly #cachedReads = new Map<string, CachedRead>();
+  readonly #predictUserIdentity?: PredictUserIdentitySource;
+  readonly #identityTracker = new PredictUserIdentityTracker();
+  #unsubscribeIdentity: (() => void) | undefined;
 
   constructor({
     messenger,
     portfolio,
     venueId,
+    predictUserIdentity,
     policyOptions,
   }: PredictPortfolioServiceOptions) {
     super({
@@ -182,6 +208,16 @@ export class PredictPortfolioService extends BaseDataService<
       'PredictPortfolioService:getActivity',
       this.getActivity.bind(this),
     );
+
+    this.#predictUserIdentity = predictUserIdentity;
+    if (predictUserIdentity) {
+      // Establish the baseline from the state the service starts in, so app
+      // start and unlock are not mistaken for a person change.
+      this.#identityTracker.observe(predictUserIdentity.current());
+      this.#unsubscribeIdentity = predictUserIdentity.subscribe(() =>
+        this.#clearAccountDataOnPredictUserChange(),
+      );
+    }
   }
 
   #createReadPolicy(): ServicePolicy {
@@ -383,7 +419,45 @@ export class PredictPortfolioService extends BaseDataService<
     );
   }
 
+  /**
+   * Clears every cached account read when the Predict User changed.
+   *
+   * The order is what makes the purge safe. In-flight reads are cancelled
+   * first, so a late response for the previous Predict User cannot land in the
+   * cache; adapters pass the abort signal to fetch. Every entry is then marked
+   * stale, so the next read refetches instead of returning the previous Predict
+   * User's data, and the read registry is cleared, so a later
+   * `invalidateQueries` cannot refetch them. Only then is `accountDataCleared`
+   * published: a reverting cancel republishes the pre-fetch state before this
+   * point, so the copies it hydrates are the ones consumers drop.
+   *
+   * The stale entries stay in this cache and are garbage-collected by it;
+   * nothing can reach them without a fresh read.
+   */
+  async #clearAccountData(): Promise<void> {
+    await this.cancelQueries();
+    await super.invalidateQueries({ refetchType: 'none' });
+    this.#cachedReads.clear();
+    this.messenger.publish('PredictPortfolioService:accountDataCleared');
+  }
+
+  #clearAccountDataOnPredictUserChange(): void {
+    const next = this.#predictUserIdentity?.current();
+    if (!next || !this.#identityTracker.observe(next)) {
+      return;
+    }
+
+    this.#clearAccountData().catch((error) => {
+      Logger.error(
+        ensureError(error, 'PredictPortfolioService.clearAccountData'),
+        'PredictNext: failed to clear cached account data after a Predict User change',
+      );
+    });
+  }
+
   destroy(): void {
+    this.#unsubscribeIdentity?.();
+    this.#unsubscribeIdentity = undefined;
     this.#cachedReads.clear();
     super.destroy();
   }
