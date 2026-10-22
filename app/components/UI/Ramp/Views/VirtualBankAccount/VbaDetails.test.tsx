@@ -20,6 +20,7 @@ const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
+const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
 let mockRouteParams: { sourceCurrency?: string } | undefined;
@@ -87,6 +88,11 @@ jest.mock('../../../../../util/Logger', () => ({
 
 jest.mock('./vbaDepositDebug', () => ({
   isVbaDepositDebugEnabled: () => mockDebugEnv === 'true',
+}));
+
+jest.mock('./hooks/useVbaOnboardingRouting', () => ({
+  navigateToVbaOnboardingDestination: (...args: unknown[]) =>
+    mockNavigateToVbaOnboardingDestination(...args),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -622,9 +628,6 @@ describe('VbaDetails', () => {
     ).toBeOnTheScreen();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
-    ).not.toBeOnTheScreen();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {
@@ -666,33 +669,43 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('does not use the IP currency when the region override has no currency', async () => {
+  it('opens the generic error when the region override has no currency', async () => {
     setAutoramps([]);
     mockLocation = 'BR';
     mockRegionOverride = 'DE';
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
-  it('shows the setup error without creating when the country has no currency', async () => {
+  it('opens the generic error without creating when the country has no currency', async () => {
     setAutoramps([]);
     mockLocation = 'DE';
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
     });
     expect(mockHydrate).not.toHaveBeenCalled();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
-  it('shows retry instead of replacing a rejected autoramp, and replaces it on retry', async () => {
+  it('opens the generic error instead of replacing a rejected autoramp', async () => {
     setAutoramps([
       {
         id: 'ar-old',
@@ -702,38 +715,20 @@ describe('VbaDetails', () => {
       },
     ]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
-    mockCreateAutoramp.mockImplementation(async () => {
-      setAutoramps([
-        { id: 'ar-old', walletAddress: '0xabc', status: 'Rejected' },
-        { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
-      ]);
-      return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
-    });
-    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
-    expect(announceSpy).toHaveBeenCalledWith(
-      strings('virtual_bank_account.vba_details.setup_error'),
-    );
-
-    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
-
-    await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
-    });
-    expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
   });
 
-  it('shows retry when the autoramp is rejected after creation', async () => {
+  it('opens the generic error when the autoramp is rejected after creation', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
@@ -741,12 +736,15 @@ describe('VbaDetails', () => {
       status: 'Rejected',
     });
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(
-        getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON),
-      ).toBeOnTheScreen();
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
     });
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
@@ -838,13 +836,12 @@ describe('VbaDetails', () => {
     renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+      expect(mockCreateAutoramp).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source_currencies: [{ type: 'Fiat', code: 'USD' }],
+        }),
+      );
     });
-    expect(mockCreateAutoramp).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source_currencies: [{ type: 'Fiat', code: 'USD' }],
-      }),
-    );
   });
 
   it('drops a details response that belongs to the previous currency', async () => {
@@ -924,83 +921,62 @@ describe('VbaDetails', () => {
     mockRouteParams = { sourceCurrency: 'EUR' };
     setAutoramps([]);
 
-    const { findByTestId } = renderWithProvider(<VbaDetails />);
+    renderWithProvider(<VbaDetails />);
 
-    expect(
-      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
+    });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
-  it('shows the setup error instead of using the region when chooseCurrency is on and no currency was picked', async () => {
+  it('opens the generic error instead of using the region when chooseCurrency is on and no currency was picked', async () => {
     mockChooseCurrency = true;
     setAutoramps([]);
 
-    const { findByTestId } = renderWithProvider(<VbaDetails />);
+    renderWithProvider(<VbaDetails />);
 
-    expect(
-      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
+    });
     expect(mockHydrate).not.toHaveBeenCalled();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
-  it('stays on details with retry when setup fails', async () => {
+  it('opens the generic error when account creation fails', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
-    mockCreateAutoramp
-      .mockRejectedValueOnce(new Error('create failed'))
-      .mockImplementation(async () => {
-        setAutoramps([
-          { id: 'ar-new', walletAddress: '0xabc', status: 'Created' },
-        ]);
-        return { id: 'ar-new', walletAddress: '0xabc', status: 'Created' };
-      });
-    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    mockCreateAutoramp.mockRejectedValue(new Error('create failed'));
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+      );
+    });
+    expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a load error when account details fail', async () => {
+    mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR)).toBeOnTheScreen();
-    });
-    expect(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON)).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
-
-    await waitFor(() => {
-      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-new');
-    });
-    expect(mockCreateAutoramp).toHaveBeenCalledTimes(2);
-  });
-
-  it('shows a load error when retry creates the account but details fail', async () => {
-    setAutoramps([]);
-    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
-    mockCreateAutoramp
-      .mockRejectedValueOnce(new Error('create failed'))
-      .mockImplementation(async () => {
-        const created = {
-          id: 'ar-new',
-          walletAddress: '0xabc',
-          status: 'Approved',
-          depositRailsSummary: { currency: 'BRL' },
-        };
-        setAutoramps([created]);
-        return created;
-      });
-    mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
-
-    const { findByTestId, getByTestId, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
-
-    fireEvent.press(await findByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
-
-    await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
     });
-    expect(
-      queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
-    ).not.toBeOnTheScreen();
   });
 });

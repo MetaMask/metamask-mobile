@@ -34,6 +34,53 @@ export type AccountCreateRegistrationResult =
       status: FiatAddressStatus;
     };
 
+/**
+ * Typed failure from the VBA account-creation request. Production response
+ * handling passes through this boundary.
+ */
+export class AccountCreateRegistrationError extends Error {
+  readonly result: AccountCreateRegistrationResult;
+
+  constructor(result: AccountCreateRegistrationResult) {
+    super('VBA account creation failed');
+    this.name = 'AccountCreateRegistrationError';
+    this.result = result;
+  }
+}
+
+/** Converts a controller registration failure without reading its body. */
+export const getAccountCreateResultFromError = (
+  error: unknown,
+): AccountCreateRegistrationResult => {
+  if (error instanceof AccountCreateRegistrationError) {
+    return error.result;
+  }
+
+  const context =
+    error && typeof error === 'object'
+      ? (error as { httpStatus?: unknown; traceId?: unknown })
+      : undefined;
+  const status = context?.httpStatus;
+  const supportedStatus =
+    status === 400 ||
+    status === 401 ||
+    status === 403 ||
+    status === 404 ||
+    status === 409 ||
+    status === 422 ||
+    status === 500
+      ? status
+      : 500;
+
+  return {
+    kind: 'http',
+    status: supportedStatus,
+    ...(typeof context?.traceId === 'string'
+      ? { traceId: context.traceId }
+      : {}),
+  };
+};
+
 export const isAccountCreateErrorDestination = (
   destinationId: string,
 ): destinationId is AccountCreateErrorDestinationId =>

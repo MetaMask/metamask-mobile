@@ -27,10 +27,6 @@ const VbaAccountCreateErrorAdapter = () => {
   const { openSupportWithConsent } = useSupportConsent();
 
   const leave = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },

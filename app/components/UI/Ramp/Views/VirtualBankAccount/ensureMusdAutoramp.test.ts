@@ -6,6 +6,7 @@ import {
   findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
+import { AccountCreateRegistrationError } from './accountCreateError';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
@@ -211,19 +212,27 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
-  it('fails without creating when wallet lookup is unavailable', async () => {
+  it('surfaces an account-creation error when wallet lookup is unavailable', async () => {
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
     });
     mockRegister.mockResolvedValue({ type: 'lookupUnavailable' });
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining<AccountCreateRegistrationError>({
+        result: { kind: 'http', status: 500 },
+      }),
+    );
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('fails when create throws', async () => {
+  it('surfaces an account-creation error when create throws', async () => {
     mockCreate.mockRejectedValue(new Error('create failed'));
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining<AccountCreateRegistrationError>({
+        result: { kind: 'http', status: 500 },
+      }),
+    );
   });
 });

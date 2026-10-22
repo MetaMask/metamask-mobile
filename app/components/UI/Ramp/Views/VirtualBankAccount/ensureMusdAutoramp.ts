@@ -2,6 +2,10 @@ import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
+import {
+  AccountCreateRegistrationError,
+  getAccountCreateResultFromError,
+} from './accountCreateError';
 
 /**
  * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
@@ -71,6 +75,21 @@ const isTerminalForCurrency = (
 const readAutoramps = (): AutorampCursor[] =>
   Engine.context.RampsController.state?.autoramps ?? [];
 
+const createAutoramp = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<void> => {
+  try {
+    await Engine.context.RampsController.createAutoramp(
+      buildMusdAutorampRequest(walletAddress, sourceCurrency),
+    );
+  } catch (error) {
+    throw new AccountCreateRegistrationError(
+      getAccountCreateResultFromError(error),
+    );
+  }
+};
+
 const runSetup = async (
   walletAddress: string,
   sourceCurrency: VbaSourceCurrency,
@@ -93,9 +112,7 @@ const runSetup = async (
   // Hydrate reports ready when any fiat is usable. A different known fiat
   // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
-    await Engine.context.RampsController.createAutoramp(
-      buildMusdAutorampRequest(walletAddress, sourceCurrency),
-    );
+    await createAutoramp(walletAddress, sourceCurrency);
     return 'ready';
   }
 
@@ -129,12 +146,21 @@ const runSetup = async (
   }
 
   if (snapshot.autorampStatus === 'needs_wallet_registration') {
-    const registration =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address: walletAddress,
-      });
+    const registration = await (async () => {
+      try {
+        return await Engine.context.RampsController.registerMoneyAccountWallet({
+          address: walletAddress,
+        });
+      } catch (error) {
+        throw new AccountCreateRegistrationError(
+          getAccountCreateResultFromError(error),
+        );
+      }
+    })();
     if (registration.type === 'lookupUnavailable') {
-      return 'failed';
+      throw new AccountCreateRegistrationError(
+        getAccountCreateResultFromError(registration.error),
+      );
     }
   } else if (snapshot.autorampStatus !== 'needs_source_currency') {
     return 'waiting';
@@ -144,9 +170,7 @@ const runSetup = async (
     return 'ready';
   }
 
-  await Engine.context.RampsController.createAutoramp(
-    buildMusdAutorampRequest(walletAddress, sourceCurrency),
-  );
+  await createAutoramp(walletAddress, sourceCurrency);
   return 'ready';
 };
 
@@ -168,6 +192,9 @@ export const ensureMusdAutoramp = (
 
   const run = runSetup(walletAddress, sourceCurrency, replaceTerminal)
     .catch((error: unknown) => {
+      if (error instanceof AccountCreateRegistrationError) {
+        throw error;
+      }
       Logger.error(error as Error, {
         tags: { feature: 'vba-onboarding' },
         context: { name: 'ensureMusdAutoramp', data: { sourceCurrency } },
