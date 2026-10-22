@@ -32,6 +32,10 @@ import {
 } from './PolymarketProvider';
 import { OrderType, SignatureType } from './types';
 import {
+  PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+  resetPredictNetworkErrorThrottle,
+} from '../../utils/predictNetworkError';
+import {
   executeDepositWalletBatch,
   getDepositWalletRelayerTransactionId,
   requestDepositWalletCreate,
@@ -829,6 +833,25 @@ describe('PolymarketProvider', () => {
       );
     });
 
+    it('records Cronet connectivity failures as breadcrumbs instead of Sentry errors', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const cronetError = new Error(
+        'java.lang.RuntimeException: Cronet failed: Exception in CronetUrlRequest: net::ERR_NAME_NOT_RESOLVED, ErrorCode=1, InternalErrorCode=-105, Retryable=false',
+      );
+      mockFetchEventsFromPolymarketApi.mockRejectedValue(cronetError);
+
+      await expect(
+        createProvider().getMarkets({ category: 'trending' }),
+      ).rejects.toBe(cronetError);
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+        cronetError.message,
+        expect.any(Object),
+      );
+    });
+
     it('reports unowned native market aborts to Sentry', async () => {
       const Logger = jest.requireMock('../../../../../util/Logger').default;
       const abortError = new Error('The operation was aborted');
@@ -1110,6 +1133,59 @@ describe('PolymarketProvider', () => {
       expect(Number.isNaN(result.results[0].entry.sell)).toBe(false);
     });
 
+    it('records iOS connectivity failures as breadcrumbs and returns no prices', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      (Logger.error as jest.Mock).mockClear();
+      (Logger.log as jest.Mock).mockClear();
+      global.fetch = jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            'Error Domain=NSURLErrorDomain Code=-1005 "The network connection was lost."',
+          ),
+        );
+
+      const result = await createProvider().getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(result.results).toEqual([]);
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledWith(
+        PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+        expect.stringContaining('NSURLErrorDomain Code=-1005'),
+        expect.objectContaining({
+          context: {
+            name: 'PolymarketProvider',
+            data: expect.objectContaining({
+              method: 'getPrices',
+              nsurl_code: -1005,
+            }),
+          },
+        }),
+      );
+    });
+
+    it('still reports non-network price failures to Sentry', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      (Logger.error as jest.Mock).mockClear();
+      const parseError = new Error('Unexpected token < in JSON');
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockRejectedValue(parseError),
+      });
+
+      await createProvider().getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(parseError, expect.any(Object));
+    });
+
     it('throws when queries are empty', async () => {
       const provider = createProvider();
       await expect(provider.getPrices({ queries: [] })).rejects.toThrow(
@@ -1177,6 +1253,7 @@ describe('PolymarketProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNetworkErrorThrottle();
     mockComputeProxyAddress.mockReturnValue(legacySafeAddress);
     mockResolveDepositWalletAddress.mockResolvedValue(depositWalletAddress);
     mockCreateApiKey.mockResolvedValue({

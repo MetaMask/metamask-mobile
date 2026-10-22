@@ -144,6 +144,7 @@ import { validateMarketBettable } from '../utils/marketState';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
+import { logPredictError } from '../utils/predictNetworkError';
 import { resolvePredictFeePolicy } from '../utils/predictFeePolicy';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
@@ -3208,7 +3209,7 @@ export class PredictController extends BaseController<
       return;
     }
 
-    Logger.error(ensureError(error), errorContext);
+    logPredictError(error, errorContext);
   }
 
   /**
