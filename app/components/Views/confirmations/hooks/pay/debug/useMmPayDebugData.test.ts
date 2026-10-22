@@ -26,6 +26,8 @@ const SOLANA_EXECUTION: MetamaskPaySolanaExecution = {
   sourceStatus: 'confirmed',
   sourceTransactionId: 'solana-signature',
   sourceWalletAccountId: 'wallet-account-id',
+  targetChainId: '0xa4b1',
+  targetTokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
 };
 
 describe('getSolanaPaySupportDiagnosticsForTransaction', () => {
@@ -39,7 +41,6 @@ describe('getSolanaPaySupportDiagnosticsForTransaction', () => {
       phase: 'submitted',
       provider: 'relay',
       relayStatus: 'refund',
-      requestIdPresent: true,
       sourceAssetClass: 'native',
       sourceStatus: 'confirmed',
       sourceTransactionIdPresent: true,

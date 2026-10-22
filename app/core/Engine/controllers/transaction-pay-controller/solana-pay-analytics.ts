@@ -19,8 +19,9 @@ export function getSolanaPayLifecycleProperties(
     mm_pay_phase: payload.phase,
     mm_pay_provider: payload.provider,
     mm_pay_relay_status: payload.relayStatus,
-    mm_pay_request_id_present: payload.requestIdPresent,
-    mm_pay_source_asset_class: payload.sourceAssetClass,
+    ...(payload.sourceAssetClass && {
+      mm_pay_source_asset_class: payload.sourceAssetClass,
+    }),
     mm_pay_source_status: payload.sourceStatus,
     mm_pay_source_transaction_id_present: payload.sourceTransactionIdPresent,
     mm_pay_target_transaction_id_present: payload.targetTransactionIdPresent,
