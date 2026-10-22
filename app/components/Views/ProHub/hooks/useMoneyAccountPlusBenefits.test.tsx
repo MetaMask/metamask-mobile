@@ -5,12 +5,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   PRODUCT_TYPES,
   SUBSCRIPTION_STATUSES,
+  SubscriptionControllerErrorMessage,
   type SubscriptionBenefitsState,
   type Subscription,
 } from '@metamask/subscription-controller';
 import type { RootState } from '../../../../reducers';
 import configureStore from '../../../../util/test/configureStore';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
@@ -22,6 +24,10 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './useMoneyAccountPlusBenefits';
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -306,6 +312,107 @@ describe('useMoneyAccountPlusBenefits', () => {
       'swaps',
       'perps',
     ]);
+  });
+
+  it('shows pending confirmation when a provisional subscriber is not eligible yet', async () => {
+    mockGetBenefits.mockRejectedValue(
+      new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+    );
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Pending,
+      ),
+    );
+
+    expect(result.current.items).toEqual([]);
+    expect(result.current.resetsOn).toBeUndefined();
+  });
+
+  it.each([SUBSCRIPTION_STATUSES.active, SUBSCRIPTION_STATUSES.trialing])(
+    'reports unavailable when a %s subscriber is not eligible',
+    async (subscriptionStatus) => {
+      mockGetBenefits.mockRejectedValue(
+        new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+      );
+
+      const { result } = renderBenefits(
+        createState({
+          subscriptionStatus,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.status).toBe(
+          MoneyAccountPlusBenefitsStatus.Unavailable,
+        ),
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: SubscriptionControllerErrorMessage.UserNotSubscribed,
+        }),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            operation: 'benefits_not_eligible',
+          }),
+        }),
+      );
+    },
+  );
+
+  it('shows pending confirmation when a provisional benefits response is incomplete', async () => {
+    const incompleteResponse = new Error(
+      'At path: products.perps.builderCode -- Expected a string, but received: undefined',
+    );
+    incompleteResponse.name = 'StructError';
+    mockGetBenefits.mockRejectedValue(incompleteResponse);
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Pending,
+      ),
+    );
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('keeps the error state when a confirmed subscriber gets an incomplete benefits response', async () => {
+    const incompleteResponse = new Error(
+      'At path: products.perps.builderCode -- Expected a string, but received: undefined',
+    );
+    incompleteResponse.name = 'StructError';
+    mockGetBenefits.mockRejectedValue(incompleteResponse);
+
+    const { result } = renderBenefits(createState());
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
+    );
+  });
+
+  it('keeps the error state when a provisional subscriber hits a real load failure', async () => {
+    mockGetBenefits.mockRejectedValue(new Error('network down'));
+
+    const { result } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Failed),
+    );
   });
 
   it('reports error when the fetch fails and no cache exists', async () => {
