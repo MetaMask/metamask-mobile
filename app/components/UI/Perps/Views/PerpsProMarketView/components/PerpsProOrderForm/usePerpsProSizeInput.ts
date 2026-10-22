@@ -1,16 +1,26 @@
 import { BigNumber } from 'bignumber.js';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { usePerpsSizeDenomination } from '../../../../hooks/usePerpsSizeDenomination';
 import {
   finalizeNumericTextInput,
   normalizeNumericTextInput,
   type NormalizeNumericTextInputOptions,
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
+import { usePerpsOrderBookPreferences } from '../../../../hooks/usePerpsOrderBookPreferences';
 import type {
   PerpsProSizeDenomination,
   PerpsProSizeInputModel,
   PerpsProSizeSliderModel,
 } from './PerpsProOrderForm.types';
+
+type SizeDenominationUnit = PerpsProSizeDenomination['unit'];
 
 interface AssetDraftState {
   value: string;
@@ -147,6 +157,11 @@ const getSliderDisplayValue = (
  * Owns the Pro size field's editable draft while keeping order state canonical
  * in USD. Asset drafts remain stable across live price updates.
  *
+ * The visible unit is the shared Lite/Pro size denomination. Pro also follows
+ * the order-book currency, and toggling size writes that currency so the field
+ * and the order book stay on USD or coin together. A saved coin unit stays
+ * hidden until a price can project it.
+ *
  * @param params - Canonical amount, market conversion, and sizing constraints.
  * @returns Size-input model, amount-domain slider, and effective USD amount.
  */
@@ -165,6 +180,15 @@ export const usePerpsProSizeInput = ({
   const priceReady = Number.isFinite(effectivePrice) && effectivePrice > 0;
   const { denomination: activeDenominationUnit, setDenomination } =
     usePerpsSizeDenomination();
+  const { preferences: orderBookPreferences, setOrderBookPreferences } =
+    usePerpsOrderBookPreferences();
+  const preferenceUnit: SizeDenominationUnit =
+    orderBookPreferences.currency === 'base' ? 'asset' : 'usd';
+  // Tracks the last order-book currency applied to the size field. The size
+  // toggle updates the field immediately, then writes the same currency; this
+  // ref skips a second conversion when that write echoes back.
+  const appliedPreferenceUnitRef = useRef(preferenceUnit);
+  const didReconcileDenominationRef = useRef(false);
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
@@ -532,49 +556,134 @@ export const usePerpsProSizeInput = ({
     setIsSizeFocused(true);
   }, [cancelPendingSliderPreview]);
 
+  const switchDenominationUnit = useCallback(
+    (nextUnit: SizeDenominationUnit) => {
+      if (nextUnit === activeDenominationUnit) {
+        return;
+      }
+
+      clearSliderPreview();
+      clearSliderMaxIntent();
+
+      if (nextUnit === 'asset') {
+        const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
+        if (!hasAssetIntent) {
+          setAssetDraftState({
+            value: priceReady
+              ? getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals)
+              : '',
+            source: 'canonical',
+            projected: priceReady,
+          });
+        }
+        setDenomination('asset');
+        return;
+      }
+
+      if (!priceReady) {
+        setDenomination('usd');
+        return;
+      }
+
+      const nextUsdAmount =
+        preserveAssetIntent && assetDraftState.source === 'canonical'
+          ? usdDraft
+          : getUsdFromAsset(assetDraft, effectivePrice);
+      setUsdDraft(nextUsdAmount);
+      commitUsdAmount(nextUsdAmount || '0');
+      setDenomination('usd');
+    },
+    [
+      assetDraft,
+      assetDraftState.source,
+      clearSliderPreview,
+      commitUsdAmount,
+      activeDenominationUnit,
+      effectivePrice,
+      hasAssetIntent,
+      preserveAssetIntent,
+      clearSliderMaxIntent,
+      priceReady,
+      setDenomination,
+      szDecimals,
+      usdDraft,
+    ],
+  );
+  const switchDenominationUnitRef = useRef(switchDenominationUnit);
+  switchDenominationUnitRef.current = switchDenominationUnit;
+
+  // Settings and the order book can each already hold a size unit. On open,
+  // a saved coin from either one wins over the other's default USD. After
+  // that, order-book currency changes convert the field, and a size toggle
+  // writes both. The switcher is read from a ref so price ticks do not
+  // re-run this effect.
+  useLayoutEffect(() => {
+    if (!didReconcileDenominationRef.current) {
+      didReconcileDenominationRef.current = true;
+
+      if (activeDenominationUnit === preferenceUnit) {
+        appliedPreferenceUnitRef.current = preferenceUnit;
+        return;
+      }
+
+      // A coin choice saved in settings aligns the order book. Remember the
+      // currency currently applied so this write's echo is the only later
+      // change that can move the field.
+      if (activeDenominationUnit === 'asset') {
+        appliedPreferenceUnitRef.current = preferenceUnit;
+        setOrderBookPreferences({ currency: 'base' });
+        return;
+      }
+
+      appliedPreferenceUnitRef.current = preferenceUnit;
+      if (keepSizeEmpty) {
+        setDenomination(preferenceUnit);
+        return;
+      }
+      switchDenominationUnitRef.current(preferenceUnit);
+      return;
+    }
+
+    if (appliedPreferenceUnitRef.current === preferenceUnit) {
+      return;
+    }
+
+    appliedPreferenceUnitRef.current = preferenceUnit;
+    if (activeDenominationUnit === preferenceUnit) {
+      return;
+    }
+
+    if (keepSizeEmpty) {
+      setDenomination(preferenceUnit);
+      return;
+    }
+
+    switchDenominationUnitRef.current(preferenceUnit);
+  }, [
+    activeDenominationUnit,
+    keepSizeEmpty,
+    preferenceUnit,
+    setDenomination,
+    setOrderBookPreferences,
+  ]);
+
   const onToggleDenomination = useCallback(() => {
     if (!canToggleDenomination || keepSizeEmpty) {
       return;
     }
 
-    clearSliderPreview();
-    clearSliderMaxIntent();
-
-    if (activeDenominationUnit === 'usd') {
-      const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
-      if (!hasAssetIntent) {
-        setAssetDraftState({
-          value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
-          source: 'canonical',
-          projected: true,
-        });
-      }
-      setDenomination('asset');
-      return;
-    }
-
-    const nextUsdAmount =
-      preserveAssetIntent && assetDraftState.source === 'canonical'
-        ? usdDraft
-        : getUsdFromAsset(assetDraft, effectivePrice);
-    setUsdDraft(nextUsdAmount);
-    commitUsdAmount(nextUsdAmount || '0');
-    setDenomination('usd');
+    const nextUnit: SizeDenominationUnit =
+      activeDenominationUnit === 'usd' ? 'asset' : 'usd';
+    switchDenominationUnit(nextUnit);
+    setOrderBookPreferences({
+      currency: nextUnit === 'asset' ? 'base' : 'usd',
+    });
   }, [
-    assetDraft,
-    assetDraftState.source,
-    canToggleDenomination,
-    clearSliderPreview,
-    commitUsdAmount,
     activeDenominationUnit,
-    effectivePrice,
-    hasAssetIntent,
+    canToggleDenomination,
     keepSizeEmpty,
-    preserveAssetIntent,
-    clearSliderMaxIntent,
-    setDenomination,
-    szDecimals,
-    usdDraft,
+    setOrderBookPreferences,
+    switchDenominationUnit,
   ]);
 
   const effectiveUsdAmount = useMemo(() => {

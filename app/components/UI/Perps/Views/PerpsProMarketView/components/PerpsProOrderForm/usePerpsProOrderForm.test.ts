@@ -505,6 +505,12 @@ jest.mock('../../../../hooks/usePerpsSizeDenomination', () => {
     },
   };
 });
+jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: jest.fn(),
+  }),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: {

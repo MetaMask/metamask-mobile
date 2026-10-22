@@ -272,7 +272,7 @@ describe('getVbaHomeCard', () => {
     expect(active).toEqual({ type: 'none' });
   });
 
-  it('renders kyc_pending for an approved session while no usable autoramp exists (decision rule 3 mirrors the funnel)', () => {
+  it('renders account_is_ready for an approved session while no usable autoramp exists (decision rule 3)', () => {
     const card = getVbaHomeCard({
       ...baseInputs,
       sessionStatus: makeSession({
@@ -281,11 +281,11 @@ describe('getVbaHomeCard', () => {
       }),
     });
 
-    expect(card).toEqual({ type: 'kyc_pending' });
+    expect(card).toEqual({ type: 'account_is_ready' });
   });
 
   it.each([AutorampStatus.Rejected, AutorampStatus.Cancelled])(
-    'renders kyc_pending for an approved session whose only autoramp is %s (decision rule 3)',
+    'renders account_is_ready for an approved session whose only autoramp is %s (decision rule 3)',
     (status) => {
       const card = getVbaHomeCard({
         ...baseInputs,
@@ -296,9 +296,7 @@ describe('getVbaHomeCard', () => {
         autoramps: [makeAutoramp({ status })],
       });
 
-      // A dead autoramp route is not usable, so the account details are not
-      // ready yet and the card must not claim "You're all set".
-      expect(card).toEqual({ type: 'kyc_pending' });
+      expect(card).toEqual({ type: 'account_is_ready' });
     },
   );
 

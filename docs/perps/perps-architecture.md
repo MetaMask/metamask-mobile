@@ -266,7 +266,7 @@ React context providers:
 Pure utility functions organized by domain:
 
 - **Calculations**: orderCalculations, positionCalculations, pnlCalculations
-- **Formatting**: formatUtils, amountConversion, textUtils
+- **Formatting**: formatUtils, amountConversion
 - **Validation**: hyperLiquidValidation, tpslValidation
 - **Transforms**: marketDataTransform, transactionTransforms, arbitrumWithdrawalTransforms
 - **Market Utils**: marketUtils, marketHours, sortMarkets

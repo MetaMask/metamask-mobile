@@ -31,6 +31,7 @@ import { createTokenSelectModalNavigationDetails } from '../../components/TokenS
 import { createFiatSelectorModalNavigationDetails } from '../../components/FiatSelectorModal';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { RampIntent } from '../../types';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -1304,6 +1305,91 @@ describe('BuildQuote View', () => {
 
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    describe('non-EVM asset', () => {
+      const solanaNetwork = {
+        ...mockCryptoCurrenciesData[0].network,
+        chainId: SolScope.Mainnet,
+        chainName: 'Solana',
+        shortName: 'SOL',
+      };
+
+      beforeEach(() => {
+        mockUseGasPriceEstimationValue = {
+          estimatedGasFee: toTokenMinimalUnit('0.27', 9),
+        };
+      });
+
+      afterEach(() => {
+        jest
+          .mocked(useBalance)
+          .mockImplementation(
+            () => mockUseBalanceValues as ReturnType<typeof useBalance>,
+          );
+      });
+
+      it('sets max to the full native balance without subtracting EVM gas', () => {
+        mockUseRampSDKValues = {
+          ...mockUseRampSDKInitialValues,
+          isBuy: false,
+          isSell: true,
+          selectedAsset: {
+            ...mockCryptoCurrenciesData[0],
+            symbol: 'SOL',
+            decimals: 9,
+            address: NATIVE_ADDRESS,
+            network: solanaNetwork,
+          },
+        };
+        mockUseBalanceValues = {
+          balance: '1 SOL',
+          balanceFiat: undefined,
+          balanceBN: toTokenMinimalUnit('1', 9),
+        };
+
+        render(BuildQuote);
+        fireEvent.press(getByRoleButton('0 SOL'));
+        fireEvent.press(getByRoleButton('Max'));
+
+        expect(getByRoleButton('1 SOL')).toBeOnTheScreen();
+      });
+
+      it('does not show the EVM network fee error for a non-EVM token', () => {
+        mockUseLimitsValues.limits = {
+          ...mockUseLimitsValues.limits,
+          maxAmount: 10,
+        } as Limits;
+        mockUseRampSDKValues = {
+          ...mockUseRampSDKInitialValues,
+          isBuy: false,
+          isSell: true,
+          selectedAsset: {
+            ...mockCryptoCurrenciesData[0],
+            symbol: 'USDC',
+            decimals: 6,
+            address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            network: solanaNetwork,
+          },
+        };
+        jest.mocked(useBalance).mockImplementation((asset) =>
+          asset?.address === NATIVE_ADDRESS
+            ? { balance: '0', balanceFiat: undefined, balanceBN: 0n }
+            : {
+                balance: '5 USDC',
+                balanceFiat: undefined,
+                balanceBN: toTokenMinimalUnit('5', 6),
+              },
+        );
+
+        render(BuildQuote);
+        fireEvent.press(getByRoleButton('0 USDC'));
+        fireEvent.press(getByRoleButton(VALID_AMOUNT.toString()));
+
+        expect(
+          screen.queryByText(/enough .* to cover the network fees/),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('resets the sell amount when switching assets', () => {

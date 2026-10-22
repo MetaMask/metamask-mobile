@@ -144,7 +144,7 @@ describe('profileOnboardingDraft', () => {
       display_name: 'Wen Cat',
       bio: null,
       linked_addresses: ['eip155:1:0xabc'],
-      avatar_url: 'foxicon://visor/purple',
+      avatar_url: 'foxicon://vr/background3',
       trading_privacy: 'private',
     });
   });

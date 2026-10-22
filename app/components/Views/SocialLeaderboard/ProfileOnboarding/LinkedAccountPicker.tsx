@@ -25,7 +25,7 @@ import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useTheme } from '../../../../util/theme';
-import type { SocialOnboardingAccount } from './useSocialOnboardingAccounts';
+import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
 const styles = StyleSheet.create({
@@ -45,9 +45,9 @@ const BENEFIT_KEYS = [
 ] as const;
 
 interface LinkedAccountPickerProps {
-  accounts: SocialOnboardingAccount[];
+  accounts: LinkableSocialAccount[];
   selectedAccountId: string | null;
-  onSelect: (account: SocialOnboardingAccount) => void;
+  onSelect: (account: LinkableSocialAccount) => void;
 }
 
 /**
@@ -71,7 +71,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   }, []);
 
   const handleSelect = useCallback(
-    (account: SocialOnboardingAccount) => {
+    (account: LinkableSocialAccount) => {
       onSelect(account);
       setIsSheetOpen(false);
     },
