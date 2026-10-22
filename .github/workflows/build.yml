@@ -160,7 +160,8 @@ jobs:
       cache_mode: ${{ steps.cache-mode.outputs.mode }}
     steps:
       # Callers can restrict cache access with `cache-mode`. The node_modules cache handoff
-      # needs full access, and the Namespace cache is not governed by `cache-mode`.
+      # needs full access. The Namespace cache is not governed by `cache-mode` and always both
+      # restores and commits, so it only runs when the mode is `write`.
       - name: Resolve cache mode
         id: cache-mode
         run: |
@@ -178,7 +179,7 @@ jobs:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode != 'none' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode == 'write' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
