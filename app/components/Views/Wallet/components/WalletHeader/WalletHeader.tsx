@@ -13,11 +13,17 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   ButtonBase,
+  ButtonAnimated,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   HeaderRoot,
+  Icon as MMDSIcon,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  IconSize as MMDSIconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,7 +38,9 @@ import {
 import WalletHeaderInterimActions, {
   WalletHeaderMenuButton,
 } from './WalletHeaderInterimActions';
-import WalletHeaderProfileAvatar from './WalletHeaderProfileAvatar';
+import WalletHeaderProfileAvatar, {
+  SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER,
+} from './WalletHeaderProfileAvatar';
 import WalletHeaderAccountPickerRow from './WalletHeaderAccountPickerRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
@@ -72,11 +80,14 @@ export interface WalletHeaderProps {
   handleActivityPress: () => void;
   handleCardPress: () => void;
   handleHamburgerPress: () => void;
+  handleRewardsPress?: () => void;
+  handleProfilePress?: () => void;
   touchAreaSlop: TouchAreaSlop;
   headerActionButtonsContainerStyle: ViewStyle;
   headerAccountPickerStyle: ViewStyle;
-  /** Interim brand refresh: Activity, Search and Menu only, on Liquid Glass where available. */
+  /** Interim brand refresh: header actions use Liquid Glass where available. */
   isInterimLayout?: boolean;
+  isSocialLayout?: boolean;
 }
 
 const WalletHeader = ({
@@ -89,12 +100,15 @@ const WalletHeader = ({
   handleActivityPress,
   handleCardPress,
   handleHamburgerPress,
+  handleRewardsPress,
+  handleProfilePress,
   touchAreaSlop,
   displayName,
   navigation,
   headerActionButtonsContainerStyle,
   headerAccountPickerStyle,
   isInterimLayout = false,
+  isSocialLayout = false,
 }: WalletHeaderProps) => {
   const tw = useTailwind();
   const hasAccountsMenuAttention = useAccountsMenuAttention();
@@ -219,6 +233,94 @@ const WalletHeader = ({
       )}
     </View>
   );
+
+  const socialAccountPicker = (
+    <View style={accountPickerContainerStyle}>
+      <CapsuleGlass
+        twClassName="mr-4 max-w-full self-start"
+        nonGlassClassName="px-1"
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE}
+      >
+        <ButtonAnimated
+          onPress={handleAccountSelectorPress}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={touchAreaSlop}
+          accessibilityRole="button"
+          accessibilityLabel={displayName}
+          style={tw.style('shrink')}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1 px-3"
+          >
+            <Text
+              variant={TextVariant.HeadingSm}
+              fontWeight={FontWeight.Regular}
+              numberOfLines={1}
+              twClassName="shrink"
+              testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
+            >
+              {displayName}
+            </Text>
+            <MMDSIcon
+              name={MMDSIconName.ArrowDown}
+              size={MMDSIconSize.Md}
+              color={MMDSIconColor.IconAlternative}
+            />
+          </Box>
+        </ButtonAnimated>
+      </CapsuleGlass>
+    </View>
+  );
+
+  if (isInterimLayout && isSocialLayout && !useSearchHeaderLayout) {
+    const socialActions = (
+      <CapsuleGlass
+        twClassName="shrink-0 px-2"
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE}
+      >
+        <WalletHeaderInterimActions
+          isMoneyAccountVisible={isMoneyAccountVisible}
+          handleActivityPress={handleActivityPress}
+          handleSearchPress={handleSearchPress}
+          handleRewardsPress={handleRewardsPress}
+          isSocialLayout
+          handleHamburgerPress={handleHamburgerPress}
+          touchAreaSlop={touchAreaSlop}
+        />
+      </CapsuleGlass>
+    );
+
+    return (
+      <Box
+        testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+        twClassName="h-14 px-3"
+      >
+        <CapsuleGlass twClassName="h-10 w-10 shrink-0 justify-center">
+          <ButtonBase
+            onPress={() => handleProfilePress?.()}
+            testID={WalletViewSelectorsIDs.PROFILE_BUTTON}
+            accessibilityRole="button"
+            accessibilityLabel={strings(
+              'social_leaderboard.my_profile.open_profile',
+            )}
+            hitSlop={touchAreaSlop}
+            twClassName="h-10 w-10 items-center justify-center rounded-full bg-transparent p-0"
+          >
+            <WalletHeaderProfileAvatar
+              diameter={SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER}
+            />
+          </ButtonBase>
+        </CapsuleGlass>
+        {socialAccountPicker}
+        {socialActions}
+      </Box>
+    );
+  }
 
   if (isInterimLayout && !useSearchHeaderLayout) {
     const interimActions = (

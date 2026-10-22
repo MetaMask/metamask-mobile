@@ -11,6 +11,10 @@ import { selectVipTransactionsById } from '../../../../reducers/rewards/selector
 import { setVipTransactions } from '../../../../reducers/rewards';
 import type { VipTransactionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),

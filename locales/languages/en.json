@@ -1676,6 +1676,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1866,7 +1868,7 @@
     "available_balance": "Available balance",
     "margin_used": "Margin used",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
+      "title": "Perps are here",
       "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "Not now",
       "try_now": "Get started"
@@ -2979,6 +2981,17 @@
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Top traders"
+      },
+      "top_traders_timeframe": {
+        "7d": "This week",
+        "30d": "This month"
+      },
+      "top_traders_scope": "Ranked across all Perps markets",
+      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -3031,7 +3044,8 @@
         "provider_fee": "Provider fee",
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% on fees as a VIP."
+        "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member."
       },
       "size_skew": {
         "title": "Size skew",
@@ -10993,7 +11007,7 @@
       "payment_creation_error": "Failed to create payment. Try again."
     },
     "order_completed": {
-      "title": "YOUR CARD\nIS ORDERED",
+      "title": "Your card is on the way",
       "subtitle": "It should arrive in 4 to 6 weeks.",
       "description": "Set up your virtual card and add it to your digital wallet to start earning mUSD back.",
       "set_up_card_button": "Set up card",
@@ -11036,8 +11050,8 @@
       "try_again": "Try again"
     },
     "card_onboarding": {
-      "title": "Spend\nand Earn",
-      "description": "The MetaMask Card is the fast and\neasy way to spend your crypto and\nearn up to 3% mUSD back.",
+      "title": "Spend and earn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
       "apply_now_button": "Set up now",
       "login_button": "Log in",
       "not_now_button": "Not now",
@@ -11222,7 +11236,7 @@
       },
       "complete": {
         "title": "You're in!",
-        "description": "Finish setting up your card so you can start spending your crypto.",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finish setup"
       },
       "account_exists": {
@@ -11835,6 +11849,9 @@
       "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "You have already been referred by another user.",
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "Invalid bonus code",
       "already_redeemed": "You have already redeemed this bonus code",
       "reached_maximum": "This bonus code has reached its maximum number of uses"
@@ -11872,7 +11889,7 @@
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
-      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
       "splash_accept_invite": "Accept invite",
       "splash_not_now": "Not now",

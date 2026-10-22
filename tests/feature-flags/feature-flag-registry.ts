@@ -438,6 +438,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             thresholdVersion: 2,
             value: {
               enabled: true,
+              tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
+              tokenApiBaseUrl: 'https://token.api.cx.metamask.io',
             },
           },
         ],
@@ -4961,6 +4963,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  exploreBrandRefresh: {
+    name: 'exploreBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },

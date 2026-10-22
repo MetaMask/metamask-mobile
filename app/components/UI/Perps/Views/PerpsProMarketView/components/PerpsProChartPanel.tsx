@@ -29,6 +29,7 @@ import React, {
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { LayoutChangeEvent } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -105,6 +106,8 @@ interface PerpsProChartPanelProps {
     contextKey: string,
   ) => void;
   onFreshDelivery?: () => void;
+  /** Measured height of the summary row, used as the header crossfade threshold. */
+  onSummaryLayout?: (event: LayoutChangeEvent) => void;
 }
 
 /**
@@ -126,6 +129,7 @@ const PerpsProChartPanel = ({
   onResolvedStateChange,
   onFreshDelivery,
   marketId: marketIdProp,
+  onSummaryLayout,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -410,6 +414,7 @@ const PerpsProChartPanel = ({
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
         testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
+        onLayout={onSummaryLayout}
         endAccessory={
           <Box
             flexDirection={BoxFlexDirection.Row}

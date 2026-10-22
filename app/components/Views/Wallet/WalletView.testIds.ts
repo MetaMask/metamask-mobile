@@ -116,6 +116,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_ACCOUNT_HUB_BUTTON: 'wallet-account-hub-button',
   WALLET_ACCOUNT_NAME_HEADING: 'wallet-account-name-heading',
   WALLET_ACCOUNT_NAME_BUTTON: 'wallet-account-name-button',
+  WALLET_HEADER_ACCOUNT_NAME_CONTAINER: 'wallet-header-account-name-container',
   WALLET_HEADER_ACCOUNT_NAME_BUTTON: 'wallet-header-account-name-button',
   WALLET_HEADER_ROOT: 'wallet-header-root',
   WALLET_SAFE_AREA: 'wallet-safe-area',

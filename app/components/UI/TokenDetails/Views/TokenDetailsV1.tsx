@@ -88,12 +88,15 @@ import TokenDetailsV1TabBar, {
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import TraderPositionPnlSection from '../TraderPositionPnl/TraderPositionPnlSection';
 import {
-  TOKEN_DETAILS_V1_TABS,
   TokenDetailsSource,
   type TokenDetailsRouteParams,
   type TokenDetailsVariant,
   type TokenDetailsV1TabKey,
 } from '../constants/constants';
+import {
+  selectMemecoinTdpV1TabConfigOrder,
+  selectMemecoinTdpV1TokenApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
 import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
@@ -103,11 +106,7 @@ import { useSecurityFacts } from '../hooks/useSecurityFacts';
 import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 import { useTokenMarketData } from '../hooks/useTokenMarketData';
 import { useTokenStats } from '../hooks/useTokenStats';
-// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
-import {
-  DEV_TOKEN_API_BASE_URL,
-  useTokenAssetDetails,
-} from '../queries/tokenAssetQuery';
+import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
 import { formatTokenAge } from '../utils/formatTokenAge';
 
 export const TOKEN_DETAILS_V1_TEST_ID = 'token-details-v1';
@@ -187,6 +186,9 @@ const TokenDetailsV1TabPlaceholder = ({
  * scroll range to lift it clear, so the page reads as unscrollable.
  */
 const STICKY_FOOTER_RESERVED_HEIGHT = 190;
+
+/** Shown when the remote tab config and the runtime gates between them leave nothing. */
+const FALLBACK_TAB: TokenDetailsV1TabKey = 'overview';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -279,10 +281,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
-  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
+  // Shared with the Overview tab and the variant check, so the three land on
+  // one react-query entry rather than fetching `/v2/assets` once each.
+  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
   const { asset: tokenAsset } = useTokenAssetDetails(
     caip19AssetId,
-    DEV_TOKEN_API_BASE_URL,
+    tokenApiBaseUrl,
   );
   const launchedAt = tokenAsset?.launchpadData?.launchedAt;
 
@@ -501,22 +505,31 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     showSocialTabs &&
     (isHoldersLoading || Boolean(holdersError) || holderRows.length > 0);
 
-  const visibleTabs = useMemo(
-    () =>
-      TOKEN_DETAILS_V1_TABS.filter((tab) => {
-        if (tab === 'feed') {
-          return showSocialTabs;
-        }
-        if (tab === 'holders') {
-          return showHoldersTab;
-        }
-        return true;
-      }),
-    [showHoldersTab, showSocialTabs],
-  );
-  // Feed is first, so it is the landing tab while social tabs are shown. An
-  // empty feed still keeps its tab; an empty holders list does not.
-  const landingTab = visibleTabs[0] ?? 'overview';
+  // Order and membership come from the remote config, which lets the tab
+  // layout be reshuffled without a release. It only ever takes tabs away: a
+  // tab it lists still has to clear the two gates above.
+  const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
+
+  const visibleTabs = useMemo<TokenDetailsV1TabKey[]>(() => {
+    const tabs = tabConfigOrder.filter((tab) => {
+      if (tab === 'feed') {
+        return showSocialTabs;
+      }
+      if (tab === 'holders') {
+        return showHoldersTab;
+      }
+      return true;
+    });
+
+    // A config naming only gated tabs can leave nothing at all, which would
+    // strand the reader on an empty tab strip with no panel under it. Overview
+    // is the backstop because it is the one tab no gate can take away.
+    return tabs.length > 0 ? tabs : [FALLBACK_TAB];
+  }, [tabConfigOrder, showHoldersTab, showSocialTabs]);
+  // Whichever tab survives first is where the page lands, so reordering the
+  // config moves the landing tab with it. An empty feed still keeps its tab;
+  // an empty holders list does not.
+  const landingTab = visibleTabs[0];
   const userPickedTabRef = useRef(false);
   const applyingLandingTabRef = useRef(false);
   const handleTabChange = useCallback(() => {
@@ -535,7 +548,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
   useEffect(() => {
     if (!visibleTabs.includes(activeTab)) {
       applyingLandingTabRef.current = true;
-      activateTab(visibleTabs[0] ?? 'overview');
+      activateTab(visibleTabs[0]);
       applyingLandingTabRef.current = false;
       return;
     }
@@ -581,6 +594,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
    * Selecting the tab alone would leave the reader looking at the price hero
    * while the thing they asked for sat a chart's height below the fold, so the
    * verdict pill scrolls the page as well as switching tabs.
+   *
+   * Withheld when the config leaves the Security tab out, which renders the
+   * pill as static text. The verdict still reads, it just stops offering a
+   * destination the page no longer has.
    */
   const handleSecurityPress = useCallback(() => {
     trackEvent(
@@ -777,7 +794,11 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
                     securityRiskCount={securityFacts.risks.length}
                     externalLinks={securityData?.metadata?.externalLinks}
                     contractAddress={token.isNative ? null : token.address}
-                    onSecurityPress={handleSecurityPress}
+                    onSecurityPress={
+                      visibleTabs.includes('security')
+                        ? handleSecurityPress
+                        : undefined
+                    }
                   />
                 </Box>
                 {/* The interval bar above the chart adds 8px of its own top padding. */}

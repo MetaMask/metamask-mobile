@@ -58,6 +58,7 @@ import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
+import { OrdersTabKey } from '../../components/OrdersTabs';
 
 const BridgeView = () => {
   const {
@@ -65,6 +66,8 @@ const BridgeView = () => {
     renderedTab,
     setSelectedTab,
     setRenderedTab,
+    setLimitOrdersTab,
+    setRecurringOrdersTab,
     setQuoteParams,
   } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
@@ -115,8 +118,21 @@ const BridgeView = () => {
 
     setSelectedTab(initialTab);
     setRenderedTab(initialTab);
+    if (initialTab === BridgeTabKey.Limit) {
+      setLimitOrdersTab?.(OrdersTabKey.OpenOrders);
+    }
+    if (initialTab === BridgeTabKey.Recurring) {
+      setRecurringOrdersTab?.(OrdersTabKey.OpenOrders);
+    }
     navigation.setParams({ initialTab: undefined });
-  }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
+  }, [
+    initialTab,
+    navigation,
+    setLimitOrdersTab,
+    setRecurringOrdersTab,
+    setRenderedTab,
+    setSelectedTab,
+  ]);
 
   // Deep-link presets for the Limit tab override the session values exactly
   // once per deep link. Presets the deep link omits keep whatever the user

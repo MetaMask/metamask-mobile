@@ -69,8 +69,19 @@ jest.mock('../../hooks/useTokenPerformance', () => ({
 
 const mockUseTokenAssetDetails = jest.fn();
 jest.mock('../../queries/tokenAssetQuery', () => ({
-  useTokenAssetDetails: (assetId: unknown) => mockUseTokenAssetDetails(assetId),
+  useTokenAssetDetails: (assetId: unknown, baseUrl: unknown) =>
+    mockUseTokenAssetDetails(assetId, baseUrl),
 }));
+
+const FLAGGED_TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsMemecoinTdpV1',
+  () => ({
+    selectMemecoinTdpV1TokenApiBaseUrl: jest.fn(
+      () => 'https://token.dev-api.cx.metamask.io',
+    ),
+  }),
+);
 
 jest.mock('../../hooks/useTokenTransactions', () => ({
   useTokenTransactions: jest.fn(),
@@ -291,6 +302,17 @@ describe('OverviewTab', () => {
       fiatBalance: '$69.42',
       tokenFormattedBalance: '4200000 PEPE',
     } as never);
+  });
+
+  it('asks the token API host the remote config names', () => {
+    render(
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
+    );
+
+    expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(
+      'eip155:1/erc20:0xabc',
+      FLAGGED_TOKEN_API_BASE_URL,
+    );
   });
 
   it('renders the description through ContentDisplay when the token has one', () => {
