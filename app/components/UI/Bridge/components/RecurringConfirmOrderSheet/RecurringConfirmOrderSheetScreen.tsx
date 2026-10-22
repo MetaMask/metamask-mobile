@@ -26,6 +26,10 @@ import {
   showRecurringOrderCreatedToast,
   submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
+import { FeatureId } from '@metamask/bridge-controller';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { getOrderTypeFromPriceRange } from '../../utils/recurringOrders';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -57,6 +61,17 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const isPriceRangeConversionReady =
     !priceRange || usdPriceRange !== undefined;
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const sharedAdvancedOrderProperties = useMemo(
+    () => ({
+      feature_id: FeatureId.RECURRING_ORDER,
+      // TODO use location from navigation context
+      location: 'Main View',
+    }),
+    [],
+  );
+
   const handleConfirm = useCallback(async () => {
     if (isSubmittingRef.current || !isPriceRangeConversionReady) {
       return;
@@ -64,10 +79,20 @@ export const RecurringConfirmOrderSheetScreen = () => {
 
     isSubmittingRef.current = true;
     setIsSubmitting(true);
+    let isAccountUpgraded = false;
 
     try {
       await autoUpgradeEIP7702Account();
+      isAccountUpgraded = true;
       await submitRecurringOrder();
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
+          .addProperties({
+            ...sharedAdvancedOrderProperties,
+            order_type: getOrderTypeFromPriceRange(priceRange),
+          })
+          .build(),
+      );
       showRecurringOrderCreatedToast();
       dispatch(resetBridgeTokenInputs());
       Engine.context.BridgeController?.resetState?.();
@@ -75,15 +100,30 @@ export const RecurringConfirmOrderSheetScreen = () => {
       navigation.goBack();
     } catch (error) {
       showRecurringAutoUpgradeError(error);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
+          .addProperties({
+            ...sharedAdvancedOrderProperties,
+            order_type: getOrderTypeFromPriceRange(priceRange),
+            error: isAccountUpgraded
+              ? (error as Error).message
+              : 'delegation_failed',
+          })
+          .build(),
+      );
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   }, [
     autoUpgradeEIP7702Account,
+    createEventBuilder,
+    priceRange,
+    trackEvent,
     dispatch,
     isPriceRangeConversionReady,
     navigation,
+    sharedAdvancedOrderProperties,
   ]);
 
   const handleEditSlippagePress = useCallback(() => {
