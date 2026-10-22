@@ -2993,10 +2993,6 @@
         "feed": "Feed",
         "top_traders": "Top traders"
       },
-      "top_traders_timeframe": {
-        "7d": "This week",
-        "30d": "This month"
-      },
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",

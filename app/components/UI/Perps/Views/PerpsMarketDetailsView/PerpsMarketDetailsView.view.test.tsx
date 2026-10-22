@@ -1668,12 +1668,6 @@ describe('PerpsMarketDetailsView', () => {
         screen.getByText(strings('social_leaderboard.feed.no_data')),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(getPerpsMarketDetailsTabSelector('top-traders-7d')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(getPerpsMarketDetailsTabSelector('top-traders-30d')),
-      ).toBeOnTheScreen();
-      expect(
         screen.queryByTestId(getTraderRowTestId(mockPerpsTraders[0].profileId)),
       ).not.toBeOnTheScreen();
       expect(messengerSpy).not.toHaveBeenCalledWith(

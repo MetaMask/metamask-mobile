@@ -6,8 +6,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FilterButton,
-  FilterButtonGroup,
   SectionDivider,
 } from '@metamask/design-system-react-native';
 import {
@@ -21,9 +19,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import {
-  DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   SocialLeaderboard,
-  type SocialLeaderboardFilters,
   type SocialLeaderboardSource,
 } from '../../../SocialLeaderboard';
 import { usePerpsEventTracking } from '../../hooks';
@@ -36,10 +32,7 @@ import PerpsSocialTrending from '../PerpsSocialFeedSection/PerpsSocialTrending';
 const TABS = ['overview', 'feed', 'top_traders'] as const;
 const FEED_POST_COUNT = 5;
 const TOP_TRADERS_LIMIT = 10;
-const TOP_TRADERS_TIMEFRAMES = ['7d', '30d'] as const;
 const SOURCE = PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
-
-type TopTradersTimeframe = SocialLeaderboardFilters['timeframe'];
 
 interface PerpsMarketSocialTabsProps {
   /** Raw market symbol (`BTC`, `xyz:NVDA`); the social perp feed keys on it exactly. */
@@ -58,7 +51,6 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [timeframe, setTimeframe] = useState<TopTradersTimeframe>('7d');
   const leaderboardSource = useMemo<SocialLeaderboardSource>(
     () => ({ kind: 'perp', symbol }),
     [symbol],
@@ -132,33 +124,13 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
       ) : null}
       {activeTab === 'top_traders' ? (
         <Box
+          twClassName="pt-6"
           testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_TAB_CONTENT}
         >
-          <Box twClassName="px-4 pt-6 pb-3">
-            <FilterButtonGroup
-              value={timeframe}
-              onChange={(value) => setTimeframe(value as TopTradersTimeframe)}
-              twClassName="gap-2"
-            >
-              {TOP_TRADERS_TIMEFRAMES.map((value) => (
-                <FilterButton
-                  key={value}
-                  value={value}
-                  twClassName={timeframe !== value ? 'bg-muted' : undefined}
-                  testID={getPerpsMarketDetailsTabSelector(
-                    `top-traders-${value}`,
-                  )}
-                >
-                  {strings(`perps.market.top_traders_timeframe.${value}`)}
-                </FilterButton>
-              ))}
-            </FilterButtonGroup>
-          </Box>
           <SocialLeaderboard
             source={leaderboardSource}
             location="perps_market_details"
             limit={TOP_TRADERS_LIMIT}
-            filters={{ ...DEFAULT_SOCIAL_LEADERBOARD_FILTERS, timeframe }}
           />
           <Box twClassName="px-4 pt-3">
             <Button
