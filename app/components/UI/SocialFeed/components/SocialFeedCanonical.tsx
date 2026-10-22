@@ -431,7 +431,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
             ListEmptyComponent={
               showInitialLoading ? (
                 <SocialFeedSkeleton count={skeletonCount} />
-              ) : isLoading ? null : (
+              ) : isLoading || error ? null : (
                 <SocialFeedEmpty />
               )
             }
@@ -454,7 +454,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
               <SocialFeedSkeleton count={skeletonCount} />
             ) : null}
             {visiblePosts.length > 0 ? renderContentRows : null}
-            {!isLoading && visiblePosts.length === 0 ? (
+            {!isLoading && !error && visiblePosts.length === 0 ? (
               <SocialFeedEmpty />
             ) : null}
             {error && posts.length === 0 ? (

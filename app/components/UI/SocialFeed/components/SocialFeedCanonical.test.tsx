@@ -3,6 +3,10 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import SocialFeedCanonical from './SocialFeedCanonical';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
+import {
+  SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_ERROR_TEST_ID,
+} from './SocialFeedStates.testIds';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
 import { useSocialFeedCanonical } from '../data/useSocialFeedCanonical';
 
@@ -188,6 +192,23 @@ describe('SocialFeedCanonical', () => {
       expect(
         screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
       ).toBeOnTheScreen();
+    },
+  );
+
+  it.each(['virtualized', 'content'] as const)(
+    'renders only the error state when the initial request fails in %s mode',
+    (scrollMode) => {
+      mockUseSocialFeedCanonical.mockReturnValue({
+        ...state,
+        posts: [],
+        error: new Error('request failed'),
+        entrances: createSocialFeedEntrances(),
+      });
+
+      render(<SocialFeedCanonical scope="all" scrollMode={scrollMode} />);
+
+      expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
+      expect(screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeNull();
     },
   );
 
