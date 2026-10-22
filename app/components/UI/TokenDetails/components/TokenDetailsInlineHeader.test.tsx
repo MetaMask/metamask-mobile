@@ -448,6 +448,18 @@ describe('TokenDetailsInlineHeader', () => {
       expect(mockOnBackPress).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps its place with glass buttons when it does not float', () => {
+      const { getAllByTestId, queryByTestId } = renderHeader({
+        isGlass: true,
+        isFloating: false,
+      });
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(
+        within(getAllByTestId('capsule')[0]).getByTestId('back-arrow-button'),
+      ).toBeOnTheScreen();
+    });
+
     it('groups the watchlist, price alert and share buttons in one capsule', () => {
       const { Text } = jest.requireActual('react-native');
       const { getAllByTestId } = renderHeader({
