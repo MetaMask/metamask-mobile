@@ -8,7 +8,11 @@ import {
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { createProjectLogger } from '@metamask/utils';
 import { RootState } from '../../../../../reducers';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  getPreferredTokensForTransactionType,
+  selectMetaMaskPayFlags,
+  selectMetaMaskPayTokensFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import {
@@ -17,6 +21,7 @@ import {
 } from '../../../../../util/address';
 import { getTransactionType } from '../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../utils/transaction-pay';
+import { AssetType } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayMoneyAccountAvailable } from './usePayMoneyAccountAvailable';
 
@@ -31,21 +36,21 @@ const MONEY_ACCOUNT_FALLBACK_DEPOSIT_TYPES: TransactionType[] = [
 
 /**
  * Auto-selects the Money account for Perps and Predict deposits when the
- * selected EOA has no token balance and the Money account has a positive
- * balance. Existing token auto-select is left unchanged whenever any token
- * balance exists.
+ * Money Account is the best funding source. A highest-balance preferred token
+ * wins. Otherwise Money Account wins when its balance is higher than every
+ * token or meets the same minimum balance configured for preferred tokens.
  */
 export function useAutomaticMoneyAccountPayToken({
   autoSelectFiatPayment = false,
+  availableTokens,
   disable = false,
   hasFiatPaymentSelected,
-  hasTokenBalance,
   payTokenSelected,
 }: {
   autoSelectFiatPayment?: boolean;
+  availableTokens: AssetType[];
   disable?: boolean;
   hasFiatPaymentSelected: boolean;
-  hasTokenBalance: boolean;
   payTokenSelected: boolean;
 }): { isPending: boolean; shouldSelect: boolean } {
   const isUpdated = useRef<string | undefined>(undefined);
@@ -65,23 +70,53 @@ export function useAutomaticMoneyAccountPayToken({
   const { enableMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const transactionType = getTransactionType(transactionMeta);
 
-  // Whether the Money Account is an eligible fallback here at all. Account
+  const highestBalanceToken = availableTokens
+    .filter((token) => !token.disabled)
+    .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0))[0];
+  const highestTokenBalance = highestBalanceToken?.fiat?.balance ?? 0;
+  const preferredTokens = getPreferredTokensForTransactionType(
+    payTokensFlags.preferredTokens,
+    transactionType,
+  );
+  const isHighestBalanceTokenPreferred = Boolean(
+    highestBalanceToken?.chainId &&
+      preferredTokens.some(
+        (token) =>
+          token.address.toLowerCase() ===
+            highestBalanceToken.address.toLowerCase() &&
+          token.chainId.toLowerCase() ===
+            highestBalanceToken.chainId?.toLowerCase(),
+      ),
+  );
+
+  // Whether the Money Account is an eligible funding source here at all. Account
   // existence and balance are answered by `usePayMoneyAccountAvailable`.
   const canUseMoneyAccountPay =
     !autoSelectFiatPayment &&
     !isHardwareWallet &&
     !isQRWallet &&
     paymentOverride !== PaymentOverride.MoneyAccount &&
-    !hasTokenBalance &&
     hasTransactionType(transactionMeta, MONEY_ACCOUNT_FALLBACK_DEPOSIT_TYPES) &&
     Boolean(transactionType && enableMoneyAccountTransactions[transactionType]);
 
-  const { isAvailable: shouldSelect, isPending } = usePayMoneyAccountAvailable({
-    enabled: canUseMoneyAccountPay,
-  });
+  const {
+    isAvailable: isMoneyAccountAvailable,
+    isPending,
+    withdrawableBalance,
+  } = usePayMoneyAccountAvailable({ enabled: canUseMoneyAccountPay });
+  const shouldSelect = Boolean(
+    isMoneyAccountAvailable &&
+      withdrawableBalance &&
+      (withdrawableBalance.isGreaterThan(highestTokenBalance) ||
+        (!isHighestBalanceTokenPreferred &&
+          withdrawableBalance.isGreaterThanOrEqualTo(
+            payTokensFlags.minimumRequiredTokenBalance,
+          ))),
+  );
 
   useEffect(() => {
     if (
@@ -102,7 +137,7 @@ export function useAutomaticMoneyAccountPayToken({
       transactionMeta,
     );
     isUpdated.current = transactionId;
-    log('Automatically selected money account (no token balance)');
+    log('Automatically selected money account (best funding source)');
   }, [
     disable,
     hasFiatPaymentSelected,

@@ -81,6 +81,7 @@ import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
 import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
@@ -1037,8 +1038,13 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     return <TokenDetailsPagePending token={token} />;
   }
 
+  // Only the V1 branch is wrapped. The legacy page is a sibling here rather
+  // than a child, which is what keeps it on the prod price API without
+  // needing to read the flag or pass anything down.
   return variant ? (
-    <TokenDetailsV1 token={token} variant={variant} />
+    <PriceApiHostProvider>
+      <TokenDetailsV1 token={token} variant={variant} />
+    </PriceApiHostProvider>
   ) : (
     <TokenDetailsLegacy token={token} />
   );

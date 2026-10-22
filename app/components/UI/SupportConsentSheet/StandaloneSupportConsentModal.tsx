@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Checkbox,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import {
+  setDataSharingPreference,
+  setShouldShowConsentSheet,
+} from '../../../actions/security';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 
@@ -58,8 +64,34 @@ const StandaloneSupportConsentModal = ({
   onReject,
   onDismiss,
 }: StandaloneSupportConsentModalProps) => {
+  const dispatch = useDispatch();
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const [savePreference, setSavePreference] = useState(true);
+
+  useEffect(() => {
+    if (visible) {
+      setSavePreference(true);
+    }
+  }, [visible]);
+
+  const persistPreference = (shareData: boolean) => {
+    if (!savePreference) {
+      return;
+    }
+    dispatch(setShouldShowConsentSheet(false));
+    dispatch(setDataSharingPreference(shareData));
+  };
+
+  const handleConfirm = () => {
+    persistPreference(true);
+    onConfirm();
+  };
+
+  const handleReject = () => {
+    persistPreference(false);
+    onReject();
+  };
 
   return (
     <Modal
@@ -77,12 +109,18 @@ const StandaloneSupportConsentModal = ({
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {strings('support_consent.description')}
           </Text>
+          <Checkbox
+            isSelected={savePreference}
+            onChange={setSavePreference}
+            label={strings('support_consent.save_preference')}
+            testID="standalone-support-consent-save-preference-checkbox"
+          />
           <View style={styles.buttonsRow}>
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
               isFullWidth
-              onPress={onReject}
+              onPress={handleReject}
               style={styles.button}
               testID="standalone-support-consent-reject-button"
             >
@@ -92,7 +130,7 @@ const StandaloneSupportConsentModal = ({
               variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               isFullWidth
-              onPress={onConfirm}
+              onPress={handleConfirm}
               style={styles.button}
               testID="standalone-support-consent-confirm-button"
             >

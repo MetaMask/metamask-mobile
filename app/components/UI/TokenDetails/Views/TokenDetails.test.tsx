@@ -38,9 +38,14 @@ import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
 } from '../../../../selectors/bridge/featureFlags';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import {
+  selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1PriceApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
+import { usePriceApiHost } from '../context/PriceApiHostContext';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
@@ -485,6 +490,8 @@ jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
+
+const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
 
 const mockEndTrace = jest.fn();
 const mockTrace = jest.fn();
@@ -1746,8 +1753,25 @@ describe('TokenDetails', () => {
           return { enabled: true, enabledChainIds: ['eip155:1'] };
         if (selector === selectBridgeRecurringBuyFeatureFlags)
           return { enabled: true, enabledChainIds: ['eip155:1'] };
+        if (selector === selectMemecoinTdpV1PriceApiBaseUrl) return DEV_HOST;
         return undefined;
       });
+    };
+
+    /**
+     * Renders the route and reports what `usePriceApiHost` resolves to inside
+     * whichever page the variant picked.
+     */
+    const renderHostProbe = (
+      probe: typeof mockTokenDetailsV1 | typeof mockTokenDetailsInlineHeader,
+    ) => {
+      let seenHost: string | undefined;
+      probe.mockImplementation(() => {
+        seenHost = usePriceApiHost();
+        return null;
+      });
+      render(<TokenDetailsRoute />);
+      return seenHost;
     };
 
     beforeEach(() => {
@@ -1758,6 +1782,13 @@ describe('TokenDetails', () => {
         query: {},
       });
       mockTokenDetailsV1.mockClear();
+    });
+
+    // The host probes swap in implementations that render nothing but read
+    // context. Put the plain stubs back so later suites are unaffected.
+    afterEach(() => {
+      mockTokenDetailsV1.mockImplementation(() => null);
+      mockTokenDetailsInlineHeader.mockImplementation(() => null);
     });
 
     it('does not render TokenDetailsV1 when the flag is off and the token is not a meme', () => {
@@ -1809,6 +1840,29 @@ describe('TokenDetails', () => {
       expect(mockUseABTest).not.toHaveBeenCalled();
       expect(mockUseTokenPrice).not.toHaveBeenCalled();
       expect(mockUseTokenTransactions).not.toHaveBeenCalled();
+    });
+
+    it('supplies the configured price host to TokenDetailsV1', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+      });
+
+      expect(renderHostProbe(mockTokenDetailsV1)).toBe(DEV_HOST);
+    });
+
+    // The provider wraps the V1 branch only, so rendering the legacy page is
+    // itself what keeps it on prod. Nothing there reads the config.
+    it('leaves the legacy page on prod under the same config', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+
+      expect(renderHostProbe(mockTokenDetailsInlineHeader)).toBe(
+        PRICE_API_BASE_URL,
+      );
+      expect(mockTokenDetailsV1).not.toHaveBeenCalled();
     });
   });
 
