@@ -46,10 +46,10 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockParams: { current: CardMfaMethodParams } = {
   current: {
-    country: 'NZ',
+    country: 'AU',
     address: '0xabc',
     options: [
-      { method: 'phone', maskedDestination: '+64 *****1234' },
+      { method: 'phone', maskedDestination: '+61 *****1234' },
       { method: 'email', maskedDestination: 'j***@example.com' },
     ],
     continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
@@ -78,10 +78,10 @@ jest.mock('../../hooks/useRegions', () => ({
   default: () => ({
     allRegions: [
       {
-        key: 'NZ',
-        name: 'New Zealand',
-        emoji: '🇳🇿',
-        areaCode: '64',
+        key: 'AU',
+        name: 'Australia',
+        emoji: '🇦🇺',
+        areaCode: '61',
         canSignUp: true,
       },
     ],
@@ -120,10 +120,10 @@ describe('CardMfaMethod', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockParams.current = {
-      country: 'NZ',
+      country: 'AU',
       address: '0xabc',
       options: [
-        { method: 'phone', maskedDestination: '+64 *****1234' },
+        { method: 'phone', maskedDestination: '+61 *****1234' },
         { method: 'email', maskedDestination: 'j***@example.com' },
       ],
       continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
@@ -136,7 +136,7 @@ describe('CardMfaMethod', () => {
       nextStep: {
         type: 'mfa_code',
         method: 'phone',
-        maskedDestination: '+64 *****1234',
+        maskedDestination: '+61 *****1234',
         expiresAt: 1_700_000_000_000,
       },
     });
@@ -154,14 +154,14 @@ describe('CardMfaMethod', () => {
       expect(mockSubmitCredentials).toHaveBeenCalledWith({
         type: 'mfa_method',
         method: 'phone',
-        destination: '+64211234567',
+        destination: '+61211234567',
       });
     });
     expect(mockReplace).toHaveBeenCalledWith(
       'CardMfaCode',
       expect.objectContaining({
         method: 'phone',
-        maskedDestination: '+64 *****1234',
+        maskedDestination: '+61 *****1234',
         expiresAt: 1_700_000_000_000,
       }),
     );

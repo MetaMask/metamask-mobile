@@ -141,7 +141,7 @@ export const buildCountryPrefillAnalytics = ({
 
 /**
  * Region to prefill, before any visit latch.
- * UK migration always uses GB. Other visits always use New Zealand.
+ * UK migration always uses GB. Other visits always use Australia.
  *
  * @param params - Migration flag and the registration-settings lookup.
  * @param params.fromMigration - Whether this visit is the UK migration flow.

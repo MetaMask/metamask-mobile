@@ -12,11 +12,11 @@ const ready = {
 };
 
 describe('resolveApplePayHomePrompt', () => {
-  it('asks a known New Zealand account to sign in', () => {
+  it('asks a known Australian account to sign in', () => {
     expect(resolveApplePayHomePrompt(ready)).toBe('sign_in');
   });
 
-  it('stays hidden outside New Zealand', () => {
+  it('stays hidden outside Australia', () => {
     expect(
       resolveApplePayHomePrompt({ ...ready, inProvisioningCountry: false }),
     ).toBe('none');

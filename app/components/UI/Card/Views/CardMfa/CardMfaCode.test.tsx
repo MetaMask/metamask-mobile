@@ -39,7 +39,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const mockParams: { current: CardMfaCodeParams } = {
   current: {
-    country: 'NZ',
+    country: 'AU',
     address: '0xabc',
     options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
     continuation: {
@@ -100,7 +100,7 @@ describe('CardMfaCode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockParams.current = {
-      country: 'NZ',
+      country: 'AU',
       address: '0xabc',
       options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
       continuation: {
@@ -131,7 +131,7 @@ describe('CardMfaCode', () => {
     expect(mockResume).toHaveBeenCalledWith(
       expect.objectContaining({
         alreadyAuthenticated: true,
-        country: 'NZ',
+        country: 'AU',
         address: '0xabc',
         email: 'jane@example.com',
         entrypoint: CardEntryPoint.SIGN_UP,
@@ -199,7 +199,7 @@ describe('CardMfaCode', () => {
       expect(mockAuthenticateWithWallet).toHaveBeenCalledWith({
         option: { providerId: 'immersve', method: 'siwe' },
         address: '0xabc',
-        country: 'NZ',
+        country: 'AU',
         autoSignup: false,
       });
     });

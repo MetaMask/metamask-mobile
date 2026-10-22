@@ -2757,12 +2757,12 @@ describe('CardHome Component', () => {
     });
     setupLoadCardDataMock({
       isAuthenticated: true,
-      cardDetails: { type: CardType.VIRTUAL, regionCode: 'NZ' },
+      cardDetails: { type: CardType.VIRTUAL, regionCode: 'AU' },
     });
 
     render();
 
-    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('NZ', {
+    expect(useImmersveSupportedRegions).toHaveBeenCalledWith('AU', {
       enabled: true,
     });
   });

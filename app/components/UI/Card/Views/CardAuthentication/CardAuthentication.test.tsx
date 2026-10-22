@@ -92,12 +92,12 @@ const GB_REGION = {
   flag: '🇬🇧',
 };
 
-const NZ_REGION = {
-  key: 'NZ',
-  name: 'New Zealand',
-  code: 'NZ',
-  currency: 'NZD',
-  flag: '🇳🇿',
+const AU_REGION = {
+  key: 'AU',
+  name: 'Australia',
+  code: 'AU',
+  currency: 'AUD',
+  flag: '🇦🇺',
 };
 
 const US_REGION = { key: 'US', name: 'United States', code: 'US' };
@@ -105,9 +105,9 @@ const US_REGION = { key: 'US', name: 'United States', code: 'US' };
 jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: () => ({
-    allRegions: [NZ_REGION, GB_REGION, US_REGION],
+    allRegions: [AU_REGION, GB_REGION, US_REGION],
     getRegionByCode: (code: string) =>
-      [NZ_REGION, GB_REGION, US_REGION].find((region) => region.key === code) ??
+      [AU_REGION, GB_REGION, US_REGION].find((region) => region.key === code) ??
       null,
     isLoading: false,
   }),
@@ -1246,12 +1246,12 @@ describe('CardAuthentication', () => {
       ).toBeOnTheScreen();
     });
 
-    it('offers only New Zealand and preselects it when geolocation is another country', () => {
+    it('offers only Australia and preselects it when geolocation is another country', () => {
       mockGeoLocation = 'US';
       setResolution({ kind: 'email', option: emailOption });
       render();
 
-      expect(screen.getByText(/New Zealand/)).toBeOnTheScreen();
+      expect(screen.getByText(/Australia/)).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
 
       fireEvent.press(
@@ -1261,20 +1261,20 @@ describe('CardAuthentication', () => {
       expect(navigateWithDetails).toHaveBeenCalledWith(expect.anything(), [
         expect.objectContaining({
           params: expect.objectContaining({
-            regions: [NZ_REGION],
-            selectedRegionKey: 'NZ',
+            regions: [AU_REGION],
+            selectedRegionKey: 'AU',
           }),
         }),
         expect.anything(),
       ]);
     });
 
-    it('preselects New Zealand when geolocation is UNKNOWN', () => {
+    it('preselects Australia when geolocation is UNKNOWN', () => {
       mockGeoLocation = 'UNKNOWN';
       setResolution({ kind: 'email', option: emailOption });
       render();
 
-      expect(screen.getByText(/New Zealand/)).toBeOnTheScreen();
+      expect(screen.getByText(/Australia/)).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 

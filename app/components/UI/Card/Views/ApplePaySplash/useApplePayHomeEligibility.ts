@@ -58,7 +58,7 @@ export function useApplePayHomeEligibility(): ApplePayHomeEligibility {
   );
   const selectedAddress = selectAccountByScope('eip155:0')?.address;
 
-  // This test branch simulates a New Zealand user and does not check IP country.
+  // This test branch simulates an Australian user and does not check IP country.
   const inProvisioningCountry = true;
   const linkMatchesAccount =
     (signInLink?.status === 'linked' || signInLink?.status === 'completed') &&
