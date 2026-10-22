@@ -20,6 +20,7 @@ import Logger from '../../../../../util/Logger';
 import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MarketingMoment from '../../../MarketingMoment';
+import { CompleteSelectors } from './Complete.testIds';
 
 /**
  * Route params for Complete screen
@@ -115,13 +116,18 @@ const Complete = () => {
   return (
     <MarketingMoment
       title={strings('card.card_onboarding.complete.title')}
+      titleProps={{ testID: CompleteSelectors.TITLE }}
       description={strings('card.card_onboarding.complete.description')}
-      descriptionProps={{ twClassName: 'text-center px-4' }}
+      descriptionProps={{
+        testID: CompleteSelectors.DESCRIPTION,
+        twClassName: 'text-center px-4',
+      }}
       artwork={
         <Image
           source={MM_CARD_ONBOARDING_SUCCESS}
           resizeMode="contain"
           style={tw.style('h-full w-full')}
+          testID={CompleteSelectors.IMAGE}
         />
       }
       primaryAction={{
@@ -129,13 +135,13 @@ const Complete = () => {
         onPress: handleContinue,
         isDisabled: isLoading,
         isLoading,
-        testID: 'complete-confirm-button',
+        testID: CompleteSelectors.CONFIRM_BUTTON,
       }}
       secondaryAction={{
         label: strings('card.card_onboarding.not_now_button'),
         onPress: handleNotNow,
         isDisabled: isLoading,
-        testID: 'complete-not-now-button',
+        testID: CompleteSelectors.NOT_NOW_BUTTON,
       }}
     />
   );
