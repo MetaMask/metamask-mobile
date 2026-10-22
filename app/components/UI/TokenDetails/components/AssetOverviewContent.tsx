@@ -17,6 +17,8 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
+import { useIsGlassSurfaceEnabled } from '../../../hooks/useIsGlassSurfaceEnabled';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import PerpsCard from '../../Perps/components/PerpsCard';
@@ -233,6 +235,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     severity: securityData?.resultType,
   });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
+  const isGlass = useIsGlassSurfaceEnabled(
+    selectTokenDetailsBrandRefreshEnabled,
+  );
   const isAssetInactive = useSelector((state) =>
     getIsAssetRequireActivate(state, {
       assetId: token.address,
@@ -415,6 +420,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             hasInsufficientCoverage={hasInsufficientCoverage}
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
+            isGlass={isGlass}
           />
           {!isTokenTradable(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
@@ -441,6 +447,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onActionTapped={trackActionTapped}
             resetNavigationLockRef={resetNavigationLockRef}
             onExitAction={onExitAction}
+            isGlass={isGlass}
           />
           <MoneyEarnBanner asset={token} />
           <TokenDetailsMarketInsightsSection
@@ -452,6 +459,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
             }
             containerStyle={styles.marketInsightsWrapper}
+            isGlass={isGlass}
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -478,7 +486,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 priceChangeOverrideColor={balancePriceChangeOverrideColor}
                 secondaryBalance={secondaryBalance}
               />
-              <EarnBalance asset={token} />
+              <EarnBalance asset={token} isGlass={isGlass} />
             </>
           )}
           {
