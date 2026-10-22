@@ -2808,10 +2808,12 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
       const calls = await planDepositWalletClaim({
         positions,
         walletAddress: accountState.address,
         protocol,
+        marketVersions,
       });
 
       DevLogger.log(

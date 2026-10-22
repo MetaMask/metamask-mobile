@@ -3388,6 +3388,15 @@ describe('PolymarketProvider', () => {
     );
 
     const positions = [createClaimPosition()];
+    mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce({
+      markets: [
+        {
+          conditionId: positions[0].outcomeId,
+          version: 'v2',
+        },
+      ],
+    } as never);
+
     const result = await createProvider().publishClaim({
       transactionMeta: {
         id: 'claim-tx',
@@ -3402,6 +3411,7 @@ describe('PolymarketProvider', () => {
       positions,
       walletAddress: depositWalletAddress,
       protocol: expect.objectContaining({ key: 'v2' }),
+      marketVersions: { [positions[0].outcomeId]: 'v2' },
     });
     expect(mockExecuteDepositWalletBatch).toHaveBeenCalledWith({
       signer,
