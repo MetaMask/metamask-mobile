@@ -47,6 +47,9 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: Consensys
           repositories: segment-schema
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
       - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@5d993ac935eff3f248d2213bb2d6922ce9cb3510 # v1.21.0
         with:
           platform: mobile
@@ -56,6 +59,7 @@ jobs:
   # Author opt-in. Skipped comments do not start a runner. The action still requires
   # the first line to be exactly the agreement sentence.
   did-user-agree-to-create-pr:
+    permissions: {}
     if: >
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&
@@ -71,6 +75,9 @@ jobs:
   is-cross-repo-pr:
     needs: did-user-agree-to-create-pr
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
     timeout-minutes: 5
     outputs:
       IS_CROSS_REPO_PR: ${{ steps.client-pr.outputs.IS_CROSS_REPO_PR }}
@@ -131,6 +138,9 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: Consensys
           repositories: segment-schema
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
       - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@5d993ac935eff3f248d2213bb2d6922ce9cb3510 # v1.21.0
         if: ${{ steps.client-pr.outputs.allowed == 'true' && success() }}
         with:
@@ -166,6 +176,9 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: Consensys
           repositories: segment-schema
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
       - uses: MetaMask/github-tools/.github/actions/draft-segment-schema-pr@5d993ac935eff3f248d2213bb2d6922ce9cb3510 # v1.21.0
         with:
           platform: mobile
