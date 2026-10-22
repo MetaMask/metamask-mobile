@@ -89,6 +89,7 @@ describe('usePerpsMarketData', () => {
     const { result } = renderHook(() =>
       usePerpsMarketData({
         asset: 'BTC',
+        providerId: 'hyperliquid',
         useProviderMetadata: true,
       }),
     );
@@ -98,6 +99,7 @@ describe('usePerpsMarketData', () => {
     });
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
     expect(mockGetMarketsFromProvider).toHaveBeenCalledWith({
+      providerId: 'hyperliquid',
       symbols: ['BTC'],
       skipFilters: true,
     });
@@ -116,6 +118,7 @@ describe('usePerpsMarketData', () => {
     const { result } = renderHook(() =>
       usePerpsMarketData({
         asset: 'BTC',
+        providerId: 'hyperliquid',
         useProviderMetadata: true,
       }),
     );

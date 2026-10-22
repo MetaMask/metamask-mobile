@@ -131,6 +131,7 @@ export const usePerpsMarketData = (
         if (allowedMarket && useProviderMetadata) {
           try {
             const providerMarkets = await getPerpsMarketsFromProvider({
+              providerId,
               symbols: [asset],
               skipFilters: true,
             });
@@ -138,11 +139,7 @@ export const usePerpsMarketData = (
               return;
             }
             const providerMarket = providerMarkets.find(
-              (market) =>
-                market.name === asset &&
-                (!providerId ||
-                  !market.providerId ||
-                  market.providerId === providerId),
+              (market) => market.name === asset,
             );
             if (providerMarket) {
               resolvedMarket = { ...allowedMarket, ...providerMarket };

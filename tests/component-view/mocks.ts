@@ -532,7 +532,17 @@ jest.mock('../../app/core/Engine', () => {
         init: jest.fn().mockResolvedValue({ success: true }),
         disconnect: jest.fn().mockResolvedValue(undefined),
         getActiveProvider: jest.fn(() => ({
+          protocolId: 'hyperliquid',
+          routesOrdersByProviderId: false,
           ping: jest.fn().mockResolvedValue(true),
+          getMarkets: jest.fn().mockResolvedValue([
+            {
+              name: 'ETH',
+              maxLeverage: 40,
+              szDecimals: 2,
+              marginTableId: 1,
+            },
+          ]),
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),

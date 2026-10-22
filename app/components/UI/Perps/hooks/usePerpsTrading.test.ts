@@ -485,18 +485,81 @@ describe('usePerpsTrading', () => {
       (
         Engine.context.PerpsController.getActiveProvider as jest.Mock
       ).mockReturnValue({
+        protocolId: 'hyperliquid',
+        routesOrdersByProviderId: false,
         getMarkets: getProviderMarkets,
       });
-      const params = { symbols: ['BTC'], skipFilters: true };
+      const params = {
+        providerId: 'hyperliquid' as const,
+        symbols: ['BTC'],
+        skipFilters: true,
+      };
 
       const response = await getPerpsMarketsFromProvider(params);
 
       expect(
         Engine.context.PerpsController.getActiveProvider,
       ).toHaveBeenCalledTimes(1);
-      expect(getProviderMarkets).toHaveBeenCalledWith(params);
+      expect(getProviderMarkets).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        skipFilters: true,
+      });
       expect(Engine.context.PerpsController.getMarkets).not.toHaveBeenCalled();
       expect(response).toEqual(mockMarkets);
+    });
+
+    it('rejects an untagged row from a different active provider', async () => {
+      const getProviderMarkets = jest.fn();
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        protocolId: 'lighter',
+        routesOrdersByProviderId: false,
+        getMarkets: getProviderMarkets,
+      });
+
+      const response = await getPerpsMarketsFromProvider({
+        providerId: 'hyperliquid',
+        symbols: ['BTC'],
+      });
+
+      expect(getProviderMarkets).not.toHaveBeenCalled();
+      expect(response).toEqual([]);
+    });
+
+    it('keeps only the selected venue from aggregated provider metadata', async () => {
+      const baseMarket: MarketInfo = {
+        name: 'BTC',
+        szDecimals: 4,
+        maxLeverage: 50,
+        marginTableId: 1,
+      };
+      const hyperliquidMarket = {
+        ...baseMarket,
+        providerId: 'hyperliquid' as const,
+      };
+      const getProviderMarkets = jest
+        .fn()
+        .mockResolvedValue([
+          hyperliquidMarket,
+          { ...baseMarket, providerId: 'lighter' as const },
+          baseMarket,
+        ]);
+      (
+        Engine.context.PerpsController.getActiveProvider as jest.Mock
+      ).mockReturnValue({
+        protocolId: 'aggregated',
+        routesOrdersByProviderId: true,
+        getMarkets: getProviderMarkets,
+      });
+
+      const response = await getPerpsMarketsFromProvider({
+        providerId: 'hyperliquid',
+        symbols: ['BTC'],
+      });
+
+      expect(getProviderMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
+      expect(response).toEqual([hyperliquidMarket]);
     });
   });
 
