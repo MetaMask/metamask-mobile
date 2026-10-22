@@ -1273,10 +1273,7 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error fetching carousel markets:', error);
 
-      logPredictError(
-        error,
-        this.getErrorContext('getCarouselMarkets', {}),
-      );
+      logPredictError(error, this.getErrorContext('getCarouselMarkets', {}));
 
       return [];
     }
@@ -2203,10 +2200,7 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
-      logPredictError(
-        error,
-        this.getErrorContext('fetchActivity'),
-      );
+      logPredictError(error, this.getErrorContext('fetchActivity'));
 
       throw error;
     }
