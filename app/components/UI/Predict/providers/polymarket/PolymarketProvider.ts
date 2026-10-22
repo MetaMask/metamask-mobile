@@ -297,6 +297,38 @@ interface CachedAccountState {
   expiresAt: number;
 }
 
+/**
+ * The protocol-specific steps of an order submission. Each trade path
+ * supplies its own so the shared pipeline never mixes contracts, signing
+ * domains, or allowance plans across protocols.
+ */
+interface TradeOrderSteps {
+  /** Signs, verifies, authorizes fees for, and submits the order. */
+  protocol: PolymarketTradeProtocol;
+  /** Deposit-wallet setup, legacy USDC.e reads, and the legacy-Safe sweep. */
+  ctfProtocol: PolymarketProtocolDefinition;
+  /** Overrides the CTF deposit-wallet allowance preflight plan. */
+  getDepositWalletPreflightPlan?: (input: {
+    walletAddress: string;
+  }) => Promise<DepositWalletPreflightPlan>;
+  buildOrder: typeof buildPositionsProtocolUnsignedOrder;
+  signOrder: typeof signPositionsProtocolOrder;
+  /** Runs for deposit-wallet orders; decides itself whether a sync is due. */
+  syncDepositWalletBalanceAllowance: (input: {
+    setupUpdatedState: boolean;
+    preview: OrderPreview;
+    signerAddress: string;
+    apiKey: ApiKeyCreds;
+  }) => Promise<void>;
+  buildSafeAllowancesTx: typeof buildPositionsTradeAllowancesTx;
+  safeAllowancesFailure: {
+    logMessage: string;
+    errorContext: string;
+    operation: string;
+    errorMessage: string;
+  };
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -715,6 +747,9 @@ export class PolymarketProvider implements PredictProvider {
     throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
   }
 
+  /**
+   * CTF order path — markets whose Gamma version is not "v2".
+   */
   async #submitOrder({
     signer,
     preview,
@@ -724,6 +759,109 @@ export class PolymarketProvider implements PredictProvider {
     preview: OrderPreview;
     protocol: PolymarketProtocolDefinition;
   }) {
+    return this.#submitTradeOrder({
+      signer,
+      preview,
+      steps: {
+        protocol,
+        ctfProtocol: protocol,
+        buildOrder: (args) => buildProtocolUnsignedOrder({ protocol, ...args }),
+        signOrder: (args) => signProtocolOrder({ protocol, ...args }),
+        syncDepositWalletBalanceAllowance: async ({
+          setupUpdatedState,
+          signerAddress,
+          apiKey,
+        }) => {
+          if (!setupUpdatedState) {
+            return;
+          }
+          await this.syncDepositWalletBalanceAllowanceForOrderIfNeeded({
+            protocol,
+            signerAddress,
+            apiKey,
+          });
+        },
+        buildSafeAllowancesTx: (args) =>
+          buildTradeAllowancesTx({ protocol, ...args }),
+        safeAllowancesFailure: {
+          logMessage:
+            'PolymarketProvider: Failed to generate v2 allowances transaction',
+          errorContext: 'placeOrder:v2AllowancesTx',
+          operation: 'generate_allowances_tx_v2',
+          errorMessage: 'Failed to prepare v2 trade preflight',
+        },
+      },
+    });
+  }
+
+  /**
+   * Protocol V2 (positions) order path — selected by the Gamma market
+   * version. The legacy USDC.e balance read, the legacy-Safe sweep, and the
+   * deposit-wallet setup keep the CTF definition because they move CTF-era
+   * assets, which no v2 market changes.
+   */
+  async #submitPositionsOrder({
+    signer,
+    preview,
+    protocol,
+  }: {
+    signer: Signer;
+    preview: OrderPreview;
+    protocol: typeof POLYMARKET_POSITIONS_PROTOCOL;
+  }) {
+    return this.#submitTradeOrder({
+      signer,
+      preview,
+      steps: {
+        protocol,
+        ctfProtocol: POLYMARKET_V2_PROTOCOL,
+        getDepositWalletPreflightPlan: ({ walletAddress }) =>
+          planPositionsDepositWalletPreflight({ walletAddress }),
+        buildOrder: buildPositionsProtocolUnsignedOrder,
+        signOrder: signPositionsProtocolOrder,
+        syncDepositWalletBalanceAllowance: async ({
+          setupUpdatedState,
+          preview: orderPreview,
+          signerAddress,
+          apiKey,
+        }) => {
+          // A sell refreshes the position balance even when the wallet setup
+          // did not change — see the sync method.
+          if (!setupUpdatedState && orderPreview.side !== Side.SELL) {
+            return;
+          }
+          await this.syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded(
+            { preview: orderPreview, signerAddress, apiKey },
+          );
+        },
+        buildSafeAllowancesTx: buildPositionsTradeAllowancesTx,
+        safeAllowancesFailure: {
+          logMessage:
+            'PolymarketProvider: Failed to generate positions allowances transaction',
+          errorContext: 'placeOrder:positionsAllowancesTx',
+          operation: 'generate_allowances_tx_positions',
+          errorMessage: 'Failed to prepare positions trade preflight',
+        },
+      },
+    });
+  }
+
+  /**
+   * The order pipeline shared by both trade protocols. Protocol-specific
+   * work — order build and signing, deposit-wallet preflight and balance
+   * sync, and Safe allowances — comes from `steps`, so each path keeps its
+   * own contracts, domain, and allowance plan.
+   */
+  async #submitTradeOrder({
+    signer,
+    preview,
+    steps,
+  }: {
+    signer: Signer;
+    preview: OrderPreview;
+    steps: TradeOrderSteps;
+  }) {
+    const { protocol, ctfProtocol } = steps;
     const accountState = await this.getAccountState({
       ownerAddress: signer.address,
     });
@@ -739,14 +877,14 @@ export class PolymarketProvider implements PredictProvider {
       depositWalletSetupUpdatedState = await this.ensureDepositWalletReady({
         ownerAddress: signer.address,
         depositWalletAddress: tradingWalletAddress,
-        protocol,
+        protocol: ctfProtocol,
         getSigner: () => signer,
         operation: 'deposit_wallet_order_preflight',
+        getPreflightPlan: steps.getDepositWalletPreflightPlan,
       });
     }
 
-    const order = buildProtocolUnsignedOrder({
-      protocol,
+    const order = steps.buildOrder({
       preview: {
         ...preview,
         feeRateBps: getPreviewFeeRateBpsForProtocol(),
@@ -761,9 +899,8 @@ export class PolymarketProvider implements PredictProvider {
         : SignatureType.POLY_GNOSIS_SAFE,
     });
 
-    const signature = await signProtocolOrder({
+    const signature = await steps.signOrder({
       signer,
-      protocol,
       order,
       verifyingContract,
     });
@@ -776,9 +913,10 @@ export class PolymarketProvider implements PredictProvider {
       address: signer.address,
     });
 
-    if (isDepositWallet && depositWalletSetupUpdatedState) {
-      await this.syncDepositWalletBalanceAllowanceForOrderIfNeeded({
-        protocol,
+    if (isDepositWallet) {
+      await steps.syncDepositWalletBalanceAllowance({
+        setupUpdatedState: depositWalletSetupUpdatedState,
+        preview,
         signerAddress: signer.address,
         apiKey: signerApiKey,
       });
@@ -827,7 +965,7 @@ export class PolymarketProvider implements PredictProvider {
             signer,
             legacySafeAddress,
             depositWalletAddress: tradingWalletAddress,
-            protocol,
+            protocol: ctfProtocol,
           },
         );
 
@@ -837,29 +975,26 @@ export class PolymarketProvider implements PredictProvider {
       try {
         const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
           safeAddress: tradingWalletAddress,
-          protocol,
+          protocol: ctfProtocol,
         });
-        allowancesTx = await buildTradeAllowancesTx({
+        allowancesTx = await steps.buildSafeAllowancesTx({
           signer,
           safeAddress: tradingWalletAddress,
-          protocol,
           safeUsdceBalance: safeLegacyUsdceBalance,
         });
         permit2AllowanceReady = true;
       } catch (allowanceError) {
-        DevLogger.log(
-          'PolymarketProvider: Failed to generate v2 allowances transaction',
-          { error: allowanceError },
-        );
+        const failure = steps.safeAllowancesFailure;
+        DevLogger.log(failure.logMessage, { error: allowanceError });
         Logger.error(
           allowanceError instanceof Error
             ? allowanceError
             : new Error(String(allowanceError)),
-          this.getErrorContext('placeOrder:v2AllowancesTx', {
-            operation: 'generate_allowances_tx_v2',
+          this.getErrorContext(failure.errorContext, {
+            operation: failure.operation,
           }),
         );
-        throw new Error('Failed to prepare v2 trade preflight');
+        throw new Error(failure.errorMessage);
       }
     }
 
@@ -1025,220 +1160,6 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
     return getPolymarketProtocolForMarketVersion(await cached);
-  }
-
-  /**
-   * Protocol V2 (positions) order path — selected by the Gamma market
-   * version. Mirrors {@link #submitOrder} section-for-section with the
-   * positions protocol; the CTF path is untouched. The legacy USDC.e balance
-   * read and the legacy-Safe sweep keep using the CTF definition because
-   * they move CTF-era assets, which no v2 market changes.
-   */
-  async #submitPositionsOrder({
-    signer,
-    preview,
-    protocol,
-  }: {
-    signer: Signer;
-    preview: OrderPreview;
-    protocol: typeof POLYMARKET_POSITIONS_PROTOCOL;
-  }) {
-    const accountState = await this.getAccountState({
-      ownerAddress: signer.address,
-    });
-    const isDepositWallet = accountState.walletType === 'deposit-wallet';
-    const tradingWalletAddress = accountState.address;
-    const verifyingContract = getProtocolVerifyingContract({
-      protocol,
-      negRisk: preview.negRisk,
-    });
-
-    let depositWalletSetupUpdatedState = false;
-    if (isDepositWallet) {
-      depositWalletSetupUpdatedState = await this.ensureDepositWalletReady({
-        ownerAddress: signer.address,
-        depositWalletAddress: tradingWalletAddress,
-        // Unused when the positions planner is supplied below; the wallet
-        // setup itself is protocol-independent.
-        protocol: POLYMARKET_V2_PROTOCOL,
-        getSigner: () => signer,
-        operation: 'deposit_wallet_order_preflight',
-        getPreflightPlan: ({ walletAddress }) =>
-          planPositionsDepositWalletPreflight({ walletAddress }),
-      });
-    }
-
-    const order = buildPositionsProtocolUnsignedOrder({
-      preview: {
-        ...preview,
-        feeRateBps: getPreviewFeeRateBpsForProtocol(),
-      },
-      makerAddress: tradingWalletAddress,
-      signerAddress: isDepositWallet
-        ? tradingWalletAddress
-        : getAddress(signer.address),
-      builderCode: preview.feePolicy?.builderCode,
-      signatureType: isDepositWallet
-        ? SignatureType.POLY_1271
-        : SignatureType.POLY_GNOSIS_SAFE,
-    });
-
-    const signature = await signPositionsProtocolOrder({
-      signer,
-      order,
-      verifyingContract,
-    });
-
-    const signedOrder = {
-      ...order,
-      signature,
-    };
-    const signerApiKey = await this.getApiKey({
-      address: signer.address,
-    });
-
-    if (
-      isDepositWallet &&
-      (depositWalletSetupUpdatedState || preview.side === Side.SELL)
-    ) {
-      await this.syncDepositWalletBalanceAllowanceForPositionsOrderIfNeeded({
-        preview,
-        signerAddress: signer.address,
-        apiKey: signerApiKey,
-      });
-    }
-
-    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-    const shouldUsePermit2 =
-      !isDepositWallet &&
-      this.#hasPermit2Config({
-        permit2Enabled: preview.fees?.permit2Enabled,
-        executors: preview.fees?.executors,
-      });
-
-    let feeAuthorization: Permit2FeeAuthorization | undefined;
-    let executor: string | undefined;
-    let permit2FeeReady = false;
-
-    if (
-      preview.fees !== undefined &&
-      preview.fees.totalFee > 0 &&
-      shouldUsePermit2
-    ) {
-      const feeAmount = BigInt(
-        parseUnits(preview.fees.totalFee.toString(), 6).toString(),
-      );
-      executor = this.#pickExecutor(preview.fees.executors ?? []);
-      feeAuthorization = await createPermit2FeeAuthorization({
-        safeAddress: tradingWalletAddress,
-        signer,
-        amount: feeAmount,
-        spender: executor,
-        tokenAddress: protocol.collateral.feeAuthorizationToken,
-      });
-      permit2FeeReady = true;
-    }
-
-    let allowancesTx: { to: string; data: string } | undefined;
-    let permit2AllowanceReady = false;
-
-    if (isDepositWallet) {
-      const legacySafeAddress = computeProxyAddress(signer.address);
-      const legacySafeDeployed = await isSmartContractAddress(
-        legacySafeAddress,
-        numberToHex(POLYGON_MAINNET_CHAIN_ID),
-      );
-
-      if (legacySafeDeployed) {
-        const sweepTransaction = await buildLegacySafeMigrationSweepTransaction(
-          {
-            signer,
-            legacySafeAddress,
-            depositWalletAddress: tradingWalletAddress,
-            protocol: POLYMARKET_V2_PROTOCOL,
-          },
-        );
-
-        allowancesTx = sweepTransaction?.params;
-      }
-    } else {
-      try {
-        const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
-          safeAddress: tradingWalletAddress,
-          protocol: POLYMARKET_V2_PROTOCOL,
-        });
-        allowancesTx = await buildPositionsTradeAllowancesTx({
-          signer,
-          safeAddress: tradingWalletAddress,
-          safeUsdceBalance: safeLegacyUsdceBalance,
-        });
-        permit2AllowanceReady = true;
-      } catch (allowanceError) {
-        DevLogger.log(
-          'PolymarketProvider: Failed to generate positions allowances transaction',
-          { error: allowanceError },
-        );
-        Logger.error(
-          allowanceError instanceof Error
-            ? allowanceError
-            : new Error(String(allowanceError)),
-          this.getErrorContext('placeOrder:positionsAllowancesTx', {
-            operation: 'generate_allowances_tx_positions',
-          }),
-        );
-        throw new Error('Failed to prepare positions trade preflight');
-      }
-    }
-
-    const orderType = this.#getPlaceOrderType({
-      preview,
-      feeCollection,
-      fakOrdersEnabled,
-      permit2FeeReady,
-      permit2AllowanceReady,
-      manualFeeCollectionSupported: !isDepositWallet,
-    });
-
-    const clobOrder = serializeProtocolRelayerOrder({
-      signedOrder,
-      owner: signerApiKey.apiKey,
-      orderType,
-      side: preview.side,
-    });
-    const body = JSON.stringify(clobOrder);
-    const headers = await getL2Headers({
-      l2HeaderArgs: {
-        method: 'POST',
-        requestPath: `/order`,
-        body,
-      },
-      address: signer.address,
-      apiKey: signerApiKey,
-    });
-
-    const orderResult = await submitProtocolClobOrder({
-      protocol,
-      headers,
-      clobOrder,
-      feeAuthorization,
-      executor,
-      allowancesTx,
-    });
-
-    if (!orderResult.success) {
-      DevLogger.log('PolymarketProvider: Place order failed', {
-        error: orderResult.error,
-        errorDetails: undefined,
-        side: preview.side,
-        outcomeTokenId: preview.outcomeTokenId,
-      });
-      this.#throwPlaceOrderError({
-        error: orderResult.error,
-        side: preview.side,
-      });
-    }
-
-    return orderResult.response;
   }
 
   public async getMarketDetails({

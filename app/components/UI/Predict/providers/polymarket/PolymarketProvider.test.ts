@@ -16,6 +16,7 @@ import {
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
@@ -2278,6 +2279,136 @@ describe('PolymarketProvider', () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe('Failed to prepare positions trade preflight');
   });
+
+  it('fails a v1 order when the CTF allowances transaction cannot be built', async () => {
+    mockBuildTradeAllowancesTx.mockRejectedValueOnce(
+      new Error('allowance build failed'),
+    );
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: basePreview,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Failed to prepare v2 trade preflight');
+    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+  });
+
+  it('builds v1 Safe trade allowances with the CTF protocol', async () => {
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith({
+      signer,
+      safeAddress: legacySafeAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+      safeUsdceBalance: expect.any(BigInt),
+    });
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'v2' }),
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            side: Side.SELL,
+            signatureType: SignatureType.POLY_GNOSIS_SAFE,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('skips the balance sync for deposit-wallet v1 sells when the wallet setup is unchanged', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    mockPlanDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+
+    const provider = createProvider();
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalled();
+    expect(mockPlanPositionsDepositWalletPreflight).not.toHaveBeenCalled();
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockSyncDepositWalletPositionBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'v2' }),
+      }),
+    );
+  });
+
+  it.each([
+    ['v1', v1MarketEvent],
+    ['v2', v2MarketEvent],
+  ])(
+    'maps relayer rejections to Predict error codes for %s orders',
+    async (_version, event) => {
+      const provider = createProvider();
+      await previewWithWarmVersionCache(provider, event);
+
+      mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+        success: false,
+        error: "order couldn't be fully filled",
+      } as never);
+      const buyResult = await provider.placeOrder({
+        signer,
+        preview: basePreview,
+      });
+
+      mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+        success: false,
+        error: "order couldn't be fully filled",
+      } as never);
+      const sellResult = await provider.placeOrder({
+        signer,
+        preview: { ...basePreview, side: Side.SELL },
+      });
+
+      mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'not available in your region',
+      } as never);
+      const regionResult = await provider.placeOrder({
+        signer,
+        preview: basePreview,
+      });
+
+      expect(buyResult.error).toBe(
+        PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED,
+      );
+      expect(sellResult.error).toBe(
+        PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+      );
+      expect(regionResult.error).toBe(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
+    },
+  );
 
   it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
     const innerSignature = `0x${'11'.repeat(65)}`;
