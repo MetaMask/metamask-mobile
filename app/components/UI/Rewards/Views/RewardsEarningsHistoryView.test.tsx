@@ -94,6 +94,35 @@ const claim: LedgerClaimEntryDto = {
   payout_method: 'VOUCHER',
 };
 
+const UNDER_REVIEW_SUMMARY = {
+  lifetime_total: '0',
+  window: null,
+  pending: '0',
+  claimed: '0',
+  minimum_musd_base_units: '1000000',
+  pairing_pending: false,
+  self_earned: {
+    lifetime: '0',
+    pending: '0',
+    claimed: '0',
+    by_claim_family: {
+      REFERRAL_TRADE_FEE_CASHBACK: {
+        lifetime: '0',
+        pending: '0',
+        claimed: '0',
+        blocked: '9150000',
+        blocking_reason: 'UNDER_REVIEW',
+      },
+    },
+  },
+  earned_by_others: {
+    lifetime: '0',
+    pending: '0',
+    claimed: '0',
+    by_claim_family: {},
+  },
+} as unknown as EarningsSummaryDto;
+
 const STATE = {
   engine: {
     backgroundState: {
@@ -128,6 +157,22 @@ const STATE = {
     earningsSummary: {},
   },
 };
+
+function underReviewState() {
+  return {
+    ...STATE,
+    rewardsMoney: {
+      ...STATE.rewardsMoney,
+      earningsSummary: {
+        [PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: UNDER_REVIEW_SUMMARY,
+        },
+      },
+    },
+  };
+}
 
 describe('RewardsEarningsHistoryView', () => {
   const loadMore = jest.fn();
@@ -245,50 +290,46 @@ describe('RewardsEarningsHistoryView', () => {
     });
   });
 
-  it('shows the under-review banner from the summary and opens the paused sheet', () => {
-    const summary = {
-      lifetime_total: '0',
-      window: null,
-      pending: '0',
-      claimed: '0',
-      minimum_musd_base_units: '1000000',
-      pairing_pending: false,
-      self_earned: {
-        lifetime: '0',
-        pending: '0',
-        claimed: '0',
-        by_claim_family: {
-          REFERRAL_TRADE_FEE_CASHBACK: {
-            lifetime: '0',
-            pending: '0',
-            claimed: '0',
-            blocked: '9150000',
-            blocking_reason: 'UNDER_REVIEW',
-          },
-        },
-      },
-      earned_by_others: {
-        lifetime: '0',
-        pending: '0',
-        claimed: '0',
-        by_claim_family: {},
-      },
-    } as unknown as EarningsSummaryDto;
+  it('hides the under-review banner while history is still on its first load', () => {
+    (useEarningsHistory as jest.Mock).mockReturnValue({
+      items: null,
+      isLoading: true,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { queryByTestId, getByTestId } = renderWithProvider(
+      <RewardsEarningsHistoryView />,
+      { state: underReviewState() },
+    );
+
+    expect(
+      getByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.SKELETON_SLOT),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
+  });
+
+  it('keeps the under-review banner while a summary refresh is in flight', () => {
+    const state = underReviewState();
+    state.rewardsMoney.earningsSummary[PROFILE_ID].loading = true;
 
     const { getByTestId } = renderWithProvider(<RewardsEarningsHistoryView />, {
-      state: {
-        ...STATE,
-        rewardsMoney: {
-          ...STATE.rewardsMoney,
-          earningsSummary: {
-            [PROFILE_ID]: {
-              loading: false,
-              error: false,
-              data: summary,
-            },
-          },
-        },
-      },
+      state,
+    });
+
+    expect(
+      getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the under-review banner from the summary and opens the paused sheet', () => {
+    const { getByTestId } = renderWithProvider(<RewardsEarningsHistoryView />, {
+      state: underReviewState(),
     });
 
     expect(useEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);

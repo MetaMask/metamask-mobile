@@ -50,9 +50,18 @@ const RewardsEarningsHistoryView: React.FC = () => {
     [list.items, inFlight.claims],
   );
 
-  const pausedBaseUnits = underReviewBlockedBaseUnits(
-    earningsSummaryEntry?.data,
-  );
+  const summaryData = earningsSummaryEntry?.data;
+  // The Earnings tab waits for both reads. This header is drawn above the
+  // first-load skeleton, so it stays off until the summary and the history
+  // page have both settled.
+  const summaryLoading =
+    !summaryData &&
+    (!earningsSummaryEntry || Boolean(earningsSummaryEntry.loading));
+  const historyFirstLoad = list.isLoading || list.items === null;
+  const pausedBaseUnits =
+    summaryLoading || historyFirstLoad
+      ? null
+      : underReviewBlockedBaseUnits(summaryData);
   const header =
     pausedBaseUnits && localizedText ? (
       <RewardsPausedBanner
