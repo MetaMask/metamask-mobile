@@ -134,6 +134,9 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
+  I18nEvents: new (jest.requireActual('events').EventEmitter)(),
   strings: (key: string) => {
     const map: Record<string, string> = {
       'card.card_onboarding.title': 'Enable MetaMask Card features',
