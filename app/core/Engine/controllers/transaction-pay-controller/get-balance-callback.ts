@@ -3,7 +3,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import {
-  PaymentOverride,
   type GetBalanceRequest,
   type GetBalanceResponse,
 } from '@metamask/transaction-pay-controller';
@@ -17,6 +16,7 @@ import {
 } from '../../../../core/redux/slices/moneyBalance';
 import { RootState } from '../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { isMoneyAccountFunding } from '../../../../components/Views/confirmations/utils/transaction-pay';
 
 /**
  * Synchronous balance override for max-amount source calculation. Runs inside
@@ -51,9 +51,15 @@ export function getBalance({
     return getPredictBalance(transaction.txParams?.from, decimals);
   }
 
+  // A Money Account deposit funded from Solana carries the Money Account
+  // override for its second leg, but its Max is the Solana balance.
   if (
     hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw]) ||
-    transactionData.paymentOverride === PaymentOverride.MoneyAccount
+    isMoneyAccountFunding({
+      paymentOverride: transactionData.paymentOverride,
+      payToken: transactionData.paymentToken,
+      transactionMeta: transaction,
+    })
   ) {
     return getMoneyAccountBalance();
   }

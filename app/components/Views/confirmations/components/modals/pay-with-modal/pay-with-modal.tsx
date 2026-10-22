@@ -102,6 +102,9 @@ export function PayWithModal() {
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const { renderNoFeeTag } = usePayWithNoFeeToken();
   const tagRenderers = useMemo(
     () => (isMoneyAccount ? [renderNoFeeTag] : undefined),
@@ -151,7 +154,11 @@ export function PayWithModal() {
       // choosing a token leaves the previous selection intact.
       if (isSelectedPayToken(token, paymentToken)) {
         close(() => {
-          clearPaymentOverride();
+          // A selected Solana source on a Money Account deposit carries the
+          // Money Account override for its vault second leg; keep it.
+          if (!(isSolanaPayAsset(token) && isMoneyAccountDeposit)) {
+            clearPaymentOverride();
+          }
           if (dismissOnSelectCount > 1) {
             navigation.dispatch(StackActions.pop(dismissOnSelectCount));
           }
@@ -219,6 +226,7 @@ export function PayWithModal() {
       close,
       dismissOnSelectCount,
       ensurePayToken,
+      isMoneyAccountDeposit,
       isPredictContext,
       isWithdraw,
       navigation,

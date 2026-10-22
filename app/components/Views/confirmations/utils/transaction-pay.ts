@@ -263,6 +263,39 @@ export function getPaymentTokenKey(
 }
 
 /**
+ * Whether the confirmation is funded from the Money Account. A Money Account
+ * deposit funded from Solana also carries the Money Account override, so Core
+ * runs the vault deposit as a second leg, but the funds come from the Solana
+ * account.
+ *
+ * @param options - Options.
+ * @param options.paymentOverride - Payment override on the transaction.
+ * @param options.payToken - Selected payment token, if any.
+ * @param options.transactionMeta - Current confirmation metadata.
+ * @returns True if the Money Account funds the confirmation.
+ */
+export function isMoneyAccountFunding({
+  paymentOverride,
+  payToken,
+  transactionMeta,
+}: {
+  paymentOverride?: PaymentOverride | string;
+  payToken?: TransactionPaymentToken;
+  transactionMeta?: TransactionMeta;
+}): boolean {
+  if (paymentOverride !== PaymentOverride.MoneyAccount) {
+    return false;
+  }
+
+  const isSolanaPayDeposit =
+    payToken !== undefined &&
+    isNonEvmPaymentToken(payToken) &&
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit]);
+
+  return !isSolanaPayDeposit;
+}
+
+/**
  * Whether a token-list asset is a Solana mainnet SOL or SPL balance held by a
  * Solana account, which MetaMask Pay can use as a non-EVM payment source.
  *

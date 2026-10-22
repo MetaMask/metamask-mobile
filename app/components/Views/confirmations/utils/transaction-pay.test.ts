@@ -14,6 +14,7 @@ import {
   getPaymentTokenKey,
   getTokenTransferData,
   isMatchingPayToken,
+  isMoneyAccountFunding,
   isSelectedPayToken,
   isSolanaPayAsset,
   isTokenBlocked,
@@ -716,6 +717,54 @@ describe('Transaction Pay Utils', () => {
     it('matches an EVM payment token by address and chain', () => {
       expect(isSelectedPayToken(TOKEN_MOCK, EVM_PAY_TOKEN_MOCK)).toBe(true);
       expect(isSelectedPayToken(TOKEN_MOCK, undefined)).toBe(false);
+    });
+  });
+
+  describe('isMoneyAccountFunding', () => {
+    const MONEY_ACCOUNT_DEPOSIT_MOCK = {
+      type: TransactionType.moneyAccountDeposit,
+    } as TransactionMeta;
+
+    it('returns false without the Money Account override', () => {
+      expect(
+        isMoneyAccountFunding({
+          paymentOverride: undefined,
+          payToken: EVM_PAY_TOKEN_MOCK,
+          transactionMeta: MONEY_ACCOUNT_DEPOSIT_MOCK,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns true for the Money Account override with an EVM token', () => {
+      expect(
+        isMoneyAccountFunding({
+          paymentOverride: PaymentOverride.MoneyAccount,
+          payToken: EVM_PAY_TOKEN_MOCK,
+          transactionMeta: MONEY_ACCOUNT_DEPOSIT_MOCK,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for a Money Account deposit funded by a Solana source', () => {
+      expect(
+        isMoneyAccountFunding({
+          paymentOverride: PaymentOverride.MoneyAccount,
+          payToken: NON_EVM_PAY_TOKEN_MOCK,
+          transactionMeta: MONEY_ACCOUNT_DEPOSIT_MOCK,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns true for a non-deposit Money Account override with a Solana token', () => {
+      expect(
+        isMoneyAccountFunding({
+          paymentOverride: PaymentOverride.MoneyAccount,
+          payToken: NON_EVM_PAY_TOKEN_MOCK,
+          transactionMeta: {
+            type: TransactionType.perpsDeposit,
+          } as TransactionMeta,
+        }),
+      ).toBe(true);
     });
   });
 

@@ -8,12 +8,14 @@ import { selectSolanaPayEnabled } from '../../../../../selectors/featureFlagCont
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 /**
- * Transaction types whose Solana source route Core builds end to end: Relay
- * executes the product deposit atomically on the target chain. Flows that need
- * a client-specific selection (deposit-and-order) or a Money Account follow-up
- * stay EVM-only here.
+ * Transaction types whose Solana source route Core builds end to end. Relay
+ * executes Perps and Predict deposits atomically on the target chain; a Money
+ * Account deposit bridges to the Money Account and Core runs the vault deposit
+ * as a non-atomic second leg (see `useSetNonEvmPayToken`). Flows that need a
+ * client-specific selection (deposit-and-order) stay EVM-only here.
  */
 export const SOLANA_PAY_SOURCE_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
 ];

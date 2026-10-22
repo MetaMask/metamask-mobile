@@ -1317,6 +1317,50 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  it('does not re-select MUSD when a Solana source sets the money override on a Money Account deposit', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+    } as never);
+    useTransactionPayTokenMock.mockReturnValue({
+      nonEvmPayToken: {
+        accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        balanceFiat: '300',
+        balanceHuman: '2',
+        balanceRaw: '2000000000',
+        balanceUsd: '300',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        decimals: 9,
+        symbol: 'SOL',
+        walletAccountId: 'solana-account-id',
+      },
+      payToken: undefined,
+      setPayToken: setPayTokenMock,
+    });
+
+    const { rerender } = runHook();
+    setPayTokenMock.mockClear();
+
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
   it('does not re-select on money override change when disabled', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [

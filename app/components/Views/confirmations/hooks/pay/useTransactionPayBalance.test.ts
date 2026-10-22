@@ -251,5 +251,46 @@ describe('useTransactionPayBalance', () => {
         balanceUsd: 0,
       });
     });
+
+    it('returns the Solana source balance for a Money Account deposit funded from Solana', () => {
+      mockTransaction({ type: TransactionType.moneyAccountDeposit });
+
+      const { result } = renderHookWithProvider(
+        () => useTransactionPayBalance(),
+        {
+          state: merge(
+            {},
+            otherControllersMock,
+            overrideState,
+            {
+              engine: {
+                backgroundState: {
+                  TransactionPayController: {
+                    transactionData: {
+                      [TRANSACTION_ID_MOCK]: {
+                        paymentToken: {
+                          accountId:
+                            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+                          assetId:
+                            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+                          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                          walletAccountId: 'solana-account-id',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            getMoneyAccountState('3129000'),
+          ),
+        },
+      );
+
+      expect(result.current).toStrictEqual({
+        balanceRaw: '12500000',
+        balanceUsd: 25,
+      });
+    });
   });
 });

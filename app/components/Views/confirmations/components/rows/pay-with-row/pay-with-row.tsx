@@ -30,7 +30,6 @@ import {
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './pay-with-row.styles';
 import { BigNumber } from 'bignumber.js';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
@@ -52,6 +51,7 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { isMoneyAccountFunding } from '../../../utils/transaction-pay';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -76,8 +76,16 @@ function PayWithRowComponent({
     return null;
   }
 
-  // Explicit selection via controller — always honor it.
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
+  // Explicit selection via controller — always honor it. A Money Account
+  // deposit funded from Solana keeps the override for its second leg but shows
+  // the Solana source.
+  if (
+    isMoneyAccountFunding({
+      paymentOverride,
+      payToken: payToken ?? nonEvmPayToken,
+      transactionMeta,
+    })
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 

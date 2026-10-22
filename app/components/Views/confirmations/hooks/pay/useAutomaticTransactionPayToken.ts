@@ -11,7 +11,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
@@ -34,7 +33,10 @@ import {
   isSubsidizedSource,
   RelayFixedSpreadConfig,
 } from '../../utils/relayFixedSpread';
-import { isSolanaPayAsset } from '../../utils/transaction-pay';
+import {
+  isMoneyAccountFunding,
+  isSolanaPayAsset,
+} from '../../utils/transaction-pay';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { RootState } from '../../../../../reducers';
@@ -116,8 +118,13 @@ export function useAutomaticTransactionPayToken({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
+  // A Money Account deposit funded from Solana carries the Money Account
+  // override for its second leg; it must not re-select the Money Account token.
+  const isMoneyPaymentOverride = isMoneyAccountFunding({
+    paymentOverride,
+    payToken: paymentToken,
+    transactionMeta,
+  });
   const isMoneyAccountFlagDefault = useIsMoneyAccountFlagDefault();
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>

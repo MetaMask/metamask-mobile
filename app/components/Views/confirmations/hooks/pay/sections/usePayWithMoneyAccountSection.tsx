@@ -7,7 +7,6 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
 import { RootState } from '../../../../../../reducers';
@@ -16,12 +15,18 @@ import {
   selectMetaMaskPayFlags,
   selectPerpsMoneyAccountNoFeeRouteEnabled,
 } from '../../../../../../selectors/featureFlagController/confirmations';
-import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
+import {
+  selectPaymentOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { NoFeeTag } from '../../../components/UI/no-fee-tag';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { getTransactionType } from '../../../utils/transaction';
-import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
+import {
+  applyMoneyAccountOverride,
+  isMoneyAccountFunding,
+} from '../../../utils/transaction-pay';
 import { usePayMoneyAccountAvailable } from '../usePayMoneyAccountAvailable';
 import {
   PayWithRowConfig,
@@ -56,8 +61,16 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
-  const isMoneyAccountSelected =
-    paymentOverride === PaymentOverride.MoneyAccount;
+  const payToken = useSelector((state: RootState) =>
+    selectTransactionPaymentTokenByTransactionId(state, transactionId),
+  );
+  // A Money Account deposit funded from Solana keeps the override for its
+  // second leg, but the Solana source is what is selected.
+  const isMoneyAccountSelected = isMoneyAccountFunding({
+    paymentOverride,
+    payToken,
+    transactionMeta,
+  });
 
   const transactionType = getTransactionType(transactionMeta);
   const isEnabled = Boolean(

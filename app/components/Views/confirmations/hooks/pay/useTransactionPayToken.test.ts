@@ -16,6 +16,8 @@ import { TransactionType } from '@metamask/transaction-controller';
 import {
   EvmPaymentToken,
   NonEvmPaymentToken,
+  PaymentOverride,
+  TransactionConfig,
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
 import Engine from '../../../../../core/Engine';
@@ -25,6 +27,7 @@ import { updateTransaction } from '../../../../../util/transaction-controller';
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
+      setTransactionConfig: jest.fn(),
       updatePaymentToken: jest.fn(),
     },
     GasFeeController: {
@@ -334,6 +337,144 @@ describe('useTransactionPayToken', () => {
     expect(result.current.nonEvmPayToken).toStrictEqual(NON_EVM_PAY_TOKEN_MOCK);
     expect(result.current.payToken).toBeUndefined();
     expect(result.current.isNative).toBeFalsy();
+  });
+
+  describe('Money Account deposit funded by a non-EVM token', () => {
+    const setTransactionConfigMock = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+
+    function getAppliedConfig(initialConfig: TransactionConfig = {}) {
+      const config = { ...initialConfig };
+      const callback = setTransactionConfigMock.mock.calls[0][1];
+      callback(config);
+      return config;
+    }
+
+    function renderSetPayTokenHooks({
+      payToken,
+      type,
+    }: {
+      payToken?: EvmPaymentToken | NonEvmPaymentToken;
+      type: TransactionType;
+    }) {
+      const mockState = cloneDeep(STATE_MOCK);
+      mockState.engine.backgroundState.TransactionPayController = {
+        transactionData: {
+          [TRANSACTION_ID_MOCK]: {
+            isLoading: false,
+            paymentToken: payToken,
+            tokens: [],
+          },
+        },
+      };
+      mockState.engine.backgroundState.TransactionController.transactions[0].type =
+        type;
+
+      return renderHookWithProvider(
+        () => ({
+          setNonEvmPayToken: useSetNonEvmPayToken(),
+          setPayToken: useTransactionPayToken().setPayToken,
+        }),
+        { state: mockState },
+      ).result.current;
+    }
+
+    it('sets the non-atomic Money Account config before selecting the token', () => {
+      const { setNonEvmPayToken } = renderSetPayTokenHooks({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      setNonEvmPayToken({
+        assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
+        walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
+      });
+
+      expect(setTransactionConfigMock).toHaveBeenCalledWith(
+        TRANSACTION_ID_MOCK,
+        expect.any(Function),
+      );
+      expect(getAppliedConfig()).toStrictEqual({
+        atomic: false,
+        paymentOverride: PaymentOverride.MoneyAccount,
+      });
+      expect(setTransactionConfigMock.mock.invocationCallOrder[0]).toBeLessThan(
+        updatePaymentTokenMock.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('does not change the config for other transaction types', () => {
+      const { setNonEvmPayToken } = renderSetPayTokenHooks({
+        type: TransactionType.perpsDeposit,
+      });
+
+      setNonEvmPayToken({
+        assetId: NON_EVM_PAY_TOKEN_MOCK.assetId,
+        walletAccountId: NON_EVM_PAY_TOKEN_MOCK.walletAccountId,
+      });
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
+
+    it('clears the Money Account config when switching back to an EVM token', () => {
+      const { setPayToken } = renderSetPayTokenHooks({
+        payToken: NON_EVM_PAY_TOKEN_MOCK,
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      expect(
+        getAppliedConfig({
+          atomic: false,
+          paymentOverride: PaymentOverride.MoneyAccount,
+        }),
+      ).toStrictEqual({
+        atomic: undefined,
+        paymentOverride: undefined,
+      });
+    });
+
+    it('keeps the atomic hint of an armed Max when switching back to an EVM token', () => {
+      const { setPayToken } = renderSetPayTokenHooks({
+        payToken: NON_EVM_PAY_TOKEN_MOCK,
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      expect(
+        getAppliedConfig({
+          atomic: false,
+          isMaxAmount: true,
+          paymentOverride: PaymentOverride.MoneyAccount,
+        }),
+      ).toStrictEqual({
+        atomic: false,
+        isMaxAmount: true,
+        paymentOverride: undefined,
+      });
+    });
+
+    it('does not change the config when switching between EVM tokens', () => {
+      const { setPayToken } = renderSetPayTokenHooks({
+        payToken: PAY_TOKEN_MOCK,
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
   });
 
   it('selects a non-EVM payment token by CAIP asset ID and wallet account', () => {

@@ -380,6 +380,38 @@ describe('PayWithModal', () => {
       });
     });
 
+    it('keeps the Money Account second leg when re-selecting the selected Solana source on a Money Account deposit', async () => {
+      getAvailableTokensMock.mockReturnValue([SOLANA_TOKEN_MOCK]);
+      useTransactionPayTokenMock.mockReturnValue({
+        nonEvmPayToken: {
+          assetId: SOLANA_USDC_ASSET_ID,
+          walletAccountId: 'solana-account-id',
+          chainId: SolScope.Mainnet,
+        },
+        payToken: undefined,
+        setPayToken: setPayTokenMock,
+      } as unknown as ReturnType<typeof useTransactionPayToken>);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.moneyAccountDeposit,
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Solana USD Coin'));
+
+      // The close callback of the re-selected EVM token clears the override;
+      // a re-selected Solana source must keep it for the Money Account leg.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(mockClearPaymentOverride).not.toHaveBeenCalled();
+      expect(setNonEvmPayTokenMock).not.toHaveBeenCalled();
+    });
+
     it('does not clear paymentOverride until a token is selected', async () => {
       const { findByText } = render();
 

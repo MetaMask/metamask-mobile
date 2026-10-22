@@ -5,7 +5,10 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import {
+  selectPaymentOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../../selectors/transactionPayController';
 import { useIsPerpsBalanceSelected } from '../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/selectors/predictController';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
@@ -29,6 +32,9 @@ jest.mock('../../../../../selectors/accountsController');
 
 const selectPaymentOverrideMock = jest.mocked(
   selectPaymentOverrideByTransactionId,
+);
+const selectPaymentTokenMock = jest.mocked(
+  selectTransactionPaymentTokenByTransactionId,
 );
 const useIsPerpsBalanceSelectedMock = jest.mocked(useIsPerpsBalanceSelected);
 const selectPredictSelectedPaymentTokenMock = jest.mocked(
@@ -191,6 +197,27 @@ describe('usePaySectionSourceMetrics', () => {
 
     expect(result.current.selected).toBe('money-account');
     expect(result.current.presented).toBe('money-account');
+  });
+
+  it('returns the account type for a Money Account deposit funded from Solana', () => {
+    selectPaymentOverrideMock.mockReturnValue(PaymentOverride.MoneyAccount);
+    selectPaymentTokenMock.mockReturnValue({
+      accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      balanceFiat: '300',
+      balanceHuman: '2',
+      balanceRaw: '2000000000',
+      balanceUsd: '300',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      decimals: 9,
+      symbol: 'SOL',
+      walletAccountId: 'solana-account-id',
+    });
+    useTransactionAccountOverrideMock.mockReturnValue(PAYING_ACCOUNT_MOCK);
+
+    const { result } = runHook({ type: TransactionType.moneyAccountDeposit });
+
+    expect(result.current.selected).toBe('metamask');
   });
 
   it('returns money-account when isDefaultMoneyAccount flag is true and no pay token is selected', () => {

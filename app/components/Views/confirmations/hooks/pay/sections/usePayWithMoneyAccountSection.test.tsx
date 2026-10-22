@@ -375,6 +375,65 @@ describe('usePayWithMoneyAccountSection', () => {
     },
   );
 
+  describe('selection state', () => {
+    const SOLANA_PAY_TOKEN_MOCK = {
+      accountId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:SoLAddress',
+      assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      walletAccountId: 'solana-account-id',
+    };
+
+    function mockMoneyAccountDeposit(payToken?: object) {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-1',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: {},
+      } as never);
+
+      useSelectorMock.mockImplementation((selector) => {
+        if (selector === selectPrimaryMoneyAccount) {
+          return moneyAccountMock;
+        }
+        if (selector === selectMetaMaskPayFlags) {
+          return {
+            enableMoneyAccountTransactions: { moneyAccountDeposit: true },
+          };
+        }
+        return selector({
+          engine: {
+            backgroundState: {
+              TransactionPayController: {
+                transactionData: {
+                  'tx-1': {
+                    paymentOverride: PaymentOverride.MoneyAccount,
+                    paymentToken: payToken,
+                  },
+                },
+              },
+            },
+          },
+        } as never);
+      });
+    }
+
+    it('marks the money account selected when it funds the deposit', () => {
+      mockMoneyAccountDeposit();
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current?.rows[0].isSelected).toBe(true);
+    });
+
+    it('does not mark the money account selected for a deposit funded from Solana', () => {
+      mockMoneyAccountDeposit(SOLANA_PAY_TOKEN_MOCK);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      expect(result.current?.rows[0].isSelected).toBe(false);
+      expect(result.current?.rows[0].trailingElement).toBe('none');
+    });
+  });
+
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
       withdrawableFiatFormatted: '$250.50',

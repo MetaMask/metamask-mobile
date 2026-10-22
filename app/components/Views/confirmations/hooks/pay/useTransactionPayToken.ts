@@ -7,6 +7,7 @@ import {
 import {
   EvmPaymentToken,
   NonEvmPaymentToken,
+  PaymentOverride,
   TransactionPaymentToken,
   isNonEvmPaymentToken,
 } from '@metamask/transaction-pay-controller';
@@ -28,6 +29,36 @@ export interface SetNonEvmPayTokenRequest {
   assetId: CaipAssetType;
   /** ID of the `InternalAccount` holding the token. */
   walletAccountId: string;
+}
+
+/**
+ * Configures a Money Account deposit for a non-EVM source, or clears that
+ * configuration when switching back to an EVM token.
+ *
+ * Core runs the vault deposit as a non-atomic second leg only for a request
+ * with the Money Account override and `atomic: false`, so it must be set before
+ * the non-EVM token is selected for the first quote to include it. An armed Max
+ * deposit keeps its own atomic hint (see `useTransactionCustomAmount`).
+ *
+ * @param transactionId - ID of the Money Account deposit.
+ * @param isNonEvmSource - Whether the newly selected payment token is non-EVM.
+ */
+function setMoneyAccountDepositNonEvmSource(
+  transactionId: string,
+  isNonEvmSource: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.paymentOverride = isNonEvmSource
+        ? PaymentOverride.MoneyAccount
+        : undefined;
+
+      if (isNonEvmSource || !config.isMaxAmount) {
+        config.atomic = isNonEvmSource ? false : undefined;
+      }
+    },
+  );
 }
 
 export function useTransactionPayToken(): {
@@ -64,10 +95,18 @@ export function useTransactionPayToken(): {
   const isNative =
     payToken && payToken?.address === getNativeTokenAddress(payToken?.chainId);
 
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+
   const setPayToken = useCallback(
     (newPayToken: { address: Hex; chainId: Hex }) => {
       const { GasFeeController, NetworkController, TransactionPayController } =
         Engine.context;
+
+      if (isMoneyAccountDeposit && nonEvmPayToken) {
+        setMoneyAccountDepositNonEvmSource(transactionId as string, false);
+      }
 
       const networkClientId = NetworkController.findNetworkClientIdByChainId(
         newPayToken.chainId,
@@ -115,6 +154,8 @@ export function useTransactionPayToken(): {
       EngineService.flushState();
     },
     [
+      isMoneyAccountDeposit,
+      nonEvmPayToken,
       transactionId,
       transactionMeta,
       primaryRequiredToken?.chainId,
@@ -140,10 +181,18 @@ export function useTransactionPayToken(): {
 export function useSetNonEvmPayToken(): (
   request: SetNonEvmPayTokenRequest,
 ) => void {
-  const transactionId = useTransactionMetadataRequest()?.id ?? '';
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
 
   return useCallback(
     ({ assetId, walletAccountId }: SetNonEvmPayTokenRequest) => {
+      if (isMoneyAccountDeposit) {
+        setMoneyAccountDepositNonEvmSource(transactionId, true);
+      }
+
       try {
         Engine.context.TransactionPayController.updatePaymentToken({
           transactionId,
@@ -156,6 +205,6 @@ export function useSetNonEvmPayToken(): (
 
       EngineService.flushState();
     },
-    [transactionId],
+    [isMoneyAccountDeposit, transactionId],
   );
 }
