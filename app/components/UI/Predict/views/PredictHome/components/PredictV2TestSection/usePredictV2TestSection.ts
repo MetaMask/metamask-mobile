@@ -21,6 +21,14 @@ export const V2_TEST_DISPLAY_LIMIT = 5;
 const V2_TEST_FETCH_LIMIT = 30;
 
 /**
+ * TEMPORARY (Protocol V2 testing): slug fragment identifying the 5m crypto
+ * Up/Down windows. They are excluded from the regular list (they have their
+ * own home UI), but the most liquid one is always surfaced in this section
+ * so there is at least one tradeable v2 market to test against.
+ */
+const FIVE_MIN_UPDOWN_SLUG_FRAGMENT = 'updown-5m-';
+
+/**
  * TEMPORARY (Protocol V2 testing): fetches the v2 listing directly from
  * Gamma's `/events` endpoint. The regular list pipeline reads
  * `/events/keyset?version=v2`, which currently 500s server-side (reported
@@ -29,7 +37,10 @@ const V2_TEST_FETCH_LIMIT = 30;
  * markets are in private beta. Markets are parsed through the shared
  * `parsePolymarketEvents` — the regular pipeline, not a test parser.
  */
-const fetchV2TestMarkets = async (): Promise<PredictMarket[]> => {
+const fetchV2TestMarkets = async (): Promise<{
+  markets: PredictMarket[];
+  fiveMinConditionIds: string[];
+}> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
   const token = process.env.MM_POLYMARKET_GAMMA_VISIBILITY_TOKEN;
 
@@ -45,49 +56,48 @@ const fetchV2TestMarkets = async (): Promise<PredictMarket[]> => {
   }
 
   const events = (await response.json()) as PolymarketApiEvent[];
-  const parsed = parsePolymarketEvents(events, 'trending');
+  const markets = parsePolymarketEvents(events, 'trending');
+
+  // The 5m Up/Down windows are excluded from the regular list below, so
+  // their condition ids are collected from the wire to surface the most
+  // liquid one separately.
+  const fiveMinConditionIds = events.flatMap((event) =>
+    (event.markets ?? [])
+      .filter((market) =>
+        (market.slug ?? '').includes(FIVE_MIN_UPDOWN_SLUG_FRAGMENT),
+      )
+      .map((market) => market.conditionId),
+  );
+
   DevLogger.log(
     '[Predict] v2 test fetch:',
     events.length,
     'events,',
-    parsed.length,
+    markets.length,
     'markets parsed',
   );
 
-  return parsed;
+  return { markets, fiveMinConditionIds };
 };
+
+interface ClobBookOrder {
+  price: string;
+  size: string;
+}
 
 interface ClobBookSummary {
   asset_id: string;
-  bids: unknown[];
-  asks: unknown[];
-}
-
-export interface PredictV2TestDiagnostics {
-  /** Markets returned by the list query (post feed-hygiene). */
-  fetched: number;
-  /** Markets left after excluding crypto Up/Down. */
-  candidates: number;
-  /** Tokens found with a two-sided CLOB book. */
-  liquidTokens: number;
-  /** Markets kept after the liquidity filter. */
-  kept: number;
-  /** List-fetch failure message, when the underlying query errored. */
-  listError: string | null;
-  /** Book-check failure message (the filter fails open when this is set). */
-  filterError: string | null;
+  bids: ClobBookOrder[];
+  asks: ClobBookOrder[];
 }
 
 /**
  * TEMPORARY (Protocol V2 testing): Gamma reports no liquidity/volume for v2
  * markets yet (fields are null and prices are 0.5 placeholders), so the only
- * real signal is the CLOB order book. Batched `POST /books` — one request per
- * page — returns a book per asset id; a token is "liquid" when both sides
- * have resting orders.
+ * real signal is the CLOB order book. Batched `POST /books` returns a book
+ * per asset id.
  */
-const fetchLiquidTokenIds = async (
-  tokenIds: string[],
-): Promise<Set<string>> => {
+const fetchBooks = async (tokenIds: string[]): Promise<ClobBookSummary[]> => {
   const { CLOB_ENDPOINT } = getPolymarketEndpoints();
 
   const response = await fetch(`${CLOB_ENDPOINT}/books`, {
@@ -100,8 +110,64 @@ const fetchLiquidTokenIds = async (
     throw new Error(`POST /books ${response.status}`);
   }
 
-  const books = (await response.json()) as ClobBookSummary[];
-  const liquid = new Set(
+  return (await response.json()) as ClobBookSummary[];
+};
+
+interface LiquidityFilterResult {
+  /** Non-UpDown markets kept after the liquidity filter. */
+  markets: PredictMarket[];
+  /** Markets left after excluding crypto Up/Down. */
+  candidates: number;
+  /** Tokens found with a two-sided CLOB book. */
+  liquidTokens: number;
+  /** Most liquid 5m Up/Down market by total book depth, when quoted. */
+  best5m: PredictMarket | null;
+}
+
+/**
+ * TEMPORARY (Protocol V2 testing): keeps only events with at least one
+ * outcome token backed by a two-sided CLOB book. Crypto Up/Down windows are
+ * excluded entirely — they are market-maker quoted every few minutes, so they
+ * dominate the volume ordering and would permanently crowd out every other
+ * v2 event (they have their own home UI). The single most liquid 5m Up/Down
+ * window (by total book depth) is returned separately so the section always
+ * has one tradeable v2 market.
+ */
+const filterMarketsWithLiquidity = async (
+  markets: PredictMarket[],
+  fiveMinConditionIds: string[],
+): Promise<LiquidityFilterResult> => {
+  const candidates = markets.filter((market) => !isCryptoUpDown(market));
+  const fiveMinMarkets = markets.filter((market) =>
+    market.outcomes.some((outcome) => fiveMinConditionIds.includes(outcome.id)),
+  );
+
+  const tokenIds = [...candidates, ...fiveMinMarkets].flatMap((market) =>
+    market.outcomes.flatMap((outcome): string[] =>
+      outcome.tokens.map((token: PredictOutcomeToken) => token.id),
+    ),
+  );
+
+  if (tokenIds.length === 0) {
+    return {
+      markets: candidates,
+      candidates: candidates.length,
+      liquidTokens: 0,
+      best5m: null,
+    };
+  }
+
+  const books = await fetchBooks(tokenIds);
+
+  const depthByTokenId = new Map<string, number>();
+  for (const book of books) {
+    const depth =
+      (book.bids ?? []).reduce((sum, order) => sum + Number(order.size), 0) +
+      (book.asks ?? []).reduce((sum, order) => sum + Number(order.size), 0);
+    depthByTokenId.set(book.asset_id, depth);
+  }
+
+  const liquidTokenIds = new Set(
     books
       .filter(
         (book) => (book.bids?.length ?? 0) > 0 && (book.asks?.length ?? 0) > 0,
@@ -113,57 +179,53 @@ const fetchLiquidTokenIds = async (
     '[Predict] v2 liquidity check:',
     tokenIds.length,
     'tokens checked,',
-    liquid.size,
+    liquidTokenIds.size,
     'with two-sided books',
   );
 
-  return liquid;
-};
+  const hasLiquidToken = (market: PredictMarket) =>
+    market.outcomes.some((outcome) =>
+      outcome.tokens.some((token) => liquidTokenIds.has(token.id)),
+    );
 
-interface LiquidityFilterResult {
-  markets: PredictMarket[];
-  candidates: number;
-  liquidTokens: number;
-}
-
-/**
- * TEMPORARY (Protocol V2 testing): keeps only events with at least one
- * outcome token backed by a two-sided CLOB book. Crypto Up/Down windows are
- * excluded entirely — they are market-maker quoted every few minutes, so they
- * dominate the volume ordering and would permanently crowd out every other
- * v2 event (they have their own home UI).
- */
-const filterMarketsWithLiquidity = async (
-  markets: PredictMarket[],
-): Promise<LiquidityFilterResult> => {
-  const candidates = markets.filter((market) => !isCryptoUpDown(market));
-
-  const tokenIds = candidates.flatMap((market) =>
-    market.outcomes.flatMap((outcome): string[] =>
-      outcome.tokens.map((token: PredictOutcomeToken) => token.id),
-    ),
-  );
-
-  if (tokenIds.length === 0) {
-    return {
-      markets: candidates,
-      candidates: candidates.length,
-      liquidTokens: 0,
-    };
-  }
-
-  const liquidTokenIds = await fetchLiquidTokenIds(tokenIds);
+  const totalBookDepth = (market: PredictMarket) =>
+    market.outcomes.reduce(
+      (sum, outcome) =>
+        sum +
+        outcome.tokens.reduce(
+          (tokenSum, token) => tokenSum + (depthByTokenId.get(token.id) ?? 0),
+          0,
+        ),
+      0,
+    );
 
   return {
-    markets: candidates.filter((market) =>
-      market.outcomes.some((outcome) =>
-        outcome.tokens.some((token) => liquidTokenIds.has(token.id)),
-      ),
-    ),
+    markets: candidates.filter(hasLiquidToken),
     candidates: candidates.length,
     liquidTokens: liquidTokenIds.size,
+    best5m:
+      fiveMinMarkets
+        .filter(hasLiquidToken)
+        .sort((a, b) => totalBookDepth(b) - totalBookDepth(a))[0] ?? null,
   };
 };
+
+export interface PredictV2TestDiagnostics {
+  /** Markets returned by the list query (post feed-hygiene). */
+  fetched: number;
+  /** Markets left after excluding crypto Up/Down. */
+  candidates: number;
+  /** Tokens found with a two-sided CLOB book. */
+  liquidTokens: number;
+  /** Markets kept after the liquidity filter (excluding the 5m pick). */
+  kept: number;
+  /** Slug of the surfaced 5m Up/Down market, when one is quoted. */
+  best5m: string | null;
+  /** List-fetch failure message, when the underlying query errored. */
+  listError: string | null;
+  /** Book-check failure message (the filter fails open when this is set). */
+  filterError: string | null;
+}
 
 export interface UsePredictV2TestSectionResult {
   /** v2 markets ready for the vertical list, capped to V2_TEST_DISPLAY_LIMIT. */
@@ -178,12 +240,16 @@ export interface UsePredictV2TestSectionResult {
 
 /**
  * TEMPORARY (Protocol V2 testing): data source for the Predict home
- * "Protocol V2" section. Same shape as the trending section but pointed at
- * Gamma's `version=v2` listing, then filtered down to markets that have CLOB
- * book depth. Delete at PRED-1353.
+ * "Protocol V2" section. Points at Gamma's `version=v2` listing, filtered
+ * down to markets with CLOB book depth, plus the most liquid 5m Up/Down
+ * window pinned to the front so there is always one tradeable v2 market.
+ * Delete at PRED-1353.
  */
 export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
-  const [markets, setMarkets] = useState<PredictMarket[]>([]);
+  const [list, setList] = useState<{
+    markets: PredictMarket[];
+    fiveMinConditionIds: string[];
+  }>({ markets: [], fiveMinConditionIds: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -196,13 +262,13 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
       try {
         const result = await fetchV2TestMarkets();
         if (!cancelled) {
-          setMarkets(result);
+          setList(result);
           setError(null);
         }
       } catch (listError) {
         DevLogger.log('[Predict] v2 test list failed:', listError);
         if (!cancelled) {
-          setMarkets([]);
+          setList({ markets: [], fiveMinConditionIds: [] });
           setError(
             listError instanceof Error
               ? listError
@@ -228,6 +294,8 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
     return Promise.resolve();
   }, []);
 
+  const { markets, fiveMinConditionIds } = list;
+
   const [marketsWithLiquidity, setMarketsWithLiquidity] =
     useState<PredictMarket[]>(markets);
   const [isFiltering, setIsFiltering] = useState(true);
@@ -236,6 +304,7 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
     candidates: 0,
     liquidTokens: 0,
     kept: 0,
+    best5m: null,
     listError: null,
     filterError: null,
   });
@@ -246,14 +315,22 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
     const run = async () => {
       setIsFiltering(true);
       try {
-        const result = await filterMarketsWithLiquidity(markets);
+        const result = await filterMarketsWithLiquidity(
+          markets,
+          fiveMinConditionIds,
+        );
         if (!cancelled) {
-          setMarketsWithLiquidity(result.markets);
+          // The most liquid 5m Up/Down window is pinned to the front so it
+          // is always visible, even when every other v2 market is empty.
+          setMarketsWithLiquidity(
+            result.best5m ? [result.best5m, ...result.markets] : result.markets,
+          );
           setDiagnostics({
             fetched: markets.length,
             candidates: result.candidates,
             liquidTokens: result.liquidTokens,
             kept: result.markets.length,
+            best5m: result.best5m?.slug ?? null,
             listError: error ? error.message : null,
             filterError: null,
           });
@@ -271,6 +348,7 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
             candidates: markets.length,
             liquidTokens: 0,
             kept: markets.length,
+            best5m: null,
             listError: error ? error.message : null,
             filterError:
               filterError instanceof Error
@@ -283,13 +361,14 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
     };
 
     if (markets.length === 0) {
-      setMarketsWithLiquidity(markets);
+      setMarketsWithLiquidity([]);
       setDiagnostics((previous) => ({
         ...previous,
         fetched: 0,
         candidates: 0,
         liquidTokens: 0,
         kept: 0,
+        best5m: null,
         listError: error ? error.message : null,
       }));
       setIsFiltering(false);
@@ -301,7 +380,7 @@ export const usePredictV2TestSection = (): UsePredictV2TestSectionResult => {
     return () => {
       cancelled = true;
     };
-  }, [markets, error]);
+  }, [markets, fiveMinConditionIds, error]);
 
   const showEmptyState =
     !isLoading &&

@@ -38,6 +38,7 @@ const PredictV2TestSection: React.FC = () => {
         twClassName="mb-2"
       >
         {`fetched ${diagnostics.fetched} · non-updown ${diagnostics.candidates} · liquid tokens ${diagnostics.liquidTokens} · kept ${diagnostics.kept}`}
+        {diagnostics.best5m ? ` · 5m: ${diagnostics.best5m}` : ''}
         {diagnostics.filterError
           ? ` · filter error: ${diagnostics.filterError}`
           : ''}
