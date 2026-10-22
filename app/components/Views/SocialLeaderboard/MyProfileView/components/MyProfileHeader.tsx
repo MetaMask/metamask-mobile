@@ -13,8 +13,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Linking, Pressable } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfileAvatar from './ProfileAvatar';
@@ -24,6 +26,20 @@ import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
+
+const CalendarBlankIcon = () => {
+  const tw = useTailwind();
+
+  return (
+    <Svg
+      viewBox="0 0 256 256"
+      fill="currentColor"
+      style={tw.style(IconColor.IconAlternative, 'w-4 h-4')}
+    >
+      <Path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z" />
+    </Svg>
+  );
+};
 
 const RANKING_TAG_DISPLAY: Record<
   ProfileRankingTag,
@@ -219,15 +235,11 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={1}
           paddingTop={2}
           testID={MyProfileViewSelectorsIDs.JOINED}
         >
-          <Icon
-            name={IconName.Clock}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
+          <CalendarBlankIcon />
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {joinedLabel}
           </Text>
