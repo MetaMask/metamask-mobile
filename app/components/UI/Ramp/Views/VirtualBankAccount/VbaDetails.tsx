@@ -312,6 +312,7 @@ const VbaDetails = () => {
             ACCOUNT_CREATE_ERROR_DESTINATION.generic,
             undefined,
             { httpStatus: 500 },
+            sourceCurrency,
           );
           return;
         }
@@ -352,6 +353,7 @@ const VbaDetails = () => {
           ACCOUNT_CREATE_ERROR_DESTINATION.generic,
           undefined,
           { httpStatus: 500 },
+          sourceCurrency,
         );
         return;
       }
@@ -452,6 +454,7 @@ const VbaDetails = () => {
             ACCOUNT_CREATE_ERROR_DESTINATION[variant],
             undefined,
             getAccountCreateFailureLogFields(error.result),
+            sourceCurrency,
           );
           return;
         }
@@ -478,7 +481,7 @@ const VbaDetails = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hardwareTier, navigation, networkTier, refreshDeposit]);
+  }, [hardwareTier, navigation, networkTier, refreshDeposit, sourceCurrency]);
 
   const isApproved = autorampStatus === 'Approved';
 

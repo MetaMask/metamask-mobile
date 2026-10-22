@@ -11,7 +11,10 @@ import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import VbaAccountCreateError from '../VbaAccountCreateError';
 import { buildAccountCreateSupportUrl } from '../accountCreateError';
-import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+import {
+  openCompletedVbaAccount,
+  useOpenVbaOnboarding,
+} from '../hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from '../routes';
 
 /**
@@ -22,8 +25,8 @@ const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
-  const { variant, failure } = route.params;
-  const retry = useOpenVbaOnboarding('account-create-error-retry');
+  const { variant, failure, sourceCurrency } = route.params;
+  const resumeOnboarding = useOpenVbaOnboarding('account-create-error-retry');
   const { openSupportWithConsent } = useSupportConsent();
 
   const leave = useCallback(() => {
@@ -40,6 +43,14 @@ const VbaAccountCreateErrorAdapter = () => {
     );
   }, [failure, openSupportWithConsent]);
 
+  const retry = useCallback(() => {
+    if (sourceCurrency) {
+      openCompletedVbaAccount(navigation, sourceCurrency);
+      return;
+    }
+    resumeOnboarding();
+  }, [navigation, resumeOnboarding, sourceCurrency]);
+
   if (variant === 'details') {
     return (
       <VbaAccountCreateError
@@ -54,7 +65,7 @@ const VbaAccountCreateErrorAdapter = () => {
   return (
     <VbaAccountCreateError
       variant="generic"
-      onPrimary={() => retry()}
+      onPrimary={retry}
       onSecondary={leave}
       onBack={leave}
     />

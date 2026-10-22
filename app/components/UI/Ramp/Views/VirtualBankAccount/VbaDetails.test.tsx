@@ -723,6 +723,7 @@ describe('VbaDetails', () => {
         'accountCreateGeneric',
         undefined,
         { httpStatus: 500 },
+        'BRL',
       );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
@@ -744,6 +745,7 @@ describe('VbaDetails', () => {
         'accountCreateGeneric',
         undefined,
         { httpStatus: 500 },
+        'BRL',
       );
     });
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
@@ -965,6 +967,7 @@ describe('VbaDetails', () => {
         'accountCreateGeneric',
         undefined,
         { httpStatus: 500 },
+        'BRL',
       );
     });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);

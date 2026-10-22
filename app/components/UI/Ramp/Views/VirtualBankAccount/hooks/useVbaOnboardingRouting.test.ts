@@ -903,4 +903,23 @@ describe('navigateToVbaOnboardingDestination account create error', () => {
       },
     });
   });
+
+  it('passes the source currency to the retry screen', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      { httpStatus: 500 },
+      'USD',
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        failure: { httpStatus: 500 },
+        sourceCurrency: 'USD',
+      },
+    });
+  });
 });

@@ -174,6 +174,7 @@ export const navigateToVbaOnboardingDestination = (
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
   failure?: AccountCreateFailureFields,
+  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   if (destinationId === 'complete') {
     openCompletedVbaAccount(navigation);
@@ -203,6 +204,7 @@ export const navigateToVbaOnboardingDestination = (
       {
         variant: accountCreateErrorVariantForDestination(destinationId),
         ...(failure ? { failure } : {}),
+        ...(sourceCurrency ? { sourceCurrency } : {}),
       },
     );
     return;

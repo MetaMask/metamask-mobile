@@ -3,6 +3,7 @@ import type {
   AccountCreateFailureFields,
 } from './accountCreateError';
 import type { VbaOnboardingSnapshot } from './vbaOnboardingSnapshot';
+import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 
 export const VbaOnboardingRoutes = {
   VENDOR_TERMS: 'VbaVendorTerms',
@@ -35,6 +36,7 @@ export type VbaOnboardingParamList = {
   VbaAccountCreateError: {
     variant: AccountCreateErrorVariant;
     failure?: AccountCreateFailureFields;
+    sourceCurrency?: VbaSourceCurrency;
   };
   VbaError: undefined;
 };
