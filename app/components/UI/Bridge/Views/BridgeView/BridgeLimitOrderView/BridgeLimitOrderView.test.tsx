@@ -50,7 +50,7 @@ const expectAdvancedOrderProperties = (
   properties: {
     location: string;
     feature_id: FeatureId;
-    type: OrderType;
+    order_type: OrderType;
     error?: string;
   },
 ) => {
@@ -65,9 +65,7 @@ const expectAdvancedOrderProperties = (
     .addProperties.mock.calls[0][0] as Record<string, unknown>;
 
   expect(added).toEqual(properties);
-  expect(added).toHaveProperty('type');
-  expect(added).not.toHaveProperty('order_type');
-  expect(added).not.toHaveProperty('orderType');
+  expect(added).toHaveProperty('order_type');
 };
 
 /**
@@ -1482,7 +1480,7 @@ describe('BridgeLimitOrderView', () => {
           {
             location: 'Transaction Details',
             feature_id: FeatureId.LIMIT_ORDER,
-            type: expectedType,
+            order_type: expectedType,
           },
         );
       },

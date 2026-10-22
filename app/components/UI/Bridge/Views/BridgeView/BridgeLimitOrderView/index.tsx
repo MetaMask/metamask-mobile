@@ -495,7 +495,7 @@ const BridgeLimitOrderViewContent = ({
         .addProperties({
           location,
           feature_id: FeatureId.LIMIT_ORDER,
-          type: `${executionType}_${LIMIT_ORDER_DIRECTION[priceComparisonDirection].threshold}`,
+          order_type: `${executionType}_${LIMIT_ORDER_DIRECTION[priceComparisonDirection].threshold}`,
         })
         .build(),
     );
