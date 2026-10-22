@@ -58,6 +58,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   contentContainerStyle,
   filterKey,
   scrollResetKey,
+  refreshControl,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -164,6 +165,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       // snapshot with per-row live-price updates, so there are no above-viewport
       // insertions for it to protect against.
       maintainVisibleContentPosition={{ disabled: true }}
+      refreshControl={refreshControl}
       removeClippedSubviews
       showsVerticalScrollIndicator={false}
       testID={testID}

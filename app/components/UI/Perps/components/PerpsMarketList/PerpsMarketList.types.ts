@@ -69,6 +69,10 @@ export interface PerpsMarketListProps {
    */
   scrollResetKey?: string;
   /**
+   * Optional pull-to-refresh control passed through to FlashList.
+   */
+  refreshControl?: React.ReactElement;
+  /**
    * Test ID for E2E testing
    */
   testID?: string;

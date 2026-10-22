@@ -109,7 +109,7 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
 
   it.each([
     { tabParam: 'now', expectedIndex: EXPLORE_TAB_INDEX.NOW },
-    { tabParam: 'macro', expectedIndex: EXPLORE_TAB_INDEX.MACRO },
+    { tabParam: 'macro', expectedIndex: EXPLORE_TAB_INDEX.PERPS },
     { tabParam: 'rwas', expectedIndex: EXPLORE_TAB_INDEX.RWAS },
     { tabParam: 'crypto', expectedIndex: EXPLORE_TAB_INDEX.CRYPTO },
     { tabParam: 'sports', expectedIndex: EXPLORE_TAB_INDEX.SPORTS },

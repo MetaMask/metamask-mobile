@@ -75,8 +75,13 @@ type TopTradersCarouselItem =
   | { kind: 'view_more' };
 
 interface TopTradersSectionProps {
-  sectionIndex: number;
-  totalSectionsLoaded: number;
+  /**
+   * Homepage section index for analytics. When omitted (e.g. Explore tab),
+   * homepage-specific analytics (useHomeViewedEvent, useSectionPerformance)
+   * are disabled while the component renders identically.
+   */
+  sectionIndex?: number;
+  totalSectionsLoaded?: number;
 }
 
 /**
@@ -112,9 +117,14 @@ const TopTradersSection = forwardRef<
     }
   }, [hasEverBeenVisible, isSectionVisible]);
 
+  // Outside the homepage (e.g. Explore Perps tab) there is no homepage scroll
+  // context, so the viewport hook can never report visible. Fetch right away.
+  const isHomepageContext = sectionIndex !== undefined;
+
   // Keep the query warm after its first reveal. A continuous visibility gate
   // would re-enable this stale query and refetch whenever the user scrolls back.
-  const hasRequestedTraders = isSectionVisible || hasEverBeenVisible;
+  const hasRequestedTraders =
+    !isHomepageContext || isSectionVisible || hasEverBeenVisible;
 
   const {
     traders: allTraders,
@@ -173,24 +183,25 @@ const TopTradersSection = forwardRef<
   const sectionMountsVisibleRoot = isEnabled && !isEmpty;
 
   const { onLayout: homeViewedOnLayout } = useHomeViewedEvent({
-    sectionRef: sectionMountsVisibleRoot ? sectionViewRef : null,
+    sectionRef:
+      isHomepageContext && sectionMountsVisibleRoot ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
-    sectionIndex,
-    totalSectionsLoaded,
+    sectionIndex: sectionIndex ?? 0,
+    totalSectionsLoaded: totalSectionsLoaded ?? 0,
     isEmpty: traders.length === 0,
     itemCount: traders.length,
   });
 
   usePrefetchTraderProfiles(visibleTraderIds, {
     enabled: isEnabled && hasTraders,
-    isSectionVisible,
+    isSectionVisible: isSectionVisible || !isHomepageContext,
   });
 
   const handleSectionLayout = useCallback(() => {
-    homeViewedOnLayout();
+    if (isHomepageContext) homeViewedOnLayout();
     sectionVisibleOnLayout();
-  }, [homeViewedOnLayout, sectionVisibleOnLayout]);
+  }, [isHomepageContext, homeViewedOnLayout, sectionVisibleOnLayout]);
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
@@ -206,7 +217,8 @@ const TopTradersSection = forwardRef<
     // Disable telemetry once we render the error UI so the in-flight TTC and
     // data-fetch spans get closed via the hook's cleanup instead of remaining
     // open until the user navigates away.
-    enabled: isEnabled && !showError,
+    // Skip homepage-only performance tracking when rendered outside the homepage.
+    enabled: isEnabled && !showError && isHomepageContext,
   });
 
   const carouselData = useMemo((): TopTradersCarouselItem[] => {
@@ -340,7 +352,7 @@ const TopTradersSection = forwardRef<
         testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
-          <SectionDivider />
+          {isHomepageContext && <SectionDivider />}
           <SectionHeader
             title={title}
             isInteractive
@@ -368,7 +380,7 @@ const TopTradersSection = forwardRef<
         testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
-          <SectionDivider />
+          {isHomepageContext && <SectionDivider />}
           <SectionHeader
             title={title}
             isInteractive
