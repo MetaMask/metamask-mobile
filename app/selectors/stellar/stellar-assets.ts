@@ -277,7 +277,7 @@ function selectResolvedAccountIdForAsset(
  */
 export const getSpendableForAccount = createParameterizedSelector(
   selectAssetsBalance,
-  getAssetsInfo,
+  getAssetsInfo as (state: unknown) => AssetsControllerState['assetsInfo'],
   selectResolvedAccountIdForAsset,
   (_state: unknown, params: StellarAccountAssetParams) => params.assetId,
   (assetsBalance, assetsInfo, resolvedAccountId, assetId) => {
