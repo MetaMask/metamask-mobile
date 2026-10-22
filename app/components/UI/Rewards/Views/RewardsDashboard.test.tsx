@@ -173,8 +173,9 @@ const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
 
 // Mock react-native-safe-area-context
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 // Mock useAnalytics hook
 const mockTrackEvent = jest.fn();
@@ -441,6 +442,7 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(analytics, 'trackEvent').mockImplementation(() => undefined);
 
     // Configure mocks before passing them to the mock hook factory
     // so the hook receives already-configured references
@@ -1884,8 +1886,17 @@ describe('RewardsDashboard', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED,
       );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards',
+        has_subscription: true,
+      });
       expect(mockBuild).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
+      expect(analytics.trackEvent).toHaveBeenCalledWith({
+        event: 'mock-event',
+      });
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_PAGE_VIEWED,
+      );
     });
 
     it('tracks dashboard viewed event only once', () => {
@@ -1908,7 +1919,7 @@ describe('RewardsDashboard', () => {
       expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     });
 
-    it('tracks tab viewed event when activeTab changes', () => {
+    it('does not track a dashboard tab event when activeTab changes', () => {
       // Arrange
       const { rerender } = render(<RewardsDashboard />);
       mockTrackEvent.mockClear();
@@ -1932,12 +1943,7 @@ describe('RewardsDashboard', () => {
       rerender(<RewardsDashboard />);
 
       // Assert
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED,
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({ tab: 'activity' });
-      expect(mockBuild).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock-event' });
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     });
   });
 
