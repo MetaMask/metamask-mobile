@@ -55,6 +55,17 @@ const signedOut = (): AuthenticationControllerState =>
     srpSessionData: {},
   }) as unknown as AuthenticationControllerState;
 
+/** `AuthenticationController#invalidateSrpSession`: the session entry survives,
+ * its `canonicalProfileId` is blanked, and the next bearer-token request
+ * re-logs in. */
+const invalidatedSession = (entropySourceId: string = PRIMARY_SRP) =>
+  ({
+    isSignedIn: true,
+    srpSessionData: {
+      [entropySourceId]: { profile: { canonicalProfileId: '' } },
+    },
+  }) as unknown as AuthenticationControllerState;
+
 describe('resolvePredictUserIdentity', () => {
   it('identifies the Predict User from the primary SRP session profile', () => {
     expect(
@@ -75,13 +86,31 @@ describe('resolvePredictUserIdentity', () => {
   });
 
   it('reports signed out when the primary SRP has no session', () => {
-    expect(
-      resolvePredictUserIdentity(signedOut(), unlockedKeyrings()),
-    ).toEqual({ kind: 'signed-out' });
+    expect(resolvePredictUserIdentity(signedOut(), unlockedKeyrings())).toEqual(
+      { kind: 'signed-out' },
+    );
     // A session left behind by another SRP does not identify the primary one.
     expect(
       resolvePredictUserIdentity(
         { ...signedIn({ [SECOND_SRP]: 'profile-b' }), isSignedIn: true },
+        unlockedKeyrings(),
+      ),
+    ).toEqual({ kind: 'signed-out' });
+  });
+
+  it('reports unknown when the primary SRP session is being re-established', () => {
+    // `invalidateSrpSession` keeps the entry and blanks the canonical profile,
+    // so the same person is about to come back: not signed out.
+    expect(
+      resolvePredictUserIdentity(invalidatedSession(), unlockedKeyrings()),
+    ).toEqual({ kind: 'unknown' });
+    // A missing `srpSessionData` is what `performSignOut` leaves behind.
+    expect(
+      resolvePredictUserIdentity(
+        {
+          isSignedIn: false,
+          srpSessionData: undefined,
+        } as unknown as AuthenticationControllerState,
         unlockedKeyrings(),
       ),
     ).toEqual({ kind: 'signed-out' });
@@ -168,6 +197,24 @@ describe('PredictUserIdentityTracker', () => {
     tracker.observe(unknownIdentity);
 
     expect(tracker.observe(identity('profile-a'))).toBe(false);
+  });
+
+  it('does not report a session re-established for the same person as a change', () => {
+    const tracker = new PredictUserIdentityTracker();
+    tracker.observe(identity('profile-a'));
+
+    // Invalidate, then re-login as the same canonical profile: MFA setup and
+    // canonical-profile refreshes do this without the person changing.
+    expect(tracker.observe(unknownIdentity)).toBe(false);
+    expect(tracker.observe(identity('profile-a'))).toBe(false);
+  });
+
+  it('reports a different person when the re-established session resolves differently', () => {
+    const tracker = new PredictUserIdentityTracker();
+    tracker.observe(identity('profile-a'));
+
+    expect(tracker.observe(unknownIdentity)).toBe(false);
+    expect(tracker.observe(identity('profile-b'))).toBe(true);
   });
 });
 

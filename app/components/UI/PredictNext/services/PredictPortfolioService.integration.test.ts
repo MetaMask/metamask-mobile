@@ -4,6 +4,7 @@ import {
   PRIMARY_ENTROPY_SOURCE_ID,
   buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
   predictHarnessAuthenticationState,
+  predictHarnessInvalidatedSessionAuthenticationState,
   predictHarnessKeyringState,
   predictHarnessLockedKeyringState,
 } from '../../../../../tests/integration/harnesses/predict-next';
@@ -476,6 +477,66 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       ).resolves.toMatchObject({ available: '100.00' });
       expect(callsTo(harness, '/balance')).toBe(1);
       expect(clearedCount()).toBe(0);
+    });
+
+    it('keeps the cache while the same session is re-established', async () => {
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).endsWith('/balance')
+          ? {
+              body: { venueId: 'kalshi', currency: 'USD', available: '100.00' },
+            }
+          : { status: 404 },
+      );
+      const clearedCount = countAccountDataCleared(harness);
+      const updates = collectCacheUpdates(harness, balanceHash);
+      await harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      );
+      await settle();
+      const updatesBefore = updates.length;
+      expect(updatesBefore).toBeGreaterThan(0);
+
+      // MFA setup and canonical-profile refreshes invalidate the primary SRP
+      // session: the entry stays, its canonical profile is blanked, and the
+      // next bearer-token request re-logs in as the same person.
+      harness.setAuthenticationState(
+        predictHarnessInvalidatedSessionAuthenticationState(
+          PRIMARY_ENTROPY_SOURCE_ID,
+        ),
+      );
+      await settle();
+
+      // Being re-established is not a person change: nothing is cleared, no
+      // residual data is republished, and the read is still served from cache.
+      expect(clearedCount()).toBe(0);
+      expect(updates).toHaveLength(updatesBefore);
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '100.00' });
+      expect(callsTo(harness, '/balance')).toBe(1);
+
+      // The re-login resolved the same canonical profile: still no change.
+      harness.setAuthenticationState(
+        predictHarnessAuthenticationState(
+          PRIMARY_ENTROPY_SOURCE_ID,
+          'canonical-profile-a',
+        ),
+      );
+      await settle();
+
+      expect(clearedCount()).toBe(0);
+      expect(updates).toHaveLength(updatesBefore);
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '100.00' });
+      expect(callsTo(harness, '/balance')).toBe(1);
     });
   });
 

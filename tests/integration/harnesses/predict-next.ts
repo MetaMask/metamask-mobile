@@ -91,6 +91,20 @@ export const predictHarnessAuthenticationState = (
       : {},
   }) as unknown as AuthenticationControllerState;
 
+/** Authentication state whose primary SRP session entry still exists but has
+ * been invalidated: `AuthenticationController#invalidateSrpSession` blanks
+ * `canonicalProfileId` and keeps the entry, so the next bearer-token request
+ * re-logs in. The Predict User is being re-established, not signed out. */
+export const predictHarnessInvalidatedSessionAuthenticationState = (
+  entropySourceId: string,
+): AuthenticationControllerState =>
+  ({
+    isSignedIn: true,
+    srpSessionData: {
+      [entropySourceId]: { profile: { canonicalProfileId: '' } },
+    },
+  }) as unknown as AuthenticationControllerState;
+
 export interface PredictFetchResult {
   status?: number;
   body?: unknown;

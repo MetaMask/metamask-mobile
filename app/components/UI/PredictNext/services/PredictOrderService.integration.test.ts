@@ -9,6 +9,7 @@ import {
   PRIMARY_ENTROPY_SOURCE_ID,
   buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
   predictHarnessAuthenticationState,
+  predictHarnessInvalidatedSessionAuthenticationState,
 } from '../../../../../tests/integration/harnesses/predict-next';
 import { getPredictOrderServiceMessenger } from '../../../../core/Engine/messengers/predict-order-service-messenger';
 import {
@@ -697,6 +698,66 @@ describe('PredictNext Order observation and Predict User changes', () => {
     await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
     expect(callsTo(harness, '/balance')).toBe(1);
     expect(callsTo(harness, '/orders/commit')).toBe(1);
+    orderService.destroy();
+  });
+
+  it('keeps observing an in-progress Commit while the same session is re-established', async () => {
+    let releaseFirstCommit: (result: { body: unknown }) => void = () =>
+      undefined;
+    const firstCommit = new Promise<{ body: unknown }>((resolve) => {
+      releaseFirstCommit = resolve;
+    });
+    let commitCalls = 0;
+    const harness = buildPredictNextIntegrationHarness((url, init) => {
+      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+        commitCalls += 1;
+        // The first POST stays in flight while the session is invalidated; the
+        // observation re-POST reports the terminal receipt.
+        return commitCalls === 1 ? firstCommit : { body: sellReceiptResponse };
+      }
+      if (String(url).endsWith('/balance')) {
+        return {
+          body: { venueId: 'kalshi', currency: 'USD', available: '10.00' },
+        };
+      }
+      return { status: 404 };
+    });
+    await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+    expect(callsTo(harness, '/balance')).toBe(1);
+
+    const orderService = orderServiceFor(harness);
+    const commit = orderService.commitPreview(
+      KALSHI_VENUE_ID,
+      sellReceiptResponse.previewId,
+    );
+    await until(() => callsTo(harness, '/orders/commit') === 1);
+
+    // Invalidate the primary SRP session, then re-login as the same person.
+    harness.setAuthenticationState(
+      predictHarnessInvalidatedSessionAuthenticationState(
+        PRIMARY_ENTROPY_SOURCE_ID,
+      ),
+    );
+    harness.setAuthenticationState(
+      predictHarnessAuthenticationState(
+        PRIMARY_ENTROPY_SOURCE_ID,
+        'canonical-profile-a',
+      ),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    // Nobody changed, so the Commit is still being observed rather than
+    // abandoned with UNAUTHENTICATED mid-submission.
+    const settled = jest.fn();
+    commit.then(settled, settled);
+    expect(settled).not.toHaveBeenCalled();
+
+    releaseFirstCommit({ body: pendingCommitResponse });
+    await expect(commit).resolves.toMatchObject({ status: 'filled' });
+    // The in-progress receipt was observed with one re-POST of the same
+    // Preview, and its terminal receipt refreshed the account reads.
+    expect(callsTo(harness, '/orders/commit')).toBe(2);
+    await until(() => callsTo(harness, '/balance') === 2);
     orderService.destroy();
   });
 });

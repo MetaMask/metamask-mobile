@@ -14,12 +14,14 @@ import type { AuthenticationControllerState } from '@metamask/profile-sync-contr
  */
 export type PredictUserIdentity =
   | { readonly kind: 'identified'; readonly canonicalProfileId: string }
-  /** No session for the primary SRP: signed out, or a wallet without one. */
+  /** No session at all for the primary SRP: signed out, a wallet reset, or a
+   * wallet that never had one. */
   | { readonly kind: 'signed-out' }
   /**
-   * Not knowable right now: the wallet is locked and its keyrings are emptied,
-   * or no keyrings exist yet. Callers keep the last known identity, so
-   * lock/unlock stays a no-op.
+   * Not knowable right now, so callers keep the last known identity and stay
+   * a no-op: the wallet is locked and its keyrings are emptied; no keyrings
+   * exist yet; or the primary SRP's session entry is present but its canonical
+   * profile is blanked while the same person's session is re-established.
    */
   | { readonly kind: 'unknown' };
 
@@ -29,6 +31,16 @@ export type PredictUserIdentity =
  *
  * Mirrors `selectCanonicalProfileId`: keying by the primary keyring keeps a
  * session left behind by a reset-away wallet from being read as the live one.
+ *
+ * A present session entry with no canonical profile is not a signed-out
+ * wallet. `AuthenticationController#invalidateSrpSession` blanks
+ * `canonicalProfileId` and keeps the entry, and the next bearer-token request
+ * re-logs in and usually resolves to the same person. Treating that gap as
+ * signed-out would purge on the way out and again on the way back, and would
+ * abandon in-flight Order Commits of a person who never changed. So that case
+ * is unknown, and only a missing entry — what `performSignOut` and
+ * `clearState` leave behind — is signed out. If the re-login resolves a
+ * different canonical profile, the tracker still observes A then B and purges.
  *
  * @param authentication - AuthenticationController state.
  * @param keyring - KeyringController state.
@@ -43,12 +55,18 @@ export const resolvePredictUserIdentity = (
     return { kind: 'unknown' };
   }
 
-  const canonicalProfileId =
-    authentication.srpSessionData?.[entropySourceId]?.profile
-      ?.canonicalProfileId;
-  return canonicalProfileId
-    ? { kind: 'identified', canonicalProfileId }
-    : { kind: 'signed-out' };
+  const session = authentication.srpSessionData?.[entropySourceId];
+  if (!session) {
+    return { kind: 'signed-out' };
+  }
+
+  const canonicalProfileId = session.profile?.canonicalProfileId;
+  if (!canonicalProfileId) {
+    // The session exists but its identity is being re-established.
+    return { kind: 'unknown' };
+  }
+
+  return { kind: 'identified', canonicalProfileId };
 };
 
 const isSamePredictUser = (
@@ -67,8 +85,9 @@ const isSamePredictUser = (
  * The first knowable identity establishes the baseline without counting as a
  * change, so app start and unlock never purge. After that, any transition
  * between knowable identities is a change: A to signed-out, signed-out to B,
- * and A to B. Lock/unlock is not, because a locked wallet reports `unknown`
- * and leaves the remembered identity alone.
+ * and A to B. Lock/unlock is not, and neither is a session being re-established
+ * for the same person, because both report `unknown` and leave the remembered
+ * identity alone.
  */
 export class PredictUserIdentityTracker {
   #lastKnown: PredictUserIdentity | undefined;
