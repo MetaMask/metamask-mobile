@@ -34,6 +34,7 @@ import type {
   HomeTabsParamList,
   ImportPrivateKeyStackParamList,
   MainStackParamList,
+  SocialLeaderboardTabParams,
   SettingsStackParamList,
   SetPasswordFlowParamList,
   WalletTabHomeParamList,
@@ -719,6 +720,17 @@ export type RootStackParamList = {
   EndOfSeasonClaimBottomSheet:
     | RewardsNavigationParamList['EndOfSeasonClaimBottomSheet']
     | undefined;
+  RewardsMoneyInviteSheet:
+    | RewardsNavigationParamList['RewardsMoneyInviteSheet']
+    | undefined;
+  RewardsMoneyTermsSheet:
+    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
+    | undefined;
+  /**
+   * Post-accept confirmation. Registered on the root stack so it can fade
+   * over the Money dashboard after the invite sheet dismisses.
+   */
+  RewardsMoneyReferralAcceptedSplashView: undefined;
 
   // Onboarding routes
   OnboardingRootNav: undefined;
@@ -1040,11 +1052,7 @@ export type RootStackParamList = {
    * shape plus `initialTab`; V1 reads `source` / `showNotificationsBanner` /
    * `initialTab`.
    */
-  SocialLeaderboardTab:
-    | (NonNullable<RootStackParamList['SocialV0View']> & {
-        initialTab?: SocialShellTab;
-      })
-    | undefined;
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
   SocialV1View:
     | {
         source?: string;
@@ -1081,7 +1089,7 @@ export type RootStackParamList = {
   };
   TraderPositionView: TraderPositionViewParams;
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
-  SocialLeaderboardOnboarding: undefined;
+  SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
 
   // Misc routes
