@@ -612,7 +612,6 @@ const TokenDetails: React.FC<{
     transactionsUpdated,
     selectedAddress,
     conversionRate,
-    currentCurrency: txCurrentCurrency,
     isNonEvmAsset: txIsNonEvmAsset,
     bridgeArrivalTxs,
   } = useTokenTransactions(token);
@@ -728,14 +727,10 @@ const TokenDetails: React.FC<{
           confirmedTransactions={confirmedTxs}
           selectedAddress={selectedAddress}
           conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
           networkType={token.chainId}
           loading={!transactionsUpdated}
-          headerHeight={280}
           tokenChainId={token.chainId}
-          skipScrollOnClick
           hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
         />
       )}
       <TokenDetailsStickyFooter
