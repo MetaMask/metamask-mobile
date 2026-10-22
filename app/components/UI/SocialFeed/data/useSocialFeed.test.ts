@@ -352,6 +352,7 @@ describe('useSocialFeed', () => {
           {
             queryHash: hashKey(serviceKey),
             queryKey: [...serviceKey],
+            dehydratedAt: Date.now() + 60_000,
             state: {
               data: hydratedPage,
               dataUpdateCount: 1,
