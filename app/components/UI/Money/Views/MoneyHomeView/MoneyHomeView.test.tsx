@@ -436,6 +436,7 @@ jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
     useOpenVbaOnboarding: jest.fn(() => mockOpenVbaOnboarding),
+    openAsOnlyOnboardingRoute: jest.fn(),
   }),
 );
 
