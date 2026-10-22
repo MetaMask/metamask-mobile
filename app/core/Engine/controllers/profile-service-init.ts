@@ -11,7 +11,7 @@ const PROFILE_API_URL_BY_ENV: Record<ApiEnv, string> = {
   [ApiEnv.Prod]: 'https://profile-api.api.cx.metamask.io',
 };
 
-export const getProfileApiBaseUrl = (): string =>
+const getProfileApiBaseUrl = (): string =>
   process.env.PROFILE_API_URL ?? PROFILE_API_URL_BY_ENV[getApiEnv()];
 
 export const profileServiceInit: MessengerClientInitFunction<
