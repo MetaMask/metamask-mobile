@@ -101,6 +101,8 @@ import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarn
 import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsHomeSection from '../../components/PerpsHomeSection/PerpsHomeSection';
 import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
+import PerpsMarketSocialTabs from '../../components/PerpsMarketSocialTabs';
+import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -344,6 +346,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
+  const isPerpsSocialEnabled = usePerpsSocialEnabled();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -384,6 +387,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const {
     hasDescription: hasAboutDescription,
     handleAboutLayout,
+    handleAboutContainerLayout,
+    setAboutTrackingEnabled,
     handleAboutScroll,
   } = usePerpsMarketAboutTracking({
     symbol: market?.symbol,
@@ -1766,6 +1771,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onAutoClosePress={handleAutoClosePress}
             onMarginPress={handleMarginPress}
             onSharePress={handleSharePress}
+            variant={isPerpsSocialEnabled ? 'tabs' : 'default'}
           />
         ) : null,
       },
@@ -1807,6 +1813,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       handleAutoClosePress,
       handleMarginPress,
       handleSharePress,
+      isPerpsSocialEnabled,
       displayOrders,
       handleOrderSelect,
       styles.positionsOrdersContainer,
@@ -1884,6 +1891,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     ],
   );
 
+  const positionSections = useMemo(
+    () =>
+      preMarketInsightsSections.filter((section) => section.key === 'position'),
+    [preMarketInsightsSections],
+  );
+
+  const overviewSections = useMemo(
+    () => [
+      ...preMarketInsightsSections.filter(
+        (section) => section.key !== 'position',
+      ),
+      ...postMarketInsightsSections,
+    ],
+    [preMarketInsightsSections, postMarketInsightsSections],
+  );
+
   if (!market) {
     return (
       <View style={styles.container}>
@@ -1898,6 +1921,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       </View>
     );
   }
+
+  const marketInsightsCard = perpsInsightsReport ? (
+    <MarketInsightsEntryCard
+      report={perpsInsightsReport}
+      timeAgo={perpsInsightsTimeAgo}
+      onPress={handleMarketInsightsPress}
+      onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
+      traceId={perpsInsightsEntryTraceId}
+      source="perps"
+      testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
+    />
+  ) : (
+    <MarketInsightsEntryCardSkeleton />
+  );
 
   const shouldShowNewPositionActions =
     hasLongShortButtons && !existingPosition && !isAtOICap;
@@ -2154,27 +2191,42 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             </Box>
           )}
 
-          {shouldShowPerpsMarketInsightsSection ? (
-            <Box twClassName="mb-4">
-              {perpsInsightsReport ? (
-                <MarketInsightsEntryCard
-                  report={perpsInsightsReport}
-                  timeAgo={perpsInsightsTimeAgo}
-                  onPress={handleMarketInsightsPress}
-                  onDisclaimerPress={() => setIsInsightsDisclaimerVisible(true)}
-                  traceId={perpsInsightsEntryTraceId}
-                  source="perps"
-                  testID={MarketInsightsSelectorsIDs.ENTRY_CARD}
-                />
-              ) : (
-                <MarketInsightsEntryCardSkeleton />
-              )}
-            </Box>
+          {shouldShowPerpsMarketInsightsSection && !isPerpsSocialEnabled ? (
+            <Box twClassName="mb-4">{marketInsightsCard}</Box>
           ) : null}
 
-          <PerpsHomeSectionList sections={preMarketInsightsSections} />
-
-          <PerpsHomeSectionList sections={postMarketInsightsSections} />
+          {isPerpsSocialEnabled ? (
+            <>
+              <PerpsHomeSectionList sections={positionSections} />
+              <PerpsMarketSocialTabs
+                symbol={market.symbol}
+                onOverviewLayout={handleAboutContainerLayout}
+                onOverviewVisibilityChange={setAboutTrackingEnabled}
+                overview={
+                  <PerpsHomeSectionList
+                    sections={[
+                      {
+                        key: 'market-insights',
+                        visible: shouldShowPerpsMarketInsightsSection,
+                        content: (
+                          <Box twClassName="pt-3 pb-6">
+                            {marketInsightsCard}
+                          </Box>
+                        ),
+                      },
+                      ...overviewSections,
+                    ]}
+                    hideLeadingDivider
+                  />
+                }
+              />
+            </>
+          ) : (
+            <>
+              <PerpsHomeSectionList sections={preMarketInsightsSections} />
+              <PerpsHomeSectionList sections={postMarketInsightsSections} />
+            </>
+          )}
 
           <View style={styles.chromeBlock}>
             <Text

@@ -156,6 +156,8 @@ export interface LeaderboardApiMockOptions {
   notificationPrefs?: NotificationPrefsOptions;
   /** Items returned by `SocialService:fetchFeed`. Default: none. */
   feedItems?: CoreFeedItem[];
+  /** Items returned by `SocialService:fetchTokenFeed` (token and perp-market feeds). Default: none. */
+  tokenFeedItems?: CoreFeedItem[];
   /**
    * Number of `SocialService:fetchLeaderboard` calls that reject with
    * `LEADERBOARD_FETCH_ERROR_MESSAGE` before the fixture traders are served.
@@ -193,6 +195,7 @@ export function setupLeaderboardApiMock(
     allTraders = mockLeaderboardTraders,
     notificationPrefs = {},
     feedItems = [],
+    tokenFeedItems = [],
     leaderboardFailuresBeforeSuccess = 0,
     feedFailuresBeforeSuccess = 0,
     openPositions,
@@ -232,7 +235,7 @@ export function setupLeaderboardApiMock(
 
       if (action === 'SocialService:fetchTokenFeed') {
         return Promise.resolve({
-          items: [],
+          items: tokenFeedItems,
         }) as ReturnType<typeof Engine.controllerMessenger.call>;
       }
 

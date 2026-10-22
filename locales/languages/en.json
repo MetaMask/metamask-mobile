@@ -1681,6 +1681,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1871,7 +1873,7 @@
     "available_balance": "Available balance",
     "margin_used": "Margin used",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
+      "title": "Perps are here",
       "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "Not now",
       "try_now": "Get started"
@@ -2984,6 +2986,17 @@
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Top traders"
+      },
+      "top_traders_timeframe": {
+        "7d": "This week",
+        "30d": "This month"
+      },
+      "top_traders_scope": "Ranked across all Perps markets",
+      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -3036,7 +3049,8 @@
         "provider_fee": "Provider fee",
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% on fees as a VIP."
+        "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member."
       },
       "size_skew": {
         "title": "Size skew",
@@ -11889,7 +11903,7 @@
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
-      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
       "splash_accept_invite": "Accept invite",
       "splash_not_now": "Not now",
