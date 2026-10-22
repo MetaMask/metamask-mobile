@@ -300,7 +300,7 @@ export const getSpendableForAccount = createParameterizedSelector(
       ),
       spendableBalance: normalizeAmount(nativeInfo.spendableBalance, decimals),
     } satisfies SpendableInfo;
-  }
+  },
 );
 
 /**
