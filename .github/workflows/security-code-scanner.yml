@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  run-security-scan:
-    name: MetaMask Security Code Scanner
+  analyse-code:
+    name: Analyse code
     permissions:
       actions: read
       contents: read
@@ -51,13 +51,13 @@ jobs:
 
   security-scan-required:
     name: Security scan required
-    needs: run-security-scan
+    needs: analyse-code
     if: always() && github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Require a successful security scan
         env:
-          SCAN_RESULT: ${{ needs.run-security-scan.result }}
+          SCAN_RESULT: ${{ needs.analyse-code.result }}
         run: |
           if [ "$SCAN_RESULT" != "success" ]; then
             echo "Security scan result is '$SCAN_RESULT'. Pull requests require this scan to run and succeed."
