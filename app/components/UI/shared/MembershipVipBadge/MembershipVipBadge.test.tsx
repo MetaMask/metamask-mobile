@@ -32,7 +32,7 @@ describe('MembershipVipBadge', () => {
     expect(getByTestId('rewards-vip-badge')).toHaveTextContent('Mock VIP 1');
   });
 
-  it('renders member badge instead of vip badge when hasProEntitlement is true', () => {
+  it('renders member badge instead of vip badge when hasProEntitlement is true and a vip tier is set', () => {
     mockUseVipTier.mockReturnValue(2);
 
     const { getByTestId, queryByTestId } = render(

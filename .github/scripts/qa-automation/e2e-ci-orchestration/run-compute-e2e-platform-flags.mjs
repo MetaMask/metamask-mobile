@@ -87,14 +87,57 @@ if (readBool(process.env.LABEL_BLOCKS_MERGE) && !ignorableOnly) {
   );
 }
 
-let runPerformance = false;
-if (
-  process.env.GITHUB_EVENT_NAME === 'pull_request' &&
-  process.env.PR_BASE_REF !== 'stable' &&
-  !readBool(process.env.IS_FORK) &&
-  readBool(process.env.RUN_PERFORMANCE_LABEL)
-) {
-  runPerformance = true;
+const PERFORMANCE_AREA_LABELS = {
+  'run-performance-account-list-tests': '@PerformanceAccountList',
+  'run-performance-onboarding-tests': '@PerformanceOnboarding',
+  'run-performance-login-tests': '@PerformanceLogin',
+  'run-performance-swaps-tests': '@PerformanceSwaps',
+  'run-performance-launch-tests': '@PerformanceLaunch',
+  'run-performance-asset-loading-tests': '@PerformanceAssetLoading',
+  'run-performance-predict-tests': '@PerformancePredict',
+  'run-performance-perps-tests': '@PerformancePreps',
+  'run-performance-money-tests': '@PerformanceMoney',
+  'run-performance-rewards-tests': '@PerformanceRewards',
+};
+
+/**
+ * PR performance selection. The general label runs every test. Area labels
+ * run the union of their tags. Forks and stable-base PRs run none.
+ * @returns {string[]}
+ */
+function selectedPerformanceTags() {
+  const allowed =
+    process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+    process.env.PR_BASE_REF !== 'stable' &&
+    !readBool(process.env.IS_FORK);
+  if (!allowed) {
+    return [];
+  }
+  if (readBool(process.env.RUN_PERFORMANCE_LABEL)) {
+    return ['ALL'];
+  }
+
+  const labels = (process.env.PERFORMANCE_AREA_LABELS || '')
+    .split(',')
+    .map((label) => label.trim())
+    .filter(Boolean);
+  const tags = [];
+  for (const label of labels) {
+    const tag = PERFORMANCE_AREA_LABELS[label];
+    if (tag && !tags.includes(tag)) {
+      tags.push(tag);
+    }
+  }
+  return tags;
+}
+
+const performanceTags = selectedPerformanceTags();
+const runPerformance = performanceTags.length > 0;
+let performanceTagsReasoning = '';
+if (performanceTags[0] === 'ALL') {
+  performanceTagsReasoning = 'Run via run-performance-tests label on PR';
+} else if (performanceTags.length > 0) {
+  performanceTagsReasoning = `Run via performance area labels: ${performanceTags.join(', ')}`;
 }
 
 console.log(flags.message);
@@ -107,6 +150,8 @@ const outputLines = [
   `run_smart_e2e_selection=${flags.runSmartE2ESelection}`,
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
+  `performance_tags=${JSON.stringify(performanceTags)}`,
+  `performance_tags_reasoning=${performanceTagsReasoning}`,
   `changed_spec_files<<GH_EOF`,
   flags.changedSpecFiles,
   'GH_EOF',

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useReducer, useState } from 'react';
-import { Keyboard, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
@@ -225,32 +225,44 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
         >
           {strings('mfa.otp.paste')}
         </Button>
-        <CodeField
-          ref={inputRef as React.RefObject<TextInput>}
-          {...cellProps}
-          value={code}
-          onChangeText={handleChange}
-          cellCount={CELL_COUNT}
-          rootStyle={tw.style('gap-2')}
-          keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          onPressIn={() => focusInput(true)}
-          testID={MfaFlowSelectorsIDs.CODE_INPUT}
-          renderCell={({ index, symbol, isFocused }) => (
-            <View
-              key={index}
-              onLayout={getCellOnLayoutHandler(index)}
-              style={tw.style(
-                'flex-1 h-14 items-center justify-center rounded-xl border-[1.5px] bg-muted',
-                isFocused ? 'border-primary-default' : 'border-muted',
-              )}
-            >
-              <Text variant={TextVariant.HeadingMd} twClassName="text-[22px]">
-                {symbol || (isFocused && !hasTestOverrides ? <Cursor /> : null)}
-              </Text>
-            </View>
-          )}
-        />
+        <View>
+          <CodeField
+            ref={inputRef as React.RefObject<TextInput>}
+            {...cellProps}
+            // The hidden input covers the boxes and keeps the tap without
+            // reopening the keyboard. The press layer below takes the tap.
+            pointerEvents="none"
+            value={code}
+            onChangeText={handleChange}
+            cellCount={CELL_COUNT}
+            rootStyle={tw.style('gap-2')}
+            keyboardType="number-pad"
+            textContentType="oneTimeCode"
+            testID={MfaFlowSelectorsIDs.CODE_INPUT}
+            renderCell={({ index, symbol, isFocused }) => (
+              <View
+                key={index}
+                onLayout={getCellOnLayoutHandler(index)}
+                style={tw.style(
+                  'flex-1 h-14 items-center justify-center rounded-xl border-[1.5px] bg-muted',
+                  isFocused ? 'border-primary-default' : 'border-muted',
+                )}
+              >
+                <Text variant={TextVariant.HeadingMd} twClassName="text-[22px]">
+                  {symbol ||
+                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
+                </Text>
+              </View>
+            )}
+          />
+          <Pressable
+            accessible={false}
+            style={StyleSheet.absoluteFill}
+            onPress={() => focusInput(true)}
+            onPressOut={cellProps.onPressOut}
+            testID={MfaFlowSelectorsIDs.CODE_TAP_AREA}
+          />
+        </View>
         {showError && error ? (
           <StepError code={error} method={step.method} />
         ) : null}

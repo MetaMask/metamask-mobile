@@ -108,15 +108,17 @@ describe('BridgeSessionProvider', () => {
     );
   });
 
-  it('defaults limit orders to Open and updates it independently of recurring orders', () => {
+  it('defaults limit orders to Open and updates independently of other session state', () => {
     const { result } = renderSession();
 
     expect(result.current.session.limitOrdersTab).toBe(OrdersTabKey.OpenOrders);
 
     act(() => {
+      result.current.session.setSelectedTab(BridgeTabKey.Recurring);
       result.current.session.setLimitOrdersTab?.(OrdersTabKey.History);
     });
 
+    expect(result.current.session.selectedTab).toBe(BridgeTabKey.Recurring);
     expect(result.current.session.limitOrdersTab).toBe(OrdersTabKey.History);
     expect(result.current.session.recurringOrdersTab).toBe(
       OrdersTabKey.OpenOrders,
