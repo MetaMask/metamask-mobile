@@ -87,13 +87,22 @@ function rebateTitle(
   item: LedgerEarningEntryDto,
   localizedText: ReferralLocalizedText,
 ): string {
+  if (item.predict_source) {
+    return localizedText.rebatePredictions;
+  }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
     return localizedText.rebatePerpsVolume;
+  }
+  if (item.earning_origin_type === 'SWAPS_FEE_CASHBACK') {
+    return localizedText.rebateSwapsVolume;
   }
   return localizedText.rebateSwaps;
 }
 
 function rebateIconName(item: LedgerEarningEntryDto): IconName {
+  if (item.predict_source) {
+    return IconName.Chart;
+  }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
     return IconName.Candlestick;
   }

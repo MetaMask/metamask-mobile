@@ -49,13 +49,13 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   clearLeaderboardApiMock,
-  mockLeaderboardTraders,
+  mockPerpsTraders,
   setupLeaderboardApiMock,
-  type MockLeaderboardEntry,
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
 import { LiveTradesViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveTradesView/LiveTradesView.testIds';
+import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
 import {
   getPerpsMarketDetailsTabSelector,
   PerpsHomeViewSelectorsIDs,
@@ -1387,22 +1387,6 @@ describe('PerpsMarketDetailsView', () => {
     const statsSectionTestId = 'perps-home-section-stats';
     const postTestId = (post: typeof ethPost) =>
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.positionId}-${post.timestamp}`;
-    // trader-1 leads on 7d P&L, trader-11 leads on 30d P&L.
-    const perpsTraders: MockLeaderboardEntry[] = Array.from(
-      { length: 11 },
-      (_, index) => {
-        const rank = index + 1;
-        return {
-          ...mockLeaderboardTraders[2],
-          profileId: `trader-${rank}`,
-          addresses: [`0x${String(rank).padStart(40, '0')}`],
-          rank,
-          name: `trader${rank}.eth`,
-          pnl7d: (12 - rank) * 1000,
-          pnl30d: rank * 1000,
-        };
-      },
-    );
 
     afterEach(() => {
       clearLeaderboardApiMock();
@@ -1514,31 +1498,6 @@ describe('PerpsMarketDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the empty message on Top traders when there are no traders', async () => {
-      setupLeaderboardApiMock({ perpsTraders: [] });
-
-      renderPerpsMarketDetailsView({
-        overrides: socialOverrides,
-        socialEnabled: true,
-      });
-
-      fireEvent.press(
-        await screen.findByTestId(
-          getPerpsMarketDetailsTabSelector('top_traders'),
-        ),
-      );
-
-      expect(
-        await screen.findByText(strings('perps.market.top_traders_empty')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.market.top_traders_scope')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SEE_MORE),
-      ).not.toBeOnTheScreen();
-    });
-
     it('keeps About inside Overview when the market has a description', async () => {
       const description =
         'Ethereum is a decentralized smart contract platform.';
@@ -1634,7 +1593,7 @@ describe('PerpsMarketDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('caps Feed at 5 posts and opens Social V1 from See more', async () => {
+    it('caps Feed at 5 posts and opens Social V1 on Trending from See more', async () => {
       const posts = Array.from({ length: 6 }, (_, index) =>
         mockPerpFeedItem({
           positionId: `eth-perp-post-${index}`,
@@ -1681,14 +1640,15 @@ describe('PerpsMarketDetailsView', () => {
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
           source: 'perp_asset_screen',
+          initialTab: 'trending',
         });
       } finally {
         unwire();
       }
     });
 
-    it('shows the top 10 perps traders and re-ranks them by This month', async () => {
-      const messengerSpy = setupLeaderboardApiMock({ perpsTraders });
+    it('shows the Social leaderboard for this market on Top traders, unavailable until Social ranks per market', async () => {
+      const messengerSpy = setupLeaderboardApiMock();
 
       renderPerpsMarketDetailsView({
         overrides: socialOverrides,
@@ -1702,29 +1662,59 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(
-        await screen.findByTestId(getTraderRowTestId('trader-1')),
+        await screen.findByTestId(SocialLeaderboardSelectorsIDs.UNAVAILABLE),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(getTraderRowTestId('trader-10')),
+        screen.getByText(strings('social_leaderboard.feed.no_data')),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByTestId(getTraderRowTestId('trader-11')),
+        screen.queryByTestId(getTraderRowTestId(mockPerpsTraders[0].profileId)),
       ).not.toBeOnTheScreen();
-      expect(messengerSpy).toHaveBeenCalledWith(
+      expect(messengerSpy).not.toHaveBeenCalledWith(
         'SocialService:fetchLeaderboard',
-        expect.objectContaining({ chains: ['hyperliquid'] }),
+        expect.anything(),
       );
+    });
 
-      fireEvent.press(
-        screen.getByTestId(getPerpsMarketDetailsTabSelector('top-traders-30d')),
-      );
+    it('opens Social V1 on Leaderboard from Top traders See more', async () => {
+      setupLeaderboardApiMock();
 
-      expect(
-        await screen.findByTestId(getTraderRowTestId('trader-11')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(getTraderRowTestId('trader-1')),
-      ).not.toBeOnTheScreen();
+      const { store } = renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+        extraRoutes: [
+          {
+            name: Routes.SOCIAL.V1,
+            Component: createRouteParamsProbe(
+              Routes.SOCIAL.V1,
+            ) as ComponentType<unknown>,
+          },
+        ],
+      });
+      // navigateToSocialLeaderboard reads ReduxService.store directly.
+      const unwire = wirePerpsControllerForStore(store);
+      try {
+        fireEvent.press(
+          await screen.findByTestId(
+            getPerpsMarketDetailsTabSelector('top_traders'),
+          ),
+        );
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_SEE_MORE,
+          ),
+        );
+
+        const probe = await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.SOCIAL.V1),
+        );
+        expect(JSON.parse(probe.props.children as string)).toEqual({
+          source: 'perp_asset_screen',
+          initialTab: 'leaderboard',
+        });
+      } finally {
+        unwire();
+      }
     });
   });
 });

@@ -311,8 +311,21 @@ describe('SocialLeaderboard', () => {
     expect(
       screen.getByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
     ).toBeOnTheScreen();
-    expect(screen.getByText('me')).toBeOnTheScreen();
+    expect(screen.getByText('Me')).toBeOnTheScreen();
     expect(rowIds()).toHaveLength(3);
+  });
+
+  it('falls back to the handle on the viewer card without a display name', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: '',
+      pnlUsd: 12,
+    };
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(screen.getByText('me')).toBeOnTheScreen();
   });
 
   it('omits the viewer card unless asked for', () => {

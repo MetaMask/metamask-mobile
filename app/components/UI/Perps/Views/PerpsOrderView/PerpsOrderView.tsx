@@ -2642,7 +2642,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feePercentage={feePercentage}
                 bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                feeSource={feeResults.feeSource}
+                feeDiscountKind={rewardsState.feeDiscountKind}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2986,7 +2986,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ) : (
                 <PerpsFeesDisplay
                   feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                  feeSource={feeResults.feeSource}
+                  feeDiscountKind={rewardsState.feeDiscountKind}
                   fee={hasValidAmount ? feesToDisplay : undefined}
                   originalFee={
                     hasValidAmount ? undiscountedFeesToDisplay : undefined
@@ -3311,7 +3311,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   protocolFeeRate: feeResults.protocolFeeRate,
                   originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                   feeDiscountPercentage: feeResults.feeDiscountPercentage,
-                  feeSource: feeResults.feeSource,
+                  feeDiscountKind: feeResults.feeDiscountKind,
                   ...(hasCustomTokenSelected &&
                     depositFeeUsd > 0 && {
                       bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {

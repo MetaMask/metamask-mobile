@@ -37,7 +37,7 @@ const LOCALIZED_TEXT = {
   invitedReferredBy: 'Referred by',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   termsTitle: 'Terms and Conditions',
 } as unknown as ReferralLocalizedText;
 

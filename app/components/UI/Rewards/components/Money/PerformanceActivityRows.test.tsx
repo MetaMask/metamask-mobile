@@ -19,6 +19,8 @@ const LOCALIZED_TEXT = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
 } as unknown as ReferralLocalizedText;
 
@@ -111,6 +113,35 @@ describe('PerformanceActivityRows', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText('Predictions')).toBeNull();
+  });
+
+  it('labels a swaps cashback row as swaps volume', () => {
+    const { getByText } = renderWithProvider(
+      <PerformanceRebateRow
+        item={rebate({ earning_origin_type: 'SWAPS_FEE_CASHBACK' })}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
+  });
+
+  it('labels a predict cashback row from localized_text', () => {
+    const { getByText } = renderWithProvider(
+      <PerformanceRebateRow
+        item={rebate({
+          predict_source: {
+            condition_id: 'c1',
+            token_id: 't1',
+            side: 'yes',
+            tx_hash: null,
+          },
+        })}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Predictions')).toBeOnTheScreen();
   });
 
   it('shows the remaining rebate in green when only part is voided', () => {
