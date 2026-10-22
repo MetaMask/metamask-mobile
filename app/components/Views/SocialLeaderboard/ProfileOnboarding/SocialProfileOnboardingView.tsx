@@ -871,6 +871,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'account' ? (
                 <Box
                   gap={4}
+                  twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle twClassName="pt-2">
@@ -942,20 +943,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                   twClassName="text-center pb-3"
                 >
                   {finishError}
-                </Text>
-              ) : null}
-              {step === 'account' ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="text-center pb-4"
-                  testID={
-                    SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE
-                  }
-                >
-                  {strings(
-                    'social_leaderboard.profile_onboarding.link_account_change_footnote',
-                  )}
                 </Text>
               ) : null}
               {step === 'ready' ? (
