@@ -9,6 +9,7 @@ import {
   withIsolationScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
@@ -606,6 +607,11 @@ export interface EndTraceRequest {
   timestamp?: number;
 
   /**
+   * Final status to record on the span.
+   */
+  status?: 'ok' | 'error';
+
+  /**
    * Custom data to associate with the trace when ending it.
    * These will be set as attributes on the span.
    */
@@ -948,6 +954,12 @@ export function endTrace(request: EndTraceRequest): void {
     for (const [attrKey, attrValue] of Object.entries(request.data)) {
       span.setAttribute(attrKey, attrValue);
     }
+  }
+
+  if (request.status && pendingTrace.span) {
+    pendingTrace.span.setStatus({
+      code: request.status === 'ok' ? SPAN_STATUS_OK : SPAN_STATUS_ERROR,
+    });
   }
 
   let endTimeRequest = timestamp;

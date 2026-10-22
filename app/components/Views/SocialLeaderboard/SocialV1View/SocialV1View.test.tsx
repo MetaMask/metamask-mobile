@@ -27,6 +27,7 @@ const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
+const mockMarkSocialTabVisited = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -41,6 +42,10 @@ jest.mock('../MyProfileView/hooks', () => ({
 
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+}));
+
+jest.mock('../utils/socialTabVisit', () => ({
+  markSocialTabVisited: () => mockMarkSocialTabVisited(),
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
@@ -307,6 +312,12 @@ describe('SocialV1View', () => {
     );
   });
 
+  it('marks Social as visited when the v1 home opens', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the account mask icon when no profile exists', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -340,6 +351,30 @@ describe('SocialV1View', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
+  it('keeps the header action icons transparent while pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+      'pressIn',
+    );
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON),
+      'pressIn',
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
   });
 
   it('consumes the focus-trending flag when the screen gains focus', () => {

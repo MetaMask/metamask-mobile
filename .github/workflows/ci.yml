@@ -339,11 +339,10 @@ jobs:
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # 16x32 (MCWP-812): the 12288 MB ceiling OOM'd lint on 8x16.
-          # LINT_HEAP_MB raises it here; local `yarn lint` stays at 12288.
-          - scripts: lint # was 12.3 GB peak on 8x16; now intermittently OOMs
-            profile: namespace-profile-metamask-ci-linux-large
-            heap_mb: 24576
+          # `lint` is not in this matrix. It runs as `lint-shards` below so the
+          # wall clock is one shard. The aggregate job name stays exactly
+          # Run `lint`, backticks included: the name the scripts job template
+          # renders for the lint script (MCWP-813).
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -391,11 +390,6 @@ jobs:
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
       - run: yarn ${{ matrix['scripts'] }}
-        env:
-          # Only the `lint` entry defines `heap_mb`; it's blank for every other
-          # matrix entry, so `yarn lint`'s `${LINT_HEAP_MB:-12288}` fallback in
-          # package.json covers both local runs and these other CI scripts.
-          LINT_HEAP_MB: ${{ matrix.heap_mb }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -405,6 +399,112 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  # Same files, rules, and exit semantics as `yarn lint`, split by file size.
+  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set and bin-packs by size. Per-file cache stays off the persisted
+  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  lint-shards:
+    name: Run lint (${{ matrix.shard }})
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      # The "4" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard.
+      # messenger-action-types:check runs only on shard 1. That leg is required,
+      # so a failure still fails the aggregate Run `lint` job and Check all jobs pass.
+      - name: Lint shard
+        run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
+        env:
+          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
+          # the other test jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  # Same check name the scripts matrix rendered for `lint`: backticks included.
+  # Shard jobs are `Run lint (N)` and do not use that name.
+  lint:
+    name: Run `lint`
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    needs:
+      - get_requirements
+      - lint-shards
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true'
+      }}
+    steps:
+      - name: Require every lint shard to pass
+        env:
+          LINT_SHARDS_RESULT: ${{ needs.lint-shards.result }}
+        run: |
+          if [ "$LINT_SHARDS_RESULT" != "success" ]; then
+            echo "lint shards result: $LINT_SHARDS_RESULT"
+            exit 1
+          fi
+          echo "lint shards passed"
 
   smart-e2e-contract-tests:
     name: Smart E2E contract tests
@@ -1030,6 +1130,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -2078,6 +2179,8 @@ jobs:
       - check-diff
       - dedupe
       - scripts
+      - lint-shards
+      - lint
       - unit-tests
       - component-view-tests
       - merge-unit-and-component-view-tests

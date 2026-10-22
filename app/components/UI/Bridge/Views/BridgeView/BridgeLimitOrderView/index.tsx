@@ -113,8 +113,8 @@ const BridgeLimitOrderViewContent = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const {
     latestSourceBalance,
-    limitOrdersTab: activeOrdersTab = OrdersTabKey.OpenOrders,
-    setLimitOrdersTab: setActiveOrdersTab = () => undefined,
+    limitOrdersTab = OrdersTabKey.OpenOrders,
+    setLimitOrdersTab = () => undefined,
   } = useBridgeSession();
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const walletAddress = useSelector(
@@ -163,14 +163,14 @@ const BridgeLimitOrderViewContent = () => {
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.OpenOrders,
+    enabled: limitOrdersTab === OrdersTabKey.OpenOrders,
     refetchInterval: ordersRefetchInterval,
   });
   const historyQuery = useLimitOrders({
     walletAddress,
     states: HISTORY_LIMIT_ORDER_STATES,
     chainId: ordersNetworkFilter,
-    enabled: activeOrdersTab === OrdersTabKey.History,
+    enabled: limitOrdersTab === OrdersTabKey.History,
     refetchInterval: ordersRefetchInterval,
   });
   const {
@@ -363,19 +363,19 @@ const BridgeLimitOrderViewContent = () => {
         return;
       }
 
-      if (activeOrdersTab === OrdersTabKey.OpenOrders) {
+      if (limitOrdersTab === OrdersTabKey.OpenOrders) {
         openOrdersQuery.fetchNextPage();
         return;
       }
 
       historyQuery.fetchNextPage();
     },
-    [activeOrdersTab, historyQuery, openOrdersQuery, trackScrollOffset],
+    [historyQuery, limitOrdersTab, openOrdersQuery, trackScrollOffset],
   );
 
   const handleOrdersRefresh = useCallback(async () => {
     const activeOrdersQuery =
-      activeOrdersTab === OrdersTabKey.OpenOrders
+      limitOrdersTab === OrdersTabKey.OpenOrders
         ? openOrdersQuery
         : historyQuery;
 
@@ -385,7 +385,7 @@ const BridgeLimitOrderViewContent = () => {
     } finally {
       setIsRefreshingOrders(false);
     }
-  }, [activeOrdersTab, historyQuery, openOrdersQuery]);
+  }, [historyQuery, limitOrdersTab, openOrdersQuery]);
 
   const onSourceInputPress = useCallback(() => {
     commitCustomPercentIfFocused();
@@ -669,8 +669,8 @@ const BridgeLimitOrderViewContent = () => {
                 enabledChainIds={enabledChainIds}
                 openOrders={openOrders}
                 history={history}
-                activeTab={activeOrdersTab}
-                onTabChange={setActiveOrdersTab}
+                activeTab={limitOrdersTab}
+                onTabChange={setLimitOrdersTab}
               />
             </Box>
           </Box>
