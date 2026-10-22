@@ -56,6 +56,7 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePredictAccountCachePurge } from '../../UI/PredictNext/hooks/usePredictAccountCachePurge';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import { PostSwapShareBottomSheet } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
@@ -1446,6 +1447,9 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
+  // PredictNext account caches follow the Predict User: drop them when the
+  // person behind the authenticated session changes.
+  usePredictAccountCachePurge();
   const predictRegistrations = usePredictToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
