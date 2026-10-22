@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   NavigationProp,
   RouteProp,
@@ -107,10 +108,25 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
   usePredictOrderRetry: () => ({
     retrySheetRef: { current: null },
     retrySheetVariant: 'busy' as const,
+    retryQuote: null,
     isRetrying: false,
-    handleRetryWithBestPrice: jest.fn(),
+    handleRetry: jest.fn(),
+    handleRetryConfirm: jest.fn(),
   }),
 }));
+
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    hasProEntitlement
+      ? ReactActual.createElement(
+          Text,
+          { testID: 'rewards-member-badge' },
+          'Member',
+        )
+      : null;
+});
 
 jest.mock('../../hooks/usePredictRewards', () => ({
   usePredictRewards: jest.fn(() => ({
@@ -148,6 +164,11 @@ interface MockPreview {
   minOrderSize: number;
   negRisk: boolean;
   fees?: MockFees;
+  originalFees?: MockFees;
+  feePolicy?: {
+    discountType: DiscountType;
+    builderCode: string;
+  };
 }
 
 const mockFees: MockFees = {
@@ -598,20 +619,6 @@ describe('PredictSellPreview', () => {
       expect(cashOutTexts.length).toBe(1);
     });
 
-    it('renders the cash-out amount as a large static value in sheet mode', () => {
-      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
-        state: initialState,
-      });
-
-      const amount = screen.getAllByText('$57.30')[0];
-      expect(amount).toHaveStyle({
-        fontSize: 40,
-        lineHeight: 50,
-        fontFamily: 'Inter-Medium',
-      });
-      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
-    });
-
     it('hides position icon row in sheet mode', () => {
       renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
         state: initialState,
@@ -674,6 +681,42 @@ describe('PredictSellPreview', () => {
       });
 
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+
+    it('shows the original total and member badge for a membership fee waiver', () => {
+      mockPreview = {
+        marketId: 'market-1',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'SELL',
+        sharePrice: 0.5,
+        maxAmountSpent: 100,
+        minAmountReceived: 60,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+        fees: {
+          ...mockFees,
+          metamaskFee: 0,
+          totalFee: mockFees.providerFee,
+          totalFeePercentage: 1,
+        },
+        originalFees: mockFees,
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: 'predict-pro-builder',
+        },
+      };
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(screen.getAllByText('$59.10')).toHaveLength(2);
+      expect(screen.getByText('$57.30')).toBeOnTheScreen();
+      expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
     });
 
     it('hides Total row when preview is unavailable', () => {

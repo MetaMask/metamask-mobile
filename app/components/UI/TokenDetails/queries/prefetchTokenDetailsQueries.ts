@@ -22,7 +22,6 @@ import {
   type TokenCaipAssetIdInput,
 } from '../hooks/useTokenCaipAssetId';
 import { prefetchTokenSecurity } from '../../Tokens/queries/prefetchTokenSecurity';
-
 export const prefetchTokenDetailsQueries = (
   queryClient: QueryClient,
   token: TokenCaipAssetIdInput,
@@ -42,7 +41,8 @@ export const prefetchTokenDetailsQueries = (
   );
   // Resolved through the same helper the page uses rather than reusing
   // `assetId` above, which is the chart's asset id and not always the same.
-  prefetchTokenSecurity(queryClient, resolveTokenCaipAssetId(token));
+  const caipAssetId = resolveTokenCaipAssetId(token);
+  prefetchTokenSecurity(queryClient, caipAssetId);
 };
 
 export const usePrefetchTokenDetails = (

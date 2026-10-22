@@ -31,6 +31,7 @@ type Workflow = {
     string,
     {
       if?: string;
+      permissions?: Record<string, string>;
       needs?: string | string[];
       strategy?: { matrix?: string; 'fail-fast'?: boolean };
       steps: WorkflowStep[];
@@ -171,12 +172,33 @@ describe('Analyze App Profiling triggers', () => {
   it('can list merged pull files for the proposal overlap', () => {
     const workflow = loadWorkflow();
 
-    expect(workflow).toMatchObject({
-      permissions: expect.objectContaining({
-        contents: 'read',
-        actions: 'read',
-        'pull-requests': 'read',
-      }),
+    expect(workflow.jobs.analyze.permissions).toMatchObject({
+      contents: 'read',
+      actions: 'read',
+      'pull-requests': 'read',
+    });
+  });
+
+  it('grants no token scopes at the workflow level', () => {
+    const workflow = loadWorkflow();
+
+    expect(workflow.permissions).toStrictEqual({});
+  });
+
+  it('grants issues: write only to the analyze job', () => {
+    const workflow = loadWorkflow();
+
+    const writers = Object.entries(workflow.jobs)
+      .filter(([, job]) => job.permissions?.issues === 'write')
+      .map(([name]) => name);
+
+    expect(writers).toStrictEqual(['analyze']);
+    expect(workflow.jobs['upload-scenario-profiles'].permissions).toStrictEqual(
+      {},
+    );
+    expect(workflow.jobs['publish-summary'].permissions).toStrictEqual({
+      contents: 'read',
+      actions: 'read',
     });
   });
 
@@ -187,7 +209,9 @@ describe('Analyze App Profiling triggers', () => {
     );
     const command = analysisStep?.run ?? '';
 
-    expect(workflow.permissions).toMatchObject({ issues: 'write' });
+    expect(workflow.jobs.analyze.permissions).toMatchObject({
+      issues: 'write',
+    });
     expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBe(
       '${{ github.event.workflow_run.head_branch }}',
     );
@@ -259,11 +283,14 @@ describe('Analyze App Profiling triggers', () => {
     ).toBeUndefined();
   });
 
-  it('routes Slack by the branch that produced the profiles', () => {
+  it('routes weekly main reports to performance and other main digests to QA alerts', () => {
     const workflow = loadWorkflow();
 
     const target = workflow.env?.SLACK_TARGET ?? '';
 
+    expect(target).toContain("github.event_name == 'schedule'");
+    expect(target).toContain("github.event.inputs.weekly == 'true'");
+    expect(target).toContain('C07KB8HRZ4J');
     expect(target).toContain('C0C3WSWNKS5');
     expect(target).toContain('UEYQL2PEV');
     expect(workflow.env?.SLACK_PERFORMANCE_TARGET).toBe('C07KB8HRZ4J');

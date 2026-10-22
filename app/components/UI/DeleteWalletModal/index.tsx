@@ -15,20 +15,18 @@ import CookieManager from '@react-native-cookies/cookies';
 import { RootState } from '../../../reducers';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   AvatarIcon,
   AvatarIconSeverity,
   AvatarIconSize,
   BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
-  ButtonsAlignment,
   FontWeight,
-  HeaderStandard,
   IconAlertSeverity,
   IconName,
   ListItem,
@@ -131,7 +129,8 @@ const DeleteWalletModal: React.FC = () => {
     >
       {showForgotPassword ? (
         <>
-          <BottomSheetHeader
+          <HeaderStandardGlass
+            isFloating={false}
             onClose={triggerClose}
             testID={ForgotPasswordModalSelectorsIDs.TITLE}
             closeButtonProps={{
@@ -139,7 +138,7 @@ const DeleteWalletModal: React.FC = () => {
             }}
           >
             {strings('login.forgot_password_desc')}
-          </BottomSheetHeader>
+          </HeaderStandardGlass>
           <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
             paddingHorizontal={4}
@@ -199,10 +198,11 @@ const DeleteWalletModal: React.FC = () => {
               </Text>
             }
           />
-          <BottomSheetFooter
+          <FooterGlass
             primaryButtonProps={{
               children: strings('login.reset_wallet'),
               isDanger: true,
+              isGlass: false,
               size: ButtonSize.Lg,
               onPress: () => {
                 setIsResetWallet(true);
@@ -217,7 +217,8 @@ const DeleteWalletModal: React.FC = () => {
         </>
       ) : (
         <>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isFloating={false}
             onBack={
               !isResetWalletFromParams
                 ? () => setIsResetWallet(false)
@@ -279,17 +280,16 @@ const DeleteWalletModal: React.FC = () => {
               {strings('login.reset_wallet_desc_srp_2')}
             </Text>
           </Box>
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Vertical}
+          <FooterGlass
             primaryButtonProps={{
               children: strings('login.erase_my'),
               onPress: deleteWallet,
               size: ButtonSize.Lg,
               isDanger: true,
+              isGlass: false,
               isLoading: isDeletingWallet,
               isDisabled: isDeletingWallet,
               testID: ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
-              style: { marginTop: 0 },
             }}
             secondaryButtonProps={{
               children: strings('login.cancel'),
@@ -297,9 +297,8 @@ const DeleteWalletModal: React.FC = () => {
               size: ButtonSize.Lg,
               isDisabled: isDeletingWallet,
               testID: ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
-              twClassName: 'mt-4',
             }}
-            twClassName="pt-4 flex-col-reverse"
+            twClassName="pt-4"
           />
         </>
       )}

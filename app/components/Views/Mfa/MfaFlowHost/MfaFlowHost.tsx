@@ -20,6 +20,7 @@ import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import IntroStep from './steps/IntroStep';
 import PickerStep from './steps/PickerStep';
 import EmailEntryStep from './steps/EmailEntryStep';
+import TotpSetupStep from './steps/TotpSetupStep';
 import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import FailureStep from './steps/FailureStep';
@@ -90,6 +91,8 @@ const MfaFlowHost = () => {
         return <IntroStep {...shared} step={step} />;
       case 'emailEntry':
         return <EmailEntryStep {...shared} step={step} />;
+      case 'totpSetup':
+        return <TotpSetupStep {...shared} step={step} />;
       case 'otp':
         return <CodeStep {...shared} step={step} />;
       case 'passkey':
