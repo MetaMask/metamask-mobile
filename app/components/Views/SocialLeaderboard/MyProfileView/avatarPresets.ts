@@ -72,6 +72,11 @@ export const getProfileAvatarBackground = (
 
 const FOXICON_AVATAR_SCHEME = 'foxicon://';
 
+/** True for any `foxicon://` value, including ones that fail preset parsing. */
+export const isFoxiconAvatarUrl = (
+  avatarUrl: string | null | undefined,
+): boolean => Boolean(avatarUrl?.startsWith(FOXICON_AVATAR_SCHEME));
+
 /** `foxicon://{avatarVariant}/{backgroundColor}` stored in ProfileController `avatarUrl`. */
 export const toFoxiconAvatarUrl = (
   avatarPresetId: string,

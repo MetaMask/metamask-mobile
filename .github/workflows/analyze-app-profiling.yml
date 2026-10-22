@@ -92,12 +92,7 @@ on:
         type: boolean
         default: true
 
-permissions:
-  contents: read
-  actions: read
-  pull-requests: read
-  # Scheduled findings open or comment on tracking issues.
-  issues: write
+permissions: {}
 
 env:
   # A workflow_run listener always runs from the default branch, so
@@ -128,6 +123,8 @@ jobs:
   # chained run would simply go quiet and look like nothing was ever requested.
   report-upstream-failure:
     name: Report unsuccessful performance run
+    permissions:
+      contents: read
     if: >-
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.event == 'workflow_dispatch' &&
@@ -168,6 +165,12 @@ jobs:
 
   analyze:
     name: Analyze per-scenario profiling
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      # Scheduled findings open or comment on tracking issues.
+      issues: write
     if: >-
       github.event_name == 'schedule' ||
       github.event_name == 'workflow_dispatch' ||
@@ -351,6 +354,7 @@ jobs:
 
   upload-scenario-profiles:
     name: Upload ${{ matrix.scenario }}
+    permissions: {}
     needs: analyze
     if: >-
       needs.analyze.result == 'success' &&
@@ -378,6 +382,9 @@ jobs:
 
   publish-summary:
     name: Post profiling summary
+    permissions:
+      contents: read
+      actions: read # list this run's artifacts for the scenario links
     needs:
       - analyze
       - upload-scenario-profiles
@@ -445,6 +452,8 @@ jobs:
 
   report-scenario-upload-failure:
     name: Report scenario artifact upload failure
+    permissions:
+      contents: read
     needs:
       - analyze
       - upload-scenario-profiles

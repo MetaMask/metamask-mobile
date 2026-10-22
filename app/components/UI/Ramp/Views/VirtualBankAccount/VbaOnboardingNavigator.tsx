@@ -11,6 +11,7 @@ import {
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
+import VbaChooseCurrency from './VbaChooseCurrency';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
@@ -40,6 +41,10 @@ const VbaOnboardingNavigator = () => (
     <Stack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
       component={VbaIdentityVerified}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
+      component={VbaChooseCurrency}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}
