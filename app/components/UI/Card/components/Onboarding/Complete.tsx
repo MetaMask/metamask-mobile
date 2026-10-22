@@ -41,7 +41,7 @@ const Complete = () => {
   const dispatch = useDispatch();
   const tw = useTailwind();
   const handleNotNow = () => {
-    navigation.navigate(Routes.WALLET.HOME);
+    navigation.goBack();
   };
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();

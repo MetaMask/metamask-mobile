@@ -14,6 +14,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 // Mock dependencies
 const mockNavigationDispatch = jest.fn();
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 const mockStackReplace = jest.fn((routeName: string) => ({
   type: 'REPLACE',
   routeName,
@@ -260,6 +261,7 @@ describe('Complete Component', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       dispatch: mockNavigationDispatch,
       navigate: mockNavigate,
+      goBack: mockGoBack,
     });
 
     // Default: no route params
@@ -325,12 +327,13 @@ describe('Complete Component', () => {
   });
 
   describe('Not Now Button', () => {
-    it('navigates to the wallet home when pressed', () => {
+    it('returns to the previous step when pressed', () => {
       const { getByTestId } = render(<Complete />);
 
       fireEvent.press(getByTestId('complete-not-now-button'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
