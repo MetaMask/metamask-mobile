@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
@@ -55,6 +56,18 @@ describe('MoneyHeader', () => {
     fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
 
     expect(mockOnMenuPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the menu button transparent while pressed', () => {
+    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
+
+    fireEvent(getByTestId(MoneyHeaderTestIds.MENU_BUTTON), 'pressIn');
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(MoneyHeaderTestIds.MENU_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
   });
 
   it('uses the same horizontal padding as the Home page header', () => {
@@ -137,6 +150,20 @@ describe('MoneyHeader', () => {
           MoneyHeaderTestIds.MENU_BUTTON,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('keeps the glass menu button transparent while pressed', () => {
+      const { getByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} isGlass />,
+      );
+
+      fireEvent(getByTestId(MoneyHeaderTestIds.MENU_BUTTON), 'pressIn');
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyHeaderTestIds.MENU_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
     });
 
     it('seats the back and menu buttons in capsules when pushed', () => {
