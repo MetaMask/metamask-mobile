@@ -2,9 +2,11 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import {
   getVbaChoosableCurrencies,
   getVbaCurrencyDisplayName,
+  getVbaCurrencyRowLabel,
   getVbaSourceCurrencyForCountry,
   normalizeVbaCurrencyCode,
   readVbaRouteSourceCurrency,
+  usesVbaUsBankLayout,
 } from './getVbaSourceCurrency';
 
 describe('getVbaSourceCurrencyForCountry', () => {
@@ -139,6 +141,100 @@ describe('getVbaChoosableCurrencies', () => {
 
   it('omits currencies that are not configured', () => {
     expect(getVbaChoosableCurrencies({ BR: 'BRL' }, 'BRL')).toEqual(['BRL']);
+  });
+});
+
+describe('usesVbaUsBankLayout', () => {
+  it('uses the US bank layout only for USD in the render table', () => {
+    expect(usesVbaUsBankLayout('USD')).toBe(true);
+    expect(usesVbaUsBankLayout('BRL')).toBe(false);
+    expect(usesVbaUsBankLayout('EUR')).toBe(false);
+    expect(usesVbaUsBankLayout('GBP')).toBe(false);
+    expect(usesVbaUsBankLayout(undefined)).toBe(false);
+  });
+});
+
+describe('getVbaCurrencyRowLabel', () => {
+  it('uses a real name as the title and the code as the subtitle', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DisplayNames');
+    class NamedCurrency {
+      of(): string {
+        return 'US Dollar';
+      }
+    }
+    Object.defineProperty(Intl, 'DisplayNames', {
+      configurable: true,
+      value: NamedCurrency,
+    });
+
+    try {
+      expect(getVbaCurrencyRowLabel('USD', 'en')).toEqual({
+        title: 'US Dollar',
+        subtitle: 'USD',
+      });
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Intl, 'DisplayNames', descriptor);
+      }
+    }
+  });
+
+  it('shows the code once when the name equals the code', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DisplayNames');
+    class CodeCurrency {
+      of(code: string): string {
+        return code;
+      }
+    }
+    Object.defineProperty(Intl, 'DisplayNames', {
+      configurable: true,
+      value: CodeCurrency,
+    });
+
+    try {
+      expect(getVbaCurrencyRowLabel('USD', 'en')).toEqual({ title: 'USD' });
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Intl, 'DisplayNames', descriptor);
+      }
+    }
+  });
+
+  it('shows the code once when the name is missing', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DisplayNames');
+    class EmptyCurrencyName {
+      of(): string {
+        return '';
+      }
+    }
+    Object.defineProperty(Intl, 'DisplayNames', {
+      configurable: true,
+      value: EmptyCurrencyName,
+    });
+
+    try {
+      expect(getVbaCurrencyRowLabel('GBP', 'en')).toEqual({ title: 'GBP' });
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Intl, 'DisplayNames', descriptor);
+      }
+    }
+  });
+
+  it('shows the code once when Intl.DisplayNames is unavailable', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DisplayNames');
+    Object.defineProperty(Intl, 'DisplayNames', {
+      configurable: true,
+      value: undefined,
+    });
+
+    try {
+      expect(getVbaCurrencyRowLabel('USD', 'en')).toEqual({ title: 'USD' });
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Intl, 'DisplayNames', descriptor);
+      }
+    }
   });
 });
 

@@ -1194,7 +1194,8 @@
     "identity_verified": {
       "title": "Identity verified",
       "description": "Your identity check is complete.",
-      "button": "Continue"
+      "button": "Continue",
+      "no_supported_currency": "We can't create an account yet. None of the available currencies are supported in this version of the app."
     },
     "creating_account": {
       "title": "Creating your bank account",

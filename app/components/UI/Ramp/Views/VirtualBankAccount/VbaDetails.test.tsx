@@ -323,6 +323,43 @@ describe('VbaDetails', () => {
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
     });
 
+    it('uses the bank transfer title when USD has no deposit instructions', async () => {
+      mockRouteParams = { sourceCurrency: 'USD' };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD' },
+        },
+      ]);
+      mockGetDepositInstructions.mockResolvedValue(null);
+
+      const { findByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockGetDepositInstructions).toHaveBeenCalled();
+      });
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.TITLE),
+      ).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
+    });
+
+    it('keeps the Pix title when BRL has no deposit instructions', async () => {
+      mockGetDepositInstructions.mockResolvedValue(null);
+
+      const { findByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockGetDepositInstructions).toHaveBeenCalled();
+      });
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.TITLE),
+      ).toHaveTextContent(strings('virtual_bank_account.vba_details.title'));
+    });
+
     it('shows the bank transfer title while USD instructions are loading', async () => {
       mockRouteParams = { sourceCurrency: 'USD' };
       setAutoramps([

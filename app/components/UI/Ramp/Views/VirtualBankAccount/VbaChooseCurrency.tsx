@@ -22,7 +22,7 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   getVbaChoosableCurrencies,
-  getVbaCurrencyDisplayName,
+  getVbaCurrencyRowLabel,
   type VbaCurrencyCode,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
@@ -36,7 +36,9 @@ import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
  *
  * Rows come from the enabled flag: deduped `regionCurrencies` values plus
  * `defaultCurrency`, then only the codes whose deposit details this client
- * can render. The bank icon is generic. A currency is not a country.
+ * can render. A real display name is the title and the code is the subtitle.
+ * When the name is missing or equal to the code, the row shows the code once.
+ * The bank icon is generic. A currency is not a country.
  */
 const VbaChooseCurrency = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -96,16 +98,19 @@ const VbaChooseCurrency = () => {
         </Text>
         <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
           {currencies.map((currency) => {
-            const name = getVbaCurrencyDisplayName(currency, locale);
+            const row = getVbaCurrencyRowLabel(currency, locale);
+            const accessibilityLabel = row.subtitle
+              ? strings('virtual_bank_account.choose_currency.row_label', {
+                  name: row.title,
+                  code: row.subtitle,
+                })
+              : row.title;
             return (
               <Pressable
                 key={currency}
                 onPress={handleSelect(currency)}
                 accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'virtual_bank_account.choose_currency.row_label',
-                  { name, code: currency },
-                )}
+                accessibilityLabel={accessibilityLabel}
                 testID={`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-${currency}`}
               >
                 <Box
@@ -124,13 +129,15 @@ const VbaChooseCurrency = () => {
                     />
                   </View>
                   <Box twClassName="flex-1">
-                    <Text variant={TextVariant.BodyMd}>{name}</Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {currency}
-                    </Text>
+                    <Text variant={TextVariant.BodyMd}>{row.title}</Text>
+                    {row.subtitle ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {row.subtitle}
+                      </Text>
+                    ) : null}
                   </Box>
                   <Icon
                     name={IconName.ArrowRight}

@@ -207,6 +207,33 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     );
   });
 
+  it('stays on Identity verified when chooseCurrency is on and only EUR is configured', async () => {
+    const reason = strings(
+      'virtual_bank_account.identity_verified.no_supported_currency',
+    );
+    const { findByText, getByTestId, queryByTestId, queryByText } = render(
+      VbaDetails,
+      {
+        chooseCurrency: true,
+        regionCurrencies: { FR: 'EUR' },
+        defaultCurrency: 'EUR',
+      },
+    );
+
+    expect(queryByText(reason)).toBeNull();
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await findByText(reason)).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER)).toBeNull();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
   it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
     const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
       chooseCurrency: true,

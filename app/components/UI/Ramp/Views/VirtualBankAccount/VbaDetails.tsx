@@ -43,6 +43,7 @@ import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlag
 import {
   getVbaSourceCurrencyForCountry,
   readVbaRouteSourceCurrency,
+  usesVbaUsBankLayout,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
@@ -531,7 +532,7 @@ const VbaDetails = () => {
   const rows = buildDetailRows(instructions);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
-    (!instructions && sourceCurrency === 'USD');
+    (!instructions && usesVbaUsBankLayout(sourceCurrency));
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = setupFailed

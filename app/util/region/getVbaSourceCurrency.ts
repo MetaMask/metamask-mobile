@@ -13,18 +13,22 @@ export type VbaCurrencyCode = string;
 const VBA_CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
 
 /**
- * Deposit details this client can render.
+ * Deposit details this client can render, and the layout each code uses.
  *
- * This is a rendering capability, not a second currency configuration.
+ * This is one rendering table, not a second currency configuration.
  * LaunchDarkly decides which codes are configured. PIX details exist for BRL
  * and US bank details exist for USD. `DepositInstructions` is Pix or UsBank,
  * so EUR and any other configured code stay hidden and fail closed until a
  * details screen exists for that rail. Do not add a code here to let the flag
  * selector return it. The selector already keeps every valid three-letter code.
  */
-const VBA_RENDERABLE_DEPOSIT_CURRENCIES: ReadonlySet<VbaCurrencyCode> = new Set(
-  ['BRL', 'USD'],
-);
+const VBA_RENDERABLE_DEPOSIT_CURRENCIES: ReadonlyMap<
+  VbaCurrencyCode,
+  'pix' | 'usBank'
+> = new Map([
+  ['BRL', 'pix'],
+  ['USD', 'usBank'],
+]);
 
 /**
  * Trim and uppercase a fiat code.
@@ -58,6 +62,25 @@ export function canRenderVbaDepositCurrency(
   currency: VbaCurrencyCode,
 ): boolean {
   return VBA_RENDERABLE_DEPOSIT_CURRENCIES.has(currency);
+}
+
+/**
+ * Whether missing deposit instructions should use the US bank layout.
+ *
+ * Reads the render table. USD does. BRL stays on the Pix layout, so an
+ * approved BRL account does not paint the bank-transfer title while
+ * instructions are still null.
+ *
+ * @param currency - Fiat for the account, when one is known.
+ * @returns True when the render table assigns the US bank layout.
+ */
+export function usesVbaUsBankLayout(
+  currency: VbaCurrencyCode | undefined,
+): boolean {
+  if (!currency) {
+    return false;
+  }
+  return VBA_RENDERABLE_DEPOSIT_CURRENCIES.get(currency) === 'usBank';
 }
 
 /**
@@ -118,9 +141,9 @@ export function readVbaRouteSourceCurrency(
 /**
  * Display name for a fiat code.
  *
- * Uses `Intl.DisplayNames` when the runtime provides it. React Native 0.83
- * Hermes includes it; older notes in `locales/i18n.js` are why the code itself
- * is the fallback. This does not invent a country from the currency.
+ * Uses `Intl.DisplayNames` when the runtime provides it. Hermes does not
+ * provide `Intl.DisplayNames`, so the code itself is the fallback. This does
+ * not invent a country from the currency.
  *
  * @param currency - Normalized fiat code.
  * @param locale - App locale, when one is selected.
@@ -142,6 +165,28 @@ export function getVbaCurrencyDisplayName(
   } catch {
     return currency;
   }
+}
+
+/**
+ * Chooser row for a fiat code.
+ *
+ * A name that differs from the code is the title, and the code is the
+ * subtitle. When the name is missing or equal to the code, the row is the
+ * code once.
+ *
+ * @param currency - Normalized fiat code.
+ * @param locale - App locale, when one is selected.
+ * @returns The title and, when the name is distinct, the code as a subtitle.
+ */
+export function getVbaCurrencyRowLabel(
+  currency: VbaCurrencyCode,
+  locale?: string,
+): { title: string; subtitle?: string } {
+  const name = getVbaCurrencyDisplayName(currency, locale);
+  if (!name || name === currency) {
+    return { title: currency };
+  }
+  return { title: name, subtitle: currency };
 }
 
 /**
