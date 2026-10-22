@@ -16,6 +16,7 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGetDepositInstructions = jest.fn();
 const mockListTransactions = jest.fn();
+const mockRefreshAutorampTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
@@ -106,6 +107,8 @@ jest.mock('../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+      refreshAutorampTransactions: (...args: unknown[]) =>
+        mockRefreshAutorampTransactions(...args),
     },
     NeoBankService: {
       getDepositInstructions: (...args: unknown[]) =>
@@ -172,6 +175,7 @@ describe('VbaDetails', () => {
     mockCanGoBack = true;
     mockGetDepositInstructions.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
+    mockRefreshAutorampTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
@@ -203,6 +207,7 @@ describe('VbaDetails', () => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     expect(mockListTransactions).not.toHaveBeenCalled();
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
   });
 
   it('returns to the caller from the header', async () => {
@@ -256,6 +261,7 @@ describe('VbaDetails', () => {
     expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     expect(mockListTransactions).not.toHaveBeenCalled();
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
   });
 
   it('copies a Pix value', async () => {
@@ -489,7 +495,9 @@ describe('VbaDetails', () => {
   it('keeps the Pix code when the debug transaction poll fails', async () => {
     mockDebugEnv = 'true';
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockRejectedValue(new Error('tx poll failed'));
+    mockRefreshAutorampTransactions.mockRejectedValue(
+      new Error('tx poll failed'),
+    );
 
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <VbaDetails />,
@@ -508,7 +516,7 @@ describe('VbaDetails', () => {
   it('shows the newest deposit status in the debug sheet', async () => {
     mockDebugEnv = 'true';
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockResolvedValue([
+    mockRefreshAutorampTransactions.mockResolvedValue([
       { id: 'tx-old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
       { id: 'tx-new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
     ]);
@@ -516,7 +524,7 @@ describe('VbaDetails', () => {
     const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockListTransactions).toHaveBeenCalledWith('ar-1');
+      expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
     });
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DEBUG_BUTTON));
 

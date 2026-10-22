@@ -7,6 +7,7 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import { handleAutorampTransactionStatusChangedForMetrics } from './event-handlers/vbaTransactionAnalytics';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -58,6 +59,10 @@ export const rampsControllerInit: MessengerClientInitFunction<
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
+    );
+    initMessenger.subscribe(
+      'RampsController:autorampTransactionStatusChanged',
+      handleAutorampTransactionStatusChangedForMetrics,
     );
   };
 

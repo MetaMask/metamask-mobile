@@ -94,9 +94,6 @@ interface DepositNeoBank {
   getDepositInstructions: (
     autorampId: string,
   ) => Promise<AutorampDepositInstructions | null>;
-  listAutorampTransactions?: (
-    autorampId: string,
-  ) => Promise<AutorampTransactionSummary[]>;
 }
 
 interface DetailRow {
@@ -109,6 +106,9 @@ interface DetailRow {
 interface DepositRamps {
   state?: { autoramps?: AutorampCursor[] };
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
+  refreshAutorampTransactions?: (
+    autorampId: string,
+  ) => Promise<AutorampTransactionSummary[]>;
 }
 
 const isTerminalStatus = (status: string): boolean =>
@@ -236,6 +236,7 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
+  const transactionsFetchedForRef = useRef<string | null>(null);
   const accountKeyRef = useRef(
     `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
   );
@@ -343,41 +344,59 @@ const VbaDetails = () => {
       const neoBank = (
         Engine.context as unknown as { NeoBankService?: DepositNeoBank }
       ).NeoBankService;
-      if (!neoBank) {
-        return;
-      }
-
-      // Fetch details on their own so a flaky transaction poll cannot hide them.
-      try {
-        const details = await neoBank.getDepositInstructions(autoramp.id);
-        if (!stillCurrent()) {
-          return;
-        }
-        if (details) {
-          setInstructions(details);
-          // Debug builds keep polling so the latest deposit stays visible.
-          pollingDoneRef.current = !debugEnabled;
-        }
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'VbaDetails: failed to load deposit instructions',
-        });
-        throw error;
-      }
-
-      if (debugEnabled && neoBank.listAutorampTransactions) {
+      let depositError: unknown;
+      if (neoBank) {
+        // Fetch details on their own so a flaky transaction refresh cannot hide them.
         try {
-          const transactions = await neoBank.listAutorampTransactions(
-            autoramp.id,
-          );
-          setTransactionStatus(
-            pickLatestTransaction(transactions)?.status ?? null,
-          );
+          const details = await neoBank.getDepositInstructions(autoramp.id);
+          if (!stillCurrent()) {
+            return;
+          }
+          if (details) {
+            setInstructions(details);
+            // Debug builds keep polling so the latest deposit stays visible.
+            pollingDoneRef.current = !debugEnabled;
+          }
         } catch (error) {
           Logger.error(error as Error, {
-            message: 'VbaDetails: failed to list autoramp transactions',
+            message: 'VbaDetails: failed to load deposit instructions',
+          });
+          depositError = error;
+        }
+      }
+
+      const shouldRefreshTransactions =
+        Boolean(ramps.refreshAutorampTransactions) &&
+        (debugEnabled || transactionsFetchedForRef.current !== autoramp.id);
+      if (
+        stillCurrent() &&
+        shouldRefreshTransactions &&
+        ramps.refreshAutorampTransactions
+      ) {
+        try {
+          const transactions = await ramps.refreshAutorampTransactions(
+            autoramp.id,
+          );
+          if (!stillCurrent()) {
+            return;
+          }
+          if (!debugEnabled) {
+            transactionsFetchedForRef.current = autoramp.id;
+          }
+          if (debugEnabled) {
+            setTransactionStatus(
+              pickLatestTransaction(transactions)?.status ?? null,
+            );
+          }
+        } catch (error) {
+          Logger.error(error as Error, {
+            message: 'VbaDetails: failed to refresh autoramp transactions',
           });
         }
+      }
+
+      if (depositError) {
+        throw depositError;
       }
     },
     [debugEnabled, sourceCurrency, walletAddress],
@@ -391,6 +410,7 @@ const VbaDetails = () => {
     accountKeyRef.current = nextKey;
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
+    transactionsFetchedForRef.current = null;
     setInstructions(null);
     setLoadError(false);
     setSetupFailed(false);
