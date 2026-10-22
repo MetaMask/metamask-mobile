@@ -280,9 +280,45 @@ For EACH candidate, prove it before deleting:
   `X.<name>` or `X[...]`, `require(` with template strings, `React.lazy`,
   navigation/registry/allowlist objects keyed by name (e.g. TemplateRenderer
   `safeComponentList`), and redux action type strings.
-- Run `git log -3 --format='%h %ad %s' --date=short -- <file>`. If the code
-  was added or meaningfully changed in the last 30 days, skip it. It is
-  probably mid-rollout. Record it under Notes so you can revisit it later.
+- Check its age. New code with no callers yet is usually waiting for a
+  follow-up PR, not dead.
+  - When it was added: for kind A, use
+    `git log --diff-filter=A --follow --format='%h %ad' --date=short -- <file> | tail -1`.
+    For kinds B/C/D, use
+    `git log -S'<name>' --format='%h %ad' --date=short origin/main -- <file> | tail -1`.
+    Skip it if it was added in the last 90 days. For reusable building blocks
+    (anything under `app/component-library/`, `app/components-temp/`, or a
+    component, hook, or util that has its own story or README), the cutoff
+    is 180 days.
+  - Last change: `git log -1 --format='%h %ad %s' --date=short -- <file>`.
+    Skip it if the file changed in the last 30 days, unless that change only
+    touched unrelated lines.
+  - Record each skip under Notes with the date it becomes eligible.
+- Check open PRs, including drafts. Build this index once per run, before
+  proving any candidate:
+  ```bash
+  for p in 1 2 3 4 5 6 7 8; do
+    curl -s "https://api.github.com/repos/MetaMask/metamask-mobile/pulls?state=open&per_page=100&page=$p" \
+      | jq -r '.[].number'
+  done > /tmp/open-prs.txt
+  git fetch -q --no-tags origin $(awk '{printf "+refs/pull/%s/head:refs/remotes/pr/%s ", $1, $1}' /tmp/open-prs.txt)
+  for r in $(git for-each-ref --format='%(refname:short)' refs/remotes/pr); do
+    mb=$(git merge-base origin/main "$r" 2>/dev/null) || continue
+    git diff --unified=0 --no-color "$mb" "$r" -- app tests .storybook \
+      | rg '^(\+\+\+ |\+[^+])' | sed "s|^|${r#pr/}\t|"
+  done > /tmp/open-pr-additions.txt
+  ```
+  This takes about a minute for roughly 500 open PRs. Each line is
+  `<PR number><TAB><added line or +++ path>`. Then, for each candidate, run
+  `rg -w '<name>' /tmp/open-pr-additions.txt | cut -f1 | sort -u`. Use the
+  same search terms as the whole-word check above. Also run
+  `rg -F '+++ b/<path>' /tmp/open-pr-additions.txt` to find PRs that edit the
+  candidate's own file. If any open PR references the candidate or edits its
+  file, skip it and record it under Notes as "used by open PR #N". Recheck it
+  once that PR is merged or closed. If any `curl` or `jq` call errors (for
+  example on a rate limit), `/tmp/open-prs.txt` is empty, or the fetch fails,
+  open nothing this run. You can't prove that nothing in flight depends on
+  the code.
 
 If any check is ambiguous, skip the candidate. If it is a detector pattern,
 add it to "Notes" or "Do not touch".
@@ -431,6 +467,12 @@ Record what happened in Notes and stop.
   `app/components/Base/ModalDragger.tsx` and `RangeInput.js`) took about 1
   minute for `yarn install`, 4.5 minutes for `tsc`, 25 seconds for ESLint, and
   80 seconds for jest on `app/components/Base`. Everything passed.
+- In-flight check: in Oct 2026 there were 515 open PRs, 216 of them drafts.
+  Listing them takes 6 unauthenticated API calls, which fits within the
+  60-per-hour limit. Fetching every PR head took 8 seconds, and building the
+  index of added lines took 50 seconds (about 466k lines, 21 MB). The age
+  and open-PR checks are what protect new reusable components that are
+  waiting on a draft PR to start using them.
 - Known detector false positives in this repo:
   - config-string references (`app/shims/*` from `metro.config.js`)
   - Reassure `*.perf-test.tsx` globs
