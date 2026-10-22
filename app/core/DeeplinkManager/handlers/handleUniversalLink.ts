@@ -99,7 +99,10 @@ import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
-import { handleMoneyDeposit } from './legacy/handleMoneyDeposit';
+import {
+  createMoneyDepositDeeplinkIntent,
+  handleMoneyDeposit,
+} from './intent/handleMoneyDeposit';
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -328,6 +331,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       createNotificationsSettingsDeeplinkIntent({
         notificationsSettingsPath: actionBasedRampPath,
       }),
+  },
+  [SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT]: {
+    execute: () => handleMoneyDeposit(),
+    resolve: () => createMoneyDepositDeeplinkIntent(),
   },
 };
 
@@ -862,10 +869,6 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.MONEY: {
       handleMoney();
-      break;
-    }
-    case SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT: {
-      handleMoneyDeposit();
       break;
     }
     case SUPPORTED_ACTIONS.PRIVACY: {

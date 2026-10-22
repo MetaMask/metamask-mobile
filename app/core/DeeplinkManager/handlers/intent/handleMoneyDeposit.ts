@@ -2,20 +2,30 @@ import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
 /**
- * Handles the Money account deposit deeplink by handing control to Routes.MONEY.DEPOSIT_DEEPLINK
- * bridge route. Eligibility and deposit setup require React hooks and therefore
- * stay out of this non-React deeplink handler.
+ * Deeplink intent for the Money account deposit bridge route.
+ *
+ * Eligibility and deposit setup require React hooks and therefore stay in the
+ * bridge component mounted by this route.
  */
-export const handleMoneyDeposit = () => {
+export const createMoneyDepositDeeplinkIntent = (): DeeplinkIntent => ({
+  target: {
+    type: 'main-stack',
+    routeName: Routes.MONEY.DEPOSIT_DEEPLINK,
+  },
+});
+
+export const handleMoneyDeposit = async () => {
   DevLogger.log('[handleMoneyDeposit] Starting deeplink handling');
 
   try {
-    NavigationService.navigation.navigate(Routes.MONEY.DEPOSIT_DEEPLINK);
+    await executeDeeplinkIntent(createMoneyDepositDeeplinkIntent());
   } catch (error) {
     DevLogger.log(
-      '[handleMoneyDeposit] Failed to navigate to the bridge route:',
+      '[handleMoneyDeposit] Failed to execute the bridge route intent:',
       error,
     );
     Logger.error(
