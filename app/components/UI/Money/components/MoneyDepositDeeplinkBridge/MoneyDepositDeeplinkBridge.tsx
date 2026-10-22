@@ -5,6 +5,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
@@ -19,9 +20,15 @@ const MoneyDepositDeeplinkBridge = () => {
   const isMoneyAccountGeoEligible = useSelector(
     selectIsMoneyAccountGeoEligible,
   );
+  const geolocationStatus = useSelector(selectGeolocationStatus);
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { isOnboardingRedirectNeeded } = useMoneyOnboardingNavigation();
   const hasHandledRequest = useRef(false);
+
+  const isGeolocationLoading =
+    geolocationStatus === undefined ||
+    geolocationStatus === 'idle' ||
+    geolocationStatus === 'loading';
 
   const navigateToGeoBlockSheet = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -30,7 +37,7 @@ const MoneyDepositDeeplinkBridge = () => {
   }, [navigation]);
 
   useEffect(() => {
-    if (hasHandledRequest.current) {
+    if (hasHandledRequest.current || isGeolocationLoading) {
       return;
     }
 
@@ -90,6 +97,7 @@ const MoneyDepositDeeplinkBridge = () => {
   }, [
     isMoneyAccountFeatureEnabled,
     isMoneyAccountGeoEligible,
+    isGeolocationLoading,
     initiateDeposit,
     navigateToGeoBlockSheet,
     navigation,

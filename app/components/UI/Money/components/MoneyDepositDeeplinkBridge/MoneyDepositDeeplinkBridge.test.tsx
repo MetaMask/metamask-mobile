@@ -6,6 +6,7 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
+import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
@@ -40,9 +41,11 @@ const mockRedirectToOnboardingIfNeeded = jest.fn();
 const arrangeEligibility = ({
   isMoneyAccountFeatureEnabled = true,
   isMoneyAccountGeoEligible = true,
+  geolocationStatus = 'complete',
 }: {
   isMoneyAccountFeatureEnabled?: boolean;
   isMoneyAccountGeoEligible?: boolean;
+  geolocationStatus?: string;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyEnableMoneyAccountFlag) {
@@ -51,6 +54,10 @@ const arrangeEligibility = ({
 
     if (selector === selectIsMoneyAccountGeoEligible) {
       return isMoneyAccountGeoEligible;
+    }
+
+    if (selector === selectGeolocationStatus) {
+      return geolocationStatus;
     }
 
     return undefined;
@@ -132,6 +139,25 @@ describe('MoneyDepositDeeplinkBridge', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       replaceConfirmation: true,
+    });
+  });
+
+  it('waits for geolocation before starting a cold-start deposit', async () => {
+    arrangeEligibility({
+      isMoneyAccountGeoEligible: false,
+      geolocationStatus: 'loading',
+    });
+    const { rerender } = render(<MoneyDepositDeeplinkBridge />);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+
+    arrangeEligibility();
+    rerender(<MoneyDepositDeeplinkBridge />);
+
+    await waitFor(() => {
+      expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
     });
   });
 
