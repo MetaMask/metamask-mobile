@@ -10,8 +10,6 @@ import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 // Firebase Mock
 jest.mock('@react-native-firebase/messaging', () => {
-  const originalModule = jest.requireActual('@react-native-firebase/messaging');
-
   const hasPermission = jest.fn();
   const registerDeviceForRemoteMessages = jest.fn();
   const getToken = jest.fn();
@@ -21,25 +19,33 @@ jest.mock('@react-native-firebase/messaging', () => {
   const getInitialNotification = jest.fn();
   const onNotificationOpenedApp = jest.fn();
 
-  // Messaging() function mock
-  const mockMessaging = jest.fn(() => ({
-    isDeviceRegisteredForRemoteMessages: false,
-    hasPermission,
-    registerDeviceForRemoteMessages,
-    getToken,
-    deleteToken,
-    setBackgroundMessageHandler,
-    onMessage,
-    getInitialNotification,
-    onNotificationOpenedApp,
-  }));
-
-  // Retain the messaging properties
-  Object.assign(mockMessaging, originalModule.default);
+  // Messaging() function mock. Do not load the real module: v24 initializes
+  // native RNFBAppModule on import.
+  const mockMessaging = Object.assign(
+    jest.fn(() => ({
+      isDeviceRegisteredForRemoteMessages: false,
+      hasPermission,
+      registerDeviceForRemoteMessages,
+      getToken,
+      deleteToken,
+      setBackgroundMessageHandler,
+      onMessage,
+      getInitialNotification,
+      onNotificationOpenedApp,
+    })),
+    {
+      AuthorizationStatus: {
+        NOT_DETERMINED: -1,
+        DENIED: 0,
+        AUTHORIZED: 1,
+        PROVISIONAL: 2,
+        EPHEMERAL: 3,
+      },
+    },
+  );
 
   return {
     __esModule: true,
-    ...originalModule,
     default: mockMessaging,
   };
 });

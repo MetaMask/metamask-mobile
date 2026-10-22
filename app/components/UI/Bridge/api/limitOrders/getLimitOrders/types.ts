@@ -1,5 +1,5 @@
 import type { Infer } from '@metamask/superstruct';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import type { LimitOrderSchema } from './schema';
 
 /**
@@ -27,6 +27,7 @@ export interface GetLimitOrdersQuery {
    */
   states?: LimitOrderState[];
   chainId?: CaipChainId;
+  assetId?: CaipAssetType;
   limit?: number;
   cursor?: string;
 }
@@ -34,4 +35,8 @@ export interface GetLimitOrdersQuery {
 export interface GetLimitOrdersResponse {
   orders: LimitOrder[];
   nextCursor?: string;
+  /**
+   * How many orders match the query across every page, not just this one.
+   */
+  total: number;
 }
