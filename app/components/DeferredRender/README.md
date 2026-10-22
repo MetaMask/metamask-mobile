@@ -1,202 +1,267 @@
 # DeferredRender
 
-Shared gate for mounting expensive UI after the navigation push has finished
-and the screen has painted its critical content.
+## What it is
 
-Use it for work that competes with the push animation: a WebView chart, a
-heavy below-the-fold section, a large image tree. The critical shell (title,
-price, back, primary actions) renders on the first commit. Deferred parts
-mount one stage per frame after the transition.
+`DeferredRender` is a small primitive that holds back an expensive part of a
+screen until the screen's opening transition has finished and the JS thread
+has had a frame (and, when available, an idle slot) to breathe. Until then it
+renders a fixed-height, accessibility-hidden placeholder so the layout does
+not shift when the real content mounts.
 
-This module does not wire that gate into Token details, Perps, or Predict.
-Those screens keep their current render timing.
+The critical shell of the screen (title, key values, back button, primary
+actions) renders on the first commit as usual. Only the subtrees you wrap are
+deferred.
 
-## When to use
+Exports from `app/components/DeferredRender`:
 
-- The slow part is **JavaScript or native view work on mount** (WebView
-  creation, a large subtree, decoding).
-- The user can understand the screen and act on it before that part exists.
-- You know, or can estimate, the height of the deferred region.
+| Export                              | Kind      | Purpose                                               |
+| ----------------------------------- | --------- | ----------------------------------------------------- |
+| `DeferredRender`                    | component | One deferred region, or a staged slot inside a host   |
+| `DeferredRenderHost`                | component | Owns one visit shared by several staged slots         |
+| `DeferredPlaceholder`               | component | Fixed-height, accessibility-hidden spacer             |
+| `useDeferredRender`                 | hook      | Same gate, for a custom render branch                 |
+| `deferredRenderFirstRenderMark(id)` | function  | Returns `deferred-render:<id>:first-render`           |
+| `deferredRenderCompleteMark(id)`    | function  | Returns `deferred-render:<id>:complete`               |
+| `DeferredRenderProps`               | type      | Props of `DeferredRender`                             |
+| `DeferredRenderHostProps`           | type      | Props of `DeferredRenderHost`                         |
+| `DeferredPlaceholderProps`          | type      | Props of `DeferredPlaceholder` (`height`, `testID`)   |
+| `UseDeferredRenderOptions`          | type      | Options of `useDeferredRender`                        |
+| `UseDeferredRenderResult`           | type      | `{ releasedStage, isComplete, isStageReady(stage?) }` |
 
-## When not to use
+This module is a capability only. It is not wired into any screen.
 
-- The screen is slow because it is **waiting on the network**. A placeholder
-  does not make the response arrive sooner. The user then sees a spacer and
-  then a spinner. Fix the fetch, or gate the fetch on visibility, instead.
-- The deferred node is a **tappable primary action** (buy, send, swap, close,
-  confirm, amount entry). Those must be in the first paint and must be able
-  to take accessibility focus. Never put them inside `DeferredRender`.
-- The node is cheap (a label, an icon, a short list the user must read to
-  know which screen this is).
-- You need the deferred subtree's layout in order to measure the critical
-  content above it. Reserve height only when the estimate is honest.
+## How it works
 
-## How a visit works
+A **visit** is the lifetime of one hook or host instance. A fresh push onto
+the stack remounts the screen and starts a new visit; so does a new
+`screenId`. Each visit goes through the same gate:
 
-1. On the host's first commit, `performance.mark` records
+1. **First commit.** In a layout effect, the host records the User Timing mark
    `deferred-render:<screenId>:first-render`.
-2. The host waits for `useScreenTransitionComplete` (`app/components/hooks/useScreenTransitionComplete.ts`).
-   - `transitionEnd` with `data.closing === true` is ignored (the screen is leaving).
-   - If the focused screen never emits `transitionEnd` (initial route, tab
-     switch, animation disabled, non-stack navigator), the hook flips true
-     after `SCREEN_TRANSITION_FALLBACK_MS` (450).
-   - If there is no navigator, or `NavigationContext` is missing, the hook
-     uses that same 450ms timer without a focus check.
-   - If the screen is no longer focused when that timer fires, it stays
-     closed and re-arms on the next `focus`. That focus check applies only
-     when a navigator is present.
-3. After the gate opens, the next animation frame runs. When
-   `requestIdleCallback` exists, the first stage also waits for an idle
-   callback. Later stages wait one animation frame each. If the runtime has
-   no idle callback, the first stage mounts on that frame.
-4. A timeout is armed when the stage is scheduled, before
-   `requestAnimationFrame`, so content still mounts when the frame or idle
-   callback never runs. The first stage waits
-   `DEFERRED_RENDER_FIRST_STAGE_TIMEOUT_MS` (250), because that timer has to
-   cover the frame and the idle wait. Each later stage waits
-   `DEFERRED_RENDER_FRAME_TIMEOUT_MS` (100). Pass `frameTimeoutMs` to use one
-   backup for every stage instead. There is no hardware-tier branching.
-5. After the commit that mounts the last stage's children,
-   `performance.mark` records `deferred-render:<screenId>:complete` and
-   `onDeferredComplete` runs. Both happen once per visit. They mean the
-   deferred children have committed, not merely that the stage was released.
-   A visit that unmounts before that commit does not fire them.
+2. **Screen transition complete.** The host waits for
+   `useScreenTransitionComplete` (`app/components/hooks/useScreenTransitionComplete.ts`):
+   - It opens on the navigator's `transitionEnd` event. Events with
+     `data.closing === true` belong to a screen that is leaving and are
+     ignored.
+   - If the focused screen never emits `transitionEnd` (initial route,
+     animation disabled, non-stack navigator), it opens after
+     `SCREEN_TRANSITION_FALLBACK_MS` (**450 ms**). If the screen is no longer
+     focused when that timer fires, the gate stays closed and the timer
+     re-arms on the next `focus` event.
+   - With no navigator (no `NavigationContext` value, or the export is missing
+     in a test mock), it opens after the same 450 ms timer, without a focus
+     check.
+3. **Next animation frame, then idle.** Stage 0 waits for one
+   `requestAnimationFrame`, then for `requestIdleCallback` when the runtime
+   provides it. Without `requestIdleCallback`, stage 0 mounts on that frame.
+4. **Later stages.** With `stages > 1`, each following stage waits one more
+   animation frame (no idle wait).
+5. **Fallback timeouts.** Each stage arms a backup `setTimeout` when it is
+   scheduled, _before_ `requestAnimationFrame`, so content always mounts even
+   if a frame or idle callback never runs. Whichever fires first wins and the
+   others are cancelled.
+   - Stage 0: `DEFERRED_RENDER_FIRST_STAGE_TIMEOUT_MS` = **250 ms** (covers
+     the frame and the idle wait; the same value is passed as the
+     `requestIdleCallback` `timeout` option).
+   - Each later stage: `DEFERRED_RENDER_FRAME_TIMEOUT_MS` = **100 ms**.
+   - `frameTimeoutMs` replaces both values with a single timeout for every
+     stage. There is no device-tier branching.
+6. **Complete.** In an effect after the commit that mounts the last stage's
+   children, the host records `deferred-render:<screenId>:complete` and calls
+   `onDeferredComplete`. Both happen once per visit, and not at all if the
+   visit unmounts first.
 
-`InteractionManager.runAfterInteractions` is not used. It has been deprecated
-since React Native 0.80.
+Released stages only move forward. Parent re-renders, prop changes, and a
+slot scrolling offscreen and back do not bring the placeholder back while the
+host stays mounted. On unmount, the pending frame, idle callback, timeout,
+and navigation listeners are all cancelled.
 
-Released stages only move forward. Parent re-renders, prop updates, and
-scrolling a slot offscreen and back do not show the placeholder again, as
-long as the **host stays mounted**. A new visit is a remount (a fresh push
-onto the stack) or a new `screenId`.
+### Perf marks
 
-Mount the host with the screen, not inside a virtualized row. A slot may
-live in the row. When the row remounts, it reads the host and paints
-children immediately.
+Marks are recorded with `performance.mark` from `react-native-performance`,
+two per visit, with no detail payload:
 
-## Marks
+| Moment                           | Mark name                                 | Helper                                    |
+| -------------------------------- | ----------------------------------------- | ----------------------------------------- |
+| Host first commit                | `deferred-render:<screenId>:first-render` | `deferredRenderFirstRenderMark(screenId)` |
+| Last deferred children committed | `deferred-render:<screenId>:complete`     | `deferredRenderCompleteMark(screenId)`    |
 
-Recorded with `performance.mark` from `react-native-performance` (User Timing).
-Two calls per visit. No detail payload.
+`<screenId>` is used unchanged, so pick a stable slug. The span between the
+two marks is host first commit to deferred content committed. It does not
+include the tap that started navigation; pair the first mark with your own
+navigation-start mark when you need tap-to-ready.
 
-| Moment                           | Mark name                                 |
-| -------------------------------- | ----------------------------------------- |
-| Host first commit                | `deferred-render:<screenId>:first-render` |
-| Last deferred children committed | `deferred-render:<screenId>:complete`     |
+### Why not `InteractionManager`
 
-`<screenId>` is the `screenId` prop, unchanged. Pick a stable slug, for
-example `token-details` or `perps-market-details`.
+`InteractionManager.runAfterInteractions` is deprecated in React Native
+(since 0.80) and is not used here. The primitive instead composes the three
+signals it actually needs: the navigator's transition event, then
+`requestAnimationFrame`, then `requestIdleCallback`, each backed by a timeout.
 
-The span between the marks is first commit of the host to deferred-ready.
-Mount the host on the screen's first render so that span lines up with
-critical content. It does not include the touch that started navigation.
-Pair the first mark with an existing navigation-tap mark when you need
-tap-to-ready.
+## Usage
 
-Helpers: `deferredRenderFirstRenderMark(screenId)` and
-`deferredRenderCompleteMark(screenId)`.
-
-## API
-
-### `DeferredRender`
-
-One deferred region. Creates a single-stage visit when it is not inside a host.
-
-```tsx
-import { DeferredRender } from '../../components/DeferredRender';
-
-<DeferredRender
-  screenId="token-details"
-  estimatedHeight={280}
-  onDeferredComplete={() => {
-    // once per visit
-  }}
->
-  <PriceChart />
-</DeferredRender>;
-```
-
-`estimatedHeight` is density-independent pixels and should match the chart's
-final height. The placeholder is a `View` of that height. It sets
-`accessible={false}`, `accessibilityElementsHidden`,
-`importantForAccessibility="no-hide-descendants"`, and `focusable={false}`,
-so it is not read and does not take focus.
-
-### `DeferredRenderHost` and staged slots
-
-Several regions share one visit, one pair of marks, and one callback.
-Stage 0 releases on the first idle frame. Each next stage releases on the
-following animation frame.
-
-```tsx
-import {
-  DeferredRender,
-  DeferredRenderHost,
-} from '../../components/DeferredRender';
-
-<DeferredRenderHost
-  screenId="perps-market-details"
-  stages={2}
-  onDeferredComplete={handleChartReady}
->
-  <MarketHeader />
-  <DeferredRender stage={0} estimatedHeight={320}>
-    <PerpsChart />
-  </DeferredRender>
-  <DeferredRender stage={1} estimatedHeight={480}>
-    <BelowFoldStats />
-  </DeferredRender>
-</DeferredRenderHost>;
-```
-
-`stage` must be in `0 .. stages - 1`. A slot past that range stays on the
-placeholder. `stages` should stay constant for the visit.
-
-Inside a host, `screenId`, `enabled`, and `onDeferredComplete` on
-`DeferredRender` are ignored. Put them on the host.
-
-### `useDeferredRender`
-
-For a custom placeholder. Still render a spacer with a real height, and
-still keep it out of the accessibility tree. `DeferredPlaceholder` does
-that.
+Import from the module index:
 
 ```tsx
 import {
   DeferredPlaceholder,
+  DeferredRender,
+  DeferredRenderHost,
   useDeferredRender,
 } from '../../components/DeferredRender';
-
-const { isStageReady } = useDeferredRender({
-  screenId: 'token-details',
-  onDeferredComplete: handleReady,
-});
-
-return isStageReady() ? <PriceChart /> : <DeferredPlaceholder height={280} />;
 ```
 
-`enabled={false}` reveals every stage on the first commit and still fires
-`onDeferredComplete` once, after that commit. Use it for a screen that
-should not defer (tests, or a path that already paid the cost). Turning
-`enabled` back on does not hide content that was released. Flipping
-`enabled` to false while a visit is still waiting mounts the remaining
-stages on the next commit.
+### `DeferredRender` with its placeholder
 
-`frameTimeoutMs` replaces both backup timeouts. Omit it for 250ms on the
-first stage and 100ms on each later stage.
+Outside a host, `DeferredRender` creates its own single-stage visit and
+`screenId` is required (it throws without one). While deferred it renders a
+`DeferredPlaceholder` of `estimatedHeight` density-independent pixels.
 
-Inside a host, `screenId`, `enabled`, `frameTimeoutMs`, and
-`onDeferredComplete` on a slot are ignored. In development, passing them
-logs a warning. A `stage` greater than or equal to `stages` also logs a
-warning in development and stays on its placeholder. A placeholder height
-of `0`, a negative number, or `NaN` logs a warning in development; pass the
-real reserved height.
+```tsx
+<DeferredRender
+  screenId="example-screen"
+  estimatedHeight={280}
+  onDeferredComplete={() => {
+    // once per visit, after the children have committed
+  }}
+>
+  <ExpensiveChart />
+</DeferredRender>
+```
 
-## Cleanup
+Props: `estimatedHeight` (required), `children`, `screenId`, `enabled`,
+`frameTimeoutMs`, `onDeferredComplete`, `testID` (defaults to
+`deferred-render-placeholder-<stage>`), and `stage` (only meaningful inside a
+host).
 
-On unmount the hook cancels its animation frame, idle callback, and timeout,
-and `useScreenTransitionComplete` removes its `transitionEnd` and `focus`
-listeners and its fallback timer. Callbacks check a mounted flag before
-`setState`, including when the user pops the screen before the frame runs.
-`onDeferredComplete` and the complete mark do not run for a visit that
-unmounts before the last stage's children commit.
+Match `estimatedHeight` to the final layout. A height of `0`, a negative
+number, or `NaN` logs a development warning. The placeholder is a plain `View`
+with `accessible={false}`, `accessibilityElementsHidden`,
+`importantForAccessibility="no-hide-descendants"`, `focusable={false}` and
+`pointerEvents="none"`, so it is never read, focused, or tapped.
+
+### `DeferredRenderHost` with staged slots
+
+Use a host when several regions should share one visit, one pair of marks
+and one callback. Stage 0 releases after the transition, a frame and idle;
+each next stage releases one frame later.
+
+```tsx
+<DeferredRenderHost
+  screenId="example-screen"
+  stages={2}
+  onDeferredComplete={handleDeferredReady}
+>
+  <ScreenHeader />
+  <DeferredRender stage={0} estimatedHeight={320}>
+    <ExpensiveChart />
+  </DeferredRender>
+  <DeferredRender stage={1} estimatedHeight={480}>
+    <BelowTheFoldSection />
+  </DeferredRender>
+</DeferredRenderHost>
+```
+
+- `stage` must be in `0 .. stages - 1`. A slot outside that range stays on its
+  placeholder and logs a development warning.
+- `stages` defaults to 1 and should stay constant for the visit.
+- Inside a host, `screenId`, `enabled`, `frameTimeoutMs` and
+  `onDeferredComplete` on a slot are ignored (with a development warning).
+  Put them on the host.
+- Mount the host with the screen, not inside a virtualized row. Slots may live
+  in rows; a row that remounts after release paints its children immediately.
+
+### `useDeferredRender` for a custom branch
+
+The hook takes the same options as the host and returns
+`{ releasedStage, isComplete, isStageReady }`. `releasedStage` is `-1` while
+everything is deferred; `isStageReady(stage = 0)` is true once that stage is
+released.
+
+```tsx
+function ExampleSection() {
+  const { isStageReady } = useDeferredRender({
+    screenId: 'example-screen',
+    onDeferredComplete: handleDeferredReady,
+  });
+
+  return isStageReady() ? (
+    <ExpensiveChart />
+  ) : (
+    <DeferredPlaceholder height={280} />
+  );
+}
+```
+
+If you render your own placeholder instead of `DeferredPlaceholder`, still
+give it the real height and keep it out of the accessibility tree.
+
+### Turning deferral off
+
+`enabled={false}` releases every stage on the first commit and still fires the
+complete mark and `onDeferredComplete` once, after that commit. Flipping
+`enabled` to `false` while a visit is waiting mounts the remaining stages on
+the next commit. Turning it back on never hides content that was already
+released.
+
+## When to use
+
+Defer only when a trace shows the deferred work competing with the
+navigation push. Typical evidence:
+
+- JS tasks longer than 50 ms inside the push window (from navigation start to
+  `transitionEnd`), attributable to mounting the subtree you want to defer.
+- Dropped or janky frames during the push animation that disappear when that
+  subtree is removed.
+- A heavy mount right after the transition (large subtree, WebView or native
+  view creation, image decoding) that blocks input or the first paint of the
+  critical content.
+
+Also make sure that:
+
+- The user can understand the screen and act on it before the deferred part
+  exists.
+- You know, or can honestly estimate, the height of the deferred region.
+
+## When NOT to use
+
+- **The gap between data ready and content ready is idle.** If the trace shows
+  the JS thread mostly idle while you wait for content (a WebView or chart
+  library booting, its own fallback timers, native work off the JS thread),
+  there is nothing for deferral to unblock.
+- **Content renders within tens of milliseconds of its data.** The screen is
+  network-bound; a placeholder does not make the response arrive sooner. Fix
+  or start the fetch earlier instead.
+- **The node is a primary action** (buy, send, swap, confirm, amount entry,
+  close). It must be in the first paint and able to take accessibility focus.
+- **The node is cheap** (labels, icons, a short list the user needs to
+  recognize the screen).
+- **You need its layout** to measure the critical content above it.
+
+In these cases deferring only adds latency: the content waits for the
+transition, a frame and idle, and in the worst case up to the fallback
+timeouts (450 ms for the transition fallback plus 250 ms for stage 0, plus
+100 ms per later stage).
+
+## How to measure
+
+Measure before and after wrapping anything:
+
+1. **Add marks** with `performance.mark`:
+   - `nav_start` where navigation is triggered (the tap handler),
+   - `data_ready` when the data the deferred content needs is available,
+   - `content_ready` when that content has committed (for deferred content,
+     `deferred-render:<screenId>:complete` or `onDeferredComplete`).
+2. **Run on both platforms**, iOS and Android, with several repetitions per
+   variant (with and without `DeferredRender`), on cold and warm visits.
+3. **Discard repetitions where content arrives before data** (`content_ready`
+   earlier than `data_ready`): those measure a cached or stale path, not the
+   one you are changing.
+4. **Look at the push window in a profiler trace** (JS long tasks, frame
+   timeline) to confirm the cause matches the "When to use" evidence, and
+   compare `nav_start → content_ready` between variants.
+5. **Confirm on a release build.** Development builds add JS overhead and dev
+   warnings that distort both the busy and the idle cases.
+
+Keep the change only if the push becomes smoother (fewer long tasks or
+dropped frames) without a meaningful increase in `nav_start → content_ready`.
