@@ -135,6 +135,8 @@ const getStories = () => {
     "./app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx": require("../app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx"),
     "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
+    "./app/components/UI/MarketingMoment/MarketingMoment.stories.tsx": require("../app/components/UI/MarketingMoment/MarketingMoment.stories.tsx"),
+    "./app/components/UI/MarketingMomentTitle/MarketingMomentTitle.stories.tsx": require("../app/components/UI/MarketingMomentTitle/MarketingMomentTitle.stories.tsx"),
     "./app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx": require("../app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx"),
     "./app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx": require("../app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx"),
     "./app/components/UI/SettingsButtonSection/SettingsButtonSection.stories.tsx": require("../app/components/UI/SettingsButtonSection/SettingsButtonSection.stories.tsx"),

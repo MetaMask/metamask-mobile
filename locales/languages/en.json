@@ -79,6 +79,11 @@
       "title": "Transaction in progress",
       "message": "A previous transaction is still being signed or submitted."
     },
+    "suggested_gas_fee_high": {
+      "title": "High site fee",
+      "message": "This site is suggesting a higher network fee than necessary. Edit the network fee to pay less.",
+      "edit_action": "Edit network fee"
+    },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit in progress",
       "message": "Wait for the last deposit to finish before making another."
@@ -1191,6 +1196,10 @@
       "description": "Your identity check is complete.",
       "button": "Continue"
     },
+    "creating_account": {
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
+    },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
       "description": "A few details need your attention. Review each item below, then try again.",
@@ -1212,17 +1221,34 @@
       "description": "We couldn't load your bank account details.",
       "button": "Try again"
     },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
+    },
     "vba_details": {
       "title": "Add money with Pix",
       "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
       "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
       "copia_cola_label": "PIX Copia e Cola",
       "pix_key_label": "PIX key",
+      "bank_transfer_title": "Add money by bank transfer",
+      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
+      "account_holder_label": "Account holder",
+      "routing_number_label": "Routing number",
+      "account_number_label": "Account number",
+      "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "Done",
-      "waiting_for_pix": "PIX instructions appear here once the account is approved.",
-      "loading": "Loading PIX details",
+      "waiting_for_details": "Your account details will appear here shortly.",
+      "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
       "retry": "Try again"
@@ -1657,6 +1683,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1847,7 +1875,7 @@
     "available_balance": "Available balance",
     "margin_used": "Margin used",
     "gtm_content": {
-      "title": "PERPS ARE HERE",
+      "title": "Perps are here",
       "title_description": "Long or short with up to 40x leverage. Fund your account with one click.",
       "not_now": "Not now",
       "try_now": "Get started"
@@ -2806,7 +2834,9 @@
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
       "orderLeverageReductionFailed": "You cannot reduce your leverage",
-      "insufficientLiquidity": "Insufficient liquidity to execute order. Increase max slippage, reduce the order size, or use a limit order.",
+      "insufficientLiquidity": "Insufficient liquidity to execute order. Try using a limit order or retry in a moment.",
+      "iocCancel": "Your order couldn't fill within your {{maxSlippage}}% slippage tolerance. Try a limit order or adjust your slippage.",
+      "iocCancelUnknownTolerance": "Your order couldn't fill within your slippage tolerance. Try a limit order or adjust your slippage.",
       "connectionTimeout": "Connection timed out. Please check your network and try again.",
       "clientReinitializing": "Service is reinitializing. Please wait a moment and try again.",
       "transferFailed": "Unable to transfer funds. Please try again.",
@@ -2822,6 +2852,7 @@
       "tpslUpdateFailed": "Unable to update take profit/stop loss. Try again.",
       "orderRejected": "Order was rejected. Check your parameters and try again.",
       "slippageExceeded": "Price moved too much. Try using a limit order or increase slippage tolerance.",
+      "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
       "rateLimitExceeded": "Too many requests. Wait a moment and try again.",
       "serviceUnavailable": "Service is temporarily unavailable. Try again later.",
       "networkErrorSimple": "Network error occurred. Check your connection and try again.",
@@ -2957,6 +2988,17 @@
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Top traders"
+      },
+      "top_traders_timeframe": {
+        "7d": "This week",
+        "30d": "This month"
+      },
+      "top_traders_scope": "Ranked across all Perps markets",
+      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -3009,7 +3051,8 @@
         "provider_fee": "Provider fee",
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% on fees as a VIP."
+        "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member."
       },
       "size_skew": {
         "title": "Size skew",
@@ -8430,7 +8473,6 @@
       "email_description": "Get a 6-digit code sent to your inbox",
       "totp_description": "Get a 6-digit code from an app like Google Authenticator",
       "totp_done": "Set up in your authenticator app",
-      "list_title": "You’ll set up",
       "continue": "Get started"
     },
     "picker": {
@@ -9254,7 +9296,7 @@
       "account_is_ready": {
         "title": "You’re all set",
         "description": "Your virtual account details are ready.",
-        "cta": "View Pix details"
+        "cta": "View account details"
       },
       "kyc_pending": {
         "title": "Verifying your identity",
@@ -10212,7 +10254,7 @@
       "error_signing_delegations": "Could not create an order: the order couldn't be signed.",
       "error_creating_order": "Could not create an order: the order couldn't be placed.",
       "error_missing_trigger_price": "Could not create an order: the trigger price is unavailable.",
-      "unsupported_fee_token_pair": "One of the two assets must be a supported fee token. Select a supported source or destination asset to continue.",
+      "unsupported_fee_token_pair": "Limit orders aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
       "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
       "error_canceling_order": "Could not cancel your order. Please try again.",
       "order_created_title": "Order created",
@@ -11814,6 +11856,9 @@
       "invalid_referral_code": "Invalid referral code. Check and try again.",
       "already_referred": "You have already been referred by another user.",
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "Invalid bonus code",
       "already_redeemed": "You have already redeemed this bonus code",
       "reached_maximum": "This bonus code has reached its maximum number of uses"
@@ -11851,7 +11896,7 @@
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
-      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "Unlock exclusive perks, early features, and curated rewards. By invitation only.",
       "splash_accept_invite": "Accept invite",
       "splash_not_now": "Not now",
