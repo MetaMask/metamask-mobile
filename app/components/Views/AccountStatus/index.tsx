@@ -132,7 +132,6 @@ const getSocialLoginAvatarProps = (
           svgProps: {
             fill: 'currentColor',
             color: commonColors.telegramBlue,
-            style: { color: commonColors.telegramBlue },
           },
         },
       };
