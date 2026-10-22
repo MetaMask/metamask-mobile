@@ -163,4 +163,53 @@ describe('getVbaCurrencyDisplayName', () => {
       }
     }
   });
+
+  it('names a code when no locale is selected', () => {
+    const name = getVbaCurrencyDisplayName('JPY');
+
+    expect(name.length).toBeGreaterThan(0);
+    expect(name === 'JPY' || name.toLowerCase().includes('yen')).toBe(true);
+  });
+
+  it('returns the code when the currency name is empty', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DisplayNames');
+    class EmptyCurrencyName {
+      of(): string {
+        return '';
+      }
+    }
+    Object.defineProperty(Intl, 'DisplayNames', {
+      configurable: true,
+      value: EmptyCurrencyName,
+    });
+
+    try {
+      expect(getVbaCurrencyDisplayName('GBP', 'en')).toBe('GBP');
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Intl, 'DisplayNames', descriptor);
+      }
+    }
+  });
+
+  it('returns the code when currency naming throws', () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl, 'DisplayNames');
+    class ThrowingCurrencyName {
+      constructor() {
+        throw new Error('unsupported locale');
+      }
+    }
+    Object.defineProperty(Intl, 'DisplayNames', {
+      configurable: true,
+      value: ThrowingCurrencyName,
+    });
+
+    try {
+      expect(getVbaCurrencyDisplayName('EUR', 'en')).toBe('EUR');
+    } finally {
+      if (descriptor) {
+        Object.defineProperty(Intl, 'DisplayNames', descriptor);
+      }
+    }
+  });
 });

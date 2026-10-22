@@ -11,7 +11,7 @@ import renderWithProvider, {
   type DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
@@ -229,6 +229,27 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
     ).toBeNull();
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('shows chooser rows when the app locale is not a string', async () => {
+    const previousLocale = I18n.locale;
+    (I18n as { locale: unknown }).locale = undefined;
+
+    try {
+      const { findByTestId, getByTestId } = render(VbaDetails, {
+        chooseCurrency: true,
+      });
+
+      fireEvent.press(
+        getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      );
+
+      expect(
+        await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+      ).toBeOnTheScreen();
+    } finally {
+      I18n.locale = previousLocale;
+    }
   });
 
   it('offers LaunchDarkly currencies the client can render and hides the rest', async () => {
