@@ -26,14 +26,19 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
+import {
+  SOCIAL_V1_AB_KEY,
+  SocialV1Variant,
+} from '../../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
+import {
   createPerpsControllerStateHarness,
   getModifyActionLabels,
   wirePerpsControllerForStore,
 } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
-import {
-  createRouteParamsProbe,
-  getRouteParamsProbeTestId,
-} from '../../../../../../tests/component-view/render';
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -984,6 +989,81 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the Share position sheet from the position card when the user can post to Social', async () => {
+      renderPerpsMarketDetailsView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsSocialEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
+                  aiSocialLeaderboardEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+              ProfileController: {
+                profile: {
+                  profileId: 'profile-1',
+                  username: 'trader',
+                  displayName: 'trader',
+                  bio: '',
+                  linkedAddresses: [
+                    'eip155:1:0x0000000000000000000000000000000000000001',
+                  ],
+                  avatarUrl: '',
+                  tradingPrivacy: 'public',
+                  connectedToX: false,
+                  createdAt: '',
+                  updatedAt: '',
+                },
+              },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.MODALS.ROOT }],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.MODALS.ROOT),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the PnL hero card from the position card when the user cannot post to Social', async () => {
+      renderPerpsMarketDetailsView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+        extraRoutes: [{ name: Routes.PERPS.PNL_HERO_CARD }],
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.PNL_HERO_CARD),
+        ),
       ).toBeOnTheScreen();
     });
 

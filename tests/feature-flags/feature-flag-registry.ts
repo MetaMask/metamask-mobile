@@ -440,6 +440,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               enabled: true,
               tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
               tokenApiBaseUrl: 'https://token.api.cx.metamask.io',
+              priceApiBaseUrl: 'https://price.api.cx.metamask.io',
             },
           },
         ],

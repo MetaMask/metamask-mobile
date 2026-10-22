@@ -1,5 +1,5 @@
-import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
 import type { Profile, XProfile } from '@metamask/profile-controller';
+import { getLinkedEvmAddress } from '../../../../../selectors/profileController';
 import { parseFoxiconAvatarUrl } from '../avatarPresets';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import { profileUrlForHandle } from '../../ProfileOnboarding/profileOnboardingDraft';
@@ -27,23 +27,6 @@ export const withLocalAvatarPreset = (
     avatarBackgroundId: localProfile.avatarBackgroundId ?? null,
     linkedAccountId: localProfile.linkedAccountId ?? null,
   };
-};
-
-const getLinkedEvmAddress = (
-  linkedAddresses: CaipAccountId[],
-): string | null => {
-  for (const linkedAddress of linkedAddresses) {
-    try {
-      const { address, chainId } = parseCaipAccountId(linkedAddress);
-      if (chainId.startsWith('eip155:')) {
-        return address;
-      }
-    } catch {
-      // Ignore unsupported linked account formats.
-    }
-  }
-
-  return null;
 };
 
 export const profileControllerToMySocialProfile = (

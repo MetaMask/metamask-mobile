@@ -5,6 +5,7 @@ import {
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
 import { TOKEN_API_BASE_URL } from '../../../components/UI/Assets/watchlist/utils/getTokens';
+import { PRICE_API_BASE_URL } from '../../../constants/urls';
 import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsV1TabKey,
@@ -16,6 +17,8 @@ interface AssetsMemecoinTdpV1FeatureFlag {
   tabConfigOrder?: unknown;
   /** Token API host the V1 page calls `/v2/assets` on. */
   tokenApiBaseUrl?: unknown;
+  /** Price API host the V1 page's price, chart and market data calls use. */
+  priceApiBaseUrl?: unknown;
 }
 
 /**
@@ -132,5 +135,45 @@ export const selectMemecoinTdpV1TokenApiBaseUrl = createSelector(
     }
 
     return tokenApiBaseUrl;
+  },
+);
+
+/**
+ * Price API host the V1 page's spot-prices, historical-prices and OHLCV
+ * requests use, including the `/latest` candle the chart polls when its
+ * WebSocket goes quiet.
+ *
+ * Exists for the same reason as {@link selectMemecoinTdpV1TokenApiBaseUrl}: a
+ * token new enough to be worth opening the V1 page for is often absent from
+ * the prod price API, so the page cannot be exercised end to end without
+ * pointing it somewhere that has the data.
+ *
+ * The value is an origin and nothing more — `https://price.dev-api.cx.metamask.io`
+ * — because callers append their own `/v3/...` path.
+ *
+ * Reaching the callers is the job of `PriceApiHostProvider`, which wraps only
+ * the V1 page. Two requests deliberately ignore this and stay on prod: the
+ * headline price, which goes through a utility Bridge and swaps also use, and
+ * the chart's scroll-back pagination, which the WebView's CSP pins to prod.
+ *
+ * The OHLCV WebSocket is a third exception, but not one this could fix: its
+ * gateway comes from `MM_BACKEND_WEBSOCKET_URL` at build time, so on a build
+ * pointed at prod the live stream stays there while `/latest` follows this.
+ * That is the intended split — `/latest` is the fallback that has to return
+ * data when the stream has none for the asset.
+ */
+export const selectMemecoinTdpV1PriceApiBaseUrl = createSelector(
+  selectAssetsMemecoinTdpV1Config,
+  (config): string => {
+    const priceApiBaseUrl = config?.priceApiBaseUrl;
+
+    if (
+      typeof priceApiBaseUrl !== 'string' ||
+      !ABSOLUTE_HTTPS_ORIGIN.test(priceApiBaseUrl)
+    ) {
+      return PRICE_API_BASE_URL;
+    }
+
+    return priceApiBaseUrl;
   },
 );

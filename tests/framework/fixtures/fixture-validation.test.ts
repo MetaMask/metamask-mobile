@@ -412,7 +412,10 @@ describe('fixture-validation', () => {
       const fixture = readFixtureFile('default-fixture.json');
 
       expect((fixture.state as Record<string, unknown>).rewardsMoney).toEqual({
+        cashbackLedger: {},
+        commissions: {},
         earningsSummary: {},
+        referralFunnel: {},
         referralMe: {},
       });
     });
