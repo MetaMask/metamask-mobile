@@ -874,6 +874,10 @@ describe('resolveVbaOnboarding', () => {
 });
 
 describe('navigateToVbaOnboardingDestination account create error', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('opens the bank-details error screen', () => {
     navigateToVbaOnboardingDestination(navigation, 'accountCreateDetails');
 
