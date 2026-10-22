@@ -20,6 +20,7 @@ import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
+import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
@@ -51,6 +52,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -91,11 +93,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const chips = visibleReactions(reactions);
 
   const openPicker = useCallback(() => {
+    if (!ensureSocialProfileOnboarding()) {
+      return;
+    }
+
     reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setPickerAnchor({ x, y, width, height });
       setPickerVisible(true);
     });
-  }, []);
+  }, [ensureSocialProfileOnboarding]);
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
@@ -103,9 +109,13 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const toggleEmotion = useCallback(
     (emotion: string) => {
+      if (!ensureSocialProfileOnboarding()) {
+        return;
+      }
+
       pickEmotion(emotion).catch(() => undefined);
     },
-    [pickEmotion],
+    [ensureSocialProfileOnboarding, pickEmotion],
   );
 
   const handlePick = useCallback(

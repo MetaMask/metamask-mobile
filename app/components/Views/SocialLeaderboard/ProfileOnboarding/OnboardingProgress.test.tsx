@@ -30,7 +30,8 @@ describe('OnboardingProgress', () => {
     jest.useRealTimers();
   });
 
-  const flush = (ms = PROGRESS_FILL_MS) => act(() => jest.advanceTimersByTime(ms));
+  const flush = (ms = PROGRESS_FILL_MS) =>
+    act(() => jest.advanceTimersByTime(ms));
 
   it('grows the active segment from 0% to 100%', () => {
     renderProgress();

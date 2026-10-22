@@ -1443,6 +1443,16 @@ export const PerpsModifyActionSheetSelectorsIDs = {
 } as const;
 
 // ========================================
+// PERPS SHARE POSITION SHEET SELECTORS
+// ========================================
+
+export const PerpsSharePositionSheetSelectorsIDs = {
+  SHEET: 'perps-share-position-sheet',
+  POST_TO_METAMASK: 'perps-share-position-sheet-post_to_metamask',
+  SHARE_EXTERNALLY: 'perps-share-position-sheet-share_externally',
+} as const;
+
+// ========================================
 // PERPS FLIP POSITION CONFIRM SHEET SELECTORS
 // ========================================
 
