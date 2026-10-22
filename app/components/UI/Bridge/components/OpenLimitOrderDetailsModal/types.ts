@@ -1,4 +1,5 @@
 import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
+import type { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import type { LimitOrderConfirmationMarketComparison } from '../LimitOrderConfirmationModal/types';
 
@@ -42,7 +43,12 @@ export interface OpenLimitOrderDetailsModalProps {
    */
   triggerToken?: BridgeToken;
   /**
-   * Expiration label, e.g. "Sep 27".
+   * Which side of the trigger price fills the order, shown as a ≥ or ≤ sign
+   * before it. Without it, no sign is shown.
+   */
+  triggerDirection?: LimitOrderPriceComparisonDirection;
+  /**
+   * Expiration label, e.g. "Sep 27, 2026 at 12:00 PM".
    */
   expiry: string;
   /**
@@ -73,4 +79,5 @@ export interface OpenLimitOrderDetailsModalProps {
 export interface TriggerPriceDisplay {
   triggerPrice: string;
   triggerToken: BridgeToken;
+  triggerDirection?: LimitOrderPriceComparisonDirection;
 }

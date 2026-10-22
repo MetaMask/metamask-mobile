@@ -67,6 +67,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [isOptOutSheetVisible, setIsOptOutSheetVisible] = useState(false);
+  const [isCheckingOptOut, setIsCheckingOptOut] = useState(false);
   const isSignedIn = useSelector(selectIsSignedIn);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -216,9 +217,16 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   };
 
   const toggleDataCollectionForMarketing = async (value: boolean) => {
-    if (!value && (await hasMarketingNotificationsOn())) {
-      setIsOptOutSheetVisible(true);
-      return;
+    if (!value) {
+      // Disable the switch while the channels are read, so a second tap can't
+      // open the sheet or save the opt-out twice.
+      setIsCheckingOptOut(true);
+      const channelsOn = await hasMarketingNotificationsOn();
+      setIsCheckingOptOut(false);
+      if (channelsOn) {
+        setIsOptOutSheetVisible(true);
+        return;
+      }
     }
 
     if (analyticsEnabled) {
@@ -292,7 +300,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         </Text>
         <View style={styles.switchElement}>
           <Switch
-            disabled={!isBasicFunctionalityEnabled}
+            disabled={!isBasicFunctionalityEnabled || isCheckingOptOut}
             value={isDataCollectionForMarketingEnabled === true}
             onValueChange={toggleDataCollectionForMarketing}
             trackColor={{

@@ -15,7 +15,7 @@ const MetaMetricsScreenWithParams = ({
 }: {
   route?: { params?: Record<string, unknown> };
 }) => <MetaMetricsAndDataCollectionSection {...(route?.params || {})} />;
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
@@ -832,6 +832,30 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect.anything(),
         );
         expect(mockAnalytics.identify).not.toHaveBeenCalled();
+      });
+
+      it('disables the switch while the notification channels are read', async () => {
+        let resolvePreferences: (value: unknown) => void = () => undefined;
+        mockMessengerCall.mockImplementation((action: string) =>
+          action === GET_NOTIFICATION_PREFERENCES_ACTION
+            ? new Promise((resolve) => {
+                resolvePreferences = resolve;
+              })
+            : Promise.resolve(undefined),
+        );
+
+        const { getByTestId } = await turnMarketingOff(true);
+        const marketingSwitch = getByTestId(
+          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+        );
+
+        expect(marketingSwitch).toHaveProp('disabled', true);
+
+        await act(async () => {
+          resolvePreferences(null);
+        });
+
+        expect(marketingSwitch).toHaveProp('disabled', false);
       });
 
       it('saves the opt-out and adds traits when the opt-out sheet is confirmed', async () => {

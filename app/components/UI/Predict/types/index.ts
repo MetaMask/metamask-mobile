@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
 import type { PredictPaymentMethodValue } from '../constants/eventNames';
@@ -19,6 +20,22 @@ export enum ActiveOrderState {
   PLACING_ORDER = 'placing_order',
   SUCCESS = 'success',
 }
+
+/**
+ * Authoritative order state for the retry guard, supplied by each screen
+ * from its own order-state source. Anything other than 'unknown' is in
+ * flight or terminal and must never be retried as a fresh failure:
+ *
+ * - 'pending'  — a submission is in flight
+ * - 'filled'   — the order actually filled
+ * - 'canceled' — the user rejected/canceled the order
+ * - 'unknown'  — no authoritative signal (a not-filled failure is retryable)
+ */
+export type PredictRetryOrderState =
+  | 'unknown'
+  | 'pending'
+  | 'filled'
+  | 'canceled';
 
 /**
  * Which leg of a PWAT buy failed. Defaults to `'order'` when omitted so
@@ -758,6 +775,11 @@ export interface PredictFees {
   permit2Enabled?: boolean;
 }
 
+export interface PredictFeePolicy {
+  discountType: DiscountType.SUBSCRIPTION;
+  builderCode: string;
+}
+
 /**
  * @example
  * side = BUY;
@@ -787,6 +809,9 @@ export interface OrderPreview {
   negRisk: boolean;
   feeRateBps?: string;
   fees?: PredictFees;
+  /** Standard fees before applying the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
+  feePolicy?: PredictFeePolicy;
   rateLimited?: boolean;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
@@ -855,6 +880,7 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
+  feePolicy?: PredictFeePolicy;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
@@ -865,6 +891,7 @@ export interface PreviewMaxBuyOrderParams {
   outcomeId: string;
   outcomeTokenId: string;
   availableBalance: number;
+  feePolicy?: PredictFeePolicy;
 }
 
 export type PredictWalletType = 'safe' | 'deposit-wallet';

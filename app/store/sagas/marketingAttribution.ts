@@ -1,3 +1,4 @@
+import type { AnyAction } from 'redux';
 import { call, put, select, takeEvery } from 'redux-saga/effects';
 import {
   ActionType,
@@ -15,7 +16,7 @@ import {
 import Engine from '../../core/Engine';
 import { ensureError } from '../../util/errorUtils';
 import Logger from '../../util/Logger';
-import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
+import { selectMarketingConsent } from '../../selectors/analyticsController';
 import { selectAttributionRecord } from '../../selectors/attribution';
 
 const saveMarketingConsent = (enabled: boolean) =>
@@ -46,20 +47,25 @@ export function* watchMarketingAttributionOnConsentChange() {
 }
 
 /**
- * Clear persisted acquisition data whenever marketing consent is off,
- * including when it was revoked on another device.
+ * Clear persisted acquisition data on app start unless marketing consent was
+ * granted, and later whenever consent is turned off, including when it was
+ * revoked on another device. Undecided users keep it for the rest of the
+ * session, so onboarding can attach it once they opt in.
  */
 export function* watchMarketingAttributionOnControllerConsent() {
   yield takeEvery(
     [INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY],
-    function* clearAttributionWithoutConsent() {
-      const optedIn: boolean | undefined = yield select(
-        selectAnalyticsOptedInToMarketing,
-      );
+    function* clearAttributionWithoutConsent({ type }: AnyAction) {
+      const consent: boolean | null = yield select(selectMarketingConsent);
       const attribution: AttributionRecord | null = yield select(
         selectAttributionRecord,
       );
-      if (optedIn === false && attribution) {
+      // INIT_BG_STATE stands in for app start: it is dispatched before
+      // deeplink intake starts (startAppServices), so it never clears
+      // attribution saved during this session.
+      const keep =
+        type === INIT_BG_STATE_KEY ? consent === true : consent !== false;
+      if (attribution && !keep) {
         yield put(clearAttribution());
       }
     },

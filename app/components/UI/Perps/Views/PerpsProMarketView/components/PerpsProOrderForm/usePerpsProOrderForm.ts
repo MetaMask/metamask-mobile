@@ -19,6 +19,7 @@ import {
   type GetScalePriceLadderParams,
   type MarginMode,
   type OrderType,
+  type PerpsFeeSource,
   type PerpsMarketData,
   type PerpsProviderType,
   type Position,
@@ -120,7 +121,10 @@ import {
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
-import { translatePerpsError } from '../../../../utils/translatePerpsError';
+import {
+  isPerpsErrorCode,
+  translatePerpsError,
+} from '../../../../utils/translatePerpsError';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -161,6 +165,7 @@ import {
 import type {
   PerpsProOrderDirection,
   PerpsProOrderNotice,
+  PerpsProRebateQuote,
   PerpsProOrderSummaryProps,
   PerpsProScaleOrderModel,
   PerpsProSizeInputModel,
@@ -554,6 +559,7 @@ export interface UsePerpsProOrderFormResult {
   onTPSLPress: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   scaleOrder: PerpsProScaleOrderModel;
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
@@ -594,6 +600,7 @@ export interface UsePerpsProOrderFormResult {
   feeProtocolFeeRate: number | undefined;
   feeOriginalMetamaskFeeRate: number | undefined;
   feeDiscountPercentage: number | undefined;
+  feeSource: PerpsFeeSource | undefined;
 }
 
 /**
@@ -1675,7 +1682,6 @@ export const usePerpsProOrderForm = ({
   });
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
-
   // Scale endpoints are compared against the side of the book they would hit:
   // best ask for a long, best bid for a short. Top-of-book arrives on its own
   // stream and can be absent for the first frames; mid is not a substitute,
@@ -2467,7 +2473,7 @@ export const usePerpsProOrderForm = ({
         return;
       if (
         isChaseExecutionRef.current &&
-        error === PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED
+        isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED)
       ) {
         trackChaseConcurrencyLimitHit();
       }
@@ -3029,6 +3035,7 @@ export const usePerpsProOrderForm = ({
           feeResults: latestScale.feeResults,
           marketPrice: latestScale.assetPrice,
           inputMethod: 'default',
+          orderType: 'scale',
           source,
           sourceSection,
           currentMarketPosition: latestScale.currentMarketPosition,
@@ -3318,12 +3325,19 @@ export const usePerpsProOrderForm = ({
           feeResults: submissionChaseSnapshot?.feeResults ?? feeResults,
           marketPrice: submissionChaseSnapshot?.assetPrice ?? assetData.price,
           inputMethod: 'default',
+          orderType: placementOrderForm.type,
           source,
           sourceSection,
           currentMarketPosition: placementCurrentMarketPosition,
           direction: placementOrderForm.direction,
           chartLibrary,
           vipTier,
+          maxSlippageBps: resolvedMaxSlippageBps,
+          maxSlippageSource,
+          estimatedSlippageBps:
+            typeof estimatedSlippageBps === 'number'
+              ? estimatedSlippageBps
+              : undefined,
         }),
       });
 
@@ -3992,6 +4006,7 @@ export const usePerpsProOrderForm = ({
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
+      feeSource: feeResults.feeSource,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       twapSummary: isTwapOrder
         ? {
@@ -4017,6 +4032,7 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
+    feeResults.feeSource,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
@@ -4685,6 +4701,11 @@ export const usePerpsProOrderForm = ({
     onTPSLPress,
     notices,
     summary,
+    rebateQuote: {
+      coin: orderForm.asset,
+      direction: orderForm.direction,
+      notionalUsd: calculationUsdAmount,
+    },
     scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading:
@@ -4722,6 +4743,7 @@ export const usePerpsProOrderForm = ({
     feeProtocolFeeRate: feeResults.protocolFeeRate,
     feeOriginalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
+    feeSource: feeResults.feeSource,
   };
 };
 

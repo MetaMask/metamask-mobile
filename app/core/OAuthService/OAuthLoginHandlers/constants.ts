@@ -42,7 +42,7 @@ export const AuthServerUrl = w3aAuthServerUrl;
 export const profileSyncEnv =
   PROFILE_SYNC_ENV_BY_BUILD_TYPE[BuildType] ?? ProfileSyncEnv.DEV;
 
-/** UAT QA mock token URL — optional ping when `E2E_MOCK_OAUTH` + `E2E_BYOA_AUTH_SECRET` (BrowserStack perf). */
+/** UAT QA mock token URL — used when `E2E_MOCK_OAUTH` is set; requires `E2E_BYOA_AUTH_SECRET` (TestMu perf). */
 export const E2E_QA_MOCK_OAUTH_TOKEN_URL =
   'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token';
 
