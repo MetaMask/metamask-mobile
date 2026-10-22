@@ -56,6 +56,7 @@ import {
   PerpsTradeSheetTitleBanner,
   usePerpsTradeSheet,
 } from './PerpsTradeBottomSheet';
+import { usePerpsOrderBookPreferences } from '../../hooks/usePerpsOrderBookPreferences';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 
 interface PerpsTradeScreenProps {
@@ -336,10 +337,20 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
   const { denomination, setDenomination } = usePerpsSizeDenomination();
+  const { setOrderBookPreferences } = usePerpsOrderBookPreferences();
   // A saved coin unit is not displayable until the price can project it.
   // Until then the keypad stays in USD, matching the amount Place Order submits.
   const priceReady = Number.isFinite(amountPrice) && amountPrice > 0;
   const showAssetValue = denomination === 'asset' && priceReady;
+  // Pro restores a saved order-book coin on mount. Write that currency with the
+  // shared unit so switching back to USD here is not put back to coin later.
+  const onDisplayToggle = () => {
+    const nextDenomination = showAssetValue ? 'usd' : 'asset';
+    setDenomination(nextDenomination);
+    setOrderBookPreferences({
+      currency: nextDenomination === 'asset' ? 'base' : 'usd',
+    });
+  };
   const { fireImpact } = useHaptics();
   const navigateWithHaptic = (screen: Parameters<typeof navigateTo>[0]) => {
     fireImpact(ImpactMoment.PageNavigation);
@@ -479,9 +490,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               'perps.trade_sheet.amount_slider_accessibility_label',
             )}, ${amount || '0'}`}
             onPress={onAmountPress}
-            onDisplayToggle={() =>
-              setDenomination(showAssetValue ? 'usd' : 'asset')
-            }
+            onDisplayToggle={onDisplayToggle}
             displayToggleAccessibilityLabel={strings(
               showAssetValue
                 ? 'perps.trade_sheet.show_fiat_value'

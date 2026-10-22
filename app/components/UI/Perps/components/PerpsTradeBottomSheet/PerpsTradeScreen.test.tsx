@@ -28,6 +28,15 @@ let store = configureStore({});
 const render: typeof renderRoot = (ui, options) =>
   renderRoot(<Provider store={store}>{ui}</Provider>, options);
 
+const mockSetOrderBookPreferences = jest.fn();
+
+jest.mock('../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: mockSetOrderBookPreferences,
+  }),
+}));
+
 jest.mock('../../../../../util/haptics');
 
 const mockNavigateTo = jest.fn();
@@ -438,6 +447,18 @@ describe('PerpsTradeScreen errors', () => {
     expect(
       screen.getByRole('button', { name: 'Show asset value' }),
     ).toBeOnTheScreen();
+  });
+
+  it('writes the order-book currency when the trade sheet switches back to USD', () => {
+    store.dispatch(setPerpsSizeDenomination('asset'));
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    fireEvent.press(screen.getByRole('button', { name: 'Show fiat value' }));
+
+    expect(store.getState().settings.perpsSizeDenomination).toBe('usd');
+    expect(mockSetOrderBookPreferences).toHaveBeenCalledWith({
+      currency: 'usd',
+    });
   });
 
   it('keeps coin sizing after the trade screen remounts', () => {

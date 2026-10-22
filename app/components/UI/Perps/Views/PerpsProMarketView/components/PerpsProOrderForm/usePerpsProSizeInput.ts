@@ -613,10 +613,11 @@ export const usePerpsProSizeInput = ({
   switchDenominationUnitRef.current = switchDenominationUnit;
 
   // Settings and the order book can each already hold a size unit. On open,
-  // a saved coin from either one wins over the other's default USD. After
-  // that, order-book currency changes convert the field, and a size toggle
-  // writes both. The switcher is read from a ref so price ticks do not
-  // re-run this effect.
+  // a saved coin from either one wins over the other's default USD. Lite's
+  // toggle writes the order book too, so an explicit USD choice is not left
+  // behind as coin. After that, order-book currency changes convert the
+  // field, and a size toggle writes both. The switcher is read from a ref so
+  // price ticks do not re-run this effect.
   useLayoutEffect(() => {
     if (!didReconcileDenominationRef.current) {
       didReconcileDenominationRef.current = true;
