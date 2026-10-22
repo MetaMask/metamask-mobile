@@ -22,7 +22,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  selectActiveTab,
   selectHasAcceptedVipInvite,
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
@@ -44,10 +43,15 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
+import type { RootState } from '../../../../reducers';
+import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  RewardsDashboardKind,
+  trackRewardsDashboardViewed,
+} from '../utils/rewardsDashboardViewedTracking';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -89,8 +93,11 @@ const RewardsDashboard: React.FC = () => {
   const hasAcceptedVipRefereeInvite = useSelector(
     selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
-  const activeTab = useSelector(selectActiveTab);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const profileId = useSelector(selectSessionProfileId);
+  const referralMe = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
+  );
+  const { createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
   const {
@@ -113,7 +120,6 @@ const RewardsDashboard: React.FC = () => {
   }, [isCampaignsFetching]);
   const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
 
-  useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
@@ -396,12 +402,14 @@ const RewardsDashboard: React.FC = () => {
 
   useEffect(() => {
     if (!hasTrackedDashboardViewed.current) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED).build(),
-      );
+      trackRewardsDashboardViewed(createEventBuilder, {
+        dashboard: RewardsDashboardKind.REWARDS,
+        hasSubscription: Boolean(subscriptionId),
+        referralMe,
+      });
       hasTrackedDashboardViewed.current = true;
     }
-  }, [trackEvent, createEventBuilder]);
+  }, [createEventBuilder, referralMe, subscriptionId]);
 
   // Hidden VIP unlock: 5 taps on the title within 3s, once per dashboard visit,
   // only attempted when the user isn't already VIP. A non-null
@@ -493,14 +501,6 @@ const RewardsDashboard: React.FC = () => {
         : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
-        .addProperties({ tab: activeTab })
-        .build(),
-    );
-  }, [activeTab, trackEvent, createEventBuilder]);
 
   const headerEndAccessory = (
     <Box twClassName="flex-row gap-2">
