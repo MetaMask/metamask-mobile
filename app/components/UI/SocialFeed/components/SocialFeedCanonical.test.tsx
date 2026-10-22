@@ -2,11 +2,20 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import SocialFeedCanonical from './SocialFeedCanonical';
+import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
 import { useSocialFeedCanonical } from '../data/useSocialFeedCanonical';
 
 jest.mock('../data/useSocialFeedCanonical', () => ({
   useSocialFeedCanonical: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'NONE',
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'LOW',
 }));
 
 jest.mock('./SocialEntryOptionsBottomSheet', () => ({
@@ -129,6 +138,24 @@ describe('SocialFeedCanonical', () => {
     expect(screen.getByTestId('canonical-content')).toBeOnTheScreen();
     expect(screen.getByText('post-1')).toBeOnTheScreen();
   });
+
+  it.each(['virtualized', 'content'] as const)(
+    'renders loading skeleton in %s mode',
+    (scrollMode) => {
+      mockUseSocialFeedCanonical.mockReturnValue({
+        ...state,
+        posts: [],
+        isLoading: true,
+        entrances: createSocialFeedEntrances(),
+      });
+
+      render(<SocialFeedCanonical scope="all" scrollMode={scrollMode} />);
+
+      expect(
+        screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('renders a host-owned header with the pending count', () => {
     mockUseSocialFeedCanonical.mockReturnValue({

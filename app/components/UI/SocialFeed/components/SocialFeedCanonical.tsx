@@ -40,6 +40,8 @@ import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation, {
   createFeedItemEntryScheduler,
 } from '../../../Views/SocialLeaderboard/FeedView/components/FeedItemEntryAnimation';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import {
   useSocialFeedCanonical,
   type SocialFeedScope,
@@ -48,6 +50,9 @@ import {
   useSocialFeedEntranceEventId,
   type SocialFeedEntrances,
 } from '../data/socialFeedEntrances';
+import SocialFeedSkeleton, {
+  SOCIAL_FEED_SKELETON_DEFAULT_COUNT,
+} from './SocialFeedSkeleton';
 
 export type SocialFeedCanonicalScope = SocialFeedScope;
 
@@ -239,6 +244,8 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
   scrollTestID,
 }) => {
   const tw = useTailwind();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const listRef = useRef<Animated.FlatList<SocialV1FeedPost>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -275,6 +282,11 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
       ),
     [isEntryHidden, posts],
   );
+  const showInitialLoading = isLoading && visiblePosts.length === 0 && !error;
+  const skeletonCount =
+    hardwareTier === 'LOW' || networkTier === 'NONE'
+      ? 2
+      : SOCIAL_FEED_SKELETON_DEFAULT_COUNT;
 
   const setNearTopFromScroll = useCallback((value: boolean) => {
     setNearTop(value);
@@ -408,16 +420,15 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
             }
             testID={scrollTestID}
             ListHeaderComponent={
-              renderHeader ? (
-                customHeader
-              ) : (
-                <>
-                  {pendingHeader}
-                  {isLoading ? null : null}
-                </>
+              renderHeader ? customHeader : <>{pendingHeader}</>
+            }
+            ListEmptyComponent={
+              showInitialLoading ? (
+                <SocialFeedSkeleton count={skeletonCount} />
+              ) : isLoading ? null : (
+                <SocialFeedEmpty />
               )
             }
-            ListEmptyComponent={isLoading ? null : <SocialFeedEmpty />}
             ListFooterComponent={
               isFetchingNextPage ? (
                 <Box alignItems={BoxAlignItems.Center} twClassName="py-4">
@@ -433,7 +444,9 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
         ) : (
           <Box twClassName="pb-8">
             {renderHeader ? customHeader : pendingHeader}
-            {isLoading ? null : null}
+            {showInitialLoading ? (
+              <SocialFeedSkeleton count={skeletonCount} />
+            ) : null}
             {visiblePosts.length > 0 ? renderContentRows : null}
             {!isLoading && visiblePosts.length === 0 ? (
               <SocialFeedEmpty />
