@@ -1,6 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
-import { bytesToHex, sha256, stringToBytes, type Hex } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -115,9 +114,6 @@ const SERVICE_NAME = 'RewardsDataService';
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 const TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS = 2000;
-const TRADING_FEE_GRANT_CACHE_TTL_MS = 30000;
-const TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS = 5000;
-const TRADING_FEE_GRANT_FAILURE_CACHE_MAX_ENTRIES = 10;
 
 export const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
 
@@ -154,30 +150,6 @@ function isTradingFeeGrantResponse(
     fee >= 0 &&
     fee <= MAX_PERPS_TRADING_FEE_GRANT_BIPS
   );
-}
-
-interface TradingFeeGrantRequest {
-  profileIdentity: Hex;
-  rewardsApiUrl: string;
-  promise: Promise<TradingFeeGrantResponseDto>;
-}
-
-interface TradingFeeGrantCacheEntry {
-  profileIdentity: Hex;
-  rewardsApiUrl: string;
-  response: TradingFeeGrantResponseDto;
-  expiresAt: number;
-}
-
-async function getProfileIdentity(token: string): Promise<Hex> {
-  return bytesToHex(await sha256(stringToBytes(token)));
-}
-
-function getTradingFeeGrantCacheKey(
-  profileIdentity: Hex,
-  rewardsApiUrl: string,
-): string {
-  return `${profileIdentity}:${rewardsApiUrl}`;
 }
 
 // Auth endpoint action types
@@ -590,12 +562,6 @@ export class RewardsDataService {
   /** Explicit API URL override; null means use the build-default mapping */
   #rewardsApiUrl: string | null = null;
 
-  #tradingFeeGrantRequest: TradingFeeGrantRequest | null = null;
-
-  #tradingFeeGrantCache: TradingFeeGrantCacheEntry | null = null;
-
-  readonly #tradingFeeGrantFailureCooldowns = new Map<string, number>();
-
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -891,8 +857,6 @@ export class RewardsDataService {
    * Callers should reset all cached controller state after calling this.
    */
   setRewardsEnvUrl(url: string): void {
-    this.#tradingFeeGrantCache = null;
-    this.#tradingFeeGrantFailureCooldowns.clear();
     if (this.canChangeRewardsEnvUrl()) {
       this.#rewardsApiUrl = url;
       Logger.log(`RewardsDataService: env switched to ${url}`);
@@ -1897,8 +1861,6 @@ export class RewardsDataService {
 
   /**
    * Fetch the active profile's trading-fee grant using Profile Sync auth.
-   * Successful results are cached, concurrent requests are shared, and failed
-   * lookups have a short cooldown for the same profile and API environment.
    */
   async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
     const token = await this.#messenger.call(
@@ -1908,97 +1870,6 @@ export class RewardsDataService {
       throw new Error('Profile Sync bearer token is required');
     }
 
-    const profileIdentity = await getProfileIdentity(token);
-    const rewardsApiUrl = this.getRewardsEnvUrl();
-    const now = Date.now();
-    const cacheKey = getTradingFeeGrantCacheKey(profileIdentity, rewardsApiUrl);
-    const failureCooldownExpiresAt =
-      this.#tradingFeeGrantFailureCooldowns.get(cacheKey);
-    if (
-      failureCooldownExpiresAt !== undefined &&
-      now < failureCooldownExpiresAt
-    ) {
-      return { grant: null };
-    }
-    if (failureCooldownExpiresAt !== undefined) {
-      this.#tradingFeeGrantFailureCooldowns.delete(cacheKey);
-    }
-
-    const cached = this.#tradingFeeGrantCache;
-    if (
-      cached?.profileIdentity === profileIdentity &&
-      cached.rewardsApiUrl === rewardsApiUrl &&
-      now < cached.expiresAt
-    ) {
-      return cached.response;
-    }
-    if (cached) {
-      this.#tradingFeeGrantCache = null;
-    }
-
-    const inFlight = this.#tradingFeeGrantRequest;
-    if (
-      inFlight?.profileIdentity === profileIdentity &&
-      inFlight.rewardsApiUrl === rewardsApiUrl
-    ) {
-      return inFlight.promise;
-    }
-
-    const promise = this.#fetchTradingFeeGrant(token);
-    this.#tradingFeeGrantRequest = {
-      profileIdentity,
-      rewardsApiUrl,
-      promise,
-    };
-
-    try {
-      const result = await promise;
-      const grantExpiresAt = result.grant
-        ? Date.parse(result.grant.expiresAt)
-        : Number.POSITIVE_INFINITY;
-      const expiresAt = Math.min(
-        Date.now() + TRADING_FEE_GRANT_CACHE_TTL_MS,
-        grantExpiresAt,
-      );
-      if (expiresAt > Date.now()) {
-        this.#tradingFeeGrantCache = {
-          profileIdentity,
-          rewardsApiUrl,
-          response: result,
-          expiresAt,
-        };
-      }
-      this.#tradingFeeGrantFailureCooldowns.delete(cacheKey);
-      return result;
-    } catch (error) {
-      this.#tradingFeeGrantFailureCooldowns.delete(cacheKey);
-      this.#tradingFeeGrantFailureCooldowns.set(
-        cacheKey,
-        Date.now() + TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS,
-      );
-      while (
-        this.#tradingFeeGrantFailureCooldowns.size >
-        TRADING_FEE_GRANT_FAILURE_CACHE_MAX_ENTRIES
-      ) {
-        const oldestKey = this.#tradingFeeGrantFailureCooldowns
-          .keys()
-          .next().value;
-        if (oldestKey === undefined) {
-          break;
-        }
-        this.#tradingFeeGrantFailureCooldowns.delete(oldestKey);
-      }
-      throw error;
-    } finally {
-      if (this.#tradingFeeGrantRequest?.promise === promise) {
-        this.#tradingFeeGrantRequest = null;
-      }
-    }
-  }
-
-  async #fetchTradingFeeGrant(
-    token: string,
-  ): Promise<TradingFeeGrantResponseDto> {
     const response = await this.makeRequest(
       '/trading-fee-grants',
       {

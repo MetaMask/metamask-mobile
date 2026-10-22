@@ -34,6 +34,7 @@ import {
   type VipFeesResponseDto,
   type VipPerpsFeesState,
   type SubscriptionDto,
+  type TradingFeeGrantResponseDto,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -442,6 +443,13 @@ describe('RewardsController', () => {
     it('subscribes to keyring unlock events', () => {
       expect(mockMessenger.subscribe).toHaveBeenCalledWith(
         'KeyringController:unlock',
+        expect.any(Function),
+      );
+    });
+
+    it('subscribes to authentication state changes', () => {
+      expect(mockMessenger.subscribe).toHaveBeenCalledWith(
+        'AuthenticationController:stateChange',
         expect.any(Function),
       );
     });
@@ -3895,6 +3903,10 @@ describe('RewardsController', () => {
       },
       expiresAt,
     };
+    const getGrantRequestCount = () =>
+      mockMessenger.call.mock.calls.filter(
+        ([method]) => method === 'RewardsDataService:getTradingFeeGrants',
+      ).length;
 
     it('returns a Core-shaped mainnet Hyperliquid grant', async () => {
       mockMessenger.call.mockResolvedValue({ grant });
@@ -3908,6 +3920,151 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getTradingFeeGrants',
       );
+    });
+
+    it('caches a successful response for 30 seconds', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await controller.getPerpsTradingFeeGrant(scope);
+      await controller.getPerpsTradingFeeGrant(scope);
+      jest.spyOn(Date, 'now').mockReturnValue(30_124);
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('caches a successful response with no grant', async () => {
+      mockMessenger.call.mockResolvedValue({ grant: null });
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(1);
+    });
+
+    it('does not serve a cached grant at its expiry boundary', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(500);
+      const expiringGrant = {
+        ...grant,
+        expiresAt: new Date(1_000).toISOString(),
+      };
+      mockMessenger.call.mockResolvedValue({ grant: expiringGrant });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual(
+        expect.objectContaining({ expiresAt: 1_000 }),
+      );
+      jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('deduplicates concurrent grant requests', async () => {
+      let resolveRequest: (value: TradingFeeGrantResponseDto) => void = () => {
+        throw new Error('Grant request resolver was not initialized');
+      };
+      const pendingResponse = new Promise<TradingFeeGrantResponseDto>(
+        (resolve) => {
+          resolveRequest = resolve;
+        },
+      );
+      mockMessenger.call.mockReturnValue(pendingResponse);
+
+      const firstResult = controller.getPerpsTradingFeeGrant(scope);
+      const secondResult = controller.getPerpsTradingFeeGrant(scope);
+      resolveRequest({ grant });
+
+      await expect(Promise.all([firstResult, secondResult])).resolves.toEqual([
+        expect.objectContaining({ feeBips: 2.5 }),
+        expect.objectContaining({ feeBips: 2.5 }),
+      ]);
+      expect(getGrantRequestCount()).toBe(1);
+    });
+
+    it('suppresses retries for five seconds after logging a failed request', async () => {
+      const requestError = new Error('Grant endpoint unavailable');
+      mockMessenger.call.mockRejectedValue(requestError);
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(1);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: trading fee grant fetch failed; returning no grant:',
+        requestError.message,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: trading fee grant request suppressed during failure cooldown:',
+        requestError.message,
+      );
+
+      jest.spyOn(Date, 'now').mockReturnValue(5_124);
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('invalidates the cache when authentication state changes', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+      await controller.getPerpsTradingFeeGrant(scope);
+      const authenticationStateChangeSubscription = (
+        mockMessenger.subscribe.mock.calls as unknown as [string, () => void][]
+      ).find(
+        ([eventType]) => eventType === 'AuthenticationController:stateChange',
+      )?.[1];
+
+      expect(authenticationStateChangeSubscription).toBeDefined();
+      authenticationStateChangeSubscription?.();
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('invalidates the cache when controller state resets', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      controller.resetState();
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('invalidates the cache when the rewards environment changes', async () => {
+      let rewardsDisabled = false;
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => rewardsDisabled,
+      });
+      (mockMessenger.call as jest.Mock).mockImplementation((method: string) => {
+        if (method === 'RewardsDataService:getTradingFeeGrants') {
+          return Promise.resolve({ grant });
+        }
+        if (method === 'RewardsDataService:canChangeRewardsEnvUrl') {
+          return true;
+        }
+        return undefined;
+      });
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      rewardsDisabled = true;
+      await controller.setRewardsEnvUrl('https://rewards.example.test');
+      rewardsDisabled = false;
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
     });
 
     it('preserves a zero fee', async () => {

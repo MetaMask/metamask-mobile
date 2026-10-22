@@ -93,6 +93,7 @@ import {
   RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 
 const name = 'RewardsController' as const;
 
@@ -171,7 +172,11 @@ type AllowedActions =
 // Don't reexport as per guidelines
 type AllowedEvents =
   | AccountTreeControllerSelectedAccountGroupChangeEvent
-  | KeyringControllerUnlockEvent;
+  | KeyringControllerUnlockEvent
+  | Extract<
+      AuthenticationController.Events,
+      { type: 'AuthenticationController:stateChange' }
+    >;
 
 export type RewardsControllerMessenger = Messenger<
   typeof name,
@@ -281,6 +286,7 @@ export function getRewardsControllerMessenger(
     events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
+      'AuthenticationController:stateChange',
     ],
   } as Parameters<RootMessenger['delegate']>[0]);
 
