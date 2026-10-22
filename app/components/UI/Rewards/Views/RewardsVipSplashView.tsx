@@ -11,7 +11,6 @@ import {
 } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { strings } from '../../../../../locales/i18n';
-import { useParams } from '../../../../util/navigation/navUtils';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import VipSplashScreenLayout, {
   VIP_SPLASH_SCREEN_TEST_IDS,
@@ -29,15 +28,10 @@ const RewardsVipSplashViewContent: React.FC = () => {
   const canViewVip = Boolean(
     isVipProgramEnabled && subscriptionId && isVipEnabled,
   );
-  const { preview } = useParams<{ preview?: boolean }>();
 
   useVipDashboard();
 
   useEffect(() => {
-    if (preview) {
-      return;
-    }
-
     if (!canViewVip) {
       exitRewardsFlow(navigation);
       return;
@@ -46,7 +40,7 @@ const RewardsVipSplashViewContent: React.FC = () => {
     if (hasAcceptedVipInvite) {
       navigation.dispatch(StackActions.replace(Routes.REWARDS_VIP_VIEW));
     }
-  }, [preview, canViewVip, hasAcceptedVipInvite, navigation]);
+  }, [canViewVip, hasAcceptedVipInvite, navigation]);
 
   const handleAcceptInvite = useCallback(() => {
     if (!subscriptionId) {
@@ -60,7 +54,7 @@ const RewardsVipSplashViewContent: React.FC = () => {
     exitRewardsFlow(navigation);
   }, [navigation]);
 
-  if (!preview && (!canViewVip || hasAcceptedVipInvite)) {
+  if (!canViewVip || hasAcceptedVipInvite) {
     return null;
   }
 

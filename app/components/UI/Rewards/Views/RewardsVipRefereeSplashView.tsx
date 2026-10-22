@@ -17,7 +17,6 @@ import {
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { strings } from '../../../../../locales/i18n';
-import { useParams } from '../../../../util/navigation/navUtils';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import VipSplashScreenLayout, {
   VIP_REFEREE_SPLASH_SCREEN_TEST_IDS,
@@ -35,13 +34,8 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
   const canViewReferee = Boolean(
     subscriptionId && isVipProgramEnabled && isVipReferee,
   );
-  const { preview } = useParams<{ preview?: boolean }>();
 
   useEffect(() => {
-    if (preview) {
-      return;
-    }
-
     if (!canViewReferee) {
       exitRewardsFlow(navigation);
       return;
@@ -52,7 +46,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
         StackActions.replace(Routes.REWARDS_VIP_REFEREE_VIEW),
       );
     }
-  }, [preview, canViewReferee, hasAcceptedVipRefereeInvite, navigation]);
+  }, [canViewReferee, hasAcceptedVipRefereeInvite, navigation]);
 
   const handleContinue = useCallback(() => {
     if (!subscriptionId) {
@@ -68,7 +62,7 @@ const RewardsVipRefereeSplashViewContent: React.FC = () => {
     exitRewardsFlow(navigation);
   }, [navigation]);
 
-  if (!preview && (!canViewReferee || hasAcceptedVipRefereeInvite)) {
+  if (!canViewReferee || hasAcceptedVipRefereeInvite) {
     return null;
   }
 
