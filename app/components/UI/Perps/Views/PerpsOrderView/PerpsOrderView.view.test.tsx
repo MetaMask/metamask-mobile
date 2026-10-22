@@ -43,6 +43,7 @@ import {
 import {
   formatPercentage,
   formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 
@@ -671,6 +672,57 @@ describe('PerpsOrderView', () => {
       );
       return submitButton;
     };
+
+    it('shows the spendable Perps balance on the pay with row when it differs from the total', async () => {
+      const spendableBalance = '250.5';
+      const totalBalance = '5000';
+      const availableLabel = formatPerpsFiat(spendableBalance, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsTradeWithAnyTokenIsEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: {
+            ...accountWithBalance(spendableBalance),
+            totalBalance,
+          },
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByLabelText(
+          `${strings('confirm.label.pay_with')}, ${strings(
+            'perps.adjust_margin.perps_balance',
+          )} (${availableLabel})`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    });
 
     it('leaves the sheet for the market page as soon as the order is submitted', async () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;

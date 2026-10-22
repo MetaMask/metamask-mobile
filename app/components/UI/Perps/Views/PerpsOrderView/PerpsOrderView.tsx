@@ -2360,9 +2360,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isMoneyAccountSelected) {
       payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
     }
+    // The picker and margin checks use spendable balance. totalBalance still
+    // includes margin locked by open positions and orders.
     const payWithBalance = formatPerpsFiat(
       isPayTokenPerpsBalance
-        ? (account?.totalBalance ?? '0')
+        ? (account?.spendableBalance ?? '0')
         : payTokenBalanceUsd,
       { ranges: PRICE_RANGES_MINIMAL_VIEW },
     );
