@@ -24,6 +24,7 @@ const mockPercentForm = jest.fn((_props: unknown) => (
 const mockFeatureGate = jest.fn((_props: unknown) => (
   <Text testID="mock-feature-gate">Feature gate</Text>
 ));
+let mockIsPerpsPercentChangeEnabled = true;
 
 const baseRoute: CreatePriceAlertRouteParams = {
   symbol: 'ETH',
@@ -38,6 +39,10 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack }),
   useRoute: () => ({ params: mockRouteParams }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsPerpsPercentChangeEnabled,
 }));
 
 jest.mock('../../hooks/useAlertSaveFlow', () => ({
@@ -87,6 +92,12 @@ jest.mock('../../../../Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
 
 const absoluteAlert: AbsolutePriceAlert = {
   id: 'absolute-alert-1',
@@ -127,6 +138,7 @@ describe('CreatePriceAlertView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = baseRoute;
+    mockIsPerpsPercentChangeEnabled = true;
     mockUsePerpsLiveFocusedPrice.mockReturnValue(undefined);
   });
 
@@ -349,6 +361,77 @@ describe('CreatePriceAlertView', () => {
     const screen = render(<CreatePriceAlertView />);
 
     expect(screen.getByText('$83,714')).toBeOnTheScreen();
+  });
+
+  it('switches to the percent-change form in perps mode', () => {
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+    };
+    const screen = render(<CreatePriceAlertView />);
+
+    fireEvent.press(
+      screen.getByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT_CHANGE),
+    );
+
+    expect(mockPercentForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assetId: 'BTC',
+        marketId: 'btc-hyperliquid-mainnet',
+      }),
+    );
+    expect(screen.getByTestId('mock-percent-form')).toBeOnTheScreen();
+  });
+
+  it('hides percent-change controls in perps mode when the flag is disabled', () => {
+    mockIsPerpsPercentChangeEnabled = false;
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      initialType: 'percent_change',
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(
+      screen.queryByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT),
+    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId('mock-absolute-form')).toBeOnTheScreen();
+    expect(screen.queryByTestId('mock-percent-form')).not.toBeOnTheScreen();
+  });
+
+  it('allows editing an existing perps percent alert when the flag is disabled', () => {
+    mockIsPerpsPercentChangeEnabled = false;
+    mockRouteParams = {
+      symbol: 'BTC',
+      ticker: 'BTC',
+      currentPrice: 83714,
+      currentCurrency: 'usd',
+      assetId: 'BTC',
+      mode: 'perps',
+      marketId: 'btc-hyperliquid-mainnet',
+      editingAlert: {
+        ...percentAlert,
+        asset: 'btc-hyperliquid-mainnet',
+      },
+    };
+
+    const screen = render(<CreatePriceAlertView />);
+
+    expect(screen.getByTestId('mock-percent-form')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(CreatePriceAlertTestIds.TYPE_SEGMENT),
+    ).not.toBeOnTheScreen();
   });
 
   it('formats a Perps kPEPE header like the live market header', () => {

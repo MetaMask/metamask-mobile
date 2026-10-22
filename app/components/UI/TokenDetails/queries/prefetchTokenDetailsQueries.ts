@@ -3,7 +3,10 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import {
+  selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1PriceApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -17,18 +20,29 @@ import { prefetchOhlcvChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { prefetchHistoricalPrices } from '../../../hooks/useTokenHistoricalPrices';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { prefetchSpotPrice } from '../hooks/useTokenPrice';
-import type { TokenI } from '../../Tokens/types';
-
+import {
+  resolveTokenCaipAssetId,
+  type TokenCaipAssetIdInput,
+} from '../hooks/useTokenCaipAssetId';
+import { prefetchTokenSecurity } from '../../Tokens/queries/prefetchTokenSecurity';
 export const prefetchTokenDetailsQueries = (
   queryClient: QueryClient,
-  token: Pick<TokenI, 'address' | 'chainId'>,
+  token: TokenCaipAssetIdInput,
   assetId: string | null,
   currentCurrency: string,
   marketDataMissing: boolean,
   hasNativeConversionRate: boolean,
+  priceApiBaseUrl?: string,
 ): void => {
-  prefetchHistoricalPrices(queryClient, token, currentCurrency);
-  prefetchOhlcvChart(queryClient, assetId, currentCurrency);
+  prefetchHistoricalPrices(
+    queryClient,
+    token,
+    currentCurrency,
+    priceApiBaseUrl,
+  );
+  prefetchOhlcvChart(queryClient, assetId, currentCurrency, priceApiBaseUrl);
+  // Not given the host: the spot price goes through a utility Bridge and swaps
+  // share, and is deliberately left on prod.
   prefetchSpotPrice(
     queryClient,
     token,
@@ -36,6 +50,10 @@ export const prefetchTokenDetailsQueries = (
     marketDataMissing,
     hasNativeConversionRate,
   );
+  // Resolved through the same helper the page uses rather than reusing
+  // `assetId` above, which is the chart's asset id and not always the same.
+  const caipAssetId = resolveTokenCaipAssetId(token);
+  prefetchTokenSecurity(queryClient, caipAssetId);
 };
 
 export const usePrefetchTokenDetails = (
@@ -44,6 +62,10 @@ export const usePrefetchTokenDetails = (
   const queryClient = useQueryClient();
   const assetId = resolveOhlcvChartAssetId(token);
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  // Read from the store rather than `usePriceApiHost`, because this runs in
+  // the route wrapper — above the provider, and before the variant that
+  // decides whether the provider renders at all is known.
+  const priceApiBaseUrl = useSelector(selectMemecoinTdpV1PriceApiBaseUrl);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
@@ -82,6 +104,7 @@ export const usePrefetchTokenDetails = (
       currentCurrency,
       marketDataMissing,
       hasNativeConversionRate,
+      priceApiBaseUrl,
     );
   }, [
     queryClient,
@@ -91,5 +114,6 @@ export const usePrefetchTokenDetails = (
     currentCurrency,
     marketDataMissing,
     hasNativeConversionRate,
+    priceApiBaseUrl,
   ]);
 };

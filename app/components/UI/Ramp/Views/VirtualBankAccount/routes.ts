@@ -6,10 +6,11 @@ export const VbaOnboardingRoutes = {
   EMAIL: 'VbaEmail',
   IDENTITY_VERIFICATION: 'VbaIdentityVerification',
   KYC_PENDING: 'VbaKycPending',
+  IDENTITY_VERIFIED: 'VbaIdentityVerified',
+  CHOOSE_CURRENCY: 'VbaChooseCurrency',
   KYC_REJECTED: 'VbaKycRejected',
   ACCOUNT_PROVISIONING_ERROR: 'VbaAccountProvisioningError',
   ERROR: 'VbaError',
-  DETAILS: 'VbaDetails',
 } as const;
 
 // React Navigation param lists must remain type aliases for strict route keys.
@@ -22,10 +23,11 @@ export type VbaOnboardingParamList = {
     snapshot: VbaOnboardingSnapshot;
   };
   VbaKycPending: undefined;
+  VbaIdentityVerified: undefined;
+  VbaChooseCurrency: undefined;
   VbaKycRejected: undefined;
   VbaAccountProvisioningError: undefined;
   VbaError: undefined;
-  VbaDetails: undefined;
 };
 
 export const VbaIdentityVerificationRoutes = {
@@ -40,7 +42,5 @@ export type VbaIdentityVerificationRoute =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaIdentityVerificationParamList = {
   VbaIdentityVerificationProviderTerms: undefined;
-  VbaIdentityVerificationProvider: {
-    initialNeedsMoreInfo: boolean;
-  };
+  VbaIdentityVerificationProvider: undefined;
 };

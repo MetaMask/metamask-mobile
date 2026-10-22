@@ -17,7 +17,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useContext,
@@ -48,6 +52,7 @@ import {
 } from '../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import ReactQueryService from '../../../../core/ReactQueryService';
+import Routes from '../../../../constants/navigation/Routes';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
 import { useTheme } from '../../../../util/theme';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
@@ -56,9 +61,13 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
-import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
+import {
+  addPendingPost,
+  requestFollowingFocus,
+} from '../pendingPosts/pendingPostsStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
+import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
 import {
   clipComposerComment,
@@ -68,6 +77,7 @@ import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
 } from './mapPositionToFeedItem';
+import { mapPerpsOrderInFlightToFeedItem } from './mapPerpsOrderInFlightToFeedItem';
 import { mapTradeInFlightToFeedItem } from './mapTradeInFlightToFeedItem';
 import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
@@ -136,38 +146,50 @@ const SocialPostComposerView: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
-  const tradeInFlightParams = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.tradeInFlight;
-  const tradeInFlightPreview = (
-    route.params as SocialPostComposerViewParams | undefined
-  )?.preview;
+  const routeParams = route.params as SocialPostComposerViewParams | undefined;
+  const tradeInFlightParams = routeParams?.tradeInFlight;
+  const tradeInFlightPreview = routeParams?.preview;
+  const routedPosition = routeParams?.position;
+  const openFeedAfterPost = routeParams?.openFeedAfterPost === true;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
+  const linkedAccountAddress = profile?.linkedAccountAddress?.trim() ?? '';
   const inputRef = useRef<TextInput>(null);
   const [text, setText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<{
     position: Position;
     isClosed: boolean;
-  } | null>(null);
+  } | null>(
+    routedPosition
+      ? { position: routedPosition, isClosed: routedPosition.isOpen === false }
+      : null,
+  );
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
 
+  const authorName = profile?.displayName || profile?.handle || '';
   const composerAuthor = useMemo(
     () => ({
       id: profile?.profileId ?? COMPOSER_FEED_AUTHOR.id,
-      username: profile?.handle ?? '',
+      username: authorName,
       avatarUri: profile?.imageUrl,
       winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
     }),
-    [profile?.handle, profile?.imageUrl, profile?.profileId],
+    [authorName, profile?.imageUrl, profile?.profileId],
   );
 
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
     if (tradeInFlightPreview) {
+      if ('product' in tradeInFlightPreview) {
+        return mapPerpsOrderInFlightToFeedItem(
+          tradeInFlightPreview,
+          text.trim(),
+          { author: composerAuthor },
+        );
+      }
       return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
         author: composerAuthor,
       });
@@ -237,6 +259,15 @@ const SocialPostComposerView: React.FC = () => {
     setIsGifSheetOpen(false);
   }, []);
 
+  useEffect(() => {
+    // Swap-share opens this screen with `tradeInFlight` and never goes
+    // through `useOpenSocialPostComposer`. Do not bounce that path — posting
+    // does not need the position picker or a linked onboarding address.
+    if (!linkedAccountAddress && !tradeInFlightParams) {
+      navigation.goBack();
+    }
+  }, [linkedAccountAddress, navigation, tradeInFlightParams]);
+
   // Focusing mid-transition drops the keyboard on the native stack push, so
   // wait until the screen has settled before raising it.
   useEffect(() => {
@@ -275,19 +306,36 @@ const SocialPostComposerView: React.FC = () => {
         return;
       }
       if (selectedPosition && !tradeInFlightParams) {
-        const item = mapPositionToFeedItem(selectedPosition.position, caption, {
-          isClosed: selectedPosition.isClosed,
-          author: composerAuthor,
+        const comment = created;
+        const pendingPost = buildPendingPost(comment, () => {
+          const name = comment.author.name || authorName;
+          const avatarUri = comment.author.images?.sm ?? profile?.imageUrl;
+          return {
+            id: comment.uid,
+            authorHandle: name,
+            authorImageUrl: avatarUri,
+            timestampMs: comment.timestamp * 1000,
+            reactions: [],
+            gifUri: gifUri ?? undefined,
+            item: mapPositionToFeedItem(selectedPosition.position, caption, {
+              isClosed: selectedPosition.isClosed,
+              author: {
+                id: comment.author.id,
+                username: name,
+                avatarUri,
+                winRatePercent: null,
+              },
+            }),
+            position: selectedPosition.position,
+          };
         });
-        submitSocialV1ComposedPost({
-          id: created.uid,
-          authorHandle: profile?.handle ?? '',
-          authorImageUrl: profile?.imageUrl,
-          timestampMs: created.timestamp * 1000,
-          reactions: [],
-          gifUri: gifUri ?? undefined,
-          item,
-        });
+        if (pendingPost && profile?.profileId) {
+          addPendingPost({
+            ownerProfileId: profile.profileId,
+            post: pendingPost,
+          });
+          requestFollowingFocus();
+        }
       } else {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -309,7 +357,12 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
-      navigation.goBack();
+      if (openFeedAfterPost) {
+        // Replace so Back from the feed skips this already-posted composer.
+        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
+      } else {
+        navigation.goBack();
+      }
     } catch {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -324,15 +377,16 @@ const SocialPostComposerView: React.FC = () => {
       setIsSubmitting(false);
     }
   }, [
+    authorName,
     canSubmit,
     colors.error.default,
     colors.success.default,
-    composerAuthor,
     gifUri,
     isSubmitting,
     navigation,
-    profile?.handle,
+    openFeedAfterPost,
     profile?.imageUrl,
+    profile?.profileId,
     selectedPosition,
     text,
     toastRef,
@@ -407,6 +461,7 @@ const SocialPostComposerView: React.FC = () => {
               <ProfileAvatar
                 imageUrl={profile?.imageUrl}
                 avatarPresetId={profile?.avatarPresetId}
+                avatarBackgroundId={profile?.avatarBackgroundId}
                 size="sm"
               />
               <TextInput
@@ -519,6 +574,7 @@ const SocialPostComposerView: React.FC = () => {
 
         {isShareSheetOpen ? (
           <SharePositionBottomSheet
+            address={linkedAccountAddress}
             onSelect={handleSelectPosition}
             onClose={() => setIsShareSheetOpen(false)}
           />

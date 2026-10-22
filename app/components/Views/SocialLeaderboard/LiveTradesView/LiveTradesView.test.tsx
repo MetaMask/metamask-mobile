@@ -8,10 +8,14 @@ import {
   SocialEntryOptionsBottomSheetSelectorsIDs,
 } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
 import { SOCIAL_V1_FEED_ENTRY_DIVIDER_TEST_ID } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
+import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import LiveTradesView from './LiveTradesView';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
-import { getLiveTradeRowTestId } from './components/LiveTradeRow.testIds';
+import {
+  getLiveTradeCardTestId,
+  getLiveTradeRowTestId,
+} from './components/LiveTradeRow.testIds';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -135,6 +139,28 @@ describe('LiveTradesView', () => {
     );
   });
 
+  it('shows the empty state when filters remove every live trade', () => {
+    renderWithProvider(
+      <LiveTradesView
+        appliedFilters={{
+          ...DEFAULT_FILTERS,
+          type: 'tokens',
+          marketCap: { min: 0, max: 0 },
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.v1_empty.liveTrades.title'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getLiveTradeRowTestId(MOCK_LIVE_TRADES_ITEMS[0].id)),
+    ).toBeNull();
+  });
+
   it('toggles from Live to Paused without calling onOpenFilters', () => {
     const onOpenFilters = jest.fn();
     renderWithProvider(<LiveTradesView onOpenFilters={onOpenFilters} />);
@@ -217,5 +243,18 @@ describe('LiveTradesView', () => {
       },
       {},
     );
+  });
+
+  it('opens the position details sheet from a trade card tap', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    const firstItem = MOCK_LIVE_TRADES_ITEMS[0];
+    fireEvent.press(screen.getByTestId(getLiveTradeCardTestId(firstItem.id)));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION_SHEET, {
+      positionId: firstItem.positionId,
+      position: firstItem.position,
+      author: firstItem.author,
+    });
   });
 });

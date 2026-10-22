@@ -1,5 +1,6 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
+import { Text, TouchableOpacity } from 'react-native';
 import { cloneDeep } from 'lodash';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
@@ -26,10 +27,27 @@ import { useIsGaslessSupported } from '../../../../hooks/gas/useIsGaslessSupport
 import { useInsufficientBalanceAlert } from '../../../../hooks/alerts/useInsufficientBalanceAlert';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
 import useBalanceChanges from '../../../../../../UI/SimulationDetails/useBalanceChanges';
+import {
+  ConfirmationContextProvider,
+  useConfirmationContext,
+} from '../../../../context/confirmation-context';
+import {
+  AlertsContextProvider,
+  useAlerts,
+} from '../../../../context/alert-system-context';
+
+const GAS_FEE_MODAL_TEST_ID = 'gas-fee-modal-mock';
 
 jest.mock('../../../gas/gas-speed', () => ({
   GasSpeed: () => null,
 }));
+jest.mock('../../../modals/gas-fee-modal', () => {
+  const { View } = jest.requireActual('react-native');
+  const { createElement } = jest.requireActual('react');
+  return {
+    GasFeeModal: () => createElement(View, { testID: 'gas-fee-modal-mock' }),
+  };
+});
 jest.mock('../../../../hooks/metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -552,6 +570,96 @@ describe('GasFeesDetailsRow', () => {
       );
 
       expect(getByTestIdBatch('gas-fees-details')).toBeOnTheScreen();
+    });
+  });
+
+  describe('gas fee modal', () => {
+    const ContextControls = () => {
+      const { setIsGasFeeModalVisible } = useConfirmationContext();
+      const { showAlertModal, hideAlertModal } = useAlerts();
+
+      return (
+        <>
+          <TouchableOpacity
+            testID="open-gas-fee-modal-from-alert"
+            onPress={() => {
+              showAlertModal();
+              setIsGasFeeModalVisible(true);
+            }}
+          />
+          <TouchableOpacity
+            testID="hide-alert-modal"
+            onPress={hideAlertModal}
+          />
+        </>
+      );
+    };
+
+    const GasModalVisibleText = () => {
+      const { isGasFeeModalVisible } = useConfirmationContext();
+      return <Text>{`gas-modal-visible-${isGasFeeModalVisible}`}</Text>;
+    };
+
+    const renderWithContexts = ({
+      disableUpdate = false,
+      showRow = true,
+    } = {}) => (
+      <ConfirmationContextProvider>
+        <AlertsContextProvider alerts={[]}>
+          <ContextControls />
+          <GasModalVisibleText />
+          {showRow && <GasFeesDetailsRow disableUpdate={disableUpdate} />}
+        </AlertsContextProvider>
+      </ConfirmationContextProvider>
+    );
+
+    const renderRow = (options?: Parameters<typeof renderWithContexts>[0]) =>
+      renderWithProvider(renderWithContexts(options), {
+        state: createStateWithSimulationData(),
+      });
+
+    it('opens gas fee modal when network fee is pressed', () => {
+      const { getByText, getByTestId, queryByTestId } = renderRow();
+
+      expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
+
+      fireEvent.press(getByText('$0.34'));
+
+      expect(getByTestId(GAS_FEE_MODAL_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('opens gas fee modal only after alert modal is hidden', () => {
+      const { getByTestId, queryByTestId } = renderRow();
+
+      fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
+
+      expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
+
+      fireEvent.press(getByTestId('hide-alert-modal'));
+
+      expect(getByTestId(GAS_FEE_MODAL_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('does not open gas fee modal when update is disabled', () => {
+      const { getByTestId, queryByTestId } = renderRow({
+        disableUpdate: true,
+      });
+
+      fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
+      fireEvent.press(getByTestId('hide-alert-modal'));
+
+      expect(queryByTestId(GAS_FEE_MODAL_TEST_ID)).toBeNull();
+    });
+
+    it('resets gas fee modal visibility when row unmounts', () => {
+      const { getByTestId, getByText, rerender } = renderRow();
+
+      fireEvent.press(getByTestId('open-gas-fee-modal-from-alert'));
+      expect(getByText('gas-modal-visible-true')).toBeOnTheScreen();
+
+      rerender(renderWithContexts({ showRow: false }));
+
+      expect(getByText('gas-modal-visible-false')).toBeOnTheScreen();
     });
   });
 });

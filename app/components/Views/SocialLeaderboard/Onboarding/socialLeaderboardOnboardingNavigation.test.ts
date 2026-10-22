@@ -135,6 +135,25 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         source: 'home_carousel',
       });
     });
+
+    it('forwards the initial tab to the Social V1 route', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+      });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+      });
+    });
   });
 
   describe('navigateToSocialTab', () => {
@@ -145,7 +164,25 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       navigateToSocialTab(navigate, { source: 'nav_tab' });
 
       expect(navigate).toHaveBeenCalledTimes(1);
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.ONBOARDING,
+        undefined,
+      );
+    });
+
+    it('returns to the Social tab after V1 treatment onboarding', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING, {
+        returnToTab: true,
+      });
     });
 
     it('selects the Social tab with the source when onboarding is not due', () => {

@@ -1,16 +1,15 @@
 import React from 'react';
-import { Animated, Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
-import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
-import { Text } from '@metamask/design-system-react-native';
-import { formatAmountForDisplay } from '../../../utils/transaction-pay';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -39,11 +38,13 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
 
-  const formattedAmount = formatAmountWithLocaleSeparators(
-    formatAmountForDisplay(amountFiat),
+  const isEditing = showCursor && !disabled;
+  const { typedText, assistiveText } = parseAmountWithAssistiveDecimals(
+    amountFiat,
+    isEditing,
   );
 
-  const amountLength = formattedAmount.length;
+  const amountLength = typedText.length + assistiveText.length;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -56,7 +57,6 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   // so there is no Max-specific quote-loading skeleton to show here.
   const showLoader = isLoading;
   const cursorVisible = showCursor && !disabled && !showLoader;
-  const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
     // Pressable so the user can always fall back to entering an amount, even
@@ -64,25 +64,51 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     return <CustomAmountSkeleton onPress={disabled ? undefined : onPress} />;
   }
 
+  const amountColor = hasAlert
+    ? TextColor.ErrorDefault
+    : disabled
+      ? TextColor.TextMuted
+      : TextColor.TextDefault;
+  const amountStyle = styles.input;
+
   return (
-    <View style={styles.container}>
-      <Text testID="custom-amount-symbol" style={styles.input}>
-        {fiatSymbol}
-      </Text>
-      <Text
-        testID="custom-amount-input"
-        style={styles.input}
-        onPress={disabled ? undefined : onPress}
-      >
-        {formattedAmount}
-      </Text>
-      {cursorVisible && (
-        <Animated.View
-          testID="custom-amount-cursor"
-          style={[styles.cursor, { opacity: cursorOpacity }]}
-        />
-      )}
-    </View>
+    <AnimatedAmountDisplay
+      accessibilityLabel={`${fiatSymbol}${typedText}${assistiveText}`}
+      amountAccessible
+      amountTestID="custom-amount-input-value"
+      animated
+      color={amountColor}
+      containerStyle={styles.container}
+      cursor={
+        cursorVisible
+          ? {
+              animated: true,
+              style: styles.cursor,
+              testID: 'custom-amount-cursor',
+            }
+          : false
+      }
+      onPress={disabled ? undefined : onPress}
+      prefix={
+        <Text testID="custom-amount-symbol" style={amountStyle}>
+          {fiatSymbol}
+        </Text>
+      }
+      style={amountStyle}
+      suffix={
+        assistiveText ? (
+          <Text
+            testID="custom-amount-assistive"
+            onPress={disabled ? undefined : onPress}
+            style={[amountStyle, styles.assistive]}
+          >
+            {assistiveText}
+          </Text>
+        ) : undefined
+      }
+      testID="custom-amount-input"
+      value={typedText}
+    />
   );
 });
 

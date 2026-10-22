@@ -1,5 +1,7 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { Modal, Platform } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
+import { act, fireEvent } from '@testing-library/react-native';
 import useApprovalRequest, {
   ApprovalRequestType,
 } from '../../Views/confirmations/hooks/useApprovalRequest';
@@ -51,8 +53,49 @@ const renderComponent = () =>
   });
 
 describe('ConfirmMembershipApproval', () => {
+  const originalPlatformOS = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+
+  it('renders the sheet inside a FullWindowOverlay on iOS', () => {
+    Platform.OS = 'ios';
+    mockApprovalRequest(createApprovalRequest());
+
+    const { UNSAFE_queryByType } = renderComponent();
+
+    expect(UNSAFE_queryByType(FullWindowOverlay)).not.toBeNull();
+    expect(UNSAFE_queryByType(Modal)).toBeNull();
+  });
+
+  it('renders the sheet inside a transparent Modal on Android', () => {
+    Platform.OS = 'android';
+    mockApprovalRequest(createApprovalRequest());
+
+    const { UNSAFE_getByType, UNSAFE_queryByType } = renderComponent();
+
+    expect(UNSAFE_queryByType(FullWindowOverlay)).toBeNull();
+    expect(UNSAFE_getByType(Modal).props).toEqual(
+      expect.objectContaining({ visible: true, transparent: true }),
+    );
+  });
+
+  it('calls onReject when the Android back button closes the sheet', () => {
+    Platform.OS = 'android';
+    mockApprovalRequest(createApprovalRequest());
+
+    const { UNSAFE_getByType } = renderComponent();
+    act(() => {
+      UNSAFE_getByType(Modal).props.onRequestClose();
+    });
+
+    expect(mockOnReject).toHaveBeenCalledTimes(1);
+    expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
   it('renders nothing when there is no approval request', () => {

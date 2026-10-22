@@ -57,6 +57,11 @@ describe('ScreenRecording', () => {
       );
     });
 
+    it('returns false for TestMu cloud devices', () => {
+      process.env[ciKey] = 'true';
+      expect(isVideoRecordingOnFailureEnabled(ProviderName.TESTMU)).toBe(false);
+    });
+
     it('returns true on CI for local emulator by default', () => {
       process.env[ciKey] = 'true';
       expect(isVideoRecordingOnFailureEnabled(ProviderName.EMULATOR)).toBe(
@@ -88,6 +93,7 @@ describe('ScreenRecording', () => {
       expect(isLocalEmulatorProvider(ProviderName.EMULATOR)).toBe(true);
       expect(isLocalEmulatorProvider(ProviderName.SIMULATOR)).toBe(true);
       expect(isLocalEmulatorProvider(ProviderName.BROWSERSTACK)).toBe(false);
+      expect(isLocalEmulatorProvider(ProviderName.TESTMU)).toBe(false);
     });
   });
 

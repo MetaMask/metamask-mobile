@@ -40,6 +40,19 @@ describe('SwapsBanners', () => {
     expect(getByText('second banner')).toBeOnTheScreen();
   });
 
+  it('uses the requested space between stacked banners', () => {
+    const { getByTestId } = renderWithProvider(
+      <SwapsBanners gap={2} onAdjustSourceAmount={mockOnAdjustSourceAmount}>
+        <Text>first banner</Text>
+      </SwapsBanners>,
+      { state },
+    );
+
+    expect(getByTestId(SwapsBannersSelectorsIDs.CONTAINER)).toHaveStyle({
+      gap: 8,
+    });
+  });
+
   it('shares the swap being quoted with the banners', () => {
     const { getByTestId } = renderWithProvider(
       <SwapsBanners

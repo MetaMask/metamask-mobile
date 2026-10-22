@@ -6,6 +6,7 @@ import CreateVirtualBankAccount from './CreateVirtualBankAccount';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
+import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -26,6 +27,9 @@ jest.mock('../../../Money/hooks/useMoneyVaultApy', () => ({
   default: jest.fn(),
 }));
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
+
+jest.mock('./hooks/useVbaArrivalTime');
+const mockUseVbaArrivalTime = jest.mocked(useVbaArrivalTime);
 
 const privacyDisclaimer = {
   id: 'd-1',
@@ -54,6 +58,9 @@ describe('CreateVirtualBankAccount', () => {
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4.2,
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    // Arrival-row behavior is covered by CreateVirtualBankAccount.view.test.tsx
+    // (real hooks); the stub keeps KYC/CTA/APY tests off the payment-methods query.
+    mockUseVbaArrivalTime.mockReturnValue({ arrivalTimeframe: undefined });
   });
 
   it('renders the intro design with feature rows and footer', () => {
@@ -63,6 +70,7 @@ describe('CreateVirtualBankAccount', () => {
 
     expect(getByText('Add funds right from your bank')).toBeOnTheScreen();
     expect(getByText('No fees to add funds')).toBeOnTheScreen();
+    expect(getByText('Arrives in a few business days')).toBeOnTheScreen();
     expect(getByText('Set up once, use anytime')).toBeOnTheScreen();
     expect(getByText('Starts earning straight away')).toBeOnTheScreen();
     expect(getByText('Powered by')).toBeOnTheScreen();
@@ -147,7 +155,59 @@ describe('CreateVirtualBankAccount', () => {
       resolveSuccess?.();
     });
 
+    // Component-view and integration tests cannot observe Fabric's Android
+    // removal transition. Success leaves the CTA busy so a second tap cannot
+    // start another advance while this screen is leaving.
     await waitFor(() => {
+      expect(button).toBeDisabled();
+    });
+  });
+
+  it('keeps the button label from being re-parented while the screen is removed', () => {
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+
+    // Loading toggles whether Fabric flattens the button content row. Pinning
+    // that row stops the label moving during the Android removal transition.
+    expect(
+      getByTestId(
+        CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+      ).findAllByProps({ collapsable: false }),
+    ).not.toHaveLength(0);
+  });
+
+  it('reenables the CTA when vendor terms are not accepted', async () => {
+    mockAcceptDisclaimers.mockResolvedValue(false);
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockAcceptDisclaimers).toHaveBeenCalledTimes(1);
+      expect(button).toBeEnabled();
+    });
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('reenables the CTA when advancing throws', async () => {
+    mockOnSuccess.mockRejectedValue(new Error('navigation failed'));
+    const { getByTestId } = renderWithProvider(
+      <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
+    );
+    const button = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
       expect(button).toBeEnabled();
     });
   });

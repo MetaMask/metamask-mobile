@@ -22,6 +22,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 
 const mockInputFocus = jest.fn();
 let mockInputHandlesActive = true;
@@ -54,12 +55,22 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+jest.mock('../../../../hooks/usePerpsLocale', () => ({
+  usePerpsLocale: jest.fn(() => 'en-US'),
+}));
 
 jest.mock('../../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 const createSizeInput = (
   overrides: Partial<PerpsProOrderFormProps['sizeInput']> = {},
@@ -194,6 +205,7 @@ describe('PerpsProOrderForm', () => {
     mockInputHandlesActive = true;
     jest.mocked(playImpact).mockClear();
     jest.mocked(playSelection).mockClear();
+    (usePerpsLocale as jest.Mock).mockReturnValue('en-US');
   });
 
   afterEach(() => {
@@ -373,13 +385,36 @@ describe('PerpsProOrderForm', () => {
       );
     });
 
-    it('passes raw size text to sizeInput.onChange', () => {
+    it('normalizes repeated decimal separators before sizeInput.onChange', () => {
       const onChange = jest.fn();
       renderForm({ sizeInput: createSizeInput({ onChange }) });
 
       fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '1..2');
 
-      expect(onChange).toHaveBeenCalledWith('1..2');
+      expect(onChange).toHaveBeenCalledWith('1.2');
+    });
+
+    it('groups displayed size values while preserving canonical callbacks', () => {
+      const onChange = jest.fn();
+      renderForm({
+        sizeInput: createSizeInput({ value: '1200', onChange }),
+      });
+
+      expect(getMountedInput(ids.SIZE_INPUT)).toHaveProp('value', '1,200');
+
+      fireEvent.changeText(getMountedInput(ids.SIZE_INPUT), '1,200.50');
+
+      expect(onChange).toHaveBeenCalledWith('1200.50');
+    });
+
+    it('uses locale-specific grouping in advanced order inputs', () => {
+      (usePerpsLocale as jest.Mock).mockReturnValue('de-DE');
+
+      renderForm({
+        sizeInput: createSizeInput({ value: '1200.50' }),
+      });
+
+      expect(getMountedInput(ids.SIZE_INPUT)).toHaveProp('value', '1.200,50');
     });
 
     it('passes raw limit price text to onLimitPriceChange', () => {
@@ -389,6 +424,51 @@ describe('PerpsProOrderForm', () => {
       fireEvent.changeText(getMountedInput(ids.LIMIT_PRICE_INPUT), '.123');
 
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('keeps the limit price cursor at the end after live grouping inserts a separator', () => {
+      const onLimitPriceChange = jest.fn();
+      const ControlledForm = () => {
+        const [limitPrice, setLimitPrice] = React.useState('100');
+        const handleLimitPriceChange = (nextValue: string) => {
+          onLimitPriceChange(nextValue);
+          setLimitPrice(nextValue);
+        };
+
+        return (
+          <PerpsProOrderForm
+            {...createProps({
+              orderType: 'limit',
+              limitPrice,
+              onLimitPriceChange: handleLimitPriceChange,
+            })}
+          />
+        );
+      };
+      render(<ControlledForm />);
+      const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+
+      fireEvent(input, 'focus');
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 3, end: 3 } },
+      });
+      fireEvent.changeText(input, '1000');
+
+      expect(input).toHaveProp('value', '1,000');
+      expect(input).toHaveProp('selection', { start: 5, end: 5 });
+      expect(onLimitPriceChange).toHaveBeenLastCalledWith('1000');
+
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 4, end: 4 } },
+      });
+
+      expect(input).toHaveProp('selection', { start: 5, end: 5 });
+
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 2, end: 2 } },
+      });
+
+      expect(input).toHaveProp('selection', { start: 2, end: 2 });
     });
 
     it('omits the Mid chip when onUseMidPricePress is not provided', () => {
@@ -1740,6 +1820,31 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(`${ids.NOTICE}-risk`)).toHaveTextContent(
         'Risk warning',
       );
+    });
+
+    it('renders the rebate banner for standard and Scale orders', () => {
+      mockPerpsRebateBanner.mockClear();
+      const rebateQuote = {
+        coin: 'ETH',
+        direction: 'long' as const,
+        notionalUsd: '100',
+      };
+      const view = renderForm({ rebateQuote });
+      expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+        ...rebateQuote,
+        textTwClassName: 'text-body-xs leading-[16px]',
+      });
+
+      view.rerender(
+        <PerpsProOrderForm
+          {...createProps({
+            orderType: 'scale',
+            scaleOrder: createScaleOrder(),
+          })}
+        />,
+      );
+
+      expect(mockPerpsRebateBanner).toHaveBeenCalledTimes(2);
     });
   });
 
