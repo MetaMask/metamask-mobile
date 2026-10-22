@@ -82,15 +82,9 @@ import {
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import type { SignedSafeExecution } from './preflight/core';
-import {
-  planDepositWalletPreflight,
-  planPositionsDepositWalletPreflight,
-} from './preflight/depositWallet';
+import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
-import {
-  buildPositionsTradeAllowancesTx,
-  buildTradeAllowancesTx,
-} from './preflight/trade';
+import { buildTradeAllowancesTx } from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
 import {
   generateTransferData,
@@ -209,7 +203,6 @@ jest.mock('./preflight/deposit', () => ({
 
 jest.mock('./preflight/depositWallet', () => ({
   planDepositWalletPreflight: jest.fn(),
-  planPositionsDepositWalletPreflight: jest.fn(),
 }));
 
 jest.mock('./preflight/legacySafeMigration', () => ({
@@ -217,7 +210,6 @@ jest.mock('./preflight/legacySafeMigration', () => ({
 }));
 
 jest.mock('./preflight/trade', () => ({
-  buildPositionsTradeAllowancesTx: jest.fn(),
   buildTradeAllowancesTx: jest.fn(),
 }));
 
@@ -284,9 +276,6 @@ const mockBuildDepositMaintenanceTransaction = jest.mocked(
   buildDepositMaintenanceTransaction,
 );
 const mockPlanDepositWalletPreflight = jest.mocked(planDepositWalletPreflight);
-const mockPlanPositionsDepositWalletPreflight = jest.mocked(
-  planPositionsDepositWalletPreflight,
-);
 const mockSyncDepositWalletPositionBalanceAllowance = jest.mocked(
   syncDepositWalletPositionBalanceAllowance,
 );
@@ -305,9 +294,10 @@ const mockWaitForDepositWalletTransaction = jest.mocked(
   waitForDepositWalletTransaction,
 );
 const mockBuildTradeAllowancesTx = jest.mocked(buildTradeAllowancesTx);
-const mockBuildPositionsTradeAllowancesTx = jest.mocked(
-  buildPositionsTradeAllowancesTx,
-);
+// The trade-protocol matchers for the shared preflight planners: the CTF
+// path routes with key 'v2', the positions path with key 'positions'.
+const ctfTradeProtocol = expect.objectContaining({ key: 'v2' });
+const positionsTradeProtocol = expect.objectContaining({ key: 'positions' });
 const mockBuildWithdrawTransaction = jest.mocked(buildWithdrawTransaction);
 
 const depositWalletAddress = '0x2222222222222222222222222222222222222222';
@@ -1065,18 +1055,17 @@ describe('PolymarketProvider', () => {
     });
     mockPreviewOrder.mockResolvedValue(basePreview);
     mockPreviewMaxBuyOrder.mockResolvedValue(basePreview);
-    mockBuildTradeAllowancesTx.mockResolvedValue({
-      to: '0x9999999999999999999999999999999999999999',
-      data: '0xallowances',
-    });
-    mockBuildPositionsTradeAllowancesTx.mockResolvedValue({
-      to: '0x8888888888888888888888888888888888888888',
-      data: '0xpositionsAllowances',
-    });
-    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
-      missingRequirements: [],
-      transactions: [],
-    });
+    mockBuildTradeAllowancesTx.mockImplementation(async ({ tradeProtocol }) =>
+      tradeProtocol?.key === 'positions'
+        ? {
+            to: '0x8888888888888888888888888888888888888888',
+            data: '0xpositionsAllowances',
+          }
+        : {
+            to: '0x9999999999999999999999999999999999999999',
+            data: '0xallowances',
+          },
+    );
     mockSyncDepositWalletPositionBalanceAllowance.mockResolvedValue(undefined);
     mockGenerateTransferData.mockReturnValue('0xtransferData');
     mockIsSmartContractAddress.mockResolvedValue(true);
@@ -1894,9 +1883,12 @@ describe('PolymarketProvider', () => {
     // first preview) and the optimistic position update's market fetch —
     // the order route itself reads the cache and never fetches.
     expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
-    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
-    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: positionsTradeProtocol,
+      }),
     );
     expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1962,10 +1954,13 @@ describe('PolymarketProvider', () => {
     // first preview) and the optimistic position update's market fetch —
     // a third call would mean the route fetched, which it never does.
     expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
     );
-    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
   it('routes sells through the positions path when the event market is v2', async () => {
@@ -1975,9 +1970,12 @@ describe('PolymarketProvider', () => {
     const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
-    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
-    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: positionsTradeProtocol,
+      }),
     );
   });
 
@@ -1988,10 +1986,13 @@ describe('PolymarketProvider', () => {
     const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
     );
-    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
   it('resolves the sell market version from Gamma once per market', async () => {
@@ -2091,9 +2092,12 @@ describe('PolymarketProvider', () => {
     const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
-    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
-    expect(mockBuildPositionsTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: positionsTradeProtocol,
+      }),
     );
   });
 
@@ -2110,10 +2114,13 @@ describe('PolymarketProvider', () => {
     const result = await provider.placeOrder({ signer, preview });
 
     expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
     );
-    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
   it('skips markets with malformed token ids when warming the version cache', async () => {
@@ -2149,10 +2156,13 @@ describe('PolymarketProvider', () => {
     // A token the fetched event does not describe is unknown — the CTF
     // path, same as a market whose payload omits the version.
     expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
     expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
-      expect.objectContaining({ safeAddress: legacySafeAddress }),
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
     );
-    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
   });
 
   it('fails an order when no market version is cached for its outcome token', async () => {
@@ -2213,7 +2223,9 @@ describe('PolymarketProvider', () => {
         tokenAddress: MATIC_CONTRACTS_V2.collateral,
       }),
     );
-    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalledWith(
+      expect.objectContaining({ tradeProtocol: ctfTradeProtocol }),
+    );
   });
 
   it('passes the legacy Safe migration sweep as allowancesTx for deposit-wallet v2 orders', async () => {
@@ -2263,7 +2275,7 @@ describe('PolymarketProvider', () => {
   });
 
   it('fails a v2 order when the positions allowances transaction cannot be built', async () => {
-    mockBuildPositionsTradeAllowancesTx.mockRejectedValueOnce(
+    mockBuildTradeAllowancesTx.mockRejectedValueOnce(
       new Error('allowance build failed'),
     );
 
@@ -2296,7 +2308,10 @@ describe('PolymarketProvider', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Failed to prepare v2 trade preflight');
-    expect(mockBuildPositionsTradeAllowancesTx).not.toHaveBeenCalled();
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ tradeProtocol: ctfTradeProtocol }),
+    );
     expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
   });
 
@@ -2314,6 +2329,7 @@ describe('PolymarketProvider', () => {
       signer,
       safeAddress: legacySafeAddress,
       protocol: expect.objectContaining({ key: 'v2' }),
+      tradeProtocol: ctfTradeProtocol,
       safeUsdceBalance: expect.any(BigInt),
     });
     expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
@@ -2349,8 +2365,10 @@ describe('PolymarketProvider', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(mockPlanDepositWalletPreflight).toHaveBeenCalled();
-    expect(mockPlanPositionsDepositWalletPreflight).not.toHaveBeenCalled();
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+      protocol: ctfTradeProtocol,
+    });
     expect(
       mockSyncDepositWalletCollateralBalanceAllowance,
     ).not.toHaveBeenCalled();
@@ -2548,7 +2566,7 @@ describe('PolymarketProvider', () => {
       value: '0',
     };
     mockIsSmartContractAddress.mockResolvedValue(false);
-    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+    mockPlanDepositWalletPreflight.mockResolvedValue({
       missingRequirements: [
         {
           type: 'erc20-allowance',
@@ -2569,8 +2587,9 @@ describe('PolymarketProvider', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(mockPlanPositionsDepositWalletPreflight).toHaveBeenCalledWith({
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalledWith({
       walletAddress: depositWalletAddress,
+      protocol: positionsTradeProtocol,
     });
     expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
       protocol: expect.objectContaining({ key: 'positions' }),
@@ -2617,7 +2636,7 @@ describe('PolymarketProvider', () => {
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true)
       .mockResolvedValueOnce(true);
-    mockPlanPositionsDepositWalletPreflight.mockResolvedValue({
+    mockPlanDepositWalletPreflight.mockResolvedValue({
       missingRequirements: [],
       transactions: [],
     });
@@ -2632,8 +2651,9 @@ describe('PolymarketProvider', () => {
     });
 
     expect(result.success).toBe(true);
-    expect(mockPlanPositionsDepositWalletPreflight).toHaveBeenCalledWith({
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalledWith({
       walletAddress: depositWalletAddress,
+      protocol: positionsTradeProtocol,
     });
     expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
       protocol: expect.objectContaining({ key: 'positions' }),

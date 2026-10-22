@@ -9,14 +9,12 @@ import {
   POLYMARKET_V2_PROTOCOL,
 } from './definitions';
 import {
-  buildPositionsProtocolUnsignedOrder,
   buildProtocolUnsignedOrder,
   encodeWrap,
   getPreviewFeeRateBpsForProtocol,
   getProtocolOrderTypedData,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
-  signPositionsProtocolOrder,
   signProtocolOrder,
 } from './orderCodec';
 import { getMinAmountReceivedWithSlippage } from './slippage';
@@ -303,7 +301,8 @@ describe('polymarket protocol order codec', () => {
       '0x4444444444444444444444444444444444444444444444444444444444444444';
 
     it('builds a positions order with the same field shape as the CTF order', () => {
-      const order = buildPositionsProtocolUnsignedOrder({
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
         preview,
         makerAddress: safeAddress,
         signerAddress: ownerAddress,
@@ -328,7 +327,8 @@ describe('polymarket protocol order codec', () => {
     });
 
     it('uses an explicit per-order builder code for a positions order', () => {
-      const order = buildPositionsProtocolUnsignedOrder({
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
         preview,
         makerAddress: safeAddress,
         signerAddress: ownerAddress,
@@ -339,7 +339,8 @@ describe('polymarket protocol order codec', () => {
     });
 
     it('uses the positions protocol builder when no override is provided', () => {
-      const order = buildPositionsProtocolUnsignedOrder({
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
         preview,
         makerAddress: safeAddress,
         signerAddress: ownerAddress,
@@ -352,7 +353,8 @@ describe('polymarket protocol order codec', () => {
 
     it('signs positions orders with domain version 3 against ExchangeV3', async () => {
       const { signer, signTypedMessage } = createMockSigner();
-      const order = buildPositionsProtocolUnsignedOrder({
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
         preview,
         makerAddress: safeAddress,
         signerAddress: ownerAddress,
@@ -360,7 +362,8 @@ describe('polymarket protocol order codec', () => {
       });
 
       await expect(
-        signPositionsProtocolOrder({
+        signProtocolOrder({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
           signer,
           order,
           verifyingContract: EXCHANGE_V3,

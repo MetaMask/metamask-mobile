@@ -1,7 +1,6 @@
 import {
-  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
-  type PolymarketProtocolDefinition,
+  type PolymarketTradeProtocol,
 } from '../protocol/definitions';
 import type { SafeTransaction } from '../safe/types';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
@@ -19,46 +18,28 @@ export interface DepositWalletPreflightPlan {
 }
 
 function getDepositWalletAllowanceRequirements(
-  protocol: PolymarketProtocolDefinition,
+  protocol: PolymarketTradeProtocol,
 ): V2AllowanceRequirement[] {
   return filterDepositWalletUnsupportedRequirements(
-    getActiveV2AllowanceRequirements(protocol),
+    protocol.key === 'positions'
+      ? getPositionsAllowanceRequirements(protocol)
+      : getActiveV2AllowanceRequirements(protocol),
   );
 }
 
+/**
+ * Plans the deposit-wallet allowance repairs for `protocol`. Order flows pass
+ * the protocol the order routes to (by Gamma market version); every other
+ * flow uses the CTF default.
+ */
 export async function planDepositWalletPreflight({
   walletAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
 }: {
   walletAddress: string;
-  protocol?: PolymarketProtocolDefinition;
+  protocol?: PolymarketTradeProtocol;
 }): Promise<DepositWalletPreflightPlan> {
   const requirements = getDepositWalletAllowanceRequirements(protocol);
-  const missingRequirements = await inspectMissingRequirements({
-    address: walletAddress,
-    requirements,
-  });
-
-  return {
-    missingRequirements,
-    transactions: compileRequirementTransactions(missingRequirements),
-  };
-}
-
-/**
- * The positions-protocol counterpart of `planDepositWalletPreflight`,
- * selected by the Gamma market version. Mirrors it with the positions
- * requirement builders; the deposit-wallet filter is protocol-neutral and
- * applies unchanged.
- */
-export async function planPositionsDepositWalletPreflight({
-  walletAddress,
-}: {
-  walletAddress: string;
-}): Promise<DepositWalletPreflightPlan> {
-  const requirements = filterDepositWalletUnsupportedRequirements(
-    getPositionsAllowanceRequirements(POLYMARKET_POSITIONS_PROTOCOL),
-  );
   const missingRequirements = await inspectMissingRequirements({
     address: walletAddress,
     requirements,

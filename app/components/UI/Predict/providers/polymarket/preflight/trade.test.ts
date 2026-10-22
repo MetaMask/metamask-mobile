@@ -17,17 +17,17 @@ import {
   USDC_E_ADDRESS,
 } from '../constants';
 import { PERMIT2_ADDRESS } from '../safe/constants';
-import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
+import {
+  POLYMARKET_POSITIONS_PROTOCOL,
+  POLYMARKET_V2_PROTOCOL,
+} from '../protocol/definitions';
 import {
   buildSignedSafeExecutionIfNeeded,
   compileAllowanceMaintenanceTransactions,
   getRawTokenBalance,
 } from './core';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
-import {
-  buildPositionsTradeAllowancesTx,
-  planPositionsTradePreflight,
-} from './trade';
+import { buildTradeAllowancesTx, planTradePreflight } from './trade';
 
 const safeAddress = '0x1111111111111111111111111111111111111111';
 const missingRequirements = [
@@ -55,7 +55,7 @@ const mockBuildSignedSafeExecutionIfNeeded = jest.mocked(
   buildSignedSafeExecutionIfNeeded,
 );
 
-describe('planPositionsTradePreflight', () => {
+describe('planTradePreflight with the positions protocol', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInspectMissingRequirements.mockResolvedValue([...missingRequirements]);
@@ -63,7 +63,8 @@ describe('planPositionsTradePreflight', () => {
   });
 
   it('inspects the positions requirements and anchors maintenance to the CTF definition', async () => {
-    const plan = await planPositionsTradePreflight({
+    const plan = await planTradePreflight({
+      tradeProtocol: POLYMARKET_POSITIONS_PROTOCOL,
       safeAddress,
       safeUsdceBalance: 5n,
     });
@@ -108,7 +109,8 @@ describe('planPositionsTradePreflight', () => {
   });
 
   it('drops the legacy-sweep requirement when there is no USDC.e to wrap', async () => {
-    await planPositionsTradePreflight({
+    await planTradePreflight({
+      tradeProtocol: POLYMARKET_POSITIONS_PROTOCOL,
       safeAddress,
       safeUsdceBalance: 0n,
     });
@@ -138,7 +140,10 @@ describe('planPositionsTradePreflight', () => {
   it('reads the legacy USDC.e balance when none is provided', async () => {
     mockGetRawTokenBalance.mockResolvedValue(7n);
 
-    const plan = await planPositionsTradePreflight({ safeAddress });
+    const plan = await planTradePreflight({
+      safeAddress,
+      tradeProtocol: POLYMARKET_POSITIONS_PROTOCOL,
+    });
 
     expect(mockGetRawTokenBalance).toHaveBeenCalledWith({
       address: safeAddress,
@@ -148,7 +153,7 @@ describe('planPositionsTradePreflight', () => {
   });
 });
 
-describe('buildPositionsTradeAllowancesTx', () => {
+describe('buildTradeAllowancesTx with the positions protocol', () => {
   const signer = {
     address: '0x1111111111111111111111111111111111111111',
     signPersonalMessage: jest.fn(),
@@ -167,7 +172,8 @@ describe('buildPositionsTradeAllowancesTx', () => {
       type: TransactionType.contractInteraction,
     } as never);
 
-    const allowancesTx = await buildPositionsTradeAllowancesTx({
+    const allowancesTx = await buildTradeAllowancesTx({
+      tradeProtocol: POLYMARKET_POSITIONS_PROTOCOL,
       signer,
       safeAddress,
       safeUsdceBalance: 5n,
@@ -189,7 +195,8 @@ describe('buildPositionsTradeAllowancesTx', () => {
   it('returns undefined when no execution is needed', async () => {
     mockBuildSignedSafeExecutionIfNeeded.mockResolvedValue(undefined);
 
-    const allowancesTx = await buildPositionsTradeAllowancesTx({
+    const allowancesTx = await buildTradeAllowancesTx({
+      tradeProtocol: POLYMARKET_POSITIONS_PROTOCOL,
       signer,
       safeAddress,
       safeUsdceBalance: 5n,

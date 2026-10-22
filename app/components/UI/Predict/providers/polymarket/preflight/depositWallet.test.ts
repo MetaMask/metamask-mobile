@@ -26,10 +26,8 @@ import {
   MATIC_POSITIONS_PROTOCOL_CONTRACTS,
 } from '../constants';
 import { compileRequirementTransactions } from './compileRequirementTransactions';
-import {
-  planDepositWalletPreflight,
-  planPositionsDepositWalletPreflight,
-} from './depositWallet';
+import { POLYMARKET_POSITIONS_PROTOCOL } from '../protocol/definitions';
+import { planDepositWalletPreflight } from './depositWallet';
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import {
   filterDepositWalletUnsupportedRequirements,
@@ -113,7 +111,7 @@ describe('planDepositWalletPreflight', () => {
   });
 });
 
-describe('planPositionsDepositWalletPreflight', () => {
+describe('planDepositWalletPreflight with the positions protocol', () => {
   const positionsRequirements: V2AllowanceRequirement[] = [
     {
       type: 'erc20-allowance',
@@ -126,6 +124,11 @@ describe('planPositionsDepositWalletPreflight', () => {
       operator: MATIC_POSITIONS_PROTOCOL_CONTRACTS.exchange,
     },
   ];
+  const positionsPermit2Requirement: V2AllowanceRequirement = {
+    type: 'erc20-allowance',
+    tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    spender: PERMIT2_ADDRESS,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -134,11 +137,15 @@ describe('planPositionsDepositWalletPreflight', () => {
   });
 
   it('filters the positions requirements for the deposit wallet and compiles missing repairs', async () => {
-    const plan = await planPositionsDepositWalletPreflight({ walletAddress });
+    const plan = await planDepositWalletPreflight({
+      walletAddress,
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+    });
 
     expect(mockFilterDepositWalletUnsupportedRequirements).toHaveBeenCalledWith(
-      positionsRequirements,
+      [...positionsRequirements, positionsPermit2Requirement],
     );
+    expect(mockGetActiveV2AllowanceRequirements).not.toHaveBeenCalled();
     expect(mockInspectMissingRequirements).toHaveBeenCalledWith({
       address: walletAddress,
       requirements: positionsRequirements,
@@ -156,7 +163,10 @@ describe('planPositionsDepositWalletPreflight', () => {
     mockInspectMissingRequirements.mockResolvedValue([]);
     mockCompileRequirementTransactions.mockReturnValue([]);
 
-    const plan = await planPositionsDepositWalletPreflight({ walletAddress });
+    const plan = await planDepositWalletPreflight({
+      walletAddress,
+      protocol: POLYMARKET_POSITIONS_PROTOCOL,
+    });
 
     expect(mockCompileRequirementTransactions).toHaveBeenCalledWith([]);
     expect(plan).toEqual({ missingRequirements: [], transactions: [] });
