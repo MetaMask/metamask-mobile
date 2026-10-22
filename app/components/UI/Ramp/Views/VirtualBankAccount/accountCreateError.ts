@@ -1,3 +1,5 @@
+import Logger from '../../../../../util/Logger';
+
 export const ACCOUNT_CREATE_ERROR_VARIANTS = [
   'blocked',
   'details',
@@ -124,4 +126,28 @@ export const getAccountCreateFailureLogFields = (
     httpStatus: result.status,
     ...(result.traceId ? { traceId: result.traceId } : {}),
   };
+};
+
+/**
+ * Logs a registration result that maps to an error screen. Pending, success,
+ * an existing account, and email verification are not logged. The payload is
+ * only {@link getAccountCreateFailureLogFields}.
+ *
+ * @param result - HTTP error or 200 fiat-address status.
+ * @returns The onboarding destination for that screen, or null when nothing is logged.
+ */
+export const logAccountCreateFailure = (
+  result: AccountCreateRegistrationResult,
+): AccountCreateErrorDestinationId | null => {
+  const variant = getAccountCreateErrorVariant(result);
+  if (!variant) {
+    return null;
+  }
+
+  Logger.error(
+    new Error('VBA account creation failed'),
+    getAccountCreateFailureLogFields(result),
+  );
+
+  return ACCOUNT_CREATE_ERROR_DESTINATION[variant];
 };

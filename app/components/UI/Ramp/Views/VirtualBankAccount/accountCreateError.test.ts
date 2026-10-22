@@ -1,10 +1,16 @@
+import Logger from '../../../../../util/Logger';
 import {
   ACCOUNT_CREATE_ERROR_DESTINATION,
   accountCreateErrorVariantForDestination,
   getAccountCreateErrorVariant,
   getAccountCreateFailureLogFields,
+  logAccountCreateFailure,
   type AccountCreateRegistrationResult,
 } from './accountCreateError';
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 describe('accountCreateError', () => {
   describe('getAccountCreateErrorVariant', () => {
@@ -66,6 +72,69 @@ describe('accountCreateError', () => {
           status: 'AuthorizationFailed',
         }),
       ).toEqual({ httpStatus: 200, fiatStatus: 'AuthorizationFailed' });
+    });
+  });
+
+  describe('logAccountCreateFailure', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('logs status and trace id for a server failure', () => {
+      const result = logAccountCreateFailure({
+        kind: 'http',
+        status: 500,
+        traceId: 'trace-1',
+        body: 'account number 123456',
+      } as AccountCreateRegistrationResult);
+
+      expect(result).toBe(ACCOUNT_CREATE_ERROR_DESTINATION.generic);
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        httpStatus: 500,
+        traceId: 'trace-1',
+      });
+      expect(
+        JSON.stringify((Logger.error as jest.Mock).mock.calls),
+      ).not.toContain('123456');
+    });
+
+    it('logs the fiat status for a compliance rejection', () => {
+      const result = logAccountCreateFailure({
+        kind: 'fiat',
+        status: 'AuthorizationFailed',
+      });
+
+      expect(result).toBe(ACCOUNT_CREATE_ERROR_DESTINATION.blocked);
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        httpStatus: 200,
+        fiatStatus: 'AuthorizationFailed',
+      });
+    });
+
+    it.each([
+      {
+        label: 'registration still pending',
+        result: { kind: 'fiat', status: 'RegistrationPending' },
+      },
+      {
+        label: 'an existing account',
+        result: { kind: 'http', status: 409 },
+      },
+      {
+        label: 'a registered account',
+        result: { kind: 'fiat', status: 'Registered' },
+      },
+      {
+        label: 'email verification',
+        result: { kind: 'fiat', status: 'AuthorizationRequired' },
+      },
+    ] as const)('does not log $label', ({ result: registrationResult }) => {
+      const result = logAccountCreateFailure(
+        registrationResult as AccountCreateRegistrationResult,
+      );
+
+      expect(result).toBeNull();
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
