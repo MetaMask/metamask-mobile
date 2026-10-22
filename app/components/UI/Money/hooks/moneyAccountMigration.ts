@@ -1,3 +1,5 @@
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
+import Engine from '../../../../core/Engine';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import Logger from '../../../../util/Logger';
 
@@ -9,8 +11,6 @@ export type MoneyAccountMigrationStatus =
 
 export const MONEY_ACCOUNT_MIGRATION_STORAGE_KEY =
   '@MetaMask:moneyAccountMigration';
-
-const STUB_DELAY_MS = 2000;
 
 const STATUSES: MoneyAccountMigrationStatus[] = [
   'not_started',
@@ -37,11 +37,8 @@ const setStatus = (next: MoneyAccountMigrationStatus) => {
 
 /**
  * Moves the Money account to the MPC account that 2-step verification
- * protects.
- *
- * Placeholder until the migration API lands in core (MPC keyring: core#10694):
- * the status is saved on the device and `start` resolves after a short delay.
- * The real migration sets `failed` and rejects when it fails.
+ * protects: creates the MPC Money account and makes it the default. The status
+ * is saved on the device so an interrupted migration resumes.
  */
 export const moneyAccountMigration = {
   getStatus: (): MoneyAccountMigrationStatus => status,
@@ -54,7 +51,17 @@ export const moneyAccountMigration = {
   /** Starts the migration, or resumes one that was interrupted. */
   start: async (): Promise<void> => {
     setStatus('migrating');
-    await new Promise((resolve) => setTimeout(resolve, STUB_DELAY_MS));
+    try {
+      const { MoneyAccountController } = Engine.context;
+      const account = await MoneyAccountController.createMoneyAccount({
+        type: KeyringAccountEntropyTypeOption.Mpc,
+      });
+      MoneyAccountController.setDefaultMoneyAccount(account.id);
+    } catch (error) {
+      Logger.error(error as Error, 'Money account migration failed');
+      setStatus('failed');
+      throw error;
+    }
     setStatus('done');
   },
   reset: () => {
