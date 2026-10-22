@@ -49,12 +49,11 @@ function renderEarningsTab(summary: EarningsSummaryDto) {
   );
 }
 
-function routeParams(node: { props: { children: unknown } }): {
+function routeParams(raw: unknown): {
   title?: string;
   description?: string;
   totals?: Record<string, string>;
 } {
-  const raw = node.props.children;
   const text = Array.isArray(raw) ? raw.join('') : String(raw);
   return JSON.parse(text) as {
     title?: string;
@@ -101,13 +100,10 @@ describe('EarningsTab claim states', () => {
 
     fireEvent.press(pausedButton);
 
-    const params = routeParams(
-      await findByTestId(
-        getRouteParamsProbeTestId(
-          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
-        ),
-      ),
+    const probe = await findByTestId(
+      getRouteParamsProbeTestId(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL),
     );
+    const params = routeParams(probe.props.children);
     expect(params.title).toBe('Claims paused');
     expect(params.description).toBe('You cannot claim rewards right now.');
     expect(params.totals).toEqual({
