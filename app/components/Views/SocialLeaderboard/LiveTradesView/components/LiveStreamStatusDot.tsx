@@ -10,6 +10,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { usePageMotion } from '../../../../UI/SocialFeed/PageMotionContext';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView.testIds';
 
@@ -36,11 +37,13 @@ const LiveStreamStatusDot: React.FC<LiveStreamStatusDotProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const prefersReducedMotion = useReducedMotion();
+  const pageMotion = usePageMotion();
   const pulseOpacity = useSharedValue(1);
+  const pulse = isLive && !prefersReducedMotion && pageMotion;
 
   useEffect(() => {
     cancelAnimation(pulseOpacity);
-    if (!isLive || prefersReducedMotion) {
+    if (!pulse) {
       pulseOpacity.value = 1;
       return;
     }
@@ -52,7 +55,7 @@ const LiveStreamStatusDot: React.FC<LiveStreamStatusDotProps> = ({
       -1,
       false,
     );
-  }, [isLive, prefersReducedMotion, pulseOpacity]);
+  }, [pulse, pulseOpacity]);
 
   const pulseStyle = useAnimatedStyle(() => ({
     opacity: pulseOpacity.value,
@@ -70,7 +73,7 @@ const LiveStreamStatusDot: React.FC<LiveStreamStatusDotProps> = ({
         style={[
           tw.style('h-2 w-2 rounded-full'),
           { backgroundColor: dotColor },
-          isLive && !prefersReducedMotion ? pulseStyle : undefined,
+          pulse ? pulseStyle : undefined,
         ]}
       />
     </Box>

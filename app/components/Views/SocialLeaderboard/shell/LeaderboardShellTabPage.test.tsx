@@ -13,19 +13,46 @@ const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 let mockIsPerpsEnabled = true;
 
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => null,
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
 jest.mock('../../../UI/SocialLeaderboard', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     SocialLeaderboard: ({
       ref,
+      scrollTestID,
+      refreshControl,
+      listHeader,
+      visible = true,
       ...props
-    }: Record<string, unknown> & { ref?: React.Ref<unknown> }) => {
+    }: Record<string, unknown> & {
+      ref?: React.Ref<unknown>;
+      scrollTestID?: string;
+      refreshControl?: React.ReactElement;
+      listHeader?: React.ReactElement | null;
+      visible?: boolean;
+    }) => {
       mockLeaderboardProps(props);
-      ReactActual.useImperativeHandle(ref, () => ({ refresh: mockRefresh }));
-      return ReactActual.createElement(View, {
-        testID: 'social-leaderboard-mock',
-      });
+      ReactActual.useImperativeHandle(ref, () => ({
+        refresh: mockRefresh,
+        scrollToOffset: () => undefined,
+      }));
+      if (!visible) {
+        return null;
+      }
+      return ReactActual.createElement(
+        View,
+        { testID: scrollTestID, refreshControl },
+        listHeader,
+        ReactActual.createElement(View, { testID: 'social-leaderboard-mock' }),
+      );
     },
   };
 });
