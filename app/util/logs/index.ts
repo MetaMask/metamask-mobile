@@ -15,72 +15,6 @@ import {
 } from '../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { OTA_VERSION, RUNTIME_VERSION } from '../../constants/ota';
 
-/**
- * Fields whose controller metadata sets includeInStateLogs to false.
- * cardHomeData and cardHomeDataAddress are reduced separately and stay in the export.
- */
-const STATE_LOG_OMITTED_FIELDS = {
-  QrSyncController: [
-    'otp',
-    'pendingSecretImports',
-    'provisioningMetadata',
-    'provisioningStatus',
-  ],
-  CardController: [
-    'providerUserId',
-    'providerData',
-    'signInLink',
-    'accountLookupCache',
-    'cardLinks',
-    'cardHomeDataStatus',
-    'cardHomeDataFetchedThisSession',
-    'moneyAccountCardLinkInProgress',
-  ],
-  RewardsMoneyController: [
-    'referralMe',
-    'referralCodes',
-    'referralFunnel',
-    'earningsSummary',
-    'earningsLedgerFirstPage',
-    'claimHistoryFirstPage',
-    'commissionsFirstPage',
-    'claimById',
-  ],
-  RewardsController: ['rewardsEnvUrl'],
-  UiSlotsController: [
-    'enabled',
-    'screenConfigurations',
-    'activeConfigurations',
-  ],
-} as const;
-
-/**
- * Drops controller fields whose metadata excludes them from state logs.
- *
- * @param backgroundState - Engine background state being prepared for export.
- */
-function omitStateLogFields(
-  backgroundState: Record<string, unknown> | undefined,
-): void {
-  if (!backgroundState) {
-    return;
-  }
-
-  for (const [controllerName, fields] of Object.entries(
-    STATE_LOG_OMITTED_FIELDS,
-  )) {
-    const controllerState = backgroundState[controllerName];
-    if (!controllerState || typeof controllerState !== 'object') {
-      continue;
-    }
-
-    const stateRecord = controllerState as Record<string, unknown>;
-    for (const field of fields) {
-      delete stateRecord[field];
-    }
-  }
-}
-
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
   const {
@@ -182,7 +116,6 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
 
   // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;
-  omitStateLogFields(fullState.engine.backgroundState);
 
   const { KeyringController } = Engine.context;
   const newState = {
