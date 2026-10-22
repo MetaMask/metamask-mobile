@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -22,7 +26,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../../core/NavigationService/types';
+import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -32,7 +40,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
+import {
+  getVbaSourceCurrencyForCountry,
+  isVbaSourceCurrency,
+  VBA_CHOOSABLE_SOURCE_CURRENCIES,
+} from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
@@ -55,6 +67,7 @@ export const VbaDetailsSelectorsIDs = {
   HEADER: 'vba-details-header',
   BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
+  TITLE: 'vba-details-title',
   COPY_BUTTON: 'vba-details-copy-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
@@ -74,32 +87,13 @@ interface AutorampCursor {
   id: string;
   walletAddress: string;
   status: string;
+  depositRailsSummary?: { currency?: string };
 }
-
-interface PixDepositInstructions {
-  brCode: string;
-  instruction: string;
-  pixKey?: string;
-}
-
-interface UsBankDepositInstructions {
-  accountHolder: string;
-  routingNumber: string;
-  accountNumber: string;
-  bankName: string;
-}
-
-type DepositInstructions =
-  | ({ type: 'Pix' } & PixDepositInstructions)
-  | ({ type: 'UsBank' } & UsBankDepositInstructions);
 
 interface DepositNeoBank {
-  getDepositInstructions?: (
+  getDepositInstructions: (
     autorampId: string,
-  ) => Promise<DepositInstructions | null>;
-  getPixDepositInstructions?: (
-    autorampId: string,
-  ) => Promise<PixDepositInstructions | null>;
+  ) => Promise<AutorampDepositInstructions | null>;
   listAutorampTransactions?: (
     autorampId: string,
   ) => Promise<AutorampTransactionSummary[]>;
@@ -123,20 +117,8 @@ const isTerminalStatus = (status: string): boolean =>
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
 
-// ramps-controller releases before 27.1 only expose the PIX reader.
-const loadDepositInstructions = async (
-  neoBank: DepositNeoBank,
-  autorampId: string,
-): Promise<DepositInstructions | null> => {
-  if (neoBank.getDepositInstructions) {
-    return neoBank.getDepositInstructions(autorampId);
-  }
-  const pix = await neoBank.getPixDepositInstructions?.(autorampId);
-  return pix?.brCode ? { type: 'Pix', ...pix } : null;
-};
-
 const buildDetailRows = (
-  instructions: DepositInstructions | null,
+  instructions: AutorampDepositInstructions | null,
 ): DetailRow[] => {
   if (instructions?.type === 'UsBank') {
     return [
@@ -204,24 +186,43 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const { regionCurrencies, regionOverride } = useSelector(
-    selectMoneyMovementNeobank,
-  );
-  const sourceCurrency = getVbaSourceCurrencyForCountry(
-    regionOverride ?? location,
+  const {
+    chooseCurrency,
     regionCurrencies,
-  );
+    regions,
+    defaultCurrency,
+    regionOverride,
+  } = useSelector(selectMoneyMovementNeobank);
+  const effectiveLocation = regionOverride ?? location;
+  // With chooseCurrency on, only the picked currency may create an account.
+  const regionCurrency = chooseCurrency
+    ? undefined
+    : getVbaSourceCurrencyForCountry(
+        effectiveLocation,
+        regionCurrencies,
+        regions,
+        defaultCurrency,
+      );
+  const requestedCurrency = route.params?.sourceCurrency;
+  // EUR stays out until that deposit layout exists. Ignore anything else too.
+  const pickedCurrency =
+    isVbaSourceCurrency(requestedCurrency) &&
+    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
+      ? requestedCurrency
+      : undefined;
+  const sourceCurrency = pickedCurrency ?? regionCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
-  const [instructions, setInstructions] = useState<DepositInstructions | null>(
-    null,
-  );
+  const [instructions, setInstructions] =
+    useState<AutorampDepositInstructions | null>(null);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
-      ? (findUsableAutoramp(readAutoramps(), walletAddress)?.status ?? null)
+      ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+          ?.status ?? null)
       : null,
   );
   const [transactionStatus, setTransactionStatus] = useState<string | null>(
@@ -229,10 +230,15 @@ const VbaDetails = () => {
   );
   const [loadError, setLoadError] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
+  const [awaitingProviderApproval, setAwaitingProviderApproval] =
+    useState(false);
   const [isTerminal, setIsTerminal] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
+  const accountKeyRef = useRef(
+    `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
+  );
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -246,10 +252,40 @@ const VbaDetails = () => {
       if (!walletAddress) {
         return;
       }
+      const requestKey = `${walletAddress}:${sourceCurrency ?? ''}`;
+      const stillCurrent = () =>
+        isMountedRef.current && accountKeyRef.current === requestKey;
       const ramps = Engine.context.RampsController as DepositRamps;
-      let autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+      let autoramp = findUsableAutoramp(
+        readAutoramps(),
+        walletAddress,
+        sourceCurrency,
+      );
+      // An Approved account from before currency was stored must be refreshed
+      // before it can satisfy this fiat. Otherwise a BRL account is reused for USD.
+      if (
+        autoramp &&
+        sourceCurrency &&
+        autoramp.status === 'Approved' &&
+        !autoramp.depositRailsSummary?.currency &&
+        ramps.refreshAutoramp
+      ) {
+        await ramps.refreshAutoramp(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
+        autoramp = findUsableAutoramp(
+          readAutoramps(),
+          walletAddress,
+          sourceCurrency,
+        );
+      }
       if (!autoramp) {
         if (!sourceCurrency) {
+          if (!stillCurrent()) {
+            return;
+          }
+          setAwaitingProviderApproval(false);
           setSetupFailed(true);
           return;
         }
@@ -258,11 +294,16 @@ const VbaDetails = () => {
           sourceCurrency,
           { replaceTerminal },
         );
-        if (!isMountedRef.current) {
+        if (!stillCurrent()) {
           return;
         }
-        autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+        autoramp = findUsableAutoramp(
+          readAutoramps(),
+          walletAddress,
+          sourceCurrency,
+        );
         if (!autoramp) {
+          setAwaitingProviderApproval(outcome === 'awaiting_provider');
           setSetupFailed(outcome === 'failed');
           setIsTerminal(outcome === 'terminal');
           pollingDoneRef.current = outcome === 'terminal';
@@ -272,11 +313,18 @@ const VbaDetails = () => {
           return;
         }
       }
+      if (!stillCurrent()) {
+        return;
+      }
+      setAwaitingProviderApproval(false);
       setSetupFailed(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
         const refreshed = await ramps.refreshAutoramp(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
         status = refreshed.status;
       }
       setAutorampId(autoramp.id);
@@ -301,7 +349,10 @@ const VbaDetails = () => {
 
       // Fetch details on their own so a flaky transaction poll cannot hide them.
       try {
-        const details = await loadDepositInstructions(neoBank, autoramp.id);
+        const details = await neoBank.getDepositInstructions(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
         if (details) {
           setInstructions(details);
           // Debug builds keep polling so the latest deposit stays visible.
@@ -311,6 +362,7 @@ const VbaDetails = () => {
         Logger.error(error as Error, {
           message: 'VbaDetails: failed to load deposit instructions',
         });
+        throw error;
       }
 
       if (debugEnabled && neoBank.listAutorampTransactions) {
@@ -332,6 +384,28 @@ const VbaDetails = () => {
   );
 
   useEffect(() => {
+    const nextKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+    if (accountKeyRef.current === nextKey) {
+      return;
+    }
+    accountKeyRef.current = nextKey;
+    // A reused route or an account switch must not keep the previous details.
+    pollingDoneRef.current = false;
+    setInstructions(null);
+    setLoadError(false);
+    setSetupFailed(false);
+    setAwaitingProviderApproval(false);
+    setIsTerminal(false);
+    setAutorampId(null);
+    setAutorampStatus(
+      walletAddress
+        ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+            ?.status ?? null)
+        : null,
+    );
+  }, [sourceCurrency, walletAddress]);
+
+  useEffect(() => {
     if (networkTier === 'NONE') {
       return;
     }
@@ -339,17 +413,18 @@ const VbaDetails = () => {
     let cancelled = false;
     let inFlight = false;
     const tick = async () => {
+      const requestKey = accountKeyRef.current;
       if (cancelled || inFlight || pollingDoneRef.current) {
         return;
       }
       inFlight = true;
       try {
         await refreshDeposit();
-        if (!cancelled) {
+        if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(false);
         }
       } catch (error) {
-        if (!cancelled) {
+        if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(true);
         }
         Logger.error(error as Error, {
@@ -398,14 +473,26 @@ const VbaDetails = () => {
   const handleRetrySetup = useCallback(() => {
     pollingDoneRef.current = false;
     setSetupFailed(false);
+    setLoadError(false);
+    setAwaitingProviderApproval(false);
     setIsTerminal(false);
     refreshDeposit(true).catch((error: unknown) => {
       Logger.error(error as Error, {
         message: 'VbaDetails: retry setup failed',
       });
+      // Details are fetched only after the autoramp is Approved, and that
+      // fetch rethrows. A failure there is a load error, not a failed create.
+      const approved =
+        !!walletAddress &&
+        findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+          ?.status === 'Approved';
+      if (approved) {
+        setLoadError(true);
+        return;
+      }
       setSetupFailed(true);
     });
-  }, [refreshDeposit]);
+  }, [refreshDeposit, sourceCurrency, walletAddress]);
 
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -456,7 +543,12 @@ const VbaDetails = () => {
       : null;
 
   if (!isApproved && !hasSetupError) {
-    return <VbaCreatingAccount onBack={handleDone} />;
+    return (
+      <VbaCreatingAccount
+        onBack={handleDone}
+        awaitingProviderApproval={awaitingProviderApproval}
+      />
+    );
   }
 
   return (
@@ -484,7 +576,11 @@ const VbaDetails = () => {
             testID={VbaDetailsSelectorsIDs.LOGO}
           />
         </Box>
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-6 text-center">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="mt-6 text-center"
+          testID={VbaDetailsSelectorsIDs.TITLE}
+        >
           {strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_title'
