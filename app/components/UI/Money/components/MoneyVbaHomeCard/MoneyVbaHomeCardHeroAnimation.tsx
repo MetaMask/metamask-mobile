@@ -111,15 +111,12 @@ const MoneyVbaHomeCardHeroAnimation = ({
       // Not ready yet: autoplay will start it once it is. Reduce Motion or a
       // Rive error: nothing animates.
       if (!view || !animateLatest.current) return;
-      (async () => {
-        try {
-          await view.reset();
-          await view.play();
-        } catch (error) {
-          // The native view can detach (e.g. unmount) mid-replay.
-          logReplayError(error);
-        }
-      })();
+      const replay = async () => {
+        await view.reset();
+        await view.play();
+      };
+      // The native view can detach (e.g. unmount) mid-replay.
+      replay().catch(logReplayError);
     }, [logReplayError]),
   );
 
