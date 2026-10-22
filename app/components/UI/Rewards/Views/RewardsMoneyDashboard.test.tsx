@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
@@ -12,6 +13,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -94,6 +96,22 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
   return {
     __esModule: true,
     default: () => <View testID="campaigns-preview" />,
+  };
+});
+
+const mockPerformanceTab = jest.fn();
+
+jest.mock('../components/Money/Tabs/PerformanceTab', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    PERFORMANCE_TAB_TEST_IDS: {
+      CONTAINER: 'rewards-money-performance-tab',
+    },
+    default: (props: { active: boolean }) => {
+      mockPerformanceTab(props);
+      return <View testID="rewards-money-performance-tab" />;
+    },
   };
 });
 
@@ -498,10 +516,10 @@ describe('RewardsMoneyDashboard', () => {
     const { getByTestId } = renderDashboard();
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).toBeOnTheScreen();
     expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
     expect(getByTestId('benefits-preview')).toBeOnTheScreen();
@@ -610,10 +628,10 @@ describe('RewardsMoneyDashboard', () => {
     expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
     expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).not.toBeOnTheScreen();
   });
 
@@ -698,5 +716,82 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('switches to the Performance tab body', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-performance-tab')).toBeOnTheScreen();
+    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
+      expect.objectContaining({ active: true }),
+    );
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('returns the shared scroller to the top when the selected tab changes', () => {
+    const scrollTo = jest.fn();
+    const scrollToSpy = jest
+      .spyOn(ScrollView.prototype, 'scrollTo')
+      .mockImplementation(scrollTo);
+    const { getByTestId } = renderDashboard();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    );
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: false });
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+
+    scrollToSpy.mockRestore();
+  });
+
+  it('keeps inactive tab bodies mounted', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY, {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    );
+
+    expect(
+      queryByTestId('rewards-money-performance-tab', {
+        includeHiddenElements: true,
+      }),
+    ).toBeTruthy();
+    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
+      expect.objectContaining({ active: false }),
+    );
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).toBeOnTheScreen();
   });
 });
