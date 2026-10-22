@@ -222,7 +222,15 @@ import {
   postCopyTradeIntent,
   type CopyTradeOrigin,
 } from '../../../../../util/social/copyTradeIntent';
-import { buildPerpsCopyTradeIntent } from '../../utils/copyTradeIntent';
+import {
+  buildPerpsCopyTradeIntent,
+  getCopyTradeOid,
+} from '../../utils/copyTradeIntent';
+import {
+  beginPerpsPostTradeShare,
+  completePerpsPostTradeShare,
+  failPerpsPostTradeShare,
+} from '../../utils/perpsPostTradeShare';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -445,6 +453,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // screen without one (back swipe, hardware back, tab switch) is emitted as an
   // abandon interaction via the focus-effect cleanup below.
   const hasPlacedOrderRef = useRef(false);
+  /** Share-sheet session for a Social V1 perps copy-trade, if one was opened. */
+  const perpsShareSessionIdRef = useRef<string | undefined>(undefined);
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
   const hasDismissedAfterSubmitRef = useRef(false);
@@ -1224,11 +1234,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position, result) => {
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+        const shared = completePerpsPostTradeShare(
+          perpsShareSessionIdRef.current,
+          {
+            orderId: getCopyTradeOid(orderForm.type, result),
+            entryPrice: result?.averagePrice,
+          },
         );
+        if (!shared) {
+          showToast(
+            PerpsToastOptions.orderManagement[
+              getOrderManagementToastKey(orderForm.type)
+            ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+          );
+        }
         postCopyTradeIntent(
           () =>
             buildPerpsCopyTradeIntent({
@@ -1245,11 +1264,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       onError: (error) => {
         // Error is already captured in usePerpsOrderExecution hook
         // No need to capture again here to avoid duplicate Sentry reports
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].creationFailed(error),
-        );
+        const shared = failPerpsPostTradeShare(perpsShareSessionIdRef.current);
+        if (!shared) {
+          showToast(
+            PerpsToastOptions.orderManagement[
+              getOrderManagementToastKey(orderForm.type)
+            ].creationFailed(error),
+          );
+        }
       },
     });
 
@@ -1950,8 +1972,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
         // Both the full-screen form and the Trade sheet leave as soon as the
         // order is submitted. Default is market details; `stayOnCurrentScreen`
-        // dismisses back to the presenting screen. The "submitted" /
-        // "confirmed" / "failed" toasts still report the outcome.
+        // dismisses back to the presenting screen. A Social V1 copy-trade that
+        // can return an order id shows the share sheet instead of these toasts.
+        perpsShareSessionIdRef.current = beginPerpsPostTradeShare({
+          copyTradeOrigin,
+          orderType: orderForm.type,
+          activeProvider: activePerpsProvider,
+          asset: orderForm.asset,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          amountUsd: orderForm.amount,
+        });
         navigateToMarketAfterOrder();
 
         // Execute order using the new hook
@@ -1997,11 +2028,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           }),
         });
 
-        showToast(
-          PerpsToastOptions.orderManagement[
-            getOrderManagementToastKey(orderForm.type)
-          ].submitted(orderForm.direction, positionSize, orderForm.asset),
-        );
+        if (!perpsShareSessionIdRef.current) {
+          showToast(
+            PerpsToastOptions.orderManagement[
+              getOrderManagementToastKey(orderForm.type)
+            ].submitted(orderForm.direction, positionSize, orderForm.asset),
+          );
+        }
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
@@ -2018,6 +2051,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           const orderResult = await executeOrder(orderWithoutTPSL);
           if (!orderResult?.success) {
+            failPerpsPostTradeShare(perpsShareSessionIdRef.current);
             return;
           }
 
@@ -2039,6 +2073,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         } else {
           const orderResult = await executeOrder(orderParams);
           if (!orderResult?.success) {
+            failPerpsPostTradeShare(perpsShareSessionIdRef.current);
             return;
           }
         }
@@ -2078,6 +2113,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.takeProfitPrice,
       orderForm.stopLossPrice,
       orderForm.amount,
+      copyTradeOrigin,
+      activePerpsProvider,
       positionSize,
       effectivePrice,
       assetData.price,
