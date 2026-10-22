@@ -120,6 +120,21 @@ describe('getTransactionPayControllerMessenger', () => {
       }),
     );
   });
+
+  it('delegates TransactionController:addTransactionBatch for the Solana Pay Money Account second leg', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'TransactionController:addTransactionBatch',
+        ]),
+      }),
+    );
+  });
 });
 
 describe('getTransactionPayControllerInitMessenger', () => {

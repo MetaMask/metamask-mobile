@@ -40,6 +40,9 @@ export function getTransactionPayControllerMessenger(
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
       'SnapController:handleRequest',
+      // Solana Pay recovery runs the Money Account second leg from the
+      // controller messenger rather than from the publish hook.
+      'TransactionController:addTransactionBatch',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
       'TransactionController:confirmTransaction',
