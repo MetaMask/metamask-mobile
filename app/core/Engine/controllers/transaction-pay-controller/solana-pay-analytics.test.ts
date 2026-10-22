@@ -20,7 +20,6 @@ const LIFECYCLE_PAYLOAD: SolanaPayLifecyclePayload = {
   phase: 'unknown',
   provider: 'relay',
   relayStatus: 'unknown',
-  requestIdPresent: true,
   sourceAssetClass: 'native',
   sourceStatus: 'confirmed',
   sourceTransactionIdPresent: true,
@@ -41,7 +40,6 @@ describe('getSolanaPayLifecycleProperties', () => {
       mm_pay_phase: 'unknown',
       mm_pay_provider: 'relay',
       mm_pay_relay_status: 'unknown',
-      mm_pay_request_id_present: true,
       mm_pay_source_asset_class: 'native',
       mm_pay_source_status: 'confirmed',
       mm_pay_source_transaction_id_present: true,
@@ -55,6 +53,15 @@ describe('getSolanaPayLifecycleProperties', () => {
     const result = getSolanaPayLifecycleProperties(payload);
 
     expect(result).not.toHaveProperty('mm_pay_error_code');
+  });
+
+  it('omits the source asset class when the source is unavailable', () => {
+    const { sourceAssetClass: _sourceAssetClass, ...payload } =
+      LIFECYCLE_PAYLOAD;
+
+    const result = getSolanaPayLifecycleProperties(payload);
+
+    expect(result).not.toHaveProperty('mm_pay_source_asset_class');
   });
 });
 
