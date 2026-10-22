@@ -47,8 +47,29 @@ const PILL_HEIGHT = 27;
 const PILL_EDGE_INSET = 16;
 const MARKER_SIZE = 16;
 const MARKER_HIT_SLOP = 16;
+const MARKER_Z_INDEX = 1;
+const LEVEL_LABEL_Z_INDEX = 2;
+const TOOLTIP_Z_INDEX = 3;
+const LEVEL_BACKGROUND_OPACITY = 0.7;
 const TOOLTIP_OFFSET = 64;
 const TOOLTIP_EDGE_INSET = 8;
+
+/** Keeps the label fill translucent without fading its text or border. */
+const colorWithAlpha = (color: string, alpha: number): string => {
+  const match = /^#([\da-f]{3}|[\da-f]{6})$/i.exec(color.trim());
+  if (!match) return color;
+  const digits =
+    match[1].length === 3
+      ? match[1]
+          .split('')
+          .map((char) => char + char)
+          .join('')
+      : match[1];
+  const red = Number.parseInt(digits.slice(0, 2), 16);
+  const green = Number.parseInt(digits.slice(2, 4), 16);
+  const blue = Number.parseInt(digits.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+};
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
@@ -77,19 +98,25 @@ interface LevelPillProps {
 
 const LevelPill = ({ label, kind, centerY, side, testID }: LevelPillProps) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   return (
     <View
       testID={testID}
       pointerEvents="none"
       style={[
         tw.style(
-          'absolute justify-center rounded px-2 bg-default border-[1.5px]',
+          'absolute justify-center rounded px-2 border-[1.5px]',
           PILL_TW[kind].border,
         ),
         {
           height: PILL_HEIGHT,
           top: centerY - PILL_HEIGHT / 2,
           [side]: PILL_EDGE_INSET,
+          zIndex: LEVEL_LABEL_Z_INDEX,
+          backgroundColor: colorWithAlpha(
+            colors.background.default,
+            LEVEL_BACKGROUND_OPACITY,
+          ),
         },
       ]}
     >
@@ -235,6 +262,7 @@ const PositionSheetChart = ({
         style={[
           tw.style('absolute rounded-lg px-3 py-2 bg-default shadow-md'),
           {
+            zIndex: TOOLTIP_Z_INDEX,
             top: Math.max(activeMarkerPoint.y - TOOLTIP_OFFSET, 0),
             ...(anchorLeft
               ? {
@@ -362,24 +390,6 @@ const PositionSheetChart = ({
               />
             ))}
           </Svg>
-          {levels.map((level, index) => (
-            <React.Fragment key={level.kind}>
-              <LevelPill
-                testID={`${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-${level.kind}`}
-                label={level.label}
-                kind={level.kind}
-                centerY={pillYs[index]}
-                side="left"
-              />
-              <LevelPill
-                testID={`${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-${level.kind}-value`}
-                label={level.valueLabel}
-                kind={level.kind}
-                centerY={pillYs[index]}
-                side="right"
-              />
-            </React.Fragment>
-          ))}
           {markers.map((marker, index) => {
             const point = points[marker.index];
             if (!point) return null;
@@ -398,6 +408,7 @@ const PositionSheetChart = ({
                     height: MARKER_SIZE,
                     left: markerXs[index] - MARKER_SIZE / 2,
                     top: point.y - MARKER_SIZE / 2,
+                    zIndex: MARKER_Z_INDEX,
                   },
                 ]}
               >
@@ -409,6 +420,24 @@ const PositionSheetChart = ({
               </View>
             );
           })}
+          {levels.map((level, index) => (
+            <React.Fragment key={level.kind}>
+              <LevelPill
+                testID={`${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-${level.kind}`}
+                label={level.label}
+                kind={level.kind}
+                centerY={pillYs[index]}
+                side="left"
+              />
+              <LevelPill
+                testID={`${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-${level.kind}-value`}
+                label={level.valueLabel}
+                kind={level.kind}
+                centerY={pillYs[index]}
+                side="right"
+              />
+            </React.Fragment>
+          ))}
         </Animated.View>
 
         {renderTooltip()}

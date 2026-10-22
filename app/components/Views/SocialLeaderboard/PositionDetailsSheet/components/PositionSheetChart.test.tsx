@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   fireGestureHandler,
@@ -86,6 +87,24 @@ describe('PositionSheetChart', () => {
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Wed')).toBeOnTheScreen();
+  });
+
+  it('paints level labels above trade markers with a translucent background', () => {
+    renderChart();
+
+    const labelStyle = StyleSheet.flatten(
+      screen.getByTestId(
+        `${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-entry`,
+      ).props.style,
+    );
+    const markerStyle = StyleSheet.flatten(
+      screen.getByTestId(
+        `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${MARKER.id}`,
+      ).props.style,
+    );
+
+    expect(labelStyle.zIndex).toBeGreaterThan(markerStyle.zIndex);
+    expect(labelStyle.backgroundColor).toBe('rgba(255, 255, 255, 0.7)');
   });
 
   it('shows the skeleton while prices load', () => {
