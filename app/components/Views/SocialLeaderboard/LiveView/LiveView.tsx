@@ -6,7 +6,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import Animated, {
   type ScrollHandlerProcessed,
   FadeIn,
@@ -71,13 +71,6 @@ const LiveView: React.FC<LiveViewProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
-  const [hasBeenActive, setHasBeenActive] = useState(isActive);
-
-  useEffect(() => {
-    if (isActive) {
-      setHasBeenActive(true);
-    }
-  }, [isActive]);
 
   const handleStreamToggle = useCallback(
     (onRevealPending: () => void) => {
@@ -178,7 +171,6 @@ const LiveView: React.FC<LiveViewProps> = ({
   return (
     <Box twClassName="flex-1 bg-default">
       <SocialFeedCanonical
-        enabled={hasBeenActive}
         scope="all"
         scrollMode="virtualized"
         realtime={isActive}

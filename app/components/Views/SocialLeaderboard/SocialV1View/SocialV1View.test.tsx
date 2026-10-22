@@ -481,7 +481,7 @@ describe('SocialV1View', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
-      expect.objectContaining({ enabled: false, realtime: false }),
+      expect.objectContaining({ realtime: false }),
     );
 
     fireEvent.press(
@@ -489,7 +489,7 @@ describe('SocialV1View', () => {
     );
 
     expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
-      expect.objectContaining({ enabled: true, realtime: true }),
+      expect.objectContaining({ realtime: true }),
     );
 
     fireEvent.press(
@@ -497,7 +497,7 @@ describe('SocialV1View', () => {
     );
 
     expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
-      expect.objectContaining({ enabled: true, realtime: false }),
+      expect.objectContaining({ realtime: false }),
     );
   });
 

@@ -83,6 +83,8 @@ import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -425,6 +427,30 @@ const SocialV1ViewContent: React.FC = () => {
     handlePostTradeReopen,
     PostTradeShareOwner.socialV1Feed,
   );
+  const handleCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+
+      openQuickBuy(
+        {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        commentId ? { commentId } : undefined,
+      );
+    },
+    [openQuickBuy],
+  );
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -682,6 +708,7 @@ const SocialV1ViewContent: React.FC = () => {
                         isActive={activeIndex === liveIndex}
                         onScroll={scrollHandlers[tab]}
                         pageRef={pageRef}
+                        onCopyTrade={handleCopyTrade}
                         onOpenFilters={handleOpenLiveFilters}
                         isFilterActive={hasActiveFilters('live')}
                       />
