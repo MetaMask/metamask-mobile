@@ -1,6 +1,12 @@
 import { hashKey } from '@tanstack/query-core';
 import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
-import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
+import {
+  PRIMARY_ENTROPY_SOURCE_ID,
+  buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
+  predictHarnessAuthenticationState,
+  predictHarnessKeyringState,
+  predictHarnessLockedKeyringState,
+} from '../../../../../tests/integration/harnesses/predict-next';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import { KALSHI_VENUE_ID } from '../types';
 
@@ -219,6 +225,258 @@ describe('PredictNext account-scoped Portfolio reads', () => {
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
 
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Predict User changes', () => {
+    const balanceHash = hashKey([
+      'PredictPortfolioService:getBalance',
+      KALSHI_VENUE_ID,
+    ]);
+    const positionsHash = hashKey([
+      'PredictPortfolioService:getPositions',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    ]);
+    const activityHash = hashKey([
+      'PredictPortfolioService:getActivity',
+      KALSHI_VENUE_ID,
+      { limit: 20 },
+    ]);
+
+    /** Collects the granular cache updates published for residual data. */
+    const collectCacheUpdates = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+      hash: string,
+    ): DataServiceGranularCacheUpdatedPayload[] => {
+      const updates: DataServiceGranularCacheUpdatedPayload[] = [];
+      harness.messenger.subscribe(
+        `PredictPortfolioService:cacheUpdated:${hash}`,
+        (payload) => updates.push(payload),
+      );
+      return updates;
+    };
+
+    /** Counts `accountDataCleared` publications. */
+    const countAccountDataCleared = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    ): (() => number) => {
+      let count = 0;
+      harness.messenger.subscribe(
+        'PredictPortfolioService:accountDataCleared',
+        () => {
+          count += 1;
+        },
+      );
+      return () => count;
+    };
+
+    /** A response the test releases only when it wants the read to settle. */
+    const defer = () => {
+      let release: (result: { body: unknown }) => void = () => undefined;
+      const promise = new Promise<{ body: unknown }>((resolve) => {
+        release = resolve;
+      });
+      return { promise, release };
+    };
+
+    /** Lets every pending promise chain settle. */
+    const settle = async (): Promise<void> => {
+      for (let tick = 0; tick < 20; tick += 1) {
+        await Promise.resolve();
+      }
+    };
+
+    const callsTo = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+      path: string,
+    ): number =>
+      harness.fetchMock.mock.calls.filter(([url]) => String(url).endsWith(path))
+        .length;
+
+    it('drops in-flight reads for the previous Predict User and refetches next time', async () => {
+      const balance = defer();
+      const positions = defer();
+      const activity = defer();
+      let releaseInFlight = false;
+      const harness = buildPredictNextIntegrationHarness((url) => {
+        if (String(url).endsWith('/balance')) {
+          return releaseInFlight
+            ? {
+                body: { venueId: 'kalshi', currency: 'USD', available: '4.00' },
+              }
+            : balance.promise;
+        }
+        if (String(url).includes('/positions')) {
+          return releaseInFlight
+            ? { body: { venueId: 'kalshi', positions: [] } }
+            : positions.promise;
+        }
+        if (String(url).includes('/activity')) {
+          return releaseInFlight
+            ? { body: { venueId: 'kalshi', activity: [] } }
+            : activity.promise;
+        }
+        return { status: 404 };
+      });
+      const balanceUpdates = collectCacheUpdates(harness, balanceHash);
+      const positionsUpdates = collectCacheUpdates(harness, positionsHash);
+      const activityUpdates = collectCacheUpdates(harness, activityHash);
+      const clearedCount = countAccountDataCleared(harness);
+
+      const reads = [
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+        harness.messenger.call(
+          'PredictPortfolioService:getPositions',
+          KALSHI_VENUE_ID,
+          { limit: 20 },
+        ),
+        harness.messenger.call(
+          'PredictPortfolioService:getActivity',
+          KALSHI_VENUE_ID,
+          { limit: 20 },
+        ),
+      ];
+      await settle();
+      expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+      // The person is replaced while all three reads are in flight: the reset
+      // clears the session, then the new wallet signs in as somebody else.
+      harness.setAuthenticationState(
+        predictHarnessAuthenticationState(PRIMARY_ENTROPY_SOURCE_ID),
+      );
+      await settle();
+      harness.setAuthenticationState(
+        predictHarnessAuthenticationState(
+          PRIMARY_ENTROPY_SOURCE_ID,
+          'profile-b',
+        ),
+      );
+      await settle();
+      // Signed out and signed back in as a different person: two changes.
+      expect(clearedCount()).toBe(2);
+
+      // The in-flight reads were cancelled, so their callers do not receive
+      // the previous Predict User's data either.
+      const settledReads = await Promise.allSettled(reads);
+      expect(settledReads.map((result) => result.status)).toEqual([
+        'rejected',
+        'rejected',
+        'rejected',
+      ]);
+
+      // Release the previous Predict User's responses after the purge: they
+      // must not reach the cache or its published updates.
+      const updatesBefore = [
+        balanceUpdates.length,
+        positionsUpdates.length,
+        activityUpdates.length,
+      ];
+      releaseInFlight = true;
+      balance.release({
+        body: { venueId: 'kalshi', currency: 'USD', available: '100.00' },
+      });
+      positions.release({ body: { venueId: 'kalshi', positions: [position] } });
+      activity.release({ body: { venueId: 'kalshi', activity: [fill] } });
+      await settle();
+
+      const lateUpdates = [
+        ...balanceUpdates.slice(updatesBefore[0]),
+        ...positionsUpdates.slice(updatesBefore[1]),
+        ...activityUpdates.slice(updatesBefore[2]),
+      ];
+      expect(JSON.stringify(lateUpdates)).not.toContain('100.00');
+      expect(JSON.stringify(lateUpdates)).not.toContain('LAL');
+
+      // The next read refetches and observes the new Predict User's Balance.
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '4.00' });
+      // The cancelled read made no further request; the fresh read made one.
+      expect(callsTo(harness, '/balance')).toBe(2);
+    });
+
+    it("does not return the previous Predict User's cached Balance", async () => {
+      let available = '100.00';
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).endsWith('/balance')
+          ? { body: { venueId: 'kalshi', currency: 'USD', available } }
+          : { status: 404 },
+      );
+
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '100.00' });
+
+      // A second read inside the stale time is served from the cache, so the
+      // venue is not called again.
+      await harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      );
+      expect(callsTo(harness, '/balance')).toBe(1);
+
+      available = '4.00';
+      harness.setAuthenticationState(
+        predictHarnessAuthenticationState(
+          PRIMARY_ENTROPY_SOURCE_ID,
+          'profile-b',
+        ),
+      );
+      await settle();
+
+      // Marked stale by the change, so the next read refetches instead of
+      // handing back the previous Predict User's Balance.
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '4.00' });
+      expect(callsTo(harness, '/balance')).toBe(2);
+    });
+
+    it('keeps the cache through a lock and unlock', async () => {
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).endsWith('/balance')
+          ? {
+              body: { venueId: 'kalshi', currency: 'USD', available: '100.00' },
+            }
+          : { status: 404 },
+      );
+      const clearedCount = countAccountDataCleared(harness);
+      await harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      );
+
+      // Locking empties the keyrings, which makes the Predict User unknowable
+      // rather than different. Unlocking restores the same person.
+      harness.setKeyringState(predictHarnessLockedKeyringState());
+      await settle();
+      harness.setKeyringState(
+        predictHarnessKeyringState(PRIMARY_ENTROPY_SOURCE_ID),
+      );
+      await settle();
+
+      // Still fresh, so no refetch and no purge.
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '100.00' });
+      expect(callsTo(harness, '/balance')).toBe(1);
+      expect(clearedCount()).toBe(0);
+    });
   });
 
   describe('invalidation', () => {

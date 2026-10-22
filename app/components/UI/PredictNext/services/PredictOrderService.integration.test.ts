@@ -5,7 +5,11 @@ import {
 } from '@metamask/messenger';
 import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import { hashKey } from '@tanstack/query-core';
-import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
+import {
+  PRIMARY_ENTROPY_SOURCE_ID,
+  buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
+  predictHarnessAuthenticationState,
+} from '../../../../../tests/integration/harnesses/predict-next';
 import { getPredictOrderServiceMessenger } from '../../../../core/Engine/messengers/predict-order-service-messenger';
 import {
   PREDICT_ORDER_SERVICE_NAME,
@@ -542,5 +546,157 @@ describe('PredictNext Order Preview request', () => {
 
     await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
     expect(balanceCalls()).toBe(2);
+  });
+});
+
+describe('PredictNext Order observation and Predict User changes', () => {
+  const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
+    [];
+  const buildPredictNextIntegrationHarness = (
+    ...args: Parameters<typeof createPredictNextIntegrationHarness>
+  ) => {
+    const harness = createPredictNextIntegrationHarness(...args);
+    harnesses.push(harness);
+    return harness;
+  };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    harnesses.splice(0).forEach((harness) => harness.destroy());
+  });
+
+  /** Real-timer poll for an observable side effect. */
+  const until = async (
+    condition: () => boolean,
+    timeoutMs = 2_000,
+  ): Promise<void> => {
+    const deadline = Date.now() + timeoutMs;
+    while (!condition()) {
+      if (Date.now() > deadline) {
+        throw new Error('Timed out waiting for the expected call');
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  };
+
+  const orderServiceFor = (
+    harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    observationDelayMs = 20,
+  ) =>
+    new PredictOrderService({
+      messenger: getPredictOrderServiceMessenger(
+        harness.messenger as unknown as Parameters<
+          typeof getPredictOrderServiceMessenger
+        >[0],
+      ),
+      trading: harness.adapter.trading,
+      venueId: harness.adapter.venueId,
+      observationDelayMs,
+    });
+
+  const callsTo = (
+    harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    path: string,
+  ): number =>
+    harness.fetchMock.mock.calls.filter(([url]) => String(url).endsWith(path))
+      .length;
+
+  /** Signs out and signs back in as a different Predict User, which is what a
+   * wallet reset does to the authenticated identity. */
+  const replacePredictUser = (
+    harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    canonicalProfileId: string,
+  ) => {
+    harness.setAuthenticationState(
+      predictHarnessAuthenticationState(PRIMARY_ENTROPY_SOURCE_ID),
+    );
+    harness.setAuthenticationState(
+      predictHarnessAuthenticationState(
+        PRIMARY_ENTROPY_SOURCE_ID,
+        canonicalProfileId,
+      ),
+    );
+  };
+
+  const pendingCommitResponse = {
+    ...sellReceiptResponse,
+    status: 'pending',
+    venueOrderId: null,
+    filledContracts: null,
+    averageFillPrice: null,
+    fee: null,
+    actualProceeds: null,
+    netProceeds: null,
+  };
+
+  it('stops observing an in-progress Commit when the Predict User changes', async () => {
+    const harness = buildPredictNextIntegrationHarness((url, init) => {
+      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+        return { body: pendingCommitResponse };
+      }
+      if (String(url).endsWith('/balance')) {
+        return {
+          body: { venueId: 'kalshi', currency: 'USD', available: '10.00' },
+        };
+      }
+      return { status: 404 };
+    });
+    // Populate the Balance cache so a portfolio invalidation would be
+    // observable as a refetch.
+    await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+    expect(callsTo(harness, '/balance')).toBe(1);
+
+    const orderService = orderServiceFor(harness, 1_000);
+    const commit = orderService.commitPreview(
+      KALSHI_VENUE_ID,
+      sellReceiptResponse.previewId,
+    );
+    await until(() => callsTo(harness, '/orders/commit') === 1);
+
+    replacePredictUser(harness, 'profile-b');
+
+    await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+    // The observation loop is abandoned: the previous Predict User's Preview
+    // is never re-POSTed, and an abandoned Commit refreshes nothing.
+    expect(callsTo(harness, '/orders/commit')).toBe(1);
+    expect(callsTo(harness, '/balance')).toBe(1);
+    orderService.destroy();
+  });
+
+  it('does not act on a terminal receipt that arrives after the Predict User changed', async () => {
+    let releaseReceipt: (result: { body: unknown }) => void = () => undefined;
+    const receipt = new Promise<{ body: unknown }>((resolve) => {
+      releaseReceipt = resolve;
+    });
+    const harness = buildPredictNextIntegrationHarness((url, init) => {
+      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+        return receipt;
+      }
+      if (String(url).endsWith('/balance')) {
+        return {
+          body: { venueId: 'kalshi', currency: 'USD', available: '10.00' },
+        };
+      }
+      return { status: 404 };
+    });
+    await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+    expect(callsTo(harness, '/balance')).toBe(1);
+
+    const orderService = orderServiceFor(harness);
+    const commit = orderService.commitPreview(
+      KALSHI_VENUE_ID,
+      sellReceiptResponse.previewId,
+    );
+    await until(() => callsTo(harness, '/orders/commit') === 1);
+
+    replacePredictUser(harness, 'profile-b');
+    // The receipt belongs to the previous Predict User, so it must not
+    // refresh the new Predict User's account reads.
+    releaseReceipt({ body: sellReceiptResponse });
+
+    await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+    expect(callsTo(harness, '/balance')).toBe(1);
+    expect(callsTo(harness, '/orders/commit')).toBe(1);
+    orderService.destroy();
   });
 });

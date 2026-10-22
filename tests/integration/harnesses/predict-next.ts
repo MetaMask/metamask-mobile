@@ -1,6 +1,12 @@
 import { ConstantBackoff } from '@metamask/controller-utils';
+import type {
+  KeyringControllerGetStateAction,
+  KeyringControllerState,
+  KeyringControllerStateChangeEvent,
+} from '@metamask/keyring-controller';
 import { Messenger } from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { AppStateStatus } from 'react-native';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
@@ -31,7 +37,11 @@ import {
   getPredictLiveDataServiceMessenger,
 } from '../../../app/core/Engine/messengers/predict-live-data-service-messenger';
 import { getPredictMarketDataServiceMessenger } from '../../../app/core/Engine/messengers/predict-market-data-service-messenger';
-import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
+import {
+  getPredictPortfolioServiceInitMessenger,
+  getPredictPortfolioServiceMessenger,
+  getPredictPortfolioServicePredictUserIdentity,
+} from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 
 /**
  * PredictNext integration-test harness.
@@ -40,8 +50,46 @@ import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/me
  * PredictPortfolioService, PredictLiveDataService, PredictLiveDataClient,
  * KalshiRemoteAdapter, and PredictApiReadClient.
  * MOCKED: HTTP fetch, WebSocket, AppState, bearer token provider, base URL,
- * and client version.
+ * client version, and the AuthenticationController/KeyringController state the
+ * Predict User is derived from.
  */
+
+/** The primary SRP's entropy source id, as the KeyringController reports it
+ * in `metadata.id`. */
+export const PRIMARY_ENTROPY_SOURCE_ID = 'srp-primary';
+
+/** A keyring whose `metadata.id` is the primary SRP's entropy source. */
+export const predictHarnessKeyringState = (
+  entropySourceId: string,
+): KeyringControllerState =>
+  ({
+    isUnlocked: true,
+    keyrings: [
+      {
+        type: 'HD Key Tree',
+        accounts: ['0xabc'],
+        metadata: { id: entropySourceId },
+      },
+    ],
+  }) as unknown as KeyringControllerState;
+
+/** The KeyringController state while the wallet is locked: keyrings are
+ * emptied, so the primary SRP — and with it the Predict User — is unknowable. */
+export const predictHarnessLockedKeyringState = (): KeyringControllerState =>
+  ({ isUnlocked: false, keyrings: [] }) as unknown as KeyringControllerState;
+
+/** Authentication state signed in as `canonicalProfileId` for the primary
+ * SRP, or signed out when it is omitted. */
+export const predictHarnessAuthenticationState = (
+  entropySourceId: string,
+  canonicalProfileId?: string,
+): AuthenticationControllerState =>
+  ({
+    isSignedIn: Boolean(canonicalProfileId),
+    srpSessionData: canonicalProfileId
+      ? { [entropySourceId]: { profile: { canonicalProfileId } } }
+      : {},
+  }) as unknown as AuthenticationControllerState;
 
 export interface PredictFetchResult {
   status?: number;
@@ -57,11 +105,15 @@ type PredictNextRootActions =
   | PredictMarketDataServiceActions
   | PredictPortfolioServiceActions
   | PredictLiveDataServiceActions
-  | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | AuthenticationController.AuthenticationControllerGetStateAction
+  | KeyringControllerGetStateAction;
 type PredictNextRootEvents =
   | PredictMarketDataServiceEvents
   | PredictPortfolioServiceEvents
-  | PredictLiveDataServiceEvents;
+  | PredictLiveDataServiceEvents
+  | AuthenticationController.AuthenticationControllerStateChangeEvent
+  | KeyringControllerStateChangeEvent;
 type PredictNextRootMessenger = Messenger<
   'Root',
   PredictNextRootActions,
@@ -146,6 +198,10 @@ export interface PredictNextIntegrationHarness {
   sockets: PredictLiveDataFakeSocket[];
   /** Drives the AppState the live-data client listens to. */
   setAppState: (state: AppStateStatus) => void;
+  /** The authentication state the Predict User is derived from. */
+  setAuthenticationState: (state: AuthenticationControllerState) => void;
+  /** The keyring state the primary SRP — and the Predict User — comes from. */
+  setKeyringState: (state: KeyringControllerState) => void;
   destroy: () => void;
 }
 
@@ -176,8 +232,9 @@ export const buildPredictNextIntegrationHarness = (
   // which is where the live-data init messenger reads the token from.
   const authenticationMessenger: Messenger<
     'AuthenticationController',
-    AuthenticationController.AuthenticationControllerGetBearerTokenAction,
-    never
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+    | AuthenticationController.AuthenticationControllerGetStateAction,
+    AuthenticationController.AuthenticationControllerStateChangeEvent
   > = new Messenger({
     namespace: 'AuthenticationController',
     parent: messenger,
@@ -186,9 +243,50 @@ export const buildPredictNextIntegrationHarness = (
     'AuthenticationController:getBearerToken',
     getBearerTokenMock,
   );
+  let authenticationState = predictHarnessAuthenticationState(
+    PRIMARY_ENTROPY_SOURCE_ID,
+    'canonical-profile-a',
+  );
+  authenticationMessenger.registerActionHandler(
+    'AuthenticationController:getState',
+    () => authenticationState,
+  );
+  const setAuthenticationState = (
+    state: AuthenticationControllerState,
+  ): void => {
+    authenticationState = state;
+    authenticationMessenger.publish(
+      'AuthenticationController:stateChange',
+      state,
+      [],
+    );
+  };
+
+  const keyringMessenger: Messenger<
+    'KeyringController',
+    KeyringControllerGetStateAction,
+    KeyringControllerStateChangeEvent
+  > = new Messenger({ namespace: 'KeyringController', parent: messenger });
+  let keyringState = predictHarnessKeyringState(PRIMARY_ENTROPY_SOURCE_ID);
+  keyringMessenger.registerActionHandler(
+    'KeyringController:getState',
+    () => keyringState,
+  );
+  const setKeyringState = (state: KeyringControllerState): void => {
+    keyringState = state;
+    keyringMessenger.publish('KeyringController:stateChange', state, []);
+  };
+
   const liveDataInitMessenger = getPredictLiveDataServiceInitMessenger(
     messenger as unknown as Parameters<
       typeof getPredictLiveDataServiceInitMessenger
+    >[0],
+  );
+  // Mirror the Engine composition: the Portfolio service learns the Predict
+  // User from the delegated authentication and keyring state.
+  const portfolioInitMessenger = getPredictPortfolioServiceInitMessenger(
+    messenger as unknown as Parameters<
+      typeof getPredictPortfolioServiceInitMessenger
     >[0],
   );
   const adapter = new KalshiRemoteAdapter(
@@ -214,6 +312,9 @@ export const buildPredictNextIntegrationHarness = (
     messenger: portfolioMessenger,
     portfolio: adapter.portfolio,
     venueId: adapter.venueId,
+    predictUserIdentity: getPredictPortfolioServicePredictUserIdentity(
+      portfolioInitMessenger,
+    ),
     policyOptions,
   });
 
@@ -264,6 +365,8 @@ export const buildPredictNextIntegrationHarness = (
     getBearerTokenMock,
     sockets,
     setAppState: (state) => onAppStateChange?.(state),
+    setAuthenticationState,
+    setKeyringState,
     destroy: () => {
       liveDataService.destroy();
       marketDataService.destroy();
