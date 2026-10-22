@@ -44,6 +44,11 @@ export interface PerpsMarketListProps {
    */
   keepHeaderHiddenOnReset?: boolean;
   /**
+   * Replaces the default "no markets" message when `markets` is empty (e.g. the
+   * watchlist block with suggestions).
+   */
+  emptyComponent?: React.ReactElement;
+  /**
    * Optional icon size for market row items
    * @default HOME_SCREEN_CONFIG.DefaultIconSize
    */

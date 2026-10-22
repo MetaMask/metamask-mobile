@@ -244,6 +244,32 @@ describe('PerpsMarketList', () => {
       expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
     });
 
+    it('renders emptyComponent instead of the default message when markets is empty', () => {
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+          emptyComponent={<View testID="custom-empty" />}
+        />,
+      );
+
+      expect(screen.getByTestId('custom-empty')).toBeOnTheScreen();
+      expect(screen.queryByTestId('perps-market-list-empty')).toBeNull();
+    });
+
+    it('renders the default message when no emptyComponent is provided', () => {
+      render(
+        <PerpsMarketList
+          markets={[]}
+          onMarketPress={mockOnMarketPress}
+          stickyHeader={<View testID="sticky" />}
+        />,
+      );
+
+      expect(screen.getByTestId('perps-market-list-empty')).toBeOnTheScreen();
+    });
+
     it('does not render FlashList when empty and no list header is provided', () => {
       render(
         <PerpsMarketList markets={[]} onMarketPress={mockOnMarketPress} />,

@@ -53,6 +53,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   ListHeaderComponent,
   stickyHeader,
   keepHeaderHiddenOnReset = false,
+  emptyComponent,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   sortBy = 'volume',
   showBadge = true,
@@ -145,14 +146,15 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   const getItemType = useCallback((item: MarketListRow) => item.type, []);
 
   const renderEmpty = useCallback(
-    () => (
-      <View style={styles.emptyContainer} testID={`${testID}-empty`}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-          {emptyMessage}
-        </Text>
-      </View>
-    ),
-    [styles.emptyContainer, emptyMessage, testID],
+    () =>
+      emptyComponent ?? (
+        <View style={styles.emptyContainer} testID={`${testID}-empty`}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+            {emptyMessage}
+          </Text>
+        </View>
+      ),
+    [emptyComponent, styles.emptyContainer, emptyMessage, testID],
   );
 
   if (markets.length === 0 && !ListHeaderComponent && !hasStickyHeader) {
@@ -176,7 +178,9 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       // non-empty list and ListEmptyComponent never runs. Render the empty
       // copy as a footer in that case.
       ListFooterComponent={
-        markets.length === 0 && hasStickyHeader ? renderEmpty : undefined
+        markets.length === 0 && hasStickyHeader
+          ? (emptyComponent ?? renderEmpty)
+          : undefined
       }
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       // Disabled so the scroll-to-top on filter change reliably reaches the

@@ -22,6 +22,11 @@ const mockMarkets = [
   { symbol: 'ETH', marketType: 'crypto' },
 ];
 
+const mockSetShowFavoritesOnly = jest.fn();
+const mockFiltersBarProps: { current: Record<string, unknown> } = {
+  current: {},
+};
+
 const mockUsePerpsMarketListView = jest.fn().mockReturnValue({
   markets: mockMarkets,
   marketTypeFilterState: {
@@ -36,7 +41,7 @@ const mockUsePerpsMarketListView = jest.fn().mockReturnValue({
   },
   favoritesState: {
     showFavoritesOnly: false,
-    setShowFavoritesOnly: jest.fn(),
+    setShowFavoritesOnly: mockSetShowFavoritesOnly,
     hasWatchlistMarkets: false,
     watchlistMarketObjects: [],
     suggestedMarkets: [],
@@ -64,6 +69,9 @@ jest.mock('../../../UI/Perps/components/PerpsMarketList', () => {
       onMarketPress,
       contentContainerStyle,
       refreshControl,
+      filterKey,
+      emptyComponent,
+      showBadge,
     }: {
       testID?: string;
       markets: { symbol: string }[];
@@ -72,17 +80,23 @@ jest.mock('../../../UI/Perps/components/PerpsMarketList', () => {
       onMarketPress: (market: { symbol: string }) => void;
       contentContainerStyle?: unknown;
       refreshControl?: React.ReactElement;
+      filterKey?: string;
+      emptyComponent?: React.ReactElement;
+      showBadge?: boolean;
     }) =>
       MockReact.createElement(
         View,
         {
           testID,
           accessibilityLabel: `market-count-${m.length}`,
+          accessibilityHint: filterKey,
+          accessibilityValue: { text: String(showBadge) },
           style: contentContainerStyle,
         },
         refreshControl,
         ListHeaderComponent,
         stickyHeader,
+        emptyComponent,
         MockReact.createElement(Pressable, {
           testID: 'mock-market-row',
           onPress: () => onMarketPress(m[0]),
@@ -90,6 +104,24 @@ jest.mock('../../../UI/Perps/components/PerpsMarketList', () => {
       ),
   };
 });
+
+const mockWatchlistProps: { current: Record<string, unknown> } = {
+  current: {},
+};
+jest.mock(
+  '../../../UI/Perps/components/PerpsWatchlistMarkets/PerpsWatchlistMarkets',
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockWatchlistProps.current = props;
+      return jest
+        .requireActual('react')
+        .createElement(jest.requireActual('react-native').View, {
+          testID: 'mock-watchlist-markets',
+        });
+    },
+  }),
+);
 
 jest.mock('../../../UI/Perps/components/PerpsRowSkeleton', () => {
   const { View } = jest.requireActual('react-native');
@@ -121,16 +153,17 @@ jest.mock(
     const { Pressable } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({
-        testID,
-        onSortPress,
-      }: {
+      default: (props: {
         testID?: string;
         onSortPress?: () => void;
-      }) =>
-        jest
-          .requireActual('react')
-          .createElement(Pressable, { testID, onPress: onSortPress }),
+        [key: string]: unknown;
+      }) => {
+        mockFiltersBarProps.current = props;
+        return jest.requireActual('react').createElement(Pressable, {
+          testID: props.testID,
+          onPress: props.onSortPress,
+        });
+      },
     };
   },
 );
@@ -185,6 +218,7 @@ jest.mock('../feeds/perps/PerpsSectionProvider', () => ({
 
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { selectPerpsWatchlistEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsTab from './PerpsTab';
 
@@ -211,7 +245,102 @@ describe('PerpsTab', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectSocialLeaderboardEnabled) return true;
+      if (selector === selectPerpsWatchlistEnabledFlag) return true;
       return undefined;
+    });
+  });
+
+  describe('watchlist filter', () => {
+    it('shows the watchlist pill and lets the hook restore a persisted filter when enabled', () => {
+      renderPerpsTab();
+
+      expect(mockFiltersBarProps.current.showWatchlistBadge).toBe(true);
+      expect(mockUsePerpsMarketListView).toHaveBeenCalledWith({
+        showWatchlistOnly: undefined,
+      });
+    });
+
+    it('hides the watchlist pill and ignores a persisted filter when disabled', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsEnabledFlag) return true;
+        if (selector === selectSocialLeaderboardEnabled) return true;
+        if (selector === selectPerpsWatchlistEnabledFlag) return false;
+        return undefined;
+      });
+
+      renderPerpsTab();
+
+      expect(mockFiltersBarProps.current.showWatchlistBadge).toBe(false);
+      expect(mockUsePerpsMarketListView).toHaveBeenCalledWith({
+        showWatchlistOnly: false,
+      });
+    });
+
+    it('toggles the watchlist filter on and off', () => {
+      const defaultReturn = mockUsePerpsMarketListView();
+      renderPerpsTab();
+      (mockFiltersBarProps.current.onWatchlistToggle as () => void)();
+      expect(mockSetShowFavoritesOnly).toHaveBeenLastCalledWith(true);
+
+      mockUsePerpsMarketListView.mockReturnValue({
+        ...mockUsePerpsMarketListView(),
+        favoritesState: {
+          ...mockUsePerpsMarketListView().favoritesState,
+          showFavoritesOnly: true,
+        },
+      });
+      renderPerpsTab();
+      expect(mockFiltersBarProps.current.isWatchlistSelected).toBe(true);
+      (mockFiltersBarProps.current.onWatchlistToggle as () => void)();
+      expect(mockSetShowFavoritesOnly).toHaveBeenLastCalledWith(false);
+
+      mockUsePerpsMarketListView.mockReturnValue(defaultReturn);
+    });
+
+    it('renders the reused watchlist block instead of rows when the watchlist filter is active', () => {
+      const defaultReturn = mockUsePerpsMarketListView();
+      const suggested = [{ symbol: 'SOL', marketType: 'crypto' }];
+      mockUsePerpsMarketListView.mockReturnValue({
+        ...defaultReturn,
+        favoritesState: {
+          ...defaultReturn.favoritesState,
+          showFavoritesOnly: true,
+          suggestedMarkets: suggested,
+        },
+      });
+
+      const { getByTestId } = renderPerpsTab();
+
+      expect(getByTestId('mock-watchlist-markets')).toBeOnTheScreen();
+      expect(mockWatchlistProps.current.markets).toBe(mockMarkets);
+      expect(mockWatchlistProps.current.suggestedMarkets).toBe(suggested);
+      expect(
+        getByTestId('perps-tab-market-list').props.accessibilityLabel,
+      ).toBe('market-count-0');
+
+      mockUsePerpsMarketListView.mockReturnValue(defaultReturn);
+    });
+
+    it('does not render the watchlist block when the watchlist filter is off', () => {
+      const { queryByTestId, getByTestId } = renderPerpsTab();
+
+      expect(queryByTestId('mock-watchlist-markets')).toBeNull();
+      expect(
+        getByTestId('perps-tab-market-list').props.accessibilityLabel,
+      ).toBe('market-count-2');
+    });
+    it('hides the market type badge on rows, matching the Perps screen', () => {
+      const { getByTestId } = renderPerpsTab();
+      expect(
+        getByTestId('perps-tab-market-list').props.accessibilityValue,
+      ).toEqual({ text: 'false' });
+    });
+
+    it('includes the watchlist state in the list filter key', () => {
+      const { getByTestId } = renderPerpsTab();
+      expect(getByTestId('perps-tab-market-list').props.accessibilityHint).toBe(
+        'all|false',
+      );
     });
   });
 

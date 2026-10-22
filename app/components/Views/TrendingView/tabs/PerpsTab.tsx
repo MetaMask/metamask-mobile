@@ -15,7 +15,9 @@ import { strings } from '../../../../../locales/i18n';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { usePerpsMarketListView } from '../../../UI/Perps/hooks/usePerpsMarketListView';
+import { selectPerpsWatchlistEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
 import PerpsMarketList from '../../../UI/Perps/components/PerpsMarketList';
+import PerpsWatchlistMarkets from '../../../UI/Perps/components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketFiltersBar from '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketFiltersBar';
 import PerpsMarketSortFieldBottomSheet from '../../../UI/Perps/components/PerpsMarketSortFieldBottomSheet';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
@@ -71,8 +73,19 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     [floatingTabBarInset],
   );
 
-  const { markets, marketTypeFilterState, sortState, isLoading } =
-    usePerpsMarketListView();
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
+  // Hide a persisted watchlist-only filter while the watchlist is disabled
+  // (same override the Perps screen applies).
+  const {
+    markets,
+    marketTypeFilterState,
+    sortState,
+    favoritesState,
+    isLoading,
+  } = usePerpsMarketListView({
+    showWatchlistOnly: isWatchlistEnabled ? undefined : false,
+  });
+  const { showFavoritesOnly, setShowFavoritesOnly } = favoritesState;
 
   const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
   const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
@@ -108,6 +121,30 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     [isTopTradersEnabled],
   );
 
+  // Watchlist view: reuse the Perps screen's watchlist block (rows + suggested
+  // markets). It is bounded (watchlist cap + a few suggestions), so it is
+  // rendered as the list's "empty" content while the list itself gets no rows.
+  const watchlistContent = useMemo(
+    () =>
+      showFavoritesOnly ? (
+        <PerpsWatchlistMarkets
+          markets={markets}
+          suggestedMarkets={favoritesState.suggestedMarkets}
+          showHeader={false}
+          enableShowMore={false}
+          onMarketPress={handleMarketPress}
+          displayMetric={sortBy}
+        />
+      ) : undefined,
+    [
+      showFavoritesOnly,
+      markets,
+      favoritesState.suggestedMarkets,
+      handleMarketPress,
+      sortBy,
+    ],
+  );
+
   const handleRefresh = useCallback(() => {
     onRefresh();
     topTradersRef.current?.refresh().catch(() => undefined);
@@ -134,6 +171,9 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         marketTypeFilter={marketTypeFilter}
         onCategorySelect={setMarketTypeFilter}
         marketCount={markets.length}
+        showWatchlistBadge={isWatchlistEnabled}
+        isWatchlistSelected={showFavoritesOnly}
+        onWatchlistToggle={() => setShowFavoritesOnly(!showFavoritesOnly)}
         showCategoryRow
         showSortRow
         testID="perps-tab-filters"
@@ -145,6 +185,9 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       marketTypeFilter,
       setMarketTypeFilter,
       markets.length,
+      isWatchlistEnabled,
+      showFavoritesOnly,
+      setShowFavoritesOnly,
     ],
   );
 
@@ -167,13 +210,15 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     <>
       <PerpsMarketList
         contentContainerStyle={contentContainerStyle}
-        markets={markets}
+        markets={showFavoritesOnly ? [] : markets}
+        emptyComponent={watchlistContent}
         onMarketPress={handleMarketPress}
         ListHeaderComponent={listHeader}
         stickyHeader={stickyHeader}
         keepHeaderHiddenOnReset
         sortBy={sortBy}
-        filterKey={marketTypeFilter}
+        showBadge={false}
+        filterKey={`${marketTypeFilter}|${showFavoritesOnly}`}
         refreshControl={refreshControl}
         testID="perps-tab-market-list"
       />
