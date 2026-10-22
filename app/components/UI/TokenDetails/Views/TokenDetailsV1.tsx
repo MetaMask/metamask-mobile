@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
@@ -453,6 +454,36 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     scrollToTabBar,
   } = useTokenDetailsV1ScrollStabilization({ onScroll: handleScroll });
 
+  // A tab shorter than the space under the docked tab bar cannot hold the
+  // page at that offset, so switching to one (an empty or still-loading feed,
+  // a short holders list) would snap the scroll back up toward the top. The
+  // tab area is kept at least that tall so a switch only ever scrolls as far
+  // as the clamp asks.
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [tabBarHeight, setTabBarHeight] = useState(0);
+  const { onLayout: onPageScrollLayout } = pageScroll;
+  const handleScrollViewLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setViewportHeight(event.nativeEvent.layout.height);
+      onPageScrollLayout(event);
+    },
+    [onPageScrollLayout],
+  );
+  const handleTabBarContainerLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setTabBarHeight(event.nativeEvent.layout.height);
+      handleTabBarLayout(event);
+    },
+    [handleTabBarLayout],
+  );
+  const tabContentStyle = useMemo(() => {
+    const minHeight =
+      viewportHeight - tabBarHeight - STICKY_FOOTER_RESERVED_HEIGHT;
+    return {
+      minHeight: Number.isFinite(minHeight) ? Math.max(0, minHeight) : 0,
+    };
+  }, [viewportHeight, tabBarHeight]);
+
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
@@ -770,7 +801,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               onScroll={onScrollViewScroll}
               scrollEventThrottle={16}
               scrollEnabled={!isChartBeingTouched}
-              onLayout={pageScroll.onLayout}
+              onLayout={handleScrollViewLayout}
               onContentSizeChange={pageScroll.onContentSizeChange}
               testID={TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID}
             >
@@ -827,13 +858,14 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
               <TokenDetailsV1TabBar
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
-                onLayout={handleTabBarLayout}
+                onLayout={handleTabBarContainerLayout}
                 tabs={visibleTabs}
               />
 
               <GestureDetector gesture={swipeGesture}>
                 <View
                   collapsable={false}
+                  style={tabContentStyle}
                   testID={TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID}
                 >
                   <TokenDetailsScrollProvider value={pageScroll.value}>

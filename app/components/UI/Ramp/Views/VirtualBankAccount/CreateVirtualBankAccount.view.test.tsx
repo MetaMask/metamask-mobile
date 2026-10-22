@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -164,6 +165,18 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText(/timeframe by region/)).toBeNull();
+  });
+
+  it('renders the vendor policy link without an underline', async () => {
+    const { findByTestId } = renderVbaVendorTerms();
+
+    const link = await findByTestId(
+      `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+    );
+
+    expect(StyleSheet.flatten(link.props.style)?.textDecorationLine).not.toBe(
+      'underline',
+    );
   });
 
   it('accepts vendor terms and advances to email', async () => {

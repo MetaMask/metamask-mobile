@@ -353,6 +353,30 @@ describe('SocialV1View', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 
+  it('keeps the header action icons transparent while pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+      'pressIn',
+    );
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON),
+      'pressIn',
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+  });
+
   it('consumes the focus-trending flag when the screen gains focus', () => {
     act(() => {
       submitSocialV1ComposedPost({

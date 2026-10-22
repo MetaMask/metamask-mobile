@@ -951,7 +951,10 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "cashbackLedger": {},
+      "commissions": {},
       "earningsSummary": {},
+      "referralFunnel": {},
       "referralMe": {}
     },
     "rpcEvents": {
@@ -970,7 +973,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}
