@@ -18,13 +18,18 @@ generic analytics calls continue working without the generated contract checks.
 
 The contract lifecycle is:
 
-1. Update the event definitions in `Consensys/segment-schema` and deploy the
-   tracking plans to Segment.
-2. Publish a private, immutable-by-convention contract release from the deployed
-   rules.
-3. Select an exact release in Mobile, verify it, and generate the supported
-   tracking APIs.
-4. Review the generated changes and migrate the intended call sites explicitly.
+1. **schema PR:** Update the event definitions in
+   `Consensys/segment-schema`, get review, and merge into `main`.
+2. **Automated — deployment and publication:** CI deploys the tracking plans to
+   Segment and, after successful deployment, publishes a private,
+   immutable-by-convention contract release when the deployed contract changes.
+3. **client PR:** Adopt the contract and migrate the intended events in the same PR:
+   - Select and pin an exact release in Mobile.
+   - Run the contract checker; it automatically verifies the release and generates
+     the supported tracking APIs in a temporary directory.
+   - Review and copy the generated files into the client, then migrate the
+     intended call sites to the generated APIs.
+   - Review and validate the changes before enabling them in production.
 
 Each contract release contains:
 
@@ -142,7 +147,7 @@ an integer or numeric range. Values from APIs and user input may still require
 runtime validation. Generic calls and type-system bypasses remain outside the
 generated guarantees.
 
-## Automated monitoring and remaining enforcement
+## Automated drift monitoring
 
 [`check-analytics-contract.yml`](../../.github/workflows/check-analytics-contract.yml)
 runs hourly from 06:00 through 22:00 UTC on weekdays, and can be dispatched
@@ -154,20 +159,3 @@ The workflow downloads the private contract through the shared
 APIs, type-checks fixtures, and compares generated source/type fixtures with
 the checked-in files. It sends a Slack result notification when the configured
 webhook is available. It does not update the pin or application code.
-
-This is drift monitoring, not automatic contract adoption. **Pinned contract
-verification, regeneration/diff, and type/test enforcement in PR and merge-queue
-CI remain to be added.** A successful monitoring run is not evidence of native
-SDK configuration or remote Segment receipt.
-
-## Further adoption
-
-- Extend the generator across the complete Mobile and Extension contracts,
-  including caller/automatic property ownership and runtime-only constraints.
-- Add pinned verification, regeneration/diff, type checks, and tests to client
-  PR/merge-queue CI while retaining newest-release monitoring separately.
-- Migrate event call sites incrementally with event-owner review of payloads
-  and selected versions. Preserve supported older event contracts.
-- Keep infrastructure changes separate from product-event migrations. The
-  foundation commit contains the shared transport, context forwarding,
-  regression tests, and persistent documentation—not experimental UI payloads.
