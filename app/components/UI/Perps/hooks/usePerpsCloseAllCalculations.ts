@@ -406,13 +406,24 @@ export function usePerpsCloseAllCalculations({
     let grantContribution = 0;
     perPositionResults.forEach(({ fees, notionalUsd }) => {
       const weight = notionalUsd;
-      const discountBips = fees.metamaskFeeDiscountBips ?? 0;
       if (
         weight <= 0 ||
-        discountBips <= 0 ||
         fees.metamaskFeeRate === undefined ||
         fees.protocolFeeRate === undefined
       ) {
+        return;
+      }
+      const originalMetamaskFeeRate = getPresentedOriginalMetamaskFeeRate(fees);
+      const derivedDiscountPercentage =
+        originalMetamaskFeeRate === undefined
+          ? undefined
+          : getPerpsFeeDiscountPercentage(
+              originalMetamaskFeeRate,
+              fees.metamaskFeeRate,
+            );
+      const discountBips =
+        fees.metamaskFeeDiscountBips ?? (derivedDiscountPercentage ?? 0) * 100;
+      if (discountBips <= 0) {
         return;
       }
       if (fees.feeSource === 'subscription') {

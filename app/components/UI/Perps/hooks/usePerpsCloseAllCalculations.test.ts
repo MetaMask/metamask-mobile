@@ -181,9 +181,10 @@ describe('usePerpsCloseAllCalculations', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.avgFeeDiscountPercentage).toBe(75);
     expect(result.current.feeDiscountKind).toBe('generic');
+    expect(result.current.feeSource).toBeUndefined();
   });
 
-  it('uses generic presentation when grant and default winners are mixed', async () => {
+  it('attributes a mixed grant and default summary to the grant discount', async () => {
     mockCalculateFees.mockImplementation(
       async ({ symbol }: { symbol: string }) => {
         const isGrant = symbol === 'BTC';
@@ -209,8 +210,8 @@ describe('usePerpsCloseAllCalculations', () => {
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.feeDiscountKind).toBe('generic');
-    expect(result.current.feeSource).toBeUndefined();
+    expect(result.current.feeDiscountKind).toBe('promotional');
+    expect(result.current.feeSource).toBe('grant');
   });
 
   describe('Initial State', () => {
@@ -992,10 +993,17 @@ describe('usePerpsCloseAllCalculations', () => {
     const subscriptionFees = createMockFeeResult({
       feeSource: 'subscription',
       metamaskFeeDiscountBips: 10000,
+      metamaskFeeRate: 0,
     });
     const rewardsFees = createMockFeeResult({
       feeSource: 'rewards',
       metamaskFeeDiscountBips: 2000,
+      metamaskFeeRate: 0.0008,
+    });
+    const grantFees = createMockFeeResult({
+      feeSource: 'grant',
+      metamaskFeeDiscountBips: 7500,
+      metamaskFeeRate: 0.00025,
     });
     const defaultFees = createMockFeeResult({
       feeSource: 'default',
@@ -1009,13 +1017,14 @@ describe('usePerpsCloseAllCalculations', () => {
     const renderWithFees = async (
       first: FeeCalculationResult,
       second: FeeCalculationResult,
+      positions: Position[] = twoPositions,
     ) => {
       mockCalculateFees
         .mockResolvedValueOnce(first)
         .mockResolvedValueOnce(second);
       const hook = renderHook(() =>
         usePerpsCloseAllCalculations({
-          positions: twoPositions,
+          positions,
           priceData: twoPrices,
         }),
       );
@@ -1027,12 +1036,14 @@ describe('usePerpsCloseAllCalculations', () => {
       const result = await renderWithFees(subscriptionFees, defaultFees);
 
       expect(result.current.feeSource).toBe('subscription');
+      expect(result.current.feeDiscountKind).toBe('member');
     });
 
     it('attributes to rewards when the other position paid the default fee', async () => {
       const result = await renderWithFees(defaultFees, rewardsFees);
 
       expect(result.current.feeSource).toBe('rewards');
+      expect(result.current.feeDiscountKind).toBe('vip');
     });
 
     it('attributes to subscription when subscription and rewards both discounted', async () => {
@@ -1054,20 +1065,20 @@ describe('usePerpsCloseAllCalculations', () => {
     });
 
     it('attributes to rewards when rewards drives most of the averaged discount', async () => {
-      const result = await renderWithFees(
-        createMockFeeResult({
-          feeSource: 'subscription',
-          metamaskFeeDiscountBips: 10000,
-          feeAmount: 1,
-        }),
-        createMockFeeResult({
-          feeSource: 'rewards',
-          metamaskFeeDiscountBips: 2000,
-          feeAmount: 100,
-        }),
-      );
+      const result = await renderWithFees(subscriptionFees, rewardsFees, [
+        createMockPosition({ symbol: 'BTC' }),
+        createMockPosition({ symbol: 'ETH', size: '5' }),
+      ]);
 
       expect(result.current.feeSource).toBe('rewards');
+      expect(result.current.feeDiscountKind).toBe('vip');
+    });
+
+    it('attributes to grant when grant drives most of the averaged discount', async () => {
+      const result = await renderWithFees(rewardsFees, grantFees);
+
+      expect(result.current.feeSource).toBe('grant');
+      expect(result.current.feeDiscountKind).toBe('promotional');
     });
 
     it('attributes to subscription when contributions tie', async () => {
@@ -1075,27 +1086,27 @@ describe('usePerpsCloseAllCalculations', () => {
         createMockFeeResult({
           feeSource: 'subscription',
           metamaskFeeDiscountBips: 10000,
-          feeAmount: 10,
+          metamaskFeeRate: 0,
         }),
         createMockFeeResult({
           feeSource: 'rewards',
-          metamaskFeeDiscountBips: 5000,
-          feeAmount: 20,
+          metamaskFeeDiscountBips: 2000,
+          metamaskFeeRate: 0.0008,
         }),
+        [
+          createMockPosition({ symbol: 'BTC' }),
+          createMockPosition({ symbol: 'ETH', size: '2.5' }),
+        ],
       );
 
       expect(result.current.feeSource).toBe('subscription');
     });
 
     it('ignores a discounted position with no fee weight', async () => {
-      const result = await renderWithFees(
-        createMockFeeResult({
-          feeSource: 'subscription',
-          metamaskFeeDiscountBips: 10000,
-          feeAmount: 0,
-        }),
-        rewardsFees,
-      );
+      const result = await renderWithFees(subscriptionFees, rewardsFees, [
+        createMockPosition({ symbol: 'BTC', size: '0' }),
+        createMockPosition({ symbol: 'ETH' }),
+      ]);
 
       expect(result.current.feeSource).toBe('rewards');
     });

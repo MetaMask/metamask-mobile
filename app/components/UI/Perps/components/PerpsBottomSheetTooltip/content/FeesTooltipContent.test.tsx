@@ -164,7 +164,7 @@ describe('FeesTooltipContent', () => {
       metamaskFeeRate: 0.005,
       protocolFeeRate: 0.00045,
       originalMetamaskFeeRate: 0.01,
-      feeSource: 'subscription' as const,
+      feeDiscountKind: 'member' as const,
     };
 
     it('renders the member badge instead of the VIP badge', () => {
@@ -209,13 +209,10 @@ describe('FeesTooltipContent', () => {
       expect(queryByText(/saving/i)).toBeNull();
     });
 
-    it('renders the VIP badge when the fee source is rewards', () => {
+    it('renders the VIP badge for VIP presentation', () => {
       // Arrange & Act
       const { getByTestId, queryByTestId } = render(
-        <FeesTooltipContent
-          testID="fees-tooltip"
-          data={{ ...mockData, feeSource: 'rewards' }}
-        />,
+        <FeesTooltipContent testID="fees-tooltip" data={mockData} />,
       );
 
       // Assert

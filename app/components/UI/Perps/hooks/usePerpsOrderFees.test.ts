@@ -716,6 +716,7 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.metamaskFeeRate).toBe(metamaskFeeRate);
         expect(result.current.metamaskFee).toBeCloseTo(10000 * metamaskFeeRate);
         expect(result.current.feeDiscountPercentage).toBe(discount);
+        expect(result.current.feeDiscountKind).toBe('member');
         expect(result.current.originalMetamaskFeeRate).toBe(
           BUILDER_FEE_CONFIG.MaxFeeDecimal,
         );

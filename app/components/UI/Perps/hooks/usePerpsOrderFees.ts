@@ -20,7 +20,6 @@ import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
-  type PerpsFeeSource,
   type OrderType,
   type PerpsFeeSource,
   type PerpsProviderType,
@@ -66,8 +65,6 @@ export interface OrderFeesResult {
   /** Fee discount percentage applied (e.g., 30 for 30% off) */
   feeDiscountPercentage?: number;
   feeDiscountKind?: PerpsFeeDiscountKind;
-  /** Attribution from the same Core snapshot used to price this preview. */
-  feeSource?: PerpsFeeSource;
   /** Estimated points to be earned from this trade */
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
@@ -271,7 +268,6 @@ export function usePerpsOrderFees({
   >();
   const [estimatedPoints, setEstimatedPoints] = useState<number | undefined>();
   const [bonusBips, setBonusBips] = useState<number | undefined>();
-  const [feeSource, setFeeSource] = useState<PerpsFeeSource | undefined>();
 
   /**
    * Handle points estimation with caching
@@ -419,7 +415,6 @@ export function usePerpsOrderFees({
     setFeeSource(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
-    setFeeSource(undefined);
   }, []);
 
   // Main effect to orchestrate fee calculation
@@ -581,7 +576,6 @@ export function usePerpsOrderFees({
       }).kind,
       estimatedPoints,
       bonusBips,
-      feeSource,
     };
   }, [
     amount,
@@ -595,7 +589,6 @@ export function usePerpsOrderFees({
     feeSource,
     estimatedPoints,
     bonusBips,
-    feeSource,
   ]);
 }
 

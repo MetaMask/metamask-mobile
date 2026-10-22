@@ -81,7 +81,7 @@ describe('getPerpsFeeDiscount', () => {
   it.each([
     ['rewards', 'vip'],
     ['grant', 'promotional'],
-    ['subscription', 'generic'],
+    ['subscription', 'member'],
     [undefined, 'generic'],
   ] as const)('maps %s attribution to %s presentation', (feeSource, kind) => {
     expect(

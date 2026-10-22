@@ -180,14 +180,14 @@ describe('PerpsFeesDisplay', () => {
     });
   });
 
-  describe('Fee source badge selection', () => {
-    it('renders the member badge (not VIP) when feeSource is subscription', () => {
+  describe('Fee discount presentation', () => {
+    it('renders the member badge (not VIP) for a member discount', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsFeesDisplay
           fee={8.5}
           originalFee={10}
           feeDiscountPercentage={15}
-          feeSource="subscription"
+          feeDiscountKind="member"
         />,
       );
 
@@ -200,7 +200,7 @@ describe('PerpsFeesDisplay', () => {
         <PerpsFeesDisplay
           fee={8.5}
           originalFee={10}
-          feeSource="subscription"
+          feeDiscountKind="member"
           testID="fee"
         />,
       );
@@ -210,13 +210,13 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByTestId('fee-original')).toBeNull();
     });
 
-    it('renders the VIP badge when feeSource is rewards and a discount applies', () => {
+    it('renders the VIP badge for a VIP discount', () => {
       const { getByTestId, queryByTestId } = render(
         <PerpsFeesDisplay
           fee={8.5}
           originalFee={10}
           feeDiscountPercentage={15}
-          feeSource="rewards"
+          feeDiscountKind="vip"
         />,
       );
 
@@ -224,22 +224,23 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByTestId('rewards-member-badge')).toBeNull();
     });
 
-    it('renders the VIP badge (not member) when feeSource is default and a discount is present', () => {
-      const { getByTestId, queryByTestId } = render(
+    it('renders generic discount copy without a badge', () => {
+      const { getByText, queryByTestId } = render(
         <PerpsFeesDisplay
           fee={8.5}
           originalFee={10}
           feeDiscountPercentage={15}
-          feeSource="default"
+          feeDiscountKind="generic"
         />,
       );
 
       expect(queryByTestId('rewards-member-badge')).toBeNull();
-      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      expect(getByText('Fee discount')).toBeTruthy();
     });
 
-    it('falls back to discount-based VIP badge when feeSource is omitted', () => {
-      const { getByTestId, queryByTestId } = render(
+    it('falls back to generic discount copy when the kind is omitted', () => {
+      const { getByText, queryByTestId } = render(
         <PerpsFeesDisplay
           fee={8.5}
           originalFee={10}
@@ -247,8 +248,9 @@ describe('PerpsFeesDisplay', () => {
         />,
       );
 
-      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
       expect(queryByTestId('rewards-member-badge')).toBeNull();
+      expect(getByText('Fee discount')).toBeTruthy();
     });
   });
 });

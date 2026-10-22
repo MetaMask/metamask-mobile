@@ -19,6 +19,18 @@ describe('PerpsFeeDiscountLabel', () => {
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
   });
 
+  it('renders member treatment for subscription attribution', () => {
+    render(
+      <PerpsFeeDiscountLabel
+        feeDiscountPercentage={75}
+        feeDiscountKind="member"
+      />,
+    );
+
+    expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
+    expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+  });
+
   it('renders promotional copy without VIP treatment for a grant', () => {
     render(
       <PerpsFeeDiscountLabel

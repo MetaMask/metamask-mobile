@@ -4,7 +4,7 @@ import {
   type PerpsFeeSource,
 } from '@metamask/perps-controller';
 
-export type PerpsFeeDiscountKind = 'vip' | 'promotional' | 'generic';
+export type PerpsFeeDiscountKind = 'member' | 'vip' | 'promotional' | 'generic';
 
 interface GetPerpsFeeDiscountParams {
   feeSource?: PerpsFeeSource;
@@ -117,6 +117,10 @@ export function getPerpsFeeDiscount({
 
   if (feeSource === 'rewards') {
     return { percentage, kind: 'vip' };
+  }
+
+  if (feeSource === 'subscription') {
+    return { percentage, kind: 'member' };
   }
 
   if (feeSource === 'grant') {
