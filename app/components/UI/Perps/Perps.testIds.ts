@@ -999,6 +999,7 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
   TITLE: 'perps-bottom-sheet-tooltip-title',
   CONTENT: 'perps-bottom-sheet-tooltip-content',
   GOT_IT_BUTTON: 'perps-bottom-sheet-tooltip-got-it-button',
+  BACK_BUTTON: 'perps-bottom-sheet-tooltip-back-button',
 };
 
 // ========================================
@@ -1088,8 +1089,6 @@ export const PerpsTradeSheetSelectorsIDs = {
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',
   PAY_WITH_SKELETON: 'perps-trade-sheet-pay-with-skeleton',
   MARGIN_SKELETON: 'perps-trade-sheet-margin-skeleton',
-  FEE_SKELETON: 'perps-trade-sheet-fee-skeleton',
-  FEE_TEXT: 'perps-trade-sheet-fee-text',
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
@@ -1103,6 +1102,11 @@ export const PerpsTradeSheetSelectorsIDs = {
   LIQUIDATION_PRICE_VALUE: 'perps-trade-sheet-liquidation-price-value',
   LIQUIDATION_DISTANCE_VALUE: 'perps-trade-sheet-liquidation-distance-value',
   LIQUIDATION_TREND_ICON: 'perps-trade-sheet-liquidation-trend-icon',
+  FEES_ROW: 'perps-trade-sheet-fees-row',
+  FEES_VALUE: 'perps-trade-sheet-fees-value',
+  FEES_INFO_BUTTON: 'perps-trade-sheet-fees-info-button',
+  FEES_INFO_SCREEN: 'perps-trade-sheet-fees-info-screen',
+  ORANGE_FEES_INFO_SCREEN: 'perps-trade-sheet-orange-fees-info-screen',
   INFO_SCREEN: 'perps-trade-sheet-info-screen',
   INFO_BACK_BUTTON: 'perps-trade-sheet-info-back-button',
   INFO_GOT_IT_BUTTON: 'perps-trade-sheet-info-got-it-button',
@@ -1204,7 +1208,9 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
   TOTAL_TOOLTIP_BUTTON: 'close-position-bottom-sheet-total-tooltip-button',
   CONFIRM_BUTTON: 'close-position-bottom-sheet-confirm-button',
-  FEE_DISCLAIMER: 'close-position-bottom-sheet-fee-disclaimer',
+  FEES_ROW: 'close-position-bottom-sheet-fees-row',
+  FEES_VALUE: 'close-position-bottom-sheet-fees-value',
+  FEES_INFO_BUTTON: 'close-position-bottom-sheet-fees-info-button',
 };
 
 // ========================================
@@ -1462,6 +1468,8 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   FLIP_BUTTON: 'perps-flip-position-flip-button',
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
+  FEES_ROW: 'perps-flip-position-fees-row',
+  FEES_INFO_BUTTON: 'perps-flip-position-fees-info-button',
   MINIMUM_ERROR: 'perps-flip-position-minimum-error',
 } as const;
 

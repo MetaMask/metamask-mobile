@@ -70,6 +70,12 @@ export interface OrderFeesResult {
    * Undefined when the quote was not re-priced from a resolution.
    */
   feeSource?: PerpsFeeSource;
+  /**
+   * Free notional (USD) the subscription has left, from the quote's
+   * `subscription.remainingNotionalUsd`. Only set when the subscription
+   * source priced the fee; used to explain how much of the order it covers.
+   */
+  subscriptionRemainingNotionalUsd?: number;
 }
 
 interface UsePerpsOrderFeesParams {
@@ -262,6 +268,10 @@ export function usePerpsOrderFees({
   const [estimatedPoints, setEstimatedPoints] = useState<number | undefined>();
   const [bonusBips, setBonusBips] = useState<number | undefined>();
   const [feeSource, setFeeSource] = useState<PerpsFeeSource | undefined>();
+  const [
+    subscriptionRemainingNotionalUsd,
+    setSubscriptionRemainingNotionalUsd,
+  ] = useState<number | undefined>();
 
   /**
    * Handle points estimation with caching
@@ -376,6 +386,7 @@ export function usePerpsOrderFees({
       points?: number,
       bonusBipsValue?: number,
       feeSourceValue?: PerpsFeeSource,
+      subscriptionRemainingNotionalUsdValue?: number,
     ) => {
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
@@ -390,6 +401,9 @@ export function usePerpsOrderFees({
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
       setFeeSource(feeSourceValue);
+      setSubscriptionRemainingNotionalUsd(
+        subscriptionRemainingNotionalUsdValue,
+      );
     },
     [],
   );
@@ -409,6 +423,7 @@ export function usePerpsOrderFees({
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
     setFeeSource(undefined);
+    setSubscriptionRemainingNotionalUsd(undefined);
   }, []);
 
   // Main effect to orchestrate fee calculation
@@ -498,6 +513,9 @@ export function usePerpsOrderFees({
           pointsResult.points,
           pointsResult.bonusBips,
           coreFeesResult.feeSource,
+          coreFeesResult.feeSource === 'subscription'
+            ? coreFeesResult.subscription?.remainingNotionalUsd
+            : undefined,
         );
       } catch (fetchError) {
         if (isComponentMounted) {
@@ -564,6 +582,7 @@ export function usePerpsOrderFees({
       estimatedPoints,
       bonusBips,
       feeSource,
+      subscriptionRemainingNotionalUsd,
     };
   }, [
     amount,
@@ -577,6 +596,7 @@ export function usePerpsOrderFees({
     estimatedPoints,
     bonusBips,
     feeSource,
+    subscriptionRemainingNotionalUsd,
   ]);
 }
 

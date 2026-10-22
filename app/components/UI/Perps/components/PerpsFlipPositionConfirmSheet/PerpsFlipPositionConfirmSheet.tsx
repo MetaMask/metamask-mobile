@@ -39,7 +39,8 @@ import {
 } from '@metamask/perps-controller';
 import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../../constants/slippageConfig';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
-import PerpsFeesDisplay from '../PerpsFeesDisplay';
+import PerpsFeesRow from '../PerpsFeesRow';
+import { usePerpsInlineFeesInfo } from '../PerpsTradeBottomSheet/usePerpsInlineFeesInfo';
 import PerpsRebateBanner from '../PerpsRebateBanner';
 import PerpsValidationErrors from '../PerpsValidationErrors';
 import RewardsAnimations, {
@@ -157,6 +158,11 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 
   const vipTier = useVipTier();
 
+  const { showFeesInfo, infoContent } = usePerpsInlineFeesInfo(
+    feeResults,
+    Number.parseFloat(usdAmount) || undefined,
+  );
+
   const handleReverse = useCallback(async () => {
     if (isFlipping || !canFlip) {
       return;
@@ -220,6 +226,19 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     }),
     [handleReverse, isFlipping, canFlip],
   );
+
+  if (infoContent) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={externalSheetRef ? undefined : navigation.goBack}
+        onClose={externalSheetRef ? onClose : undefined}
+        testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
+      >
+        {infoContent}
+      </BottomSheet>
+    );
+  }
 
   return (
     <BottomSheet
@@ -313,30 +332,28 @@ const PerpsFlipPositionConfirmSheet: React.FC<
             </View>
 
             {/* Fees */}
-            <View style={styles.infoRow}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.order.fees')}
-              </Text>
-              <PerpsFeesDisplay
-                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                feeSource={feeResults.feeSource}
-                fee={
-                  !hasValidAmount || feeResults.isLoadingMetamaskFee
-                    ? undefined
-                    : feeResults.totalFee
-                }
-                originalFee={
-                  !hasValidAmount || feeResults.isLoadingMetamaskFee
-                    ? undefined
-                    : feeResults.undiscountedTotalFee
-                }
-                testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
-                variant={TextVariant.BodyMd}
-              />
-            </View>
+            <PerpsFeesRow
+              size="medium"
+              feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+              feeSource={feeResults.feeSource}
+              fee={
+                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                  ? undefined
+                  : feeResults.totalFee
+              }
+              originalFee={
+                !hasValidAmount || feeResults.isLoadingMetamaskFee
+                  ? undefined
+                  : feeResults.undiscountedTotalFee
+              }
+              onInfoPress={showFeesInfo}
+              testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_ROW}
+              valueTestID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
+              infoButtonTestID={
+                PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_INFO_BUTTON
+              }
+              twClassName="py-3"
+            />
 
             {/* Est. Points */}
             {rewardsState.shouldShowRewardsRow &&

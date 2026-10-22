@@ -9,18 +9,16 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsFeesRow from '../../components/PerpsFeesRow';
+import { usePerpsInlineFeesInfo } from '../../components/PerpsTradeBottomSheet/usePerpsInlineFeesInfo';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
@@ -159,10 +157,12 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
   }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
-  const totalFeeRate =
-    (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
-  const feePercentage =
-    totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+  const hasCloseAmount = parseFloat(closeAmountUSDString) > 0;
+
+  const { showFeesInfo, infoContent } = usePerpsInlineFeesInfo(
+    feeResults,
+    parseFloat(closeAmountUSDString) || undefined,
+  );
   const summaryPnlPercentage =
     summaryMargin !== 0
       ? (summaryPnl / Math.abs(summaryMargin)) * 100
@@ -183,6 +183,18 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     effectiveOrderType === 'limit' &&
     !hasLimitPriceValue &&
     !isEditingLimitPrice;
+
+  if (infoContent) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        goBack={navigation.goBack}
+        testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
+      >
+        {infoContent}
+      </BottomSheet>
+    );
+  }
 
   return (
     <BottomSheet
@@ -248,11 +260,31 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       )}
 
       {!isEditingLimitPrice && !isInputFocused && (
-        <PerpsCloseTotals
-          pnl={summaryPnl}
-          pnlPercentage={summaryPnlPercentage}
-          receiveAmount={receiveAmount}
-        />
+        <>
+          <PerpsCloseTotals
+            pnl={summaryPnl}
+            pnlPercentage={summaryPnlPercentage}
+            receiveAmount={receiveAmount}
+          />
+          {/* Same close fee the receive amount already deducts. */}
+          <PerpsFeesRow
+            size="summary"
+            fee={hasCloseAmount ? feeResults.totalFee : undefined}
+            originalFee={
+              hasCloseAmount ? feeResults.undiscountedTotalFee : undefined
+            }
+            feeDiscountPercentage={feeResults.feeDiscountPercentage}
+            feeSource={feeResults.feeSource}
+            isLoading={feeResults.isLoadingMetamaskFee}
+            onInfoPress={showFeesInfo}
+            testID={PerpsClosePositionBottomSheetSelectorsIDs.FEES_ROW}
+            valueTestID={PerpsClosePositionBottomSheetSelectorsIDs.FEES_VALUE}
+            infoButtonTestID={
+              PerpsClosePositionBottomSheetSelectorsIDs.FEES_INFO_BUTTON
+            }
+            twClassName="mt-0.5"
+          />
+        </>
       )}
 
       {/* Figma puts the keypad over the CTA, so the whole footer hides with it.
@@ -290,27 +322,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             }}
             twClassName="pt-3"
           />
-
-          {feePercentage ? (
-            <Box
-              twClassName="flex-row items-center justify-center gap-2 pt-2"
-              testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
-            >
-              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <MembershipVipBadge
-                  hasProEntitlement={feeResults.feeSource === 'subscription'}
-                />
-              ) : null}
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-              >
-                {strings('perps.trade_sheet.includes_fee', {
-                  feePercentage,
-                })}
-              </Text>
-            </Box>
-          ) : null}
         </>
       )}
 

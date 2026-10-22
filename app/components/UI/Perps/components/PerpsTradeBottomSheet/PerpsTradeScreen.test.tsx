@@ -128,7 +128,8 @@ const defaultProps: React.ComponentProps<typeof PerpsTradeScreen> = {
   payWithBalance: '$1,285.82',
   showPayWith: true,
   isPayWithDisabled: false,
-  feePercentage: '0.143',
+  fee: 1.43,
+  originalFee: 1.43,
   isSubmitting: false,
   isSubmitDisabled: false,
   errorMessages: [],
@@ -511,58 +512,82 @@ describe('PerpsTradeScreen errors', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
+      screen.getByTestId(`${PerpsTradeSheetSelectorsIDs.FEES_VALUE}-skeleton`),
     ).toBeOnTheScreen();
   });
 
-  // The header centres its text column and the fee line sits at the bottom of
-  // a bottom-anchored sheet, so either placeholder being shorter than the text
-  // it replaces makes the title (or the whole sheet) jump when the value loads.
-  it('sizes the header price and fee skeletons to the text lines they replace', () => {
-    render(<PerpsTradeScreen {...defaultProps} isHeaderLoading isFeeLoading />);
+  // The header centres its text column, so a placeholder shorter than the
+  // price line it replaces makes the title jump when the value loads.
+  it('sizes the header price skeleton to the text line it replaces', () => {
+    render(<PerpsTradeScreen {...defaultProps} isHeaderLoading />);
 
     expect(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.HEADER_SKELETON),
     ).toHaveStyle({ height: typography.sBodySM.lineHeight });
-    expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
-    ).toHaveStyle({ height: typography.sBodyXS.lineHeight });
   });
 
   it('shows the VIP badge beside the fee for discounted users', () => {
-    render(<PerpsTradeScreen {...defaultProps} feeDiscountPercentage={15} />);
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        fee={1.2}
+        originalFee={1.43}
+        feeDiscountPercentage={15}
+        feeSource="rewards"
+      />,
+    );
 
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
   });
 
-  it('shows the trade fee without a bridge fee', () => {
+  it('shows the total fee in dollars in a Fees row', () => {
     render(<PerpsTradeScreen {...defaultProps} />);
 
     expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
-    ).toHaveTextContent('Includes 0.143% fee');
-    expect(screen.queryByText(/bridge fee/)).not.toBeOnTheScreen();
-  });
-
-  it('appends the bridge fee to the trade fee', () => {
-    render(<PerpsTradeScreen {...defaultProps} bridgeFee="$0.15" />);
-
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEES_VALUE),
+    ).toHaveTextContent('$1.43');
     expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
-    ).toHaveTextContent('Includes 0.143% fee + $0.15 bridge fee');
+      screen.queryByTestId(
+        `${PerpsTradeSheetSelectorsIDs.FEES_VALUE}-original`,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
-  it('shows the fee skeleton instead of a partial fee line while fees are loading', () => {
+  it('no longer shows the fee percentage under the order button', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    expect(screen.queryByText(/Includes .*% fee/)).not.toBeOnTheScreen();
+  });
+
+  it('shows the Orange chip with the struck-through fee for a member', () => {
     render(
-      <PerpsTradeScreen {...defaultProps} isFeeLoading bridgeFee="$0.15" />,
+      <PerpsTradeScreen
+        {...defaultProps}
+        fee={2.5}
+        originalFee={3.5}
+        feeDiscountPercentage={100}
+        feeSource="subscription"
+      />,
     );
 
     expect(
-      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_SKELETON),
-    ).toBeOnTheScreen();
+      screen.getByTestId(`${PerpsTradeSheetSelectorsIDs.FEES_ROW}-member-chip`),
+    ).toHaveTextContent('Orange');
     expect(
-      screen.queryByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId(`${PerpsTradeSheetSelectorsIDs.FEES_VALUE}-original`),
+    ).toHaveTextContent('$3.50');
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEES_VALUE),
+    ).toHaveTextContent('$2.50');
+    expect(screen.queryByText(/saving|waived/)).not.toBeOnTheScreen();
+  });
+
+  it('opens the inline fee breakdown from the Fees row', () => {
+    render(<PerpsTradeScreen {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEES_ROW));
+
+    expect(mockNavigateTo).toHaveBeenCalledWith('feesInfo');
   });
 
   it('shows the limit price row for a limit order', () => {

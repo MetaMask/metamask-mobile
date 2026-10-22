@@ -47,7 +47,7 @@ import {
   getPerpsProOrderFormNoticeTestId,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
-import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
+import PerpsFeesRow from '../../../../components/PerpsFeesRow';
 import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
@@ -319,30 +319,17 @@ const OrderSummary = ({
         testID={ids.SUMMARY_SLIPPAGE}
       />
     ) : null}
-    <KeyValueRow
-      keyLabel={strings('perps.order.fees')}
-      value={
-        <PerpsFeesDisplay
-          fee={fee}
-          originalFee={originalFee}
-          feeDiscountPercentage={feeDiscountPercentage}
-          feeSource={feeSource}
-          testID={ids.SUMMARY_FEES_VALUE}
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Medium}
-        />
-      }
-      keyEndButtonIconProps={buttonIcon(
-        IconName.Info,
-        ids.SUMMARY_FEES_BUTTON,
-        onFeesInfoPress,
-      )}
-      keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryValueTextProps}
-      twClassName={summaryFeesRowClassName}
+    <PerpsFeesRow
+      size="compact"
+      fee={fee}
+      originalFee={originalFee}
+      feeDiscountPercentage={feeDiscountPercentage}
+      feeSource={feeSource}
+      onInfoPress={onFeesInfoPress}
       style={summaryRowStyle}
       testID={ids.SUMMARY_FEES}
+      valueTestID={ids.SUMMARY_FEES_VALUE}
+      infoButtonTestID={ids.SUMMARY_FEES_BUTTON}
     />
   </Box>
 );

@@ -13,6 +13,7 @@ import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 
 const mockHandleFlipPosition = jest.fn();
 let mockIsFlipping = false;
+let mockRewardsDiscount = 0;
 
 // Mock dependencies
 jest.mock('../../../../../util/theme', () => {
@@ -38,7 +39,7 @@ jest.mock('./PerpsFlipPositionConfirmSheet.styles', () => () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key) => {
+  strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'perps.flip_position.title': 'Flip Position',
       'perps.flip_position.direction': 'Direction',
@@ -50,8 +51,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.short_label': 'Short',
       'perps.order.fees': 'Fees',
       'perps.estimated_points': 'Est. Points',
+      'pro_subscription.pro': 'Orange',
+      'perps.fees_row.member_accessibility_label': '{{plan}} member',
+      'perps.fees_row.was': 'was {{fee}}',
+      'perps.fees_row.info_accessibility_label': 'About fees',
     };
-    return translations[key] || key;
+    const template = translations[key] || key;
+    return Object.entries(params ?? {}).reduce(
+      (text, [name, value]) => text.replace(`{{${name}}}`, value),
+      template,
+    );
   }),
 }));
 
@@ -72,12 +81,42 @@ jest.mock('../../hooks', () => ({
     shouldShowRewardsRow: false,
     estimatedPoints: undefined,
     accountOptedIn: false,
-    feeDiscountPercentage: 0,
+    feeDiscountPercentage: mockRewardsDiscount,
     hasError: false,
     bonusBips: 0,
   }),
   usePerpsMeasurement: jest.fn(),
 }));
+jest.mock('../PerpsTradeBottomSheet/PerpsTradeNestedScreens', () => {
+  const { Pressable, Text, View } = jest.requireActual('react-native');
+  return {
+    PerpsInlineFeesInfoScreen: ({
+      data,
+      onBack,
+      onOpenOrangeInfo,
+    }: {
+      data: { feeSource?: string; metamaskFeeRate?: number };
+      onBack: () => void;
+      onOpenOrangeInfo: () => void;
+    }) => (
+      <View testID="inline-fees-info">
+        <Text>{`${data.feeSource}:${data.metamaskFeeRate}`}</Text>
+        <Pressable testID="inline-fees-back" onPress={onBack} />
+        <Pressable testID="inline-fees-orange" onPress={onOpenOrangeInfo} />
+      </View>
+    ),
+    PerpsInlineOrangeFeesInfoScreen: ({ onBack }: { onBack: () => void }) => (
+      <Pressable testID="inline-orange-info" onPress={onBack} />
+    ),
+  };
+});
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="rewards-vip-badge" />,
+  };
+});
 const mockPerpsRebateBanner = jest.fn(
   (_props: Record<string, unknown>) => null,
 );
@@ -119,22 +158,6 @@ jest.mock('@metamask/perps-controller', () => {
   return {
     ...actual,
     getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
-  };
-});
-
-jest.mock('../PerpsFeesDisplay', () => {
-  const ReactModule = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return function MockPerpsFeesDisplay({
-    fee,
-    placeholder,
-  }: {
-    fee?: number;
-    placeholder?: string;
-  }) {
-    const text =
-      fee !== undefined ? `$${fee.toFixed(2)}` : (placeholder ?? '--');
-    return ReactModule.createElement(Text, null, text);
   };
 });
 
@@ -202,6 +225,7 @@ describe('PerpsFlipPositionConfirmSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFlipping = false;
+    mockRewardsDiscount = 0;
     (usePerpsOrderFees as jest.Mock).mockReturnValue({
       totalFee: 0.5,
       makerFee: 0.2,
@@ -354,5 +378,95 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     expect(usePerpsOrderFees).toHaveBeenCalledWith(
       expect.objectContaining({ amount: '12510' }),
     );
+  });
+
+  describe('fees row', () => {
+    const memberFees = {
+      totalFee: 2.54,
+      undiscountedTotalFee: 3.54,
+      metamaskFeeRate: 0.00059,
+      protocolFeeRate: 0.00045,
+      originalMetamaskFeeRate: 0.001,
+      feeDiscountPercentage: 41,
+      feeSource: 'subscription',
+      isLoadingMetamaskFee: false,
+    };
+
+    it('shows the shared Fees row with the Orange chip for a member', () => {
+      mockRewardsDiscount = 41;
+      (usePerpsOrderFees as jest.Mock).mockReturnValue(memberFees);
+
+      render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+      const { FEES_ROW, FEES_VALUE } =
+        PerpsFlipPositionConfirmSheetSelectorsIDs;
+      expect(screen.getByText('Fees')).toBeOnTheScreen();
+      expect(screen.getByTestId(`${FEES_ROW}-member-chip`)).toHaveTextContent(
+        'Orange',
+      );
+      expect(screen.getByTestId(`${FEES_VALUE}-original`)).toHaveTextContent(
+        '$3.54',
+      );
+      expect(screen.getByTestId(FEES_VALUE)).toHaveTextContent('$2.54');
+      expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+      expect(screen.getByTestId(FEES_ROW).props.accessibilityLabel).toBe(
+        'Fees, Orange member, $2.54, was $3.54. About fees',
+      );
+    });
+
+    it('keeps the plain fee for a non-member', () => {
+      render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+      const { FEES_ROW, FEES_VALUE } =
+        PerpsFlipPositionConfirmSheetSelectorsIDs;
+      expect(screen.getByTestId(FEES_VALUE)).toHaveTextContent('$0.50');
+      expect(
+        screen.queryByTestId(`${FEES_ROW}-member-chip`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(`${FEES_VALUE}-original`),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the VIP badge and strike-through for a VIP discount', () => {
+      mockRewardsDiscount = 20;
+      (usePerpsOrderFees as jest.Mock).mockReturnValue({
+        ...memberFees,
+        totalFee: 3.2,
+        undiscountedTotalFee: 3.54,
+        feeSource: 'rewards',
+      });
+
+      render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+      const { FEES_ROW } = PerpsFlipPositionConfirmSheetSelectorsIDs;
+      expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(`${FEES_ROW}-member-chip`),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the fee breakdown inline and the Orange explainer from it', () => {
+      mockRewardsDiscount = 41;
+      (usePerpsOrderFees as jest.Mock).mockReturnValue(memberFees);
+
+      render(<PerpsFlipPositionConfirmSheet position={mockLongPosition} />);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_ROW),
+      );
+      expect(screen.getByTestId('inline-fees-info')).toBeOnTheScreen();
+      expect(screen.getByText('subscription:0.00059')).toBeOnTheScreen();
+      expect(screen.queryByText('Flip Position')).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('inline-fees-orange'));
+      expect(screen.getByTestId('inline-orange-info')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('inline-orange-info'));
+      expect(screen.getByTestId('inline-fees-info')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('inline-fees-back'));
+      expect(screen.getByText('Flip Position')).toBeOnTheScreen();
+    });
   });
 });

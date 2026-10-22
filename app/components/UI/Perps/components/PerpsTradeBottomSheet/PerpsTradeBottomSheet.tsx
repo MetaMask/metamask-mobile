@@ -32,7 +32,9 @@ export type PerpsTradeSheetScreen =
   | 'tpsl'
   | 'payWith'
   | 'marginInfo'
-  | 'liquidationInfo';
+  | 'liquidationInfo'
+  | 'feesInfo'
+  | 'orangeFeesInfo';
 
 type ScreenDirection = 1 | -1;
 const SCREEN_SLIDE_OFFSET = 24;

@@ -1845,8 +1845,6 @@
       "close": "Close trade",
       "settings": "Settings",
       "order_summary": "Order summary",
-      "includes_fee": "Includes {{feePercentage}}% fee",
-      "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
@@ -1854,6 +1852,11 @@
       "max_leverage_accessibility_label": "Up to {{maxLeverage}}x leverage",
       "margin_info_accessibility_label": "About margin",
       "liquidation_price_info_accessibility_label": "About liquidation price"
+    },
+    "fees_row": {
+      "member_accessibility_label": "{{plan}} member",
+      "was": "was {{fee}}",
+      "info_accessibility_label": "About fees"
     },
     "mode": {
       "lite": "Lite",
@@ -3052,7 +3055,15 @@
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
-        "member_discount_message": "You're saving {{percentage}}% on fees as a member."
+        "member_discount_message": "You're saving {{percentage}}% on the MetaMask fee for this trade.",
+        "orange_covers_full": "Orange covers the MetaMask fee on this trade.",
+        "orange_covers_partial": "Orange covers the MetaMask fee on {{covered}} of this {{notional}} position."
+      },
+      "orange_fees": {
+        "title": "About Orange fees",
+        "content": "Orange covers the MetaMask fee on up to $1,000 of position size each billing period. The provider fee still applies.",
+        "content_with_allowance": "Orange covers the MetaMask fee on up to {{allowance}} of position size each billing period. The provider fee still applies.",
+        "remaining": "You have {{amount}} left until {{date}}."
       },
       "size_skew": {
         "title": "Size skew",

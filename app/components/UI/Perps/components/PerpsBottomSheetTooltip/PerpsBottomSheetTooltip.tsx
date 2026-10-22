@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/check-indentation */
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo, useState } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -13,7 +13,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
+import {
+  PerpsBottomSheetTooltipProps,
+  PerpsTooltipContentKey,
+} from './PerpsBottomSheetTooltip.types';
 import { tooltipContentRegistry } from './content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -51,20 +54,28 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     buttonLocation,
   }) => {
     const bottomSheetRef = useRef<BottomSheetRef>(null);
+    // Content opened from inside this tooltip, e.g. the Orange fees
+    // explainer from the fees breakdown. "Got it" returns to `contentKey`.
+    const [nestedContentKey, setNestedContentKey] =
+      useState<PerpsTooltipContentKey>();
+    const activeContentKey = nestedContentKey ?? contentKey;
 
     const title = useMemo(
-      () => strings(`perps.tooltips.${contentKey}.title`),
-      [contentKey],
+      () => strings(`perps.tooltips.${activeContentKey}.title`),
+      [activeContentKey],
     );
 
     const renderContent = () => {
-      const CustomRenderer = tooltipContentRegistry[contentKey];
+      const CustomRenderer = tooltipContentRegistry[activeContentKey];
 
       if (CustomRenderer) {
         return (
           <CustomRenderer
             testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
             data={data}
+            onOpenNestedInfo={
+              nestedContentKey ? undefined : setNestedContentKey
+            }
           />
         );
       }
@@ -75,7 +86,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
           color={TextColor.TextAlternative}
           testID={PerpsBottomSheetTooltipSelectorsIDs.CONTENT}
         >
-          {strings(`perps.tooltips.${contentKey}.content`)}
+          {strings(`perps.tooltips.${activeContentKey}.content`)}
         </Text>
       );
     };
@@ -86,7 +97,16 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       bottomSheetRef.current?.onCloseBottomSheet();
     }, []);
 
+    const handleSheetClose = useCallback(() => {
+      setNestedContentKey(undefined);
+      onClose();
+    }, [onClose]);
+
     const handleGotItPress = useCallback(() => {
+      if (nestedContentKey) {
+        setNestedContentKey(undefined);
+        return;
+      }
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -96,7 +116,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
           buttonLocation ?? PERPS_EVENT_VALUE.BUTTON_LOCATION.TOOLTIP,
       });
       handleClose();
-    }, [track, handleClose, buttonLocation]);
+    }, [track, handleClose, buttonLocation, nestedContentKey]);
 
     const buttonLabel = useMemo(
       () => strings('perps.tooltips.got_it_button'),
@@ -113,18 +133,37 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
       [buttonLabel, handleGotItPress],
     );
 
-    const primaryButtonProps = buttonConfigProps?.[0] ?? primaryButtonDefault;
-    const secondaryButtonProps = buttonConfigProps?.[1];
+    // Nested content always gets the default "Got it", which returns.
+    const primaryButtonProps =
+      (nestedContentKey ? undefined : buttonConfigProps?.[0]) ??
+      primaryButtonDefault;
+    const secondaryButtonProps = nestedContentKey
+      ? undefined
+      : buttonConfigProps?.[1];
 
     const hasCustomHeader =
-      contentKey === 'market_hours' || contentKey === 'after_hours_trading';
+      activeContentKey === 'market_hours' ||
+      activeContentKey === 'after_hours_trading';
 
     if (!isVisible || !title) return null;
 
     return (
-      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={handleSheetClose}
+        testID={testID}
+      >
         {!hasCustomHeader && (
           <BottomSheetHeader
+            onBack={
+              nestedContentKey
+                ? () => setNestedContentKey(undefined)
+                : undefined
+            }
+            backButtonProps={{
+              accessibilityLabel: strings('navigation.back'),
+              testID: PerpsBottomSheetTooltipSelectorsIDs.BACK_BUTTON,
+            }}
             onClose={handleClose}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
           >

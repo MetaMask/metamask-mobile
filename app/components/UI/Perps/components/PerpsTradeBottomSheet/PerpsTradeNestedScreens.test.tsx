@@ -24,8 +24,10 @@ import {
   resetPerpsPaymentTokenSelection,
 } from '../../utils/perpsPaymentTokenSelection';
 import {
+  PerpsTradeFeesInfoScreen,
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
+  PerpsTradeOrangeFeesInfoScreen,
   PerpsTradePayWithScreen,
   PerpsTradeTPSLScreen,
 } from './PerpsTradeNestedScreens';
@@ -33,6 +35,7 @@ import {
 jest.mock('../../../../../util/haptics');
 
 const mockGoBack = jest.fn();
+const mockNavigateTo = jest.fn();
 const mockClose = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigationListeners: Record<string, () => void> = {};
@@ -67,9 +70,20 @@ let mockExpectedStopLossPnL: number | undefined;
 jest.mock('./PerpsTradeBottomSheet', () => ({
   usePerpsTradeSheet: () => ({
     goBack: mockGoBack,
+    navigateTo: mockNavigateTo,
     close: mockClose,
   }),
 }));
+
+jest.mock('../PerpsBottomSheetTooltip/content/OrangeFeesTooltipContent', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID: string }) => (
+      <Text testID={testID}>Orange fees explainer</Text>
+    ),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -394,6 +408,82 @@ describe('PerpsTradeNestedScreens', () => {
 
       expect(onConfirm).toHaveBeenCalledWith(5, 'preset');
       expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+  });
+
+  describe('PerpsTradeFeesInfoScreen', () => {
+    it('renders the fee breakdown inline and returns to Trade from Got it', () => {
+      render(
+        <PerpsTradeFeesInfoScreen
+          data={{
+            metamaskFeeRate: 0.001,
+            protocolFeeRate: 0.00045,
+            bridgeFeeFormatted: '$0.15',
+          }}
+        />,
+      );
+
+      expect(screen.getByText('Fees')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEES_INFO_SCREEN),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('0.100%')).toBeOnTheScreen();
+      expect(screen.getByText('0.045%')).toBeOnTheScreen();
+      expect(screen.getByText('$0.15')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({ button_clicked: 'tooltip' }),
+      );
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens the Orange fees explainer from the Orange chip info button', () => {
+      render(
+        <PerpsTradeFeesInfoScreen
+          data={{
+            metamaskFeeRate: 0,
+            protocolFeeRate: 0.00045,
+            originalMetamaskFeeRate: 0.001,
+            feeDiscountPercentage: 100,
+            feeSource: 'subscription',
+          }}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${PerpsTradeSheetSelectorsIDs.FEES_INFO_SCREEN}-orange-info`,
+        ),
+      );
+
+      expect(mockNavigateTo).toHaveBeenCalledWith('orangeFeesInfo');
+    });
+  });
+
+  describe('PerpsTradeOrangeFeesInfoScreen', () => {
+    it('shows the explainer and returns to the fee breakdown', () => {
+      render(<PerpsTradeOrangeFeesInfoScreen />);
+
+      expect(screen.getByText('About Orange fees')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.ORANGE_FEES_INFO_SCREEN),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      );
+
+      expect(mockNavigateTo).toHaveBeenNthCalledWith(1, 'feesInfo');
+      expect(mockNavigateTo).toHaveBeenNthCalledWith(2, 'feesInfo');
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 

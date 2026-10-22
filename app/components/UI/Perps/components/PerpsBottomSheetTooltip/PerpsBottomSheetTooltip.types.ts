@@ -48,6 +48,7 @@ export type PerpsTooltipContentKey =
   | 'liquidation_distance'
   | 'margin'
   | 'fees'
+  | 'orange_fees'
   | 'closing_fees'
   | 'withdrawal_fees'
   | 'receive'

@@ -47,6 +47,12 @@ interface PerpsFeesDisplayProps {
   /** Main fee value color. Defaults to `TextAlternative` for legacy screens. */
   color?: TextColor;
   fontWeight?: FontWeight;
+  /**
+   * Whether to render the VIP/member badge for a discount. Defaults to true.
+   * `PerpsFeesRow` turns it off for a subscription waiver, which it explains
+   * in its own sub-line instead.
+   */
+  showBadge?: boolean;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
@@ -59,6 +65,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   variant = TextVariant.BodyMd,
   color = TextColor.TextAlternative,
   fontWeight,
+  showBadge = true,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -87,7 +94,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   return (
     <View style={styles.feeRowContent}>
-      {hasDiscount ? (
+      {hasDiscount && showBadge ? (
         <View style={styles.vipBadgeContainer}>
           <MembershipVipBadge
             hasProEntitlement={feeSource === 'subscription'}

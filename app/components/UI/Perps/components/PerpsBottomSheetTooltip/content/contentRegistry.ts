@@ -2,6 +2,7 @@ import FeesTooltipContent from './FeesTooltipContent';
 import TPSLCountWarningTooltipContent from './TPSLCountWarningTooltipContent';
 import WithdrawalFeesTooltipContent from './WithdrawalFeesTooltipContent';
 import MarketHoursContent from './MarketHoursContent';
+import OrangeFeesTooltipContent from './OrangeFeesTooltipContent';
 import { ContentRegistry } from './types';
 
 /**
@@ -16,6 +17,7 @@ import { ContentRegistry } from './types';
  */
 export const tooltipContentRegistry: ContentRegistry = {
   fees: FeesTooltipContent, // Now works for both order and close position views
+  orange_fees: OrangeFeesTooltipContent,
   closing_fees: FeesTooltipContent, // Use the same component, it handles both cases
   withdrawal_fees: WithdrawalFeesTooltipContent,
   receive: undefined,

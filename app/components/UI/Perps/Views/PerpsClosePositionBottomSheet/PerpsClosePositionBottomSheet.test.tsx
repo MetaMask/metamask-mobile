@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionBottomSheetSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
   defaultMinimumOrderAmountMock,
@@ -329,11 +330,13 @@ describe('PerpsClosePositionBottomSheet', () => {
       );
     });
 
-    it('renders receive and P&L rows without a margin or separate fees row', () => {
+    it('renders receive, P&L and fees rows without a margin row', () => {
       const { getByTestId, getByText, queryByText } = renderSheet();
 
       expect(queryByText(strings('perps.close_position.margin'))).toBeNull();
-      expect(queryByText(strings('perps.close_position.fees'))).toBeNull();
+      expect(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEES_ROW),
+      ).toBeOnTheScreen();
       expect(
         getByText(strings('perps.close_position.total_receive')),
       ).toBeOnTheScreen();
@@ -942,52 +945,75 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
   });
 
-  describe('fee disclaimer', () => {
-    it('renders the combined fee rate beneath the CTA', () => {
-      const { getByTestId } = renderSheet();
+  describe('fees row', () => {
+    const { FEES_ROW, FEES_VALUE } = PerpsClosePositionBottomSheetSelectorsIDs;
 
-      expect(
-        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
-      ).toHaveTextContent(
-        strings('perps.trade_sheet.includes_fee', { feePercentage: '0.045' }),
-      );
+    it('shows the close fee in dollars below Included P&L for a non-member', () => {
+      const { getByTestId, queryByTestId, queryByText } = renderSheet();
+
+      expect(getByTestId(FEES_VALUE)).toHaveTextContent('$45');
+      expect(queryByTestId(`${FEES_ROW}-member-chip`)).toBeNull();
+      expect(queryByTestId(`${FEES_VALUE}-original`)).toBeNull();
+      expect(queryByText(/Includes .*% fee/)).toBeNull();
     });
 
-    it('hides the fee rate while the keypad covers the CTA', () => {
+    it('hides the row while the keypad covers the totals', () => {
       const utils = renderSheet();
 
       toggleOrderType(utils);
 
-      expect(
-        utils.queryByTestId(
-          PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
-        ),
-      ).toBeNull();
+      expect(utils.queryByTestId(FEES_ROW)).toBeNull();
     });
 
-    it('omits the fee rate when no fee rates are available', () => {
+    it('shows the Orange chip and strike-through for a member', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
-        protocolFeeRate: undefined,
-        metamaskFeeRate: undefined,
+        totalFee: 1.16,
+        undiscountedTotalFee: 1.77,
+        feeDiscountPercentage: 82,
+        feeSource: 'subscription',
       });
 
-      const { queryByTestId } = renderSheet();
+      const { getByTestId, queryByTestId } = renderSheet();
 
-      expect(
-        queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
-      ).toBeNull();
+      expect(getByTestId(`${FEES_ROW}-member-chip`)).toHaveTextContent(
+        'Orange',
+      );
+      expect(getByTestId(`${FEES_VALUE}-original`)).toHaveTextContent('$1.77');
+      expect(getByTestId(FEES_VALUE)).toHaveTextContent('$1.16');
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
     });
 
-    it('shows the VIP badge when the fee discount is active', () => {
+    it('keeps the VIP badge when a VIP discount is active', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
+        totalFee: 38,
         feeDiscountPercentage: 15,
+        feeSource: 'rewards',
       });
 
-      const { getByTestId } = renderSheet();
+      const { getByTestId, queryByTestId } = renderSheet();
 
       expect(getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+      expect(queryByTestId(`${FEES_ROW}-member-chip`)).toBeNull();
+    });
+
+    it('opens the fee breakdown inline and returns from it', () => {
+      const { getByTestId, getByText, queryByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(FEES_ROW));
+
+      expect(getByText(strings('perps.tooltips.fees.title'))).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsTradeSheetSelectorsIDs.FEES_INFO_SCREEN),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(FEES_ROW)).toBeNull();
+
+      fireEvent.press(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_GOT_IT_BUTTON),
+      );
+
+      expect(getByTestId(FEES_ROW)).toBeOnTheScreen();
     });
   });
 

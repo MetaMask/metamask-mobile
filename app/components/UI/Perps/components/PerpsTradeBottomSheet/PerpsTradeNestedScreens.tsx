@@ -31,6 +31,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import { hasPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import PerpsLeverageBottomSheet from '../PerpsLeverageBottomSheet';
+import FeesTooltipContent from '../PerpsBottomSheetTooltip/content/FeesTooltipContent';
+import OrangeFeesTooltipContent from '../PerpsBottomSheetTooltip/content/OrangeFeesTooltipContent';
 import { usePerpsTradeSheet } from './PerpsTradeBottomSheet';
 export { default as PerpsTradeTPSLScreen } from './PerpsTradeTPSLScreen';
 
@@ -79,34 +81,42 @@ export type PerpsInlineInfoContentKey =
   | 'liquidation_price'
   | 'liquidation_distance';
 
-interface PerpsInlineInfoScreenProps {
-  contentKey: PerpsInlineInfoContentKey;
+interface PerpsInlineInfoLayoutProps {
+  title: string;
   onBack: () => void;
+  /**
+   * Reports "Got it" with the same interaction event the standalone tooltip
+   * sheet sends, so the A/B variants stay comparable in analytics.
+   */
+  trackGotIt?: boolean;
+  children: React.ReactNode;
 }
 
 /**
- * Short read-only explainer shared by bottom-sheet flows so tapping an info
- * icon replaces the current sheet content instead of stacking another modal.
+ * Header with Back, body and "Got it" footer shared by the inline info
+ * screens. "Got it" and Back both call `onBack`.
  */
-export const PerpsInlineInfoScreen: React.FC<PerpsInlineInfoScreenProps> = ({
-  contentKey,
+const PerpsInlineInfoLayout: React.FC<PerpsInlineInfoLayoutProps> = ({
+  title,
   onBack,
+  trackGotIt = false,
+  children,
 }) => {
   const { track } = usePerpsEventTracking();
 
-  // Same interaction event the standalone tooltip sheet reports, so the A/B
-  // variants stay comparable in analytics.
   const handleGotItPress = useCallback(() => {
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.TOOLTIP,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
-    });
+    if (trackGotIt) {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.TOOLTIP,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
+      });
+    }
     onBack();
-  }, [onBack, track]);
+  }, [onBack, track, trackGotIt]);
 
   const gotItButtonProps = useMemo(
     () => ({
@@ -121,7 +131,7 @@ export const PerpsInlineInfoScreen: React.FC<PerpsInlineInfoScreenProps> = ({
   return (
     <Box accessible={false} testID={PerpsTradeSheetSelectorsIDs.INFO_SCREEN}>
       <HeaderStandard
-        title={strings(`perps.tooltips.${contentKey}.title`)}
+        title={title}
         onBack={onBack}
         backButtonProps={{
           testID: PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON,
@@ -129,14 +139,36 @@ export const PerpsInlineInfoScreen: React.FC<PerpsInlineInfoScreenProps> = ({
         }}
       />
       <Box accessible={false} paddingHorizontal={4} paddingVertical={3}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings(`perps.tooltips.${contentKey}.content`)}
-        </Text>
+        {children}
       </Box>
       <BottomSheetFooter primaryButtonProps={gotItButtonProps} />
     </Box>
   );
 };
+
+interface PerpsInlineInfoScreenProps {
+  contentKey: PerpsInlineInfoContentKey;
+  onBack: () => void;
+}
+
+/**
+ * Short read-only explainer shared by bottom-sheet flows so tapping an info
+ * icon replaces the current sheet content instead of stacking another modal.
+ */
+export const PerpsInlineInfoScreen: React.FC<PerpsInlineInfoScreenProps> = ({
+  contentKey,
+  onBack,
+}) => (
+  <PerpsInlineInfoLayout
+    title={strings(`perps.tooltips.${contentKey}.title`)}
+    onBack={onBack}
+    trackGotIt
+  >
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {strings(`perps.tooltips.${contentKey}.content`)}
+    </Text>
+  </PerpsInlineInfoLayout>
+);
 
 interface PerpsTradeInfoScreenProps {
   contentKey: PerpsInlineInfoContentKey;
@@ -148,6 +180,88 @@ export const PerpsTradeInfoScreen: React.FC<PerpsTradeInfoScreenProps> = (
   const { goBack } = usePerpsTradeSheet();
 
   return <PerpsInlineInfoScreen {...props} onBack={goBack} />;
+};
+
+interface PerpsInlineFeesInfoScreenProps {
+  data?: React.ComponentProps<typeof FeesTooltipContent>['data'];
+  onBack: () => void;
+  /** Opens the Orange fees explainer from the Orange chip's info icon. */
+  onOpenOrangeInfo?: () => void;
+}
+
+/**
+ * Fee breakdown shown inline in a bottom sheet when its Fees row is tapped.
+ * Same content as the full-screen order view's fees tooltip, without stacking
+ * another bottom sheet on top of the current one.
+ */
+export const PerpsInlineFeesInfoScreen: React.FC<
+  PerpsInlineFeesInfoScreenProps
+> = ({ data, onBack, onOpenOrangeInfo }) => (
+  <PerpsInlineInfoLayout
+    title={strings('perps.tooltips.fees.title')}
+    onBack={onBack}
+    trackGotIt
+  >
+    <FeesTooltipContent
+      testID={PerpsTradeSheetSelectorsIDs.FEES_INFO_SCREEN}
+      data={data}
+      onOpenNestedInfo={onOpenOrangeInfo}
+    />
+  </PerpsInlineInfoLayout>
+);
+
+type PerpsTradeFeesInfoScreenProps = Pick<
+  PerpsInlineFeesInfoScreenProps,
+  'data'
+>;
+
+/** The inline fee breakdown inside the Trade sheet. */
+export const PerpsTradeFeesInfoScreen: React.FC<
+  PerpsTradeFeesInfoScreenProps
+> = ({ data }) => {
+  const { goBack, navigateTo } = usePerpsTradeSheet();
+  const handleOpenOrangeInfo = useCallback(
+    () => navigateTo('orangeFeesInfo'),
+    [navigateTo],
+  );
+
+  return (
+    <PerpsInlineFeesInfoScreen
+      data={data}
+      onBack={goBack}
+      onOpenOrangeInfo={handleOpenOrangeInfo}
+    />
+  );
+};
+
+interface PerpsInlineOrangeFeesInfoScreenProps {
+  /** Back and "Got it" both return to the fee breakdown. */
+  onBack: () => void;
+}
+
+/**
+ * Orange fees explainer, opened from the info icon beside the Orange chip on
+ * the inline fee breakdown.
+ */
+export const PerpsInlineOrangeFeesInfoScreen: React.FC<
+  PerpsInlineOrangeFeesInfoScreenProps
+> = ({ onBack }) => (
+  <PerpsInlineInfoLayout
+    title={strings('perps.tooltips.orange_fees.title')}
+    onBack={onBack}
+  >
+    <OrangeFeesTooltipContent
+      testID={PerpsTradeSheetSelectorsIDs.ORANGE_FEES_INFO_SCREEN}
+    />
+  </PerpsInlineInfoLayout>
+);
+
+/** The Orange fees explainer inside the Trade sheet. */
+export const PerpsTradeOrangeFeesInfoScreen: React.FC = () => {
+  const { navigateTo } = usePerpsTradeSheet();
+  const backToFees = useCallback(() => navigateTo('feesInfo'), [navigateTo]);
+
+  return <PerpsInlineOrangeFeesInfoScreen onBack={backToFees} />;
 };
 
 /**
