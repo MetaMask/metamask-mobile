@@ -121,7 +121,10 @@ export interface UsePendingPostsOverlayOptions {
 }
 
 export interface UsePendingPostsOverlayResult extends PendingPostsOverlay {
-  /** A user refresh: releases settled pinned posts, then refetches. */
+  /**
+   * A user refresh: releases this surface's settled pinned posts (when it has
+   * an owner), then refetches.
+   */
   refresh: () => Promise<void>;
 }
 
@@ -218,10 +221,14 @@ export const usePendingPostsOverlay = ({
     [entries, ownerProfileId, serverPosts, surface],
   );
 
+  // Only a refresh of the surface that shows the pins may release them: the
+  // hook also backs Trending and other traders' profiles, with no owner.
   const refresh = useCallback(async () => {
-    dismissSettledPendingPosts(surface);
+    if (ownerProfileId) {
+      dismissSettledPendingPosts(surface);
+    }
     await refetchRef.current();
-  }, [surface]);
+  }, [ownerProfileId, surface]);
 
   return { ...overlay, refresh };
 };

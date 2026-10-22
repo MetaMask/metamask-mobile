@@ -475,6 +475,12 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showInitialFeedSkeletons = visibleAssetFeed
     ? visibleAssetFeed.isLoading && visibleAssetFeed.posts.length === 0
     : isLoading && posts.length === 0;
+  // Posting opens Following, often before its first page has loaded: the
+  // viewer's pinned post stays on screen above the skeletons meanwhile.
+  const showPinnedPostsWhileLoading =
+    showInitialFeedSkeletons &&
+    !visibleAssetFeed &&
+    visiblePinnedPosts.length > 0;
   // The tab feed itself came back empty. A selected token, Following filters,
   // or hidden posts can also leave the list blank; those stay quiet.
   const showTrueEmptyFeed =
@@ -545,7 +551,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   onTokenPress={handleHotTokenPress}
                 />
               ) : null}
-              {showInitialFeedSkeletons ? (
+              {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (
                 <SocialFeedSkeleton />
               ) : (
                 <>
@@ -573,6 +579,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                       )}
                     </Fragment>
                   ))}
+                  {showPinnedPostsWhileLoading ? <SocialFeedSkeleton /> : null}
                 </>
               )}
               {showNextPageSpinner ? (

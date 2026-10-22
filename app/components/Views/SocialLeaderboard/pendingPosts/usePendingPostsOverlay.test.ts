@@ -5,6 +5,7 @@ import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   addPendingPost,
+  confirmPendingPosts,
   getPendingPostsSnapshot,
   type PendingPostEntry,
   resetPendingPosts,
@@ -165,6 +166,56 @@ describe('usePendingPostsOverlay', () => {
   beforeEach(() => {
     resetPendingPosts();
     jest.mocked(useSelector).mockReturnValue(true);
+  });
+
+  it('releases nothing when a surface without an owner is refreshed', async () => {
+    addPendingPost({
+      ownerProfileId: OWNER,
+      post: { ...buildPost('pending-comment-1'), commentId: 'comment-1' },
+    });
+    confirmPendingPosts([
+      { ...buildPost('server-row'), commentId: 'comment-1' },
+    ]);
+    const refetch = jest.fn(async () => undefined);
+    const { result } = renderHook(() =>
+      usePendingPostsOverlay({
+        surface: 'posts',
+        ownerProfileId: undefined,
+        serverPosts: [],
+        refetch,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(refetch).toHaveBeenCalledTimes(1);
+    expect(getPendingPostsSnapshot()[0].dismissedOn.posts).toBe(false);
+  });
+
+  it('releases the owner’s settled posts on their surface’s refresh', async () => {
+    addPendingPost({
+      ownerProfileId: OWNER,
+      post: { ...buildPost('pending-comment-1'), commentId: 'comment-1' },
+    });
+    confirmPendingPosts([
+      { ...buildPost('server-row'), commentId: 'comment-1' },
+    ]);
+    const { result } = renderHook(() =>
+      usePendingPostsOverlay({
+        surface: 'posts',
+        ownerProfileId: OWNER,
+        serverPosts: [],
+        refetch: async () => undefined,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(getPendingPostsSnapshot()[0].dismissedOn.posts).toBe(true);
   });
 
   it('clears every pending post when the wallet locks', () => {

@@ -10,6 +10,8 @@ import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFe
 import { mockOpenPerpsFeedItem } from '../../../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   addPendingPost,
+  confirmPendingPosts,
+  getPendingPostsSnapshot,
   resetPendingPosts,
 } from '../../../pendingPosts/pendingPostsStore';
 import { useSocialV1Feed } from './useSocialV1Feed';
@@ -264,6 +266,27 @@ describe('useSocialV1Feed', () => {
       });
 
       expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('keeps the Following pin when Trending is refreshed', async () => {
+      act(() => {
+        addPendingPost({ ownerProfileId: OWNER, post: pendingPost() });
+        confirmPendingPosts([
+          {
+            ...toSocialFeedPosts([buildRow('pos-2')])[0],
+            commentId: 'comment-1',
+          },
+        ]);
+      });
+      const { result } = renderHook(() =>
+        useSocialV1Feed('trending', { ownerProfileId: OWNER }),
+      );
+
+      await act(async () => {
+        await result.current.refresh();
+      });
+
+      expect(getPendingPostsSnapshot()[0].dismissedOn.following).toBe(false);
     });
 
     it('releases a confirmed post on a user refresh', async () => {

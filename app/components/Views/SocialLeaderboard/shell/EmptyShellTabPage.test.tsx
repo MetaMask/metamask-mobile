@@ -760,6 +760,40 @@ describe('EmptyShellTabPage', () => {
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
   });
 
+  it('keeps the pinned post above the skeletons while Following first loads', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
+      ...mockUseSocialV1FeedLoading(),
+      pinnedPosts: [
+        {
+          id: 'pending-comment-1',
+          commentId: 'comment-1',
+          authorHandle: 'Giga Whale',
+          timestampMs: 1,
+          reactions: [],
+          isPending: true,
+          item: mockOpenPerpsFeedItem({ id: 'pinned-item' }),
+        },
+      ],
+    }));
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-pinned-item'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
   describe('asset feed for a selected chip', () => {
     const tokenFeedPost = {
       id: 'token-feed-post',
