@@ -9,17 +9,31 @@ on:
       - main
   workflow_dispatch:
 
+# Workflow-level write is overly broad: it would apply to every job.
+# security-events: write is granted only on the job that uploads SARIF.
 permissions:
-  actions: read
   contents: read
-  security-events: write
 
 jobs:
   run-security-scan:
     name: MetaMask Security Code Scanner
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
     with:
       scanner-ref: v2.1.1
+      # ubuntu-latest cannot finish these detected languages, so they fail the
+      # required check before any finding is reported. Swift needs macOS. C/C++
+      # has no compiled source. Java looks for ./mvnw, which this repo does not
+      # have. JavaScript, TypeScript, Python, Ruby, Actions, and Semgrep still run.
+      languages-config: |
+        [
+          {"language":"swift","ignore":true},
+          {"language":"cpp","ignore":true},
+          {"language":"java","ignore":true}
+        ]
       paths-ignored: |
         tests/
         docs/
@@ -36,3 +50,18 @@ jobs:
     secrets:
       project-metrics-token: ${{ secrets.SECURITY_SCAN_METRICS_TOKEN }}
       slack-webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
+
+  security-scan-required:
+    name: Security scan required
+    needs: run-security-scan
+    if: always() && github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a successful security scan
+        env:
+          SCAN_RESULT: ${{ needs.run-security-scan.result }}
+        run: |
+          if [ "$SCAN_RESULT" != "success" ]; then
+            echo "Security scan result is '$SCAN_RESULT'. Pull requests require this scan to run and succeed."
+            exit 1
+          fi
